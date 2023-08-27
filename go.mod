@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/adjust/rmq/v5 v5.2.0
-	github.com/aws/aws-sdk-go v1.44.204
+	github.com/aws/aws-sdk-go v1.44.332
 	github.com/bsm/redislock v0.9.4
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/emicklei/go-restful-openapi/v2 v2.9.1
