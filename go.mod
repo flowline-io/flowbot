@@ -12,7 +12,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.2
 	github.com/go-echarts/go-echarts/v2 v2.2.7
 	github.com/go-openapi/spec v0.20.9
-	github.com/go-playground/validator/v10 v10.14.1
+	github.com/go-playground/validator/v10 v10.15.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
