@@ -33,7 +33,7 @@ require (
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/yeqown/go-qrcode/v2 v2.2.2
 	github.com/yeqown/go-qrcode/writer/standard v1.2.1
-	github.com/yuin/goldmark v1.5.5
+	github.com/yuin/goldmark v1.5.6
 	golang.org/x/crypto v0.10.0
 	golang.org/x/image v0.7.0
 	golang.org/x/time v0.3.0
