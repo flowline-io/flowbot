@@ -2,8 +2,8 @@ package workqueue
 
 import (
 	"container/heap"
-	"github.com/sysatom/flowbot/pkg/utils/clock"
-	"github.com/sysatom/flowbot/pkg/utils/parallelizer"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"sync"
 	"time"
 )

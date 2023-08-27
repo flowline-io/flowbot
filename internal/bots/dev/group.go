@@ -1,10 +1,10 @@
 package dev
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/event"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/template"
+	"github.com/flowline-io/flowbot/internal/ruleset/event"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/template"
 )
 
 var eventRules = []event.Rule{

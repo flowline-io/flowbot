@@ -10,13 +10,13 @@ package server
 
 import (
 	"container/list"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gorilla/websocket"
-	"github.com/sysatom/flowbot/pkg/logs"
 )
 
 // WaitGroup with a semaphore functionality

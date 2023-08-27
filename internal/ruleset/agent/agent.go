@@ -2,7 +2,7 @@ package agent
 
 import (
 	"errors"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 type Rule struct {

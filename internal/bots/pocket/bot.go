@@ -3,13 +3,13 @@ package pocket
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sysatom/flowbot/internal/bots"
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/providers/pocket"
-	"github.com/sysatom/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/providers/pocket"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"gorm.io/gorm"
 )
 

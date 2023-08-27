@@ -1,8 +1,8 @@
 package workflow
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/pipeline"
-	"github.com/sysatom/flowbot/internal/types/schema"
+	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
+	"github.com/flowline-io/flowbot/internal/types/schema"
 )
 
 const (

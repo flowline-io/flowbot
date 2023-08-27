@@ -41,4 +41,4 @@ jobs:
       - name: Build
         run: |
           go env
-          go build -o tmp github.com/sysatom/flowbot/cmd
+          go build -o tmp github.com/flowline-io/flowbot/cmd

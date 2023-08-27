@@ -2,11 +2,11 @@ package okr
 
 import (
 	"fmt"
-	"github.com/sysatom/flowbot/internal/ruleset/form"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/internal/ruleset/form"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 const (

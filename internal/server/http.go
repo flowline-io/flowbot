@@ -14,9 +14,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/utils"
-	"github.com/sysatom/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/pkg/version"
 	"net"
 	"net/http"
 	"net/url"
@@ -28,11 +28,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/logs"
 
-	"github.com/sysatom/flowbot/pkg/cache"
-	"github.com/sysatom/flowbot/pkg/event"
-	"github.com/sysatom/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/queue"
 )
 
 func listenAndServe(addr string, mux *http.ServeMux, tlfConf *tls.Config, stop <-chan bool) error {

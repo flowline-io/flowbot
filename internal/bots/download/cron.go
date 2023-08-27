@@ -1,10 +1,10 @@
 package download
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"io/fs"
 	"os"
 	"path/filepath"

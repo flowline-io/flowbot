@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/adjust/rmq/v5"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/redis/go-redis/v9"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
 )
 
 const (

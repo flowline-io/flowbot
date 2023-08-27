@@ -3,9 +3,9 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/parallelizer"
-	"github.com/sysatom/flowbot/pkg/utils/queue"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
+	"github.com/flowline-io/flowbot/pkg/utils/queue"
 	"time"
 )
 

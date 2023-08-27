@@ -10,7 +10,7 @@
 package server
 
 import (
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"time"
 

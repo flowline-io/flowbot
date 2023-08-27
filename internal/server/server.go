@@ -3,10 +3,10 @@ package server
 import (
 	"encoding/json"
 	"flag"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils"
-	"github.com/sysatom/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/pkg/version"
 	jcr "github.com/tinode/jsonco"
 	"math/rand"
 	"net/http"
@@ -17,8 +17,8 @@ import (
 	"time"
 
 	// File upload handlers
-	_ "github.com/sysatom/flowbot/pkg/media/fs"
-	_ "github.com/sysatom/flowbot/pkg/media/s3"
+	_ "github.com/flowline-io/flowbot/pkg/media/fs"
+	_ "github.com/flowline-io/flowbot/pkg/media/s3"
 )
 
 const (

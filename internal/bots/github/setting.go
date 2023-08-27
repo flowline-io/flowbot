@@ -1,8 +1,8 @@
 package github
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/setting"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/ruleset/setting"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const (

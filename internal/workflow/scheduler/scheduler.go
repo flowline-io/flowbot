@@ -2,9 +2,9 @@ package scheduler
 
 import (
 	"context"
-	"github.com/sysatom/flowbot/internal/types/meta"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/parallelizer"
+	"github.com/flowline-io/flowbot/internal/types/meta"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"time"
 )
 

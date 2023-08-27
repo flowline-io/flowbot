@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/sysatom/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 func newCredential(db *gorm.DB, opts ...gen.DOOption) credential {

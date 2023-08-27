@@ -1,8 +1,8 @@
 package template
 
 import (
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/stretchr/testify/require"
-	"github.com/sysatom/flowbot/internal/types"
 	"testing"
 )
 

@@ -3,9 +3,9 @@ package store
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/media"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/media"
 	"time"
 )
 

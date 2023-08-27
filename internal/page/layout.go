@@ -3,12 +3,12 @@ package page
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/page/component"
+	"github.com/flowline-io/flowbot/internal/page/library"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"github.com/sysatom/flowbot/internal/page/component"
-	"github.com/sysatom/flowbot/internal/page/library"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
 	"html"
 	"strings"
 )

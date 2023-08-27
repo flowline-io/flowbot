@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/tidwall/gjson"
 	"net/http"
 )

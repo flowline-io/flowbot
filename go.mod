@@ -1,4 +1,4 @@
-module github.com/sysatom/flowbot
+module github.com/flowline-io/flowbot
 
 go 1.18
 

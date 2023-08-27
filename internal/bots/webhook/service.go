@@ -3,11 +3,11 @@ package webhook
 import (
 	"fmt"
 	"github.com/emicklei/go-restful/v3"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/event"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"io"
 )
 

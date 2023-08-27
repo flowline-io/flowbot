@@ -2,8 +2,8 @@ package command
 
 import (
 	"fmt"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/parser"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/parser"
 	"strings"
 )
 

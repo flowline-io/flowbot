@@ -2,7 +2,7 @@ package workflow
 
 import (
 	"embed"
-	"github.com/sysatom/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/bots"
 	"net/http"
 )
 

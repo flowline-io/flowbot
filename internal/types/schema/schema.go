@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 func Stage(stages ...types.Stage) []types.Stage {

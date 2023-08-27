@@ -3,8 +3,8 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"sort"
 	"time"
 )

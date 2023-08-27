@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/sets"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
 	"sync"
 )

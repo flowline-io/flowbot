@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/sysatom/flowbot/cmd/composer/action/dao"
-	"github.com/sysatom/flowbot/cmd/composer/action/generator"
-	"github.com/sysatom/flowbot/cmd/composer/action/migrate"
-	"github.com/sysatom/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
+	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
+	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
+	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/urfave/cli/v2"
 	"os"
 )

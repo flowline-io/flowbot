@@ -14,8 +14,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -23,8 +23,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gorilla/websocket"
-	"github.com/sysatom/flowbot/pkg/logs"
 )
 
 // Maximum number of queued messages before session is considered stale and dropped.

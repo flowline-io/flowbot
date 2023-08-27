@@ -2,7 +2,7 @@ package channels
 
 import (
 	"errors"
-	"github.com/sysatom/flowbot/pkg/channels/crawler"
+	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"gopkg.in/yaml.v2"
 	"io/fs"
 	"os"

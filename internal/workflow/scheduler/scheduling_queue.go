@@ -1,11 +1,11 @@
 package scheduler
 
 import (
-	"github.com/sysatom/flowbot/internal/types/meta"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/clock"
-	"github.com/sysatom/flowbot/pkg/utils/heap"
-	"github.com/sysatom/flowbot/pkg/utils/parallelizer"
+	"github.com/flowline-io/flowbot/internal/types/meta"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/utils/heap"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"golang.org/x/xerrors"
 	"reflect"
 	"sync"

@@ -2,8 +2,8 @@ package parallelizer
 
 import (
 	"context"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"math/rand"
 	"net/http"
 	"runtime"

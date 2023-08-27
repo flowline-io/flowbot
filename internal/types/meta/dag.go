@@ -1,7 +1,7 @@
 package meta
 
 import (
-	"github.com/sysatom/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"time"
 )
 

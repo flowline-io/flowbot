@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/pkg/dag"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils/parallelizer"
-	"github.com/sysatom/flowbot/pkg/utils/queue"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/dag"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
+	"github.com/flowline-io/flowbot/pkg/utils/queue"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cavaliergopher/grab/v3"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 	"net/http"
 	"net/url"
 	"os"

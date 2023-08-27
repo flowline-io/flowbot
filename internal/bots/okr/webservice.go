@@ -1,8 +1,8 @@
 package okr
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/webservice"
-	"github.com/sysatom/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/route"
 )
 
 var webserviceRules = []webservice.Rule{

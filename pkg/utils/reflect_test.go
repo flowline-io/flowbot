@@ -24,21 +24,21 @@ func TestGetFunctionName(t *testing.T) {
 			args: args{
 				i: foo1,
 			},
-			want: "github.com/sysatom/flowbot/pkg/utils.foo1",
+			want: "github.com/flowline-io/flowbot/pkg/utils.foo1",
 		},
 		{
 			name: "case2",
 			args: args{
 				i: foo2,
 			},
-			want: "github.com/sysatom/flowbot/pkg/utils.foo2",
+			want: "github.com/flowline-io/flowbot/pkg/utils.foo2",
 		},
 		{
 			name: "case3",
 			args: args{
 				i: foo3,
 			},
-			want: "github.com/sysatom/flowbot/pkg/utils.foo3",
+			want: "github.com/flowline-io/flowbot/pkg/utils.foo3",
 		},
 	}
 	for _, tt := range tests {
@@ -63,17 +63,17 @@ func TestParseFunctionName(t *testing.T) {
 		{
 			name: "case1",
 			args: args{
-				name: "github.com/sysatom/flowbot/pkg/utils.foo1",
+				name: "github.com/flowline-io/flowbot/pkg/utils.foo1",
 			},
-			want:  "github.com/sysatom/flowbot/pkg/utils",
+			want:  "github.com/flowline-io/flowbot/pkg/utils",
 			want1: "foo1",
 		},
 		{
 			name: "case2",
 			args: args{
-				name: "dev.github.com/sysatom/flowbot/pkg/utils.foo2",
+				name: "dev.github.com/flowline-io/flowbot/pkg/utils.foo2",
 			},
-			want:  "dev.github.com/sysatom/flowbot/pkg/utils",
+			want:  "dev.github.com/flowline-io/flowbot/pkg/utils",
 			want1: "foo2",
 		},
 	}

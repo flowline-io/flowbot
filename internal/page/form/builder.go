@@ -3,10 +3,10 @@ package form
 import (
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/page/uikit"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"github.com/sysatom/flowbot/internal/page/uikit"
-	"github.com/sysatom/flowbot/internal/types"
 	"strings"
 )
 

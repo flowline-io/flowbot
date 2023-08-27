@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/influxdata/cron"
 	"github.com/redis/go-redis/v9"
-	"github.com/sysatom/flowbot/pkg/cache"
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/utils"
 )
 
 type Crawler struct {

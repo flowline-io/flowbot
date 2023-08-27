@@ -1,11 +1,11 @@
 package server
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/workflow/manager"
-	"github.com/sysatom/flowbot/internal/workflow/scheduler"
-	"github.com/sysatom/flowbot/internal/workflow/worker"
-	"github.com/sysatom/flowbot/pkg/channels/crawler"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/workflow/manager"
+	"github.com/flowline-io/flowbot/internal/workflow/scheduler"
+	"github.com/flowline-io/flowbot/internal/workflow/worker"
+	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"time"
 )
 

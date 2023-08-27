@@ -1,9 +1,9 @@
 package anki
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/agent"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/ruleset/agent"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const (

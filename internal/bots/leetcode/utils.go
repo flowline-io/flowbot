@@ -4,8 +4,8 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
-	"github.com/sysatom/flowbot/pkg/cache"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 //go:embed problems.json

@@ -2,9 +2,9 @@ package dag
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types/meta"
 	dagLib "github.com/heimdalr/dag"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types/meta"
 )
 
 type nodeId string

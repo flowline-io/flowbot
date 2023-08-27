@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sysatom/flowbot/internal/ruleset/command"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/cache"
-	"github.com/sysatom/flowbot/pkg/parser"
+	"github.com/flowline-io/flowbot/internal/ruleset/command"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/parser"
 )
 
 var commandRules = []command.Rule{

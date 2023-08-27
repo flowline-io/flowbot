@@ -2,7 +2,7 @@ package parallelizer
 
 import (
 	"context"
-	"github.com/sysatom/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"golang.org/x/xerrors"
 	"math"
 	"sync"

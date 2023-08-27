@@ -1,8 +1,8 @@
 package dev
 
 import (
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 var cronRules = []cron.Rule{

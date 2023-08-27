@@ -17,7 +17,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/sysatom/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 func newConfig(db *gorm.DB, opts ...gen.DOOption) config {

@@ -22,13 +22,13 @@ func enrichSwaggerObject(swo *spec.Swagger) {
 			Description: "Resource for Chatbot",
 			Contact: &spec.ContactInfo{
 				ContactInfoProps: spec.ContactInfoProps{
-					URL: "https://github.com/sysatom/flowbot",
+					URL: "https://github.com/flowline-io/flowbot",
 				},
 			},
 			License: &spec.License{
 				LicenseProps: spec.LicenseProps{
 					Name: "MIT",
-					URL:  "https://github.com/sysatom/flowbot/blob/main/LICENSE",
+					URL:  "https://github.com/flowline-io/flowbot/blob/main/LICENSE",
 				},
 			},
 			Version: "1.0.0",

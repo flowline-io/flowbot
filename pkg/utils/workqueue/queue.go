@@ -1,7 +1,7 @@
 package workqueue
 
 import (
-	"github.com/sysatom/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"sync"
 	"time"
 )

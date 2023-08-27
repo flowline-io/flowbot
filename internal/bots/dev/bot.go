@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/emicklei/go-restful/v3"
-	"github.com/sysatom/flowbot/internal/bots"
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/ruleset/instruct"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/event"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 )
 

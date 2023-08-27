@@ -1,6 +1,6 @@
 package queue
 
-import "github.com/sysatom/flowbot/pkg/utils/sets"
+import "github.com/flowline-io/flowbot/pkg/utils/sets"
 
 // Indexer extends Store with multiple indices and restricts each
 // accumulator to simply hold the current object (and be empty after

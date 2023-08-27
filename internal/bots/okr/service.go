@@ -2,9 +2,9 @@ package okr
 
 import (
 	"github.com/emicklei/go-restful/v3"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
 	"net/http"
 	"strconv"
 )

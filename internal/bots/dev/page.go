@@ -2,12 +2,12 @@ package dev
 
 import (
 	_ "embed"
+	"github.com/flowline-io/flowbot/internal/page/library"
+	"github.com/flowline-io/flowbot/internal/page/uikit"
+	"github.com/flowline-io/flowbot/internal/ruleset/page"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"github.com/sysatom/flowbot/internal/page/library"
-	"github.com/sysatom/flowbot/internal/page/uikit"
-	"github.com/sysatom/flowbot/internal/ruleset/page"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/types"
 	"net/http"
 	"time"
 )

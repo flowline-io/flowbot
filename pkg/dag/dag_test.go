@@ -1,9 +1,9 @@
 package dag
 
 import (
-	"github.com/sysatom/flowbot/internal/store/model"
-	"github.com/sysatom/flowbot/internal/types/meta"
-	"github.com/sysatom/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types/meta"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"testing"
 )
 

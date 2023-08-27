@@ -2,7 +2,7 @@ package cache
 
 import (
 	"context"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"os"
 
 	"github.com/redis/go-redis/v9"

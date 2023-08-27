@@ -8,13 +8,13 @@ package server
 import (
 	"encoding/json"
 	"expvar"
-	"github.com/sysatom/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store"
 	"net/http"
 	"runtime"
 	"sort"
 	"time"
 
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 // A simple implementation of histogram expvar.Var.

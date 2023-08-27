@@ -56,7 +56,7 @@ jobs:
           go env -w GOOS=linux
           go env -w GOARCH=amd64
           go env
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot github.com/sysatom/flowbot/cmd
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot github.com/flowline-io/flowbot/cmd
 
       - uses: actions/upload-artifact@v3
         with:
@@ -68,5 +68,5 @@ jobs:
         with:
           context: .
           push: true
-          file: docker/server/Dockerfile
-          tags: ghcr.io/sysatom/flowbot:latest
+          file: deployments/docker/Dockerfile
+          tags: ghcr.io/flowline-io/flowbot:latest

@@ -2,8 +2,8 @@ package server
 
 import (
 	"errors"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"net/http"
 )
 

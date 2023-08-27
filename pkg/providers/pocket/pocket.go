@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/sysatom/flowbot/pkg/cache"
 )
 
 const (

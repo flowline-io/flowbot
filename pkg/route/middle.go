@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/emicklei/go-restful/v3"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"runtime"
 )

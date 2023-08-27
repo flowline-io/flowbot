@@ -1,4 +1,4 @@
-// Package fs implements github.com/sysatom/flowbot/media interface by storing media objects in a single
+// Package fs implements github.com/flowline-io/flowbot/media interface by storing media objects in a single
 // directory in the file system.
 // This module won't perform well with tens of thousand of files because it stores all files in a single directory.
 package fs
@@ -6,16 +6,16 @@ package fs
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sysatom/flowbot/internal/store"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
 	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/sysatom/flowbot/pkg/logs"
-	"github.com/sysatom/flowbot/pkg/media"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/media"
 )
 
 const (

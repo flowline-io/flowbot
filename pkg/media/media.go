@@ -2,7 +2,7 @@
 package media
 
 import (
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types"
 	"io"
 	"net/http"
 	"path"

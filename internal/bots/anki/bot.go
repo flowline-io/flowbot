@@ -3,10 +3,10 @@ package anki
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sysatom/flowbot/internal/bots"
-	"github.com/sysatom/flowbot/internal/ruleset/cron"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 const Name = "anki"

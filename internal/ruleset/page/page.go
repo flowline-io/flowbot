@@ -2,8 +2,8 @@ package page
 
 import (
 	"fmt"
-	"github.com/sysatom/flowbot/internal/page"
-	"github.com/sysatom/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/page"
+	"github.com/flowline-io/flowbot/internal/types"
 	"net/http"
 )
 

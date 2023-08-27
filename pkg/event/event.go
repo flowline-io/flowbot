@@ -1,9 +1,9 @@
 package event
 
 import (
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gookit/event"
-	"github.com/sysatom/flowbot/internal/types"
-	"github.com/sysatom/flowbot/pkg/logs"
 )
 
 type ListenerFunc func(data types.KV) error

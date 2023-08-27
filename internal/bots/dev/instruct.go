@@ -1,6 +1,6 @@
 package dev
 
-import "github.com/sysatom/flowbot/internal/ruleset/instruct"
+import "github.com/flowline-io/flowbot/internal/ruleset/instruct"
 
 const (
 	ExampleInstructID = "dev_example"

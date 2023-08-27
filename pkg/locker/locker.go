@@ -3,7 +3,7 @@ package locker
 import (
 	"context"
 	"github.com/bsm/redislock"
-	"github.com/sysatom/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"time"
 )
 

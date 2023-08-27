@@ -2,7 +2,7 @@ package webservice
 
 import (
 	"github.com/emicklei/go-restful/v3"
-	"github.com/sysatom/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/route"
 )
 
 type Rule struct {
