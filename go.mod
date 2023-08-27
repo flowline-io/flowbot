@@ -26,7 +26,7 @@ require (
 	github.com/maxence-charriere/go-app/v9 v9.7.3
 	github.com/mmcdole/gofeed v1.2.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
-	github.com/redis/go-redis/v9 v9.0.5
+	github.com/redis/go-redis/v9 v9.1.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.4
 	github.com/tinode/jsonco v1.0.0
