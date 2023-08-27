@@ -28,7 +28,7 @@ require (
 	github.com/nikolaydubina/calendarheatmap v1.7.0
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/stretchr/testify v1.8.4
-	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/gjson v1.16.0
 	github.com/tinode/jsonco v1.0.0
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/yeqown/go-qrcode/v2 v2.2.2
