@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20'
+
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_ENV
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_ENV
+
+      # Cache go build cache, used to speedup go test
+      - name: Go Build Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      # Cache go mod cache, used to speedup builds
+      - name: Go Mod Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          args: --timeout=10m --config=./.golangci.yaml
+
+      - name: Build
+        run: |
+          go env
+          go build -o tmp github.com/sysatom/flowbot/cmd

@@ -1,0 +1,81 @@
+package github
+
+import (
+	"encoding/json"
+	"errors"
+	"github.com/sysatom/flowbot/internal/bots"
+	"github.com/sysatom/flowbot/internal/ruleset/cron"
+	"github.com/sysatom/flowbot/internal/types"
+	"github.com/sysatom/flowbot/pkg/logs"
+)
+
+const Name = "github"
+
+var handler bot
+var Config configType
+
+func init() {
+	bots.Register(Name, &handler)
+}
+
+type bot struct {
+	initialized bool
+	bots.Base
+}
+
+type configType struct {
+	Enabled bool   `json:"enabled"`
+	ID      string `json:"id"`
+	Secret  string `json:"secret"`
+}
+
+func (bot) Init(jsonconf json.RawMessage) error {
+
+	// Check if the handler is already initialized
+	if handler.initialized {
+		return errors.New("already initialized")
+	}
+
+	if err := json.Unmarshal(jsonconf, &Config); err != nil {
+		return errors.New("failed to parse config: " + err.Error())
+	}
+
+	if !Config.Enabled {
+		logs.Info.Printf("bot %s disabled", Name)
+		return nil
+	}
+
+	handler.initialized = true
+
+	return nil
+}
+
+func (bot) IsReady() bool {
+	return handler.initialized
+}
+
+func (bot) Bootstrap() error {
+	// load setting rule
+	formRules = append(formRules, bots.SettingCovertForm(Name, settingRules))
+
+	return nil
+}
+
+func (b bot) Rules() []interface{} {
+	return []interface{}{
+		commandRules,
+		formRules,
+	}
+}
+
+func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+	return bots.RunCommand(commandRules, ctx, content)
+}
+
+func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {
+	return bots.RunCron(cronRules, Name, send)
+}
+
+func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
+	return bots.RunForm(formRules, ctx, values)
+}

@@ -1,0 +1,16 @@
+package {{ .BotName }}
+
+import (
+    "github.com/sysatom/flowbot/internal/ruleset/cron"
+    "github.com/sysatom/flowbot/internal/types"
+)
+
+var cronRules = []cron.Rule{
+    {
+        Name: "{{ .BotName }}_example",
+        When: "* * * * *",
+        Action: func(types.Context) []types.MsgPayload {
+            return nil
+        },
+    },
+}

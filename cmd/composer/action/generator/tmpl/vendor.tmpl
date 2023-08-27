@@ -1,0 +1,54 @@
+package {{ .VendorName }}
+
+import (
+	"fmt"
+	"github.com/go-resty/resty/v2"
+	"net/http"
+	"time"
+)
+
+const (
+	ID     = "{{ .VendorName }}"
+	ApiKey = "api_key"
+)
+
+type Response struct {
+	Status string      `json:"status"`
+	Error  interface{} `json:"error"`
+}
+
+type {{ .ClassName }} struct {
+	c      *resty.Client
+	apiKey string // ConsumerKey
+}
+
+func New{{ .ClassName }}(apiKey string) *{{ .ClassName }} {
+	v := &{{ .ClassName }}{apiKey: apiKey}
+
+	v.c = resty.New()
+	v.c.SetBaseURL("https://api.example")
+	v.c.SetTimeout(time.Minute)
+	v.c.SetHeader("accept", "application/json")
+	v.c.SetHeader("Content-Type", "application/json")
+
+	return v
+}
+
+func (v *{{ .ClassName }}) Get(id string) (*Response, error) {
+	resp, err := v.c.R().
+		SetResult(&Response{}).
+		SetHeader("api-key", v.apiKey).
+		SetQueryParams(map[string]string{
+			"id": id,
+		}).
+		Get("/api/something")
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() == http.StatusOK {
+		return resp.Result().(*Response), nil
+	} else {
+		return nil, fmt.Errorf("%d", resp.StatusCode())
+	}
+}

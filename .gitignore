@@ -1,0 +1,10 @@
+.idea
+.vscode
+
+/templ
+flowbot.conf
+/static
+/tmp
+/uploads
+/app
+/download

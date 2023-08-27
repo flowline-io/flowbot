@@ -1,0 +1,3 @@
+func (b bot) Condition(ctx types.Context, forwarded types.MsgPayload) (types.MsgPayload, error) {
+    return bots.RunCondition(conditionRules, ctx, forwarded)
+}

@@ -1,0 +1,19 @@
+package {{ .BotName }}
+
+import (
+    "github.com/sysatom/flowbot/internal/ruleset/session"
+    "github.com/sysatom/flowbot/internal/types"
+)
+
+const (
+    exampleSessionID = "{{ .BotName }}_example_session"
+)
+
+var sessionRules = []session.Rule{
+    {
+        Id: exampleSessionID,
+        Handler: func(ctx types.Context, content interface{}) types.MsgPayload {
+            return nil
+        },
+    },
+}

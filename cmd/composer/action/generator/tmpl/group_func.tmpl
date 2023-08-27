@@ -1,0 +1,3 @@
+func (b bot) Group(ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error) {
+    return bots.RunGroup(eventRules, ctx, head, content)
+}

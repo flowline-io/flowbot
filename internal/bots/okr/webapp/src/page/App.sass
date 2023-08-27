@@ -1,0 +1,45 @@
+%white-radius
+    background-color: #fff
+    border-radius: 8px
+    padding: 8px
+
+.app
+    padding: 20px
+
+.objectives
+    .list
+        @extend %white-radius
+
+.objective
+    .item
+        @extend %white-radius
+        .kr
+            background-color: #1e88e5
+            border-radius: 10px
+            margin: 10px
+            padding: 10px
+            color: #fff
+            .progress
+                display: flex
+                justify-content: space-between
+
+
+.objective-form
+    h1
+        display: flex
+        justify-content: space-between
+    .title-tips
+        font-size: 0.8rem
+        padding-left: 20px
+        color: #555
+    .item
+        @extend %white-radius
+        .row
+            margin-bottom: 10px
+            margin-top: 10px
+            .right
+                text-align: right
+    .button
+        margin-top: 20px
+        color: #1e88e5
+        cursor: pointer

@@ -1,0 +1,21 @@
+package {{ .BotName }}
+
+import (
+    "github.com/sysatom/flowbot/internal/ruleset/event"
+    "github.com/sysatom/flowbot/internal/types"
+)
+
+var eventRules = []event.Rule{
+    {
+        Event: types.GroupEventJoin,
+            Handler: func(ctx types.Context, head types.KV, content interface{}) types.MsgPayload {
+            return types.TextMsg{Text: "Welcome"}
+        },
+    },
+    {
+        Event: types.GroupEventReceive,
+            Handler: func(ctx types.Context, head types.KV, content interface{}) types.MsgPayload {
+            return types.TextMsg{Text: "receive something"}
+        },
+    },
+}

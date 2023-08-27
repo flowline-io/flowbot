@@ -1,0 +1,15 @@
+package {{ .BotName }}
+
+import (
+    "github.com/sysatom/flowbot/internal/ruleset/condition"
+    "github.com/sysatom/flowbot/internal/types"
+)
+
+var conditionRules = []condition.Rule{
+    {
+        Condition: "ExampleMsg",
+        Handler: func(ctx types.Context, forwarded types.MsgPayload) types.MsgPayload {
+            return nil
+        },
+    },
+}

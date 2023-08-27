@@ -1,0 +1,19 @@
+package {{ .BotName }}
+
+import (
+    "github.com/sysatom/flowbot/internal/ruleset/form"
+    "github.com/sysatom/flowbot/internal/types"
+)
+
+const (
+    exampleFormID = "{{ .BotName }}_example_form"
+)
+
+var formRules = []form.Rule{
+    {
+        Id: exampleFormID,
+        Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+            return nil
+        },
+    },
+}

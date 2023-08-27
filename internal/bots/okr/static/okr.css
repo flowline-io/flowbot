@@ -1,0 +1,113 @@
+.okr-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.okr-objective {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.okr-item-title {
+    font-size: 0.9rem;
+    font-weight: 300;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.okr-progress {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    background-color: #fff;
+    align-items: center;
+    border-radius: 5px;
+    width: 300px;
+}
+
+.okr-progress .ratio {
+    font-size: 0.7rem;
+    font-weight: 300;
+    width: 20%;
+    text-align: center;
+}
+
+.okr-memo {
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 5px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.okr-motive {
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 5px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.okr-feasibility {
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 5px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.okr-keyresult {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.okr-keyresult-item {
+    width: 40%;
+    background-color: #7232dd;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    line-height: 30px;
+    margin-bottom: 10px;
+}
+
+.okr-keyresult-item .title {
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.okr-keyresult-item .value {
+    font-size: 0.8rem;
+    font-weight: 300;
+}
+
+.progress-bg {
+    margin: 0 auto;
+    width: 100%;
+    height: 10px;
+    border-radius: 4px;
+    background-color: rgb(222, 228, 247);
+    display: flex;
+    align-items: center;
+}
+.progress-bg-line {
+    background-color: rgb(222, 228, 247);
+}
+
+.progress-inner {
+    height: 100%;
+    border-radius: 4px;
+    transition: all 0.5s cubic-bezier(0, 0.64, 0.36, 1);
+}
+
+.progress-line {
+    background-color: blue;
+}

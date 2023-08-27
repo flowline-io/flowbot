@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/app/workflow/static/css/main.073c9b0a.css",
+    "main.js": "/app/workflow/static/js/main.fd2b019b.js",
+    "static/js/787.994511a4.chunk.js": "/app/workflow/static/js/787.994511a4.chunk.js",
+    "static/media/logo.svg": "/app/workflow/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/app/workflow/index.html",
+    "main.073c9b0a.css.map": "/app/workflow/static/css/main.073c9b0a.css.map",
+    "main.fd2b019b.js.map": "/app/workflow/static/js/main.fd2b019b.js.map",
+    "787.994511a4.chunk.js.map": "/app/workflow/static/js/787.994511a4.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.fd2b019b.js"
+  ]
+}
