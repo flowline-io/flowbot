@@ -165,8 +165,8 @@ github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJ
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.8/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
-github.com/maxence-charriere/go-app/v9 v9.7.3 h1:gDlROy31hAUg6SoOcD9joIKApL3AE5pWIEyEMTLgagQ=
-github.com/maxence-charriere/go-app/v9 v9.7.3/go.mod h1:gzgFoeaDuoNHw9MbJraTCKIoKtZ/SoIfOIHHn2FOffc=
+github.com/maxence-charriere/go-app/v9 v9.8.0 h1:rDfLNvxIKXyjpRS76P45kn9Xj8IumwfoqpsEJYxfd+E=
+github.com/maxence-charriere/go-app/v9 v9.8.0/go.mod h1:gzgFoeaDuoNHw9MbJraTCKIoKtZ/SoIfOIHHn2FOffc=
 github.com/microsoft/go-mssqldb v1.0.0 h1:k2p2uuG8T5T/7Hp7/e3vMGTnnR0sU4h8d1CcC71iLHU=
 github.com/mmcdole/gofeed v1.2.1 h1:tPbFN+mfOLcM1kDF1x2c/N68ChbdBatkppdzf/vDe1s=
 github.com/mmcdole/gofeed v1.2.1/go.mod h1:2wVInNpgmC85q16QTTuwbuKxtKkHLCDDtf0dCmnrNr4=
