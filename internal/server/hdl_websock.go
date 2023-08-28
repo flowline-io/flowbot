@@ -34,34 +34,6 @@ func (sess *Session) closeWS() {
 	}
 }
 
-func (sess *Session) readLoop() {
-	defer func() {
-		sess.closeWS()
-		sess.cleanUp(false)
-	}()
-
-	sess.ws.SetReadLimit(globals.maxMessageSize)
-	sess.ws.SetReadDeadline(time.Now().Add(pongWait))
-	sess.ws.SetPongHandler(func(string) error {
-		sess.ws.SetReadDeadline(time.Now().Add(pongWait))
-		return nil
-	})
-
-	for {
-		// Read a ClientComMessage
-		_, raw, err := sess.ws.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
-				websocket.CloseNormalClosure) {
-				logs.Err.Println("ws: readLoop", sess.sid, err)
-			}
-			return
-		}
-		statsInc("IncomingMessagesWebsockTotal", 1)
-		sess.dispatchRaw(raw)
-	}
-}
-
 func (sess *Session) sendMessage(msg any) bool {
 	if len(sess.send) > sendQueueLimit {
 		logs.Err.Println("ws: outbound queue limit exceeded", sess.sid)
@@ -123,7 +95,7 @@ func (sess *Session) writeLoop() {
 		case msg := <-sess.stop:
 			// Shutdown requested, don't care if the message is delivered
 			if msg != nil {
-				wsWrite(sess.ws, websocket.TextMessage, msg)
+				_ = wsWrite(sess.ws, websocket.TextMessage, msg)
 			}
 			return
 

@@ -500,5 +500,5 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	// Do work in goroutines to return from serveWebSocket() to release file pointers.
 	// Otherwise, "too many open files" will happen.
 	go sess.writeLoop()
-	go sess.readLoopExtra()
+	go sess.readLoop()
 }

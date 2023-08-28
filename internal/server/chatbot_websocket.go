@@ -23,7 +23,7 @@ func NewExtraSessionStore(lifetime time.Duration) *SessionStore {
 
 // queueOut attempts to send a ServerComMessage to a session write loop;
 // it fails, if the send buffer is full.
-func (s *Session) queueOutExtra(msg *types.ServerComMessage) bool {
+func (s *Session) queueOut(msg *types.ServerComMessage) bool {
 	if s == nil {
 		return true
 	}
@@ -50,7 +50,7 @@ func (s *Session) queueOutExtra(msg *types.ServerComMessage) bool {
 }
 
 // read loop
-func (s *Session) readLoopExtra() {
+func (s *Session) readLoop() {
 	defer func() {
 		s.closeWS()
 		s.cleanUp(false)
@@ -74,12 +74,12 @@ func (s *Session) readLoopExtra() {
 			return
 		}
 		statsInc("IncomingMessagesWebsockTotal", 1)
-		s.dispatchRawExtra(raw)
+		s.dispatchRaw(raw)
 	}
 }
 
 // Message received, convert bytes to ClientComMessage and dispatch
-func (s *Session) dispatchRawExtra(raw []byte) {
+func (s *Session) dispatchRaw(raw []byte) {
 	now := types.TimeNow()
 	var msg types.ClientComMessage
 
@@ -110,16 +110,16 @@ func (s *Session) dispatchRawExtra(raw []byte) {
 		return
 	}
 
-	s.dispatchExtra(&msg)
+	s.dispatch(&msg)
 }
 
-func (s *Session) dispatchExtra(msg *types.ClientComMessage) {
+func (s *Session) dispatch(msg *types.ClientComMessage) {
 	result, err := linkitAction(s.uid, msg.Data)
 	if err != nil {
 		logs.Err.Println(err)
 		return
 	}
 	if result != nil {
-		s.queueOutExtra(types.OkMessage(result))
+		s.queueOut(types.OkMessage(result))
 	}
 }

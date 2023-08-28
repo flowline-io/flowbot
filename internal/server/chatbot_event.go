@@ -41,7 +41,7 @@ func onPushInstruct() {
 
 		sessionStore.Range(func(sid string, s *Session) bool {
 			if s.uid == uid {
-				s.queueOutExtra(&types.ServerComMessage{
+				s.queueOut(&types.ServerComMessage{
 					Code:    http.StatusOK,
 					Message: "",
 					Data:    data,

@@ -26,12 +26,6 @@ var globals struct {
 	tlsRedirectHTTP string
 	// Maximum message size allowed from peer.
 	maxMessageSize int64
-	// Maximum number of group topic subscribers.
-	maxSubscriberCount int
-	// Maximum number of indexable tags.
-	maxTagCount int
-	// If true, ordinary users cannot delete their accounts.
-	permanentAccounts bool
 
 	// Maximum allowed upload size.
 	maxFileUploadSize int64
@@ -40,9 +34,6 @@ var globals struct {
 
 	// Prioritize X-Forwarded-For header as the source of IP address of the client.
 	useXForwardedFor bool
-
-	// Country code to assign to sessions by default.
-	defaultCountryCode string
 
 	// Time before the call is dropped if not answered.
 	callEstablishmentTimeout int

@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	jcr "github.com/tinode/jsonco"
-	"math/rand"
 	"net/http"
 	"os"
 	"runtime"
@@ -32,25 +31,9 @@ const (
 
 	// idleSessionTimeout defines duration of being idle before terminating a session.
 	idleSessionTimeout = time.Second * 55
-	// idleMasterTopicTimeout defines now long to keep master topic alive after the last session detached.
-	idleMasterTopicTimeout = time.Second * 4
-	// Same as above but shut down the proxy topic sooner. Otherwise master topic would be kept alive for too long.
-	idleProxyTopicTimeout = time.Second * 2
 
 	// defaultMaxMessageSize is the default maximum message size
 	defaultMaxMessageSize = 1 << 19 // 512K
-
-	// defaultMaxSubscriberCount is the default maximum number of group topic subscribers.
-	// Also set in adapter.
-	defaultMaxSubscriberCount = 256
-
-	// defaultMaxTagCount is the default maximum number of indexable tags
-	defaultMaxTagCount = 16
-
-	// minTagLength is the shortest acceptable length of a tag in runes. Shorter tags are discarded.
-	minTagLength = 2
-	// maxTagLength is the maximum length of a tag in runes. Longer tags are trimmed.
-	maxTagLength = 96
 
 	// Delay before updating a User Agent
 	uaTimerDelay = time.Second * 5
@@ -66,25 +49,7 @@ const (
 
 	// Local path to static content
 	defaultStaticPath = "static"
-
-	// Default country code to fall back to if the "default_country_code" field
-	// isn't specified in the config.
-	defaultCountryCode = "US"
-
-	// Default timeout to drop an unanswered call, seconds.
-	defaultCallEstablishmentTimeout = 30
 )
-
-// Stale unvalidated user account GC config.
-type accountGcConfig struct {
-	Enabled bool `json:"enabled"`
-	// How often to run GC (seconds).
-	GcPeriod int `json:"gc_period"`
-	// Number of accounts to delete in one pass.
-	GcBlockSize int `json:"gc_block_size"`
-	// Minimum hours since account was last modified.
-	GcMinAccountAge int `json:"gc_min_account_age"`
-}
 
 // Large file handler config.
 type mediaConfig struct {
@@ -201,7 +166,7 @@ func ListenAndServe() {
 				logs.Err.Fatal("Failed to parse config file: ", err)
 			}
 		}
-		file.Close()
+		_ = file.Close()
 	}
 
 	if *listenOn != "" {
@@ -227,9 +192,6 @@ func ListenAndServe() {
 	}
 	statsSet("Version", decVersion)
 
-	// Initialize random state
-	rand.Seed(time.Now().UnixNano())
-
 	// Initialize serving debug profiles (optional).
 	servePprof(mux, *pprofUrl)
 
@@ -248,7 +210,7 @@ func ListenAndServe() {
 		}
 		defer memf.Close()
 
-		pprof.StartCPUProfile(cpuf)
+		_ = pprof.StartCPUProfile(cpuf)
 		defer pprof.StopCPUProfile()
 		defer pprof.WriteHeapProfile(memf)
 
@@ -264,7 +226,7 @@ func ListenAndServe() {
 		logs.Err.Fatal("Failed to connect to DB: ", err)
 	}
 	defer func() {
-		store.Store.Close()
+		_ = store.Store.Close()
 		logs.Info.Println("Closed database connection(s)")
 		logs.Info.Println("All done, good bye")
 	}()
@@ -275,14 +237,8 @@ func ListenAndServe() {
 	if globals.maxMessageSize <= 0 {
 		globals.maxMessageSize = defaultMaxMessageSize
 	}
-	// If account deletion is disabled.
-	globals.permanentAccounts = config.PermanentAccounts
 
 	globals.useXForwardedFor = config.UseXForwardedFor
-	globals.defaultCountryCode = config.DefaultCountryCode
-	if globals.defaultCountryCode == "" {
-		globals.defaultCountryCode = defaultCountryCode
-	}
 
 	// Websocket compression.
 	globals.wsCompression = !config.WSCompressionDisabled

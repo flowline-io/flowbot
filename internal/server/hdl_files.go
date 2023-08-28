@@ -20,7 +20,7 @@ import (
 // largeFileRunGarbageCollection runs every 'period' and deletes up to 'blockSize' unused files.
 // Returns channel which can be used to stop the process.
 func largeFileRunGarbageCollection(period time.Duration, blockSize int) chan<- bool {
-	// Unbuffered stop channel. Whomever stops the gc must wait for the process to finish.
+	// Unbuffered stop channel. Whoever stops the gc must wait for the process to finish.
 	stop := make(chan bool)
 	go func() {
 		// Add some randomness to the tick period to desynchronize runs on cluster nodes:
