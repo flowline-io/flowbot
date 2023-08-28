@@ -26,9 +26,9 @@ import (
 
 const (
 	// currentVersion is the current API/protocol version
-	currentVersion = "0.22"
+	currentVersion = "0.1"
 	// minSupportedVersion is the minimum supported API version
-	minSupportedVersion = "0.19"
+	minSupportedVersion = "0.1"
 
 	// idleSessionTimeout defines duration of being idle before terminating a session.
 	idleSessionTimeout = time.Second * 55
@@ -116,12 +116,6 @@ type configType struct {
 	// If true, do not attempt to negotiate websocket per message compression (RFC 7692.4).
 	// It should be disabled (set to true) if you are using MSFT IIS as a reverse proxy.
 	WSCompressionDisabled bool `json:"ws_compression_disabled"`
-	// Address:port to listen for gRPC clients. If blank gRPC support will not be initialized.
-	// Could be overridden from the command line with --grpc_listen.
-	GrpcListen string `json:"grpc_listen"`
-	// Enable handling of gRPC keepalives https://github.com/grpc/grpc/blob/master/doc/keepalive.md
-	// This sets server's GRPC_ARG_KEEPALIVE_TIME_MS to 60 seconds instead of the default 2 hours.
-	GrpcKeepalive bool `json:"grpc_keepalive_enabled"`
 	// URL path for mounting the directory with static files (usually TinodeWeb).
 	StaticMount string `json:"static_mount"`
 	// Local path to static files. All files in this path are made accessible by HTTP.
@@ -131,12 +125,6 @@ type configType struct {
 	// Maximum message size allowed from client. Intended to prevent malicious client from sending
 	// very large files inband (does not affect out of band uploads).
 	MaxMessageSize int `json:"max_message_size"`
-	// Maximum number of group topic subscribers.
-	MaxSubscriberCount int `json:"max_subscriber_count"`
-	// Masked tags: tags immutable on User (mask), mutable on Topic only within the mask.
-	MaskedTagNamespaces []string `json:"masked_tags"`
-	// Maximum number of indexable tags.
-	MaxTagCount int `json:"max_tag_count"`
 	// If true, ordinary users cannot delete their accounts.
 	PermanentAccounts bool `json:"permanent_accounts"`
 	// URL path for exposing runtime stats. Disabled if the path is blank.
@@ -152,19 +140,16 @@ type configType struct {
 	DefaultCountryCode string `json:"default_country_code"`
 
 	// Configs for subsystems
-	Cluster   json.RawMessage            `json:"cluster_config"`
-	Plugin    json.RawMessage            `json:"plugins"`
-	Store     json.RawMessage            `json:"store_config"`
-	Push      json.RawMessage            `json:"push"`
-	TLS       json.RawMessage            `json:"tls"`
-	Auth      map[string]json.RawMessage `json:"auth_config"`
-	AccountGC *accountGcConfig           `json:"acc_gc_config"`
-	Media     *mediaConfig               `json:"media"`
-	WebRTC    json.RawMessage            `json:"webrtc"`
+	Store json.RawMessage `json:"store_config"`
+	Push  json.RawMessage `json:"push"`
+	TLS   json.RawMessage `json:"tls"`
+	Media *mediaConfig    `json:"media"`
+	Redis json.RawMessage `json:"redis"`
 
 	// Configs for extra
-	Bot    json.RawMessage `json:"bots"`
-	Vendor json.RawMessage `json:"vendors"`
+	Chatbot json.RawMessage `json:"chatbot"`
+	Bot     json.RawMessage `json:"bots"`
+	Vendor  json.RawMessage `json:"vendors"`
 }
 
 func ListenAndServe() {
@@ -290,16 +275,6 @@ func ListenAndServe() {
 	if globals.maxMessageSize <= 0 {
 		globals.maxMessageSize = defaultMaxMessageSize
 	}
-	// Maximum number of group topic subscribers
-	globals.maxSubscriberCount = config.MaxSubscriberCount
-	if globals.maxSubscriberCount <= 1 {
-		globals.maxSubscriberCount = defaultMaxSubscriberCount
-	}
-	// Maximum number of indexable tags per user or topics
-	globals.maxTagCount = config.MaxTagCount
-	if globals.maxTagCount <= 0 {
-		globals.maxTagCount = defaultMaxTagCount
-	}
 	// If account deletion is disabled.
 	globals.permanentAccounts = config.PermanentAccounts
 
@@ -341,6 +316,9 @@ func ListenAndServe() {
 	if err != nil {
 		logs.Err.Fatalln(err)
 	}
+
+	// Initialize config
+	hookConfig(config.Chatbot)
 
 	// Initialize bots
 	hookBot(config.Bot, config.Vendor)

@@ -67,7 +67,7 @@ func Id() Uid {
 }
 
 func AppUrl() string {
-	return os.Getenv("TINODE_URL")
+	return os.Getenv("FLOWBOT_URL")
 }
 
 type QueuePayload struct {

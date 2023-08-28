@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/channels"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/queue"
@@ -51,6 +52,13 @@ import (
 )
 
 // hook
+
+func hookConfig(jsconfig json.RawMessage) {
+	err := config.Load(jsconfig)
+	if err != nil {
+		logs.Err.Fatal("Failed to initialize config:", err)
+	}
+}
 
 func hookMux() *http.ServeMux {
 	// Webservice

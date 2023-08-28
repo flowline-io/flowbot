@@ -331,6 +331,13 @@
 		}
 	],
 
+	// Redis configuration
+	"redis": {
+		"host": "localhost",
+		"port": 6379,
+		"password": ""
+	},
+
 	// chatbot global config
 	"chatbot": {
 		"log": {
