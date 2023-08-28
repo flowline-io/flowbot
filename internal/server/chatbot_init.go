@@ -205,9 +205,6 @@ func initializeChannels() error {
 		//}
 		//
 		//globals.hub.join <- msg
-
-		statsInc("LiveTopics", 1)
-		statsInc("TotalTopics", 1)
 	}
 
 	return nil

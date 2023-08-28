@@ -16,6 +16,9 @@ import (
 	"strings"
 	"time"
 
+	// Store
+	_ "github.com/flowline-io/flowbot/internal/store/mysql"
+
 	// File upload handlers
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
 	_ "github.com/flowline-io/flowbot/pkg/media/s3"
@@ -164,7 +167,7 @@ type configType struct {
 	Vendor json.RawMessage `json:"vendors"`
 }
 
-func Run() {
+func ListenAndServe() {
 	executable, _ := os.Executable()
 
 	logFlags := flag.String("log_flags", "stdFlags",
@@ -267,6 +270,9 @@ func Run() {
 		logs.Info.Printf("Profiling info saved to '%s.(cpu|mem)'", *pprofFile)
 	}
 
+	// Initialize store.
+	hookStore()
+
 	err = store.Store.Open(config.Store)
 	logs.Info.Println("DB adapter opened")
 	if err != nil {
@@ -335,9 +341,6 @@ func Run() {
 	if err != nil {
 		logs.Err.Fatalln(err)
 	}
-
-	// Initialize chatbot store.
-	hookStore()
 
 	// Initialize bots
 	hookBot(config.Bot, config.Vendor)

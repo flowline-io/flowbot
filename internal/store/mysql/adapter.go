@@ -64,6 +64,17 @@ type configType struct {
 	SqlTimeout int `json:"sql_timeout,omitempty"`
 }
 
+type adaptersConfigType struct {
+	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
+	UidKey []byte `json:"uid_key"`
+	// Maximum number of results to return from adapter.
+	MaxResults int `json:"max_results"`
+	// DB adapter name to use. Should be one of those specified in `Adapters`.
+	UseAdapter string `json:"use_adapter"`
+	// Configurations for individual adapters.
+	Adapters map[string]json.RawMessage `json:"adapters"`
+}
+
 type adapter struct {
 	db *gorm.DB
 
@@ -169,10 +180,21 @@ func (a *adapter) Open(jsonconfig json.RawMessage) error {
 		return errors.New("adapter mysql missing config")
 	}
 
+	adaptersConfig := adaptersConfigType{}
+	if err := json.Unmarshal(jsonconfig, &adaptersConfig); err != nil {
+		return errors.New("adapters failed to parse config: " + err.Error())
+	}
+	if adaptersConfig.UseAdapter == "" {
+		return errors.New("adapter name missing config")
+	}
+	if adaptersConfig.UseAdapter != "mysql" {
+		return errors.New("adapter name must be 'mysql'")
+	}
+
 	var err error
 	defaultCfg := ms.NewConfig()
 	config := configType{Config: *defaultCfg}
-	if err = json.Unmarshal(jsonconfig, &config); err != nil {
+	if err = json.Unmarshal(adaptersConfig.Adapters["mysql"], &config); err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
 
