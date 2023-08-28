@@ -2,7 +2,7 @@
 .vscode
 
 /templ
-flowbot.conf
+flowbot.json
 /static
 /tmp
 /uploads

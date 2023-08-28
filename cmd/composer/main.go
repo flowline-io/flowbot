@@ -37,7 +37,7 @@ func NewCommand() *cli.App {
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:  "config",
-								Value: "./flowbot.conf",
+								Value: "./flowbot.json",
 								Usage: "config of the database connection",
 							},
 						},
@@ -98,7 +98,7 @@ func NewCommand() *cli.App {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "config",
-						Value: "./flowbot.conf",
+						Value: "./flowbot.json",
 						Usage: "config of the database connection",
 					},
 				},

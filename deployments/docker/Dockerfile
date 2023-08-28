@@ -13,7 +13,7 @@ WORKDIR /opt/app
 
 # Fetch build from Github.
 COPY app/flowbot .
-COPY deployments/docker/config.template ./flowbot.conf
+COPY deployments/docker/config.template ./flowbot.json
 COPY deployments/docker/entrypoint.sh .
 
 RUN chmod +x flowbot && chmod +x entrypoint.sh

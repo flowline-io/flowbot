@@ -21,7 +21,7 @@ func openAdapter(jsonConfig json.RawMessage) error {
 				adp = v
 			}
 		} else {
-			return errors.New("store: db adapter is not specified. Please set `store_config.use_adapter` in `flowbot.conf`")
+			return errors.New("store: db adapter is not specified. Please set `store_config.use_adapter` in `flowbot.json`")
 		}
 	}
 

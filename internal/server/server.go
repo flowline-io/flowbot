@@ -172,7 +172,7 @@ func ListenAndServe() {
 
 	logFlags := flag.String("log_flags", "stdFlags",
 		"Comma-separated list of log flags (as defined in https://golang.org/pkg/log/#pkg-constants without the L prefix)")
-	configfile := flag.String("config", "flowbot.conf", "Path to config file.")
+	configfile := flag.String("config", "flowbot.json", "Path to config file.")
 	listenOn := flag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	apiPath := flag.String("api_path", "", "Override the base URL path where API is served.")
 	tlsEnabled := flag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
