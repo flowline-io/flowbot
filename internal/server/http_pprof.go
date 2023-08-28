@@ -41,7 +41,7 @@ func profileHandler(wrt http.ResponseWriter, req *http.Request) {
 	}
 
 	// Respond with the requested profile.
-	profile.WriteTo(wrt, 2)
+	_ = profile.WriteTo(wrt, 2)
 }
 
 func servePprofError(wrt http.ResponseWriter, status int, txt string) {
@@ -49,5 +49,5 @@ func servePprofError(wrt http.ResponseWriter, status int, txt string) {
 	wrt.Header().Set("X-Go-Pprof", "1")
 	wrt.Header().Del("Content-Disposition")
 	wrt.WriteHeader(status)
-	fmt.Fprintln(wrt, txt)
+	_, _ = fmt.Fprintln(wrt, txt)
 }

@@ -30,7 +30,7 @@ const (
 
 func (sess *Session) closeWS() {
 	if sess.proto == WEBSOCK {
-		sess.ws.Close()
+		_ = sess.ws.Close()
 	}
 }
 
@@ -122,7 +122,7 @@ func wsWrite(ws *websocket.Conn, mt int, msg any) error {
 	} else {
 		bits = []byte{}
 	}
-	ws.SetWriteDeadline(time.Now().Add(writeWait))
+	_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
 	return ws.WriteMessage(mt, bits)
 }
 

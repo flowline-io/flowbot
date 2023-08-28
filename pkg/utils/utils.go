@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -133,14 +134,14 @@ func VersionCompare(v1, v2 int) int {
 	return (v1 >> 8) - (v2 >> 8)
 }
 
-func max(a, b int) int {
+func Max(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-// Convert relative filepath to absolute.
+// ToAbsolutePath Convert relative filepath to absolute.
 func ToAbsolutePath(base, path string) string {
 	if filepath.IsAbs(path) {
 		return path
@@ -301,4 +302,17 @@ func IsRoutableIP(ipStr string) bool {
 		}
 	}
 	return true
+}
+
+// GetRemoteAddr Obtain IP address of the client.
+func GetRemoteAddr(req *http.Request) string {
+	var addr string
+	addr = req.Header.Get("X-Forwarded-For")
+	if !IsRoutableIP(addr) {
+		addr = ""
+	}
+	if addr != "" {
+		return addr
+	}
+	return req.RemoteAddr
 }

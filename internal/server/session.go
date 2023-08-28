@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"io/ioutil"
 	"net/http"
 	"sync"
@@ -407,19 +406,4 @@ func (sess *Session) readOnce(wrt http.ResponseWriter, req *http.Request) (int, 
 	}
 
 	return 0, err
-}
-
-// Obtain IP address of the client.
-func getRemoteAddr(req *http.Request) string {
-	var addr string
-	if globals.useXForwardedFor {
-		addr = req.Header.Get("X-Forwarded-For")
-		if !utils.IsRoutableIP(addr) {
-			addr = ""
-		}
-	}
-	if addr != "" {
-		return addr
-	}
-	return req.RemoteAddr
 }

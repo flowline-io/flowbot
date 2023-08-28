@@ -1,7 +1,6 @@
 package server
 
 import (
-	"container/list"
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
@@ -9,17 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 )
-
-// NewExtraSessionStore initializes an extra session store.
-func NewExtraSessionStore(lifetime time.Duration) *SessionStore {
-	ss := &SessionStore{
-		lru:      list.New(),
-		lifeTime: lifetime,
-
-		sessCache: make(map[string]*Session),
-	}
-	return ss
-}
 
 // queueOut attempts to send a ServerComMessage to a session write loop;
 // it fails, if the send buffer is full.

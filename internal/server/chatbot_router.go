@@ -456,7 +456,7 @@ func queueStats(rw http.ResponseWriter, _ *http.Request) {
 }
 
 // globals session
-var sessionStore = NewExtraSessionStore(idleSessionTimeout + 15*time.Second)
+var sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second)
 
 func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))

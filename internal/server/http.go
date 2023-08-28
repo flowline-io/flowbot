@@ -11,7 +11,6 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -23,8 +22,6 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -171,72 +168,6 @@ func signalHandler() <-chan bool {
 	return stop
 }
 
-// Wrapper for http.Handler which optionally adds a Strict-Transport-Security to the response.
-func hstsHandler(handler http.Handler) http.Handler {
-	if globals.tlsStrictMaxAge != "" {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Strict-Transport-Security", "max-age="+globals.tlsStrictMaxAge)
-			handler.ServeHTTP(w, r)
-		})
-	}
-	return handler
-}
-
-// The following code is used to intercept HTTP errors so they can be wrapped into json.
-
-// Wrapper around http.ResponseWriter which detects status set to 400+ and replaces
-// default error message with a custom one.
-type errorResponseWriter struct {
-	status int
-	http.ResponseWriter
-}
-
-func (w *errorResponseWriter) WriteHeader(status int) {
-	if status >= http.StatusBadRequest {
-		// charset=utf-8 is the default. No need to write it explicitly
-		// Must set all the headers before calling super.WriteHeader()
-		w.ResponseWriter.Header().Set("Content-Type", "application/json")
-	}
-	w.status = status
-	w.ResponseWriter.WriteHeader(status)
-}
-
-func (w *errorResponseWriter) Write(p []byte) (n int, err error) {
-	if w.status >= http.StatusBadRequest {
-		p, _ = json.Marshal(
-			&ServerComMessage{
-				Ctrl: &MsgServerCtrl{
-					Timestamp: time.Now().UTC().Round(time.Millisecond),
-					Code:      w.status,
-					Text:      http.StatusText(w.status),
-				},
-			})
-	}
-	return w.ResponseWriter.Write(p)
-}
-
-// Handler which deploys errorResponseWriter
-func httpErrorHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(&errorResponseWriter{0, w}, r)
-		})
-}
-
-// Custom 404 response.
-func serve404(wrt http.ResponseWriter, req *http.Request) {
-	wrt.Header().Set("Content-Type", "application/json; charset=utf-8")
-	wrt.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(wrt).Encode(
-		&ServerComMessage{
-			Ctrl: &MsgServerCtrl{
-				Timestamp: time.Now().UTC().Round(time.Millisecond),
-				Code:      http.StatusNotFound,
-				Text:      "not found",
-			},
-		})
-}
-
 // Redirect HTTP requests to HTTPS
 func tlsRedirect(toPort string) http.HandlerFunc {
 	if toPort == ":443" || toPort == ":https" {
@@ -270,105 +201,6 @@ func tlsRedirect(toPort string) http.HandlerFunc {
 
 		http.Redirect(wrt, req, target.String(), http.StatusTemporaryRedirect)
 	}
-}
-
-// Wrapper for http.Handler which optionally adds a Cache-Control header to the response
-func cacheControlHandler(maxAge int, handler http.Handler) http.Handler {
-	if maxAge > 0 {
-		strMaxAge := strconv.Itoa(maxAge)
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cache-Control", "must-revalidate, public, max-age="+strMaxAge)
-			handler.ServeHTTP(w, r)
-		})
-	}
-	return handler
-}
-
-// Get API key from an HTTP request.
-func getAPIKey(req *http.Request) string {
-	// Check header.
-	apikey := req.Header.Get("X-Tinode-APIKey")
-	if apikey != "" {
-		return apikey
-	}
-
-	// Check URL query parameters.
-	apikey = req.URL.Query().Get("apikey")
-	if apikey != "" {
-		return apikey
-	}
-
-	// Check form values.
-	apikey = req.FormValue("apikey")
-	if apikey != "" {
-		return apikey
-	}
-
-	// Check cookies.
-	if c, err := req.Cookie("apikey"); err == nil {
-		apikey = c.Value
-	}
-
-	return apikey
-}
-
-// Extracts authorization credentials from an HTTP request.
-// Returns authentication method and secret.
-func getHttpAuth(req *http.Request) (method, secret string) {
-	// Check X-Tinode-Auth header.
-	if parts := strings.Split(req.Header.Get("X-Tinode-Auth"), " "); len(parts) == 2 {
-		method, secret = parts[0], parts[1]
-		return
-	}
-
-	// Check canonical Authorization header.
-	if parts := strings.Split(req.Header.Get("Authorization"), " "); len(parts) == 2 {
-		method, secret = parts[0], parts[1]
-		return
-	}
-
-	// Check URL query parameters.
-	if method = req.URL.Query().Get("auth"); method != "" {
-		// Get the auth secret.
-		secret = req.URL.Query().Get("secret")
-		// Convert base64 URL-encoding to standard encoding.
-		secret = strings.NewReplacer("-", "+", "_", "/").Replace(secret)
-		return
-	}
-
-	// Check form values.
-	if method = req.FormValue("auth"); method != "" {
-		return method, req.FormValue("secret")
-	}
-
-	// Check cookies as the last resort.
-	if mcookie, err := req.Cookie("auth"); err == nil {
-		if scookie, err := req.Cookie("secret"); err == nil {
-			method, secret = mcookie.Value, scookie.Value
-		}
-	}
-
-	return
-}
-
-// Authenticate non-websocket HTTP request
-func authHttpRequest(req *http.Request) (types.Uid, []byte, error) {
-	var uid types.Uid
-	if authMethod, secret := getHttpAuth(req); authMethod != "" {
-		decodedSecret := make([]byte, base64.StdEncoding.DecodedLen(len(secret)))
-		_, err := base64.StdEncoding.Decode(decodedSecret, []byte(secret))
-		if err != nil {
-			logs.Info.Println("media: invalid auth secret", authMethod, "'"+secret+"'")
-			return uid, nil, types.ErrMalformed
-		}
-	} else {
-		// Find the session, make sure it's appropriately authenticated.
-		sess := globals.sessionStore.Get(req.FormValue("sid"))
-		if sess != nil {
-			uid = sess.uid
-		}
-	}
-	return uid, nil, nil
 }
 
 // debugSession is session debug info.
@@ -408,7 +240,7 @@ type debugDump struct {
 	UserCache []debugCachedUser `json:"user_cache,omitempty"`
 }
 
-func serveStatus(wrt http.ResponseWriter, req *http.Request) {
+func serveStatus(wrt http.ResponseWriter, _ *http.Request) {
 	wrt.Header().Set("Content-Type", "application/json")
 
 	result := &debugDump{
@@ -438,5 +270,5 @@ func serveStatus(wrt http.ResponseWriter, req *http.Request) {
 		return true
 	})
 
-	json.NewEncoder(wrt).Encode(result)
+	_ = json.NewEncoder(wrt).Encode(result)
 }

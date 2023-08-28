@@ -227,16 +227,6 @@ func (ss *SessionStore) EvictUser(uid types.Uid, skipSid string) {
 	statsSet("LiveSessions", int64(len(ss.sessCache)))
 }
 
-// NodeRestarted removes stale sessions from a restarted cluster node.
-//   - nodeName is the name of affected node
-//   - fingerprint is the new fingerprint of the node.
-func (ss *SessionStore) NodeRestarted(nodeName string, fingerprint int64) {
-	ss.lock.Lock()
-	defer ss.lock.Unlock()
-
-	statsSet("LiveSessions", int64(len(ss.sessCache)))
-}
-
 // NewSessionStore initializes a session store.
 func NewSessionStore(lifetime time.Duration) *SessionStore {
 	ss := &SessionStore{

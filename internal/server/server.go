@@ -35,20 +35,8 @@ const (
 	// defaultMaxMessageSize is the default maximum message size
 	defaultMaxMessageSize = 1 << 19 // 512K
 
-	// Delay before updating a User Agent
-	uaTimerDelay = time.Second * 5
-
-	// maxDeleteCount is the maximum allowed number of messages to delete in one call.
-	defaultMaxDeleteCount = 1024
-
 	// Base URL path for serving the streaming API.
 	defaultApiPath = "/"
-
-	// Mount point where static content is served, http://host-name<defaultStaticMount>
-	defaultStaticMount = "/"
-
-	// Local path to static content
-	defaultStaticPath = "static"
 )
 
 // Large file handler config.
