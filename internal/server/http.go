@@ -32,7 +32,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/queue"
 )
 
-func listenAndServe(addr string, mux *http.ServeMux, tlfConf *tls.Config, stop <-chan bool) error {
+func listenAndServe2(addr string, mux *http.ServeMux, tlfConf *tls.Config, stop <-chan bool) error {
 	globals.shuttingDown = false
 
 	httpdone := make(chan bool)

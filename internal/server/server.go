@@ -12,8 +12,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	jcr "github.com/tinode/jsonco"
-	"net/http"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -167,10 +167,15 @@ func ListenAndServe() {
 	}
 
 	// Set up HTTP server. Must use non-default mux because of expvar.
-	mux := http.NewServeMux()
+	app := fiber.New(fiber.Config{
+		ReadTimeout:  10 * time.Second,
+		IdleTimeout:  30 * time.Second,
+		WriteTimeout: 90 * time.Second,
+	})
+	app.Use(cors.New())
 
 	// Handle extra
-	mux = hookMux()
+	mux := hookMux(app)
 
 	// Exposing values for statistics and monitoring.
 	evpath := *expvarPath
@@ -317,21 +322,15 @@ func ListenAndServe() {
 		mux.HandleFunc(sspath, serveStatus)
 	}
 
-	if err = fiberListenAndServe(config.Listen, tlsConfig, signalHandler()); err != nil {
+	if err = listenAndServe(app, config.Listen, tlsConfig, signalHandler()); err != nil {
 		logs.Err.Fatal(err)
 	}
 }
 
-func fiberListenAndServe(addr string, tlfConf *tls.Config, stop <-chan bool) error {
+func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-chan bool) error {
 	globals.shuttingDown = false
 
 	httpdone := make(chan bool)
-
-	app := fiber.New(fiber.Config{
-		ReadTimeout:  10 * time.Second,
-		IdleTimeout:  30 * time.Second,
-		WriteTimeout: 90 * time.Second,
-	})
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("flowbot")

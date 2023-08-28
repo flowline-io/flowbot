@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"strings"
 
@@ -60,7 +61,7 @@ func hookConfig(jsconfig json.RawMessage) {
 	}
 }
 
-func hookMux() *http.ServeMux {
+func hookMux(app *fiber.App) *http.ServeMux {
 	// Webservice
 	wc := route.NewContainer()
 	for _, bot := range bots.List() {
