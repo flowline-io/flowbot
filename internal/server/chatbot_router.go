@@ -456,7 +456,7 @@ func queueStats(rw http.ResponseWriter, _ *http.Request) {
 }
 
 // globals session
-var sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second)
+var sessionStore *SessionStore
 
 func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))
@@ -501,4 +501,8 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	// Otherwise, "too many open files" will happen.
 	go sess.writeLoop()
 	go sess.readLoop()
+}
+
+func init() {
+	sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second) // todo
 }

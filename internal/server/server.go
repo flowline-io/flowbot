@@ -1,12 +1,17 @@
 package server
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/gofiber/fiber/v2"
 	jcr "github.com/tinode/jsonco"
 	"net/http"
 	"os"
@@ -312,7 +317,81 @@ func ListenAndServe() {
 		mux.HandleFunc(sspath, serveStatus)
 	}
 
-	if err = listenAndServe(config.Listen, mux, tlsConfig, signalHandler()); err != nil {
+	if err = fiberListenAndServe(config.Listen, tlsConfig, signalHandler()); err != nil {
 		logs.Err.Fatal(err)
+	}
+}
+
+func fiberListenAndServe(addr string, tlfConf *tls.Config, stop <-chan bool) error {
+	globals.shuttingDown = false
+
+	httpdone := make(chan bool)
+
+	app := fiber.New(fiber.Config{
+		ReadTimeout:  10 * time.Second,
+		IdleTimeout:  30 * time.Second,
+		WriteTimeout: 90 * time.Second,
+	})
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("flowbot")
+	})
+
+	go func() {
+		if tlfConf != nil {
+			err := app.ListenTLSWithCertificate(addr, tlfConf.Certificates[0])
+			if err != nil {
+				logs.Err.Println(err)
+			}
+		} else {
+			err := app.Listen(addr)
+			if err != nil {
+				logs.Err.Println(err)
+			}
+		}
+		httpdone <- true
+	}()
+
+	for {
+		select {
+		case <-stop:
+			// Flip the flag that we are terminating and close the Accept-ing socket, so no new connections are possible.
+			globals.shuttingDown = true
+			if err := app.Shutdown(); err != nil {
+				// failure/timeout shutting down the server gracefully
+				logs.Err.Println("HTTP server failed to terminate gracefully", err)
+			}
+
+			// While the server shuts down, termianate all sessions.
+			globals.sessionStore.Shutdown()
+
+			// Stop publishing statistics.
+			statsShutdown()
+
+			// Shutdown the hub. The hub will shutdown topics.
+			hubdone := make(chan bool)
+			globals.hub.shutdown <- hubdone
+
+			// Wait for the hub to finish.
+			<-hubdone
+
+			// Shutdown Extra
+			globals.crawler.Shutdown()
+			globals.worker.Shutdown()
+			globals.scheduler.Shutdown()
+			globals.manager.Shutdown()
+			for _, ruleset := range globals.cronRuleset {
+				ruleset.Shutdown()
+			}
+			event.Shutdown()
+			queue.Shutdown()
+			cache.Shutdown()
+
+			logs.Info.Println("server stop terminated")
+			return nil
+		case <-httpdone:
+			logs.Info.Println("http done terminated")
+			return nil
+		}
 	}
 }

@@ -154,7 +154,7 @@ func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 
 func (a *adapter) FileDeleteUnused(olderThan time.Time, limit int) ([]string, error) {
 	//TODO implement me
-	panic("implement me")
+	return nil, nil
 }
 
 func (a *adapter) FileLinkAttachments(topic string, userId, msgId types.Uid, fids []string) error {
