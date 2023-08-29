@@ -14,8 +14,6 @@ var globals struct {
 	shuttingDown bool
 	// Sessions cache.
 	sessionStore *SessionStore
-	// Runtime statistics communication channel.
-	statsUpdate chan *varUpdate
 
 	// Add Strict-Transport-Security to headers, the value signifies age.
 	// Empty string "" turns it off

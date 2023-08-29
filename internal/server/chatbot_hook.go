@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"net/http"
@@ -130,17 +131,17 @@ func hookBot(jsconfig json.RawMessage, vc json.RawMessage) {
 	}
 
 	// stats register
-	statsRegisterInt("BotTotal")
-	statsRegisterInt("BotRunInputTotal")
-	statsRegisterInt("BotRunGroupTotal")
-	statsRegisterInt("BotRunAgentTotal")
-	statsRegisterInt("BotRunCommandTotal")
-	statsRegisterInt("BotRunConditionTotal")
-	statsRegisterInt("BotRunCronTotal")
-	statsRegisterInt("BotRunFormTotal")
-	statsRegisterInt("BotTriggerPipelineTotal")
+	stats.RegisterInt("BotTotal")
+	stats.RegisterInt("BotRunInputTotal")
+	stats.RegisterInt("BotRunGroupTotal")
+	stats.RegisterInt("BotRunAgentTotal")
+	stats.RegisterInt("BotRunCommandTotal")
+	stats.RegisterInt("BotRunConditionTotal")
+	stats.RegisterInt("BotRunCronTotal")
+	stats.RegisterInt("BotRunFormTotal")
+	stats.RegisterInt("BotTriggerPipelineTotal")
 
-	statsSet("BotTotal", int64(len(bots.List())))
+	stats.Set("BotTotal", int64(len(bots.List())))
 }
 
 func hookChannel() {
@@ -160,10 +161,10 @@ func hookChannel() {
 	}
 
 	// stats register
-	statsRegisterInt("ChannelTotal")
-	statsRegisterInt("ChannelPublishTotal")
+	stats.RegisterInt("ChannelTotal")
+	stats.RegisterInt("ChannelPublishTotal")
 
-	statsSet("ChannelTotal", int64(len(channels.List())))
+	stats.Set("ChannelTotal", int64(len(channels.List())))
 }
 
 func hookHandleIncomingMessage(t *Topic, msg *ClientComMessage) {

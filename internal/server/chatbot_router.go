@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -365,7 +366,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// stats
-		statsInc("BotRunFormTotal", 1)
+		stats.Inc("BotRunFormTotal", 1)
 
 		// send message
 		if payload == nil {

@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
@@ -30,7 +31,7 @@ func (s *Session) sendMessage(msg any) bool {
 		return false
 	}
 
-	statsInc("OutgoingMessagesWebsockTotal", 1)
+	stats.Inc("OutgoingMessagesWebsockTotal", 1)
 	if err := wsWrite(s.ws, websocket.TextMessage, msg); err != nil {
 		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 			websocket.CloseNormalClosure) {

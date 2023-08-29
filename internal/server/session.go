@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
@@ -282,7 +283,7 @@ func (s *Session) expandTopicName(msg *ClientComMessage) (string, *types.ServerC
 func (s *Session) serializeAndUpdateStats(msg *ServerComMessage) any {
 	dataSize, data := s.serialize(msg)
 	if dataSize >= 0 {
-		statsAddHistSample("OutgoingMessageSize", float64(dataSize))
+		stats.AddHistSample("OutgoingMessageSize", float64(dataSize))
 	}
 	return data
 }
@@ -305,7 +306,7 @@ func (s *Session) sendMessageLp(wrt http.ResponseWriter, msg any) bool {
 		return false
 	}
 
-	statsInc("OutgoingMessagesLongpollTotal", 1)
+	stats.Inc("OutgoingMessagesLongpollTotal", 1)
 	if err := lpWrite(wrt, msg); err != nil {
 		logs.Err.Println("longPoll: writeOnce failed", s.sid, err)
 		return false
@@ -385,7 +386,7 @@ func (s *Session) readOnce(wrt http.ResponseWriter, req *http.Request) (int, err
 		// Locking-unlocking is needed because the client may issue multiple requests in parallel.
 		// Should not affect performance
 		s.lock.Lock()
-		statsInc("IncomingMessagesLongpollTotal", 1)
+		stats.Inc("IncomingMessagesLongpollTotal", 1)
 		s.dispatchRaw(raw)
 		s.lock.Unlock()
 		return 0, nil

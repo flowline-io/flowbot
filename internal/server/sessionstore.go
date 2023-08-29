@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"sync"
@@ -123,8 +124,8 @@ func (ss *SessionStore) NewSession(conn any, sid string) (*Session, int) {
 	}
 
 	numSessions := len(ss.sessCache)
-	statsSet("LiveSessions", int64(numSessions))
-	statsInc("TotalSessions", 1)
+	stats.Set("LiveSessions", int64(numSessions))
+	stats.Inc("TotalSessions", 1)
 
 	ss.lock.Unlock()
 
@@ -165,7 +166,7 @@ func (ss *SessionStore) Delete(s *Session) {
 		ss.lru.Remove(s.lpTracker)
 	}
 
-	statsSet("LiveSessions", int64(len(ss.sessCache)))
+	stats.Set("LiveSessions", int64(len(ss.sessCache)))
 }
 
 // Range calls given function for all sessions. It stops if the function returns false.
@@ -215,7 +216,7 @@ func (ss *SessionStore) EvictUser(uid types.Uid, skipSid string) {
 		}
 	}
 
-	statsSet("LiveSessions", int64(len(ss.sessCache)))
+	stats.Set("LiveSessions", int64(len(ss.sessCache)))
 }
 
 // NewSessionStore initializes a session store.
@@ -227,8 +228,8 @@ func NewSessionStore(lifetime time.Duration) *SessionStore {
 		sessCache: make(map[string]*Session),
 	}
 
-	statsRegisterInt("LiveSessions")
-	statsRegisterInt("TotalSessions")
+	stats.RegisterInt("LiveSessions")
+	stats.RegisterInt("TotalSessions")
 
 	return ss
 }

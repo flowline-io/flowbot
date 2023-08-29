@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/fiber/v2"
@@ -219,13 +220,13 @@ func ListenAndServe() {
 	if evpath == "" {
 		evpath = config.ExpvarPath
 	}
-	statsInit(app, evpath)
-	statsRegisterInt("Version")
+	stats.Init(app, evpath)
+	stats.RegisterInt("Version")
 	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
 	if decVersion <= 0 {
 		decVersion = utils.Base10Version(utils.ParseVersion(currentVersion))
 	}
-	statsSet("Version", decVersion)
+	stats.Set("Version", decVersion)
 
 	// Initialize serving debug profiles (optional).
 	servePprof(app, *pprofUrl)
@@ -271,7 +272,7 @@ func ListenAndServe() {
 		logs.Info.Println("Closed database connection(s)")
 		logs.Info.Println("All done, good bye")
 	}()
-	statsRegisterDbStats()
+	stats.RegisterDbStats()
 
 	// Maximum message size
 	globals.maxMessageSize = int64(config.MaxMessageSize)
@@ -412,7 +413,7 @@ Loop:
 			globals.sessionStore.Shutdown()
 
 			// Stop publishing statistics.
-			statsShutdown()
+			stats.Shutdown()
 
 			// Shutdown the hub. The hub will shutdown topics.
 			hubdone := make(chan bool)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	"sync/atomic"
 	"time"
@@ -61,7 +62,7 @@ func (s *Session) readLoop() {
 			}
 			return
 		}
-		statsInc("IncomingMessagesWebsockTotal", 1)
+		stats.Inc("IncomingMessagesWebsockTotal", 1)
 		s.dispatchRaw(raw)
 	}
 }

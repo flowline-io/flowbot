@@ -279,7 +279,7 @@ func initializeCrawler() error {
 	//	}
 	//
 	//	// stats inc
-	//	statsInc("ChannelPublishTotal", 1)
+	//	stats.Inc("ChannelPublishTotal", 1)
 	//
 	//	msg := &ClientComMessage{
 	//		Pub: &MsgClientPub{

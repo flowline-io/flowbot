@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"net/http"
@@ -320,7 +321,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					}
 
 					// stats
-					statsInc("BotRunCommandTotal", 1)
+					stats.Inc("BotRunCommandTotal", 1)
 
 					// error message
 					if payload == nil {
@@ -354,7 +355,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					ctx.PipelineVersion = pipelineVersion
 
 					// stats
-					statsInc("BotTriggerPipelineTotal", 1)
+					stats.Inc("BotTriggerPipelineTotal", 1)
 
 					// error message
 					if payload == nil {
@@ -397,7 +398,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 							}
 
 							// stats
-							statsInc("BotRunConditionTotal", 1)
+							stats.Inc("BotRunConditionTotal", 1)
 						}
 					}
 				}
@@ -411,7 +412,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 				}
 
 				// stats
-				statsInc("BotRunInputTotal", 1)
+				stats.Inc("BotRunInputTotal", 1)
 			}
 		}
 
@@ -510,7 +511,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 						}
 
 						// stats
-						statsInc("BotRunConditionTotal", 1)
+						stats.Inc("BotRunConditionTotal", 1)
 					}
 				}
 			}
@@ -532,7 +533,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 			}
 
 			// stats
-			statsInc("BotRunGroupTotal", 1)
+			stats.Inc("BotRunGroupTotal", 1)
 		}
 
 		// send message
@@ -708,7 +709,7 @@ func linkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 		//	}
 		//
 		//	// stats
-		//	statsInc("BotRunAgentTotal", 1)
+		//	stats.Inc("BotRunAgentTotal", 1)
 		//
 		//	// send message
 		//	if payload == nil {

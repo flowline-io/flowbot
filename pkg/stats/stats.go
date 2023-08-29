@@ -3,7 +3,7 @@
 // The stats updates happen in a separate go routine to avoid
 // locking on main logic routines.
 
-package server
+package stats
 
 import (
 	"encoding/json"
@@ -16,6 +16,9 @@ import (
 	"sort"
 	"time"
 )
+
+// StatsUpdate Runtime statistics communication channel.
+var update chan *varUpdate
 
 // A simple implementation of histogram expvar.Var.
 // `Bounds` specifies the histogram buckets as follows (length = len(bounds)):
@@ -53,14 +56,14 @@ type varUpdate struct {
 	inc bool
 }
 
-// Initialize stats reporting through expvar.
-func statsInit(app *fiber.App, path string) {
+// Init Initialize stats reporting through expvar.
+func Init(app *fiber.App, path string) {
 	if path == "" || path == "-" {
 		return
 	}
 
 	app.Get(path, adaptor.HTTPHandler(expvar.Handler()))
-	globals.statsUpdate = make(chan *varUpdate, 1024)
+	update = make(chan *varUpdate, 1024)
 
 	start := time.Now()
 	expvar.Publish("Uptime", expvar.Func(func() any {
@@ -70,25 +73,25 @@ func statsInit(app *fiber.App, path string) {
 		return runtime.NumGoroutine()
 	}))
 
-	go statsUpdater()
+	go updater()
 
 	logs.Info.Printf("stats: variables exposed at '%s'", path)
 }
 
-func statsRegisterDbStats() {
+func RegisterDbStats() {
 	if f := store.Store.DbStats(); f != nil {
 		expvar.Publish("DbStats", expvar.Func(f))
 	}
 }
 
-// Register integer variable. Don't check for initialization.
-func statsRegisterInt(name string) {
+// RegisterInt Register integer variable. Don't check for initialization.
+func RegisterInt(name string) {
 	expvar.Publish(name, new(expvar.Int))
 }
 
-// Register histogram variable. `bounds` specifies histogram buckets/bins
+// RegisterHistogram Register histogram variable. `bounds` specifies histogram buckets/bins
 // (see comment next to the `histogram` struct definition).
-func statsRegisterHistogram(name string, bounds []float64) {
+func RegisterHistogram(name string, bounds []float64) {
 	numBuckets := len(bounds) + 1
 	expvar.Publish(name, &histogram{
 		CountPerBucket: make([]int64, numBuckets),
@@ -96,49 +99,49 @@ func statsRegisterHistogram(name string, bounds []float64) {
 	})
 }
 
-// Async publish int variable.
-func statsSet(name string, val int64) {
-	if globals.statsUpdate != nil {
+// Set Async publish int variable.
+func Set(name string, val int64) {
+	if update != nil {
 		select {
-		case globals.statsUpdate <- &varUpdate{name, val, false}:
+		case update <- &varUpdate{name, val, false}:
 		default:
 		}
 	}
 }
 
-// Async publish an increment (decrement) to int variable.
-func statsInc(name string, val int) {
-	if globals.statsUpdate != nil {
+// Inc Async publish an increment (decrement) to int variable.
+func Inc(name string, val int) {
+	if update != nil {
 		select {
-		case globals.statsUpdate <- &varUpdate{name, int64(val), true}:
+		case update <- &varUpdate{name, int64(val), true}:
 		default:
 		}
 	}
 }
 
-// Async publish a value (add a sample) to a histogram variable.
-func statsAddHistSample(name string, val float64) {
-	if globals.statsUpdate != nil {
+// AddHistSample Async publish a value (add a sample) to a histogram variable.
+func AddHistSample(name string, val float64) {
+	if update != nil {
 		select {
-		case globals.statsUpdate <- &varUpdate{varname: name, value: val}:
+		case update <- &varUpdate{varname: name, value: val}:
 		default:
 		}
 	}
 }
 
-// Stop publishing stats.
-func statsShutdown() {
-	if globals.statsUpdate != nil {
-		globals.statsUpdate <- nil
+// Shutdown Stop publishing stats.
+func Shutdown() {
+	if update != nil {
+		update <- nil
 	}
 }
 
 // The go routine which actually publishes stats updates.
-func statsUpdater() {
-	for upd := range globals.statsUpdate {
+func updater() {
+	for upd := range update {
 		if upd == nil {
-			globals.statsUpdate = nil
-			// Dont' care to close the channel.
+			update = nil
+			// Don't care to close the channel.
 			break
 		}
 
