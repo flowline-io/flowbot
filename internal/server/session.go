@@ -17,10 +17,6 @@ import (
 // Maximum number of queued messages before session is considered stale and dropped.
 const sendQueueLimit = 128
 
-// Time given to a background session to terminate to avoid tiggering presence notifications.
-// If session terminates (or unsubscribes from topic) in this time frame notifications are not sent at all.
-const deferredNotificationsTimeout = time.Second * 5
-
 // SessionProto is the type of the wire transport.
 type SessionProto int
 

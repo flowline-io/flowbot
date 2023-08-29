@@ -25,20 +25,6 @@ type MsgGetOpts struct {
 	Limit int `json:"limit,omitempty"`
 }
 
-// MsgGetQuery is a topic metadata or data query.
-type MsgGetQuery struct {
-	What string `json:"what"`
-
-	// Parameters of "desc" request: IfModifiedSince
-	Desc *MsgGetOpts `json:"desc,omitempty"`
-	// Parameters of "sub" request: User, Topic, IfModifiedSince, Limit.
-	Sub *MsgGetOpts `json:"sub,omitempty"`
-	// Parameters of "data" request: Since, Before, Limit.
-	Data *MsgGetOpts `json:"data,omitempty"`
-	// Parameters of "del" request: Since, Before, Limit.
-	Del *MsgGetOpts `json:"del,omitempty"`
-}
-
 // MsgSetSub is a payload in set.sub request to update current subscription or invite another user, {sub.what} == "sub".
 type MsgSetSub struct {
 	// User affected by this request. Default (empty): current user
@@ -91,24 +77,6 @@ type MsgDelRange struct {
  * Client to Server (C2S) messages.
  ****************************************************************/
 
-// MsgClientHi is a handshake {hi} message.
-type MsgClientHi struct {
-	// Message Id
-	Id string `json:"id,omitempty"`
-	// User agent
-	UserAgent string `json:"ua,omitempty"`
-	// Protocol version, i.e. "0.13"
-	Version string `json:"ver,omitempty"`
-	// Client's unique device ID
-	DeviceID string `json:"dev,omitempty"`
-	// ISO 639-1 human language of the connected device
-	Lang string `json:"lang,omitempty"`
-	// Platform code: ios, android, web.
-	Platform string `json:"platf,omitempty"`
-	// Session is initially in non-iteractive, i.e. issued by a service. Presence notifications are delayed.
-	Background bool `json:"bkg,omitempty"`
-}
-
 // MsgClientAcc is an {acc} message for creating or updating a user account.
 type MsgClientAcc struct {
 	// Message Id
@@ -137,50 +105,10 @@ type MsgClientAcc struct {
 	Cred []MsgCredClient `json:"cred,omitempty"`
 }
 
-// MsgClientLogin is a login {login} message.
-type MsgClientLogin struct {
-	// Message Id
-	Id string `json:"id,omitempty"`
-	// Authentication scheme
-	Scheme string `json:"scheme,omitempty"`
-	// Shared secret
-	Secret []byte `json:"secret"`
-	// Credntials being verified (email or phone or captcha etc.)
-	Cred []MsgCredClient `json:"cred,omitempty"`
-}
-
-// MsgClientSub is a subscription request {sub} message.
-type MsgClientSub struct {
-	Id    string `json:"id,omitempty"`
-	Topic string `json:"topic"`
-
-	// Mirrors {set}.
-	Set *MsgSetQuery `json:"set,omitempty"`
-
-	// Mirrors {get}.
-	Get *MsgGetQuery `json:"get,omitempty"`
-
-	// Intra-cluster fields.
-
-	// True if this subscription created a new topic.
-	// In case of p2p topics, it's true if the other user's subscription was
-	// created (as a part of new topic creation or just alone).
-	Created bool `json:"-"`
-	// True if this is a new subscription.
-	Newsub bool `json:"-"`
-}
-
 // MsgDefaultAcsMode is a topic default access mode.
 type MsgDefaultAcsMode struct {
 	Auth string `json:"auth,omitempty"`
 	Anon string `json:"anon,omitempty"`
-}
-
-// MsgClientLeave is an unsubscribe {leave} request message.
-type MsgClientLeave struct {
-	Id    string `json:"id,omitempty"`
-	Topic string `json:"topic"`
-	Unsub bool   `json:"unsub,omitempty"`
 }
 
 // MsgClientPub is client's request to publish data to topic subscribers {pub}.
@@ -196,7 +124,6 @@ type MsgClientPub struct {
 type MsgClientGet struct {
 	Id    string `json:"id,omitempty"`
 	Topic string `json:"topic"`
-	MsgGetQuery
 }
 
 // MsgClientSet is an update of topic state {set}.
@@ -227,46 +154,12 @@ type MsgClientDel struct {
 	Hard bool `json:"hard,omitempty"`
 }
 
-// MsgClientNote is a client-generated notification for topic subscribers {note}.
-type MsgClientNote struct {
-	// There is no Id -- server will not akn {ping} packets, they are "fire and forget"
-	Topic string `json:"topic"`
-	// what is being reported: "recv" - message received, "read" - message read, "kp" - typing notification
-	What string `json:"what"`
-	// Server-issued message ID being reported
-	SeqId int `json:"seq,omitempty"`
-	// Client's count of unread messages to report back to the server. Used in push notifications on iOS.
-	Unread int `json:"unread,omitempty"`
-	// Call event.
-	Event string `json:"event,omitempty"`
-	// Arbitrary json payload (used in video calls).
-	Payload json.RawMessage `json:"payload,omitempty"`
-}
-
-// MsgClientExtra is not a stand-alone message but extra data which augments the main payload.
-type MsgClientExtra struct {
-	// Array of out-of-band attachments which have to be exempted from GC.
-	Attachments []string `json:"attachments,omitempty"`
-	// Alternative user ID set by the root user (obo = On Behalf Of).
-	AsUser string `json:"obo,omitempty"`
-	// Altered authentication level set by the root user.
-	AuthLevel string `json:"authlevel,omitempty"`
-}
-
 // ClientComMessage is a wrapper for client messages.
 type ClientComMessage struct {
-	Hi    *MsgClientHi    `json:"hi"`
-	Acc   *MsgClientAcc   `json:"acc"`
-	Login *MsgClientLogin `json:"login"`
-	Sub   *MsgClientSub   `json:"sub"`
-	Leave *MsgClientLeave `json:"leave"`
-	Pub   *MsgClientPub   `json:"pub"`
-	Get   *MsgClientGet   `json:"get"`
-	Set   *MsgClientSet   `json:"set"`
-	Del   *MsgClientDel   `json:"del"`
-	Note  *MsgClientNote  `json:"note"`
-	// Optional data.
-	Extra *MsgClientExtra `json:"extra"`
+	Pub *MsgClientPub `json:"pub"`
+	Get *MsgClientGet `json:"get"`
+	Set *MsgClientSet `json:"set"`
+	Del *MsgClientDel `json:"del"`
 
 	// Internal fields, routed only within the cluster.
 

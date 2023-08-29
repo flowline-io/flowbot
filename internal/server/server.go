@@ -40,7 +40,7 @@ const (
 	// currentVersion is the current API/protocol version
 	currentVersion = "0.1"
 	// minSupportedVersion is the minimum supported API version
-	minSupportedVersion = "0.1"
+	// minSupportedVersion = "0.1"
 
 	// idleSessionTimeout defines duration of being idle before terminating a session.
 	idleSessionTimeout = time.Second * 55
@@ -235,17 +235,23 @@ func ListenAndServe() {
 		if err != nil {
 			logs.Err.Fatal("Failed to create CPU pprof file: ", err)
 		}
-		defer cpuf.Close()
+		defer func() {
+			_ = cpuf.Close()
+		}()
 
 		memf, err := os.Create(*pprofFile + ".mem")
 		if err != nil {
 			logs.Err.Fatal("Failed to create Mem pprof file: ", err)
 		}
-		defer memf.Close()
+		defer func() {
+			_ = memf.Close()
+		}()
 
 		_ = pprof.StartCPUProfile(cpuf)
 		defer pprof.StopCPUProfile()
-		defer pprof.WriteHeapProfile(memf)
+		defer func() {
+			_ = pprof.WriteHeapProfile(memf)
+		}()
 
 		logs.Info.Printf("Profiling info saved to '%s.(cpu|mem)'", *pprofFile)
 	}
@@ -408,7 +414,6 @@ Loop:
 
 			// Shutdown the hub. The hub will shutdown topics.
 			hubdone := make(chan bool)
-			globals.hub.shutdown <- hubdone
 
 			// Wait for the hub to finish.
 			<-hubdone

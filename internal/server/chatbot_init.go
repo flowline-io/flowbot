@@ -3,56 +3,52 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/workflow/manager"
 	"github.com/flowline-io/flowbot/internal/workflow/scheduler"
 	"github.com/flowline-io/flowbot/internal/workflow/worker"
 	"github.com/flowline-io/flowbot/pkg/channels"
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"strings"
-	"time"
 )
 
 // init base bot user
 func initializeBotFather() error {
-	msg := &ClientComMessage{
-		Acc: &MsgClientAcc{
-			User:      "new",
-			State:     "ok",
-			AuthLevel: "auth",
-			Scheme:    "basic",
-			Secret:    []byte(fmt.Sprintf("%s:170953280278461931", BotFather)),
-			Login:     false,
-			Tags:      []string{"bot"},
-			Desc: &MsgSetDesc{
-				DefaultAcs: nil,
-				Public: map[string]interface{}{
-					"fn": BotFather,
-				},
-				Trusted: map[string]interface{}{
-					"staff": true,
-				},
-				Private: nil,
-			},
-		},
-	}
+	//msg := &ClientComMessage{
+	//	Acc: &MsgClientAcc{
+	//		User:      "new",
+	//		State:     "ok",
+	//		AuthLevel: "auth",
+	//		Scheme:    "basic",
+	//		Secret:    []byte(fmt.Sprintf("%s:170953280278461931", BotFather)),
+	//		Login:     false,
+	//		Tags:      []string{"bot"},
+	//		Desc: &MsgSetDesc{
+	//			DefaultAcs: nil,
+	//			Public: map[string]interface{}{
+	//				"fn": BotFather,
+	//			},
+	//			Trusted: map[string]interface{}{
+	//				"staff": true,
+	//			},
+	//			Private: nil,
+	//		},
+	//	},
+	//}
 
 	//var user types.User
 	//var private interface{}
 
 	// Assign actual access values, public and private.
-	if msg.Acc.Desc != nil {
-		if !utils.IsNullValue(msg.Acc.Desc.Public) {
-			//user.Public = msg.Acc.Desc.Public
-		}
-		if !utils.IsNullValue(msg.Acc.Desc.Trusted) {
-			//user.Trusted = msg.Acc.Desc.Trusted
-		}
-		if !utils.IsNullValue(msg.Acc.Desc.Private) {
-			//private = msg.Acc.Desc.Private
-		}
-	}
+	//if msg.Acc.Desc != nil {
+	//	if !utils.IsNullValue(msg.Acc.Desc.Public) {
+	//		//user.Public = msg.Acc.Desc.Public
+	//	}
+	//	if !utils.IsNullValue(msg.Acc.Desc.Trusted) {
+	//		//user.Trusted = msg.Acc.Desc.Trusted
+	//	}
+	//	if !utils.IsNullValue(msg.Acc.Desc.Private) {
+	//		//private = msg.Acc.Desc.Private
+	//	}
+	//}
 
 	// Create user record in the database.
 	//if _, err := tstore.Users.Create(&user, private); err != nil {
@@ -77,81 +73,81 @@ func initializeBotFather() error {
 
 // init bot users
 func initializeBotUsers() error {
-	var msgs []*ClientComMessage
+	//var msgs []*ClientComMessage
 
-	for name := range bots.List() {
-		msgs = append(msgs, &ClientComMessage{
-			Acc: &MsgClientAcc{
-				User:      "new",
-				AuthLevel: "auth",
-				Scheme:    "basic",
-				Secret:    []byte(fmt.Sprintf("%s%s:%d", name, bots.BotNameSuffix, time.Now().Unix())),
-				Login:     false,
-				Tags:      []string{"bot", name},
-				Desc: &MsgSetDesc{
-					Public: map[string]interface{}{
-						"fn": fmt.Sprintf("%s%s", name, bots.BotNameSuffix),
-					},
-					Trusted: map[string]interface{}{
-						"verified": true,
-					},
-				},
-			},
-		})
-	}
+	//for name := range bots.List() {
+	//	msgs = append(msgs, &ClientComMessage{
+	//		Acc: &MsgClientAcc{
+	//			User:      "new",
+	//			AuthLevel: "auth",
+	//			Scheme:    "basic",
+	//			Secret:    []byte(fmt.Sprintf("%s%s:%d", name, bots.BotNameSuffix, time.Now().Unix())),
+	//			Login:     false,
+	//			Tags:      []string{"bot", name},
+	//			Desc: &MsgSetDesc{
+	//				Public: map[string]interface{}{
+	//					"fn": fmt.Sprintf("%s%s", name, bots.BotNameSuffix),
+	//				},
+	//				Trusted: map[string]interface{}{
+	//					"verified": true,
+	//				},
+	//			},
+	//		},
+	//	})
+	//}
 
-	for _, msg := range msgs {
-		// Check if login is unique.
+	//for _, msg := range msgs {
+	// Check if login is unique.
 
-		//var user types.User
-		//var private interface{}
+	//var user types.User
+	//var private interface{}
 
-		//state, err := types.NewObjState("ok")
-		//if err != nil {
-		//	return err
-		//}
-		//user.State = state
+	//state, err := types.NewObjState("ok")
+	//if err != nil {
+	//	return err
+	//}
+	//user.State = state
 
-		// Assign actual access values, public and private.
-		if msg.Acc.Desc != nil {
-			if !utils.IsNullValue(msg.Acc.Desc.Public) {
-				//user.Public = msg.Acc.Desc.Public
-			}
-			if !utils.IsNullValue(msg.Acc.Desc.Trusted) {
-				//user.Trusted = msg.Acc.Desc.Trusted
-			}
-			if !utils.IsNullValue(msg.Acc.Desc.Private) {
-				//private = msg.Acc.Desc.Private
-			}
-		}
+	// Assign actual access values, public and private.
+	//if msg.Acc.Desc != nil {
+	//	if !utils.IsNullValue(msg.Acc.Desc.Public) {
+	//		//user.Public = msg.Acc.Desc.Public
+	//	}
+	//	if !utils.IsNullValue(msg.Acc.Desc.Trusted) {
+	//		//user.Trusted = msg.Acc.Desc.Trusted
+	//	}
+	//	if !utils.IsNullValue(msg.Acc.Desc.Private) {
+	//		//private = msg.Acc.Desc.Private
+	//	}
+	//}
 
-		// Create user record in the database.
-		//if _, err := tstore.Users.Create(&user, private); err != nil {
-		//	return fmt.Errorf("create bot user: failed to create bot user, %s", err)
-		//}
+	// Create user record in the database.
+	//if _, err := tstore.Users.Create(&user, private); err != nil {
+	//	return fmt.Errorf("create bot user: failed to create bot user, %s", err)
+	//}
 
-		// Add authentication record. The authhdl.AddRecord may change tags.
+	// Add authentication record. The authhdl.AddRecord may change tags.
 
-		// Create or update validation record in DB.
-		secret := string(msg.Acc.Secret)
-		splitAt := strings.Index(secret, ":")
-		if splitAt < 0 {
-			return fmt.Errorf("secret split error %s", msg.Acc.Secret)
-		}
-		//uname := strings.ToLower(secret[:splitAt])
-		//value := strings.ToLower(fmt.Sprintf("%s@bot.system", uname))
+	// Create or update validation record in DB.
+	//secret := string(msg.Acc.Secret)
+	//splitAt := strings.Index(secret, ":")
+	//if splitAt < 0 {
+	//	return fmt.Errorf("secret split error %s", msg.Acc.Secret)
+	//}
+	//uname := strings.ToLower(secret[:splitAt])
+	//value := strings.ToLower(fmt.Sprintf("%s@bot.system", uname))
 
-		//_, err = tstore.Users.UpsertCred(&types.Credential{
-		//	User:   user.Uid().String(),
-		//	Method: "email",
-		//	Value:  value,
-		//	Resp:   "000000",
-		//	Done:   true,
-		//})
-		//if err != nil {
-		//	return fmt.Errorf("create credential record error %s (%s)", value, err)
-		//}
-	}
+	//_, err = tstore.Users.UpsertCred(&types.Credential{
+	//	User:   user.Uid().String(),
+	//	Method: "email",
+	//	Value:  value,
+	//	Resp:   "000000",
+	//	Done:   true,
+	//})
+	//if err != nil {
+	//	return fmt.Errorf("create credential record error %s (%s)", value, err)
+	//}
+	//}
 	return nil
 }
 
