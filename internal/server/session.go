@@ -1,12 +1,3 @@
-/******************************************************************************
- *
- *  Description :
- *
- *  Handling of user sessions/connections. One user may have multiple sesions.
- *  Each session may handle multiple topics
- *
- *****************************************************************************/
-
 package server
 
 import (
@@ -14,14 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/logs"
-	"github.com/gorilla/websocket"
 )
 
 // Maximum number of queued messages before session is considered stale and dropped.

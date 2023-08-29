@@ -1,20 +1,10 @@
-/******************************************************************************
- *
- *  Description :
- *
- *    Handler of large file uploads/downloads. Validates request first then calls
- *    a handler.
- *
- *****************************************************************************/
-
 package server
 
 import (
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"math/rand"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 // largeFileRunGarbageCollection runs every 'period' and deletes up to 'blockSize' unused files.

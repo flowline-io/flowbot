@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"flag"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
@@ -13,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	jsoniter "github.com/json-iterator/go"
 	jcr "github.com/tinode/jsonco"
 	"os"
 	"runtime"
@@ -168,9 +172,33 @@ func ListenAndServe() {
 
 	// Set up HTTP server. Must use non-default mux because of expvar.
 	app := fiber.New(fiber.Config{
+		JSONDecoder:  jsoniter.Unmarshal,
+		JSONEncoder:  jsoniter.Marshal,
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 90 * time.Second,
+
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			// Status code defaults to 500
+			code := fiber.StatusInternalServerError
+
+			// Retrieve the custom status code if it's a *fiber.Error
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
+
+			// Send custom error page
+			err = ctx.Status(code).JSON(types.KV{"code": code, "message": err.Error()})
+			if err != nil {
+				logs.Err.Println(err)
+				return ctx.Status(fiber.StatusInternalServerError).
+					JSON(types.KV{"code": fiber.StatusInternalServerError, "message": err.Error()})
+			}
+
+			// Return from handler
+			return nil
+		},
 	})
 	app.Use(cors.New())
 
@@ -333,7 +361,7 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 	httpdone := make(chan bool)
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("flowbot")
+		return c.JSON(map[string]any{"flowbot": currentVersion})
 	})
 
 	go func() {
@@ -351,12 +379,16 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 		httpdone <- true
 	}()
 
+	// Wait for either a termination signal or an error
+Loop:
 	for {
 		select {
 		case <-stop:
 			// Flip the flag that we are terminating and close the Accept-ing socket, so no new connections are possible.
 			globals.shuttingDown = true
-			if err := app.Shutdown(); err != nil {
+			// Give server 2 seconds to shut down.
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := app.ShutdownWithContext(ctx); err != nil {
 				// failure/timeout shutting down the server gracefully
 				logs.Err.Println("HTTP server failed to terminate gracefully", err)
 			}
@@ -373,6 +405,7 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 
 			// Wait for the hub to finish.
 			<-hubdone
+			cancel()
 
 			// Shutdown Extra
 			globals.crawler.Shutdown()
@@ -386,11 +419,10 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 			queue.Shutdown()
 			cache.Shutdown()
 
-			logs.Info.Println("server stop terminated")
-			return nil
+			break Loop
 		case <-httpdone:
-			logs.Info.Println("http done terminated")
-			return nil
+			break Loop
 		}
 	}
+	return nil
 }

@@ -6,12 +6,11 @@ package server
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"path"
 	"runtime/pprof"
 	"strings"
-
-	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 var pprofHttpRoot string

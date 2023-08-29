@@ -1,13 +1,5 @@
 package server
 
-/******************************************************************************
- *
- *  Description :
- *
- *    Wire protocol structures
- *
- *****************************************************************************/
-
 import (
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/types"

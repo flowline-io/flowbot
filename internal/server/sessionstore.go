@@ -1,22 +1,13 @@
-/******************************************************************************
- *
- *  Description:
- *
- *  Session management.
- *
- *****************************************************************************/
-
 package server
 
 import (
 	"container/list"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/gorilla/websocket"
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/logs"
-	"github.com/gorilla/websocket"
 )
 
 // WaitGroup with a semaphore functionality

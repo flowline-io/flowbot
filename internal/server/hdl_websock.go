@@ -1,20 +1,10 @@
-/******************************************************************************
- *
- *  Description :
- *
- *    Handler of websocket connections. See also hdl_longpoll.go for long polling
- *    and hdl_grpc.go for gRPC.
- *
- *****************************************************************************/
-
 package server
 
 import (
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 const (

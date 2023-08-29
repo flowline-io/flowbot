@@ -1,12 +1,3 @@
-/******************************************************************************
- *
- *  Description :
- *
- *    Main hub for processing events such as creating/tearing down topics,
- *    routing messages between topics.
- *
- *****************************************************************************/
-
 package server
 
 import (

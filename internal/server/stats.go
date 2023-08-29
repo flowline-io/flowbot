@@ -9,12 +9,11 @@ import (
 	"encoding/json"
 	"expvar"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"runtime"
 	"sort"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/logs"
 )
 
 // A simple implementation of histogram expvar.Var.
