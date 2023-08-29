@@ -1,8 +1,6 @@
 package server
 
 import (
-	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -10,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/queue"
@@ -55,7 +52,7 @@ const (
 	defaultApiPath = "/"
 )
 
-func ListenAndServe() {
+func Run() {
 	executable, _ := os.Executable()
 
 	logFlags := pflag.String("log_flags", "stdFlags",
@@ -128,7 +125,7 @@ func ListenAndServe() {
 	app.Use(logger.New())
 
 	// Handle extra
-	hookMux(app)
+	setupMux(app)
 
 	// Exposing values for statistics and monitoring.
 	evpath := *expvarPath
@@ -248,6 +245,9 @@ func ListenAndServe() {
 	// Initialize channels
 	hookChannel()
 
+	// Initialize session store
+	globals.sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second)
+
 	// Mounted
 	hookMounted()
 
@@ -294,75 +294,4 @@ func ListenAndServe() {
 	if err = listenAndServe(app, config.App.Listen, tlsConfig, signalHandler()); err != nil {
 		logs.Err.Fatal(err)
 	}
-}
-
-func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-chan bool) error {
-	globals.shuttingDown = false
-
-	httpdone := make(chan bool)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(map[string]any{"flowbot": currentVersion})
-	})
-
-	go func() {
-		if tlfConf != nil {
-			err := app.ListenTLSWithCertificate(addr, tlfConf.Certificates[0])
-			if err != nil {
-				logs.Err.Println(err)
-			}
-		} else {
-			err := app.Listen(addr)
-			if err != nil {
-				logs.Err.Println(err)
-			}
-		}
-		httpdone <- true
-	}()
-
-	// Wait for either a termination signal or an error
-Loop:
-	for {
-		select {
-		case <-stop:
-			// Flip the flag that we are terminating and close the Accept-ing socket, so no new connections are possible.
-			globals.shuttingDown = true
-			// Give server 2 seconds to shut down.
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			if err := app.ShutdownWithContext(ctx); err != nil {
-				// failure/timeout shutting down the server gracefully
-				logs.Err.Println("HTTP server failed to terminate gracefully", err)
-			}
-
-			// While the server shuts down, termianate all sessions.
-			globals.sessionStore.Shutdown()
-
-			// Stop publishing statistics.
-			stats.Shutdown()
-
-			// Shutdown the hub. The hub will shutdown topics.
-			hubdone := make(chan bool)
-
-			// Wait for the hub to finish.
-			<-hubdone
-			cancel()
-
-			// Shutdown Extra
-			globals.crawler.Shutdown()
-			globals.worker.Shutdown()
-			globals.scheduler.Shutdown()
-			globals.manager.Shutdown()
-			for _, ruleset := range globals.cronRuleset {
-				ruleset.Shutdown()
-			}
-			event.Shutdown()
-			queue.Shutdown()
-			cache.Shutdown()
-
-			break Loop
-		case <-httpdone:
-			break Loop
-		}
-	}
-	return nil
 }

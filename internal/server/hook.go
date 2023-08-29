@@ -6,12 +6,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	json "github.com/json-iterator/go"
-	"net/http"
 	"strings"
 
 	// bots
@@ -50,25 +46,6 @@ import (
 )
 
 // hook
-
-func hookMux(app *fiber.App) *http.ServeMux {
-	// Webservice
-	wc := route.NewContainer()
-	for _, bot := range bots.List() {
-		if ws := bot.Webservice(); ws != nil {
-			wc.Add(ws)
-		}
-	}
-	route.AddSwagger(wc)
-	mux := wc.ServeMux
-
-	app.Group("/extra", adaptor.HTTPHandler(newRouter()))
-	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
-	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
-
-	return mux
-}
 
 func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	b, err := json.Marshal(botsConfig)

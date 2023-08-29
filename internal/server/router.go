@@ -21,6 +21,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	json "github.com/json-iterator/go"
@@ -30,8 +32,26 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
+
+func setupMux(app *fiber.App) *http.ServeMux {
+	// Webservice
+	wc := route.NewContainer()
+	for _, bot := range bots.List() {
+		if ws := bot.Webservice(); ws != nil {
+			wc.Add(ws)
+		}
+	}
+	route.AddSwagger(wc)
+	m := wc.ServeMux
+
+	app.Group("/extra", adaptor.HTTPHandler(newRouter()))
+	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
+	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
+	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
+
+	return m
+}
 
 func newRouter() *mux.Router {
 	r := mux.NewRouter()
@@ -456,9 +476,6 @@ func queueStats(rw http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprint(rw, html)
 }
 
-// globals session
-var sessionStore *SessionStore
-
 func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))
 	if !isValid {
@@ -502,8 +519,4 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	// Otherwise, "too many open files" will happen.
 	go sess.writeLoop()
 	go sess.readLoop()
-}
-
-func init() {
-	sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second) // todo
 }

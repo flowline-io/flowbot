@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// globals session
+var sessionStore *SessionStore
+
 // WaitGroup with a semaphore functionality
 // (limiting number of threads/goroutines accessing the guarded resource simultaneously).
 type boundedWaitGroup struct {
