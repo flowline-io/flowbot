@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
-	extraMysql "github.com/flowline-io/flowbot/internal/store/mysql"
+	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/channels"
@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"net/http"
 	"strings"
 
@@ -72,10 +73,10 @@ func hookMux(app *fiber.App) *http.ServeMux {
 	route.AddSwagger(wc)
 	mux := wc.ServeMux
 
-	mux.Handle("/extra/", newRouter())
-	mux.Handle("/app/", newWebappRouter())
-	mux.Handle("/u/", newUrlRouter())
-	mux.Handle("/d/", newDownloadRouter())
+	app.Group("/extra", adaptor.HTTPHandler(newRouter()))
+	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
+	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
+	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
 
 	return mux
 }
@@ -84,7 +85,7 @@ func hookStore() {
 	// init cache
 	cache.InitCache()
 	// init database
-	extraMysql.Init()
+	mysql.Init()
 	store.Init()
 }
 

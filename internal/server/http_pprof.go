@@ -7,6 +7,8 @@ package server
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"net/http"
 	"path"
 	"runtime/pprof"
@@ -16,13 +18,13 @@ import (
 var pprofHttpRoot string
 
 // Expose debug profiling at the given URL path.
-func servePprof(mux *http.ServeMux, serveAt string) {
+func servePprof(app *fiber.App, serveAt string) {
 	if serveAt == "" || serveAt == "-" {
 		return
 	}
 
 	pprofHttpRoot = path.Clean("/"+serveAt) + "/"
-	mux.HandleFunc(pprofHttpRoot, profileHandler)
+	app.All(pprofHttpRoot, adaptor.HTTPHandlerFunc(profileHandler))
 
 	logs.Info.Printf("pprof: profiling info exposed at '%s'", pprofHttpRoot)
 }

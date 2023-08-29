@@ -10,7 +10,8 @@ import (
 	"expvar"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/logs"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"runtime"
 	"sort"
 	"time"
@@ -53,12 +54,12 @@ type varUpdate struct {
 }
 
 // Initialize stats reporting through expvar.
-func statsInit(mux *http.ServeMux, path string) {
+func statsInit(app *fiber.App, path string) {
 	if path == "" || path == "-" {
 		return
 	}
 
-	mux.Handle(path, expvar.Handler())
+	app.Get(path, adaptor.HTTPHandler(expvar.Handler()))
 	globals.statsUpdate = make(chan *varUpdate, 1024)
 
 	start := time.Now()

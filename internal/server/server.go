@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -209,14 +210,14 @@ func ListenAndServe() {
 	app.Use(logger.New())
 
 	// Handle extra
-	mux := hookMux(app)
+	hookMux(app)
 
 	// Exposing values for statistics and monitoring.
 	evpath := *expvarPath
 	if evpath == "" {
 		evpath = config.ExpvarPath
 	}
-	statsInit(mux, evpath)
+	statsInit(app, evpath)
 	statsRegisterInt("Version")
 	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
 	if decVersion <= 0 {
@@ -225,7 +226,7 @@ func ListenAndServe() {
 	statsSet("Version", decVersion)
 
 	// Initialize serving debug profiles (optional).
-	servePprof(mux, *pprofUrl)
+	servePprof(app, *pprofUrl)
 
 	if *pprofFile != "" {
 		*pprofFile = utils.ToAbsolutePath(curwd, *pprofFile)
@@ -353,7 +354,7 @@ func ListenAndServe() {
 	}
 	if sspath != "" && sspath != "-" {
 		logs.Info.Printf("Server status is available at '%s'", sspath)
-		mux.HandleFunc(sspath, serveStatus)
+		app.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
 	}
 
 	if err = listenAndServe(app, config.Listen, tlsConfig, signalHandler()); err != nil {
