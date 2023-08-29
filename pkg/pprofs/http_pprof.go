@@ -2,7 +2,7 @@
 // 		http(s)://<host-name>/<configured-path>/<profile-name>
 // See godoc for the list of possible profile names: https://golang.org/pkg/runtime/pprof/#Profile
 
-package server
+package pprofs
 
 import (
 	"fmt"
@@ -17,8 +17,8 @@ import (
 
 var pprofHttpRoot string
 
-// Expose debug profiling at the given URL path.
-func servePprof(app *fiber.App, serveAt string) {
+// ServePprof Expose debug profiling at the given URL path.
+func ServePprof(app *fiber.App, serveAt string) {
 	if serveAt == "" || serveAt == "-" {
 		return
 	}

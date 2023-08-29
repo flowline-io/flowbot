@@ -2,12 +2,12 @@ package server
 
 import (
 	"container/list"
-	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
+	json "github.com/json-iterator/go"
 	"io"
 	"net/http"
 	"sync"

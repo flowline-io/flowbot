@@ -1,10 +1,10 @@
 package server
 
 import (
-	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/version"
+	json "github.com/json-iterator/go"
 	"net/http"
 	"os"
 	"os/signal"

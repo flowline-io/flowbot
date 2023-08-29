@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -229,7 +230,7 @@ func ListenAndServe() {
 	stats.Set("Version", decVersion)
 
 	// Initialize serving debug profiles (optional).
-	servePprof(app, *pprofUrl)
+	pprofs.ServePprof(app, *pprofUrl)
 
 	if *pprofFile != "" {
 		*pprofFile = utils.ToAbsolutePath(curwd, *pprofFile)

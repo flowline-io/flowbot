@@ -2,16 +2,15 @@ package server
 
 import (
 	_ "embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
-	compPage "github.com/flowline-io/flowbot/internal/page"
-	form2 "github.com/flowline-io/flowbot/internal/page/form"
+	"github.com/flowline-io/flowbot/internal/page"
+	"github.com/flowline-io/flowbot/internal/page/form"
 	"github.com/flowline-io/flowbot/internal/page/library"
 	"github.com/flowline-io/flowbot/internal/page/uikit"
-	"github.com/flowline-io/flowbot/internal/ruleset/form"
-	"github.com/flowline-io/flowbot/internal/ruleset/page"
+	formRule "github.com/flowline-io/flowbot/internal/ruleset/form"
+	pageRule "github.com/flowline-io/flowbot/internal/ruleset/page"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -24,6 +23,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	json "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"gorm.io/gorm"
 	"io"
@@ -135,17 +135,17 @@ func getPage(rw http.ResponseWriter, req *http.Request) {
 	switch p.Type {
 	case model.PageForm:
 		f, _ := store.Chatbot.FormGet(p.PageID)
-		comp = compPage.RenderForm(p, f)
+		comp = page.RenderForm(p, f)
 	case model.PageTable:
-		comp = compPage.RenderTable(p)
+		comp = page.RenderTable(p)
 	case model.PageShare:
-		comp = compPage.RenderShare(p)
+		comp = page.RenderShare(p)
 	case model.PageJson:
-		comp = compPage.RenderJson(p)
+		comp = page.RenderJson(p)
 	case model.PageHtml:
-		comp = compPage.RenderHtml(p)
+		comp = page.RenderHtml(p)
 	case model.PageMarkdown:
-		comp = compPage.RenderMarkdown(p)
+		comp = page.RenderMarkdown(p)
 	case model.PageChart:
 		d, err := json.Marshal(p.Schema)
 		if err != nil {
@@ -177,7 +177,7 @@ func getPage(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, _ = rw.Write([]byte(fmt.Sprintf(compPage.Layout, title,
+	_, _ = rw.Write([]byte(fmt.Sprintf(page.Layout, title,
 		library.UIKitCss, library.UIKitJs, library.UIKitIconJs,
 		"", app.HTMLString(uikit.Container(comp)), "")))
 }
@@ -213,7 +213,7 @@ func renderPage(rw http.ResponseWriter, req *http.Request) {
 	for _, handler := range bots.List() {
 		for _, item := range handler.Rules() {
 			switch v := item.(type) {
-			case []page.Rule:
+			case []pageRule.Rule:
 				for _, rule := range v {
 					if rule.Id == pageRuleId {
 						botHandler = handler
@@ -314,7 +314,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	formBuilder := form2.NewBuilder(formMsg.Field)
+	formBuilder := form.NewBuilder(formMsg.Field)
 	formBuilder.Data = values
 	err = formBuilder.Validate()
 	if err != nil {
@@ -342,7 +342,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	for _, handler := range bots.List() {
 		for _, item := range handler.Rules() {
 			switch v := item.(type) {
-			case []form.Rule:
+			case []formRule.Rule:
 				for _, rule := range v {
 					if rule.Id == formRuleId {
 						botHandler = handler

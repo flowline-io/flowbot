@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/adjust/rmq/v5"
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -22,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	json "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"net/http"
 	"strconv"

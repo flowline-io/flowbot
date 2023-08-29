@@ -1,8 +1,8 @@
 package server
 
 import (
-	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/types"
+	json "github.com/json-iterator/go"
 	"net/http"
 	"strconv"
 	"strings"
