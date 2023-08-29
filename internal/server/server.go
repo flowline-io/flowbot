@@ -5,10 +5,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"flag"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
@@ -23,7 +24,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jsoniter "github.com/json-iterator/go"
-	jcr "github.com/tinode/jsonco"
+	"github.com/spf13/pflag"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -54,89 +55,21 @@ const (
 	defaultApiPath = "/"
 )
 
-// Large file handler config.
-type mediaConfig struct {
-	// The name of the handler to use for file uploads.
-	UseHandler string `json:"use_handler"`
-	// Maximum allowed size of an uploaded file
-	MaxFileUploadSize int64 `json:"max_size"`
-	// Garbage collection timeout
-	GcPeriod int `json:"gc_period"`
-	// Number of entries to delete in one pass
-	GcBlockSize int `json:"gc_block_size"`
-	// Individual handler config params to pass to handlers unchanged.
-	Handlers map[string]json.RawMessage `json:"handlers"`
-}
-
-// Contentx of the configuration file
-type configType struct {
-	// HTTP(S) address:port to listen on for websocket and long polling clients. Either a
-	// numeric or a canonical name, e.g. ":80" or ":https". Could include a host name, e.g.
-	// "localhost:80".
-	// Could be blank: if TLS is not configured, will use ":80", otherwise ":443".
-	// Can be overridden from the command line, see option --listen.
-	Listen string `json:"listen"`
-	// Base URL path where the streaming and large file API calls are served, default is '/'.
-	// Can be overridden from the command line, see option --api_path.
-	ApiPath string `json:"api_path"`
-	// Cache-Control value for static content.
-	CacheControl int `json:"cache_control"`
-	// If true, do not attempt to negotiate websocket per message compression (RFC 7692.4).
-	// It should be disabled (set to true) if you are using MSFT IIS as a reverse proxy.
-	WSCompressionDisabled bool `json:"ws_compression_disabled"`
-	// URL path for mounting the directory with static files (usually TinodeWeb).
-	StaticMount string `json:"static_mount"`
-	// Local path to static files. All files in this path are made accessible by HTTP.
-	StaticData string `json:"static_data"`
-	// Salt used in signing API keys
-	APIKeySalt []byte `json:"api_key_salt"`
-	// Maximum message size allowed from client. Intended to prevent malicious client from sending
-	// very large files inband (does not affect out of band uploads).
-	MaxMessageSize int `json:"max_message_size"`
-	// If true, ordinary users cannot delete their accounts.
-	PermanentAccounts bool `json:"permanent_accounts"`
-	// URL path for exposing runtime stats. Disabled if the path is blank.
-	ExpvarPath string `json:"expvar"`
-	// URL path for internal server status. Disabled if the path is blank.
-	ServerStatusPath string `json:"server_status"`
-	// Take IP address of the client from HTTP header 'X-Forwarded-For'.
-	// Useful when tinode is behind a proxy. If missing, fallback to default RemoteAddr.
-	UseXForwardedFor bool `json:"use_x_forwarded_for"`
-	// 2-letter country code (ISO 3166-1 alpha-2) to assign to sessions by default
-	// when the country isn't specified by the client explicitly and
-	// it's impossible to infer it.
-	DefaultCountryCode string `json:"default_country_code"`
-
-	// Configs for subsystems
-	Store json.RawMessage `json:"store_config"`
-	Push  json.RawMessage `json:"push"`
-	TLS   json.RawMessage `json:"tls"`
-	Media *mediaConfig    `json:"media"`
-	Redis json.RawMessage `json:"redis"`
-
-	// Configs for chatbot
-	Chatbot json.RawMessage `json:"chatbot"`
-	// Config for bots
-	Bot json.RawMessage `json:"bots"`
-	// Config for vendors
-	Vendor json.RawMessage `json:"vendors"`
-}
-
 func ListenAndServe() {
 	executable, _ := os.Executable()
 
-	logFlags := flag.String("log_flags", "stdFlags",
+	logFlags := pflag.String("log_flags", "stdFlags",
 		"Comma-separated list of log flags (as defined in https://golang.org/pkg/log/#pkg-constants without the L prefix)")
-	configFile := flag.String("config", "flowbot.json", "Path to config file.")
-	listenOn := flag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
-	apiPath := flag.String("api_path", "", "Override the base URL path where API is served.")
-	tlsEnabled := flag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
-	expvarPath := flag.String("expvar", "", "Override the URL path where runtime stats are exposed. Use '-' to disable.")
-	serverStatusPath := flag.String("server_status", "",
+	configFile := pflag.String("config", "flowbot.json", "Path to config file.")
+	listenOn := pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
+	apiPath := pflag.String("api_path", "", "Override the base URL path where API is served.")
+	tlsEnabled := pflag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
+	expvarPath := pflag.String("expvar", "", "Override the URL path where runtime stats are exposed. Use '-' to disable.")
+	serverStatusPath := pflag.String("server_status", "",
 		"Override the URL path where the server's internal status is displayed. Use '-' to disable.")
-	pprofFile := flag.String("pprof", "", "File name to save profiling info to. Disabled if not set.")
-	pprofUrl := flag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
-	flag.Parse()
+	pprofFile := pflag.String("pprof", "", "File name to save profiling info to. Disabled if not set.")
+	pprofUrl := pflag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
+	pflag.Parse()
 
 	logs.Init(os.Stderr, *logFlags)
 
@@ -152,30 +85,11 @@ func ListenAndServe() {
 	*configFile = utils.ToAbsolutePath(curwd, *configFile)
 	logs.Info.Printf("Using config from '%s'", *configFile)
 
-	var config configType
-	if file, err := os.Open(*configFile); err != nil {
-		logs.Err.Fatal("Failed to read config file: ", err)
-	} else {
-		jr := jcr.New(file)
-		if err = json.NewDecoder(jr).Decode(&config); err != nil {
-			switch jerr := err.(type) {
-			case *json.UnmarshalTypeError:
-				lnum, cnum, _ := jr.LineAndChar(jerr.Offset)
-				logs.Err.Fatalf("Unmarshall error in config file in %s at %d:%d (offset %d bytes): %s",
-					jerr.Field, lnum, cnum, jerr.Offset, jerr.Error())
-			case *json.SyntaxError:
-				lnum, cnum, _ := jr.LineAndChar(jerr.Offset)
-				logs.Err.Fatalf("Syntax error in config file at %d:%d (offset %d bytes): %s",
-					lnum, cnum, jerr.Offset, jerr.Error())
-			default:
-				logs.Err.Fatal("Failed to parse config file: ", err)
-			}
-		}
-		_ = file.Close()
-	}
+	// Load config
+	config.Load(".", curwd)
 
 	if *listenOn != "" {
-		config.Listen = *listenOn
+		config.App.Listen = *listenOn
 	}
 
 	// Set up HTTP server. Must use non-default mux because of expvar.
@@ -219,7 +133,7 @@ func ListenAndServe() {
 	// Exposing values for statistics and monitoring.
 	evpath := *expvarPath
 	if evpath == "" {
-		evpath = config.ExpvarPath
+		evpath = config.App.ExpvarPath
 	}
 	stats.Init(app, evpath)
 	stats.RegisterInt("Version")
@@ -260,10 +174,18 @@ func ListenAndServe() {
 		logs.Info.Printf("Profiling info saved to '%s.(cpu|mem)'", *pprofFile)
 	}
 
-	// Initialize store.
-	hookStore()
+	// init cache
+	cache.InitCache()
 
-	err = store.Store.Open(config.Store)
+	// init database
+	mysql.Init()
+	store.Init()
+
+	// Open database
+	err = store.Store.Open(config.App.Store)
+	if err != nil {
+		logs.Err.Fatal("Failed to open DB: ", err)
+	}
 	logs.Info.Println("DB adapter opened")
 	if err != nil {
 		logs.Err.Fatal("Failed to connect to DB: ", err)
@@ -276,33 +198,37 @@ func ListenAndServe() {
 	stats.RegisterDbStats()
 
 	// Maximum message size
-	globals.maxMessageSize = int64(config.MaxMessageSize)
+	globals.maxMessageSize = int64(config.App.MaxMessageSize)
 	if globals.maxMessageSize <= 0 {
 		globals.maxMessageSize = defaultMaxMessageSize
 	}
 
-	globals.useXForwardedFor = config.UseXForwardedFor
+	globals.useXForwardedFor = config.App.UseXForwardedFor
 
 	// Websocket compression.
-	globals.wsCompression = !config.WSCompressionDisabled
+	globals.wsCompression = !config.App.WSCompressionDisabled
 
-	if config.Media != nil {
-		if config.Media.UseHandler == "" {
-			config.Media = nil
+	if config.App.Media != nil {
+		if config.App.Media.UseHandler == "" {
+			config.App.Media = nil
 		} else {
-			globals.maxFileUploadSize = config.Media.MaxFileUploadSize
-			if config.Media.Handlers != nil {
+			globals.maxFileUploadSize = config.App.Media.MaxFileUploadSize
+			if config.App.Media.Handlers != nil {
 				var conf string
-				if params := config.Media.Handlers[config.Media.UseHandler]; params != nil {
-					conf = string(params)
+				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
+					data, err := json.Marshal(params)
+					if err != nil {
+						logs.Err.Fatalf("Failed to marshal media handler '%s': %s", config.App.Media.UseHandler, err)
+					}
+					conf = string(data)
 				}
-				if err = store.UseMediaHandler(config.Media.UseHandler, conf); err != nil {
-					logs.Err.Fatalf("Failed to init media handler '%s': %s", config.Media.UseHandler, err)
+				if err = store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
+					logs.Err.Fatalf("Failed to init media handler '%s': %s", config.App.Media.UseHandler, err)
 				}
 			}
-			if config.Media.GcPeriod > 0 && config.Media.GcBlockSize > 0 {
-				globals.mediaGcPeriod = time.Second * time.Duration(config.Media.GcPeriod)
-				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.Media.GcBlockSize)
+			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
+				globals.mediaGcPeriod = time.Second * time.Duration(config.App.Media.GcPeriod)
+				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.App.Media.GcBlockSize)
 				defer func() {
 					stopFilesGc <- true
 					logs.Info.Println("Stopped files garbage collector")
@@ -311,16 +237,13 @@ func ListenAndServe() {
 		}
 	}
 
-	tlsConfig, err := utils.ParseTLSConfig(*tlsEnabled, config.TLS)
+	tlsConfig, err := utils.ParseTLSConfig(*tlsEnabled, config.App.TLS)
 	if err != nil {
 		logs.Err.Fatalln(err)
 	}
 
-	// Initialize config
-	hookConfig(config.Chatbot)
-
 	// Initialize bots
-	hookBot(config.Bot, config.Vendor)
+	hookBot(config.App.Bots, config.App.Vendors)
 
 	// Initialize channels
 	hookChannel()
@@ -329,29 +252,30 @@ func ListenAndServe() {
 	hookMounted()
 
 	// Queue
-	hookQueue()
+	queue.Init()
+	queue.InitMessageQueue(NewAsyncMessageConsumer())
 
 	// Event
 	hookEvent()
 
 	// Configure root path for serving API calls.
 	if *apiPath != "" {
-		config.ApiPath = *apiPath
+		config.App.ApiPath = *apiPath
 	}
-	if config.ApiPath == "" {
-		config.ApiPath = defaultApiPath
+	if config.App.ApiPath == "" {
+		config.App.ApiPath = defaultApiPath
 	} else {
-		if !strings.HasPrefix(config.ApiPath, "/") {
-			config.ApiPath = "/" + config.ApiPath
+		if !strings.HasPrefix(config.App.ApiPath, "/") {
+			config.App.ApiPath = "/" + config.App.ApiPath
 		}
-		if !strings.HasSuffix(config.ApiPath, "/") {
-			config.ApiPath += "/"
+		if !strings.HasSuffix(config.App.ApiPath, "/") {
+			config.App.ApiPath += "/"
 		}
 	}
-	logs.Info.Printf("API served from root URL path '%s'", config.ApiPath)
+	logs.Info.Printf("API served from root URL path '%s'", config.App.ApiPath)
 
 	// Best guess location of the main endpoint.
-	globals.servingAt = config.Listen + config.ApiPath
+	globals.servingAt = config.App.Listen + config.App.ApiPath
 	if tlsConfig != nil {
 		globals.servingAt = "https://" + globals.servingAt
 	} else {
@@ -360,14 +284,14 @@ func ListenAndServe() {
 
 	sspath := *serverStatusPath
 	if sspath == "" || sspath == "-" {
-		sspath = config.ServerStatusPath
+		sspath = config.App.ServerStatusPath
 	}
 	if sspath != "" && sspath != "-" {
 		logs.Info.Printf("Server status is available at '%s'", sspath)
 		app.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
 	}
 
-	if err = listenAndServe(app, config.Listen, tlsConfig, signalHandler()); err != nil {
+	if err = listenAndServe(app, config.App.Listen, tlsConfig, signalHandler()); err != nil {
 		logs.Err.Fatal(err)
 	}
 }

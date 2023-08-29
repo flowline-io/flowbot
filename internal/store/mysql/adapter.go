@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/dao"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/locker"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	ms "github.com/go-sql-driver/mysql"
@@ -47,7 +48,7 @@ type configType struct {
 	// Please, see https://pkg.go.dev/github.com/go-sql-driver/mysql#Config
 	// for the full list of fields.
 	ms.Config
-	// Deprecated.
+	// mysql DSN
 	DSN string `json:"dsn,omitempty"`
 
 	// Connection pool settings.
@@ -62,17 +63,6 @@ type configType struct {
 	// DB request timeout (in seconds).
 	// If 0 (or negative), no timeout is applied.
 	SqlTimeout int `json:"sql_timeout,omitempty"`
-}
-
-type adaptersConfigType struct {
-	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
-	UidKey []byte `json:"uid_key"`
-	// Maximum number of results to return from adapter.
-	MaxResults int `json:"max_results"`
-	// DB adapter name to use. Should be one of those specified in `Adapters`.
-	UseAdapter string `json:"use_adapter"`
-	// Configurations for individual adapters.
-	Adapters map[string]json.RawMessage `json:"adapters"`
 }
 
 type adapter struct {
@@ -171,19 +161,11 @@ func isMissingDb(err error) bool {
 	return ok && myerr.Number == 1049
 }
 
-func (a *adapter) Open(jsonconfig json.RawMessage) error {
+func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	if a.db != nil {
 		return errors.New("mysql adapter is already connected")
 	}
 
-	if len(jsonconfig) < 2 {
-		return errors.New("adapter mysql missing config")
-	}
-
-	adaptersConfig := adaptersConfigType{}
-	if err := json.Unmarshal(jsonconfig, &adaptersConfig); err != nil {
-		return errors.New("adapters failed to parse config: " + err.Error())
-	}
 	if adaptersConfig.UseAdapter == "" {
 		return errors.New("adapter name missing config")
 	}
@@ -193,24 +175,29 @@ func (a *adapter) Open(jsonconfig json.RawMessage) error {
 
 	var err error
 	defaultCfg := ms.NewConfig()
-	config := configType{Config: *defaultCfg}
-	if err = json.Unmarshal(adaptersConfig.Adapters["mysql"], &config); err != nil {
+	conf := configType{Config: *defaultCfg}
+
+	data, err := json.Marshal(adaptersConfig.Adapters["mysql"])
+	if err != nil {
+		return errors.New("mysql adapter failed to parse config: " + err.Error())
+	}
+	if err = json.Unmarshal(data, &conf); err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
 
-	if dsn := config.FormatDSN(); dsn != defaultCfg.FormatDSN() {
+	if dsn := conf.FormatDSN(); dsn != defaultCfg.FormatDSN() {
 		// MySql config is specified. Use it.
-		a.dbName = config.DBName
+		a.dbName = conf.DBName
 		a.dsn = dsn
-		if config.DSN != "" {
+		if conf.DSN != "" {
 			return errors.New("mysql config: conflicting config and DSN are provided")
 		}
 	} else {
 		// Otherwise, use DSN to configure database connection.
 		// Note: this method is deprecated.
-		if config.DSN != "" {
+		if conf.DSN != "" {
 			// Remove optional schema.
-			a.dsn = strings.TrimPrefix(config.DSN, "mysql://")
+			a.dsn = strings.TrimPrefix(conf.DSN, "mysql://")
 		}
 
 		// Parse out the database name from the DSN.
@@ -248,19 +235,19 @@ func (a *adapter) Open(jsonconfig json.RawMessage) error {
 		err = nil
 	}
 	if err == nil {
-		if config.MaxOpenConns > 0 {
-			db.SetMaxOpenConns(config.MaxOpenConns)
+		if conf.MaxOpenConns > 0 {
+			db.SetMaxOpenConns(conf.MaxOpenConns)
 		}
-		if config.MaxIdleConns > 0 {
-			db.SetMaxIdleConns(config.MaxIdleConns)
+		if conf.MaxIdleConns > 0 {
+			db.SetMaxIdleConns(conf.MaxIdleConns)
 		}
-		if config.ConnMaxLifetime > 0 {
-			db.SetConnMaxLifetime(time.Duration(config.ConnMaxLifetime) * time.Second)
+		if conf.ConnMaxLifetime > 0 {
+			db.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifetime) * time.Second)
 		}
-		if config.SqlTimeout > 0 {
-			a.sqlTimeout = time.Duration(config.SqlTimeout) * time.Second
+		if conf.SqlTimeout > 0 {
+			a.sqlTimeout = time.Duration(conf.SqlTimeout) * time.Second
 			// We allocate txTimeoutMultiplier times sqlTimeout for transactions.
-			a.txTimeout = time.Duration(float64(config.SqlTimeout)*txTimeoutMultiplier) * time.Second
+			a.txTimeout = time.Duration(float64(conf.SqlTimeout)*txTimeoutMultiplier) * time.Second
 		}
 	}
 

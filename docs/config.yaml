@@ -1,0 +1,95 @@
+---
+listen: ":6060"
+api_path: "/"
+cache_control: 39600
+ws_compression_disabled: false
+api_key_salt: "T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4="
+max_message_size: 262144
+permanent_accounts: false
+expvar: "/debug/vars"
+server_status: "/debug/status"
+use_x_forwarded_for: true
+default_country_code: ''
+
+media:
+  use_handler: fs
+  max_size: 8388608
+  gc_period: 60
+  gc_block_size: 100
+  handlers:
+    fs:
+      upload_dir: uploads
+    s3:
+      access_key_id: your_s3_access_key_id
+      secret_access_key: your_s3_secret_access_key
+      region: s3 region, like us-east-2
+      bucket: your_s3_bucket_name
+      disable_ssl: false
+      force_path_style: false
+      endpoint: ''
+      cors_origins:
+        - "*"
+    minio:
+      access_key_id: your_s3_access_key_id
+      secret_access_key: your_s3_secret_access_key
+      region: s3 region, like us-east-2
+      bucket: your_s3_bucket_name
+      disable_ssl: false
+      force_path_style: false
+      endpoint: ''
+      cors_origins:
+        - "*"
+
+tls:
+  enabled: false
+  http_redirect: ":80"
+  strict_max_age: 604800
+  autocert:
+    cache: "/etc/letsencrypt/live/your.domain.here"
+    email: noreply@example.com
+    domains:
+      - whatever.example.com
+  cert_file: "/etc/httpd/conf/your.domain.crt"
+  key_file: "/etc/httpd/conf/your.domain.key"
+
+store_config:
+  uid_key: la6YsO+bNX/+XIkOqc5Svw==
+  max_results: 1024
+  use_adapter: mysql
+  adapters:
+    mysql:
+      dsn: root:password@tcp(localhost)/flowbot?parseTime=true&collation=utf8mb4_unicode_ci
+      max_open_conns: 64
+      max_idle_conns: 64
+      conn_max_lifetime: 60
+      sql_timeout: 10
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+  password:
+
+log:
+  level: info
+
+workflow:
+  worker: 2
+
+bots:
+  - name: github
+    enabled: true
+    id:
+    secret:
+  - name: pocket
+    enabled: true
+    consumer_key: ''
+
+vendors:
+  oneai:
+    api_key: ''
+  rollbar:
+    enable: false
+    token:
+    environment: development
+    server_root: github.com/flowline-io/flowbot

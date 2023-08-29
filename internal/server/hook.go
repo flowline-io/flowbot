@@ -1,21 +1,16 @@
 package server
 
 import (
-	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/channels"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	json "github.com/json-iterator/go"
 	"net/http"
 	"strings"
 
@@ -56,13 +51,6 @@ import (
 
 // hook
 
-func hookConfig(jsconfig json.RawMessage) {
-	err := config.Load(jsconfig)
-	if err != nil {
-		logs.Err.Fatal("Failed to initialize config:", err)
-	}
-}
-
 func hookMux(app *fiber.App) *http.ServeMux {
 	// Webservice
 	wc := route.NewContainer()
@@ -82,20 +70,21 @@ func hookMux(app *fiber.App) *http.ServeMux {
 	return mux
 }
 
-func hookStore() {
-	// init cache
-	cache.InitCache()
-	// init database
-	mysql.Init()
-	store.Init()
-}
+func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
+	b, err := json.Marshal(botsConfig)
+	if err != nil {
+		logs.Err.Fatal("Failed to marshal bots:", err)
+	}
+	v, err := json.Marshal(vendorsConfig)
+	if err != nil {
+		logs.Err.Fatal("Failed to marshal vendors:", err)
+	}
 
-func hookBot(jsconfig json.RawMessage, vc json.RawMessage) {
 	// set vendors configs
-	providers.Configs = vc
+	providers.Configs = v
 
 	// init bots
-	err := bots.Init(jsconfig)
+	err = bots.Init(b)
 	if err != nil {
 		logs.Err.Fatal("Failed to initialize bot:", err)
 	}
@@ -201,10 +190,6 @@ func hookHandleGroupEvent(t *Topic, msg *ClientComMessage, event int) {
 func hookMounted() {
 	// notify after reboot
 	go notifyAfterReboot()
-}
-
-func hookQueue() {
-	queue.InitMessageQueue(NewAsyncMessageConsumer())
 }
 
 func hookEvent() {

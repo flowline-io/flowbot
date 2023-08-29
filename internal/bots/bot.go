@@ -28,14 +28,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gorilla/mux"
+	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 	"io/fs"
 	"net/http"
 	"strings"
 	"time"
 )
-
-const BotNameSuffix = "_bot"
 
 type Handler interface {
 	// Init initializes the bot.
@@ -637,7 +636,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	formId := types.Id().String()
-	d, err := json.Marshal(payload)
+	d, err := jsoniter.Marshal(payload)
 	if err != nil {
 		logs.Err.Println(err)
 		return types.TextMsg{Text: "store form error"}
@@ -732,7 +731,7 @@ func ActionMsg(_ types.Context, id string) types.MsgPayload {
 
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
 	pageId := types.Id().String()
-	d, err := json.Marshal(payload)
+	d, err := jsoniter.Marshal(payload)
 	if err != nil {
 		logs.Err.Println(err)
 		return types.TextMsg{Text: "store form error"}
@@ -1044,14 +1043,14 @@ func Webservice(name, version string, ruleset webservice.Ruleset) *restful.WebSe
 func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
-	if err := json.Unmarshal(jsonconf, &config); err != nil {
+	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
 	configMap := make(map[string]json.RawMessage)
 	for _, cc := range config {
 		var item configType
-		if err := json.Unmarshal(cc, &item); err != nil {
+		if err := jsoniter.Unmarshal(cc, &item); err != nil {
 			return errors.New("failed to parse config: " + err.Error())
 		}
 

@@ -2,7 +2,8 @@ package queue
 
 import (
 	"encoding/json"
-	"os"
+	"fmt"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"time"
 
 	"github.com/adjust/rmq/v5"
@@ -18,9 +19,9 @@ const (
 
 var connection rmq.Connection
 
-func init() {
-	addr := os.Getenv("REDIS_ADDR")
-	password := os.Getenv("REDIS_PASSWORD")
+func Init() {
+	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
+	password := config.App.Redis.Password
 	if addr == "" || password == "" {
 		panic("redis config error")
 	}
@@ -31,6 +32,7 @@ func init() {
 	client := redis.NewClient(&redis.Options{
 		Addr:         addr,
 		Password:     password,
+		DB:           config.App.Redis.DB,
 		ReadTimeout:  time.Minute,
 		WriteTimeout: time.Minute,
 	})

@@ -4,8 +4,7 @@ package utils
 
 import (
 	"crypto/tls"
-	"encoding/json"
-	"errors"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -149,61 +148,31 @@ func ToAbsolutePath(base, path string) string {
 	return filepath.Clean(filepath.Join(base, path))
 }
 
-func ParseTLSConfig(tlsEnabled bool, jsconfig json.RawMessage) (*tls.Config, error) {
-	type tlsAutocertConfig struct {
-		// Domains to support by autocert
-		Domains []string `json:"domains"`
-		// Name of directory where auto-certificates are cached, e.g. /etc/letsencrypt/live/your-domain-here
-		CertCache string `json:"cache"`
-		// Contact email for letsencrypt
-		Email string `json:"email"`
-	}
+func ParseTLSConfig(tlsEnabled bool, conf config.TLSConfig) (*tls.Config, error) {
 
-	type tlsConfig struct {
-		// Flag enabling TLS
-		Enabled bool `json:"enabled"`
-		// Listen for connections on this address:port and redirect them to HTTPS port.
-		RedirectHTTP string `json:"http_redirect"`
-		// Enable Strict-Transport-Security by setting max_age > 0
-		StrictMaxAge int `json:"strict_max_age"`
-		// ACME autocert config, e.g. letsencrypt.org
-		Autocert *tlsAutocertConfig `json:"autocert"`
-		// If Autocert is not defined, provide file names of static certificate and key
-		CertFile string `json:"cert_file"`
-		KeyFile  string `json:"key_file"`
-	}
-
-	var config tlsConfig
-
-	if jsconfig != nil {
-		if err := json.Unmarshal(jsconfig, &config); err != nil {
-			return nil, errors.New("http: failed to parse tls_config: " + err.Error() + "(" + string(jsconfig) + ")")
-		}
-	}
-
-	if !tlsEnabled && !config.Enabled {
+	if !tlsEnabled && !conf.Enabled {
 		return nil, nil
 	}
 
-	if config.StrictMaxAge > 0 {
+	if conf.StrictMaxAge > 0 {
 		//globals.tlsStrictMaxAge = strconv.Itoa(config.StrictMaxAge)
 	}
 
 	//globals.tlsRedirectHTTP = config.RedirectHTTP
 
 	// If autocert is provided, use it.
-	if config.Autocert != nil {
+	if conf.Autocert != nil {
 		certManager := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(config.Autocert.Domains...),
-			Cache:      autocert.DirCache(config.Autocert.CertCache),
-			Email:      config.Autocert.Email,
+			HostPolicy: autocert.HostWhitelist(conf.Autocert.Domains...),
+			Cache:      autocert.DirCache(conf.Autocert.CertCache),
+			Email:      conf.Autocert.Email,
 		}
 		return certManager.TLSConfig(), nil
 	}
 
 	// Otherwise try to use static keys.
-	cert, err := tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
+	cert, err := tls.LoadX509KeyPair(conf.CertFile, conf.KeyFile)
 	if err != nil {
 		return nil, err
 	}

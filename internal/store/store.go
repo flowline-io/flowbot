@@ -1,10 +1,10 @@
 package store
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/media"
 	"time"
 )
@@ -13,7 +13,7 @@ var adp Adapter
 
 var availableAdapters = make(map[string]Adapter)
 
-func openAdapter(jsonConfig json.RawMessage) error {
+func openAdapter(jsonConfig config.StoreType) error {
 	if adp == nil {
 		if len(availableAdapters) >= 1 {
 			// Default to the only entry in availableAdapters.
@@ -73,7 +73,7 @@ func UseMediaHandler(name, config string) error {
 
 // PersistentStorageInterface defines methods used for interation with persistent storage.
 type PersistentStorageInterface interface {
-	Open(jsonConfig json.RawMessage) error
+	Open(jsonConfig config.StoreType) error
 	Close() error
 	IsOpen() bool
 	GetAdapter() Adapter
@@ -85,7 +85,7 @@ var Store PersistentStorageInterface
 
 type storeObj struct{}
 
-func (s storeObj) Open(jsonConfig json.RawMessage) error {
+func (s storeObj) Open(jsonConfig config.StoreType) error {
 	if err := openAdapter(jsonConfig); err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ type Adapter interface {
 	// General
 
 	// Open and configure the adapter
-	Open(config json.RawMessage) error
+	Open(config config.StoreType) error
 	// Close the adapter
 	Close() error
 	// IsOpen checks if the adapter is ready for use
