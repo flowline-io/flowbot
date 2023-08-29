@@ -7,7 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gorilla/websocket"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -299,65 +299,65 @@ func (s *Session) onBackgroundTimer() {
 	defer s.subsLock.RUnlock()
 }
 
-func (sess *Session) sendMessageLp(wrt http.ResponseWriter, msg any) bool {
-	if len(sess.send) > sendQueueLimit {
-		logs.Err.Println("longPoll: outbound queue limit exceeded", sess.sid)
+func (s *Session) sendMessageLp(wrt http.ResponseWriter, msg any) bool {
+	if len(s.send) > sendQueueLimit {
+		logs.Err.Println("longPoll: outbound queue limit exceeded", s.sid)
 		return false
 	}
 
 	statsInc("OutgoingMessagesLongpollTotal", 1)
 	if err := lpWrite(wrt, msg); err != nil {
-		logs.Err.Println("longPoll: writeOnce failed", sess.sid, err)
+		logs.Err.Println("longPoll: writeOnce failed", s.sid, err)
 		return false
 	}
 
 	return true
 }
 
-func (sess *Session) writeOnce(wrt http.ResponseWriter, req *http.Request) {
+func (s *Session) writeOnce(wrt http.ResponseWriter, req *http.Request) {
 	for {
 		select {
-		case msg, ok := <-sess.send:
+		case msg, ok := <-s.send:
 			if !ok {
 				return
 			}
 			switch v := msg.(type) {
 			case *ServerComMessage: // single unserialized message
-				w := sess.serializeAndUpdateStats(v)
-				if !sess.sendMessageLp(wrt, w) {
+				w := s.serializeAndUpdateStats(v)
+				if !s.sendMessageLp(wrt, w) {
 					return
 				}
 			default: // serialized message
-				if !sess.sendMessageLp(wrt, v) {
+				if !s.sendMessageLp(wrt, v) {
 					return
 				}
 			}
 			return
 
-		case <-sess.bkgTimer.C:
-			if sess.background {
-				sess.background = false
-				sess.onBackgroundTimer()
+		case <-s.bkgTimer.C:
+			if s.background {
+				s.background = false
+				s.onBackgroundTimer()
 			}
 
-		case msg := <-sess.stop:
+		case msg := <-s.stop:
 			// Request to close the session. Make it unavailable.
-			globals.sessionStore.Delete(sess)
+			globals.sessionStore.Delete(s)
 			// Don't care if lpWrite fails.
 			if msg != nil {
-				lpWrite(wrt, msg)
+				_ = lpWrite(wrt, msg)
 			}
 			return
 
-		case topic := <-sess.detach:
+		case topic := <-s.detach:
 			// Request to detach the session from a topic.
-			sess.delSub(topic)
+			s.delSub(topic)
 			// No 'return' statement here: continue waiting
 
 		case <-time.After(pingPeriod):
 			// just write an empty packet on timeout
 			if _, err := wrt.Write([]byte{}); err != nil {
-				logs.Err.Println("longPoll: writeOnce: timout", sess.sid, err)
+				logs.Err.Println("longPoll: writeOnce: timout", s.sid, err)
 			}
 			return
 
@@ -370,24 +370,24 @@ func (sess *Session) writeOnce(wrt http.ResponseWriter, req *http.Request) {
 
 func lpWrite(wrt http.ResponseWriter, msg any) error {
 	// This will panic if msg is not []byte. This is intentional.
-	wrt.Write(msg.([]byte))
+	_, _ = wrt.Write(msg.([]byte))
 	return nil
 }
 
-func (sess *Session) readOnce(wrt http.ResponseWriter, req *http.Request) (int, error) {
+func (s *Session) readOnce(wrt http.ResponseWriter, req *http.Request) (int, error) {
 	if req.ContentLength > globals.maxMessageSize {
 		return http.StatusExpectationFailed, errors.New("request too large")
 	}
 
 	req.Body = http.MaxBytesReader(wrt, req.Body, globals.maxMessageSize)
-	raw, err := ioutil.ReadAll(req.Body)
+	raw, err := io.ReadAll(req.Body)
 	if err == nil {
 		// Locking-unlocking is needed because the client may issue multiple requests in parallel.
 		// Should not affect performance
-		sess.lock.Lock()
+		s.lock.Lock()
 		statsInc("IncomingMessagesLongpollTotal", 1)
-		sess.dispatchRaw(raw)
-		sess.lock.Unlock()
+		s.dispatchRaw(raw)
+		s.lock.Unlock()
 		return 0, nil
 	}
 

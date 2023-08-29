@@ -112,10 +112,12 @@ type configType struct {
 	Media *mediaConfig    `json:"media"`
 	Redis json.RawMessage `json:"redis"`
 
-	// Configs for extra
+	// Configs for chatbot
 	Chatbot json.RawMessage `json:"chatbot"`
-	Bot     json.RawMessage `json:"bots"`
-	Vendor  json.RawMessage `json:"vendors"`
+	// Config for bots
+	Bot json.RawMessage `json:"bots"`
+	// Config for vendors
+	Vendor json.RawMessage `json:"vendors"`
 }
 
 func ListenAndServe() {
@@ -123,7 +125,7 @@ func ListenAndServe() {
 
 	logFlags := flag.String("log_flags", "stdFlags",
 		"Comma-separated list of log flags (as defined in https://golang.org/pkg/log/#pkg-constants without the L prefix)")
-	configfile := flag.String("config", "flowbot.json", "Path to config file.")
+	configFile := flag.String("config", "flowbot.json", "Path to config file.")
 	listenOn := flag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	apiPath := flag.String("api_path", "", "Override the base URL path where API is served.")
 	tlsEnabled := flag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
@@ -145,11 +147,11 @@ func ListenAndServe() {
 		currentVersion, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
-	*configfile = utils.ToAbsolutePath(curwd, *configfile)
-	logs.Info.Printf("Using config from '%s'", *configfile)
+	*configFile = utils.ToAbsolutePath(curwd, *configFile)
+	logs.Info.Printf("Using config from '%s'", *configFile)
 
 	var config configType
-	if file, err := os.Open(*configfile); err != nil {
+	if file, err := os.Open(*configFile); err != nil {
 		logs.Err.Fatal("Failed to read config file: ", err)
 	} else {
 		jr := jcr.New(file)

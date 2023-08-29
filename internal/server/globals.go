@@ -42,10 +42,14 @@ var globals struct {
 	// URL of the main endpoint.
 	servingAt string
 
-	// Extra vars
-	crawler     *crawler.Crawler
+	// Crawler
+	crawler *crawler.Crawler
+
+	// Cron
 	cronRuleset []*cron.Ruleset
-	manager     *manager.Manager
-	scheduler   *scheduler.Scheduler
-	worker      *worker.Worker
+
+	// Workflow
+	manager   *manager.Manager
+	scheduler *scheduler.Scheduler
+	worker    *worker.Worker
 }

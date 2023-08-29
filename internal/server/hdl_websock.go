@@ -18,41 +18,41 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-func (sess *Session) closeWS() {
-	if sess.proto == WEBSOCK {
-		_ = sess.ws.Close()
+func (s *Session) closeWS() {
+	if s.proto == WEBSOCK {
+		_ = s.ws.Close()
 	}
 }
 
-func (sess *Session) sendMessage(msg any) bool {
-	if len(sess.send) > sendQueueLimit {
-		logs.Err.Println("ws: outbound queue limit exceeded", sess.sid)
+func (s *Session) sendMessage(msg any) bool {
+	if len(s.send) > sendQueueLimit {
+		logs.Err.Println("ws: outbound queue limit exceeded", s.sid)
 		return false
 	}
 
 	statsInc("OutgoingMessagesWebsockTotal", 1)
-	if err := wsWrite(sess.ws, websocket.TextMessage, msg); err != nil {
+	if err := wsWrite(s.ws, websocket.TextMessage, msg); err != nil {
 		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 			websocket.CloseNormalClosure) {
-			logs.Err.Println("ws: writeLoop", sess.sid, err)
+			logs.Err.Println("ws: writeLoop", s.sid, err)
 		}
 		return false
 	}
 	return true
 }
 
-func (sess *Session) writeLoop() {
+func (s *Session) writeLoop() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
 		ticker.Stop()
 		// Break readLoop.
-		sess.closeWS()
+		s.closeWS()
 	}()
 
 	for {
 		select {
-		case msg, ok := <-sess.send:
+		case msg, ok := <-s.send:
 			if !ok {
 				// Channel closed.
 				return
@@ -60,43 +60,43 @@ func (sess *Session) writeLoop() {
 			switch v := msg.(type) {
 			case []*ServerComMessage: // batch of unserialized messages
 				for _, msg := range v {
-					w := sess.serializeAndUpdateStats(msg)
-					if !sess.sendMessage(w) {
+					w := s.serializeAndUpdateStats(msg)
+					if !s.sendMessage(w) {
 						return
 					}
 				}
 			case *ServerComMessage: // single unserialized message
-				w := sess.serializeAndUpdateStats(v)
-				if !sess.sendMessage(w) {
+				w := s.serializeAndUpdateStats(v)
+				if !s.sendMessage(w) {
 					return
 				}
 			default: // serialized message
-				if !sess.sendMessage(v) {
+				if !s.sendMessage(v) {
 					return
 				}
 			}
 
-		case <-sess.bkgTimer.C:
-			if sess.background {
-				sess.background = false
-				sess.onBackgroundTimer()
+		case <-s.bkgTimer.C:
+			if s.background {
+				s.background = false
+				s.onBackgroundTimer()
 			}
 
-		case msg := <-sess.stop:
+		case msg := <-s.stop:
 			// Shutdown requested, don't care if the message is delivered
 			if msg != nil {
-				_ = wsWrite(sess.ws, websocket.TextMessage, msg)
+				_ = wsWrite(s.ws, websocket.TextMessage, msg)
 			}
 			return
 
-		case topic := <-sess.detach:
-			sess.delSub(topic)
+		case topic := <-s.detach:
+			s.delSub(topic)
 
 		case <-ticker.C:
-			if err := wsWrite(sess.ws, websocket.PingMessage, nil); err != nil {
+			if err := wsWrite(s.ws, websocket.PingMessage, nil); err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 					websocket.CloseNormalClosure) {
-					logs.Err.Println("ws: writeLoop ping", sess.sid, err)
+					logs.Err.Println("ws: writeLoop ping", s.sid, err)
 				}
 				return
 			}
