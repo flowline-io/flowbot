@@ -129,6 +129,29 @@ type configType struct {
 
 	// Config for vendors
 	Vendors interface{} `json:"vendors" yaml:"vendors" mapstructure:"vendors"`
+
+	// Platform
+	Platform platform `json:"platform" yaml:"platform" mapstructure:"platform"`
+}
+
+type platform struct {
+	Slack    Slack    `json:"slack" yaml:"slack" mapstructure:"slack"`
+	Telegram Telegram `json:"telegram" yaml:"telegram" mapstructure:"telegram"`
+}
+
+type Slack struct {
+	Enabled           bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	AppID             string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	ClientID          string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	ClientSecret      string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	SigningSecret     string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret"`
+	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
+	AppToken          string `json:"app_token" yaml:"app_token" mapstructure:"app_token"`
+	BotToken          string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
+}
+
+type Telegram struct {
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 }
 
 func Load(path ...string) {

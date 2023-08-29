@@ -76,6 +76,20 @@ log:
 workflow:
   worker: 2
 
+platform:
+  slack:
+    enabled: true
+    app_id: ''
+    client_id: ''
+    client_secret: ''
+    signing_secret: ''
+    verification_token: ''
+    app_token: ''
+    bot_token: ''
+
+  telegram:
+    enabled: true
+
 bots:
   - name: github
     enabled: true

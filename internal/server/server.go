@@ -258,6 +258,9 @@ func Run() {
 	// Event
 	hookEvent()
 
+	// Platform
+	hookPlatform()
+
 	// Configure root path for serving API calls.
 	if *apiPath != "" {
 		config.App.ApiPath = *apiPath
