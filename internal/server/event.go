@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"net/http"
 )
 
 // send message
@@ -41,10 +40,10 @@ func onPushInstruct() {
 
 		sessionStore.Range(func(sid string, s *Session) bool {
 			if s.uid == uid {
-				s.queueOut(&types.ServerComMessage{
-					Code:    http.StatusOK,
-					Message: "",
-					Data:    data,
+				s.queueOut(&ServerComMessage{
+					//Code:    http.StatusOK,
+					//Message: "",
+					//Data:    data,
 				})
 			}
 			return true

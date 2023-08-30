@@ -269,7 +269,7 @@ func (s *Session) cleanUp(expired bool) {
 //	topic: session-specific topic name the message recipient should see
 //	routeTo: routable global topic name
 //	err: *ServerComMessage with an error to return to the sender
-func (s *Session) expandTopicName(msg *ClientComMessage) (string, *types.ServerComMessage) {
+func (s *Session) expandTopicName(msg *ClientComMessage) (string, *ServerComMessage) {
 	if msg.Original == "" {
 		logs.Warn.Println("s.etn: empty topic name", s.sid)
 		return "", ErrMalformed(msg.Id, "", msg.Timestamp)

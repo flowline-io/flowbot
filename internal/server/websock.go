@@ -110,7 +110,7 @@ func (s *Session) writeLoop() {
 
 // queueOut attempts to send a ServerComMessage to a session write loop;
 // it fails, if the send buffer is full.
-func (s *Session) queueOut(msg *types.ServerComMessage) bool {
+func (s *Session) queueOut(msg *ServerComMessage) bool {
 	if s == nil {
 		return true
 	}
@@ -168,7 +168,7 @@ func (s *Session) readLoop() {
 // Message received, convert bytes to ClientComMessage and dispatch
 func (s *Session) dispatchRaw(raw []byte) {
 	now := types.TimeNow()
-	var msg types.ClientComMessage
+	var msg ClientComMessage
 
 	if atomic.LoadInt32(&s.terminating) > 0 {
 		logs.Warn.Println("s.dispatchExtra: message received on a terminating session", s.sid)
@@ -200,15 +200,15 @@ func (s *Session) dispatchRaw(raw []byte) {
 	s.dispatch(&msg)
 }
 
-func (s *Session) dispatch(msg *types.ClientComMessage) {
-	result, err := linkitAction(s.uid, msg.Data)
-	if err != nil {
-		logs.Err.Println(err)
-		return
-	}
-	if result != nil {
-		s.queueOut(types.OkMessage(result))
-	}
+func (s *Session) dispatch(msg *ClientComMessage) {
+	//result, err := linkitAction(s.uid, msg.Data)
+	//if err != nil {
+	//	logs.Err.Println(err)
+	//	return
+	//}
+	//if result != nil {
+	//	s.queueOut(result)
+	//}
 }
 
 // Writes a message with the given message type (mt) and payload.

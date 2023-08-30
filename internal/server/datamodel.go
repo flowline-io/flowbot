@@ -730,30 +730,26 @@ func NoErrShutdown(ts time.Time) *ServerComMessage {
 // 4xx Errors
 
 // ErrMalformed request malformed (400).
-func ErrMalformed(id, topic string, ts time.Time) *types.ServerComMessage {
+func ErrMalformed(id, topic string, ts time.Time) *ServerComMessage {
 	return ErrMalformedExplicitTs(id, topic, ts, ts)
 }
 
 // ErrMalformedExplicitTs request malformed with explicit server and incoming request timestamps (400).
-func ErrMalformedExplicitTs(_, _ string, _, _ time.Time) *types.ServerComMessage {
-	return &types.ServerComMessage{
-		Code:    http.StatusBadRequest,
-		Message: "ErrMalformedExplicitTs",
-		Data:    nil,
+func ErrMalformedExplicitTs(_, _ string, _, _ time.Time) *ServerComMessage {
+	return &ServerComMessage{
+		Data: nil,
 	}
 }
 
 // ErrLocked operation rejected because the topic is being deleted (503).
-func ErrLocked(id, topic string, ts time.Time) *types.ServerComMessage {
+func ErrLocked(id, topic string, ts time.Time) *ServerComMessage {
 	return ErrLockedExplicitTs(id, topic, ts, ts)
 }
 
 // ErrLockedExplicitTs operation rejected because the topic is being deleted
 // with explicit server and incoming request timestamps (503).
-func ErrLockedExplicitTs(_, _ string, _, _ time.Time) *types.ServerComMessage {
-	return &types.ServerComMessage{
-		Code:    http.StatusServiceUnavailable,
-		Message: "ErrLockedExplicitTs",
-		Data:    nil,
+func ErrLockedExplicitTs(_, _ string, _, _ time.Time) *ServerComMessage {
+	return &ServerComMessage{
+		Data: nil,
 	}
 }

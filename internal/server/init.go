@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/workflow/manage"
 	"github.com/flowline-io/flowbot/internal/workflow/schedule"
@@ -156,14 +155,13 @@ func initializeChannels() error {
 	// bind to BotFather
 	// uid, _, _, _, err := tstore.Users.GetAuthUniqueRecord("basic", "botfather")
 	uid := types.Uid(0) // fixme
-	sess := &Session{
+	_ = &Session{
 		uid:    uid,
 		subs:   make(map[string]*Subscription),
 		send:   make(chan interface{}, sendQueueLimit+32),
 		stop:   make(chan interface{}, 1),
 		detach: make(chan string, 64),
 	}
-	fmt.Println(sess)
 
 	for range channels.List() {
 		//topic, _ := tstore.Topics.Get(fmt.Sprintf("grp%s", channel.Id))

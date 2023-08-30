@@ -254,10 +254,10 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
-			SlowThreshold:             200 * time.Millisecond, // Slow SQL threshold
-			LogLevel:                  logger.Warn,            // Log level
-			IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
-			Colorful:                  true,                   // Disable color
+			SlowThreshold:             1000 * time.Millisecond, // Slow SQL threshold
+			LogLevel:                  logger.Warn,             // Log level
+			IgnoreRecordNotFoundError: true,                    // Ignore ErrRecordNotFound error for logger
+			Colorful:                  true,                    // Disable color
 		},
 	)
 	a.db, err = gorm.Open(mysqlDriver.New(mysqlDriver.Config{Conn: db}), &gorm.Config{ // fixme

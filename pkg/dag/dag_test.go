@@ -2,7 +2,6 @@ package dag
 
 import (
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types/meta"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestTopologySort(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []meta.Step
+		want    []model.Step
 		wantErr bool
 	}{
 		{
@@ -45,21 +44,21 @@ func TestTopologySort(t *testing.T) {
 					},
 				},
 			},
-			want: []meta.Step{
+			want: []model.Step{
 				{
-					NodeId:       "node1",
-					DependNodeId: []string{},
-					State:        model.StepReady,
+					NodeID: "node1",
+					Depend: []string{},
+					State:  model.StepReady,
 				},
 				{
-					NodeId:       "node2",
-					DependNodeId: []string{"node1"},
-					State:        model.StepCreated,
+					NodeID: "node2",
+					Depend: []string{"node1"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node3",
-					DependNodeId: []string{"node2"},
-					State:        model.StepCreated,
+					NodeID: "node3",
+					Depend: []string{"node2"},
+					State:  model.StepCreated,
 				},
 			},
 			wantErr: false,
@@ -103,26 +102,26 @@ func TestTopologySort(t *testing.T) {
 					},
 				},
 			},
-			want: []meta.Step{
+			want: []model.Step{
 				{
-					NodeId:       "node1",
-					DependNodeId: []string{},
-					State:        model.StepReady,
+					NodeID: "node1",
+					Depend: []string{},
+					State:  model.StepReady,
 				},
 				{
-					NodeId:       "node2",
-					DependNodeId: []string{"node1"},
-					State:        model.StepCreated,
+					NodeID: "node2",
+					Depend: []string{"node1"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node3",
-					DependNodeId: []string{"node1"},
-					State:        model.StepCreated,
+					NodeID: "node3",
+					Depend: []string{"node1"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node4",
-					DependNodeId: []string{"node2", "node3"},
-					State:        model.StepCreated,
+					NodeID: "node4",
+					Depend: []string{"node2", "node3"},
+					State:  model.StepCreated,
 				},
 			},
 			wantErr: false,
@@ -177,31 +176,31 @@ func TestTopologySort(t *testing.T) {
 					},
 				},
 			},
-			want: []meta.Step{
+			want: []model.Step{
 				{
-					NodeId:       "node1",
-					DependNodeId: []string{},
-					State:        model.StepReady,
+					NodeID: "node1",
+					Depend: []string{},
+					State:  model.StepReady,
 				},
 				{
-					NodeId:       "node2",
-					DependNodeId: []string{"node1"},
-					State:        model.StepCreated,
+					NodeID: "node2",
+					Depend: []string{"node1"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node3",
-					DependNodeId: []string{"node2"},
-					State:        model.StepCreated,
+					NodeID: "node3",
+					Depend: []string{"node2"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node4",
-					DependNodeId: []string{"node2", "node3"},
-					State:        model.StepCreated,
+					NodeID: "node4",
+					Depend: []string{"node2", "node3"},
+					State:  model.StepCreated,
 				},
 				{
-					NodeId:       "node5",
-					DependNodeId: []string{"node3", "node4"},
-					State:        model.StepCreated,
+					NodeID: "node5",
+					Depend: []string{"node3", "node4"},
+					State:  model.StepCreated,
 				},
 			},
 			wantErr: false,
@@ -219,12 +218,12 @@ func TestTopologySort(t *testing.T) {
 				return
 			}
 			for i, step := range tt.want {
-				if got[i].NodeId != step.NodeId {
-					t.Errorf("TopologySort() got = %v, want %v", got[i].NodeId, step.NodeId)
+				if got[i].NodeID != step.NodeID {
+					t.Errorf("TopologySort() got = %v, want %v", got[i].NodeID, step.NodeID)
 					return
 				}
-				if !utils.SameStringSlice(got[i].DependNodeId, step.DependNodeId) {
-					t.Errorf("TopologySort() got = %v, want %v", got[i].NodeId, step.NodeId)
+				if !utils.SameStringSlice(got[i].Depend, step.Depend) {
+					t.Errorf("TopologySort() got = %v, want %v", got[i].Depend, step.Depend)
 					return
 				}
 				if got[i].State != step.State {
