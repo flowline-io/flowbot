@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-var channelId = ""
-
 func HandleSlack(stop <-chan bool) {
 	// todo check config
 
@@ -28,18 +26,51 @@ func HandleSlack(stop <-chan bool) {
 				return
 			case event := <-client.Events:
 				switch event.Type {
+				// message
 				case socketmode.EventTypeEventsAPI:
 					logs.Info.Println(event.Data)
-					//err := makeRequest(&SlackRequest{
-					//	StatusCode: 200,
-					//	Content:    "flowbot is up and running!",
-					//}, api)
-					//if err != nil {
-					//	logs.Err.Println(err)
-					//}
+
 					apiEvent := event.Data.(slackevents.EventsAPIEvent)
 					messageEvent := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
 					fmt.Println(messageEvent.Text)
+
+					// Ignore all messages created by the bot itself
+					if messageEvent.BotID != "" {
+						continue
+					}
+
+					client.Ack(*event.Request)
+
+					err := makeRequest(&SlackRequest{
+						StatusCode: 200,
+						Content:    "flowbot is up and running!",
+						Channel:    messageEvent.Channel,
+					}, api)
+					if err != nil {
+						logs.Err.Println(err)
+					}
+
+				// slash command
+				case socketmode.EventTypeSlashCommand:
+					cmd, ok := event.Data.(slack.SlashCommand)
+					if !ok {
+						fmt.Printf("Ignored %+v\n", event)
+
+						continue
+					}
+
+					client.Debugf("Slash command received: %+v", cmd)
+
+					client.Ack(*event.Request)
+
+					err := makeRequest(&SlackRequest{
+						StatusCode: 200,
+						Content:    "cmd run",
+						Channel:    cmd.ChannelID,
+					}, api)
+					if err != nil {
+						logs.Err.Println(err)
+					}
 				}
 			}
 		}
@@ -59,6 +90,8 @@ type SlackRequest struct {
 	StatusCode int `json:"statusCode"`
 	// Content will contain the presigned url, error messages, or success messages.
 	Content string `json:"body"`
+	// Channel is the channel that the message will be sent to.
+	Channel string `json:"channel"`
 }
 
 func makeRequest(in *SlackRequest, api *slack.Client) error {
@@ -74,7 +107,7 @@ func makeRequest(in *SlackRequest, api *slack.Client) error {
 		Footer: "FlowBot " + " | " + time.Now().Format("01-02-2006 3:4:5 MST"),
 	}
 	_, _, err := api.PostMessage(
-		channelId,
+		in.Channel,
 		slack.MsgOptionAttachments(attachment),
 		slack.MsgOptionAsUser(true),
 	)
