@@ -56,6 +56,7 @@ jobs:
           go env -w GOOS=linux
           go env -w GOARCH=amd64
           go env
+          go mod download
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot github.com/flowline-io/flowbot/cmd
 
       - uses: actions/upload-artifact@v3
