@@ -525,6 +525,7 @@ func HandleDiscord(stop <-chan bool) {
 	}
 
 	s.LogLevel = discordgo.LogInformational
+	s.Identify.Intents = discordgo.IntentsGuildMessages
 
 	err = s.Open()
 	if err != nil {
@@ -546,6 +547,7 @@ func HandleDiscord(stop <-chan bool) {
 		if m.Author.ID == s.State.User.ID {
 			return
 		}
+
 		// If the message is "ping" reply with "Pong!"
 		if m.Content == "ping" {
 			_, _ = s.ChannelMessageSend(m.ChannelID, "Pong!")
