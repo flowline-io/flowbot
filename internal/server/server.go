@@ -239,6 +239,8 @@ func Run() {
 		logs.Err.Fatalln(err)
 	}
 
+	signal := signalHandler()
+
 	// Initialize bots
 	hookBot(config.App.Bots, config.App.Vendors)
 
@@ -259,7 +261,7 @@ func Run() {
 	hookEvent()
 
 	// Platform
-	hookPlatform()
+	hookPlatform(signal)
 
 	// Configure root path for serving API calls.
 	if *apiPath != "" {
@@ -294,7 +296,7 @@ func Run() {
 		app.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
 	}
 
-	if err = listenAndServe(app, config.App.Listen, tlsConfig, signalHandler()); err != nil {
+	if err = listenAndServe(app, config.App.Listen, tlsConfig, signal); err != nil {
 		logs.Err.Fatal(err)
 	}
 }

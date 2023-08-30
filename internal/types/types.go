@@ -1,7 +1,8 @@
 package types
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/rs/xid"
 	"net/http"
 	"os"
 	"time"
@@ -60,10 +61,12 @@ type Context struct {
 	PipelineStepIndex int
 	// page rule id
 	PageRuleId string
+	// workflow rule id
+	WorkflowRuleId string
 }
 
-func Id() Uid {
-	return 0 // fixme
+func Id() string {
+	return xid.New().String()
 }
 
 func AppUrl() string {
@@ -71,13 +74,14 @@ func AppUrl() string {
 }
 
 type QueuePayload struct {
-	RcptTo string          `json:"rcpt_to"`
-	Uid    string          `json:"uid"`
-	Type   string          `json:"type"`
-	Msg    json.RawMessage `json:"msg"`
+	RcptTo string `json:"rcpt_to"`
+	Uid    string `json:"uid"`
+	Type   string `json:"type"`
+	Msg    []byte `json:"msg"`
 }
 
 func ConvertQueuePayload(rcptTo string, uid string, msg MsgPayload) (QueuePayload, error) {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return QueuePayload{}, err

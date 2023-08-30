@@ -87,6 +87,14 @@ platform:
     app_token: ''
     bot_token: ''
 
+  discord:
+    enabled: true
+    app_id: ''
+    public_key: ''
+    client_id: ''
+    client_secret: ''
+    bot_token: ''
+
   telegram:
     enabled: true
 

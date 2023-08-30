@@ -12,7 +12,7 @@ func GetFunctionName(i interface{}) string {
 
 func ParseFunctionName(name string) (string, string) {
 	names := strings.Split(name, ".")
-	if len(names) > 0 {
+	if len(names) > 1 {
 		return strings.Join(names[:len(names)-1], "."), names[len(names)-1]
 	}
 	return "", ""

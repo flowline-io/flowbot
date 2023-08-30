@@ -9,7 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"net/http"
 )
 
@@ -43,7 +43,7 @@ func (bot) Init(jsonconf json.RawMessage) error {
 	}
 
 	if !config.Enabled {
-		logs.Info.Printf("bot %s disabled", Name)
+		flog.Info("bot %s disabled", Name)
 		return nil
 	}
 
@@ -89,6 +89,7 @@ func (b bot) Rules() []interface{} {
 		pageRules,
 		agentRules,
 		webserviceRules,
+		workflowRules,
 	}
 }
 
@@ -134,4 +135,8 @@ func (b bot) Instruct() (instruct.Ruleset, error) {
 
 func (b bot) Page(ctx types.Context, flag string) (string, error) {
 	return bots.RunPage(pageRules, ctx, flag)
+}
+
+func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
+	return bots.RunWorkflow(workflowRules, ctx, input)
 }

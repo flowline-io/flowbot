@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
@@ -518,7 +519,7 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 		// Queue depth never goes high because processing an item is locking the queue,
 		// and new items can't be added until processing finish.
 		if depth > 10 {
-			logs.Warn.Printf("DeltaFIFO depth %d", depth)
+			flog.Warn("DeltaFIFO depth %d", depth)
 		}
 		err := process(item)
 		if e, ok := err.(ErrRequeue); ok {
@@ -608,7 +609,7 @@ func (f *DeltaFIFO) Replace(list []interface{}, _ string) error {
 			logs.Err.Printf("Unexpected error %v during lookup of key %v, placing DeleteFinalStateUnknown marker without object", err, k)
 		} else if !exists {
 			deletedObj = nil
-			logs.Info.Printf("Key %v does not exist in known objects store, placing DeleteFinalStateUnknown marker without object", k)
+			flog.Info("Key %v does not exist in known objects store, placing DeleteFinalStateUnknown marker without object", k)
 		}
 		queuedDeletions++
 		if err := f.queueActionLocked(Deleted, DeletedFinalStateUnknown{k, deletedObj}); err != nil {
@@ -650,7 +651,7 @@ func (f *DeltaFIFO) syncKeyLocked(key string) error {
 		logs.Err.Printf("Unexpected error %v during lookup of key %v, unable to queue object for sync", err, key)
 		return nil
 	} else if !exists {
-		logs.Info.Printf("Key %v does not exist in known objects store, unable to queue object for sync", key)
+		flog.Info("Key %v does not exist in known objects store, unable to queue object for sync", key)
 		return nil
 	}
 

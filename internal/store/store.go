@@ -239,15 +239,15 @@ type Adapter interface {
 	DeleteTodo(id int64) error
 	DeleteTodoBySequence(uid types.Uid, topic string, sequence int64) error
 	CreateReview(review *model.Review) (int64, error)
-	UpdateReview(review *model.Review)
+	UpdateReview(review *model.Review) error
 	ListReviews(uid types.Uid, topic string) ([]*model.Review, error)
 	GetReviewByID(id int64) (*model.Review, error)
 	CreateReviewEvaluation(evaluation *model.ReviewEvaluation) (int64, error)
-	UpdateReviewEvaluation(evaluation *model.ReviewEvaluation)
+	UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) error
 	ListReviewEvaluations(uid types.Uid, topic string, reviewID int64) ([]*model.ReviewEvaluation, error)
 	GetReviewEvaluationByID(id int64) (*model.ReviewEvaluation, error)
 	CreateCycle(cycle *model.Cycle) (int64, error)
-	UpdateCycle(cycle *model.Cycle)
+	UpdateCycle(cycle *model.Cycle) error
 	ListCycles(uid types.Uid, topic string) ([]*model.Cycle, error)
 	GetCycleByID(id int64) (*model.Cycle, error)
 
@@ -262,7 +262,7 @@ type Adapter interface {
 	GetWorkflow(id int64) (*model.Workflow, error)
 	UpdateWorkflowState(id int64, state model.WorkflowState) error
 	ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error)
-	IncreaseWorkflowCount(id int64, successful int, failed int, running int, canceled int) error
+	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error
 	DeleteWorkflow(id int64) error
 	GetDag(id int64) (*model.Dag, error)
 	GetJob(id int64) (*model.Job, error)
@@ -270,9 +270,18 @@ type Adapter interface {
 	ListJobs(workflowID int64) ([]*model.Job, error)
 	GetJobsByState(state model.JobState) ([]*model.Job, error)
 	UpdateJobState(id int64, state model.JobState) error
+	UpdateJobStartedAt(id int64, at time.Time) error
+	UpdateJobFinishedAt(id int64, at time.Time) error
 	UpdateStepState(id int64, state model.StepState) error
+	UpdateStepStartedAt(id int64, at time.Time) error
+	UpdateStepFinishedAt(id int64, at time.Time) error
+	UpdateStepInput(id int64, input types.KV) error
+	UpdateStepOutput(id int64, output types.KV) error
 	CreateStep(step *model.Step) (int64, error)
 	CreateSteps(steps []*model.Step) error
+	GetStepsByState(state model.StepState) ([]*model.Step, error)
+	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
+	GetStepsByJobId(jobId int64) ([]*model.Step, error)
 }
 
 var Chatbot Adapter

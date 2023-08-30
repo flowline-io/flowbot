@@ -1,13 +1,13 @@
 package dao
 
 import (
-	"encoding/json"
-	"github.com/tinode/jsonco"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+	"io"
 	"os"
 )
 
@@ -37,8 +37,13 @@ func GenerationAction(c *cli.Context) error {
 	}
 
 	config := configType{}
-	jr := jsonco.New(file)
-	if err = json.NewDecoder(jr).Decode(&config); err != nil {
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
 		panic(err)
 	}
 
@@ -56,7 +61,7 @@ func GenerationAction(c *cli.Context) error {
 	}
 
 	g := gen.NewGenerator(gen.Config{
-		OutPath: "./server/extra/store/dao",
+		OutPath: "./internal/store/dao",
 		Mode:    gen.WithoutContext | gen.WithDefaultQuery,
 	})
 
@@ -171,7 +176,20 @@ func GenerationAction(c *cli.Context) error {
 			},
 		}))
 	steps := g.GenerateModelAs("chatbot_steps", "Step",
-		gen.FieldType("depend", "IDList"),
+		gen.FieldType("depend", "[]string"),
+		gen.FieldGORMTag("depend", func(tag field.GormTag) field.GormTag {
+			return map[string][]string{
+				"column":     {"depend"},
+				"type":       {"json"},
+				"serializer": {"json"},
+				"not null":   nil,
+			}
+		}),
+		gen.FieldType("action", "JSON"),
+		gen.FieldType("input", "JSON"),
+		gen.FieldType("output", "JSON"),
+		gen.FieldType("started_at", "*time.Time"),
+		gen.FieldType("finished_at", "*time.Time"),
 		gen.FieldType("state", "StepState"))
 	jobs := g.GenerateModelAs("chatbot_jobs", "Job",
 		gen.FieldType("state", "JobState"),
@@ -250,11 +268,11 @@ func GenerationAction(c *cli.Context) error {
 
 type configType struct {
 	StoreConfig struct {
-		UseAdapter string `json:"use_adapter"`
+		UseAdapter string `json:"use_adapter" yaml:"use_adapter"`
 		Adapters   struct {
 			Mysql struct {
-				DSN string `json:"dsn"`
-			} `json:"mysql"`
-		} `json:"adapters"`
-	} `json:"store_config"`
+				DSN string `json:"dsn" yaml:"dsn"`
+			} `json:"mysql" yaml:"mysql"`
+		} `json:"adapters" yaml:"adapters"`
+	} `json:"store_config" yaml:"store_config"`
 }

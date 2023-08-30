@@ -32,12 +32,13 @@ func newStep(db *gorm.DB, opts ...gen.DOOption) step {
 	_step.UID = field.NewString(tableName, "uid")
 	_step.Topic = field.NewString(tableName, "topic")
 	_step.JobID = field.NewInt32(tableName, "job_id")
-	_step.Depend = field.NewField(tableName, "depend")
-	_step.Action = field.NewString(tableName, "action")
+	_step.Action = field.NewField(tableName, "action")
 	_step.Name = field.NewString(tableName, "name")
 	_step.Describe = field.NewString(tableName, "describe")
-	_step.Input = field.NewString(tableName, "input")
-	_step.Output = field.NewString(tableName, "output")
+	_step.NodeID = field.NewString(tableName, "node_id")
+	_step.Depend = field.NewField(tableName, "depend")
+	_step.Input = field.NewField(tableName, "input")
+	_step.Output = field.NewField(tableName, "output")
 	_step.Error = field.NewString(tableName, "error")
 	_step.State = field.NewField(tableName, "state")
 	_step.StartedAt = field.NewTime(tableName, "started_at")
@@ -58,12 +59,13 @@ type step struct {
 	UID        field.String
 	Topic      field.String
 	JobID      field.Int32
-	Depend     field.Field
-	Action     field.String
+	Action     field.Field
 	Name       field.String
 	Describe   field.String
-	Input      field.String
-	Output     field.String
+	NodeID     field.String
+	Depend     field.Field
+	Input      field.Field
+	Output     field.Field
 	Error      field.String
 	State      field.Field
 	StartedAt  field.Time
@@ -90,12 +92,13 @@ func (s *step) updateTableName(table string) *step {
 	s.UID = field.NewString(table, "uid")
 	s.Topic = field.NewString(table, "topic")
 	s.JobID = field.NewInt32(table, "job_id")
-	s.Depend = field.NewField(table, "depend")
-	s.Action = field.NewString(table, "action")
+	s.Action = field.NewField(table, "action")
 	s.Name = field.NewString(table, "name")
 	s.Describe = field.NewString(table, "describe")
-	s.Input = field.NewString(table, "input")
-	s.Output = field.NewString(table, "output")
+	s.NodeID = field.NewString(table, "node_id")
+	s.Depend = field.NewField(table, "depend")
+	s.Input = field.NewField(table, "input")
+	s.Output = field.NewField(table, "output")
 	s.Error = field.NewString(table, "error")
 	s.State = field.NewField(table, "state")
 	s.StartedAt = field.NewTime(table, "started_at")
@@ -118,15 +121,16 @@ func (s *step) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *step) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 16)
+	s.fieldMap = make(map[string]field.Expr, 17)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["uid"] = s.UID
 	s.fieldMap["topic"] = s.Topic
 	s.fieldMap["job_id"] = s.JobID
-	s.fieldMap["depend"] = s.Depend
 	s.fieldMap["action"] = s.Action
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["describe"] = s.Describe
+	s.fieldMap["node_id"] = s.NodeID
+	s.fieldMap["depend"] = s.Depend
 	s.fieldMap["input"] = s.Input
 	s.fieldMap["output"] = s.Output
 	s.fieldMap["error"] = s.Error

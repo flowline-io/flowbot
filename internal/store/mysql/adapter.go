@@ -12,17 +12,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/locker"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	ms "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	mysqlDriver "gorm.io/driver/mysql"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -1009,7 +1009,7 @@ func (a *adapter) AggregateKeyResultValue(id int64) error {
 	if err != nil {
 		return err
 	}
-	var value sql.NullString // fixme
+	var value sql.NullInt64
 	switch keyResult.ValueMode {
 	case model.ValueSumMode:
 		err = a.db.Model(&model.KeyResultValue{}).Where("key_result_id = ?", id).
@@ -1028,9 +1028,8 @@ func (a *adapter) AggregateKeyResultValue(id int64) error {
 		return err
 	}
 
-	currentValue, _ := strconv.ParseInt(value.String, 10, 64)
 	return a.db.Model(&model.KeyResult{}).Where("id = ?", id).UpdateColumns(map[string]interface{}{
-		"current_value": currentValue,
+		"current_value": value.Int64,
 	}).Error
 }
 
@@ -1161,63 +1160,81 @@ func (a *adapter) DeleteTodoBySequence(uid types.Uid, topic string, sequence int
 }
 
 func (a *adapter) CreateReview(review *model.Review) (int64, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Review
+	err := q.Create(review)
+	if err != nil {
+		return 0, err
+	}
+	return int64(review.ID), nil
 }
 
-func (a *adapter) UpdateReview(review *model.Review) {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UpdateReview(review *model.Review) error {
+	q := dao.Q.Review
+	_, err := q.Updates(review)
+	return err
 }
 
 func (a *adapter) ListReviews(uid types.Uid, topic string) ([]*model.Review, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Review
+	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic)).
+		Order(q.UpdatedAt.Desc()).Find()
 }
 
 func (a *adapter) GetReviewByID(id int64) (*model.Review, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Review
+	return q.Where(q.ID.Eq(int32(id))).First()
 }
 
 func (a *adapter) CreateReviewEvaluation(evaluation *model.ReviewEvaluation) (int64, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.ReviewEvaluation
+	err := q.Create(evaluation)
+	if err != nil {
+		return 0, err
+	}
+	return int64(evaluation.ID), nil
 }
 
-func (a *adapter) UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) error {
+	q := dao.Q.ReviewEvaluation
+	_, err := q.Updates(evaluation)
+	return err
 }
 
 func (a *adapter) ListReviewEvaluations(uid types.Uid, topic string, reviewID int64) ([]*model.ReviewEvaluation, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.ReviewEvaluation
+	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic), q.ReviewID.Eq(int32(reviewID))).
+		Order(q.UpdatedAt.Desc()).Find()
 }
 
 func (a *adapter) GetReviewEvaluationByID(id int64) (*model.ReviewEvaluation, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.ReviewEvaluation
+	return q.Where(q.ID.Eq(int32(id))).First()
 }
 
 func (a *adapter) CreateCycle(cycle *model.Cycle) (int64, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Cycle
+	err := q.Create(cycle)
+	if err != nil {
+		return 0, err
+	}
+	return int64(cycle.ID), nil
 }
 
-func (a *adapter) UpdateCycle(cycle *model.Cycle) {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UpdateCycle(cycle *model.Cycle) error {
+	q := dao.Q.Cycle
+	_, err := q.Updates(cycle)
+	return err
 }
 
 func (a *adapter) ListCycles(uid types.Uid, topic string) ([]*model.Cycle, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Cycle
+	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic)).
+		Order(q.UpdatedAt.Desc()).Find()
 }
 
 func (a *adapter) GetCycleByID(id int64) (*model.Cycle, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Cycle
+	return q.Where(q.ID.Eq(int32(id))).First()
 }
 
 func (a *adapter) CreateCounter(counter *model.Counter) (int64, error) {
@@ -1265,7 +1282,7 @@ func (a *adapter) record(id, digit int64) {
 	err := a.db.Exec("INSERT INTO `chatbot_counter_records` ( `counter_id`, `digit`, `created_at`) VALUES (?, ?, ?)",
 		id, digit, time.Now()).Error
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 	}
 }
 
@@ -1331,13 +1348,13 @@ func (a *adapter) ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow,
 	return q.Where(q.UID.Eq(uid.UserId())).Where(q.Topic.Eq(topic)).Find()
 }
 
-func (a *adapter) IncreaseWorkflowCount(id int64, successful int, failed int, running int, canceled int) error {
+func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error {
 	q := dao.Q.Workflow
 	_, err := q.Where(q.ID.Eq(int32(id))).UpdateSimple(
-		q.SuccessfulCount.Value(int32(successful)),
-		q.FailedCount.Value(int32(failed)),
-		q.RunningCount.Value(int32(running)),
-		q.CanceledCount.Value(int32(canceled)))
+		q.SuccessfulCount.Add(successful),
+		q.FailedCount.Add(failed),
+		q.RunningCount.Add(running),
+		q.CanceledCount.Add(canceled))
 	return err
 }
 
@@ -1379,9 +1396,45 @@ func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
 	return err
 }
 
+func (a *adapter) UpdateJobStartedAt(id int64, at time.Time) error {
+	q := dao.Q.Job
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.StartedAt, at)
+	return err
+}
+
+func (a *adapter) UpdateJobFinishedAt(id int64, at time.Time) error {
+	q := dao.Q.Job
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.FinishedAt, at)
+	return err
+}
+
 func (a *adapter) UpdateStepState(id int64, state model.StepState) error {
 	q := dao.Q.Step
 	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.State, state)
+	return err
+}
+
+func (a *adapter) UpdateStepStartedAt(id int64, at time.Time) error {
+	q := dao.Q.Step
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.StartedAt, at)
+	return err
+}
+
+func (a *adapter) UpdateStepFinishedAt(id int64, at time.Time) error {
+	q := dao.Q.Step
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.FinishedAt, at)
+	return err
+}
+
+func (a *adapter) UpdateStepInput(id int64, input types.KV) error {
+	q := dao.Q.Step
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.Input, input)
+	return err
+}
+
+func (a *adapter) UpdateStepOutput(id int64, output types.KV) error {
+	q := dao.Q.Step
+	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.Output, output)
 	return err
 }
 
@@ -1405,6 +1458,21 @@ func (a *adapter) CreateSteps(steps []*model.Step) error {
 		}
 		return nil
 	})
+}
+
+func (a *adapter) GetStepsByState(state model.StepState) ([]*model.Step, error) {
+	q := dao.Q.Step
+	return q.Where(q.State.Eq(state)).Find()
+}
+
+func (a *adapter) GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error) {
+	q := dao.Q.Step
+	return q.Where(q.JobID.Eq(int32(jobId)), q.Columns(q.NodeID).In(field.Values(depend))).Find()
+}
+
+func (a *adapter) GetStepsByJobId(jobId int64) ([]*model.Step, error) {
+	q := dao.Q.Step
+	return q.Where(q.JobID.Eq(int32(jobId))).Find()
 }
 
 func Init() {

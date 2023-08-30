@@ -1,13 +1,13 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/workflow/manager"
-	"github.com/flowline-io/flowbot/internal/workflow/scheduler"
-	"github.com/flowline-io/flowbot/internal/workflow/worker"
+	"github.com/flowline-io/flowbot/internal/workflow/manage"
+	"github.com/flowline-io/flowbot/internal/workflow/schedule"
 	"github.com/flowline-io/flowbot/pkg/channels"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/utils/queue"
 )
 
 // init base bot user
@@ -322,12 +322,24 @@ func initializeCrawler() error {
 
 // init workflow
 func initializeWorkflow() error {
-	ctx := context.Background()
-	globals.manager = manager.NewManager()
-	go globals.manager.Run(ctx)
-	globals.scheduler = scheduler.NewScheduler()
-	go globals.scheduler.Run(ctx)
-	globals.worker = worker.NewWorker()
-	go globals.worker.Run(ctx)
+	var workerNum = config.App.Workflow.Worker
+	// default worker num
+	if workerNum == 0 {
+		workerNum = 1
+	}
+	// manager
+	globals.manager = manage.NewManager()
+	go globals.manager.Run()
+	// scheduler
+	q := queue.NewDeltaFIFOWithOptions(queue.DeltaFIFOOptions{
+		KeyFunction: schedule.KeyFunc,
+	})
+	globals.scheduler = schedule.NewScheduler(q)
+	go globals.scheduler.Run()
+	for i := 0; i < workerNum; i++ {
+		worker := schedule.NewWorker(q)
+		globals.workers = append(globals.workers, worker)
+		go worker.Run()
+	}
 	return nil
 }

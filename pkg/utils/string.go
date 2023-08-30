@@ -63,11 +63,10 @@ func Masker(input string, start int) string {
 }
 
 func Fn(public interface{}) string {
-	if v, ok := public.(map[string]interface{}); ok {
-		if s, ok := v["fn"]; ok {
-			if ss, ok := s.(string); ok {
-				return ss
-			}
+	switch v := public.(type) {
+	case map[string]interface{}:
+		if s, ok := v["fn"].(string); ok {
+			return s
 		}
 	}
 	return ""
@@ -77,7 +76,7 @@ func FirstUpper(s string) string {
 	if s == "" {
 		return ""
 	}
-	return strings.ToUpper(s[:1]) + s[1:]
+	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
 func MD5(txt string) string {

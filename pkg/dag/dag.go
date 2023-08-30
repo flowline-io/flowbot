@@ -1,9 +1,7 @@
 package dag
 
 import (
-	"fmt"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types/meta"
 	dagLib "github.com/heimdalr/dag"
 )
 
@@ -13,7 +11,7 @@ func (n nodeId) ID() string {
 	return string(n)
 }
 
-func TopologySort(item *model.Dag) ([]meta.Step, error) {
+func TopologySort(item *model.Dag) ([]model.Step, error) {
 	d := dagLib.NewDAG()
 	nodeMap := make(map[string]*model.Node)
 	for i, node := range item.Nodes {
@@ -29,12 +27,11 @@ func TopologySort(item *model.Dag) ([]meta.Step, error) {
 			return nil, err
 		}
 	}
-	fmt.Printf("dag %s: %s", item.UID, d.String())
 
 	baseRoots := d.GetRoots()
 	roots := baseRoots
 	have := make(map[string]struct{}, len(item.Nodes))
-	var result []meta.Step
+	var result []model.Step
 	for {
 		if len(roots) == 0 {
 			break
@@ -47,7 +44,7 @@ func TopologySort(item *model.Dag) ([]meta.Step, error) {
 			if err != nil {
 				return nil, err
 			}
-			var dependNodeId []string
+			dependNodeId := make([]string, 0)
 			for pid := range parents {
 				dependNodeId = append(dependNodeId, pid)
 			}
@@ -56,11 +53,18 @@ func TopologySort(item *model.Dag) ([]meta.Step, error) {
 			if ok {
 				state = model.StepReady
 			}
-			result = append(result, meta.Step{
-				DagUID:       item.UID,
-				NodeId:       id,
-				DependNodeId: dependNodeId,
-				State:        state,
+
+			n := nodeMap[id]
+			action := model.JSON{
+				"bot":        n.Bot,
+				"rule_id":    n.RuleId,
+				"parameters": n.Parameters,
+			}
+			result = append(result, model.Step{
+				NodeID: id,
+				Depend: dependNodeId,
+				Action: action,
+				State:  state,
 			})
 			have[id] = struct{}{}
 		}

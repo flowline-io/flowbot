@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"gorm.io/gorm"
-	"strings"
 )
 
 const Name = "url"
@@ -67,7 +66,7 @@ func (b bot) Input(_ types.Context, _ types.KV, content interface{}) (types.MsgP
 		if url.ID > 0 {
 			return types.LinkMsg{Url: fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag)}, nil
 		}
-		flag := strings.ToLower(types.Id().String())
+		flag := types.Id()
 		err = store.Chatbot.UrlCreate(model.Url{
 			Flag:  flag,
 			URL:   text,

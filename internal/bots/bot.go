@@ -19,11 +19,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/ruleset/setting"
 	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
+	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -96,6 +97,9 @@ type Handler interface {
 
 	// Webapp return webapp
 	Webapp() func(rw http.ResponseWriter, req *http.Request)
+
+	// Workflow return workflow result
+	Workflow(ctx types.Context, input types.KV) (types.KV, error)
 }
 
 type Base struct{}
@@ -174,6 +178,10 @@ func (Base) Webservice() *restful.WebService {
 
 func (Base) Webapp() func(rw http.ResponseWriter, req *http.Request) {
 	return nil
+}
+
+func (Base) Workflow(_ types.Context, _ types.KV) (types.KV, error) {
+	return nil, nil
 }
 
 type configType struct {
@@ -279,7 +287,7 @@ func TriggerPipeline(pipelineRules []pipeline.Rule, ctx types.Context, _ types.K
 			// store pipeline
 			flag, err := StorePipeline(ctx, rule, 0)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return "", pipeline.Rule{}, err
 			}
 			pipelineFlag = flag
@@ -386,7 +394,7 @@ func RunPipeline(pipelineRules []pipeline.Rule, ctx types.Context, head types.KV
 }
 
 func StorePipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (string, error) {
-	flag := types.Id().String()
+	flag := types.Id()
 	return flag, store.Chatbot.PipelineCreate(model.Pipeline{
 		UID:     ctx.AsUser.UserId(),
 		Topic:   ctx.Original,
@@ -584,6 +592,11 @@ func RunAgent(agentVersion int, agentRules []agent.Rule, ctx types.Context, cont
 	return rs.ProcessAgent(agentVersion, ctx, content)
 }
 
+func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.KV) (types.KV, error) {
+	rs := workflow.Ruleset(workflowRules)
+	return rs.ProcessRule(ctx, input)
+}
+
 func RunSession(sessionRules []session.Rule, ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	rs := session.Ruleset(sessionRules)
 	return rs.ProcessSession(ctx, content)
@@ -599,20 +612,22 @@ func FormMsg(ctx types.Context, id string) types.MsgPayload {
 			switch v := item.(type) {
 			case []form.Rule:
 				for _, rule := range v {
-					if rule.Id == id {
-						title = rule.Title
-						field = rule.Field
+					if rule.Id != id {
+						continue
+					}
 
-						// default value type
-						for index, formField := range field {
-							if formField.ValueType == "" {
-								switch formField.Type {
-								case types.FormFieldText, types.FormFieldPassword, types.FormFieldTextarea,
-									types.FormFieldEmail, types.FormFieldUrl:
-									field[index].ValueType = types.FormFieldValueString
-								case types.FormFieldNumber:
-									field[index].ValueType = types.FormFieldValueInt64
-								}
+					title = rule.Title
+					field = rule.Field
+
+					// default value type
+					for index, formField := range field {
+						if formField.ValueType == "" {
+							switch formField.Type {
+							case types.FormFieldText, types.FormFieldPassword, types.FormFieldTextarea,
+								types.FormFieldEmail, types.FormFieldUrl:
+								field[index].ValueType = types.FormFieldValueString
+							case types.FormFieldNumber:
+								field[index].ValueType = types.FormFieldValueInt64
 							}
 						}
 					}
@@ -635,16 +650,17 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "form msg error"}
 	}
 
-	formId := types.Id().String()
-	d, err := jsoniter.Marshal(payload)
+	formId := types.Id()
+	var j = jsoniter.ConfigCompatibleWithStandardLibrary
+	d, err := j.Marshal(payload)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 	schema := types.KV{}
 	err = schema.Scan(d)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
@@ -673,7 +689,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		State:  model.FormStateCreated,
 	})
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
@@ -687,7 +703,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		State:  model.PageStateCreated,
 	})
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
@@ -698,7 +714,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 }
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
-	flag := strings.ToLower(types.Id().String())
+	flag := types.Id()
 	return flag, store.Chatbot.ParameterSet(flag, params, expiredAt)
 }
 
@@ -730,16 +746,17 @@ func ActionMsg(_ types.Context, id string) types.MsgPayload {
 }
 
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
-	pageId := types.Id().String()
-	d, err := jsoniter.Marshal(payload)
+	pageId := types.Id()
+	var j = jsoniter.ConfigCompatibleWithStandardLibrary
+	d, err := j.Marshal(payload)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 	schema := types.KV{}
 	err = schema.Scan(d)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
@@ -753,7 +770,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		State:  model.PageStateCreated,
 	})
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
@@ -821,26 +838,27 @@ func SessionDone(ctx types.Context) {
 }
 
 func CreateShortUrl(text string) (string, error) {
-	if utils.IsUrl(text) {
-		url, err := store.Chatbot.UrlGetByUrl(text)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", err
-		}
-		if url.ID > 0 {
-			return fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag), nil
-		}
-		flag := strings.ToLower(types.Id().String())
-		err = store.Chatbot.UrlCreate(model.Url{
-			Flag:  flag,
-			URL:   text,
-			State: model.UrlStateEnable,
-		})
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("%s/u/%s", types.AppUrl(), flag), nil
+	if !utils.IsUrl(text) {
+		return "", errors.New("error url")
 	}
-	return "", errors.New("error url")
+
+	url, err := store.Chatbot.UrlGetByUrl(text)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", err
+	}
+	if url.ID > 0 {
+		return fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag), nil
+	}
+	flag := types.Id()
+	err = store.Chatbot.UrlCreate(model.Url{
+		Flag:  flag,
+		URL:   text,
+		State: model.UrlStateEnable,
+	})
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/u/%s", types.AppUrl(), flag), nil
 }
 
 func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
@@ -859,7 +877,7 @@ func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
 	}
 
 	return StoreInstruct(ctx, types.InstructMsg{
-		No:       types.Id().String(),
+		No:       types.Id(),
 		Object:   model.InstructObjectLinkit,
 		Bot:      botName,
 		Flag:     id,
@@ -903,7 +921,7 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 		"expire_at": msg.ExpireAt,
 	})
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 	}
 
 	return types.TextMsg{Text: fmt.Sprintf("Instruct[%s:%s]", msg.Flag, msg.No)}
@@ -976,7 +994,7 @@ func ServeFile(rw http.ResponseWriter, req *http.Request, dist embed.FS, dir str
 	}
 
 	vars := mux.Vars(req)
-	subpath, _ := vars["subpath"]
+	subpath := vars["subpath"]
 	if subpath == "" {
 		subpath = "index.html"
 	}
@@ -1043,14 +1061,14 @@ func Webservice(name, version string, ruleset webservice.Ruleset) *restful.WebSe
 func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
-	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
+	if err := json.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
 	configMap := make(map[string]json.RawMessage)
 	for _, cc := range config {
 		var item configType
-		if err := jsoniter.Unmarshal(cc, &item); err != nil {
+		if err := json.Unmarshal(cc, &item); err != nil {
 			return errors.New("failed to parse config: " + err.Error())
 		}
 

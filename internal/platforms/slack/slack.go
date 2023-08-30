@@ -13,7 +13,9 @@ import (
 
 var channelId = ""
 
-func HandleSlack() {
+func HandleSlack(stop <-chan bool) {
+	// todo check config
+
 	api := slack.New(config.App.Platform.Slack.BotToken, slack.OptionDebug(true), slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken))
 
 	client := socketmode.New(api, socketmode.OptionDebug(true))
@@ -21,6 +23,9 @@ func HandleSlack() {
 	go func() {
 		for {
 			select {
+			case <-stop:
+				logs.Info.Println("Slack is shutting down.")
+				return
 			case event := <-client.Events:
 				switch event.Type {
 				case socketmode.EventTypeEventsAPI:

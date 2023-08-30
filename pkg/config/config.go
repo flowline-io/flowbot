@@ -136,6 +136,7 @@ type configType struct {
 
 type platform struct {
 	Slack    Slack    `json:"slack" yaml:"slack" mapstructure:"slack"`
+	Discord  Discord  `json:"discord" yaml:"discord" mapstructure:"discord"`
 	Telegram Telegram `json:"telegram" yaml:"telegram" mapstructure:"telegram"`
 }
 
@@ -148,6 +149,15 @@ type Slack struct {
 	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
 	AppToken          string `json:"app_token" yaml:"app_token" mapstructure:"app_token"`
 	BotToken          string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
+}
+
+type Discord struct {
+	Enabled      bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	AppID        string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	PublicKey    string `json:"public_key" yaml:"public_key" mapstructure:"public_key"`
+	ClientID     string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	BotToken     string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
 }
 
 type Telegram struct {

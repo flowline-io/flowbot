@@ -29,7 +29,7 @@ func fileDownload(fullUrlFile string) (string, string, error) {
 		return "", "", errors.New("download path error")
 	}
 
-	newFileName := fmt.Sprintf("%s%s", strings.ToLower(types.Id().String()), ext)
+	newFileName := fmt.Sprintf("%s%s", types.Id(), ext)
 	fullDownloadFileName := fmt.Sprintf("%s/%s", downloadPath, newFileName)
 
 	client := grab.NewClient()

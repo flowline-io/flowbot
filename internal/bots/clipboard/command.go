@@ -25,7 +25,7 @@ var commandRules = []command.Rule{
 			data := types.KV{}
 			data["txt"] = txt
 			return bots.StoreInstruct(ctx, types.InstructMsg{
-				No:       types.Id().String(),
+				No:       types.Id(),
 				Object:   model.InstructObjectLinkit,
 				Bot:      Name,
 				Flag:     ShareInstruct,

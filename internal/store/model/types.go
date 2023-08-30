@@ -13,6 +13,10 @@ const (
 	FormStateSubmitFailed
 )
 
+func (j FormState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type ActionState int
 
 const (
@@ -22,6 +26,10 @@ const (
 	ActionStateSubmitFailed
 )
 
+func (j ActionState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type SessionState int
 
 const (
@@ -30,6 +38,10 @@ const (
 	SessionDone
 	SessionCancel
 )
+
+func (j SessionState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
 
 type PageType string
 
@@ -43,6 +55,10 @@ const (
 	PageMarkdown PageType = "markdown"
 )
 
+func (j PageType) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
 type PageState int
 
 const (
@@ -52,6 +68,10 @@ const (
 	PageStateProcessedFailed
 )
 
+func (j PageState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type UrlState int
 
 const (
@@ -59,6 +79,10 @@ const (
 	UrlStateEnable
 	UrlStateDisable
 )
+
+func (j UrlState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
 
 type InstructState int
 
@@ -69,11 +93,19 @@ const (
 	InstructCancel
 )
 
+func (j InstructState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type InstructObject string
 
 const (
 	InstructObjectLinkit InstructObject = "linkit"
 )
+
+func (j InstructObject) Value() (driver.Value, error) {
+	return string(j), nil
+}
 
 type InstructPriority int
 
@@ -82,6 +114,10 @@ const (
 	InstructPriorityDefault InstructPriority = 2
 	InstructPriorityLow     InstructPriority = 1
 )
+
+func (j InstructPriority) Value() (driver.Value, error) {
+	return int64(j), nil
+}
 
 type PipelineState int
 
@@ -92,6 +128,10 @@ const (
 	PipelineCancel
 )
 
+func (j PipelineState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type ValueModeType string
 
 const (
@@ -100,6 +140,10 @@ const (
 	ValueAvgMode  ValueModeType = "avg"
 	ValueMaxMode  ValueModeType = "max"
 )
+
+func (j ValueModeType) Value() (driver.Value, error) {
+	return string(j), nil
+}
 
 type CycleState int
 
@@ -110,6 +154,10 @@ const (
 	CycleCancel
 )
 
+func (j CycleState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type ReviewType int
 
 const (
@@ -117,6 +165,10 @@ const (
 	ReviewMid
 	ReviewEnd
 )
+
+func (j ReviewType) Value() (driver.Value, error) {
+	return int64(j), nil
+}
 
 type WorkflowState int
 
@@ -136,9 +188,9 @@ const (
 	JobStateUnknown JobState = iota
 	JobReady
 	JobStart
-	JobDone
-	JobCancel
-	JobError
+	JobFinished
+	JobCanceled
+	JobFailed
 )
 
 func (j JobState) Value() (driver.Value, error) {
@@ -152,11 +204,15 @@ const (
 	StepCreated
 	StepReady
 	StepRunning
-	StepError
-	StepCancel
-	StepSuccess
+	StepFinished
+	StepFailed
+	StepCanceled
 	StepSkipped
 )
+
+func (j StepState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
 
 type TriggerType string
 
@@ -165,6 +221,10 @@ const (
 	TriggerManual  TriggerType = "manual"
 	TriggerWebhook TriggerType = "webhook"
 )
+
+func (j TriggerType) Value() (driver.Value, error) {
+	return string(j), nil
+}
 
 type Node struct {
 	Id        string `json:"id,omitempty"`
@@ -184,11 +244,13 @@ type Node struct {
 		Tooltip   string `json:"tooltip,omitempty"`
 		Connected bool   `json:"connected,omitempty"`
 	} `json:"ports,omitempty"`
-	Order       int        `json:"_order,omitempty"`
-	Code        string     `json:"code"`
-	Variables   []string   `json:"variables"`
-	Connections []string   `json:"connections"`
-	Status      NodeStatus `json:"status,omitempty"`
+	Order       int                    `json:"_order,omitempty"`
+	Bot         string                 `json:"bot"`
+	RuleId      string                 `json:"rule_id"`
+	Parameters  map[string]interface{} `json:"parameters"`
+	Variables   []string               `json:"variables"`
+	Connections []string               `json:"connections"`
+	Status      NodeStatus             `json:"status,omitempty"`
 }
 
 type Edge struct {
@@ -219,3 +281,7 @@ const (
 	NodeError      NodeStatus = "error"
 	NodeWarning    NodeStatus = "warning"
 )
+
+func (j NodeStatus) Value() (driver.Value, error) {
+	return string(j), nil
+}
