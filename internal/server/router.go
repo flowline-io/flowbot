@@ -99,17 +99,29 @@ func newDownloadRouter() *mux.Router {
 
 func storeOAuth(rw http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	category := vars["category"]
-	ui1, _ := strconv.ParseUint(vars["uid1"], 10, 64)
-	ui2, _ := strconv.ParseUint(vars["uid2"], 10, 64)
-	if ui1 == 0 || ui2 == 0 {
+	name := vars["provider"]
+	flag := vars["flag"]
+
+	p, err := store.Chatbot.ParameterGet(flag)
+	if err != nil {
+		errorResponse(rw, "flag error")
+		return
+	}
+	if p.IsExpired() {
+		errorResponse(rw, "oauth expired")
+		return
+	}
+
+	uid, _ := types.KV(p.Params).String("uid")
+	topic, _ := types.KV(p.Params).String("topic")
+	if uid == "" || topic == "" {
 		errorResponse(rw, "path error")
 		return
 	}
 
 	// code -> token
-	provider := newProvider(category)
-	tk, err := provider.StoreAccessToken(req)
+	provider := newProvider(name)
+	tk, err := provider.GetAccessToken(req)
 	if err != nil {
 		logs.Err.Println("router oauth", err)
 		errorResponse(rw, "oauth error")
@@ -120,10 +132,10 @@ func storeOAuth(rw http.ResponseWriter, req *http.Request) {
 	extra := types.KV{}
 	_ = extra.Scan(tk["extra"])
 	err = store.Chatbot.OAuthSet(model.OAuth{
-		UID:   types.Uid(ui1).UserId(),
-		Topic: types.Uid(ui2).UserId(),
-		Name:  category,
-		Type:  category,
+		UID:   uid,
+		Topic: topic,
+		Name:  name,
+		Type:  name,
 		Token: tk["token"].(string),
 		Extra: model.JSON(extra),
 	})
@@ -437,12 +449,13 @@ func linkitData(rw http.ResponseWriter, req *http.Request) {
 		errorResponse(rw, "error")
 		return
 	}
-	res, _ := json.Marshal(types.ServerComMessage{
-		Code: http.StatusOK,
-		Data: result,
-	})
-	rw.Header().Set("Content-Type", "application/json")
-	_, _ = rw.Write(res)
+	fmt.Println(result)
+	//res, _ := json.Marshal(types.ServerComMessage{
+	//	Code: http.StatusOK,
+	//	Data: result,
+	//})
+	//rw.Header().Set("Content-Type", "application/json")
+	//_, _ = rw.Write(res)
 }
 
 func urlRedirect(rw http.ResponseWriter, req *http.Request) {

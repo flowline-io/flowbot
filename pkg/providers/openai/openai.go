@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	ID        = "openai"
+	ID = "openai"
+
 	SecretKey = "secret_key"
 )
 

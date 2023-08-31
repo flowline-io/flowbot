@@ -1,9 +1,10 @@
 package github
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/go-resty/resty/v2"
+	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
 )
@@ -309,11 +310,11 @@ func NewGithub(clientId, clientSecret, redirectURI, accessToken string) *Github 
 	return v
 }
 
-func (v *Github) AuthorizeURL() string {
+func (v *Github) GetAuthorizeURL() string {
 	return fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo", v.clientId, v.redirectURI)
 }
 
-func (v *Github) GetAccessToken(code string) (interface{}, error) {
+func (v *Github) completeAuth(code string) (interface{}, error) {
 	resp, err := v.c.R().
 		SetResult(&TokenResponse{}).
 		SetHeader("Accept", "application/vnd.github.v3+json").
@@ -336,26 +337,24 @@ func (v *Github) GetAccessToken(code string) (interface{}, error) {
 	}
 }
 
-func (v *Github) Redirect(req *http.Request) (string, error) {
-	clientId := "" // todo
-	v.clientId = clientId
-
-	appRedirectURI := v.AuthorizeURL()
+func (v *Github) Redirect(_ *http.Request) (string, error) {
+	appRedirectURI := v.GetAuthorizeURL()
 	return appRedirectURI, nil
 }
 
-func (v *Github) StoreAccessToken(req *http.Request) (map[string]interface{}, error) {
+func (v *Github) GetAccessToken(req *http.Request) (types.KV, error) {
 	code := req.URL.Query().Get("code")
-	tokenResp, err := v.GetAccessToken(code)
+	tokenResp, err := v.completeAuth(code)
 	if err != nil {
 		return nil, err
 	}
 
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	extra, err := json.Marshal(&tokenResp)
 	if err != nil {
 		return nil, err
 	}
-	return map[string]interface{}{
+	return types.KV{
 		"name":  ID,
 		"type":  ID,
 		"token": v.accessToken,

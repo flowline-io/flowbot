@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
 )
@@ -197,6 +198,7 @@ func (v *Notion) Search(query string) ([]*Page, error) {
 		list := resp.Result().(*ListResult)
 
 		var results []*Page
+		var json = jsoniter.ConfigCompatibleWithStandardLibrary
 		_ = json.Unmarshal(list.Results, &results)
 		return results, nil
 	} else {

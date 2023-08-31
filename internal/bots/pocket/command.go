@@ -7,11 +7,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"gorm.io/gorm"
+	"time"
 )
 
 var commandRules = []command.Rule{
@@ -35,13 +37,21 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "App is authorized"}
 			}
 
-			redirectURI := providers.RedirectURI(pocket.ID, ctx.AsUser, types.ParseUserId(ctx.Original))
+			flag, err := bots.StoreParameter(types.KV{
+				"uid":   ctx.AsUser.UserId(),
+				"topic": ctx.Original,
+			}, time.Now().Add(time.Hour))
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+			redirectURI := providers.RedirectURI(pocket.ID, flag)
 			provider := pocket.NewPocket(Config.ConsumerKey, "", redirectURI, "")
 			_, err = provider.GetCode("")
 			if err != nil {
 				return types.TextMsg{Text: "get code error"}
 			}
-			url, err := bots.CreateShortUrl(provider.AuthorizeURL())
+			url, err := bots.CreateShortUrl(provider.GetAuthorizeURL())
 			if err != nil {
 				return types.TextMsg{Text: "create url error"}
 			}

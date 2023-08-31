@@ -2,13 +2,14 @@ package pocket
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
 )
@@ -101,11 +102,11 @@ func (v *Pocket) GetCode(state string) (*CodeResponse, error) {
 	}
 }
 
-func (v *Pocket) AuthorizeURL() string {
+func (v *Pocket) GetAuthorizeURL() string {
 	return fmt.Sprintf("https://getpocket.com/auth/authorize?request_token=%s&redirect_uri=%s", v.code, v.redirectURI)
 }
 
-func (v *Pocket) GetAccessToken(code string) (interface{}, error) {
+func (v *Pocket) completeAuth(code string) (interface{}, error) {
 	resp, err := v.c.R().
 		SetResult(&TokenResponse{}).
 		SetHeader("X-Accept", "application/json").
@@ -128,11 +129,11 @@ func (v *Pocket) Redirect(_ *http.Request) (string, error) {
 	ctx := context.Background()
 	_ = cache.DB.Set(ctx, "pocket:code", v.code, redis.KeepTTL).Err() // fixme uid key
 
-	appRedirectURI := v.AuthorizeURL()
+	appRedirectURI := v.GetAuthorizeURL()
 	return appRedirectURI, nil
 }
 
-func (v *Pocket) StoreAccessToken(_ *http.Request) (map[string]interface{}, error) {
+func (v *Pocket) GetAccessToken(_ *http.Request) (types.KV, error) {
 	ctx := context.Background()
 	code, err := cache.DB.Get(ctx, "pocket:code").Result() // fixme uid key
 	if err != nil && !errors.Is(err, redis.Nil) {
@@ -140,17 +141,18 @@ func (v *Pocket) StoreAccessToken(_ *http.Request) (map[string]interface{}, erro
 	}
 
 	if code != "" {
-		tokenResp, err := v.GetAccessToken(code)
+		tokenResp, err := v.completeAuth(code)
 		if err != nil {
 			return nil, err
 		}
 
+		var json = jsoniter.ConfigCompatibleWithStandardLibrary
 		extra, err := json.Marshal(&tokenResp)
 		if err != nil {
 			return nil, err
 		}
 
-		return map[string]interface{}{
+		return types.KV{
 			"name":  ID,
 			"type":  ID,
 			"token": v.accessToken,
