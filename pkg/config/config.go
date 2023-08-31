@@ -138,6 +138,7 @@ type platform struct {
 	Slack    Slack    `json:"slack" yaml:"slack" mapstructure:"slack"`
 	Discord  Discord  `json:"discord" yaml:"discord" mapstructure:"discord"`
 	Telegram Telegram `json:"telegram" yaml:"telegram" mapstructure:"telegram"`
+	Tailchat Tailchat `json:"tailchat" yaml:"tailchat" mapstructure:"tailchat"`
 }
 
 type Slack struct {
@@ -162,6 +163,13 @@ type Discord struct {
 
 type Telegram struct {
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+}
+
+type Tailchat struct {
+	Enabled   bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	ApiURL    string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
+	AppID     string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
 }
 
 func Load(path ...string) {

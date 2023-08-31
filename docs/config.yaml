@@ -95,6 +95,12 @@ platform:
     client_secret: ''
     bot_token: ''
 
+  tailchat:
+    enabled: true
+    api_url: ''
+    app_id: ''
+    app_secret: ''
+
   telegram:
     enabled: true
 
