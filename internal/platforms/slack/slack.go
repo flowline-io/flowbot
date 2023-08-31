@@ -3,6 +3,7 @@ package slack
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
@@ -11,8 +12,11 @@ import (
 	"time"
 )
 
-func HandleSlack(stop <-chan bool) {
-	// todo check config
+func HandleWebsocket(stop <-chan bool) {
+	if !config.App.Platform.Slack.Enabled {
+		flog.Info("Slack is disabled")
+		return
+	}
 
 	api := slack.New(config.App.Platform.Slack.BotToken, slack.OptionDebug(true), slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken))
 

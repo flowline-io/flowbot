@@ -516,8 +516,11 @@ var (
 	}
 )
 
-func HandleDiscord(stop <-chan bool) {
-	// todo check config
+func HandleWebsocket(stop <-chan bool) {
+	if !config.App.Platform.Discord.Enabled {
+		flog.Info("Discord is disabled")
+		return
+	}
 
 	s, err := discordgo.New("Bot " + config.App.Platform.Discord.BotToken)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 
 func hookPlatform(stop <-chan bool) {
 	// slack
-	go slack.HandleSlack(stop)
+	go slack.HandleWebsocket(stop)
 	// discord
-	go discord.HandleDiscord(stop)
+	go discord.HandleWebsocket(stop)
 }

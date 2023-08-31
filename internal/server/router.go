@@ -9,11 +9,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/page/form"
 	"github.com/flowline-io/flowbot/internal/page/library"
 	"github.com/flowline-io/flowbot/internal/page/uikit"
+	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	formRule "github.com/flowline-io/flowbot/internal/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/internal/ruleset/page"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -45,10 +47,12 @@ func setupMux(app *fiber.App) *http.ServeMux {
 	route.AddSwagger(wc)
 	m := wc.ServeMux
 
-	app.Group("/extra", adaptor.HTTPHandler(newRouter()))
+	app.Group("/extra", adaptor.HTTPHandler(newRouter())) // todo remove extra prefix
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
+
+	app.All("/chatbot/:platform", platformCallback)
 
 	return m
 }
@@ -532,4 +536,21 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	// Otherwise, "too many open files" will happen.
 	go sess.writeLoop()
 	go sess.readLoop()
+}
+
+func platformCallback(c *fiber.Ctx) error {
+	platform := c.Params("platform")
+	fmt.Println(string(c.Body()))
+
+	var err error
+	switch platform {
+	case tailchat.ID:
+		err = tailchat.HandleHttp(c)
+	}
+	if err != nil {
+		flog.Error(err)
+		return err
+	}
+
+	return c.SendString("ok")
 }
