@@ -5,7 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/notion"
 )
@@ -85,7 +85,7 @@ var commandRules = []command.Rule{
 			provider := notion.NewNotion(token)
 			err = provider.AppendBlock(pageId, text)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return types.TextMsg{Text: "import error"}
 			}
 

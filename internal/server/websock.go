@@ -203,7 +203,7 @@ func (s *Session) dispatchRaw(raw []byte) {
 func (s *Session) dispatch(msg *ClientComMessage) {
 	//result, err := linkitAction(s.uid, msg.Data)
 	//if err != nil {
-	//	logs.Err.Println(err)
+	//	flog.Error(err)
 	//	return
 	//}
 	//if result != nil {

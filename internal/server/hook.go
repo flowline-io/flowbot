@@ -154,7 +154,7 @@ func hookHandleGroupEvent(t *Topic, msg *ClientComMessage, event int) {
 		}
 		//user, err := tstore.Users.Get(types.ParseUserId(msg.AsUser))
 		//if err != nil {
-		//	logs.Err.Println(err)
+		//	flog.Error(err)
 		//}
 		// Current user is bot
 		//if isBotUser(user) {

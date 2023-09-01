@@ -5,6 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"gorm.io/gorm"
@@ -26,7 +27,7 @@ var cronRules = []cron.Rule{
 			provider := pocket.NewPocket(Config.ConsumerKey, "", "", oauth.Token)
 			items, err := provider.Retrieve(10)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return nil
 			}
 

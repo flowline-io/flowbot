@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 //go:embed problems.json
@@ -91,7 +91,7 @@ func importProblems() error {
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 	}
 	return nil
 }

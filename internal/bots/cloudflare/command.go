@@ -4,7 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/cloudflare"
 	"time"
@@ -45,7 +45,7 @@ var commandRules = []command.Rule{
 			provider := cloudflare.NewCloudflare(tokenValue, zoneIdValue)
 			_, err := provider.GetAnalytics(startDate, endDate)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return nil
 			}
 			return nil

@@ -38,3 +38,9 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 # check
 golangci-lint run --timeout=10m --config=./server/extra/.golangci.yaml ./server/extra/...
 ```
+
+## cloc
+
+```shell
+cloc --exclude-dir=node_modules .\server\extra
+```

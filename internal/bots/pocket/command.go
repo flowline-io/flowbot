@@ -73,7 +73,7 @@ var commandRules = []command.Rule{
 			provider := pocket.NewPocket(Config.ConsumerKey, "", "", oauth.Token)
 			items, err := provider.Retrieve(10)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return types.TextMsg{Text: "retrieve error"}
 			}
 

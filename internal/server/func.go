@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
@@ -226,11 +227,11 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					var cm types.ChatMessage
 					d, err := json.Marshal(msg.Pub.Content)
 					if err != nil {
-						logs.Err.Println(err)
+						flog.Error(err)
 					}
 					err = json.Unmarshal(d, &cm)
 					if err != nil {
-						logs.Err.Println(err)
+						flog.Error(err)
 					}
 					var seq float64
 					var option string
@@ -252,7 +253,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					if seq > 0 {
 						message, err := store.Chatbot.GetMessage(msg.RcptTo, int(seq))
 						if err != nil {
-							logs.Err.Println(err)
+							flog.Error(err)
 						}
 						actionRuleId := ""
 						if src, ok := types.KV(message.Content).Map("src"); ok {
@@ -383,7 +384,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 						topic := "" // fixme
 						message, err := store.Chatbot.GetMessage(topic, int(fSeq))
 						if err != nil {
-							logs.Err.Println(err)
+							flog.Error(err)
 						}
 
 						if message.ID > 0 {
@@ -496,7 +497,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 					topic := "" // fixme
 					message, err := store.Chatbot.GetMessage(topic, int(fSeq))
 					if err != nil {
-						logs.Err.Println(err)
+						flog.Error(err)
 					}
 
 					if message.ID > 0 {
@@ -550,7 +551,7 @@ func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, r
 	if pipelineFlag != "" && pipelineVersion > 0 {
 		pipelineData, err := store.Chatbot.PipelineGet(ctx.AsUser, ctx.Original, pipelineFlag)
 		if err != nil {
-			logs.Err.Println(err)
+			flog.Error(err)
 			return
 		}
 		for _, handler := range bots.List() {
@@ -565,7 +566,7 @@ func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, r
 							ctx.PipelineStepIndex = int(pipelineData.Stage)
 							payload, _, _, err := handler.Pipeline(ctx, nil, nil, types.PipelineNextOperate)
 							if err != nil {
-								logs.Err.Println(err)
+								flog.Error(err)
 								return
 							}
 							botSend(rcptTo, botUid, payload, types.WithContext(ctx))
@@ -582,7 +583,7 @@ func notifyAfterReboot() {
 	//
 	//creds, err := store.Chatbot.GetCredentials()
 	//if err != nil {
-	//	logs.Err.Println(err)
+	//	flog.Error(err)
 	//	return
 	//}
 

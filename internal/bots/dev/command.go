@@ -10,7 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -57,7 +57,7 @@ var commandRules = []command.Rule{
 
 			nBing, err := rand.Int(rand.Reader, big.NewInt(max+1-min))
 			if err != nil {
-				logs.Err.Println("bot command rand [number] [number]", err)
+				flog.Error(err)
 				return nil
 			}
 			t := nBing.Int64() + min

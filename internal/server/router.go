@@ -158,7 +158,7 @@ func getPage(rw http.ResponseWriter, req *http.Request) {
 
 	p, err := store.Chatbot.PageGet(id)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		errorResponse(rw, "page not found")
 		return
 	}

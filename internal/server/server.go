@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/queue"
@@ -110,7 +111,7 @@ func Run() {
 			// Send custom error page
 			err = ctx.Status(code).JSON(types.KV{"code": code, "message": err.Error()})
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return ctx.Status(fiber.StatusInternalServerError).
 					JSON(types.KV{"code": fiber.StatusInternalServerError, "message": err.Error()})
 			}

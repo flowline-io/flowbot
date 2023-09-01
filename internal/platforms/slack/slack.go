@@ -51,7 +51,7 @@ func HandleWebsocket(stop <-chan bool) {
 						Channel:    messageEvent.Channel,
 					}, api)
 					if err != nil {
-						logs.Err.Println(err)
+						flog.Error(err)
 					}
 
 				// slash command
@@ -73,7 +73,7 @@ func HandleWebsocket(stop <-chan bool) {
 						Channel:    cmd.ChannelID,
 					}, api)
 					if err != nil {
-						logs.Err.Println(err)
+						flog.Error(err)
 					}
 				}
 			}
@@ -83,7 +83,7 @@ func HandleWebsocket(stop <-chan bool) {
 	go func() {
 		err := client.Run()
 		if err != nil {
-			logs.Err.Println(err)
+			flog.Error(err)
 		}
 	}()
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -85,7 +86,7 @@ func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.Ms
 		provider := pocket.NewPocket(Config.ConsumerKey, "", "", oauth.Token)
 		_, err = provider.Add(url)
 		if err != nil {
-			logs.Err.Println(err)
+			flog.Error(err)
 			return types.TextMsg{Text: "Add error"}, nil
 		}
 

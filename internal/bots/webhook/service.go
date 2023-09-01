@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"io"
 )
@@ -46,7 +46,7 @@ func webhook(req *restful.Request, resp *restful.Response) {
 		"message":   txt,
 	})
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		_, _ = resp.Write([]byte("send error"))
 		return
 	}

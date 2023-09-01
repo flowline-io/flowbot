@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -33,12 +34,12 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 		if tlfConf != nil {
 			err := app.ListenTLSWithCertificate(addr, tlfConf.Certificates[0])
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 			}
 		} else {
 			err := app.Listen(addr)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 			}
 		}
 		httpdone <- true

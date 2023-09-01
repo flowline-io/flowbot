@@ -3,7 +3,7 @@ package qr
 import (
 	"bytes"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
 )
@@ -11,7 +11,7 @@ import (
 func qrEncode(text string) (types.MsgPayload, error) {
 	qrc, err := qrcode.New(text)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return nil, err
 	}
 
@@ -20,7 +20,7 @@ func qrEncode(text string) (types.MsgPayload, error) {
 
 	err = qrc.Save(std)
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 	}
 
 	return types.ImageConvert(w.Buf.Bytes(), "QR", 200, 200), nil

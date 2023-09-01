@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/influxdata/cron"
 	"gorm.io/gorm"
@@ -99,7 +100,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 				// all normal users
 				users, err := store.Chatbot.GetNormalUsers()
 				if err != nil {
-					logs.Err.Println(err)
+					flog.Error(err)
 					return nil
 				}
 

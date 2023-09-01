@@ -3,7 +3,7 @@ package web
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/oneai"
@@ -31,7 +31,7 @@ var commandRules = []command.Rule{
 			api := oneai.NewOneAI(val.String())
 			resp, err := api.Summarize(url)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return types.TextMsg{Text: "error summarize"}
 			}
 

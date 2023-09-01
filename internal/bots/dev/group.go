@@ -3,7 +3,7 @@ package dev
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/event"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/template"
 )
 
@@ -13,7 +13,7 @@ var eventRules = []event.Rule{
 		Handler: func(ctx types.Context, head types.KV, content interface{}) types.MsgPayload {
 			txt, err := template.Parse(ctx, "Welcome $username")
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return types.TextMsg{Text: "error user"}
 			}
 			return types.TextMsg{Text: txt}
@@ -24,7 +24,7 @@ var eventRules = []event.Rule{
 		Handler: func(ctx types.Context, head types.KV, content interface{}) types.MsgPayload {
 			txt, err := template.Parse(ctx, "Bye $username")
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return types.TextMsg{Text: "error user"}
 			}
 			return types.TextMsg{Text: txt}

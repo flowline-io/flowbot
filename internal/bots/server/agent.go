@@ -4,7 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/agent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
@@ -28,7 +28,7 @@ var agentRules = []agent.Rule{
 			// store
 			err = store.Chatbot.DataSet(ctx.AsUser, ctx.Original, "stats", j)
 			if err != nil {
-				logs.Err.Println(err)
+				flog.Error(err)
 				return nil
 			}
 			return nil
