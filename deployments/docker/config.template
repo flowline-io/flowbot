@@ -1,202 +1,123 @@
-{
-	"listen": ":6060",
-	"api_path": "/",
-	"cache_control": 39600,
-	"static_mount": "/",
-	"grpc_listen": ":16060",
-	"api_key_salt": "$API_KEY_SALT",
-	"max_message_size": 4194304,
-	"max_subscriber_count": 32,
-	"max_tag_count": 16,
-	"expvar": "/stats/expvar/",
-	"server_status": "$SERVER_STATUS_PATH",
+---
+listen: ":6060"
+api_path: "/"
+cache_control: 39600
+ws_compression_disabled: false
+api_key_salt: "T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4="
+max_message_size: 262144
+permanent_accounts: false
+expvar: "/debug/vars"
+server_status: "/debug/status"
+use_x_forwarded_for: true
+default_country_code: ''
 
-	"media": {
-		"use_handler": "$MEDIA_HANDLER",
-		"max_size": 33554432,
-		"gc_period": 60,
-		"gc_block_size": 100,
-		"handlers": {
-			"fs": {
-				"upload_dir": "uploads"
-			},
-			"s3":{
-				"access_key_id": "$AWS_ACCESS_KEY_ID",
-				"secret_access_key": "$AWS_SECRET_ACCESS_KEY",
-				"region": "$AWS_REGION",
-				"bucket": "$AWS_S3_BUCKET",
-				"cors_origin": $AWS_CORS_ORIGINS
-			}
-		}
-	},
+media:
+  use_handler: fs
+  max_size: 8388608
+  gc_period: 60
+  gc_block_size: 100
+  handlers:
+    fs:
+      upload_dir: uploads
+    s3:
+      access_key_id: your_s3_access_key_id
+      secret_access_key: your_s3_secret_access_key
+      region: s3 region, like us-east-2
+      bucket: your_s3_bucket_name
+      disable_ssl: false
+      force_path_style: false
+      endpoint: ''
+      cors_origins:
+        - "*"
+    minio:
+      access_key_id: your_s3_access_key_id
+      secret_access_key: your_s3_secret_access_key
+      region: s3 region, like us-east-2
+      bucket: your_s3_bucket_name
+      disable_ssl: false
+      force_path_style: false
+      endpoint: ''
+      cors_origins:
+        - "*"
 
-	"tls": {
-		"enabled": $TLS_ENABLED,
-		"http_redirect": ":80",
-		"strict_max_age": 604800,
-		"autocert": {
-			"cache": "/etc/letsencrypt/live/$TLS_DOMAIN_NAME",
-			"email": "$TLS_CONTACT_ADDRESS",
-			"domains": ["$TLS_DOMAIN_NAME"]
-		}
-	},
+tls:
+  enabled: false
+  http_redirect: ":80"
+  strict_max_age: 604800
+  autocert:
+    cache: "/etc/letsencrypt/live/your.domain.here"
+    email: noreply@example.com
+    domains:
+      - whatever.example.com
+  cert_file: "/etc/httpd/conf/your.domain.crt"
+  key_file: "/etc/httpd/conf/your.domain.key"
 
-	"auth_config": {
-		"logical_names": [],
-		"basic": {
-			"add_to_tags": true,
-			"min_login_length": 3,
-			"min_password_length": 6
-		},
-		"token": {
-			"expire_in": 1209600,
-			"serial_num": 1,
-			"key": "$AUTH_TOKEN_KEY"
-		}
-	},
+store_config:
+  uid_key: la6YsO+bNX/+XIkOqc5Svw==
+  max_results: 1024
+  use_adapter: mysql
+  adapters:
+    mysql:
+      dsn: root:password@tcp(localhost)/flowbot?parseTime=true&collation=utf8mb4_unicode_ci
+      max_open_conns: 64
+      max_idle_conns: 64
+      conn_max_lifetime: 60
+      sql_timeout: 10
 
-	"store_config": {
-		"uid_key": "$UID_ENCRYPTION_KEY",
-		"use_adapter": "$STORE_USE_ADAPTER",
-		"adapters": {
-			"mysql": {
-				"database": "tinode",
-				"dsn": "$MYSQL_DSN?parseTime=true&collation=utf8mb4_unicode_ci"
-			},
-			"rethinkdb": {
-				"database": "tinode",
-				"addresses": "rethinkdb"
-			},
-			"mongodb": {
-				"database": "tinode",
-				"addresses": "mongodb",
-				"replica_set": "rs0"
-			}
-		}
-	},
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+  password:
 
-	"acc_validation": {
-		"email": {
-			"add_to_tags": true,
-			"required": [$EMAIL_VERIFICATION_REQUIRED],
-			"config": {
-				"host_url": "$SMTP_HOST_URL",
-				"smtp_server": "$SMTP_SERVER",
-				"smtp_port": "$SMTP_PORT",
-				"login": "$SMTP_LOGIN",
-				"sender": "$SMTP_SENDER",
-				"sender_password": "$SMTP_PASSWORD",
-				"languages": ["en", "ru"],
-				"validation_templ": "./templ/email-validation-{{.Language}}.templ",
-				"reset_secret_templ": "./templ/email-password-reset-{{.Language}}.templ",
-				"max_retries": 4,
-				"domains": [$SMTP_DOMAINS],
-				"debug_response": "$DEBUG_EMAIL_VERIFICATION_CODE"
-			}
-		},
+log:
+  level: info
 
-		"tel": {
-			"add_to_tags": true,
-			"config": {
-				"template": "./templ/sms-validation.templ",
-				"max_retries": 4,
-				"debug_response": "$DEBUG_TEL_VERIFICATION_CODE"
-			}
-		}
-	},
+workflow:
+  worker: 2
 
-	"push": [
-		{
-			"name":"tnpg",
-			"config": {
-				"enabled": $TNPG_PUSH_ENABLED,
-				"token": "$TNPG_AUTH_TOKEN",
-				"org": "$TNPG_USER"
-			}
-		},
-		{
-			"name":"fcm",
-			"config": {
-				"enabled": $FCM_PUSH_ENABLED,
-				"project_id": "$FCM_PROJECT_ID",
-				"credentials_file": "$FCM_CRED_FILE",
-				"time_to_live": 3600,
-				"android": {
-					"enabled": $FCM_INCLUDE_ANDROID_NOTIFICATION,
-					"icon": "ic_logo_push",
-					"icon_color": "#3949AB",
-					"click_action": ".MessageActivity",
-					"msg": {
-						"title_loc_key": "new_message",
-						"title": "",
-						"body_loc_key": "",
-						"body": ""
-					},
-					"sub": {
-						"title_loc_key": "new_chat",
-						"body_loc_key": ""
-					}
-				}
-			}
-		},
-		{
-			"name":"bark",
-			"config": {
-				"enabled": true,
-				"sound": "shake.caf",
-				"icon": "https://day.app/assets/images/avatar.jpg",
-				"api_url": "https://api.day.app/push"
-			}
-		}
-	],
+platform:
+  slack:
+    enabled: true
+    app_id: ''
+    client_id: ''
+    client_secret: ''
+    signing_secret: ''
+    verification_token: ''
+    app_token: ''
+    bot_token: ''
 
-	"webrtc": {
-		"enabled": $WEBRTC_ENABLED,
-		"call_establishment_timeout": 30,
-		"ice_servers_file": "$ICE_SERVERS_FILE"
-	},
+  discord:
+    enabled: true
+    app_id: ''
+    public_key: ''
+    client_id: ''
+    client_secret: ''
+    bot_token: ''
 
-	"cluster_config": {
-		"self": "",
-		"nodes": [
-			{"name": "tinode-0", "addr": "tinode-0:12000"},
-			{"name": "tinode-1", "addr": "tinode-1:12001"},
-			{"name": "tinode-2", "addr": "tinode-2:12002"}
-		],
-		"num_proxy_event_goroutines": $CLUSTER_NUM_PROXY_EVENT_GOROUTINES,
-		"failover": {
-			"enabled": true,
-			"heartbeat": 100,
-			"vote_after": 8,
-			"node_fail_after": 16
-		}
-	},
+  tailchat:
+    enabled: true
+    api_url: ''
+    app_id: ''
+    app_secret: ''
 
-	"plugins": [
-		{
-			"enabled": $PLUGIN_PYTHON_CHAT_BOT_ENABLED,
-			"name": "python_chat_bot",
-			"timeout": 20000,
-			"filters": {
-				"account": "C"
-			},
-			"failure_code": 0,
-			"failure_text": null,
-			"service_addr": "tcp://localhost:40051"
-		}
-	],
+  telegram:
+    enabled: true
 
-	"bots": [
-		{
-			"enabled": true,
-			"name": "github",
-			"id": "",
-			"secret": ""
-		},
-		{
-			"enabled": true,
-			"name": "pocket",
-			"consumer_key": ""
-		}
-	]
-}
+bots:
+  - name: github
+    enabled: true
+    id:
+    secret:
+  - name: pocket
+    enabled: true
+    consumer_key: ''
+
+vendors:
+  oneai:
+    api_key: ''
+  rollbar:
+    enable: false
+    token:
+    environment: development
+    server_root: github.com/flowline-io/flowbot

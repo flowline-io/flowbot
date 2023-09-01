@@ -12,15 +12,15 @@ RUN apk add --no-cache bash
 WORKDIR /opt/app
 
 # Fetch build from Github.
-COPY app/flowbot .
-COPY deployments/docker/config.template ./flowbot.json
+COPY flowbot .
+COPY deployments/docker/config.template ./flowbot.yaml
 COPY deployments/docker/entrypoint.sh .
 
 RUN chmod +x flowbot && chmod +x entrypoint.sh
 RUN mkdir subscribe
 RUN ls -all
 RUN pwd
-RUN stat tinode
+RUN stat flowbot
 RUN stat entrypoint.sh
 
 ENTRYPOINT ./entrypoint.sh
