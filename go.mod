@@ -28,6 +28,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/looplab/fsm v1.0.1
 	github.com/maxence-charriere/go-app/v9 v9.8.0
+	github.com/minio/minio-go/v7 v7.0.63
 	github.com/mmcdole/gofeed v1.2.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
 	github.com/redis/go-redis/v9 v9.1.0
@@ -48,7 +49,7 @@ require (
 	golang.org/x/image v0.11.0
 	golang.org/x/time v0.3.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
-	gonum.org/v1/plot v0.13.0
+	gonum.org/v1/plot v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.1
@@ -58,12 +59,13 @@ require (
 )
 
 require (
-	git.sr.ht/~sbinet/gg v0.4.1 // indirect
+	git.sr.ht/~sbinet/gg v0.5.0 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/alicebob/miniredis/v2 v2.30.4 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -98,7 +100,6 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.63 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcdole/goxpp v1.1.0 // indirect
