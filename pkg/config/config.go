@@ -96,8 +96,6 @@ type configType struct {
 	// Maximum message size allowed from client. Intended to prevent malicious client from sending
 	// very large files inband (does not affect out of band uploads).
 	MaxMessageSize int `json:"max_message_size" yaml:"max_message_size" mapstructure:"max_message_size"`
-	// If true, ordinary users cannot delete their accounts.
-	PermanentAccounts bool `json:"permanent_accounts" yaml:"permanent_accounts" mapstructure:"permanent_accounts"`
 	// URL path for exposing runtime stats. Disabled if the path is blank.
 	ExpvarPath string `json:"expvar" yaml:"expvar_path" mapstructure:"expvar_path"`
 	// URL path for internal server status. Disabled if the path is blank.
@@ -109,6 +107,11 @@ type configType struct {
 	// when the country isn't specified by the client explicitly and
 	// it's impossible to infer it.
 	DefaultCountryCode string `json:"default_country_code" yaml:"default_country_code" mapstructure:"default_country_code"`
+
+	// download_path
+	DownloadPath string `json:"download_path" yaml:"download_path" mapstructure:"download_path"`
+	// api_url
+	ApiUrl string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
 
 	// Configs for subsystems
 	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`

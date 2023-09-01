@@ -5,11 +5,13 @@ cache_control: 39600
 ws_compression_disabled: false
 api_key_salt: "T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4="
 max_message_size: 262144
-permanent_accounts: false
 expvar: "/debug/vars"
 server_status: "/debug/status"
 use_x_forwarded_for: true
 default_country_code: ''
+
+download_path: ""
+api_url: ""
 
 media:
   use_handler: fs

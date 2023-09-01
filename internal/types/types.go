@@ -1,10 +1,10 @@
 package types
 
 import (
+	"github.com/flowline-io/flowbot/pkg/config"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/xid"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -70,7 +70,7 @@ func Id() string {
 }
 
 func AppUrl() string {
-	return os.Getenv("FLOWBOT_URL")
+	return config.App.ApiUrl
 }
 
 type QueuePayload struct {

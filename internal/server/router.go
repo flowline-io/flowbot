@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -31,7 +32,6 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -92,7 +92,7 @@ func newUrlRouter() *mux.Router {
 }
 
 func newDownloadRouter() *mux.Router {
-	dir := os.Getenv("DOWNLOAD_PATH")
+	dir := config.App.DownloadPath
 	r := mux.NewRouter()
 	r.PathPrefix("/d").Handler(http.StripPrefix("/d/", http.FileServer(http.Dir(dir))))
 	return r
