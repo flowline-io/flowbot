@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"sort"
 	"strconv"
 	"time"
@@ -77,12 +78,12 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 	logs.Info.Printf("crawler %s start", name)
 	p, err := cron.ParseUTC(r.When)
 	if err != nil {
-		logs.Err.Println(err, name)
+		flog.Error(err)
 		return
 	}
 	nextTime, err := p.Next(time.Now())
 	if err != nil {
-		logs.Err.Println(err, name)
+		flog.Error(err)
 		return
 	}
 
@@ -101,7 +102,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 					if r := recover(); r != nil {
 						logs.Warn.Printf("crawler %s ruleWorker recover ", name)
 						if v, ok := r.(error); ok {
-							logs.Err.Println(v, name)
+							flog.Error(v)
 						}
 					}
 				}()
@@ -117,7 +118,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 			}
 			nextTime, err = p.Next(time.Now())
 			if err != nil {
-				logs.Err.Println(err, name)
+				flog.Error(err)
 			}
 		}
 	}
@@ -184,7 +185,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	case "daily":
 		sendString, err := cache.DB.Get(ctx, sendTimeKey).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
-			logs.Err.Println(err)
+			flog.Error(err)
 		}
 		oldSend := int64(0)
 		if len(sendString) != 0 {

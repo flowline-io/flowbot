@@ -3,7 +3,7 @@ package rust
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/crates"
 )
@@ -25,7 +25,7 @@ var commandRules = []command.Rule{
 			api := crates.NewCrates()
 			resp, err := api.Info(name)
 			if err != nil {
-				logs.Err.Println("bot command crate[number]", err)
+				flog.Error(err)
 				return types.TextMsg{Text: "error create"}
 			}
 			if resp == nil || resp.Crate.ID == "" {

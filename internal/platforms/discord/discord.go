@@ -6,7 +6,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"log"
 	"strings"
 	"time"
@@ -524,7 +523,7 @@ func HandleWebsocket(stop <-chan bool) {
 
 	s, err := discordgo.New("Bot " + config.App.Platform.Discord.BotToken)
 	if err != nil {
-		logs.Err.Println("Invalid bot parameters: %v", err)
+		flog.Error(err)
 	}
 
 	s.LogLevel = discordgo.LogInformational

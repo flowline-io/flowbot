@@ -77,7 +77,7 @@ func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.Ms
 		url := text
 		oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			logs.Err.Println("bot command pocket oauth", err)
+			flog.Error(err)
 		}
 		if oauth.Token == "" {
 			return types.TextMsg{Text: "App is unauthorized"}, nil

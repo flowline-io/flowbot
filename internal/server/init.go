@@ -220,7 +220,7 @@ func initializeCrawler() error {
 	//	topic := fmt.Sprintf("grp%s", id)
 	//	dst, err := store.Topics.Get(topic)
 	//	if err != nil {
-	//		logs.Err.Println("init crawler", err)
+	//		flog.Error(err)
 	//		return
 	//	}
 	//	if dst == nil {

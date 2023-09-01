@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers/openai"
 )
@@ -59,7 +60,7 @@ func (b bot) Input(ctx types.Context, _ types.KV, context interface{}) (types.Ms
 	// key
 	v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 	if err != nil {
-		logs.Err.Println("bot command key", err)
+		flog.Error(err)
 	}
 	key, _ := v.String("value")
 

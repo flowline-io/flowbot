@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
@@ -31,7 +30,7 @@ var commandRules = []command.Rule{
 			// check oauth token
 			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				logs.Err.Println("bot command pocket oauth", err)
+				flog.Error(err)
 			}
 			if oauth.Token != "" {
 				return types.TextMsg{Text: "App is authorized"}
@@ -64,7 +63,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				logs.Err.Println("bot command pocket oauth", err)
+				flog.Error(err)
 			}
 			if oauth.Token == "" {
 				return types.TextMsg{Text: "App is unauthorized"}

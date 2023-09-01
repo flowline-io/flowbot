@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"time"
 
 	"github.com/adjust/rmq/v5"
@@ -71,16 +72,16 @@ func logErrors(errChan <-chan error) {
 		switch err := err.(type) {
 		case *rmq.HeartbeatError:
 			if err.Count == rmq.HeartbeatErrorLimit {
-				logs.Err.Println("heartbeat error (limit): ", err)
+				flog.Error(err)
 			} else {
-				logs.Err.Println("heartbeat error: ", err)
+				flog.Error(err)
 			}
 		case *rmq.ConsumeError:
-			logs.Err.Println("consume error: ", err)
+			flog.Error(err)
 		case *rmq.DeliveryError:
-			logs.Err.Println("delivery error: ", err.Delivery, err)
+			flog.Error(err)
 		default:
-			logs.Err.Println("other error: ", err)
+			flog.Error(err)
 		}
 	}
 }

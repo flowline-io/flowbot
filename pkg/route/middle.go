@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"runtime"
@@ -12,7 +13,7 @@ import (
 
 func logServiceError(serviceError restful.ServiceError, _ *restful.Request, resp *restful.Response) {
 	if serviceError.Code != http.StatusNotFound {
-		logs.Err.Println(serviceError)
+		flog.Error(serviceError)
 	}
 	resp.WriteHeader(serviceError.Code)
 	_ = resp.WriteAsJson(types.KV{

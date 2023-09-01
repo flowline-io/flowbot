@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
@@ -30,7 +32,7 @@ func (s *Session) closeWS() {
 
 func (s *Session) sendMessage(msg any) bool {
 	if len(s.send) > sendQueueLimit {
-		logs.Err.Println("ws: outbound queue limit exceeded", s.sid)
+		flog.Error(fmt.Errorf("ws: outbound queue limit exceeded %v", s.sid))
 		return false
 	}
 
@@ -38,7 +40,7 @@ func (s *Session) sendMessage(msg any) bool {
 	if err := wsWrite(s.ws, websocket.TextMessage, msg); err != nil {
 		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 			websocket.CloseNormalClosure) {
-			logs.Err.Println("ws: writeLoop", s.sid, err)
+			flog.Error(err)
 		}
 		return false
 	}
@@ -100,7 +102,7 @@ func (s *Session) writeLoop() {
 			if err := wsWrite(s.ws, websocket.PingMessage, nil); err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 					websocket.CloseNormalClosure) {
-					logs.Err.Println("ws: writeLoop ping", s.sid, err)
+					flog.Error(err)
 				}
 				return
 			}
@@ -122,7 +124,7 @@ func (s *Session) queueOut(msg *ServerComMessage) bool {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		logs.Err.Println("s.queueOutExtra: msg marshal failed", s.sid)
+		flog.Error(err)
 		return false
 	}
 
@@ -130,7 +132,7 @@ func (s *Session) queueOut(msg *ServerComMessage) bool {
 	case s.send <- data:
 	default:
 		// Never block here since it may also block the topic's run() goroutine.
-		logs.Err.Println("s.queueOutExtra: session's send queue full", s.sid)
+		flog.Error(err)
 		return false
 	}
 	return true
@@ -156,7 +158,7 @@ func (s *Session) readLoop() {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 				websocket.CloseNormalClosure) {
-				logs.Err.Println("ws: readLoopExtra", s.sid, err)
+				flog.Error(err)
 			}
 			return
 		}

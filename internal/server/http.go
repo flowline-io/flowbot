@@ -56,7 +56,7 @@ Loop:
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			if err := app.ShutdownWithContext(ctx); err != nil {
 				// failure/timeout shutting down the server gracefully
-				logs.Err.Println("HTTP server failed to terminate gracefully", err)
+				flog.Error(err)
 			}
 
 			// While the server shuts down, termianate all sessions.

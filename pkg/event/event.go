@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gookit/event"
 )
@@ -30,7 +31,7 @@ func AsyncEmit(name string, params types.KV) {
 func Shutdown() {
 	err := event.Std().CloseWait()
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return
 	}
 	logs.Info.Println("event stopped")

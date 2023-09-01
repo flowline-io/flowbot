@@ -65,12 +65,12 @@ func (r *Ruleset) Shutdown() {
 func (r *Ruleset) ruleWorker(rule Rule) {
 	p, err := cron.ParseUTC(rule.When)
 	if err != nil {
-		logs.Err.Println("cron worker", rule.Name, err)
+		flog.Error(err)
 		return
 	}
 	nextTime, err := p.Next(time.Now())
 	if err != nil {
-		logs.Err.Println("cron worker", rule.Name, err)
+		flog.Error(err)
 		return
 	}
 	ticker := time.NewTicker(time.Second)
@@ -88,7 +88,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					if rc := recover(); rc != nil {
 						logs.Warn.Printf("cron %s ruleWorker recover", rule.Name)
 						if v, ok := rc.(error); ok {
-							logs.Err.Println(v)
+							flog.Error(v)
 						}
 					}
 				}()
@@ -145,7 +145,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 			}
 			nextTime, err = p.Next(time.Now())
 			if err != nil {
-				logs.Err.Println("cron worker", rule.Name, err)
+				flog.Error(err)
 			}
 		}
 	}

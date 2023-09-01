@@ -3,7 +3,9 @@ package server
 import (
 	"container/list"
 	"errors"
+	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
@@ -208,7 +210,7 @@ func (s *Session) queueOutBytes(data []byte) bool {
 	select {
 	case s.send <- data:
 	default:
-		logs.Err.Println("s.queueOutBytes: session's send queue full", s.sid)
+		flog.Error(fmt.Errorf("s.queueOutBytes: session's send queue full %v", s.sid))
 		return false
 	}
 	return true
@@ -302,13 +304,13 @@ func (s *Session) onBackgroundTimer() {
 
 func (s *Session) sendMessageLp(wrt http.ResponseWriter, msg any) bool {
 	if len(s.send) > sendQueueLimit {
-		logs.Err.Println("longPoll: outbound queue limit exceeded", s.sid)
+		flog.Error(fmt.Errorf("longPoll: outbound queue limit exceeded %v", s.sid))
 		return false
 	}
 
 	stats.Inc("OutgoingMessagesLongpollTotal", 1)
 	if err := lpWrite(wrt, msg); err != nil {
-		logs.Err.Println("longPoll: writeOnce failed", s.sid, err)
+		flog.Error(err)
 		return false
 	}
 
@@ -358,7 +360,7 @@ func (s *Session) writeOnce(wrt http.ResponseWriter, req *http.Request) {
 		case <-time.After(pingPeriod):
 			// just write an empty packet on timeout
 			if _, err := wrt.Write([]byte{}); err != nil {
-				logs.Err.Println("longPoll: writeOnce: timout", s.sid, err)
+				flog.Error(err)
 			}
 			return
 

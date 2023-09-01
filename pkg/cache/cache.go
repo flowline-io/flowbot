@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/logs"
 	"os"
 
@@ -30,7 +31,7 @@ func InitCache() {
 func Shutdown() {
 	err := DB.Close()
 	if err != nil {
-		logs.Err.Println(err)
+		flog.Error(err)
 		return
 	}
 	logs.Info.Println("cache stopped")

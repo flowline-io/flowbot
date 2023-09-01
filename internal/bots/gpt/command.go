@@ -5,7 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -25,7 +25,7 @@ var commandRules = []command.Rule{
 			// get
 			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 			if err != nil {
-				logs.Err.Println("bot command key", err)
+				flog.Error(err)
 			}
 			key, _ := v.String("value")
 
@@ -41,7 +41,7 @@ var commandRules = []command.Rule{
 			// get
 			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 			if err != nil {
-				logs.Err.Println("bot command key [string]", err)
+				flog.Error(err)
 			}
 			old, _ := v.String("value")
 
@@ -50,7 +50,7 @@ var commandRules = []command.Rule{
 				"value": key,
 			})
 			if err != nil {
-				logs.Err.Println("bot command key [string]", err)
+				flog.Error(err)
 			}
 
 			return types.TextMsg{Text: fmt.Sprintf("%s --> %s", old, key)}

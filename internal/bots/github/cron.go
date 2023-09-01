@@ -3,7 +3,7 @@ package github
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 )
 
@@ -16,7 +16,7 @@ var cronRules = []cron.Rule{
 			client := github.NewGithub("", "", "", ctx.Token)
 			user, err := client.GetAuthenticatedUser()
 			if err != nil {
-				logs.Err.Println("cron github_starred", err)
+				flog.Error(err)
 				return []types.MsgPayload{}
 			}
 			if *user.Login == "" {
@@ -25,7 +25,7 @@ var cronRules = []cron.Rule{
 
 			repos, err := client.GetStarred(*user.Login)
 			if err != nil {
-				logs.Err.Println("cron github_starred", err)
+				flog.Error(err)
 				return []types.MsgPayload{}
 			}
 			reposList := *repos

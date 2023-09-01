@@ -127,7 +127,7 @@ func storeOAuth(rw http.ResponseWriter, req *http.Request) {
 	provider := newProvider(name)
 	tk, err := provider.GetAccessToken(req)
 	if err != nil {
-		logs.Err.Println("router oauth", err)
+		flog.Error(err)
 		errorResponse(rw, "oauth error")
 		return
 	}
@@ -144,7 +144,7 @@ func storeOAuth(rw http.ResponseWriter, req *http.Request) {
 		Extra: model.JSON(extra),
 	})
 	if err != nil {
-		logs.Err.Println("router oauth", err)
+		flog.Error(err)
 		errorResponse(rw, "store error")
 		return
 	}
@@ -498,23 +498,21 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	if !isValid {
 		wrt.WriteHeader(http.StatusForbidden)
 		_ = json.NewEncoder(wrt).Encode(types.ErrMessage(http.StatusForbidden, "Missing, invalid or expired access token"))
-		logs.Err.Println("ws: Missing, invalid or expired API key")
 		return
 	}
 
 	if req.Method != http.MethodGet {
 		wrt.WriteHeader(http.StatusMethodNotAllowed)
 		_ = json.NewEncoder(wrt).Encode(types.ErrMessage(http.StatusBadRequest, "invalid http method"))
-		logs.Err.Println("ws: Invalid HTTP method", req.Method)
 		return
 	}
 
 	ws, err := upgrader.Upgrade(wrt, req, nil)
 	if errors.As(err, &websocket.HandshakeError{}) {
-		logs.Err.Println("ws: Not a websocket handshake")
+		flog.Error(err)
 		return
 	} else if err != nil {
-		logs.Err.Println("ws: failed to Upgrade ", err)
+		flog.Error(err)
 		return
 	}
 

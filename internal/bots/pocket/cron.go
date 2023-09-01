@@ -6,7 +6,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"gorm.io/gorm"
 )
@@ -18,7 +17,7 @@ var cronRules = []cron.Rule{
 		Action: func(ctx types.Context) []types.MsgPayload {
 			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				logs.Err.Println("bot command pocket oauth", err)
+				flog.Error(err)
 			}
 			if oauth.Token == "" {
 				return nil
