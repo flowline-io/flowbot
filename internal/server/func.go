@@ -78,17 +78,6 @@ func isBotUser(user *types.User) bool {
 	return true
 }
 
-func isVerified(trusted interface{}) bool {
-	if v, ok := trusted.(map[string]interface{}); ok {
-		if b, ok := v["verified"]; ok {
-			if vv, ok := b.(bool); ok {
-				return vv
-			}
-		}
-	}
-	return false
-}
-
 func botName(subs interface{}) string {
 	//public := subs.GetPublic()
 	//if public == nil {

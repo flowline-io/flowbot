@@ -12,6 +12,12 @@ type MsgPayload interface {
 	Convert() (KV, interface{})
 }
 
+type EventPayload interface {
+	Name() string
+	Type() string
+	Emit() error
+}
+
 type Context struct {
 	// Message ID denormalized
 	Id string
