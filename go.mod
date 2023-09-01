@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/adjust/rmq/v5 v5.2.0
-	github.com/aws/aws-sdk-go v1.44.334
+	github.com/aws/aws-sdk-go v1.45.1
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
@@ -31,6 +31,7 @@ require (
 	github.com/mmcdole/gofeed v1.2.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
 	github.com/redis/go-redis/v9 v9.1.0
+	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
 	github.com/slack-go/slack v0.12.3
@@ -102,7 +103,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rollbar/rollbar-go v1.4.5 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
