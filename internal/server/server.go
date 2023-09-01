@@ -33,6 +33,7 @@ import (
 
 	// File upload handlers
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
+	_ "github.com/flowline-io/flowbot/pkg/media/minio"
 	_ "github.com/flowline-io/flowbot/pkg/media/s3"
 )
 
