@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
+	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
 	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
 	"github.com/flowline-io/flowbot/pkg/version"
@@ -103,6 +104,23 @@ func NewCommand() *cli.App {
 					},
 				},
 				Action: dao.GenerationAction,
+			},
+			{
+				Name:  "doc",
+				Usage: "database schema documentation",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "config",
+						Value: "./flowbot.yaml",
+						Usage: "config of the database connection",
+					},
+					&cli.StringFlag{
+						Name:  "database",
+						Value: "flowbot",
+						Usage: "database name",
+					},
+				},
+				Action: doc.SchemaAction,
 			},
 		},
 	}
