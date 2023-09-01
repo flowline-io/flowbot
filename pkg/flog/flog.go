@@ -1,6 +1,7 @@
 package flog
 
 import (
+	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"io"
@@ -12,14 +13,25 @@ var l zerolog.Logger
 func init() {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+	// json marshaling
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
+	zerolog.InterfaceMarshalFunc = json.Marshal
 
 	var writer []io.Writer
 	// console
-	console := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: zerolog.TimeFieldFormat, NoColor: true}
+	console := zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: zerolog.TimeFieldFormat,
+		NoColor:    true,
+	}
 	writer = append(writer, console)
 
 	multi := zerolog.MultiLevelWriter(writer...)
 	l = zerolog.New(multi).With().Timestamp().Logger()
+}
+
+func GetLogger() zerolog.Logger {
+	return l
 }
 
 // SetLevel sets the global logging level based on the provided level.

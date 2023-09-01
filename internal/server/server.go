@@ -14,10 +14,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jsoniter "github.com/json-iterator/go"
@@ -119,7 +119,10 @@ func Run() {
 	app.Use(recover.New())
 	app.Use(cors.New())
 	app.Use(requestid.New())
-	app.Use(logger.New())
+	logger := flog.GetLogger()
+	app.Use(fiberzerolog.New(fiberzerolog.Config{
+		Logger: &logger,
+	}))
 
 	// Handle extra
 	setupMux(app)

@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 var DB *redis.Client
@@ -17,9 +18,11 @@ func InitCache() {
 		panic("redis config error")
 	}
 	DB = redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       config.App.Redis.DB,
+		Addr:         addr,
+		Password:     password,
+		DB:           config.App.Redis.DB,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
 	})
 	s := DB.Ping(context.Background())
 	_, err := s.Result()
