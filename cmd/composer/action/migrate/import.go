@@ -2,15 +2,15 @@ package migrate
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	extraMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
+	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/tinode/jsonco"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
+	"io"
 	"os"
 )
 
@@ -23,8 +23,13 @@ func ImportAction(c *cli.Context) error {
 	}
 
 	config := configType{}
-	jr := jsonco.New(file)
-	if err = json.NewDecoder(jr).Decode(&config); err != nil {
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
 		panic(err)
 	}
 
@@ -39,7 +44,7 @@ func ImportAction(c *cli.Context) error {
 	db, _ := sql.Open("mysql", dsn)
 	driver, _ := mysql.WithInstance(db, &mysql.Config{})
 
-	d, err := iofs.New(extraMigrate.Fs, "migrations")
+	d, err := iofs.New(storeMigrate.Fs, "migrations")
 	if err != nil {
 		panic(err)
 	}
@@ -57,11 +62,11 @@ func ImportAction(c *cli.Context) error {
 
 type configType struct {
 	StoreConfig struct {
-		UseAdapter string `json:"use_adapter"`
+		UseAdapter string `json:"use_adapter" yaml:"use_adapter"`
 		Adapters   struct {
 			Mysql struct {
-				DSN string `json:"dsn"`
-			} `json:"mysql"`
-		} `json:"adapters"`
-	} `json:"store_config"`
+				DSN string `json:"dsn" yaml:"dsn"`
+			} `json:"mysql" yaml:"mysql"`
+		} `json:"adapters" yaml:"adapters"`
+	} `json:"store_config" yaml:"store_config"`
 }

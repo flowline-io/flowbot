@@ -19,14 +19,14 @@ DOWNLOAD_PATH=/download
 ```shell
 
 # Generator cli
-go run github.com/flowline-io/flowbot/internal/cmd/composer generator bot -name example -rule input,group,agent,command,condition,cron,form
-go run github.com/flowline-io/flowbot/internal/cmd/composer generator vendor -name example
+go run github.com/flowline-io/flowbot/cmd/composer generator bot -name example -rule input,group,agent,command,condition,cron,form
+go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name example
 
 # Migrate cli
-go run github.com/flowline-io/flowbot/internal/cmd/composer migrate import
+go run github.com/flowline-io/flowbot/cmd/composer migrate import
 
 # Migration file cli
-go run github.com/flowline-io/flowbot/internal/cmd/composer migrate migration -name file_name
+go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name file_name
 ```
 
 ## Lint
@@ -36,11 +36,11 @@ go run github.com/flowline-io/flowbot/internal/cmd/composer migrate migration -n
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # check
-golangci-lint run --timeout=10m --config=./server/extra/.golangci.yaml ./server/extra/...
+golangci-lint run --timeout=10m --config=./.golangci.yaml ./...
 ```
 
 ## cloc
 
 ```shell
-cloc --exclude-dir=node_modules .\server\extra
+cloc --exclude-dir=node_modules .
 ```

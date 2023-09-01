@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-const path = "./server/extra/store/migrate/migrations"
+const path = "./internal/store/migrate/migrations"
 
 func MigrationAction(c *cli.Context) error {
 	name := c.String("name")

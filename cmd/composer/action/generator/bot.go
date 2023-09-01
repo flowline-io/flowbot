@@ -67,7 +67,7 @@ var groupFuncTemple string
 //go:embed tmpl/input_func.tmpl
 var inputFuncTemple string
 
-const BasePath = "./server/extra/bots"
+const BasePath = "./internal/bots"
 
 func BotAction(c *cli.Context) error {
 	// args

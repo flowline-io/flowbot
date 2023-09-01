@@ -12,7 +12,7 @@ import (
 //go:embed tmpl/vendor.tmpl
 var vendorTemple string
 
-const VendorsPath = "./server/extra/vendors"
+const VendorsPath = "./pkg/providers"
 
 func VendorAction(c *cli.Context) error {
 	vendor := c.String("name")
