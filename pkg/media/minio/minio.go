@@ -13,14 +13,11 @@ import (
 	"io"
 	"mime"
 	"net/http"
-	"sync/atomic"
 )
 
 const (
 	defaultServeURL = "/v0/file/s/"
 	handlerName     = "minio"
-	// Presign GET URLs for this number of seconds.
-	presignDuration = 120
 )
 
 type config struct {
@@ -38,20 +35,6 @@ type config struct {
 type handler struct {
 	svc  *minio.Client
 	conf config
-}
-
-// readerCounter is a byte counter for bytes read through the io.Reader
-type readerCounter struct {
-	io.Reader
-	count  int64
-	reader io.Reader
-}
-
-// Read reads the bytes and records the number of read bytes.
-func (rc *readerCounter) Read(buf []byte) (int, error) {
-	n, err := rc.reader.Read(buf)
-	atomic.AddInt64(&rc.count, int64(n))
-	return n, err
 }
 
 // Init initializes the media handler.

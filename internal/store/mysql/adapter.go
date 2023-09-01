@@ -32,8 +32,6 @@ const (
 
 	defaultDatabase = "flowbot"
 
-	adpVersion = 1
-
 	defaultMaxResults = 1024
 	// This is capped by the Session's send queue limit (128).
 	defaultMaxMessageResults = 100
@@ -74,7 +72,6 @@ type adapter struct {
 	maxResults int
 	// Maximum number of message records to return
 	maxMessageResults int
-	version           int
 
 	// Single query timeout.
 	sqlTimeout time.Duration
@@ -83,21 +80,6 @@ type adapter struct {
 }
 
 func (a *adapter) SetMaxResults(val int) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *adapter) CreateDb(reset bool) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *adapter) UpgradeDb() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *adapter) Version() int {
 	//TODO implement me
 	panic("implement me")
 }
@@ -298,10 +280,6 @@ func (a *adapter) Stats() interface{} {
 		return err
 	}
 	return rawDB.Stats()
-}
-
-func wildcard(str string) string {
-	return fmt.Sprintf("%%%s%%", str)
 }
 
 func (a *adapter) GetBotUsers() ([]*model.User, error) {

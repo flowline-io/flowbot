@@ -480,7 +480,6 @@ func urlRedirect(rw http.ResponseWriter, req *http.Request) {
 
 	// redirect
 	http.Redirect(rw, req, url.URL, http.StatusFound)
-	return
 }
 
 func queueStats(rw http.ResponseWriter, _ *http.Request) {

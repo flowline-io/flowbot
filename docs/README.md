@@ -42,5 +42,5 @@ golangci-lint run --timeout=10m --config=./.golangci.yaml ./...
 ## cloc
 
 ```shell
-cloc --exclude-dir=node_modules .
+cloc --exclude-dir=node_modules --exclude-ext=json .
 ```

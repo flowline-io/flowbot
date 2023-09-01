@@ -16,10 +16,10 @@ func largeFileRunGarbageCollection(period time.Duration, blockSize int) chan<- b
 		// Add some randomness to the tick period to desynchronize runs on cluster nodes:
 		// 0.75 * period + rand(0, 0.5) * period.
 		period = (period >> 1) + (period >> 2) + time.Duration(rand.Intn(int(period>>1)))
-		gcTicker := time.Tick(period)
+		gcTicker := time.NewTicker(period)
 		for {
 			select {
-			case <-gcTicker:
+			case <-gcTicker.C:
 				if _, err := store.Chatbot.FileDeleteUnused(time.Now().Add(-time.Hour), blockSize); err != nil {
 					flog.Warn("media gc: %v", err)
 				}

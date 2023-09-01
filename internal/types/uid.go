@@ -115,7 +115,7 @@ func (uid Uid) String32() string {
 // ParseUid parses string NOT prefixed with anything.
 func ParseUid(s string) Uid {
 	var uid Uid
-	uid.UnmarshalText([]byte(s))
+	_ = uid.UnmarshalText([]byte(s))
 	return uid
 }
 
@@ -123,7 +123,7 @@ func ParseUid(s string) Uid {
 func ParseUid32(s string) Uid {
 	var uid Uid
 	if data, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(s); err == nil {
-		uid.UnmarshalBinary(data)
+		_ = uid.UnmarshalBinary(data)
 	}
 	return uid
 }
@@ -150,7 +150,7 @@ func (uid Uid) PrefixId(prefix string) string {
 func ParseUserId(s string) Uid {
 	var uid Uid
 	if strings.HasPrefix(s, "usr") {
-		(&uid).UnmarshalText([]byte(s)[3:])
+		_ = (&uid).UnmarshalText([]byte(s)[3:])
 	}
 	return uid
 }

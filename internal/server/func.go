@@ -58,9 +58,9 @@ func isBot(subs interface{}) bool {
 }
 
 func isBotUser(user *types.User) bool {
-	if user == nil {
-		return false
-	}
+	//if user == nil {
+	//	return false
+	//}
 	//// normal bot user
 	//if user.State != types.StateOK {
 	//	return false

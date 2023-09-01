@@ -80,16 +80,16 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 	}
 
 	if err = store.Chatbot.FileStartUpload(fdef); err != nil {
-		outfile.Close()
-		os.Remove(fdef.Location)
+		_ = outfile.Close()
+		_ = os.Remove(fdef.Location)
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, err
 	}
 
 	size, err := io.Copy(outfile, file)
-	outfile.Close()
+	_ = outfile.Close()
 	if err != nil {
-		os.Remove(fdef.Location)
+		_ = os.Remove(fdef.Location)
 		return "", 0, err
 	}
 
