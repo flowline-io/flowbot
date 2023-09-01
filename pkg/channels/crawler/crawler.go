@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/influxdata/cron"
 	"github.com/redis/go-redis/v9"
@@ -61,7 +60,7 @@ func (s *Crawler) Init(rules ...Rule) error {
 }
 
 func (s *Crawler) Run() {
-	logs.Info.Println("crawler starting...")
+	flog.Info("crawler starting...")
 
 	for name, job := range s.jobs {
 		go s.ruleWorker(name, job)
@@ -75,7 +74,7 @@ func (s *Crawler) Shutdown() {
 }
 
 func (s *Crawler) ruleWorker(name string, r Rule) {
-	logs.Info.Printf("crawler %s start", name)
+	flog.Info("crawler %s start", name)
 	p, err := cron.ParseUTC(r.When)
 	if err != nil {
 		flog.Error(err)
@@ -91,7 +90,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 	for {
 		select {
 		case <-s.stop:
-			logs.Info.Printf("crawler %s rule worker stopped", name)
+			flog.Info("crawler %s rule worker stopped", name)
 			return
 		case <-ticker.C:
 			if nextTime.Format("2006-01-02 15:04") != time.Now().Format("2006-01-02 15:04") {
@@ -100,7 +99,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 			result := func() []map[string]string {
 				defer func() {
 					if r := recover(); r != nil {
-						logs.Warn.Printf("crawler %s ruleWorker recover ", name)
+						flog.Warn("crawler %s ruleWorker recover ", name)
 						if v, ok := r.(error); ok {
 							flog.Error(v)
 						}
@@ -133,7 +132,7 @@ func (s *Crawler) resultWorker() {
 			// send
 			s.Send(out.ID, out.Name, diff)
 		case <-s.stop:
-			logs.Info.Println("crawler result worker stopped")
+			flog.Info("crawler result worker stopped")
 			return
 		}
 	}

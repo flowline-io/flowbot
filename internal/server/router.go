@@ -16,7 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -371,7 +370,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	// get bot handler
 	formRuleId, ok := types.KV(formData.Schema).String("id")
 	if !ok {
-		logs.Err.Printf("form %s %s", formId, "error form rule id")
+		flog.Error(fmt.Errorf("form %s %s", formId, "error form rule id"))
 		return
 	}
 	var botHandler bots.Handler
@@ -390,14 +389,14 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
-			logs.Info.Printf("bot %s unavailable", topic)
+			flog.Info("bot %s unavailable", topic)
 			return
 		}
 
 		// form message
 		payload, err := botHandler.Form(ctx, values)
 		if err != nil {
-			logs.Warn.Printf("topic[%s]: failed to form bot: %v", topic, err)
+			flog.Warn("topic[%s]: failed to form bot: %v", topic, err)
 			return
 		}
 
@@ -528,7 +527,7 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	}
 	sess.uid = uid
 
-	logs.Info.Println("linkit: session started", sess.sid, sess.remoteAddr, count)
+	flog.Info("linkit: session started %v %v %v", sess.sid, sess.remoteAddr, count)
 
 	// Do work in goroutines to return from serveWebSocket() to release file pointers.
 	// Otherwise, "too many open files" will happen.

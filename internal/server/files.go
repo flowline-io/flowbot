@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"math/rand"
 	"time"
 )
@@ -21,7 +21,7 @@ func largeFileRunGarbageCollection(period time.Duration, blockSize int) chan<- b
 			select {
 			case <-gcTicker:
 				if _, err := store.Chatbot.FileDeleteUnused(time.Now().Add(-time.Hour), blockSize); err != nil {
-					logs.Warn.Println("media gc:", err)
+					flog.Warn("media gc: %v", err)
 				}
 			case <-stop:
 				return

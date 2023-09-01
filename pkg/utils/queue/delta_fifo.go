@@ -1,8 +1,8 @@
 package queue
 
 import (
+	"fmt"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
 	"sync"
@@ -403,10 +403,10 @@ func (f *DeltaFIFO) queueActionLocked(actionType DeltaType, obj interface{}) err
 		// when given a non-empty list (as it is here).
 		// If somehow it happens anyway, deal with it but complain.
 		if oldDeltas == nil {
-			logs.Err.Printf("Impossible dedupDeltas for id=%q: oldDeltas=%#+v, obj=%#+v; ignoring", id, oldDeltas, obj)
+			flog.Error(fmt.Errorf("impossible dedupDeltas for id=%q: oldDeltas=%#+v, obj=%#+v; ignoring", id, oldDeltas, obj))
 			return nil
 		}
-		logs.Err.Printf("Impossible dedupDeltas for id=%q: oldDeltas=%#+v, obj=%#+v; breaking invariant by storing empty Deltas", id, oldDeltas, obj)
+		flog.Error(fmt.Errorf("impossible dedupDeltas for id=%q: oldDeltas=%#+v, obj=%#+v; breaking invariant by storing empty Deltas", id, oldDeltas, obj))
 		f.items[id] = newDeltas
 		return xerrors.Errorf("impossible dedupDeltas for id=%q: oldDeltas=%#+v, obj=%#+v; broke DeltaFIFO invariant by storing empty Deltas", id, oldDeltas, obj)
 	}
@@ -510,7 +510,7 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 		item, ok := f.items[id]
 		if !ok {
 			// This should never happen
-			logs.Err.Printf("Inconceivable! %q was in f.queue but not f.items; ignoring.", id)
+			flog.Error(fmt.Errorf("inconceivable! %q was in f.queue but not f.items; ignoring", id))
 			continue
 		}
 		delete(f.items, id)
@@ -606,7 +606,7 @@ func (f *DeltaFIFO) Replace(list []interface{}, _ string) error {
 		deletedObj, exists, err := f.knownObjects.GetByKey(k)
 		if err != nil {
 			deletedObj = nil
-			logs.Err.Printf("Unexpected error %v during lookup of key %v, placing DeleteFinalStateUnknown marker without object", err, k)
+			flog.Error(fmt.Errorf("unexpected error %v during lookup of key %v, placing DeleteFinalStateUnknown marker without object", err, k))
 		} else if !exists {
 			deletedObj = nil
 			flog.Info("Key %v does not exist in known objects store, placing DeleteFinalStateUnknown marker without object", k)
@@ -648,7 +648,7 @@ func (f *DeltaFIFO) Resync() error {
 func (f *DeltaFIFO) syncKeyLocked(key string) error {
 	obj, exists, err := f.knownObjects.GetByKey(key)
 	if err != nil {
-		logs.Err.Printf("Unexpected error %v during lookup of key %v, unable to queue object for sync", err, key)
+		flog.Error(fmt.Errorf("unexpected error %v during lookup of key %v, unable to queue object for sync", err, key))
 		return nil
 	} else if !exists {
 		flog.Info("Key %v does not exist in known objects store, unable to queue object for sync", key)

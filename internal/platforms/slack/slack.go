@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
@@ -26,14 +25,12 @@ func HandleWebsocket(stop <-chan bool) {
 		for {
 			select {
 			case <-stop:
-				logs.Info.Println("Slack is shutting down.")
+				flog.Info("Slack is shutting down.")
 				return
 			case event := <-client.Events:
 				switch event.Type {
 				// message
 				case socketmode.EventTypeEventsAPI:
-					logs.Info.Println(event.Data)
-
 					apiEvent := event.Data.(slackevents.EventsAPIEvent)
 					messageEvent := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
 					fmt.Println(messageEvent.Text)

@@ -4,7 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/channels"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	json "github.com/json-iterator/go"
@@ -50,11 +50,11 @@ import (
 func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	b, err := json.Marshal(botsConfig)
 	if err != nil {
-		logs.Err.Fatal("Failed to marshal bots:", err)
+		flog.Fatal("Failed to marshal bots: %v", err)
 	}
 	v, err := json.Marshal(vendorsConfig)
 	if err != nil {
-		logs.Err.Fatal("Failed to marshal vendors:", err)
+		flog.Fatal("Failed to marshal vendors: %v", err)
 	}
 
 	// set vendors configs
@@ -63,37 +63,37 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	// init bots
 	err = bots.Init(b)
 	if err != nil {
-		logs.Err.Fatal("Failed to initialize bot:", err)
+		flog.Fatal("Failed to initialize bot: %v", err)
 	}
 
 	// bootstrap bots
 	err = bots.Bootstrap()
 	if err != nil {
-		logs.Err.Fatal("Failed to bootstrap bot:", err)
+		flog.Fatal("Failed to bootstrap bot: %v", err)
 	}
 
 	// bot father
 	err = initializeBotFather()
 	if err != nil {
-		logs.Err.Fatal("Failed to create or update bot father:", err)
+		flog.Fatal("Failed to create or update bot father: %v", err)
 	}
 
 	// bot users
 	err = initializeBotUsers()
 	if err != nil {
-		logs.Err.Fatal("Failed to create or update bot users:", err)
+		flog.Fatal("Failed to create or update bot users: %v", err)
 	}
 
 	// bot cron
 	globals.cronRuleset, err = bots.Cron(botSend)
 	if err != nil {
-		logs.Err.Fatal("Failed to bot cron:", err)
+		flog.Fatal("Failed to bot cron: %v", err)
 	}
 
 	// bot workflow
 	err = initializeWorkflow()
 	if err != nil {
-		logs.Err.Fatal("Failed to initialize workflow:", err)
+		flog.Fatal("Failed to initialize workflow: %v", err)
 	}
 
 	// stats register
@@ -113,17 +113,17 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 func hookChannel() {
 	err := channels.Init()
 	if err != nil {
-		logs.Err.Fatal("Failed to initialize channel:", err)
+		flog.Fatal("Failed to initialize channel: %v", err)
 	}
 
 	err = initializeChannels()
 	if err != nil {
-		logs.Err.Fatal("Failed to create or update channels:", err)
+		flog.Fatal("Failed to create or update channels: %v", err)
 	}
 
 	err = initializeCrawler()
 	if err != nil {
-		logs.Err.Fatal("Failed to initialize crawler:", err)
+		flog.Fatal("Failed to initialize crawler: %v", err)
 	}
 
 	// stats register

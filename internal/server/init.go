@@ -166,7 +166,7 @@ func initializeChannels() error {
 	for range channels.List() {
 		//topic, _ := tstore.Topics.Get(fmt.Sprintf("grp%s", channel.Id))
 		//if topic != nil && topic.Id != "" {
-		//	logs.Info.Printf("channel %s registered", channel.Name)
+		//	flog.Info("channel %s registered", channel.Name)
 		//	continue
 		//}
 

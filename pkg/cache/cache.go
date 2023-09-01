@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"os"
 
 	"github.com/redis/go-redis/v9"
@@ -34,5 +33,5 @@ func Shutdown() {
 		flog.Error(err)
 		return
 	}
-	logs.Info.Println("cache stopped")
+	flog.Info("cache stopped")
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
@@ -171,7 +170,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 		}
 
 		if !handle.IsReady() {
-			logs.Info.Printf("bot %s unavailable", t.name)
+			flog.Info("bot %s unavailable", t.name)
 			continue
 		}
 
@@ -216,7 +215,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					} else {
 						payload, err = botHandler.Session(ctx, msg.Pub.Content)
 						if err != nil {
-							logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+							flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 						}
 					}
 				}
@@ -283,7 +282,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 						} else {
 							payload, err = botHandler.Action(ctx, option)
 							if err != nil {
-								logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+								flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 							}
 
 							if payload != nil {
@@ -318,7 +317,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					in = strings.Replace(in, "/", "", 1)
 					payload, err = handle.Command(ctx, in)
 					if err != nil {
-						logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+						flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 					}
 
 					// stats
@@ -350,7 +349,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 					in = strings.Replace(in, "~", "", 1)
 					payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, msg.Pub.Head, in, types.PipelineCommandTriggerOperate)
 					if err != nil {
-						logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+						flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 					}
 					ctx.PipelineFlag = pipelineFlag
 					ctx.PipelineVersion = pipelineVersion
@@ -395,7 +394,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 							ctx.Condition = tye
 							payload, err = handle.Condition(ctx, pl)
 							if err != nil {
-								logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+								flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 							}
 
 							// stats
@@ -408,7 +407,7 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 			if payload == nil {
 				payload, err = handle.Input(ctx, msg.Pub.Head, msg.Pub.Content)
 				if err != nil {
-					logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+					flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 					continue
 				}
 
@@ -470,7 +469,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 		}
 
 		if !handle.IsReady() {
-			logs.Info.Printf("bot %s unavailable", t.name)
+			flog.Info("bot %s unavailable", t.name)
 			continue
 		}
 
@@ -508,7 +507,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 						ctx.Condition = tye
 						payload, err = handle.Condition(ctx, pl)
 						if err != nil {
-							logs.Warn.Printf("topic[%s]: failed to run bot: %v", t.name, err)
+							flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
 						}
 
 						// stats
@@ -529,7 +528,7 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 			}
 			payload, err = handle.Group(ctx, head, content)
 			if err != nil {
-				logs.Warn.Printf("topic[%s]: failed to run group bot: %v", t.name, err)
+				flog.Warn("topic[%s]: failed to run group bot: %v", t.name, err)
 				continue
 			}
 
@@ -643,7 +642,7 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 	err := json.Unmarshal([]byte(payload), &qp)
 	if err != nil {
 		if err := delivery.Reject(); err != nil {
-			logs.Err.Printf("failed to reject %s: %s\n", payload, err)
+			flog.Error(err)
 			return
 		}
 		return
@@ -654,7 +653,7 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 	botSend(qp.RcptTo, uid, msg)
 
 	if err := delivery.Ack(); err != nil {
-		logs.Err.Printf("failed to ack %s: %s\n", payload, err)
+		flog.Error(err)
 		return
 	}
 }
@@ -692,7 +691,7 @@ func linkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 		//	}
 		//
 		//	if !handle.IsReady() {
-		//		logs.Info.Printf("bot %s unavailable", topic)
+		//		flog.Info("bot %s unavailable", topic)
 		//		continue
 		//	}
 		//
@@ -705,7 +704,7 @@ func linkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 		//	}
 		//	payload, err := handle.Agent(ctx, data.Content)
 		//	if err != nil {
-		//		logs.Warn.Printf("topic[%s]: failed to agent bot: %v", topic, err)
+		//		flog.Warn("topic[%s]: failed to agent bot: %v", topic, err)
 		//		continue
 		//	}
 		//

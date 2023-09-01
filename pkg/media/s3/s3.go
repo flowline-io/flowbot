@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
 	"net/http"
@@ -21,7 +22,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/media"
 )
 
@@ -215,7 +215,7 @@ func (ah *awshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, i
 	uploader := s3manager.NewUploaderWithClient(ah.svc)
 
 	if err = store.Chatbot.FileStartUpload(fdef); err != nil {
-		logs.Warn.Println("failed to create file record", fdef.Id, err)
+		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, err
 	}
 

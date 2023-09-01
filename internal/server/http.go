@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/version"
@@ -103,7 +102,7 @@ func signalHandler() <-chan bool {
 	go func() {
 		// Wait for a signal. Don't care which signal it is
 		sig := <-signchan
-		logs.Info.Printf("Signal received: '%s', shutting down", sig)
+		flog.Info("Signal received: '%s', shutting down", sig)
 		stop <- true
 	}()
 

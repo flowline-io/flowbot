@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	json "github.com/json-iterator/go"
@@ -273,7 +272,7 @@ func (s *Session) cleanUp(expired bool) {
 //	err: *ServerComMessage with an error to return to the sender
 func (s *Session) expandTopicName(msg *ClientComMessage) (string, *ServerComMessage) {
 	if msg.Original == "" {
-		logs.Warn.Println("s.etn: empty topic name", s.sid)
+		flog.Warn("s.etn: empty topic name %v", s.sid)
 		return "", ErrMalformed(msg.Id, "", msg.Timestamp)
 	}
 

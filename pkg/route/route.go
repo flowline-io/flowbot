@@ -6,7 +6,7 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"net/http"
 	"strings"
@@ -96,7 +96,7 @@ func WebService(group, version string, rs ...*Router) *restful.WebService {
 			Metadata(restfulspec.KeyOpenAPITags, tags).
 			Returns(http.StatusOK, "OK", router.ReturnSample).
 			Writes(router.WriteSample))
-		logs.Info.Printf("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
+		flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
 	}
 	return ws
 }

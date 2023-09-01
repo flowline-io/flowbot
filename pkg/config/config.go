@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -175,7 +175,7 @@ type Tailchat struct {
 func Load(path ...string) {
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
-		logs.Err.Fatal(err)
+		flog.Fatal("Failed to bind flags: %v", err)
 	}
 	for _, p := range path {
 		viper.AddConfigPath(p)
@@ -184,10 +184,10 @@ func Load(path ...string) {
 	viper.SetConfigType("yaml")
 	err = viper.ReadInConfig()
 	if err != nil {
-		logs.Err.Fatal("Failed to read config file: ", err)
+		flog.Fatal("Failed to read config file: %v", err)
 	}
 	err = viper.Unmarshal(&App)
 	if err != nil {
-		logs.Err.Fatal("Failed to unmarshal config: ", err)
+		flog.Fatal("Failed to unmarshal config: %v", err)
 	}
 }

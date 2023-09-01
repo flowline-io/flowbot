@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/providers/openai"
 )
 
@@ -43,7 +42,7 @@ func (bot) Init(jsonconf json.RawMessage) error {
 	}
 
 	if !config.Enabled {
-		logs.Info.Printf("bot %s disabled", Name)
+		flog.Info("bot %s disabled", Name)
 		return nil
 	}
 

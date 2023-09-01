@@ -8,13 +8,13 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/media"
 )
 
@@ -75,14 +75,14 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 
 	outfile, err := os.Create(fdef.Location)
 	if err != nil {
-		logs.Warn.Println("Upload: failed to create file", fdef.Location, err)
+		flog.Warn("Upload: failed to create file %v %v", fdef.Location, err)
 		return "", 0, err
 	}
 
 	if err = store.Chatbot.FileStartUpload(fdef); err != nil {
 		outfile.Close()
 		os.Remove(fdef.Location)
-		logs.Warn.Println("failed to create file record", fdef.Id, err)
+		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, err
 	}
 
@@ -112,7 +112,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 
 	fd, err := fh.getFileRecord(fid)
 	if err != nil {
-		logs.Warn.Println("Download: file not found", fid)
+		flog.Warn("Download: file not found %v", fid)
 		return nil, nil, err
 	}
 
@@ -133,7 +133,7 @@ func (fh *fshandler) Delete(locations []string) error {
 	for _, loc := range locations {
 		if err, _ := os.Remove(loc).(*os.PathError); err != nil {
 			if err != os.ErrNotExist {
-				logs.Warn.Println("fs: error deleting file", loc, err)
+				flog.Warn("fs: error deleting file %v %v", loc, err)
 			}
 		}
 	}

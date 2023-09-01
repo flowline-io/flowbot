@@ -3,7 +3,6 @@ package event
 import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/gookit/event"
 )
 
@@ -34,5 +33,5 @@ func Shutdown() {
 		flog.Error(err)
 		return
 	}
-	logs.Info.Println("event stopped")
+	flog.Info("event stopped")
 }

@@ -3,7 +3,7 @@ package server
 import (
 	"container/list"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -39,10 +39,10 @@ func (w *boundedWaitGroup) Done() {
 	select {
 	case _, ok := <-w.sem:
 		if !ok {
-			logs.Err.Panicln("boundedWaitGroup.sem closed.")
+			flog.Panic("boundedWaitGroup.sem closed.")
 		}
 	default:
-		logs.Err.Panicln("boundedWaitGroup.Done() called before Add().")
+		flog.Panic("boundedWaitGroup.Done() called before Add().")
 	}
 	w.wg.Done()
 }
@@ -52,7 +52,7 @@ func (w *boundedWaitGroup) Wait() {
 }
 
 // SessionStore holds live sessions. Long polling sessions are stored in a linked list with
-// most recent sessions on top. In addition all sessions are stored in a map indexed by session ID.
+// most recent sessions on top. In addition, all sessions are stored in a map indexed by session ID.
 type SessionStore struct {
 	lock sync.Mutex
 
@@ -73,7 +73,7 @@ func (ss *SessionStore) NewSession(conn any, sid string) (*Session, int) {
 
 	ss.lock.Lock()
 	if _, found := ss.sessCache[s.sid]; found {
-		logs.Err.Fatalln("ERROR! duplicate session ID", s.sid)
+		flog.Fatal("ERROR! duplicate session ID %v", s.sid)
 	}
 	ss.lock.Unlock()
 
@@ -85,7 +85,7 @@ func (ss *SessionStore) NewSession(conn any, sid string) (*Session, int) {
 		s.proto = LPOLL
 		// no need to store c for long polling, it changes with every request
 	default:
-		logs.Err.Panicln("session: unknown connection type", conn)
+		flog.Panic("session: unknown connection type %v", conn)
 	}
 
 	s.subs = make(map[string]*Subscription)
@@ -134,8 +134,8 @@ func (ss *SessionStore) NewSession(conn any, sid string) (*Session, int) {
 
 	// Deleting long polling sessions.
 	for _, sess := range expired {
-		// This locks the session. Thus cleaning up outside of the
-		// sessionStore lock. Otherwise deadlock.
+		// This locks the session. Thus cleaning up outside the
+		// sessionStore lock. Otherwise, deadlock.
 		sess.cleanUp(true)
 	}
 
@@ -197,7 +197,7 @@ func (ss *SessionStore) Shutdown() {
 
 	// TODO: Consider broadcasting shutdown to other cluster nodes.
 
-	logs.Info.Println("SessionStore shut down, sessions terminated:", len(ss.sessCache))
+	flog.Info("SessionStore shut down, sessions terminated: %v", len(ss.sessCache))
 }
 
 // EvictUser terminates all sessions of a given user.

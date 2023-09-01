@@ -2,7 +2,8 @@ package parallelizer
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"math/rand"
 	"net/http"
@@ -102,9 +103,9 @@ func logPanic(r interface{}) {
 	stacktrace := make([]byte, size)
 	stacktrace = stacktrace[:runtime.Stack(stacktrace, false)]
 	if _, ok := r.(string); ok {
-		logs.Err.Printf("Observed a panic: %s\n%s", r, stacktrace)
+		flog.Error(fmt.Errorf("Observed a panic: %s\n%s", r, stacktrace))
 	} else {
-		logs.Err.Printf("Observed a panic: %#v (%v)\n%s", r, r, stacktrace)
+		flog.Error(fmt.Errorf("Observed a panic: %#v (%v)\n%s", r, r, stacktrace))
 	}
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -56,8 +55,6 @@ const (
 func Run() {
 	executable, _ := os.Executable()
 
-	logFlags := pflag.String("log_flags", "stdFlags",
-		"Comma-separated list of log flags (as defined in https://golang.org/pkg/log/#pkg-constants without the L prefix)")
 	configFile := pflag.String("config", "flowbot.json", "Path to config file.")
 	listenOn := pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	apiPath := pflag.String("api_path", "", "Override the base URL path where API is served.")
@@ -69,19 +66,17 @@ func Run() {
 	pprofUrl := pflag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
 	pflag.Parse()
 
-	logs.Init(os.Stderr, *logFlags)
-
 	curwd, err := os.Getwd()
 	if err != nil {
-		logs.Err.Fatal("Couldn't get current working directory: ", err)
+		flog.Fatal("Couldn't get current working directory: %v", err)
 	}
 
-	logs.Info.Printf("Server v%s:%s:%s; pid %d; %d process(es)",
+	flog.Info("Server v%s:%s:%s; pid %d; %d process(es)",
 		currentVersion, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
 	*configFile = utils.ToAbsolutePath(curwd, *configFile)
-	logs.Info.Printf("Using config from '%s'", *configFile)
+	flog.Info("Using config from '%s'", *configFile)
 
 	// Load config
 	config.Load(".", curwd)
@@ -149,7 +144,7 @@ func Run() {
 
 		cpuf, err := os.Create(*pprofFile + ".cpu")
 		if err != nil {
-			logs.Err.Fatal("Failed to create CPU pprof file: ", err)
+			flog.Fatal("Failed to create CPU pprof file: %v", err)
 		}
 		defer func() {
 			_ = cpuf.Close()
@@ -157,7 +152,7 @@ func Run() {
 
 		memf, err := os.Create(*pprofFile + ".mem")
 		if err != nil {
-			logs.Err.Fatal("Failed to create Mem pprof file: ", err)
+			flog.Fatal("Failed to create Mem pprof file: %v", err)
 		}
 		defer func() {
 			_ = memf.Close()
@@ -169,7 +164,7 @@ func Run() {
 			_ = pprof.WriteHeapProfile(memf)
 		}()
 
-		logs.Info.Printf("Profiling info saved to '%s.(cpu|mem)'", *pprofFile)
+		flog.Info("Profiling info saved to '%s.(cpu|mem)'", *pprofFile)
 	}
 
 	// init cache
@@ -182,16 +177,16 @@ func Run() {
 	// Open database
 	err = store.Store.Open(config.App.Store)
 	if err != nil {
-		logs.Err.Fatal("Failed to open DB: ", err)
+		flog.Fatal("Failed to open DB: %v", err)
 	}
-	logs.Info.Println("DB adapter opened")
+	flog.Info("DB adapter opened")
 	if err != nil {
-		logs.Err.Fatal("Failed to connect to DB: ", err)
+		flog.Fatal("Failed to connect to DB: %v", err)
 	}
 	defer func() {
 		_ = store.Store.Close()
-		logs.Info.Println("Closed database connection(s)")
-		logs.Info.Println("All done, good bye")
+		flog.Info("Closed database connection(s)")
+		flog.Info("All done, good bye")
 	}()
 	stats.RegisterDbStats()
 
@@ -216,12 +211,12 @@ func Run() {
 				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
 					data, err := json.Marshal(params)
 					if err != nil {
-						logs.Err.Fatalf("Failed to marshal media handler '%s': %s", config.App.Media.UseHandler, err)
+						flog.Fatal("Failed to marshal media handler '%s': %s", config.App.Media.UseHandler, err)
 					}
 					conf = string(data)
 				}
 				if err = store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
-					logs.Err.Fatalf("Failed to init media handler '%s': %s", config.App.Media.UseHandler, err)
+					flog.Fatal("Failed to init media handler '%s': %s", config.App.Media.UseHandler, err)
 				}
 			}
 			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
@@ -229,7 +224,7 @@ func Run() {
 				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.App.Media.GcBlockSize)
 				defer func() {
 					stopFilesGc <- true
-					logs.Info.Println("Stopped files garbage collector")
+					flog.Info("Stopped files garbage collector")
 				}()
 			}
 		}
@@ -237,7 +232,7 @@ func Run() {
 
 	tlsConfig, err := utils.ParseTLSConfig(*tlsEnabled, config.App.TLS)
 	if err != nil {
-		logs.Err.Fatalln(err)
+		flog.Fatal("%v", err)
 	}
 
 	signal := signalHandler()
@@ -278,7 +273,7 @@ func Run() {
 			config.App.ApiPath += "/"
 		}
 	}
-	logs.Info.Printf("API served from root URL path '%s'", config.App.ApiPath)
+	flog.Info("API served from root URL path '%s'", config.App.ApiPath)
 
 	// Best guess location of the main endpoint.
 	globals.servingAt = config.App.Listen + config.App.ApiPath
@@ -293,11 +288,11 @@ func Run() {
 		sspath = config.App.ServerStatusPath
 	}
 	if sspath != "" && sspath != "-" {
-		logs.Info.Printf("Server status is available at '%s'", sspath)
+		flog.Info("Server status is available at '%s'", sspath)
 		app.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
 	}
 
 	if err = listenAndServe(app, config.App.Listen, tlsConfig, signal); err != nil {
-		logs.Err.Fatal(err)
+		flog.Fatal(" %v", err)
 	}
 }

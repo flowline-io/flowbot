@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/influxdata/cron"
 	"gorm.io/gorm"
 	"time"
@@ -50,7 +49,7 @@ func NewCronRuleset(name string, rules []Rule) *Ruleset {
 func (r *Ruleset) Daemon() {
 	// process cron
 	for rule := range r.cronRules {
-		logs.Info.Printf("cron %s start", r.cronRules[rule].Name)
+		flog.Info("cron %s start", r.cronRules[rule].Name)
 		go r.ruleWorker(r.cronRules[rule])
 	}
 
@@ -77,7 +76,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 	for {
 		select {
 		case <-r.stop:
-			logs.Info.Printf("cron %s rule worker stopped", rule.Name)
+			flog.Info("cron %s rule worker stopped", rule.Name)
 			return
 		case <-ticker.C:
 			if nextTime.Format("2006-01-02 15:04") != time.Now().Format("2006-01-02 15:04") {
@@ -86,7 +85,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 			msgs := func() []result {
 				defer func() {
 					if rc := recover(); rc != nil {
-						logs.Warn.Printf("cron %s ruleWorker recover", rule.Name)
+						flog.Warn("cron %s ruleWorker recover", rule.Name)
 						if v, ok := rc.(error); ok {
 							flog.Error(v)
 						}
@@ -155,7 +154,7 @@ func (r *Ruleset) resultWorker() {
 	for {
 		select {
 		case <-r.stop:
-			logs.Info.Printf("cron %s result worker stopped", r.Type)
+			flog.Info("cron %s result worker stopped", r.Type)
 			return
 		case out := <-r.outCh:
 			// filter

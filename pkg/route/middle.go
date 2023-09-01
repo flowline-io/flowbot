@@ -6,7 +6,6 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"net/http"
 	"runtime"
 )
@@ -32,7 +31,7 @@ func logStackOnRecover(panicReason interface{}, w http.ResponseWriter) {
 		}
 		buffer.WriteString(fmt.Sprintf("    %s:%d\r\n", file, line))
 	}
-	logs.Info.Println(buffer.String())
+	flog.Info(buffer.String())
 
 	headers := http.Header{}
 	if ct := w.Header().Get("Content-Type"); len(ct) > 0 {

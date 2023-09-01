@@ -6,7 +6,7 @@ package pprofs
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"net/http"
@@ -26,7 +26,7 @@ func ServePprof(app *fiber.App, serveAt string) {
 	pprofHttpRoot = path.Clean("/"+serveAt) + "/"
 	app.All(pprofHttpRoot, adaptor.HTTPHandlerFunc(profileHandler))
 
-	logs.Info.Printf("pprof: profiling info exposed at '%s'", pprofHttpRoot)
+	flog.Info("pprof: profiling info exposed at '%s'", pprofHttpRoot)
 }
 
 func profileHandler(wrt http.ResponseWriter, req *http.Request) {

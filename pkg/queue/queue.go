@@ -9,7 +9,6 @@ import (
 
 	"github.com/adjust/rmq/v5"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -64,7 +63,7 @@ func InitMessageQueue(consumer rmq.Consumer) {
 
 func Shutdown() {
 	<-messageQueue.StopConsuming()
-	logs.Info.Println("message queue stopped")
+	flog.Info("message queue stopped")
 }
 
 func logErrors(errChan <-chan error) {

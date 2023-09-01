@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"expvar"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/logs"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"runtime"
@@ -75,7 +75,7 @@ func Init(app *fiber.App, path string) {
 
 	go updater()
 
-	logs.Info.Printf("stats: variables exposed at '%s'", path)
+	flog.Info("stats: variables exposed at '%s'", path)
 }
 
 func RegisterDbStats() {
@@ -159,12 +159,12 @@ func updater() {
 				val := upd.value.(float64)
 				v.addSample(val)
 			default:
-				logs.Err.Panicf("stats: unsupported expvar type %T", ev)
+				flog.Panic("stats: unsupported expvar type %T", ev)
 			}
 		} else {
 			panic("stats: update to unknown variable " + upd.varname)
 		}
 	}
 
-	logs.Info.Println("stats: shutdown")
+	flog.Info("stats: shutdown")
 }

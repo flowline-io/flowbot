@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/logs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
 	json "github.com/json-iterator/go"
@@ -120,7 +119,7 @@ func (s *Session) queueOut(msg *ServerComMessage) bool {
 		return true
 	}
 
-	logs.Info.Println("s.queueOutExtra: msg send", s.sid, s.uid)
+	flog.Info("s.queueOutExtra: msg send %v %v", s.sid, s.uid)
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -173,7 +172,7 @@ func (s *Session) dispatchRaw(raw []byte) {
 	var msg ClientComMessage
 
 	if atomic.LoadInt32(&s.terminating) > 0 {
-		logs.Warn.Println("s.dispatchExtra: message received on a terminating session", s.sid)
+		flog.Warn("s.dispatchExtra: message received on a terminating session %v", s.sid)
 		s.queueOut(ErrLocked("", "", now))
 		return
 	}
@@ -190,11 +189,11 @@ func (s *Session) dispatchRaw(raw []byte) {
 		toLog = raw[:512]
 		truncated = "<...>"
 	}
-	logs.Info.Printf("in: '%s%s' sid='%s' uid='%s'", toLog, truncated, s.sid, s.uid)
+	flog.Info("in: '%s%s' sid='%s' uid='%s'", toLog, truncated, s.sid, s.uid)
 
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		// Malformed message
-		logs.Warn.Println("s.dispatchExtra", err, s.sid)
+		flog.Warn("s.dispatchExtra %v %v", err, s.sid)
 		s.queueOut(ErrMalformed("", "", now))
 		return
 	}
