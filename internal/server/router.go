@@ -9,12 +9,14 @@ import (
 	"github.com/flowline-io/flowbot/internal/page/form"
 	"github.com/flowline-io/flowbot/internal/page/library"
 	"github.com/flowline-io/flowbot/internal/page/uikit"
+	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	formRule "github.com/flowline-io/flowbot/internal/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/internal/ruleset/page"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/queue"
@@ -534,19 +536,25 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	go sess.readLoop()
 }
 
-func platformCallback(c *fiber.Ctx) error {
-	platform := c.Params("platform")
-	fmt.Println(string(c.Body()))
+func platformCallback(ctx *fiber.Ctx) error {
+	platform := ctx.Params("platform")
 
 	var err error
 	switch platform {
 	case tailchat.ID:
-		err = tailchat.HandleHttp(c)
+		err = tailchat.HandleHttp(ctx)
+	case slack.ID:
+		d := slack.Driver{}
+		err = d.HttpServer(ctx)
 	}
 	if err != nil {
 		flog.Error(err)
+		var protocolError *protocol.Error
+		if errors.As(err, protocolError) {
+			return ctx.JSON(protocol.NewFailedResponse(protocolError))
+		}
 		return err
 	}
 
-	return c.SendString("ok")
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }

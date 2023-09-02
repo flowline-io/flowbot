@@ -9,13 +9,11 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
-	"strconv"
-	"time"
 )
 
 type Driver struct{}
 
-func (d *Driver) HttpServer(app *fiber.App) error {
+func (d *Driver) HttpServer(ctx *fiber.Ctx) error {
 	return nil
 }
 
@@ -23,15 +21,7 @@ func (d *Driver) HttpWebhookClient(message protocol.Message) error {
 	return nil
 }
 
-func (d *Driver) WebSocketClient(stop <-chan bool) error {
-	return nil
-}
-
-func (d *Driver) WebSocketServer(stop <-chan bool) error {
-	return nil
-}
-
-func HandleWebsocket(stop <-chan bool) {
+func (d *Driver) WebSocketClient(stop <-chan bool) {
 	if !config.App.Platform.Slack.Enabled {
 		flog.Info("Slack is disabled")
 		return
@@ -40,6 +30,7 @@ func HandleWebsocket(stop <-chan bool) {
 	api := slack.New(config.App.Platform.Slack.BotToken, slack.OptionDebug(true), slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken))
 
 	client := socketmode.New(api, socketmode.OptionDebug(true))
+	action := Action{api: api}
 
 	go func() {
 		for {
@@ -62,11 +53,11 @@ func HandleWebsocket(stop <-chan bool) {
 
 					client.Ack(*event.Request)
 
-					err := makeRequest(&SlackRequest{
+					err := action.makeRequest(&SlackRequest{
 						StatusCode: 200,
 						Content:    "flowbot is up and running!",
 						Channel:    messageEvent.Channel,
-					}, api)
+					})
 					if err != nil {
 						flog.Error(err)
 					}
@@ -84,11 +75,11 @@ func HandleWebsocket(stop <-chan bool) {
 
 					client.Ack(*event.Request)
 
-					err := makeRequest(&SlackRequest{
+					err := action.makeRequest(&SlackRequest{
 						StatusCode: 200,
 						Content:    "cmd run",
 						Channel:    cmd.ChannelID,
-					}, api)
+					})
 					if err != nil {
 						flog.Error(err)
 					}
@@ -105,6 +96,13 @@ func HandleWebsocket(stop <-chan bool) {
 	}()
 }
 
+func (d *Driver) WebSocketServer(stop <-chan bool) {
+	if !config.App.Platform.Slack.Enabled {
+		flog.Info("Slack is disabled")
+		return
+	}
+}
+
 // SlackRequest takes in the StatusCode and Content from other functions to display to the user's slack.
 type SlackRequest struct {
 	// StatusCode is the http code that will be returned back to the user.
@@ -113,27 +111,4 @@ type SlackRequest struct {
 	Content string `json:"body"`
 	// Channel is the channel that the message will be sent to.
 	Channel string `json:"channel"`
-}
-
-func makeRequest(in *SlackRequest, api *slack.Client) error {
-	code := strconv.Itoa(in.StatusCode)
-	attachment := slack.Attachment{
-		Color: "#0069ff",
-		Fields: []slack.AttachmentField{
-			{
-				Title: in.Content,
-				Value: fmt.Sprintf("Response: %s", code),
-			},
-		},
-		Footer: "FlowBot " + " | " + time.Now().Format("01-02-2006 3:4:5 MST"),
-	}
-	_, _, err := api.PostMessage(
-		in.Channel,
-		slack.MsgOptionAttachments(attachment),
-		slack.MsgOptionAsUser(true),
-	)
-	if err != nil {
-		return err
-	}
-	return nil
 }

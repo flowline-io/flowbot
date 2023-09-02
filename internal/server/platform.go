@@ -7,7 +7,8 @@ import (
 
 func hookPlatform(stop <-chan bool) {
 	// slack
-	go slack.HandleWebsocket(stop)
+	d := slack.Driver{}
+	go d.WebSocketClient(stop)
 	// discord
 	go discord.HandleWebsocket(stop)
 }
