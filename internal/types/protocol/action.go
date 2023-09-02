@@ -117,3 +117,19 @@ var ErrLoginError = NewActionError(35001, "login error")
 
 // ErrIAmTired A Chatbot realizes the decision to strike.
 var ErrIAmTired = NewActionError(36001, "i am tired")
+
+func NewSuccessActionResponse(data any) ActionResponse {
+	return ActionResponse{
+		Status:  Success,
+		RetCode: SuccessCode,
+		Data:    data,
+	}
+}
+
+func NewFailedActionResponse(e *ActionError) ActionResponse {
+	return ActionResponse{
+		Status:  Failed,
+		RetCode: e.GetCode(),
+		Message: e.GetMessage(),
+	}
+}
