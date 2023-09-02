@@ -5,16 +5,16 @@ import (
 )
 
 type User struct {
-	RawData     types.KV
-	Email       string
-	Name        string
-	FirstName   string
-	LastName    string
-	NickName    string
-	Description string
-	UserID      string
-	AvatarURL   string
-	Location    string
-	Platform    string
-	IsBot       bool
+	RawData     types.KV `json:"raw_data"`
+	Email       string   `json:"email"`
+	Name        string   `json:"name"`
+	FirstName   string   `json:"first_name"`
+	LastName    string   `json:"last_name"`
+	NickName    string   `json:"nick_name"`
+	Description string   `json:"description"`
+	UserID      string   `json:"user_id"`
+	AvatarURL   string   `json:"avatar_url"`
+	Location    string   `json:"location"`
+	Platform    string   `json:"platform"`
+	IsBot       bool     `json:"is_bot"`
 }
