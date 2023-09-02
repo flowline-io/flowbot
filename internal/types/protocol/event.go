@@ -4,6 +4,17 @@ const (
 	ConnectEvent      = "meta.connect"
 	HeartbeatEvent    = "meta.heartbeat"
 	StatusUpdateEvent = "meta.status_update"
+
+	MessageDirectEvent  = "message.direct"
+	MessageGroupEvent   = "message.group"
+	MessageChannelEvent = "message.channel"
+
+	NoticeFriendIncreaseEvent      = "notice.friend_increase"
+	NoticeFriendDecreaseEvent      = "notice.friend_decrease"
+	NoticeGroupMemberIncreaseEvent = "notice.group_member_increase"
+	NoticeGroupMemberDecreaseEvent = "notice.group_member_decrease"
+	NoticeChannelCreateEvent       = "notice.channel_create"
+	NoticeChannelDeleteEvent       = "notice.channel_delete"
 )
 
 type Event struct {

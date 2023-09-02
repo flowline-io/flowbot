@@ -12,10 +12,9 @@ type MsgPayload interface {
 	Convert() (KV, interface{})
 }
 
-type EventPayload interface {
-	Name() string
-	Type() string
-	Emit() error
+type EventPayload struct {
+	Type   string
+	Params KV
 }
 
 type Context struct {

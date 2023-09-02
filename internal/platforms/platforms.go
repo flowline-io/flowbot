@@ -1,17 +1,21 @@
 package platforms
 
 import (
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/gofiber/fiber/v2"
 )
 
 // Driver Functional implementation of the client/server responsible for receiving
 // and sending messages (usually HTTP communication)
 type Driver interface {
-	// HandleMessage handle incoming message
-	HandleMessage() (types.MsgPayload, error)
-	// HandleEvent handle event
-	HandleEvent() (types.EventPayload, error)
+	// HttpServer The application can actively access the Chatbot implementation.
+	HttpServer(app *fiber.App) error
+	// HttpWebhookClient Chatbot implements active access to applications
+	HttpWebhookClient(message protocol.Message) error
+	// WebSocketClient The application can actively access the Chatbot implementation.
+	WebSocketClient(stop <-chan bool) error
+	// WebSocketServer Chatbot implements active access to applications
+	WebSocketServer(stop <-chan bool) error
 }
 
 // Adapter Responsible for converting platform messages to chatbot event/message formats.

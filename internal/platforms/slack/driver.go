@@ -2,14 +2,34 @@ package slack
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 	"strconv"
 	"time"
 )
+
+type Driver struct{}
+
+func (d *Driver) HttpServer(app *fiber.App) error {
+	return nil
+}
+
+func (d *Driver) HttpWebhookClient(message protocol.Message) error {
+	return nil
+}
+
+func (d *Driver) WebSocketClient(stop <-chan bool) error {
+	return nil
+}
+
+func (d *Driver) WebSocketServer(stop <-chan bool) error {
+	return nil
+}
 
 func HandleWebsocket(stop <-chan bool) {
 	if !config.App.Platform.Slack.Enabled {
