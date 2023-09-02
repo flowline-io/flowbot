@@ -7,13 +7,23 @@ type ResponseStatus string
 const (
 	Success ResponseStatus = "ok"
 	Failed  ResponseStatus = "failed"
+
+	SuccessCode = int64(0)
 )
 
 const (
-	SuccessCode = int64(0)
+	GetLatestEventsAction     = "get_latest_events"
+	GetSupportedActionsAction = "get_supported_actions"
+	GetStatusAction           = "get_status"
+	GetVersionAction          = "get_version"
 
-	SendMessageAction   = "send_message"
-	DeleteMessageAction = "delete_message"
+	SendMessageAction = "send_message"
+
+	GetUserInfoAction = "get_user_info"
+
+	CreateChannelAction  = "create_channel"
+	GetChannelInfoAction = "get_channel_info"
+	GetChannelListAction = "get_channel_list"
 )
 
 type ActionRequest struct {
