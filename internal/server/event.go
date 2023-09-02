@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // send message
@@ -49,6 +50,30 @@ func onPushInstruct() {
 			return true
 		})
 
+		return nil
+	})
+}
+
+func onPlatformMetaEvent() {
+	event.On("meta.*", func(data types.KV) error {
+		// todo
+		flog.Info("%v", data)
+		return nil
+	})
+}
+
+func onPlatformMessageEvent() {
+	event.On("message.*", func(data types.KV) error {
+		// todo
+		flog.Info("%v", data)
+		return nil
+	})
+}
+
+func onPlatformNoticeEvent() {
+	event.On("event.*", func(data types.KV) error {
+		// todo
+		flog.Info("%v", data)
 		return nil
 	})
 }

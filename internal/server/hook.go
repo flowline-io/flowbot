@@ -172,4 +172,7 @@ func hookMounted() {
 func hookEvent() {
 	onSendEvent()
 	onPushInstruct()
+	onPlatformMetaEvent()
+	onPlatformMessageEvent()
+	onPlatformNoticeEvent()
 }
