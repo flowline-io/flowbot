@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -67,15 +68,22 @@ func onPlatformMessageEvent() {
 	event.On("message.*", func(data types.KV) error {
 		// todo
 		flog.Info("%v", data)
-		e, ok := data.Any("event")
-		if !ok {
-			return nil
+
+		var pe protocol.Event
+		if e, ok := data.Any("event"); ok {
+			if v, ok := e.(protocol.Event); ok {
+				pe = v
+			}
 		}
-		pe, ok := e.(protocol.Event)
-		if !ok {
-			return nil
+
+		var caller *platforms.Caller
+		if e, ok := data.Any("caller"); ok {
+			if v, ok := e.(*platforms.Caller); ok {
+				caller = v
+			}
 		}
-		hookIncomingMessage(pe)
+
+		hookIncomingMessage(caller, pe)
 
 		return nil
 	})

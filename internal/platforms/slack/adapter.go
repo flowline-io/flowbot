@@ -58,6 +58,8 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 
 			// todo message data
 			result.Data = protocol.MessageEventData{
+				TopicId:    messageEvent.Channel,
+				TopicType:  messageEvent.ChannelType, // todo
 				AltMessage: messageEvent.Text,
 			}
 		}

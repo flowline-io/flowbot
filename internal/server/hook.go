@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -133,15 +134,15 @@ func hookChannel() {
 	stats.Set("ChannelTotal", int64(len(channels.List())))
 }
 
-func hookIncomingMessage(msg protocol.Event) {
+func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {
 	// update online status
 	//onlineStatus(msg.AsUser)
 	// check grp or p2p
 	if strings.HasSuffix(msg.DetailType, ".direct") {
-		directIncomingMessage(msg)
+		directIncomingMessage(caller, msg)
 	}
 	if strings.HasSuffix(msg.DetailType, ".group") {
-		groupIncomingMessage(msg)
+		groupIncomingMessage(caller, msg)
 	}
 }
 

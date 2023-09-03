@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -13,11 +14,20 @@ import (
 
 type Driver struct {
 	adapter Adapter
+	action  *Action
+	api     *slack.Client
 }
 
 func NewDriver() *Driver {
+	api := slack.New(
+		config.App.Platform.Slack.BotToken,
+		slack.OptionDebug(true),
+		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
+	)
 	return &Driver{
 		adapter: Adapter{},
+		action:  &Action{api: api},
+		api:     api,
 	}
 }
 
@@ -35,12 +45,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 		return
 	}
 
-	api := slack.New(
-		config.App.Platform.Slack.BotToken,
-		slack.OptionDebug(true),
-		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
-	)
-	client := socketmode.New(api, socketmode.OptionDebug(true))
+	client := socketmode.New(d.api, socketmode.OptionDebug(true))
 
 	go func() {
 		for {
@@ -56,7 +61,16 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				}
 
 				// emit event
-				pkgEvent.AsyncEmit(protocolEvent.DetailType, types.KV{"event": protocolEvent})
+				err := pkgEvent.Emit(protocolEvent.DetailType, types.KV{
+					"caller": &platforms.Caller{
+						Action: d.action,
+					},
+					"event": protocolEvent,
+				})
+				if err != nil {
+					flog.Error(err)
+					continue
+				}
 
 				// ack
 				if protocolEvent.Type == protocol.MessageEventType {
@@ -79,14 +93,4 @@ func (d *Driver) WebSocketServer(stop <-chan bool) {
 		flog.Info("Slack is disabled")
 		return
 	}
-}
-
-// SlackRequest takes in the StatusCode and Content from other functions to display to the user's slack.
-type SlackRequest struct {
-	// StatusCode is the http code that will be returned back to the user.
-	StatusCode int `json:"statusCode"`
-	// Content will contain the presigned url, error messages, or success messages.
-	Content string `json:"body"`
-	// Channel is the channel that the message will be sent to.
-	Channel string `json:"channel"`
 }

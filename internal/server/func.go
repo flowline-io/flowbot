@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	botGithub "github.com/flowline-io/flowbot/internal/bots/github"
 	botPocket "github.com/flowline-io/flowbot/internal/bots/pocket"
+	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/action"
 	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
@@ -58,7 +59,7 @@ type Topic struct { // fixme del
 	name string
 }
 
-func directIncomingMessage(e protocol.Event) {
+func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// check topic owner user
 
 	msg, ok := e.Data.(protocol.MessageEventData)
@@ -287,11 +288,17 @@ func directIncomingMessage(e protocol.Event) {
 		return
 	}
 
-	//botUid := types.ParseUserId(msg.Original)
-	//botSend(msg.RcptTo, botUid, payload, types.WithContext(ctx)) todo
+	resp := caller.Do(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: types.KV{ // todo fixme
+			"text":  payload.(types.TextMsg).Text,
+			"topic": msg.TopicId,
+		},
+	})
+	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
-func groupIncomingMessage(e protocol.Event) {
+func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
