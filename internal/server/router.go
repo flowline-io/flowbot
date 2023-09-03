@@ -544,8 +544,7 @@ func platformCallback(ctx *fiber.Ctx) error {
 	case tailchat.ID:
 		err = tailchat.HandleHttp(ctx)
 	case slack.ID:
-		d := slack.Driver{}
-		err = d.HttpServer(ctx)
+		err = slack.NewDriver().HttpServer(ctx)
 	}
 	if err != nil {
 		flog.Error(err)

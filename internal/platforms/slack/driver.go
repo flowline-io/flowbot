@@ -1,17 +1,25 @@
 package slack
 
 import (
-	"fmt"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
+	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 )
 
-type Driver struct{}
+type Driver struct {
+	adapter Adapter
+}
+
+func NewDriver() *Driver {
+	return &Driver{
+		adapter: Adapter{},
+	}
+}
 
 func (d *Driver) HttpServer(ctx *fiber.Ctx) error {
 	return nil
@@ -27,10 +35,12 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 		return
 	}
 
-	api := slack.New(config.App.Platform.Slack.BotToken, slack.OptionDebug(true), slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken))
-
+	api := slack.New(
+		config.App.Platform.Slack.BotToken,
+		slack.OptionDebug(true),
+		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
+	)
 	client := socketmode.New(api, socketmode.OptionDebug(true))
-	action := Action{api: api}
 
 	go func() {
 		for {
@@ -39,50 +49,18 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				flog.Info("Slack is shutting down.")
 				return
 			case event := <-client.Events:
-				switch event.Type {
-				// message
-				case socketmode.EventTypeEventsAPI:
-					apiEvent := event.Data.(slackevents.EventsAPIEvent)
-					messageEvent := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
-					fmt.Println(messageEvent.Text)
+				// convert
+				protocolEvent := d.adapter.EventConvert(event)
+				if protocolEvent.DetailType == "" {
+					continue
+				}
 
-					// Ignore all messages created by the bot itself
-					if messageEvent.BotID != "" {
-						continue
-					}
+				// emit event
+				pkgEvent.AsyncEmit(protocolEvent.DetailType, types.KV{"event": protocolEvent})
 
+				// ack
+				if protocolEvent.Type == protocol.MessageEventType {
 					client.Ack(*event.Request)
-
-					err := action.makeRequest(&SlackRequest{
-						StatusCode: 200,
-						Content:    "flowbot is up and running!",
-						Channel:    messageEvent.Channel,
-					})
-					if err != nil {
-						flog.Error(err)
-					}
-
-				// slash command
-				case socketmode.EventTypeSlashCommand:
-					cmd, ok := event.Data.(slack.SlashCommand)
-					if !ok {
-						fmt.Printf("Ignored %+v\n", event)
-
-						continue
-					}
-
-					client.Debugf("Slash command received: %+v", cmd)
-
-					client.Ack(*event.Request)
-
-					err := action.makeRequest(&SlackRequest{
-						StatusCode: 200,
-						Content:    "cmd run",
-						Channel:    cmd.ChannelID,
-					})
-					if err != nil {
-						flog.Error(err)
-					}
 				}
 			}
 		}
