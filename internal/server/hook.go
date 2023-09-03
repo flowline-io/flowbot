@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -133,34 +133,15 @@ func hookChannel() {
 	stats.Set("ChannelTotal", int64(len(channels.List())))
 }
 
-func hookHandleIncomingMessage(t *Topic, msg *ClientComMessage) {
+func hookIncomingMessage(msg protocol.Event) {
 	// update online status
-	onlineStatus(msg.AsUser)
+	//onlineStatus(msg.AsUser)
 	// check grp or p2p
-	if strings.HasPrefix(msg.Original, "grp") {
-		groupIncomingMessage(t, msg, types.GroupEventReceive)
-	} else {
-		botIncomingMessage(t, msg)
+	if strings.HasSuffix(msg.DetailType, ".direct") {
+		directIncomingMessage(msg)
 	}
-}
-
-func hookHandleGroupEvent(t *Topic, msg *ClientComMessage, event int) {
-	if strings.HasPrefix(msg.Original, "grp") {
-		switch types.GroupEvent(event) {
-		case types.GroupEventJoin:
-			msg.AsUser = msg.Set.MsgSetQuery.Sub.User
-		case types.GroupEventExit:
-			msg.AsUser = msg.Del.User
-		}
-		//user, err := tstore.Users.Get(types.ParseUserId(msg.AsUser))
-		//if err != nil {
-		//	flog.Error(err)
-		//}
-		// Current user is bot
-		//if isBotUser(user) {
-		//	return
-		//}
-		groupIncomingMessage(t, msg, types.GroupEvent(event))
+	if strings.HasSuffix(msg.DetailType, ".group") {
+		groupIncomingMessage(msg)
 	}
 }
 

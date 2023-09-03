@@ -84,6 +84,13 @@ func (j KV) Map(key string) (map[string]interface{}, bool) {
 	return nil, false
 }
 
+func (j KV) Any(key string) (any, bool) {
+	if v, ok := j.get(key); ok {
+		return v, ok
+	}
+	return nil, false
+}
+
 func (j KV) get(key string) (interface{}, bool) {
 	v, ok := j[key]
 	return v, ok

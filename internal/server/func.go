@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -28,66 +29,6 @@ import (
 	"strings"
 	"time"
 )
-
-const BotFather = "BotFather"
-
-func isBot(subs interface{}) bool {
-	//// normal bot user
-	//if subs.GetState() != types.StateOK {
-	//	return false
-	//}
-	//// verified
-	//trusted := subs.GetTrusted()
-	//if trusted == nil {
-	//	return false
-	//}
-	//if !isVerified(trusted) {
-	//	return false
-	//}
-	//// check name
-	//public := subs.GetPublic()
-	//if public == nil {
-	//	return false
-	//}
-	//name := utils.Fn(public)
-	//if !strings.HasSuffix(name, bots.BotNameSuffix) {
-	//	return false
-	//}
-
-	return true
-}
-
-func isBotUser(user *types.User) bool {
-	//if user == nil {
-	//	return false
-	//}
-	//// normal bot user
-	//if user.State != types.StateOK {
-	//	return false
-	//}
-	//// verified
-	//if !isVerified(user.Trusted) {
-	//	return false
-	//}
-	//// check name
-	//name := utils.Fn(user.Public)
-	//if !strings.HasSuffix(name, bots.BotNameSuffix) {
-	//	return false
-	//}
-
-	return true
-}
-
-func botName(subs interface{}) string {
-	//public := subs.GetPublic()
-	//if public == nil {
-	//	return ""
-	//}
-	//name := utils.Fn(public)
-	//name = strings.ReplaceAll(name, bots.BotNameSuffix, "")
-	//return name
-	return ""
-}
 
 // botSend bot send message, rcptTo: user uid: bot
 func botSend(rcptTo string, uid types.Uid, out types.MsgPayload, option ...interface{}) {
@@ -117,27 +58,26 @@ type Topic struct { // fixme del
 	name string
 }
 
-func botIncomingMessage(t *Topic, msg *ClientComMessage) {
+func directIncomingMessage(e protocol.Event) {
 	// check topic owner user
-	if msg.AsUser == msg.Pub.Topic {
-		return
-	}
-	if msg.Original == "" || msg.RcptTo == "" {
+
+	msg, ok := e.Data.(protocol.MessageEventData)
+	if !ok {
 		return
 	}
 
 	var err error
-	var subs []interface{} // fixme
 
-	uid := types.ParseUserId(msg.AsUser)
+	uid := types.Uid(0)  // todo msg.UserId
+	topic := msg.TopicId // todo
 	ctx := types.Context{
-		Id:        msg.Id,
-		Original:  msg.Original,
-		RcptTo:    msg.RcptTo,
-		AsUser:    uid,
-		AuthLvl:   msg.AuthLvl,
-		MetaWhat:  msg.MetaWhat,
-		Timestamp: msg.Timestamp,
+		Id: e.Id,
+		//Original:  msg.Original,
+		//RcptTo:    msg.RcptTo,
+		//AsUser:    uid,
+		//AuthLvl:   msg.AuthLvl,
+		//MetaWhat:  msg.MetaWhat,
+		//Timestamp: msg.Timestamp,
 	}
 
 	// behavior
@@ -145,298 +85,231 @@ func botIncomingMessage(t *Topic, msg *ClientComMessage) {
 
 	// user auth record
 
-	// bot
-	for _, sub := range subs {
-		if !isBot(sub) {
-			continue
+	// bot name
+	name := "dev" // todo botName(sub)
+	handle, ok := bots.List()[name]
+	if !ok {
+		return
+	}
+
+	if !handle.IsReady() {
+		flog.Info("bot %s unavailable", name)
+		return
+	}
+
+	var payload types.MsgPayload
+
+	// session
+	if sess, ok := sessionCurrent(uid, topic); ok && sess.State == model.SessionStart {
+		// session cancel command
+		isCancel := false
+		if msg.AltMessage == "cancel" {
+			_ = store.Chatbot.SessionState(ctx.AsUser, ctx.Original, model.SessionCancel)
+			payload = types.TextMsg{Text: "session cancel"}
+			isCancel = true
 		}
+		if !isCancel {
+			ctx.SessionRuleId = sess.RuleID
+			ctx.SessionInitValues = types.KV(sess.Init)
+			ctx.SessionLastValues = types.KV(sess.Values)
 
-		// bot name
-		name := botName(sub)
-		handle, ok := bots.List()[name]
-		if !ok {
-			continue
-		}
-
-		if !handle.IsReady() {
-			flog.Info("bot %s unavailable", t.name)
-			continue
-		}
-
-		var payload types.MsgPayload
-
-		// auth
-		if payload == nil {
-			// session
-			if sess, ok := sessionCurrent(uid, msg.Original); ok && sess.State == model.SessionStart {
-				// session cancel command
-				isCancel := false
-				if msg.Pub.Head == nil {
-					if v, ok := msg.Pub.Content.(string); ok {
-						if v == "cancel" {
-							_ = store.Chatbot.SessionState(ctx.AsUser, ctx.Original, model.SessionCancel)
-							payload = types.TextMsg{Text: "session cancel"}
-							isCancel = true
-						}
-					}
-				}
-				if !isCancel {
-					ctx.SessionRuleId = sess.RuleID
-					ctx.SessionInitValues = types.KV(sess.Init)
-					ctx.SessionLastValues = types.KV(sess.Values)
-
-					// get action handler
-					var botHandler bots.Handler
-					for _, handler := range bots.List() {
-						for _, item := range handler.Rules() {
-							switch v := item.(type) {
-							case []session.Rule:
-								for _, rule := range v {
-									if rule.Id == sess.RuleID {
-										botHandler = handler
-									}
-								}
-							}
-						}
-					}
-					if botHandler == nil {
-						payload = types.TextMsg{Text: "error session"}
-					} else {
-						payload, err = botHandler.Session(ctx, msg.Pub.Content)
-						if err != nil {
-							flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-						}
-					}
-				}
-			}
-			// action
-			if payload == nil {
-				if msg.Pub.Head != nil {
-					var cm types.ChatMessage
-					d, err := json.Marshal(msg.Pub.Content)
-					if err != nil {
-						flog.Error(err)
-					}
-					err = json.Unmarshal(d, &cm)
-					if err != nil {
-						flog.Error(err)
-					}
-					var seq float64
-					var option string
-					for _, ent := range cm.Ent {
-						if ent.Tp == "EX" {
-							if m, ok := ent.Data.Val.(map[string]interface{}); ok {
-								if v, ok := m["seq"]; ok {
-									seq = v.(float64)
-								}
-								if v, ok := m["resp"]; ok {
-									values := v.(map[string]interface{})
-									for s := range values {
-										option = s
-									}
-								}
-							}
-						}
-					}
-					if seq > 0 {
-						message, err := store.Chatbot.GetMessage(msg.RcptTo, int(seq))
-						if err != nil {
-							flog.Error(err)
-						}
-						actionRuleId := ""
-						if src, ok := types.KV(message.Content).Map("src"); ok {
-							if id, ok := src["id"]; ok {
-								actionRuleId = id.(string)
-							}
-						}
-						ctx.SeqId = int(seq)
-						ctx.ActionRuleId = actionRuleId
-
-						// get action handler
-						var botHandler bots.Handler
-						for _, handler := range bots.List() {
-							for _, item := range handler.Rules() {
-								switch v := item.(type) {
-								case []action.Rule:
-									for _, rule := range v {
-										if rule.Id == actionRuleId {
-											botHandler = handler
-										}
-									}
-								}
-							}
-						}
-						if botHandler == nil {
-							payload = types.TextMsg{Text: "error action"}
-						} else {
-							payload, err = botHandler.Action(ctx, option)
-							if err != nil {
-								flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-							}
-
-							if payload != nil {
-								botUid := types.ParseUserId(msg.Original)
-								botSend(msg.RcptTo, botUid, payload, types.WithContext(ctx))
-
-								// pipeline action stage
-								pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
-								pipelineVersion, _ := types.KV(message.Head).Int64("x-pipeline-version")
-								nextPipeline(ctx, pipelineFlag, int(pipelineVersion), msg.RcptTo, botUid)
-								return
+			// get action handler
+			var botHandler bots.Handler
+			for _, handler := range bots.List() {
+				for _, item := range handler.Rules() {
+					switch v := item.(type) {
+					case []session.Rule:
+						for _, rule := range v {
+							if rule.Id == sess.RuleID {
+								botHandler = handler
 							}
 						}
 					}
 				}
 			}
-			// command
-			if payload == nil {
-				var content interface{}
-				if msg.Pub.Head == nil {
-					content = msg.Pub.Content
-				} else {
-					// Compatible with drafty
-					if m, ok := msg.Pub.Content.(map[string]interface{}); ok {
-						if txt, ok := m["txt"]; ok {
-							content = txt
-						}
-					}
-				}
-				// check "/" prefix
-				if in, ok := content.(string); ok && strings.HasPrefix(in, "/") {
-					in = strings.Replace(in, "/", "", 1)
-					payload, err = handle.Command(ctx, in)
-					if err != nil {
-						flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-					}
-
-					// stats
-					stats.Inc("BotRunCommandTotal", 1)
-
-					// error message
-					if payload == nil {
-						payload = types.TextMsg{Text: "error command"}
-					}
-				}
-			}
-			// pipeline command trigger
-			if payload == nil {
-				var content interface{}
-				if msg.Pub.Head == nil {
-					content = msg.Pub.Content
-				} else {
-					// Compatible with drafty
-					if m, ok := msg.Pub.Content.(map[string]interface{}); ok {
-						if txt, ok := m["txt"]; ok {
-							content = txt
-						}
-					}
-				}
-				// check "~" prefix
-				if in, ok := content.(string); ok && strings.HasPrefix(in, "~") {
-					var pipelineFlag string
-					var pipelineVersion int
-					in = strings.Replace(in, "~", "", 1)
-					payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, msg.Pub.Head, in, types.PipelineCommandTriggerOperate)
-					if err != nil {
-						flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-					}
-					ctx.PipelineFlag = pipelineFlag
-					ctx.PipelineVersion = pipelineVersion
-
-					// stats
-					stats.Inc("BotTriggerPipelineTotal", 1)
-
-					// error message
-					if payload == nil {
-						payload = types.TextMsg{Text: "error pipeline"}
-					}
-				}
-			}
-			// condition
-			if payload == nil {
-				if msg.Pub.Head != nil {
-					fUid := ""
-					fSeq := int64(0)
-					if v, ok := msg.Pub.Head["forwarded"]; ok {
-						if s, ok := v.(string); ok {
-							f := strings.Split(s, ":")
-							if len(f) == 2 {
-								fUid = f[0]
-								fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-							}
-						}
-					}
-
-					if fUid != "" && fSeq > 0 {
-						//uid2 := types.ParseUserId(fUid)
-						topic := "" // fixme
-						message, err := store.Chatbot.GetMessage(topic, int(fSeq))
-						if err != nil {
-							flog.Error(err)
-						}
-
-						if message.ID > 0 {
-							src, _ := types.KV(message.Content).Map("src")
-							tye, _ := types.KV(message.Content).String("tye")
-							d, _ := json.Marshal(src)
-							pl := types.ToPayload(tye, d)
-							ctx.Condition = tye
-							payload, err = handle.Condition(ctx, pl)
-							if err != nil {
-								flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-							}
-
-							// stats
-							stats.Inc("BotRunConditionTotal", 1)
-						}
-					}
-				}
-			}
-			// input
-			if payload == nil {
-				payload, err = handle.Input(ctx, msg.Pub.Head, msg.Pub.Content)
+			if botHandler == nil {
+				payload = types.TextMsg{Text: "error session"}
+			} else {
+				payload, err = botHandler.Session(ctx, msg.AltMessage)
 				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-					continue
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+				}
+			}
+		}
+	}
+	// action
+	if payload == nil {
+		seq := msg.Seq
+		option := msg.Option
+		if seq > 0 {
+			message, err := store.Chatbot.GetMessage(topic, int(seq))
+			if err != nil {
+				flog.Error(err)
+			}
+			actionRuleId := ""
+			if src, ok := types.KV(message.Content).Map("src"); ok {
+				if id, ok := src["id"]; ok {
+					actionRuleId = id.(string)
+				}
+			}
+			ctx.SeqId = int(seq)
+			ctx.ActionRuleId = actionRuleId
+
+			// get action handler
+			var botHandler bots.Handler
+			for _, handler := range bots.List() {
+				for _, item := range handler.Rules() {
+					switch v := item.(type) {
+					case []action.Rule:
+						for _, rule := range v {
+							if rule.Id == actionRuleId {
+								botHandler = handler
+							}
+						}
+					}
+				}
+			}
+			if botHandler == nil {
+				payload = types.TextMsg{Text: "error action"}
+			} else {
+				payload, err = botHandler.Action(ctx, option)
+				if err != nil {
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+				}
+
+				if payload != nil {
+					botUid := types.Uid(0) // todo types.ParseUserId(msg.Original)
+					botSend(topic, botUid, payload, types.WithContext(ctx))
+
+					// pipeline action stage
+					pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
+					pipelineVersion, _ := types.KV(message.Head).Int64("x-pipeline-version")
+					nextPipeline(ctx, pipelineFlag, int(pipelineVersion), topic, botUid)
+					return
+				}
+			}
+		}
+	}
+	// command
+	if payload == nil {
+		in := msg.AltMessage
+		// check "/" prefix
+		if strings.HasPrefix(in, "/") {
+			in = strings.Replace(in, "/", "", 1)
+			payload, err = handle.Command(ctx, in)
+			if err != nil {
+				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+			}
+
+			// stats
+			stats.Inc("BotRunCommandTotal", 1)
+
+			// error message
+			if payload == nil {
+				payload = types.TextMsg{Text: "error command"}
+			}
+		}
+	}
+	// pipeline command trigger
+	if payload == nil {
+		in := msg.AltMessage
+		// check "~" prefix
+		if strings.HasPrefix(in, "~") {
+			var pipelineFlag string
+			var pipelineVersion int
+			in = strings.Replace(in, "~", "", 1)
+			payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, nil, in, types.PipelineCommandTriggerOperate)
+			if err != nil {
+				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+			}
+			ctx.PipelineFlag = pipelineFlag
+			ctx.PipelineVersion = pipelineVersion
+
+			// stats
+			stats.Inc("BotTriggerPipelineTotal", 1)
+
+			// error message
+			if payload == nil {
+				payload = types.TextMsg{Text: "error pipeline"}
+			}
+		}
+	}
+	// condition
+	if payload == nil {
+		fUid := ""
+		fSeq := int64(0)
+		if msg.Forwarded != "" {
+			f := strings.Split(msg.Forwarded, ":")
+			if len(f) == 2 {
+				fUid = f[0]
+				fSeq, _ = strconv.ParseInt(f[1], 10, 64)
+			}
+		}
+
+		if fUid != "" && fSeq > 0 {
+			//uid2 := types.ParseUserId(fUid)
+			topic := "" // fixme
+			message, err := store.Chatbot.GetMessage(topic, int(fSeq))
+			if err != nil {
+				flog.Error(err)
+			}
+
+			if message.ID > 0 {
+				src, _ := types.KV(message.Content).Map("src")
+				tye, _ := types.KV(message.Content).String("tye")
+				d, _ := json.Marshal(src)
+				pl := types.ToPayload(tye, d)
+				ctx.Condition = tye
+				payload, err = handle.Condition(ctx, pl)
+				if err != nil {
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
 				}
 
 				// stats
-				stats.Inc("BotRunInputTotal", 1)
+				stats.Inc("BotRunConditionTotal", 1)
 			}
 		}
-
-		// send message
-		if payload == nil {
-			continue
+	}
+	// input
+	if payload == nil {
+		payload, err = handle.Input(ctx, nil, msg.AltMessage)
+		if err != nil {
+			flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+			return
 		}
 
-		botUid := types.ParseUserId(msg.Original)
-		botSend(msg.RcptTo, botUid, payload, types.WithContext(ctx))
+		// stats
+		stats.Inc("BotRunInputTotal", 1)
 	}
+
+	// send message
+	if payload == nil {
+		return
+	}
+
+	//botUid := types.ParseUserId(msg.Original)
+	//botSend(msg.RcptTo, botUid, payload, types.WithContext(ctx)) todo
 }
 
-func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEvent) {
-	var err error
-	var subs []interface{} // fixme
-	// check bot user incoming
-	for _, sub := range subs {
-		if !isBot(sub) {
-			continue
-		}
-		//if strings.TrimPrefix(msg.AsUser, "usr") == sub.User {
-		//	return
-		//}
+func groupIncomingMessage(e protocol.Event) {
+	msg, ok := e.Data.(protocol.MessageEventData)
+	if !ok {
+		return
 	}
 
-	uid := types.ParseUserId(msg.AsUser)
+	var err error
+
+	uid := types.Uid(0) // todo msg.UserId
+	//topic := msg.TopicId // todo
+
 	ctx := types.Context{
-		Id:        msg.Id,
-		Original:  msg.Original,
-		RcptTo:    msg.RcptTo,
-		AsUser:    uid,
-		AuthLvl:   msg.AuthLvl,
-		MetaWhat:  msg.MetaWhat,
-		Timestamp: msg.Timestamp,
+		Id: e.Id,
+		//Original:  msg.Original,
+		//RcptTo:    msg.RcptTo,
+		//AsUser:    uid,
+		//AuthLvl:   msg.AuthLvl,
+		//MetaWhat:  msg.MetaWhat,
+		//Timestamp: msg.Timestamp,
 	}
 
 	// behavior
@@ -444,95 +317,76 @@ func groupIncomingMessage(t *Topic, msg *ClientComMessage, event types.GroupEven
 
 	// user auth record
 
-	// bot
-	for _, sub := range subs {
-		if !isBot(sub) {
-			continue
-		}
-
-		// bot name
-		name := botName(sub)
-		handle, ok := bots.List()[name]
-		if !ok {
-			continue
-		}
-
-		if !handle.IsReady() {
-			flog.Info("bot %s unavailable", t.name)
-			continue
-		}
-
-		var payload types.MsgPayload
-
-		// auth
-		if payload == nil {
-			// condition
-			if msg.Pub != nil && msg.Pub.Head != nil {
-				fUid := ""
-				fSeq := int64(0)
-				if v, ok := msg.Pub.Head["forwarded"]; ok {
-					if s, ok := v.(string); ok {
-						f := strings.Split(s, ":")
-						if len(f) == 2 {
-							fUid = f[0]
-							fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-						}
-					}
-				}
-
-				if fUid != "" && fSeq > 0 {
-					//uid2 := types.ParseUserId(fUid)
-					topic := "" // fixme
-					message, err := store.Chatbot.GetMessage(topic, int(fSeq))
-					if err != nil {
-						flog.Error(err)
-					}
-
-					if message.ID > 0 {
-						src, _ := types.KV(message.Content).Map("src")
-						tye, _ := types.KV(message.Content).String("tye")
-						d, _ := json.Marshal(src)
-						pl := types.ToPayload(tye, d)
-						ctx.Condition = tye
-						payload, err = handle.Condition(ctx, pl)
-						if err != nil {
-							flog.Warn("topic[%s]: failed to run bot: %v", t.name, err)
-						}
-
-						// stats
-						stats.Inc("BotRunConditionTotal", 1)
-					}
-				}
-			}
-		}
-
-		// group
-		if payload == nil {
-			ctx.GroupEvent = event
-			var head map[string]any
-			var content any
-			if msg.Pub != nil {
-				head = msg.Pub.Head
-				content = msg.Pub.Content
-			}
-			payload, err = handle.Group(ctx, head, content)
-			if err != nil {
-				flog.Warn("topic[%s]: failed to run group bot: %v", t.name, err)
-				continue
-			}
-
-			// stats
-			stats.Inc("BotRunGroupTotal", 1)
-		}
-
-		// send message
-		if payload == nil {
-			continue
-		}
-
-		botUid := types.Uid(0) // fixme
-		botSend(msg.RcptTo, botUid, payload)
+	// bot name
+	name := "dev" // todo botName(sub)
+	handle, ok := bots.List()[name]
+	if !ok {
+		return
 	}
+
+	if !handle.IsReady() {
+		flog.Info("bot %s unavailable", name)
+		return
+	}
+
+	var payload types.MsgPayload
+
+	// condition
+	if payload == nil {
+		fUid := ""
+		fSeq := int64(0)
+		if forwarded := msg.Forwarded; forwarded != "" {
+			f := strings.Split(forwarded, ":")
+			if len(f) == 2 {
+				fUid = f[0]
+				fSeq, _ = strconv.ParseInt(f[1], 10, 64)
+			}
+		}
+
+		if fUid != "" && fSeq > 0 {
+			//uid2 := types.ParseUserId(fUid)
+			topic := "" // fixme
+			message, err := store.Chatbot.GetMessage(topic, int(fSeq))
+			if err != nil {
+				flog.Error(err)
+			}
+
+			if message.ID > 0 {
+				src, _ := types.KV(message.Content).Map("src")
+				tye, _ := types.KV(message.Content).String("tye")
+				d, _ := json.Marshal(src)
+				pl := types.ToPayload(tye, d)
+				ctx.Condition = tye
+				payload, err = handle.Condition(ctx, pl)
+				if err != nil {
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+				}
+
+				// stats
+				stats.Inc("BotRunConditionTotal", 1)
+			}
+		}
+	}
+
+	// group
+	if payload == nil {
+		payload, err = handle.Group(ctx, nil, msg.AltMessage)
+		if err != nil {
+			flog.Warn("topic[%s]: failed to run group bot: %v", name, err)
+			return
+		}
+
+		// stats
+		stats.Inc("BotRunGroupTotal", 1)
+	}
+
+	// send message
+	if payload == nil {
+		return
+	}
+
+	//botUid := types.Uid(0) // fixme
+	//botSend(topic, botUid, payload)
 }
 
 func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, rcptTo string, botUid types.Uid) {
@@ -586,10 +440,10 @@ func notifyAfterReboot() {
 func onlineStatus(usrStr string) {
 	//uid := types.ParseUserId(usrStr)
 	var err error
-	var user *types.User // fixme
-	if isBotUser(user) {
-		return
-	}
+	//var user *types.User // fixme
+	//if isBotUser(user) {
+	//	return
+	//}
 
 	ctx := context.Background()
 	key := fmt.Sprintf("online:%s", usrStr)

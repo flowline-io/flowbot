@@ -41,6 +41,14 @@ type MessageEventData struct {
 	Message    []MessageSegment `json:"message,omitempty"`
 	AltMessage string           `json:"alt_message,omitempty"`
 	UserId     string           `json:"user_id,omitempty"`
+
+	TopicId   string `json:"topic_id,omitempty"`
+	TopicType string `json:"topic_type,omitempty"`
+
+	Forwarded string `json:"forwarded,omitempty"`
+
+	Seq    float64 `json:"seq,omitempty"`
+	Option string  `json:"option,omitempty"`
 }
 
 type CommandEventData struct {
