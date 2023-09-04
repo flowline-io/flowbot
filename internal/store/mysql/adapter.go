@@ -317,15 +317,6 @@ func (a *adapter) GetMessage(topic string, seqId int) (model.Message, error) {
 	return find, nil
 }
 
-func (a *adapter) GetCredentials() ([]*model.Credential, error) {
-	var find []*model.Credential
-	err := a.db.Find(&find).Error
-	if err != nil {
-		return nil, err
-	}
-	return find, nil
-}
-
 func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) error {
 	var find model.Data
 	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).First(&find).Error
@@ -1160,7 +1151,7 @@ func (a *adapter) ListReviews(uid types.Uid, topic string) ([]*model.Review, err
 
 func (a *adapter) GetReviewByID(id int64) (*model.Review, error) {
 	q := dao.Q.Review
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) CreateReviewEvaluation(evaluation *model.ReviewEvaluation) (int64, error) {
@@ -1180,13 +1171,13 @@ func (a *adapter) UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) err
 
 func (a *adapter) ListReviewEvaluations(uid types.Uid, topic string, reviewID int64) ([]*model.ReviewEvaluation, error) {
 	q := dao.Q.ReviewEvaluation
-	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic), q.ReviewID.Eq(int32(reviewID))).
+	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic), q.ReviewID.Eq(reviewID)).
 		Order(q.UpdatedAt.Desc()).Find()
 }
 
 func (a *adapter) GetReviewEvaluationByID(id int64) (*model.ReviewEvaluation, error) {
 	q := dao.Q.ReviewEvaluation
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) CreateCycle(cycle *model.Cycle) (int64, error) {
@@ -1212,7 +1203,7 @@ func (a *adapter) ListCycles(uid types.Uid, topic string) ([]*model.Cycle, error
 
 func (a *adapter) GetCycleByID(id int64) (*model.Cycle, error) {
 	q := dao.Q.Cycle
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) CreateCounter(counter *model.Counter) (int64, error) {
@@ -1257,7 +1248,7 @@ func (a *adapter) ListCounter(uid types.Uid, topic string) ([]*model.Counter, er
 }
 
 func (a *adapter) record(id, digit int64) {
-	err := a.db.Exec("INSERT INTO `chatbot_counter_records` ( `counter_id`, `digit`, `created_at`) VALUES (?, ?, ?)",
+	err := a.db.Exec("INSERT INTO `counter_records` ( `counter_id`, `digit`, `created_at`) VALUES (?, ?, ?)",
 		id, digit, time.Now()).Error
 	if err != nil {
 		flog.Error(err)
@@ -1312,12 +1303,12 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 
 func (a *adapter) GetWorkflow(id int64) (*model.Workflow, error) {
 	q := dao.Q.Workflow
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) UpdateWorkflowState(id int64, state model.WorkflowState) error {
 	q := dao.Q.Workflow
-	_, err := q.Where(q.ID.Eq(int32(id))).UpdateSimple(q.State.Value(state))
+	_, err := q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state))
 	return err
 }
 
@@ -1328,7 +1319,7 @@ func (a *adapter) ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow,
 
 func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error {
 	q := dao.Q.Workflow
-	_, err := q.Where(q.ID.Eq(int32(id))).UpdateSimple(
+	_, err := q.Where(q.ID.Eq(id)).UpdateSimple(
 		q.SuccessfulCount.Add(successful),
 		q.FailedCount.Add(failed),
 		q.RunningCount.Add(running),
@@ -1338,29 +1329,29 @@ func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32
 
 func (a *adapter) DeleteWorkflow(id int64) error {
 	q := dao.Q.Workflow
-	_, err := q.Where(q.ID.Eq(int32(id))).Delete()
+	_, err := q.Where(q.ID.Eq(id)).Delete()
 	return err
 }
 
 func (a *adapter) GetDag(id int64) (*model.Dag, error) {
 	q := dao.Q.Dag
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) GetJob(id int64) (*model.Job, error) {
 	q := dao.Q.Job
-	return q.Where(q.ID.Eq(int32(id))).First()
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) DeleteJob(id int64) error {
 	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(int32(id))).Delete()
+	_, err := q.Where(q.ID.Eq(id)).Delete()
 	return err
 }
 
 func (a *adapter) ListJobs(workflowID int64) ([]*model.Job, error) {
 	q := dao.Q.Job
-	return q.Where(q.WorkflowID.Eq(int32(workflowID))).Find()
+	return q.Where(q.WorkflowID.Eq(workflowID)).Find()
 }
 
 func (a *adapter) GetJobsByState(state model.JobState) ([]*model.Job, error) {
@@ -1370,49 +1361,49 @@ func (a *adapter) GetJobsByState(state model.JobState) ([]*model.Job, error) {
 
 func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
 	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.State, state)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.State, state)
 	return err
 }
 
 func (a *adapter) UpdateJobStartedAt(id int64, at time.Time) error {
 	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.StartedAt, at)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.StartedAt, at)
 	return err
 }
 
 func (a *adapter) UpdateJobFinishedAt(id int64, at time.Time) error {
 	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.FinishedAt, at)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.FinishedAt, at)
 	return err
 }
 
 func (a *adapter) UpdateStepState(id int64, state model.StepState) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.State, state)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.State, state)
 	return err
 }
 
 func (a *adapter) UpdateStepStartedAt(id int64, at time.Time) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.StartedAt, at)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.StartedAt, at)
 	return err
 }
 
 func (a *adapter) UpdateStepFinishedAt(id int64, at time.Time) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.FinishedAt, at)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.FinishedAt, at)
 	return err
 }
 
 func (a *adapter) UpdateStepInput(id int64, input types.KV) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.Input, input)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.Input, input)
 	return err
 }
 
 func (a *adapter) UpdateStepOutput(id int64, output types.KV) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(int32(id))).Update(q.Output, output)
+	_, err := q.Where(q.ID.Eq(id)).Update(q.Output, output)
 	return err
 }
 
@@ -1445,12 +1436,12 @@ func (a *adapter) GetStepsByState(state model.StepState) ([]*model.Step, error) 
 
 func (a *adapter) GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error) {
 	q := dao.Q.Step
-	return q.Where(q.JobID.Eq(int32(jobId)), q.Columns(q.NodeID).In(field.Values(depend))).Find()
+	return q.Where(q.JobID.Eq(jobId), q.Columns(q.NodeID).In(field.Values(depend))).Find()
 }
 
 func (a *adapter) GetStepsByJobId(jobId int64) ([]*model.Step, error) {
 	q := dao.Q.Step
-	return q.Where(q.JobID.Eq(int32(jobId))).Find()
+	return q.Where(q.JobID.Eq(jobId)).Find()
 }
 
 func Init() {

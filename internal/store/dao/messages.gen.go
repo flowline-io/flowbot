@@ -27,16 +27,16 @@ func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 
 	tableName := _message.messageDo.TableName()
 	_message.ALL = field.NewAsterisk(tableName)
-	_message.ID = field.NewInt32(tableName, "id")
-	_message.Createdat = field.NewTime(tableName, "createdat")
-	_message.Updatedat = field.NewTime(tableName, "updatedat")
-	_message.Deletedat = field.NewTime(tableName, "deletedat")
-	_message.Delid = field.NewInt32(tableName, "delid")
-	_message.Seqid = field.NewInt32(tableName, "seqid")
+	_message.ID = field.NewInt64(tableName, "id")
+	_message.Flag = field.NewString(tableName, "flag")
+	_message.PlatformID = field.NewInt64(tableName, "platform_id")
+	_message.PlatformMsgID = field.NewString(tableName, "platform_msg_id")
 	_message.Topic = field.NewString(tableName, "topic")
-	_message.From = field.NewInt64(tableName, "from")
-	_message.Head = field.NewField(tableName, "head")
 	_message.Content = field.NewField(tableName, "content")
+	_message.State = field.NewField(tableName, "state")
+	_message.CreatedAt = field.NewTime(tableName, "created_at")
+	_message.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_message.DeletedAt = field.NewField(tableName, "deleted_at")
 
 	_message.fillFieldMap()
 
@@ -46,17 +46,17 @@ func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 type message struct {
 	messageDo
 
-	ALL       field.Asterisk
-	ID        field.Int32
-	Createdat field.Time
-	Updatedat field.Time
-	Deletedat field.Time
-	Delid     field.Int32
-	Seqid     field.Int32
-	Topic     field.String
-	From      field.Int64
-	Head      field.Field
-	Content   field.Field
+	ALL           field.Asterisk
+	ID            field.Int64
+	Flag          field.String
+	PlatformID    field.Int64
+	PlatformMsgID field.String
+	Topic         field.String
+	Content       field.Field
+	State         field.Field
+	CreatedAt     field.Time
+	UpdatedAt     field.Time
+	DeletedAt     field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -73,16 +73,16 @@ func (m message) As(alias string) *message {
 
 func (m *message) updateTableName(table string) *message {
 	m.ALL = field.NewAsterisk(table)
-	m.ID = field.NewInt32(table, "id")
-	m.Createdat = field.NewTime(table, "createdat")
-	m.Updatedat = field.NewTime(table, "updatedat")
-	m.Deletedat = field.NewTime(table, "deletedat")
-	m.Delid = field.NewInt32(table, "delid")
-	m.Seqid = field.NewInt32(table, "seqid")
+	m.ID = field.NewInt64(table, "id")
+	m.Flag = field.NewString(table, "flag")
+	m.PlatformID = field.NewInt64(table, "platform_id")
+	m.PlatformMsgID = field.NewString(table, "platform_msg_id")
 	m.Topic = field.NewString(table, "topic")
-	m.From = field.NewInt64(table, "from")
-	m.Head = field.NewField(table, "head")
 	m.Content = field.NewField(table, "content")
+	m.State = field.NewField(table, "state")
+	m.CreatedAt = field.NewTime(table, "created_at")
+	m.UpdatedAt = field.NewTime(table, "updated_at")
+	m.DeletedAt = field.NewField(table, "deleted_at")
 
 	m.fillFieldMap()
 
@@ -99,18 +99,17 @@ func (m *message) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *message) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 12)
+	m.fieldMap = make(map[string]field.Expr, 10)
 	m.fieldMap["id"] = m.ID
-	m.fieldMap["createdat"] = m.Createdat
-	m.fieldMap["updatedat"] = m.Updatedat
-	m.fieldMap["deletedat"] = m.Deletedat
-	m.fieldMap["delid"] = m.Delid
-	m.fieldMap["seqid"] = m.Seqid
+	m.fieldMap["flag"] = m.Flag
+	m.fieldMap["platform_id"] = m.PlatformID
+	m.fieldMap["platform_msg_id"] = m.PlatformMsgID
 	m.fieldMap["topic"] = m.Topic
-	m.fieldMap["from"] = m.From
-	m.fieldMap["head"] = m.Head
 	m.fieldMap["content"] = m.Content
-
+	m.fieldMap["state"] = m.State
+	m.fieldMap["created_at"] = m.CreatedAt
+	m.fieldMap["updated_at"] = m.UpdatedAt
+	m.fieldMap["deleted_at"] = m.DeletedAt
 }
 
 func (m message) clone(db *gorm.DB) message {

@@ -28,13 +28,14 @@ func newFileupload(db *gorm.DB, opts ...gen.DOOption) fileupload {
 	tableName := _fileupload.fileuploadDo.TableName()
 	_fileupload.ALL = field.NewAsterisk(tableName)
 	_fileupload.ID = field.NewInt64(tableName, "id")
-	_fileupload.Createdat = field.NewTime(tableName, "createdat")
-	_fileupload.Updatedat = field.NewTime(tableName, "updatedat")
-	_fileupload.Userid = field.NewInt64(tableName, "userid")
-	_fileupload.Status = field.NewInt32(tableName, "status")
+	_fileupload.UID = field.NewString(tableName, "uid")
+	_fileupload.Name = field.NewString(tableName, "name")
 	_fileupload.Mimetype = field.NewString(tableName, "mimetype")
 	_fileupload.Size = field.NewInt64(tableName, "size")
 	_fileupload.Location = field.NewString(tableName, "location")
+	_fileupload.State = field.NewField(tableName, "state")
+	_fileupload.CreatedAt = field.NewTime(tableName, "created_at")
+	_fileupload.UpdatedAt = field.NewTime(tableName, "updated_at")
 
 	_fileupload.fillFieldMap()
 
@@ -46,13 +47,14 @@ type fileupload struct {
 
 	ALL       field.Asterisk
 	ID        field.Int64
-	Createdat field.Time
-	Updatedat field.Time
-	Userid    field.Int64
-	Status    field.Int32
+	UID       field.String
+	Name      field.String
 	Mimetype  field.String
 	Size      field.Int64
 	Location  field.String
+	State     field.Field
+	CreatedAt field.Time
+	UpdatedAt field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -70,13 +72,14 @@ func (f fileupload) As(alias string) *fileupload {
 func (f *fileupload) updateTableName(table string) *fileupload {
 	f.ALL = field.NewAsterisk(table)
 	f.ID = field.NewInt64(table, "id")
-	f.Createdat = field.NewTime(table, "createdat")
-	f.Updatedat = field.NewTime(table, "updatedat")
-	f.Userid = field.NewInt64(table, "userid")
-	f.Status = field.NewInt32(table, "status")
+	f.UID = field.NewString(table, "uid")
+	f.Name = field.NewString(table, "name")
 	f.Mimetype = field.NewString(table, "mimetype")
 	f.Size = field.NewInt64(table, "size")
 	f.Location = field.NewString(table, "location")
+	f.State = field.NewField(table, "state")
+	f.CreatedAt = field.NewTime(table, "created_at")
+	f.UpdatedAt = field.NewTime(table, "updated_at")
 
 	f.fillFieldMap()
 
@@ -93,15 +96,16 @@ func (f *fileupload) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (f *fileupload) fillFieldMap() {
-	f.fieldMap = make(map[string]field.Expr, 8)
+	f.fieldMap = make(map[string]field.Expr, 9)
 	f.fieldMap["id"] = f.ID
-	f.fieldMap["createdat"] = f.Createdat
-	f.fieldMap["updatedat"] = f.Updatedat
-	f.fieldMap["userid"] = f.Userid
-	f.fieldMap["status"] = f.Status
+	f.fieldMap["uid"] = f.UID
+	f.fieldMap["name"] = f.Name
 	f.fieldMap["mimetype"] = f.Mimetype
 	f.fieldMap["size"] = f.Size
 	f.fieldMap["location"] = f.Location
+	f.fieldMap["state"] = f.State
+	f.fieldMap["created_at"] = f.CreatedAt
+	f.fieldMap["updated_at"] = f.UpdatedAt
 }
 
 func (f fileupload) clone(db *gorm.DB) fileupload {

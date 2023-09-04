@@ -27,21 +27,17 @@ func newTopic(db *gorm.DB, opts ...gen.DOOption) topic {
 
 	tableName := _topic.topicDo.TableName()
 	_topic.ALL = field.NewAsterisk(tableName)
-	_topic.ID = field.NewInt32(tableName, "id")
-	_topic.Createdat = field.NewTime(tableName, "createdat")
-	_topic.Updatedat = field.NewTime(tableName, "updatedat")
-	_topic.State = field.NewInt32(tableName, "state")
-	_topic.Stateat = field.NewTime(tableName, "stateat")
-	_topic.Touchedat = field.NewTime(tableName, "touchedat")
-	_topic.Name = field.NewString(tableName, "name")
-	_topic.Usebt = field.NewInt32(tableName, "usebt")
+	_topic.ID = field.NewInt64(tableName, "id")
+	_topic.Flag = field.NewString(tableName, "flag")
+	_topic.Platform = field.NewString(tableName, "platform")
 	_topic.Owner = field.NewInt64(tableName, "owner")
-	_topic.Access = field.NewField(tableName, "access")
-	_topic.Seqid = field.NewInt32(tableName, "seqid")
-	_topic.Delid = field.NewInt32(tableName, "delid")
-	_topic.Public = field.NewField(tableName, "public")
-	_topic.Trusted = field.NewField(tableName, "trusted")
+	_topic.Name = field.NewString(tableName, "name")
+	_topic.Type = field.NewString(tableName, "type")
 	_topic.Tags = field.NewString(tableName, "tags")
+	_topic.State = field.NewField(tableName, "state")
+	_topic.TouchedAt = field.NewTime(tableName, "touched_at")
+	_topic.CreatedAt = field.NewTime(tableName, "created_at")
+	_topic.UpdatedAt = field.NewTime(tableName, "updated_at")
 
 	_topic.fillFieldMap()
 
@@ -52,21 +48,17 @@ type topic struct {
 	topicDo
 
 	ALL       field.Asterisk
-	ID        field.Int32
-	Createdat field.Time
-	Updatedat field.Time
-	State     field.Int32
-	Stateat   field.Time
-	Touchedat field.Time
-	Name      field.String
-	Usebt     field.Int32
+	ID        field.Int64
+	Flag      field.String
+	Platform  field.String
 	Owner     field.Int64
-	Access    field.Field
-	Seqid     field.Int32
-	Delid     field.Int32
-	Public    field.Field
-	Trusted   field.Field
+	Name      field.String
+	Type      field.String
 	Tags      field.String
+	State     field.Field
+	TouchedAt field.Time
+	CreatedAt field.Time
+	UpdatedAt field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -83,21 +75,17 @@ func (t topic) As(alias string) *topic {
 
 func (t *topic) updateTableName(table string) *topic {
 	t.ALL = field.NewAsterisk(table)
-	t.ID = field.NewInt32(table, "id")
-	t.Createdat = field.NewTime(table, "createdat")
-	t.Updatedat = field.NewTime(table, "updatedat")
-	t.State = field.NewInt32(table, "state")
-	t.Stateat = field.NewTime(table, "stateat")
-	t.Touchedat = field.NewTime(table, "touchedat")
-	t.Name = field.NewString(table, "name")
-	t.Usebt = field.NewInt32(table, "usebt")
+	t.ID = field.NewInt64(table, "id")
+	t.Flag = field.NewString(table, "flag")
+	t.Platform = field.NewString(table, "platform")
 	t.Owner = field.NewInt64(table, "owner")
-	t.Access = field.NewField(table, "access")
-	t.Seqid = field.NewInt32(table, "seqid")
-	t.Delid = field.NewInt32(table, "delid")
-	t.Public = field.NewField(table, "public")
-	t.Trusted = field.NewField(table, "trusted")
+	t.Name = field.NewString(table, "name")
+	t.Type = field.NewString(table, "type")
 	t.Tags = field.NewString(table, "tags")
+	t.State = field.NewField(table, "state")
+	t.TouchedAt = field.NewTime(table, "touched_at")
+	t.CreatedAt = field.NewTime(table, "created_at")
+	t.UpdatedAt = field.NewTime(table, "updated_at")
 
 	t.fillFieldMap()
 
@@ -114,23 +102,18 @@ func (t *topic) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *topic) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 17)
+	t.fieldMap = make(map[string]field.Expr, 11)
 	t.fieldMap["id"] = t.ID
-	t.fieldMap["createdat"] = t.Createdat
-	t.fieldMap["updatedat"] = t.Updatedat
-	t.fieldMap["state"] = t.State
-	t.fieldMap["stateat"] = t.Stateat
-	t.fieldMap["touchedat"] = t.Touchedat
-	t.fieldMap["name"] = t.Name
-	t.fieldMap["usebt"] = t.Usebt
+	t.fieldMap["flag"] = t.Flag
+	t.fieldMap["platform"] = t.Platform
 	t.fieldMap["owner"] = t.Owner
-	t.fieldMap["access"] = t.Access
-	t.fieldMap["seqid"] = t.Seqid
-	t.fieldMap["delid"] = t.Delid
-	t.fieldMap["public"] = t.Public
-	t.fieldMap["trusted"] = t.Trusted
+	t.fieldMap["name"] = t.Name
+	t.fieldMap["type"] = t.Type
 	t.fieldMap["tags"] = t.Tags
-
+	t.fieldMap["state"] = t.State
+	t.fieldMap["touched_at"] = t.TouchedAt
+	t.fieldMap["created_at"] = t.CreatedAt
+	t.fieldMap["updated_at"] = t.UpdatedAt
 }
 
 func (t topic) clone(db *gorm.DB) topic {

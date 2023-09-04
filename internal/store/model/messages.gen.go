@@ -5,26 +5,25 @@
 package model
 
 import (
-	"encoding/json"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const TableNameMessage = "messages"
 
 // Message mapped from table <messages>
 type Message struct {
-	ID        int32           `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Createdat time.Time       `gorm:"column:createdat;not null" json:"createdat"`
-	Updatedat time.Time       `gorm:"column:updatedat;not null" json:"updatedat"`
-	Deletedat time.Time       `gorm:"column:deletedat" json:"deletedat"`
-	Delid     int32           `gorm:"column:delid" json:"delid"`
-	Seqid     int32           `gorm:"column:seqid;not null" json:"seqid"`
-	Topic     string          `gorm:"column:topic;not null" json:"topic"`
-	From      int64           `gorm:"column:from;not null" json:"from"`
-	Head      JSON            `gorm:"column:head" json:"head"`
-	Content   JSON            `gorm:"column:content" json:"content"`
-	Txt       string          `json:"txt,omitempty"`
-	Raw       json.RawMessage `json:"raw,omitempty"`
+	ID            int64          `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Flag          string         `gorm:"column:flag;not null" json:"flag"`
+	PlatformID    int64          `gorm:"column:platform_id;not null" json:"platform_id"`
+	PlatformMsgID string         `gorm:"column:platform_msg_id;not null" json:"platform_msg_id"`
+	Topic         string         `gorm:"column:topic;not null" json:"topic"`
+	Content       JSON           `gorm:"column:content" json:"content"`
+	State         MessageState   `gorm:"column:state;not null" json:"state"`
+	CreatedAt     time.Time      `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt     time.Time      `gorm:"column:updated_at;not null" json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`
 }
 
 // TableName Message's table name

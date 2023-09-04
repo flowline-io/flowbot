@@ -285,3 +285,27 @@ const (
 func (j NodeStatus) Value() (driver.Value, error) {
 	return string(j), nil
 }
+
+type UserState int
+
+func (j UserState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
+type TopicState int
+
+func (j TopicState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
+type MessageState int
+
+func (j MessageState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
+type FileState int
+
+func (j FileState) Value() (driver.Value, error) {
+	return int64(j), nil
+}

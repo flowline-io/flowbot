@@ -183,9 +183,9 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 					botSend(topic, botUid, payload, types.WithContext(ctx))
 
 					// pipeline action stage
-					pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
-					pipelineVersion, _ := types.KV(message.Head).Int64("x-pipeline-version")
-					nextPipeline(ctx, pipelineFlag, int(pipelineVersion), topic, botUid)
+					//pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
+					//pipelineVersion, _ := types.KV(message.Head).Int64("x-pipeline-version")
+					//nextPipeline(ctx, pipelineFlag, int(pipelineVersion), topic, botUid)
 					return
 				}
 			}

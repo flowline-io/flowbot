@@ -13,18 +13,12 @@ const TableNameUser = "users"
 // User mapped from table <users>
 type User struct {
 	ID        int64     `gorm:"column:id;primaryKey" json:"id"`
-	Createdat time.Time `gorm:"column:createdat;not null" json:"createdat"`
-	Updatedat time.Time `gorm:"column:updatedat;not null" json:"updatedat"`
-	State     int32     `gorm:"column:state;not null" json:"state"`
-	Stateat   time.Time `gorm:"column:stateat" json:"stateat"`
-	Access    JSON      `gorm:"column:access" json:"access"`
-	Lastseen  time.Time `gorm:"column:lastseen" json:"lastseen"`
-	Useragent string    `gorm:"column:useragent" json:"useragent"`
-	Public    JSON      `gorm:"column:public" json:"public"`
-	Trusted   JSON      `gorm:"column:trusted" json:"trusted"`
+	Flag      string    `gorm:"column:flag;not null" json:"flag"`
+	Name      string    `gorm:"column:name;not null" json:"name"`
 	Tags      string    `gorm:"column:tags" json:"tags"`
-	Fn        string    `json:"fn,omitempty"`
-	Verified  bool      `json:"verified,omitempty"`
+	State     UserState `gorm:"column:state;not null" json:"state"`
+	CreatedAt time.Time `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
 
 // TableName User's table name

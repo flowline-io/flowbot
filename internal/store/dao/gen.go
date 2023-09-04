@@ -18,43 +18,36 @@ import (
 var (
 	Q                = new(Query)
 	Action           *action
-	Auth             *auth
 	Behavior         *behavior
 	Config           *config
 	Counter          *counter
 	CounterRecord    *counterRecord
-	Credential       *credential
 	Cycle            *cycle
 	Dag              *dag
 	Data             *data
-	Dellog           *dellog
-	Device           *device
-	Filemsglink      *filemsglink
 	Fileupload       *fileupload
 	Form             *form
 	Instruct         *instruct
 	Job              *job
 	KeyResult        *keyResult
 	KeyResultValue   *keyResultValue
-	Kvmetum          *kvmetum
 	Message          *message
 	OAuth            *oAuth
 	Objective        *objective
 	Page             *page
 	Parameter        *parameter
 	Pipeline         *pipeline
+	Platform         *platform
+	PlatformUser     *platformUser
 	Review           *review
 	ReviewEvaluation *reviewEvaluation
 	SchemaMigration  *schemaMigration
 	Session          *session
 	Step             *step
-	Subscription     *subscription
 	Todo             *todo
 	Topic            *topic
-	Topictag         *topictag
 	Url              *url
 	User             *user
-	Usertag          *usertag
 	Workflow         *workflow
 	WorkflowTrigger  *workflowTrigger
 )
@@ -62,43 +55,36 @@ var (
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Action = &Q.Action
-	Auth = &Q.Auth
 	Behavior = &Q.Behavior
 	Config = &Q.Config
 	Counter = &Q.Counter
 	CounterRecord = &Q.CounterRecord
-	Credential = &Q.Credential
 	Cycle = &Q.Cycle
 	Dag = &Q.Dag
 	Data = &Q.Data
-	Dellog = &Q.Dellog
-	Device = &Q.Device
-	Filemsglink = &Q.Filemsglink
 	Fileupload = &Q.Fileupload
 	Form = &Q.Form
 	Instruct = &Q.Instruct
 	Job = &Q.Job
 	KeyResult = &Q.KeyResult
 	KeyResultValue = &Q.KeyResultValue
-	Kvmetum = &Q.Kvmetum
 	Message = &Q.Message
 	OAuth = &Q.OAuth
 	Objective = &Q.Objective
 	Page = &Q.Page
 	Parameter = &Q.Parameter
 	Pipeline = &Q.Pipeline
+	Platform = &Q.Platform
+	PlatformUser = &Q.PlatformUser
 	Review = &Q.Review
 	ReviewEvaluation = &Q.ReviewEvaluation
 	SchemaMigration = &Q.SchemaMigration
 	Session = &Q.Session
 	Step = &Q.Step
-	Subscription = &Q.Subscription
 	Todo = &Q.Todo
 	Topic = &Q.Topic
-	Topictag = &Q.Topictag
 	Url = &Q.Url
 	User = &Q.User
-	Usertag = &Q.Usertag
 	Workflow = &Q.Workflow
 	WorkflowTrigger = &Q.WorkflowTrigger
 }
@@ -107,43 +93,36 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:               db,
 		Action:           newAction(db, opts...),
-		Auth:             newAuth(db, opts...),
 		Behavior:         newBehavior(db, opts...),
 		Config:           newConfig(db, opts...),
 		Counter:          newCounter(db, opts...),
 		CounterRecord:    newCounterRecord(db, opts...),
-		Credential:       newCredential(db, opts...),
 		Cycle:            newCycle(db, opts...),
 		Dag:              newDag(db, opts...),
 		Data:             newData(db, opts...),
-		Dellog:           newDellog(db, opts...),
-		Device:           newDevice(db, opts...),
-		Filemsglink:      newFilemsglink(db, opts...),
 		Fileupload:       newFileupload(db, opts...),
 		Form:             newForm(db, opts...),
 		Instruct:         newInstruct(db, opts...),
 		Job:              newJob(db, opts...),
 		KeyResult:        newKeyResult(db, opts...),
 		KeyResultValue:   newKeyResultValue(db, opts...),
-		Kvmetum:          newKvmetum(db, opts...),
 		Message:          newMessage(db, opts...),
 		OAuth:            newOAuth(db, opts...),
 		Objective:        newObjective(db, opts...),
 		Page:             newPage(db, opts...),
 		Parameter:        newParameter(db, opts...),
 		Pipeline:         newPipeline(db, opts...),
+		Platform:         newPlatform(db, opts...),
+		PlatformUser:     newPlatformUser(db, opts...),
 		Review:           newReview(db, opts...),
 		ReviewEvaluation: newReviewEvaluation(db, opts...),
 		SchemaMigration:  newSchemaMigration(db, opts...),
 		Session:          newSession(db, opts...),
 		Step:             newStep(db, opts...),
-		Subscription:     newSubscription(db, opts...),
 		Todo:             newTodo(db, opts...),
 		Topic:            newTopic(db, opts...),
-		Topictag:         newTopictag(db, opts...),
 		Url:              newUrl(db, opts...),
 		User:             newUser(db, opts...),
-		Usertag:          newUsertag(db, opts...),
 		Workflow:         newWorkflow(db, opts...),
 		WorkflowTrigger:  newWorkflowTrigger(db, opts...),
 	}
@@ -153,43 +132,36 @@ type Query struct {
 	db *gorm.DB
 
 	Action           action
-	Auth             auth
 	Behavior         behavior
 	Config           config
 	Counter          counter
 	CounterRecord    counterRecord
-	Credential       credential
 	Cycle            cycle
 	Dag              dag
 	Data             data
-	Dellog           dellog
-	Device           device
-	Filemsglink      filemsglink
 	Fileupload       fileupload
 	Form             form
 	Instruct         instruct
 	Job              job
 	KeyResult        keyResult
 	KeyResultValue   keyResultValue
-	Kvmetum          kvmetum
 	Message          message
 	OAuth            oAuth
 	Objective        objective
 	Page             page
 	Parameter        parameter
 	Pipeline         pipeline
+	Platform         platform
+	PlatformUser     platformUser
 	Review           review
 	ReviewEvaluation reviewEvaluation
 	SchemaMigration  schemaMigration
 	Session          session
 	Step             step
-	Subscription     subscription
 	Todo             todo
 	Topic            topic
-	Topictag         topictag
 	Url              url
 	User             user
-	Usertag          usertag
 	Workflow         workflow
 	WorkflowTrigger  workflowTrigger
 }
@@ -200,43 +172,36 @@ func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:               db,
 		Action:           q.Action.clone(db),
-		Auth:             q.Auth.clone(db),
 		Behavior:         q.Behavior.clone(db),
 		Config:           q.Config.clone(db),
 		Counter:          q.Counter.clone(db),
 		CounterRecord:    q.CounterRecord.clone(db),
-		Credential:       q.Credential.clone(db),
 		Cycle:            q.Cycle.clone(db),
 		Dag:              q.Dag.clone(db),
 		Data:             q.Data.clone(db),
-		Dellog:           q.Dellog.clone(db),
-		Device:           q.Device.clone(db),
-		Filemsglink:      q.Filemsglink.clone(db),
 		Fileupload:       q.Fileupload.clone(db),
 		Form:             q.Form.clone(db),
 		Instruct:         q.Instruct.clone(db),
 		Job:              q.Job.clone(db),
 		KeyResult:        q.KeyResult.clone(db),
 		KeyResultValue:   q.KeyResultValue.clone(db),
-		Kvmetum:          q.Kvmetum.clone(db),
 		Message:          q.Message.clone(db),
 		OAuth:            q.OAuth.clone(db),
 		Objective:        q.Objective.clone(db),
 		Page:             q.Page.clone(db),
 		Parameter:        q.Parameter.clone(db),
 		Pipeline:         q.Pipeline.clone(db),
+		Platform:         q.Platform.clone(db),
+		PlatformUser:     q.PlatformUser.clone(db),
 		Review:           q.Review.clone(db),
 		ReviewEvaluation: q.ReviewEvaluation.clone(db),
 		SchemaMigration:  q.SchemaMigration.clone(db),
 		Session:          q.Session.clone(db),
 		Step:             q.Step.clone(db),
-		Subscription:     q.Subscription.clone(db),
 		Todo:             q.Todo.clone(db),
 		Topic:            q.Topic.clone(db),
-		Topictag:         q.Topictag.clone(db),
 		Url:              q.Url.clone(db),
 		User:             q.User.clone(db),
-		Usertag:          q.Usertag.clone(db),
 		Workflow:         q.Workflow.clone(db),
 		WorkflowTrigger:  q.WorkflowTrigger.clone(db),
 	}
@@ -254,43 +219,36 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:               db,
 		Action:           q.Action.replaceDB(db),
-		Auth:             q.Auth.replaceDB(db),
 		Behavior:         q.Behavior.replaceDB(db),
 		Config:           q.Config.replaceDB(db),
 		Counter:          q.Counter.replaceDB(db),
 		CounterRecord:    q.CounterRecord.replaceDB(db),
-		Credential:       q.Credential.replaceDB(db),
 		Cycle:            q.Cycle.replaceDB(db),
 		Dag:              q.Dag.replaceDB(db),
 		Data:             q.Data.replaceDB(db),
-		Dellog:           q.Dellog.replaceDB(db),
-		Device:           q.Device.replaceDB(db),
-		Filemsglink:      q.Filemsglink.replaceDB(db),
 		Fileupload:       q.Fileupload.replaceDB(db),
 		Form:             q.Form.replaceDB(db),
 		Instruct:         q.Instruct.replaceDB(db),
 		Job:              q.Job.replaceDB(db),
 		KeyResult:        q.KeyResult.replaceDB(db),
 		KeyResultValue:   q.KeyResultValue.replaceDB(db),
-		Kvmetum:          q.Kvmetum.replaceDB(db),
 		Message:          q.Message.replaceDB(db),
 		OAuth:            q.OAuth.replaceDB(db),
 		Objective:        q.Objective.replaceDB(db),
 		Page:             q.Page.replaceDB(db),
 		Parameter:        q.Parameter.replaceDB(db),
 		Pipeline:         q.Pipeline.replaceDB(db),
+		Platform:         q.Platform.replaceDB(db),
+		PlatformUser:     q.PlatformUser.replaceDB(db),
 		Review:           q.Review.replaceDB(db),
 		ReviewEvaluation: q.ReviewEvaluation.replaceDB(db),
 		SchemaMigration:  q.SchemaMigration.replaceDB(db),
 		Session:          q.Session.replaceDB(db),
 		Step:             q.Step.replaceDB(db),
-		Subscription:     q.Subscription.replaceDB(db),
 		Todo:             q.Todo.replaceDB(db),
 		Topic:            q.Topic.replaceDB(db),
-		Topictag:         q.Topictag.replaceDB(db),
 		Url:              q.Url.replaceDB(db),
 		User:             q.User.replaceDB(db),
-		Usertag:          q.Usertag.replaceDB(db),
 		Workflow:         q.Workflow.replaceDB(db),
 		WorkflowTrigger:  q.WorkflowTrigger.replaceDB(db),
 	}
@@ -298,43 +256,36 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 
 type queryCtx struct {
 	Action           *actionDo
-	Auth             *authDo
 	Behavior         *behaviorDo
 	Config           *configDo
 	Counter          *counterDo
 	CounterRecord    *counterRecordDo
-	Credential       *credentialDo
 	Cycle            *cycleDo
 	Dag              *dagDo
 	Data             *dataDo
-	Dellog           *dellogDo
-	Device           *deviceDo
-	Filemsglink      *filemsglinkDo
 	Fileupload       *fileuploadDo
 	Form             *formDo
 	Instruct         *instructDo
 	Job              *jobDo
 	KeyResult        *keyResultDo
 	KeyResultValue   *keyResultValueDo
-	Kvmetum          *kvmetumDo
 	Message          *messageDo
 	OAuth            *oAuthDo
 	Objective        *objectiveDo
 	Page             *pageDo
 	Parameter        *parameterDo
 	Pipeline         *pipelineDo
+	Platform         *platformDo
+	PlatformUser     *platformUserDo
 	Review           *reviewDo
 	ReviewEvaluation *reviewEvaluationDo
 	SchemaMigration  *schemaMigrationDo
 	Session          *sessionDo
 	Step             *stepDo
-	Subscription     *subscriptionDo
 	Todo             *todoDo
 	Topic            *topicDo
-	Topictag         *topictagDo
 	Url              *urlDo
 	User             *userDo
-	Usertag          *usertagDo
 	Workflow         *workflowDo
 	WorkflowTrigger  *workflowTriggerDo
 }
@@ -342,43 +293,36 @@ type queryCtx struct {
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		Action:           q.Action.WithContext(ctx),
-		Auth:             q.Auth.WithContext(ctx),
 		Behavior:         q.Behavior.WithContext(ctx),
 		Config:           q.Config.WithContext(ctx),
 		Counter:          q.Counter.WithContext(ctx),
 		CounterRecord:    q.CounterRecord.WithContext(ctx),
-		Credential:       q.Credential.WithContext(ctx),
 		Cycle:            q.Cycle.WithContext(ctx),
 		Dag:              q.Dag.WithContext(ctx),
 		Data:             q.Data.WithContext(ctx),
-		Dellog:           q.Dellog.WithContext(ctx),
-		Device:           q.Device.WithContext(ctx),
-		Filemsglink:      q.Filemsglink.WithContext(ctx),
 		Fileupload:       q.Fileupload.WithContext(ctx),
 		Form:             q.Form.WithContext(ctx),
 		Instruct:         q.Instruct.WithContext(ctx),
 		Job:              q.Job.WithContext(ctx),
 		KeyResult:        q.KeyResult.WithContext(ctx),
 		KeyResultValue:   q.KeyResultValue.WithContext(ctx),
-		Kvmetum:          q.Kvmetum.WithContext(ctx),
 		Message:          q.Message.WithContext(ctx),
 		OAuth:            q.OAuth.WithContext(ctx),
 		Objective:        q.Objective.WithContext(ctx),
 		Page:             q.Page.WithContext(ctx),
 		Parameter:        q.Parameter.WithContext(ctx),
 		Pipeline:         q.Pipeline.WithContext(ctx),
+		Platform:         q.Platform.WithContext(ctx),
+		PlatformUser:     q.PlatformUser.WithContext(ctx),
 		Review:           q.Review.WithContext(ctx),
 		ReviewEvaluation: q.ReviewEvaluation.WithContext(ctx),
 		SchemaMigration:  q.SchemaMigration.WithContext(ctx),
 		Session:          q.Session.WithContext(ctx),
 		Step:             q.Step.WithContext(ctx),
-		Subscription:     q.Subscription.WithContext(ctx),
 		Todo:             q.Todo.WithContext(ctx),
 		Topic:            q.Topic.WithContext(ctx),
-		Topictag:         q.Topictag.WithContext(ctx),
 		Url:              q.Url.WithContext(ctx),
 		User:             q.User.WithContext(ctx),
-		Usertag:          q.Usertag.WithContext(ctx),
 		Workflow:         q.Workflow.WithContext(ctx),
 		WorkflowTrigger:  q.WorkflowTrigger.WithContext(ctx),
 	}

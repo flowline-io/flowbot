@@ -167,7 +167,6 @@ type Adapter interface {
 	GetBotUsers() ([]*model.User, error)
 	GetNormalUsers() ([]*model.User, error)
 	GetMessage(topic string, seqId int) (model.Message, error)
-	GetCredentials() ([]*model.Credential, error)
 
 	DataSet(uid types.Uid, topic, key string, value types.KV) error
 	DataGet(uid types.Uid, topic, key string) (types.KV, error)

@@ -28,16 +28,12 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
 	_user.ID = field.NewInt64(tableName, "id")
-	_user.Createdat = field.NewTime(tableName, "createdat")
-	_user.Updatedat = field.NewTime(tableName, "updatedat")
-	_user.State = field.NewInt32(tableName, "state")
-	_user.Stateat = field.NewTime(tableName, "stateat")
-	_user.Access = field.NewField(tableName, "access")
-	_user.Lastseen = field.NewTime(tableName, "lastseen")
-	_user.Useragent = field.NewString(tableName, "useragent")
-	_user.Public = field.NewField(tableName, "public")
-	_user.Trusted = field.NewField(tableName, "trusted")
+	_user.Flag = field.NewString(tableName, "flag")
+	_user.Name = field.NewString(tableName, "name")
 	_user.Tags = field.NewString(tableName, "tags")
+	_user.State = field.NewField(tableName, "state")
+	_user.CreatedAt = field.NewTime(tableName, "created_at")
+	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 
 	_user.fillFieldMap()
 
@@ -49,16 +45,12 @@ type user struct {
 
 	ALL       field.Asterisk
 	ID        field.Int64
-	Createdat field.Time
-	Updatedat field.Time
-	State     field.Int32
-	Stateat   field.Time
-	Access    field.Field
-	Lastseen  field.Time
-	Useragent field.String
-	Public    field.Field
-	Trusted   field.Field
+	Flag      field.String
+	Name      field.String
 	Tags      field.String
+	State     field.Field
+	CreatedAt field.Time
+	UpdatedAt field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -76,16 +68,12 @@ func (u user) As(alias string) *user {
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewInt64(table, "id")
-	u.Createdat = field.NewTime(table, "createdat")
-	u.Updatedat = field.NewTime(table, "updatedat")
-	u.State = field.NewInt32(table, "state")
-	u.Stateat = field.NewTime(table, "stateat")
-	u.Access = field.NewField(table, "access")
-	u.Lastseen = field.NewTime(table, "lastseen")
-	u.Useragent = field.NewString(table, "useragent")
-	u.Public = field.NewField(table, "public")
-	u.Trusted = field.NewField(table, "trusted")
+	u.Flag = field.NewString(table, "flag")
+	u.Name = field.NewString(table, "name")
 	u.Tags = field.NewString(table, "tags")
+	u.State = field.NewField(table, "state")
+	u.CreatedAt = field.NewTime(table, "created_at")
+	u.UpdatedAt = field.NewTime(table, "updated_at")
 
 	u.fillFieldMap()
 
@@ -102,19 +90,14 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 13)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["id"] = u.ID
-	u.fieldMap["createdat"] = u.Createdat
-	u.fieldMap["updatedat"] = u.Updatedat
-	u.fieldMap["state"] = u.State
-	u.fieldMap["stateat"] = u.Stateat
-	u.fieldMap["access"] = u.Access
-	u.fieldMap["lastseen"] = u.Lastseen
-	u.fieldMap["useragent"] = u.Useragent
-	u.fieldMap["public"] = u.Public
-	u.fieldMap["trusted"] = u.Trusted
+	u.fieldMap["flag"] = u.Flag
+	u.fieldMap["name"] = u.Name
 	u.fieldMap["tags"] = u.Tags
-
+	u.fieldMap["state"] = u.State
+	u.fieldMap["created_at"] = u.CreatedAt
+	u.fieldMap["updated_at"] = u.UpdatedAt
 }
 
 func (u user) clone(db *gorm.DB) user {

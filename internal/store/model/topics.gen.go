@@ -12,23 +12,17 @@ const TableNameTopic = "topics"
 
 // Topic mapped from table <topics>
 type Topic struct {
-	ID        int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Createdat time.Time `gorm:"column:createdat;not null" json:"createdat"`
-	Updatedat time.Time `gorm:"column:updatedat;not null" json:"updatedat"`
-	State     int32     `gorm:"column:state;not null" json:"state"`
-	Stateat   time.Time `gorm:"column:stateat" json:"stateat"`
-	Touchedat time.Time `gorm:"column:touchedat" json:"touchedat"`
-	Name      string    `gorm:"column:name;not null" json:"name"`
-	Usebt     int32     `gorm:"column:usebt" json:"usebt"`
-	Owner     int64     `gorm:"column:owner;not null" json:"owner"`
-	Access    JSON      `gorm:"column:access" json:"access"`
-	Seqid     int32     `gorm:"column:seqid;not null" json:"seqid"`
-	Delid     int32     `gorm:"column:delid" json:"delid"`
-	Public    JSON      `gorm:"column:public" json:"public"`
-	Trusted   JSON      `gorm:"column:trusted" json:"trusted"`
-	Tags      string    `gorm:"column:tags" json:"tags"`
-	Fn        string    `json:"fn,omitempty"`
-	Verified  bool      `json:"verified,omitempty"`
+	ID        int64      `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Flag      string     `gorm:"column:flag;not null" json:"flag"`
+	Platform  string     `gorm:"column:platform;not null" json:"platform"`
+	Owner     int64      `gorm:"column:owner;not null" json:"owner"`
+	Name      string     `gorm:"column:name;not null" json:"name"`
+	Type      string     `gorm:"column:type;not null" json:"type"`
+	Tags      string     `gorm:"column:tags" json:"tags"`
+	State     TopicState `gorm:"column:state;not null" json:"state"`
+	TouchedAt time.Time  `gorm:"column:touched_at" json:"touched_at"`
+	CreatedAt time.Time  `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"column:updated_at;not null" json:"updated_at"`
 }
 
 // TableName Topic's table name

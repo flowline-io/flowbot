@@ -13,13 +13,14 @@ const TableNameFileupload = "fileuploads"
 // Fileupload mapped from table <fileuploads>
 type Fileupload struct {
 	ID        int64     `gorm:"column:id;primaryKey" json:"id"`
-	Createdat time.Time `gorm:"column:createdat;not null" json:"createdat"`
-	Updatedat time.Time `gorm:"column:updatedat;not null" json:"updatedat"`
-	Userid    int64     `gorm:"column:userid" json:"userid"`
-	Status    int32     `gorm:"column:status;not null" json:"status"`
+	UID       string    `gorm:"column:uid;not null" json:"uid"`
+	Name      string    `gorm:"column:name;not null" json:"name"`
 	Mimetype  string    `gorm:"column:mimetype;not null" json:"mimetype"`
 	Size      int64     `gorm:"column:size;not null" json:"size"`
 	Location  string    `gorm:"column:location;not null" json:"location"`
+	State     FileState `gorm:"column:state;not null" json:"state"`
+	CreatedAt time.Time `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
 
 // TableName Fileupload's table name

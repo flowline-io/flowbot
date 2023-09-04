@@ -68,40 +68,40 @@ func GenerationAction(c *cli.Context) error {
 	g.UseDB(db)
 
 	// chatbot table
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_action", "Action",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("action", "Action",
 		gen.FieldType("state", "ActionState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_behavior", "Behavior",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("behavior", "Behavior",
 		gen.FieldType("extra", "*JSON")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_configs", "Config",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("configs", "Config",
 		gen.FieldType("value", "JSON")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_counter_records", "CounterRecord"))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_counters", "Counter"))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_data", "Data",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("counter_records", "CounterRecord"))
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("counters", "Counter"))
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("data", "Data",
 		gen.FieldType("value", "JSON")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_form", "Form",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("form", "Form",
 		gen.FieldType("schema", "JSON"),
 		gen.FieldType("values", "JSON"),
 		gen.FieldType("extra", "JSON"),
 		gen.FieldType("state", "FormState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_instruct", "Instruct",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("instruct", "Instruct",
 		gen.FieldType("object", "InstructObject"),
 		gen.FieldType("content", "JSON"),
 		gen.FieldType("priority", "InstructPriority"),
 		gen.FieldType("state", "InstructState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_oauth", "OAuth",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("oauth", "OAuth",
 		gen.FieldType("extra", "JSON")))
 
 	// OKR
-	todos := g.GenerateModelAs("chatbot_todos", "Todo", gen.FieldRelate(field.HasMany, "SubTodos",
-		g.GenerateModelAs("chatbot_todos", "Todo"), &field.RelateConfig{
+	todos := g.GenerateModelAs("todos", "Todo", gen.FieldRelate(field.HasMany, "SubTodos",
+		g.GenerateModelAs("todos", "Todo"), &field.RelateConfig{
 			RelateSlicePointer: true,
 			GORMTag: map[string][]string{
 				"foreignKey": {"parent_id"},
 			},
 		}))
-	keyResultValues := g.GenerateModelAs("chatbot_key_result_values", "KeyResultValue")
-	reviewEvaluations := g.GenerateModelAs("chatbot_review_evaluations", "ReviewEvaluation")
-	reviews := g.GenerateModelAs("chatbot_reviews", "Review",
+	keyResultValues := g.GenerateModelAs("key_result_values", "KeyResultValue")
+	reviewEvaluations := g.GenerateModelAs("review_evaluations", "ReviewEvaluation")
+	reviews := g.GenerateModelAs("reviews", "Review",
 		gen.FieldType("type", "ReviewType"),
 		gen.FieldRelate(field.HasMany, "Evaluations", reviewEvaluations, &field.RelateConfig{
 			RelateSlicePointer: true,
@@ -109,8 +109,8 @@ func GenerationAction(c *cli.Context) error {
 				"foreignKey": {"review_id"},
 			},
 		}))
-	cycles := g.GenerateModelAs("chatbot_cycles", "Cycle", gen.FieldType("state", "CycleState"))
-	keyResults := g.GenerateModelAs("chatbot_key_results", "KeyResult",
+	cycles := g.GenerateModelAs("cycles", "Cycle", gen.FieldType("state", "CycleState"))
+	keyResults := g.GenerateModelAs("key_results", "KeyResult",
 		gen.FieldType("value_mode", "ValueModeType"),
 		gen.FieldRelate(field.HasMany, "KeyResultValues", keyResultValues, &field.RelateConfig{
 			RelateSlicePointer: true,
@@ -124,7 +124,7 @@ func GenerationAction(c *cli.Context) error {
 				"foreignKey": {"key_result_id"},
 			},
 		}))
-	objectives := g.GenerateModelAs("chatbot_objectives", "Objective",
+	objectives := g.GenerateModelAs("objectives", "Objective",
 		gen.FieldRelate(field.HasMany, "KeyResults", keyResults, &field.RelateConfig{
 			RelateSlicePointer: true,
 			GORMTag: map[string][]string{
@@ -140,7 +140,7 @@ func GenerationAction(c *cli.Context) error {
 	g.ApplyInterface(func(Querier) {}, objectives, keyResults, keyResultValues, todos, cycles, reviews, reviewEvaluations)
 
 	// workflow
-	dag := g.GenerateModelAs("chatbot_dag", "Dag",
+	dag := g.GenerateModelAs("dag", "Dag",
 		gen.FieldType("nodes", "[]*Node"),
 		gen.FieldGORMTag("nodes", func(tag field.GormTag) field.GormTag {
 			return map[string][]string{
@@ -159,9 +159,9 @@ func GenerationAction(c *cli.Context) error {
 				"not null":   nil,
 			}
 		}))
-	workflowTriggers := g.GenerateModelAs("chatbot_workflow_trigger", "WorkflowTrigger",
+	workflowTriggers := g.GenerateModelAs("workflow_trigger", "WorkflowTrigger",
 		gen.FieldType("type", "TriggerType"))
-	workflows := g.GenerateModelAs("chatbot_workflow", "Workflow",
+	workflows := g.GenerateModelAs("workflow", "Workflow",
 		gen.FieldType("state", "WorkflowState"),
 		gen.FieldRelate(field.HasOne, "Dag", dag, &field.RelateConfig{
 			RelateSlicePointer: true,
@@ -175,7 +175,7 @@ func GenerationAction(c *cli.Context) error {
 				"foreignKey": {"workflow_id"},
 			},
 		}))
-	steps := g.GenerateModelAs("chatbot_steps", "Step",
+	steps := g.GenerateModelAs("steps", "Step",
 		gen.FieldType("depend", "[]string"),
 		gen.FieldGORMTag("depend", func(tag field.GormTag) field.GormTag {
 			return map[string][]string{
@@ -191,7 +191,7 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("started_at", "*time.Time"),
 		gen.FieldType("finished_at", "*time.Time"),
 		gen.FieldType("state", "StepState"))
-	jobs := g.GenerateModelAs("chatbot_jobs", "Job",
+	jobs := g.GenerateModelAs("jobs", "Job",
 		gen.FieldType("state", "JobState"),
 		gen.FieldRelate(field.HasMany, "Steps", steps, &field.RelateConfig{
 			RelateSlicePointer: true,
@@ -201,62 +201,34 @@ func GenerationAction(c *cli.Context) error {
 		}))
 	g.ApplyInterface(func(Querier) {}, workflows, dag, steps, jobs, workflowTriggers)
 
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_page", "Page",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("pages", "Page",
 		gen.FieldType("type", "PageType"),
 		gen.FieldType("schema", "JSON"),
 		gen.FieldType("state", "PageState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_parameter", "Parameter",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("parameter", "Parameter",
 		gen.FieldType("params", "JSON")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_session", "Session",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("session", "Session",
 		gen.FieldType("init", "JSON"),
 		gen.FieldType("values", "JSON"),
 		gen.FieldType("state", "SessionState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_url", "Url",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("urls", "Url",
 		gen.FieldType("state", "UrlState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("chatbot_pipelines", "Pipeline",
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("pipelines", "Pipeline",
 		gen.FieldType("values", "JSON"),
 		gen.FieldType("state", "PipelineState")))
 
-	// tinode table
+	// platform table
 	g.ApplyBasic(g.GenerateModel("users",
-		gen.FieldType("access", "JSON"),
-		gen.FieldType("public", "JSON"),
-		gen.FieldType("trusted", "JSON"),
-		gen.FieldNew("Fn", "string", map[string]string{
-			"json": "fn,omitempty",
-		}),
-		gen.FieldNew("Verified", "bool", map[string]string{
-			"json": "verified,omitempty",
-		})))
+		gen.FieldType("state", "UserState")))
 	g.ApplyBasic(g.GenerateModel("topics",
-		gen.FieldType("access", "JSON"),
-		gen.FieldType("public", "JSON"),
-		gen.FieldType("trusted", "JSON"),
-		gen.FieldNew("Fn", "string", map[string]string{
-			"json": "fn,omitempty",
-		}),
-		gen.FieldNew("Verified", "bool", map[string]string{
-			"json": "verified,omitempty",
-		})))
+		gen.FieldType("state", "TopicState")))
 	g.ApplyBasic(g.GenerateModel("messages",
-		gen.FieldType("head", "JSON"),
 		gen.FieldType("content", "JSON"),
-		gen.FieldNew("Txt", "string", map[string]string{
-			"json": "txt,omitempty",
-		}),
-		gen.FieldNew("Raw", "json.RawMessage", map[string]string{
-			"json": "raw,omitempty",
-		})))
-	g.ApplyBasic(g.GenerateModel("credentials"))
-	g.ApplyBasic(g.GenerateModel("auth"))
-	g.ApplyBasic(g.GenerateModel("dellog"))
-	g.ApplyBasic(g.GenerateModel("devices"))
-	g.ApplyBasic(g.GenerateModel("filemsglinks"))
-	g.ApplyBasic(g.GenerateModel("fileuploads"))
-	g.ApplyBasic(g.GenerateModel("kvmeta"))
-	g.ApplyBasic(g.GenerateModel("subscriptions"))
-	g.ApplyBasic(g.GenerateModel("topictags"))
-	g.ApplyBasic(g.GenerateModel("usertags"))
+		gen.FieldType("state", "MessageState")))
+	g.ApplyBasic(g.GenerateModel("platforms"))
+	g.ApplyBasic(g.GenerateModel("platform_users"))
+	g.ApplyBasic(g.GenerateModel("fileuploads",
+		gen.FieldType("state", "FileState")))
 
 	g.ApplyBasic(g.GenerateModel("schema_migrations"))
 
