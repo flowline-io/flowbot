@@ -78,12 +78,12 @@ func saveMarkdown(req *restful.Request, resp *restful.Response) {
 	}
 
 	// store
-	userUid := types.ParseUserId(uid)
-	botUid := types.Uid(0) // fixme
+	userUid := types.Uid(uid)
+	botUid := types.Uid("") // fixme
 	title := utils.MarkdownTitle(markdown)
 	topic := "" // fixme
 	payload := bots.StorePage(
-		types.Context{AsUser: userUid, Original: botUid.UserId()},
+		types.Context{AsUser: userUid, Original: botUid.String()},
 		model.PageMarkdown, title,
 		types.MarkdownMsg{Title: title, Raw: markdown})
 	message := ""
@@ -94,7 +94,7 @@ func saveMarkdown(req *restful.Request, resp *restful.Response) {
 	// send
 	err = event.Emit(event.SendEvent, types.KV{
 		"topic":     topic,
-		"topic_uid": int64(botUid),
+		"topic_uid": botUid,
 		"message":   message,
 	})
 	if err != nil {

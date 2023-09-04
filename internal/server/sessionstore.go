@@ -207,7 +207,7 @@ func (ss *SessionStore) EvictUser(uid types.Uid, skipSid string) {
 
 	// FIXME: this probably needs to be optimized. This may take very long time if the node hosts 100000 sessions.
 	evicted := NoErrEvicted("", "", types.TimeNow())
-	evicted.AsUser = uid.UserId()
+	evicted.AsUser = uid.String()
 	for _, s := range ss.sessCache {
 		if s.uid == uid && s.sid != skipSid {
 			_, data := s.serialize(evicted)

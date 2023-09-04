@@ -50,7 +50,7 @@ func GetIdFromUrl(url, serveUrl string) types.Uid {
 		return types.ZeroUid
 	}
 
-	return types.ParseUid(fileNamePattern.FindString(fname))
+	return types.Uid(fileNamePattern.FindString(fname))
 }
 
 // matchCORSOrigin compares origin from the HTTP request to a list of allowed origins.

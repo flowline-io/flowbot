@@ -396,7 +396,7 @@ func RunPipeline(pipelineRules []pipeline.Rule, ctx types.Context, head types.KV
 func StorePipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (string, error) {
 	flag := types.Id()
 	return flag, store.Chatbot.PipelineCreate(model.Pipeline{
-		UID:     ctx.AsUser.UserId(),
+		UID:     ctx.AsUser.String(),
 		Topic:   ctx.Original,
 		Flag:    flag,
 		RuleID:  pipelineRule.Id,
@@ -497,7 +497,7 @@ func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDurati
 	}
 	param["original"] = ctx.Original
 	param["topic"] = ctx.RcptTo
-	param["uid"] = ctx.AsUser.UserId()
+	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(expiredDuration))
 	if err != nil {
 		return "", err
@@ -512,7 +512,7 @@ func ServiceURL(ctx types.Context, group, version, path string, param types.KV) 
 	}
 	param["original"] = ctx.Original
 	param["topic"] = ctx.RcptTo
-	param["uid"] = ctx.AsUser.UserId()
+	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(time.Hour))
 	if err != nil {
 		return ""
@@ -527,7 +527,7 @@ func AppURL(ctx types.Context, name string, param types.KV) string {
 	}
 	param["original"] = ctx.Original
 	param["topic"] = ctx.RcptTo
-	param["uid"] = ctx.AsUser.UserId()
+	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(time.Hour))
 	if err != nil {
 		return ""
@@ -567,7 +567,7 @@ func RunAction(actionRules []action.Rule, ctx types.Context, option string) (typ
 		state = model.ActionStateLongTerm
 	}
 	// store action
-	err = store.Chatbot.ActionSet(ctx.RcptTo, ctx.SeqId, model.Action{UID: ctx.AsUser.UserId(), Value: option, State: state})
+	err = store.Chatbot.ActionSet(ctx.RcptTo, ctx.SeqId, model.Action{UID: ctx.AsUser.String(), Value: option, State: state})
 	if err != nil {
 		return nil, err
 	}
@@ -681,7 +681,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	// store form
 	err = store.Chatbot.FormSet(formId, model.Form{
 		FormID: formId,
-		UID:    ctx.AsUser.UserId(),
+		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
 		Schema: model.JSON(schema),
 		Values: model.JSON(values),
@@ -696,7 +696,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	// store page
 	err = store.Chatbot.PageSet(formId, model.Page{
 		PageID: formId,
-		UID:    ctx.AsUser.UserId(),
+		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
 		Type:   model.PageForm,
 		Schema: model.JSON(schema),
@@ -763,7 +763,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 	// store page
 	err = store.Chatbot.PageSet(pageId, model.Page{
 		PageID: pageId,
-		UID:    ctx.AsUser.UserId(),
+		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
 		Type:   category,
 		Schema: model.JSON(schema),
@@ -823,7 +823,7 @@ func SessionStart(ctx types.Context, initValues types.KV) error {
 	}
 	var values = types.KV{"val": nil}
 	_ = store.Chatbot.SessionCreate(model.Session{
-		UID:    ctx.AsUser.UserId(),
+		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
 		RuleID: ctx.SessionRuleId,
 		Init:   model.JSON(initValues),
@@ -895,7 +895,7 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 	}
 
 	_, err := store.Chatbot.CreateInstruct(&model.Instruct{
-		UID:      ctx.AsUser.UserId(),
+		UID:      ctx.AsUser.String(),
 		No:       msg.No,
 		Object:   msg.Object,
 		Bot:      msg.Bot,
@@ -911,7 +911,7 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 
 	// event
 	err = pkgEvent.Emit(pkgEvent.InstructEvent, types.KV{
-		"uid":       ctx.AsUser.UserId(),
+		"uid":       ctx.AsUser.String(),
 		"no":        msg.No,
 		"object":    msg.Object,
 		"bot":       msg.Bot,
@@ -978,7 +978,7 @@ func Behavior(uid types.Uid, flag string, number int) {
 		_ = store.Chatbot.BehaviorIncrease(uid, flag, number)
 	} else {
 		_ = store.Chatbot.BehaviorSet(model.Behavior{
-			UID:    uid.UserId(),
+			UID:    uid.String(),
 			Flag:   flag,
 			Count_: int32(number),
 		})

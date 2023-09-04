@@ -22,7 +22,7 @@ var commandRules = []command.Rule{
 		Help:   `Bot info`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			p := types.KV{}
-			p["uid"] = ctx.AsUser.UserId()
+			p["uid"] = ctx.AsUser.String()
 			flag, err := bots.StoreParameter(p, time.Now().Add(time.Hour))
 			if err != nil {
 				return types.TextMsg{Text: "error parameter"}

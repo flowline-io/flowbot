@@ -36,7 +36,7 @@ func onPushInstruct() {
 		if !ok {
 			return errors.New("error param uid")
 		}
-		uid := types.ParseUserId(uidStr)
+		uid := types.Uid(uidStr)
 		if uid.IsZero() {
 			return errors.New("error param uid")
 		}

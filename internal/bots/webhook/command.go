@@ -32,7 +32,7 @@ var commandRules = []command.Rule{
 
 			m := make(map[string]interface{})
 			for _, item := range items {
-				flag := types.ParseUid(strings.ReplaceAll(item.Key, "webhook:", ""))
+				flag := strings.ReplaceAll(item.Key, "webhook:", "")
 				m[item.Key] = bots.ServiceURL(ctx, Name, serviceVersion, fmt.Sprintf("webhook/%s", flag), nil)
 			}
 
@@ -47,7 +47,7 @@ var commandRules = []command.Rule{
 		Help:   `create webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			p := types.KV{}
-			p["uid"] = ctx.AsUser.UserId()
+			p["uid"] = ctx.AsUser.String()
 			flag, err := bots.StoreParameter(p, time.Now().Add(24*365*time.Hour))
 			if err != nil {
 				return types.TextMsg{Text: "error parameter"}

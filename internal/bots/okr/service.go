@@ -45,7 +45,7 @@ func objectiveCreate(req *restful.Request, resp *restful.Response) {
 		_ = resp.WriteAsJson(types.ErrMessage(http.StatusNotFound, err.Error()))
 		return
 	}
-	obj.UID = uid.UserId()
+	obj.UID = uid.String()
 	obj.Topic = topic
 	_, err = store.Chatbot.CreateObjective(obj)
 	if err != nil {
@@ -64,7 +64,7 @@ func objectiveUpdate(req *restful.Request, resp *restful.Response) {
 		_ = resp.WriteAsJson(types.ErrMessage(http.StatusNotFound, err.Error()))
 		return
 	}
-	obj.UID = uid.UserId()
+	obj.UID = uid.String()
 	obj.Topic = topic
 	err = store.Chatbot.UpdateObjective(obj)
 	if err != nil {

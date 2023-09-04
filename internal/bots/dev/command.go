@@ -96,23 +96,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "uid [string]",
-		Help:   `Decode UID string`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			str, _ := tokens[1].Value.String()
-			var uid types.Uid
-			var result string
-			err := uid.UnmarshalText([]byte(str))
-			if err != nil {
-				result = err.Error()
-			} else {
-				result = fmt.Sprintf("%d", uid)
-			}
-
-			return types.TextMsg{Text: result}
-		},
-	},
-	{
 		Define: "ts [number]",
 		Help:   `timestamp format`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

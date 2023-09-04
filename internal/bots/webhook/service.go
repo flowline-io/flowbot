@@ -42,7 +42,7 @@ func webhook(req *restful.Request, resp *restful.Response) {
 	// send
 	err = event.Emit(event.SendEvent, types.KV{
 		"topic":     topic,
-		"topic_uid": int64(botUid),
+		"topic_uid": botUid,
 		"message":   txt,
 	})
 	if err != nil {

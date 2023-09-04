@@ -85,9 +85,8 @@ func logErrors(errChan <-chan error) {
 	}
 }
 
-func AsyncMessage(rcptTo, original string, msg types.MsgPayload) error {
-	botUid := types.ParseUserId(original)
-	qp, err := types.ConvertQueuePayload(rcptTo, botUid.UserId(), msg)
+func AsyncMessage(uid, topic string, msg types.MsgPayload) error {
+	qp, err := types.ConvertQueuePayload(topic, uid, msg)
 	if err != nil {
 		return nil
 	}

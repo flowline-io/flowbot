@@ -179,14 +179,14 @@ func (ah *awshandler) Headers(req *http.Request, serve bool) (http.Header, int, 
 		}
 		awsReq, _ = ah.svc.GetObjectRequest(&s3.GetObjectInput{
 			Bucket:                     aws.String(ah.conf.BucketName),
-			Key:                        aws.String(fid.String32()),
+			Key:                        aws.String(fid.String()),
 			ResponseContentType:        aws.String(fd.MimeType),
 			ResponseContentDisposition: contentDisposition,
 		})
 	} else if req.Method == http.MethodHead {
 		awsReq, _ = ah.svc.HeadObjectRequest(&s3.HeadObjectInput{
 			Bucket: aws.String(ah.conf.BucketName),
-			Key:    aws.String(fid.String32()),
+			Key:    aws.String(fid.String()),
 		})
 	}
 
@@ -209,7 +209,7 @@ func (ah *awshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, i
 	var err error
 
 	// Using String32 just for consistency with the file handler.
-	key := fdef.Uid().String32()
+	key := fdef.Uid().String()
 	fdef.Location = key
 
 	uploader := s3manager.NewUploaderWithClient(ah.svc)

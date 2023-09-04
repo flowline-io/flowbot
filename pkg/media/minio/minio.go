@@ -92,7 +92,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 	var err error
 
 	// Using String32 just for consistency with the file handler.
-	key := fdef.Uid().String32()
+	key := fdef.Uid().String()
 	fdef.Location = key
 
 	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, key, file, fdef.Size, minio.PutObjectOptions{

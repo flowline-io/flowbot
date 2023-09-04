@@ -114,7 +114,7 @@ func authFilter(req *restful.Request, resp *restful.Response, chain *restful.Fil
 
 	topic, _ := types.KV(p.Params).String("topic")
 	u, _ := types.KV(p.Params).String("uid")
-	uid := types.ParseUserId(u)
+	uid := types.Uid(u)
 	isValid := false
 	if !uid.IsZero() {
 		isValid = true
@@ -285,7 +285,7 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	}
 
 	u, _ := types.KV(p.Params).String("uid")
-	uid = types.ParseUserId(u)
+	uid = types.Uid(u)
 	if uid.IsZero() {
 		return
 	}

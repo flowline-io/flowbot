@@ -584,7 +584,7 @@ var commandRules = []command.Rule{
 			}
 
 			_, err = store.Chatbot.CreateCounter(&model.Counter{
-				UID:    ctx.AsUser.UserId(),
+				UID:    ctx.AsUser.String(),
 				Topic:  ctx.Original,
 				Flag:   flag,
 				Digit:  1,

@@ -71,7 +71,7 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 
 	// Generate a unique file name and attach it to path. Using base32 instead of base64 to avoid possible
 	// file name collisions on Windows due to case-insensitive file names there.
-	fdef.Location = filepath.Join(fh.fileUploadLocation, fdef.Uid().String32())
+	fdef.Location = filepath.Join(fh.fileUploadLocation, fdef.Uid().String())
 
 	outfile, err := os.Create(fdef.Location)
 	if err != nil {

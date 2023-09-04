@@ -27,7 +27,7 @@ var commandRules = []command.Rule{
 		Help:   `get access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
-			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("linkit:%d:token", uint64(ctx.AsUser)))
+			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("linkit:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -40,7 +40,7 @@ var commandRules = []command.Rule{
 				idValue = strings.ToLower(idValue)
 				// set token
 				err = store.Chatbot.ConfigSet(ctx.AsUser, "",
-					fmt.Sprintf("linkit:%d:token", uint64(ctx.AsUser)), types.KV{
+					fmt.Sprintf("linkit:%s:token", ctx.AsUser), types.KV{
 						"value": idValue,
 					})
 				if err != nil {
@@ -48,7 +48,7 @@ var commandRules = []command.Rule{
 					return types.TextMsg{Text: "set token error"}
 				}
 				data := types.KV{}
-				data["uid"] = ctx.AsUser.UserId()
+				data["uid"] = ctx.AsUser.String()
 				err = store.Chatbot.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
 				if err != nil {
 					flog.Error(err)
@@ -64,7 +64,7 @@ var commandRules = []command.Rule{
 		Help:   `reset access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get old token
-			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("linkit:%d:token", uint64(ctx.AsUser)))
+			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("linkit:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -86,7 +86,7 @@ var commandRules = []command.Rule{
 			idValue = strings.ToLower(idValue)
 			// set token
 			err = store.Chatbot.ConfigSet(ctx.AsUser, "",
-				fmt.Sprintf("linkit:%d:token", uint64(ctx.AsUser)), types.KV{
+				fmt.Sprintf("linkit:%s:token", ctx.AsUser), types.KV{
 					"value": idValue,
 				})
 			if err != nil {
@@ -94,7 +94,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "set token error"}
 			}
 			data := types.KV{}
-			data["uid"] = ctx.AsUser.UserId()
+			data["uid"] = ctx.AsUser.String()
 			err = store.Chatbot.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
 			if err != nil {
 				flog.Error(err)

@@ -28,5 +28,5 @@ type FileDef struct {
 }
 
 func (i *FileDef) Uid() Uid {
-	return ParseUid(i.User) // fixme
+	return Uid(i.User)
 }

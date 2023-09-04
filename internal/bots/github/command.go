@@ -45,7 +45,7 @@ var commandRules = []command.Rule{
 			}
 
 			flag, err := bots.StoreParameter(types.KV{
-				"uid":   ctx.AsUser.UserId(),
+				"uid":   ctx.AsUser.String(),
 				"topic": ctx.Original,
 			}, time.Now().Add(time.Hour))
 			if err != nil {

@@ -94,7 +94,6 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 
 				// bot user
 				// botUid, _, _, _, _ := serverStore.Users.GetAuthUniqueRecord("basic", fmt.Sprintf("%s_bot", r.Type))
-				botUid := types.Uid(0) // fixme
 
 				// all normal users
 				users, err := store.Chatbot.GetNormalUsers()
@@ -112,14 +111,14 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					topic := "" // fixme
 
 					// get oauth token
-					oauth, err := store.Chatbot.OAuthGet(uid, botUid.UserId(), r.Type)
+					oauth, err := store.Chatbot.OAuthGet(uid, topic, r.Type)
 					if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 						continue
 					}
 
 					// ctx
 					ctx := types.Context{
-						Original: botUid.UserId(),
+						Original: topic,
 						AsUser:   uid,
 						Token:    oauth.Token,
 						RcptTo:   topic,
@@ -168,7 +167,7 @@ func (r *Ruleset) resultWorker() {
 func (r *Ruleset) filter(res result) result {
 	// user auth record
 
-	filterKey := fmt.Sprintf("cron:%s:%s:filter", res.name, res.ctx.AsUser.UserId())
+	filterKey := fmt.Sprintf("cron:%s:%s:filter", res.name, res.ctx.AsUser)
 
 	// content hash
 	d := un(res.payload)
@@ -190,7 +189,7 @@ func (r *Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}
-	r.Send(res.ctx.RcptTo, types.ParseUserId(res.ctx.Original), res.payload)
+	r.Send(res.ctx.RcptTo, types.Uid(res.ctx.Original), res.payload)
 }
 
 func un(payload types.MsgPayload) []byte {

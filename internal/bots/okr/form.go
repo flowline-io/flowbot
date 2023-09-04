@@ -37,7 +37,7 @@ var formRules = []form.Rule{
 				}
 			}
 
-			objective.UID = ctx.AsUser.UserId()
+			objective.UID = ctx.AsUser.String()
 			objective.Topic = ctx.Original
 			_, err := store.Chatbot.CreateObjective(&objective)
 			if err != nil {
@@ -67,7 +67,7 @@ var formRules = []form.Rule{
 				}
 			}
 
-			objective.UID = ctx.AsUser.UserId()
+			objective.UID = ctx.AsUser.String()
 			objective.Topic = ctx.Original
 			err := store.Chatbot.UpdateObjective(&objective)
 			if err != nil {
@@ -121,7 +121,7 @@ var formRules = []form.Rule{
 				keyResult.CurrentValue = keyResult.InitialValue
 			}
 			keyResult.ObjectiveID = objective.ID
-			keyResult.UID = ctx.AsUser.UserId()
+			keyResult.UID = ctx.AsUser.String()
 			keyResult.Topic = ctx.Original
 			_, err = store.Chatbot.CreateKeyResult(&keyResult)
 			if err != nil {
@@ -167,7 +167,7 @@ var formRules = []form.Rule{
 				return nil
 			}
 
-			keyResult.UID = ctx.AsUser.UserId()
+			keyResult.UID = ctx.AsUser.String()
 			keyResult.Topic = ctx.Original
 			err := store.Chatbot.UpdateKeyResult(&keyResult)
 			if err != nil {
@@ -230,7 +230,7 @@ var formRules = []form.Rule{
 				}
 			}
 
-			todo.UID = ctx.AsUser.UserId()
+			todo.UID = ctx.AsUser.String()
 			todo.Topic = ctx.Original
 			_, err := store.Chatbot.CreateTodo(&todo)
 			if err != nil {
@@ -259,7 +259,7 @@ var formRules = []form.Rule{
 					todo.Priority = value.(int32)
 				}
 			}
-			todo.UID = ctx.AsUser.UserId()
+			todo.UID = ctx.AsUser.String()
 			todo.Topic = ctx.Original
 			err := store.Chatbot.UpdateTodo(&todo)
 			if err != nil {

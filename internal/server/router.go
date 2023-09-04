@@ -242,7 +242,7 @@ func renderPage(rw http.ResponseWriter, req *http.Request) {
 	ctx := types.Context{
 		Original:   original,
 		RcptTo:     topic,
-		AsUser:     types.ParseUserId(uid),
+		AsUser:     types.Uid(uid),
 		PageRuleId: pageRuleId,
 	}
 
@@ -362,7 +362,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	ctx := types.Context{
 		//Original:   topicUid.UserId(),
 		RcptTo:     topic,
-		AsUser:     types.ParseUserId(uid),
+		AsUser:     types.Uid(uid),
 		FormId:     formData.FormID,
 		FormRuleId: formMsg.ID,
 	}

@@ -139,7 +139,8 @@ func isMissingDb(err error) bool {
 		return false
 	}
 
-	myerr, ok := err.(*ms.MySQLError)
+	var myerr *ms.MySQLError
+	ok := errors.As(err, &myerr)
 	return ok && myerr.Number == 1049
 }
 
@@ -319,18 +320,18 @@ func (a *adapter) GetMessage(topic string, seqId int) (model.Message, error) {
 
 func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) error {
 	var find model.Data
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).First(&find).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	if find.ID > 0 {
 		return a.db.
 			Model(&model.Data{}).
-			Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).
+			Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).
 			Update("value", value).Error
 	} else {
 		return a.db.Create(&model.Data{
-			UID:   uid.UserId(),
+			UID:   string(uid),
 			Topic: topic,
 			Key:   key,
 			Value: model.JSON(value),
@@ -340,7 +341,7 @@ func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) erro
 
 func (a *adapter) DataGet(uid types.Uid, topic, key string) (types.KV, error) {
 	var find model.Data
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).First(&find).Error
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +350,7 @@ func (a *adapter) DataGet(uid types.Uid, topic, key string) (types.KV, error) {
 
 func (a *adapter) DataList(uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error) {
 	var list []*model.Data
-	builder := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic)
+	builder := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic)
 	if filter.Prefix != nil {
 		builder = builder.Where("`key` LIKE ?", fmt.Sprintf("%s%%", *filter.Prefix))
 	}
@@ -367,23 +368,23 @@ func (a *adapter) DataList(uid types.Uid, topic string, filter types.DataFilter)
 }
 
 func (a *adapter) DataDelete(uid types.Uid, topic string, key string) error {
-	return a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).Delete(&model.Data{}).Error
+	return a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).Delete(&model.Data{}).Error
 }
 
 func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) error {
 	var find model.Config
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).First(&find).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	if find.ID > 0 {
 		return a.db.
 			Model(&model.Config{}).
-			Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).
+			Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).
 			Update("value", value).Error
 	} else {
 		return a.db.Create(&model.Config{
-			UID:   uid.UserId(),
+			UID:   string(uid),
 			Topic: topic,
 			Key:   key,
 			Value: model.JSON(value),
@@ -393,7 +394,7 @@ func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) er
 
 func (a *adapter) ConfigGet(uid types.Uid, topic, key string) (types.KV, error) {
 	var find model.Config
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid.UserId(), topic, key).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `key` = ?", uid, topic, key).First(&find).Error
 	if err != nil {
 		return nil, err
 	}
@@ -421,7 +422,7 @@ func (a *adapter) OAuthSet(oauth model.OAuth) error {
 
 func (a *adapter) OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error) {
 	var find model.OAuth
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `type` = ?", uid.UserId(), topic, t).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `type` = ?", uid, topic, t).First(&find).Error
 	if err != nil {
 		return model.OAuth{}, err
 	}
@@ -520,7 +521,7 @@ func (a *adapter) SessionCreate(session model.Session) error {
 
 func (a *adapter) SessionSet(uid types.Uid, topic string, session model.Session) error {
 	var find model.Session
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).Order("created_at DESC").First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).Order("created_at DESC").First(&find).Error
 	if err != nil {
 		return err
 	}
@@ -534,7 +535,7 @@ func (a *adapter) SessionSet(uid types.Uid, topic string, session model.Session)
 
 func (a *adapter) SessionState(uid types.Uid, topic string, state model.SessionState) error {
 	var find model.Session
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).Order("created_at DESC").First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).Order("created_at DESC").First(&find).Error
 	if err != nil {
 		return err
 	}
@@ -548,7 +549,7 @@ func (a *adapter) SessionState(uid types.Uid, topic string, state model.SessionS
 
 func (a *adapter) SessionGet(uid types.Uid, topic string) (model.Session, error) {
 	var find model.Session
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).Order("created_at DESC").First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).Order("created_at DESC").First(&find).Error
 	if err != nil {
 		return model.Session{}, err
 	}
@@ -571,7 +572,7 @@ func (a *adapter) PipelineCreate(pipeline model.Pipeline) error {
 func (a *adapter) PipelineState(uid types.Uid, topic string, pipeline model.Pipeline) error {
 	return a.db.
 		Model(&model.Pipeline{}).
-		Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid.UserId(), topic, pipeline.Flag).
+		Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid, topic, pipeline.Flag).
 		Updates(map[string]interface{}{
 			"state": pipeline.State,
 		}).Error
@@ -580,7 +581,7 @@ func (a *adapter) PipelineState(uid types.Uid, topic string, pipeline model.Pipe
 func (a *adapter) PipelineStep(uid types.Uid, topic string, pipeline model.Pipeline) error {
 	return a.db.
 		Model(&model.Pipeline{}).
-		Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid.UserId(), topic, pipeline.Flag).
+		Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid, topic, pipeline.Flag).
 		Updates(map[string]interface{}{
 			"stage": pipeline.Stage,
 		}).Error
@@ -588,7 +589,7 @@ func (a *adapter) PipelineStep(uid types.Uid, topic string, pipeline model.Pipel
 
 func (a *adapter) PipelineGet(uid types.Uid, topic string, flag string) (model.Pipeline, error) {
 	var find model.Pipeline
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid.UserId(), topic, flag).Order("created_at DESC").First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND `flag` = ?", uid, topic, flag).Order("created_at DESC").First(&find).Error
 	if err != nil {
 		return model.Pipeline{}, err
 	}
@@ -601,7 +602,7 @@ func (a *adapter) BehaviorSet(behavior model.Behavior) error {
 
 func (a *adapter) BehaviorGet(uid types.Uid, flag string) (model.Behavior, error) {
 	var find model.Behavior
-	err := a.db.Where("`uid` = ? AND `flag` = ?", uid.UserId(), flag).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `flag` = ?", uid, flag).First(&find).Error
 	if err != nil {
 		return model.Behavior{}, err
 	}
@@ -610,7 +611,7 @@ func (a *adapter) BehaviorGet(uid types.Uid, flag string) (model.Behavior, error
 
 func (a *adapter) BehaviorList(uid types.Uid) ([]*model.Behavior, error) {
 	var list []*model.Behavior
-	err := a.db.Where("`uid` = ?", uid.UserId()).Order("id DESC").Find(&list).Error
+	err := a.db.Where("`uid` = ?", uid).Order("id DESC").Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -620,7 +621,7 @@ func (a *adapter) BehaviorList(uid types.Uid) ([]*model.Behavior, error) {
 func (a *adapter) BehaviorIncrease(uid types.Uid, flag string, number int) error {
 	return a.db.
 		Model(&model.Behavior{}).
-		Where("`uid` = ? AND `flag` = ?", uid.UserId(), flag).
+		Where("`uid` = ? AND `flag` = ?", uid, flag).
 		UpdateColumn("count", gorm.Expr("count + ?", number)).Error
 }
 
@@ -741,7 +742,7 @@ func (a *adapter) CreateInstruct(instruct *model.Instruct) (int64, error) {
 func (a *adapter) ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct, error) {
 	var items []*model.Instruct
 	builder := a.db.
-		Where("`uid` = ?", uid.UserId()).
+		Where("`uid` = ?", uid).
 		Where("state = ?", model.InstructCreate)
 	if isExpire {
 		builder.Where("expire_at < ?", time.Now())
@@ -778,7 +779,7 @@ func (a *adapter) GetObjectiveByID(id int64) (*model.Objective, error) {
 
 func (a *adapter) GetObjectiveBySequence(uid types.Uid, topic string, sequence int64) (*model.Objective, error) {
 	var objective model.Objective
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).First(&objective).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).First(&objective).Error
 	if err != nil {
 		return nil, err
 	}
@@ -787,7 +788,7 @@ func (a *adapter) GetObjectiveBySequence(uid types.Uid, topic string, sequence i
 
 func (a *adapter) ListObjectives(uid types.Uid, topic string) ([]*model.Objective, error) {
 	var objectives []*model.Objective
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).Order("id DESC").Find(&objectives).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).Order("id DESC").Find(&objectives).Error
 	if err != nil {
 		return nil, err
 	}
@@ -850,7 +851,7 @@ func (a *adapter) DeleteObjective(id int64) error {
 }
 
 func (a *adapter) DeleteObjectiveBySequence(uid types.Uid, topic string, sequence int64) error {
-	return a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).Delete(&model.Objective{}).Error
+	return a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).Delete(&model.Objective{}).Error
 }
 
 func (a *adapter) GetKeyResultByID(id int64) (*model.KeyResult, error) {
@@ -864,7 +865,7 @@ func (a *adapter) GetKeyResultByID(id int64) (*model.KeyResult, error) {
 
 func (a *adapter) GetKeyResultBySequence(uid types.Uid, topic string, sequence int64) (*model.KeyResult, error) {
 	var keyResult model.KeyResult
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).First(&keyResult).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).First(&keyResult).Error
 	if err != nil {
 		return nil, err
 	}
@@ -873,7 +874,7 @@ func (a *adapter) GetKeyResultBySequence(uid types.Uid, topic string, sequence i
 
 func (a *adapter) ListKeyResults(uid types.Uid, topic string) ([]*model.KeyResult, error) {
 	var keyResult []*model.KeyResult
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).Order("id DESC").Find(&keyResult).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).Order("id DESC").Find(&keyResult).Error
 	if err != nil {
 		return nil, err
 	}
@@ -957,7 +958,7 @@ func (a *adapter) DeleteKeyResult(id int64) error {
 }
 
 func (a *adapter) DeleteKeyResultBySequence(uid types.Uid, topic string, sequence int64) error {
-	return a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).Delete(&model.KeyResult{}).Error
+	return a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).Delete(&model.KeyResult{}).Error
 }
 
 func (a *adapter) AggregateObjectiveValue(id int64) error {
@@ -1053,7 +1054,7 @@ func (a *adapter) CreateTodo(todo *model.Todo) (int64, error) {
 func (a *adapter) ListTodos(uid types.Uid, topic string) ([]*model.Todo, error) {
 	var items []*model.Todo
 	err := a.db.
-		Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).
+		Where("`uid` = ? AND `topic` = ?", uid, topic).
 		Order("priority DESC").
 		Order("created_at DESC").Find(&items).Error
 	if err != nil {
@@ -1065,7 +1066,7 @@ func (a *adapter) ListTodos(uid types.Uid, topic string) ([]*model.Todo, error) 
 func (a *adapter) ListRemindTodos(uid types.Uid, topic string) ([]*model.Todo, error) {
 	var items []*model.Todo
 	err := a.db.
-		Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).
+		Where("`uid` = ? AND `topic` = ?", uid, topic).
 		Where("complete <> ?", 1).
 		Where("is_remind_at_time = ?", 1).
 		Order("priority DESC").Find(&items).Error
@@ -1087,7 +1088,7 @@ func (a *adapter) GetTodo(id int64) (*model.Todo, error) {
 func (a *adapter) GetTodoBySequence(uid types.Uid, topic string, sequence int64) (*model.Todo, error) {
 	var find model.Todo
 	err := a.db.
-		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).
+		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).
 		First(&find).Error
 	if err != nil {
 		return nil, err
@@ -1103,7 +1104,7 @@ func (a *adapter) CompleteTodo(id int64) error {
 
 func (a *adapter) CompleteTodoBySequence(uid types.Uid, topic string, sequence int64) error {
 	return a.db.Model(&model.Todo{}).
-		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).
+		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).
 		Update("complete", true).Error
 }
 
@@ -1124,7 +1125,7 @@ func (a *adapter) DeleteTodo(id int64) error {
 
 func (a *adapter) DeleteTodoBySequence(uid types.Uid, topic string, sequence int64) error {
 	return a.db.
-		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid.UserId(), topic, sequence).
+		Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).
 		Delete(&model.Todo{}).Error
 }
 
@@ -1145,7 +1146,7 @@ func (a *adapter) UpdateReview(review *model.Review) error {
 
 func (a *adapter) ListReviews(uid types.Uid, topic string) ([]*model.Review, error) {
 	q := dao.Q.Review
-	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic)).
+	return q.Where(q.UID.Eq(string(uid)), q.Topic.Eq(topic)).
 		Order(q.UpdatedAt.Desc()).Find()
 }
 
@@ -1171,7 +1172,7 @@ func (a *adapter) UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) err
 
 func (a *adapter) ListReviewEvaluations(uid types.Uid, topic string, reviewID int64) ([]*model.ReviewEvaluation, error) {
 	q := dao.Q.ReviewEvaluation
-	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic), q.ReviewID.Eq(reviewID)).
+	return q.Where(q.UID.Eq(string(uid)), q.Topic.Eq(topic), q.ReviewID.Eq(reviewID)).
 		Order(q.UpdatedAt.Desc()).Find()
 }
 
@@ -1197,7 +1198,7 @@ func (a *adapter) UpdateCycle(cycle *model.Cycle) error {
 
 func (a *adapter) ListCycles(uid types.Uid, topic string) ([]*model.Cycle, error) {
 	q := dao.Q.Cycle
-	return q.Where(q.UID.Eq(uid.UserId()), q.Topic.Eq(topic)).
+	return q.Where(q.UID.Eq(string(uid)), q.Topic.Eq(topic)).
 		Order(q.UpdatedAt.Desc()).Find()
 }
 
@@ -1239,7 +1240,7 @@ func (a *adapter) DecreaseCounter(id, amount int64) error {
 
 func (a *adapter) ListCounter(uid types.Uid, topic string) ([]*model.Counter, error) {
 	var items []*model.Counter
-	err := a.db.Where("`uid` = ? AND `topic` = ?", uid.UserId(), topic).
+	err := a.db.Where("`uid` = ? AND `topic` = ?", uid, topic).
 		Order("updated_at DESC").Find(&items).Error
 	if err != nil {
 		return nil, err
@@ -1266,7 +1267,7 @@ func (a *adapter) GetCounter(id int64) (model.Counter, error) {
 
 func (a *adapter) GetCounterByFlag(uid types.Uid, topic string, flag string) (model.Counter, error) {
 	var find model.Counter
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND flag = ?", uid.UserId(), topic, flag).First(&find).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND flag = ?", uid, topic, flag).First(&find).Error
 	if err != nil {
 		return model.Counter{}, err
 	}
@@ -1314,7 +1315,7 @@ func (a *adapter) UpdateWorkflowState(id int64, state model.WorkflowState) error
 
 func (a *adapter) ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error) {
 	q := dao.Q.Workflow
-	return q.Where(q.UID.Eq(uid.UserId())).Where(q.Topic.Eq(topic)).Find()
+	return q.Where(q.UID.Eq(string(uid))).Where(q.Topic.Eq(topic)).Find()
 }
 
 func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error {

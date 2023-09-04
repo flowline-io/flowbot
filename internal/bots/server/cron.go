@@ -19,7 +19,7 @@ var cronRules = []cron.Rule{
 			keys, _ := cache.DB.Keys(ctx_, "online:*").Result()
 
 			currentCount := int64(len(keys))
-			lastKey := fmt.Sprintf("server:cron:online_count_last:%s", ctx.AsUser.UserId())
+			lastKey := fmt.Sprintf("server:cron:online_count_last:%s", ctx.AsUser.String())
 
 			lastCount, _ := cache.DB.Get(ctx_, lastKey).Int64()
 			cache.DB.Set(ctx_, lastKey, currentCount, redis.KeepTTL)

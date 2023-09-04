@@ -498,7 +498,7 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 		return
 	}
 
-	uid := types.ParseUserId(qp.Uid)
+	uid := types.Uid(qp.Uid)
 	msg := types.ToPayload(qp.Type, qp.Msg)
 	botSend(qp.RcptTo, uid, msg)
 
