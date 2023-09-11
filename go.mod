@@ -16,7 +16,7 @@ require (
 	github.com/go-playground/validator/v10 v10.15.3
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/gofiber/contrib/fiberzerolog v0.2.0
+	github.com/gofiber/contrib/fiberzerolog v0.2.1
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.3.1

@@ -162,8 +162,8 @@ github.com/go-test/deep v1.0.4/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3a
 github.com/go-test/deep v1.1.0 h1:WOcxcdHcvdgThNXjw0t76K42FXTU7HpNQWHpA2HHNlg=
 github.com/go-test/deep v1.1.0/go.mod h1:5C2ZWiW0ErCdrYzpqxLbTX7MG14M9iiw8DgHncVwcsE=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
-github.com/gofiber/contrib/fiberzerolog v0.2.0 h1:U6mKf8HCTFWRNIN/iKLDJLi9UDmqACLbUAcWSVUw2x0=
-github.com/gofiber/contrib/fiberzerolog v0.2.0/go.mod h1:rCL2kQftHPK9MsK2FJAnfWhbzLZ7A/7nytl3UhL3yNw=
+github.com/gofiber/contrib/fiberzerolog v0.2.1 h1:yH70XuwO6gzj3PjMrOoffNmPtPX/wxMYq/DqB+N94Tg=
+github.com/gofiber/contrib/fiberzerolog v0.2.1/go.mod h1:XDcyXzvLNPt+SZFdkTRKtIzp9JVPsmgDg7BjO5e9q/4=
 github.com/gofiber/fiber/v2 v2.49.1 h1:0W2DRWevSirc8pJl4o8r8QejDR8TV6ZUCawHxwbIdOk=
 github.com/gofiber/fiber/v2 v2.49.1/go.mod h1:nPUeEBUeeYGgwbDm59Gp7vS8MDyScL6ezr/Np9A13WU=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
