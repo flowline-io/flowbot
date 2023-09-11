@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     branches:
-      - 'extra'
+      - 'release'
   pull_request:
 
 jobs:
