@@ -14,7 +14,7 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.2.7
 	github.com/go-openapi/spec v0.20.9
 	github.com/go-playground/validator/v10 v10.15.4
-	github.com/go-resty/resty/v2 v2.7.0
+	github.com/go-resty/resty/v2 v2.8.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofiber/contrib/fiberzerolog v0.2.1
 	github.com/gofiber/fiber/v2 v2.49.2
@@ -125,7 +125,7 @@ require (
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
