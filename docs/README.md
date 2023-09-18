@@ -44,3 +44,12 @@ golangci-lint run --timeout=10m --config=./.golangci.yaml ./...
 ```shell
 cloc --exclude-dir=node_modules --exclude-ext=json .
 ```
+
+## security
+
+```shell
+go install golang.org/x/vuln/cmd/govulncheck@latest
+
+# check
+govulncheck ./...
+```
