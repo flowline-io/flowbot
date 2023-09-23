@@ -37,16 +37,11 @@ import (
 	"strconv"
 )
 
-func setupMux(app *fiber.App) *http.ServeMux {
+func setupMux(app *fiber.App) {
 	// Webservice
-	wc := route.NewContainer()
 	for _, bot := range bots.List() {
-		if ws := bot.Webservice(); ws != nil {
-			wc.Add(ws)
-		}
+		bot.Webservice(app)
 	}
-	route.AddSwagger(wc)
-	m := wc.ServeMux
 
 	app.Group("/extra", adaptor.HTTPHandler(newRouter())) // todo remove extra prefix
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
@@ -54,8 +49,6 @@ func setupMux(app *fiber.App) *http.ServeMux {
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
 
 	app.All("/chatbot/:platform", platformCallback)
-
-	return m
 }
 
 func newRouter() *mux.Router {

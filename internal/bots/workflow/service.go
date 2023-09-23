@@ -1,10 +1,10 @@
 package workflow
 
 import (
-	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/gofiber/fiber/v2"
 )
 
 const serviceVersion = "v1"
@@ -18,7 +18,7 @@ type rule struct {
 	OutputSchema []types.FormField `json:"output_schema"`
 }
 
-func actions(_ *restful.Request, resp *restful.Response) {
+func actions(ctx *fiber.Ctx) error {
 	result := make(map[string][]rule, len(bots.List()))
 	for name, handler := range bots.List() {
 		var list []rule
@@ -42,5 +42,5 @@ func actions(_ *restful.Request, resp *restful.Response) {
 		}
 	}
 
-	_ = resp.WriteAsJson(result)
+	return ctx.JSON(result)
 }

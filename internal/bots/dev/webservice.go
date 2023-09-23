@@ -2,8 +2,6 @@ package dev
 
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/route"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -12,9 +10,5 @@ var webserviceRules = []webservice.Rule{
 		Path:          "/example",
 		Function:      example,
 		Documentation: "get example data",
-		Option: []route.Option{
-			route.WithReturns(model.Message{}),
-			route.WithWrites(model.Message{}),
-		},
 	},
 }

@@ -1,14 +1,14 @@
 package webservice
 
 import (
-	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Rule struct {
 	Method        string
 	Path          string
-	Function      restful.RouteFunction
+	Function      fiber.Handler
 	Documentation string
 	Option        []route.Option
 }

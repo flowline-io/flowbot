@@ -53,3 +53,13 @@ go install golang.org/x/vuln/cmd/govulncheck@latest
 # check
 govulncheck ./...
 ```
+
+## swagger
+
+```shell
+# install
+go install github.com/swaggo/swag/cmd/swag@latest
+
+# generate
+swag init -g main.go --dir=cmd
+```

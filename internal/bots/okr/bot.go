@@ -3,10 +3,10 @@ package okr
 import (
 	"encoding/json"
 	"errors"
-	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
@@ -65,8 +65,8 @@ func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
 	return webapp
 }
 
-func (bot) Webservice() *restful.WebService {
-	return bots.Webservice(Name, serviceVersion, webserviceRules)
+func (bot) Webservice(app *fiber.App) {
+	bots.Webservice(app, Name, serviceVersion, webserviceRules)
 }
 
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {

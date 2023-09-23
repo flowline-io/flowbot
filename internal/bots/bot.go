@@ -28,6 +28,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
@@ -93,7 +94,7 @@ type Handler interface {
 	Page(ctx types.Context, flag string) (string, error)
 
 	// Webservice return webservice routes
-	Webservice() *restful.WebService
+	Webservice(app *fiber.App)
 
 	// Webapp return webapp
 	Webapp() func(rw http.ResponseWriter, req *http.Request)
@@ -172,8 +173,8 @@ func (Base) Page(_ types.Context, _ string) (string, error) {
 	return "", nil
 }
 
-func (Base) Webservice() *restful.WebService {
-	return nil
+func (Base) Webservice(_ *fiber.App) {
+	return
 }
 
 func (Base) Webapp() func(rw http.ResponseWriter, req *http.Request) {
@@ -1046,15 +1047,15 @@ func ServeFile(rw http.ResponseWriter, req *http.Request, dist embed.FS, dir str
 	_, _ = rw.Write(content)
 }
 
-func Webservice(name, version string, ruleset webservice.Ruleset) *restful.WebService {
+func Webservice(app *fiber.App, name, version string, ruleset webservice.Ruleset) {
 	if len(ruleset) == 0 {
-		return nil
+		return
 	}
 	var routes []*route.Router
 	for _, rule := range ruleset {
 		routes = append(routes, route.Route(rule.Method, rule.Path, rule.Function, rule.Documentation, rule.Option...))
 	}
-	return route.WebService(name, version, routes...)
+	route.WebService(app, name, version, routes...)
 }
 
 // Init initializes registered handlers.

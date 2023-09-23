@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
-	"github.com/flowline-io/flowbot/pkg/route"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -11,6 +10,5 @@ var webserviceRules = []webservice.Rule{
 		Path:          "/actions",
 		Function:      actions,
 		Documentation: "get bot actions",
-		Option:        []route.Option{},
 	},
 }

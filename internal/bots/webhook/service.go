@@ -2,28 +2,26 @@ package webhook
 
 import (
 	"fmt"
-	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/gofiber/fiber/v2"
 	"io"
 )
 
 const serviceVersion = "v1"
 
-func webhook(req *restful.Request, resp *restful.Response) {
-	flag := req.PathParameter("flag")
+func webhook(ctx *fiber.Ctx) error {
+	flag := ctx.Params("flag")
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		route.ErrorResponse(resp, "flag error")
-		return
+		return route.ErrorResponse(ctx, "flag error")
 	}
 	if p.IsExpired() {
-		route.ErrorResponse(resp, "page expired")
-		return
+		return route.ErrorResponse(ctx, "page expired")
 	}
 
 	//uid, _ := types.KV(p.Params).String("uid")
@@ -31,7 +29,7 @@ func webhook(req *restful.Request, resp *restful.Response) {
 	botUid := types.Uid(0) // fixme
 	topic := ""            // fixme
 
-	d, _ := io.ReadAll(req.Request.Body)
+	d, _ := io.ReadAll(ctx.Request().BodyStream())
 
 	txt := ""
 	if len(d) > 1000 {
@@ -47,9 +45,8 @@ func webhook(req *restful.Request, resp *restful.Response) {
 	})
 	if err != nil {
 		flog.Error(err)
-		_, _ = resp.Write([]byte("send error"))
-		return
+		return route.ErrorResponse(ctx, "error emit event")
 	}
 
-	_, _ = resp.Write([]byte("ok"))
+	return ctx.SendString("ok")
 }
