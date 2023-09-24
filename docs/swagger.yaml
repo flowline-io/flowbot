@@ -1,4 +1,13 @@
 basePath: /
+definitions:
+  types.ServerComMessage:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
 host: localhost:6060
 info:
   contact:
@@ -11,5 +20,24 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Fiber Example API
   version: "1.0"
-paths: {}
+paths:
+  /bot/dev/v1/example:
+    get:
+      consumes:
+      - application/json
+      description: get example data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ServerComMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ServerComMessage'
+      summary: Show example
+      tags:
+      - dev
 swagger: "2.0"

@@ -61,5 +61,5 @@ govulncheck ./...
 go install github.com/swaggo/swag/cmd/swag@latest
 
 # generate
-swag init -g main.go --dir=cmd
+swag init -g cmd/main.go
 ```
