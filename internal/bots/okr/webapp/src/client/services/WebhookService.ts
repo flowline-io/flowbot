@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { protocol_Response } from '../models/protocol_Response';
+
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 
@@ -11,16 +13,17 @@ export class WebhookService {
 
   /**
    * trigger webhook
-   * @param flag flag param
-   * @returns any OK
+   * trigger webhook
+   * @param flag Flag
+   * @returns protocol_Response OK
    * @throws ApiError
    */
-  public webhook(
-flag: string,
-): CancelablePromise<any> {
+  public postWebhookV1Webhook(
+    flag: string,
+  ): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
-      url: '/bot/webhook/v1/webhook/{flag}',
+      url: '/webhook/v1/webhook/{flag}',
       path: {
         'flag': flag,
       },

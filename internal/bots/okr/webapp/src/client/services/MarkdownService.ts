@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { protocol_Response } from '../models/protocol_Response';
+
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 
@@ -10,17 +12,18 @@ export class MarkdownService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
-   * get markdown editor
-   * @param flag flag param
-   * @returns any OK
+   * markdown editor page
+   * markdown editor page
+   * @param flag Flag
+   * @returns void
    * @throws ApiError
    */
-  public editor(
-flag: string,
-): CancelablePromise<any> {
+  public getMarkdownV1Editor(
+    flag: string,
+  ): CancelablePromise<void> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/bot/markdown/v1/editor/{flag}',
+      url: '/markdown/v1/editor/{flag}',
       path: {
         'flag': flag,
       },
@@ -28,14 +31,19 @@ flag: string,
   }
 
   /**
-   * create markdown page
-   * @returns any OK
+   * save markdown data
+   * save markdown data
+   * @param data Data
+   * @returns protocol_Response OK
    * @throws ApiError
    */
-  public saveMarkdown(): CancelablePromise<any> {
+  public postMarkdownV1Markdown(
+    data: Record<string, string>,
+  ): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
-      url: '/bot/markdown/v1/markdown',
+      url: '/markdown/v1/markdown',
+      body: data,
     });
   }
 

@@ -3,27 +3,27 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { protocol_Response } from '../models/protocol_Response';
-import type { types_KV } from '../models/types_KV';
+import type { workflow_rule } from '../models/workflow_rule';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
 
-export class DevService {
+export class WorkflowService {
 
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
-   * Show example
-   * get example data
+   * get chatbot actions
+   * get chatbot actions
    * @returns any OK
    * @throws ApiError
    */
-  public getDevV1Example(): CancelablePromise<(protocol_Response & {
-    data?: types_KV;
+  public getWorkflowV1Actions(): CancelablePromise<(protocol_Response & {
+    data?: Record<string, Array<workflow_rule>>;
   })> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/dev/v1/example',
+      url: '/workflow/v1/actions',
     });
   }
 

@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $model_Message = {
-  properties: {
-  },
+export const $model_ReviewType = {
+  type: 'Enum',
 } as const;

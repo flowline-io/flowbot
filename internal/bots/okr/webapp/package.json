@@ -22,7 +22,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "openapi": "openapi --input http://127.0.0.1:6060/bot/swagger.json --output ./src/client --client axios --indent 2 --exportSchemas true --name AppClient"
+    "openapi": "openapi --input http://127.0.0.1:6060/swagger/doc.json --output ./src/client --client axios --indent 2 --exportSchemas true --name AppClient"
   },
   "eslintConfig": {
     "extends": [

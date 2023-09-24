@@ -10,6 +10,7 @@ import { DevService } from './services/DevService';
 import { MarkdownService } from './services/MarkdownService';
 import { OkrService } from './services/OkrService';
 import { WebhookService } from './services/WebhookService';
+import { WorkflowService } from './services/WorkflowService';
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 
@@ -19,13 +20,14 @@ export class AppClient {
   public readonly markdown: MarkdownService;
   public readonly okr: OkrService;
   public readonly webhook: WebhookService;
+  public readonly workflow: WorkflowService;
 
   public readonly request: BaseHttpRequest;
 
   constructor(config?: Partial<OpenAPIConfig>, HttpRequest: HttpRequestConstructor = AxiosHttpRequest) {
     this.request = new HttpRequest({
-      BASE: config?.BASE ?? '',
-      VERSION: config?.VERSION ?? '1.0.0',
+      BASE: config?.BASE ?? 'http://localhost:6060/bot',
+      VERSION: config?.VERSION ?? '1.0',
       WITH_CREDENTIALS: config?.WITH_CREDENTIALS ?? false,
       CREDENTIALS: config?.CREDENTIALS ?? 'include',
       TOKEN: config?.TOKEN,
@@ -39,5 +41,7 @@ export class AppClient {
     this.markdown = new MarkdownService(this.request);
     this.okr = new OkrService(this.request);
     this.webhook = new WebhookService(this.request);
+    this.workflow = new WorkflowService(this.request);
   }
 }
+

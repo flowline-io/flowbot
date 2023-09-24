@@ -1,7 +1,7 @@
 import {AppClient} from "../client";
 
 export function Client()  {
-	let global = {base: "http://127.0.0.1:6060", flag: ""}
+	let global = {base: "http://127.0.0.1:6060/bot", flag: ""}
 	// @ts-ignore
 	if (Global != undefined) {// eslint-disable-line
 		// @ts-ignore

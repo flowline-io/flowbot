@@ -2,6 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-
-export type model_Message = {
-};
+export const $model_ValueModeType = {
+  type: 'Enum',
+} as const;
