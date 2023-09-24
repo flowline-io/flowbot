@@ -12,18 +12,18 @@ const docTemplate = `{
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
-            "email": "fiber@swagger.io"
+            "email": "dev@tsundata.com"
         },
         "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "name": "GPL 3.0",
+            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
         },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bot/dev/v1/example": {
+        "/dev/v1/example": {
             "get": {
                 "description": "get example data",
                 "consumes": [
@@ -40,13 +40,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ServerComMessage"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.ServerComMessage"
+                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 }
@@ -54,17 +48,40 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "types.ServerComMessage": {
+        "protocol.Response": {
             "type": "object",
             "properties": {
-                "code": {
+                "data": {
+                    "description": "Response data"
+                },
+                "message": {
+                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+                    "type": "string"
+                },
+                "retcode": {
+                    "description": "The return code, which must conform to the return code rules defined later on this page",
                     "type": "integer"
                 },
-                "data": {},
-                "message": {
-                    "type": "string"
+                "status": {
+                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/protocol.ResponseStatus"
+                        }
+                    ]
                 }
             }
+        },
+        "protocol.ResponseStatus": {
+            "type": "string",
+            "enum": [
+                "ok",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "Success",
+                "Failed"
+            ]
         }
     }
 }`
@@ -73,10 +90,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:6060",
-	BasePath:         "/",
+	BasePath:         "/bot",
 	Schemes:          []string{},
-	Title:            "Fiber Example API",
-	Description:      "This is a sample swagger for Fiber",
+	Title:            "Flowbot API",
+	Description:      "Flowbot Chatbot API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

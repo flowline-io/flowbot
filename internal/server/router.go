@@ -490,13 +490,13 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))
 	if !isValid {
 		wrt.WriteHeader(http.StatusForbidden)
-		_ = json.NewEncoder(wrt).Encode(types.ErrMessage(http.StatusForbidden, "Missing, invalid or expired access token"))
+		_ = json.NewEncoder(wrt).Encode(protocol.NewFailedResponse(protocol.ErrTokenError))
 		return
 	}
 
 	if req.Method != http.MethodGet {
 		wrt.WriteHeader(http.StatusMethodNotAllowed)
-		_ = json.NewEncoder(wrt).Encode(types.ErrMessage(http.StatusBadRequest, "invalid http method"))
+		_ = json.NewEncoder(wrt).Encode(protocol.NewFailedResponse(protocol.ErrMethodNotAllowed))
 		return
 	}
 

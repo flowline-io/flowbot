@@ -4,8 +4,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 	"strconv"
 )
 
@@ -16,9 +17,10 @@ func objectiveList(ctx *fiber.Ctx) error {
 	topic := ""         // fixme
 	list, err := store.Chatbot.ListObjectives(uid, topic)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusBadRequest, err.Error()))
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
 	}
-	return ctx.JSON(types.OkMessage(list))
+	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
 
 func objectiveDetail(ctx *fiber.Ctx) error {
@@ -29,9 +31,10 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 
 	obj, err := store.Chatbot.GetObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, ""))
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
 	}
-	return ctx.JSON(types.OkMessage(obj))
+	return ctx.JSON(protocol.NewSuccessResponse(obj))
 }
 
 func objectiveCreate(ctx *fiber.Ctx) error {
@@ -40,15 +43,16 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	obj := new(model.Objective)
 	err := ctx.BodyParser(&obj)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, err.Error()))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 	obj.UID = uid.String()
 	obj.Topic = topic
 	_, err = store.Chatbot.CreateObjective(obj)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, err.Error()))
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
 	}
-	return ctx.JSON(types.OkMessage(nil))
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 func objectiveUpdate(ctx *fiber.Ctx) error {
@@ -57,15 +61,16 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 	obj := new(model.Objective)
 	err := ctx.BodyParser(&obj)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, err.Error()))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 	obj.UID = uid.String()
 	obj.Topic = topic
 	err = store.Chatbot.UpdateObjective(obj)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, err.Error()))
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
 	}
-	return ctx.JSON(types.OkMessage(nil))
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 func objectiveDelete(ctx *fiber.Ctx) error {
@@ -76,7 +81,8 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 
 	err := store.Chatbot.DeleteObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		return ctx.JSON(types.ErrMessage(http.StatusNotFound, err.Error()))
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
 	}
-	return ctx.JSON(types.OkMessage(nil))
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }

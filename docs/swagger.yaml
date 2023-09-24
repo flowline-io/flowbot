@@ -1,27 +1,47 @@
-basePath: /
+basePath: /bot
 definitions:
-  types.ServerComMessage:
+  protocol.Response:
     properties:
-      code:
-        type: integer
-      data: {}
+      data:
+        description: Response data
       message:
+        description: |-
+          Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
+          or an empty string when it succeeds.
         type: string
+      retcode:
+        description: The return code, which must conform to the return code rules
+          defined later on this page
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/protocol.ResponseStatus'
+        description: |-
+          Execution status (success or failure), must be one of ok and failed,
+          indicating successful and unsuccessful execution, respectively.
     type: object
+  protocol.ResponseStatus:
+    enum:
+    - ok
+    - failed
+    type: string
+    x-enum-varnames:
+    - Success
+    - Failed
 host: localhost:6060
 info:
   contact:
-    email: fiber@swagger.io
+    email: dev@tsundata.com
     name: API Support
-  description: This is a sample swagger for Fiber
+  description: Flowbot Chatbot API
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    name: GPL 3.0
+    url: https://github.com/flowline-io/flowbot/blob/master/LICENSE
   termsOfService: http://swagger.io/terms/
-  title: Fiber Example API
+  title: Flowbot API
   version: "1.0"
 paths:
-  /bot/dev/v1/example:
+  /dev/v1/example:
     get:
       consumes:
       - application/json
@@ -32,11 +52,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ServerComMessage'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ServerComMessage'
+            $ref: '#/definitions/protocol.Response'
       summary: Show example
       tags:
       - dev

@@ -32,10 +32,16 @@ type Request struct {
 }
 
 type Response struct {
-	Status  ResponseStatus `json:"status"`
-	RetCode int64          `json:"retcode"`
-	Data    any            `json:"data"`
-	Message string         `json:"message"`
+	// Execution status (success or failure), must be one of ok and failed,
+	// indicating successful and unsuccessful execution, respectively.
+	Status ResponseStatus `json:"status"`
+	// The return code, which must conform to the return code rules defined later on this page
+	RetCode int64 `json:"retcode,omitempty"`
+	// Response data
+	Data any `json:"data"`
+	// Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
+	// or an empty string when it succeeds.
+	Message string `json:"message,omitempty"`
 }
 
 type Error struct {
@@ -59,7 +65,7 @@ func (e Error) GetMessage() string {
 	return e.Message
 }
 
-// Request Error
+// Request Error (10xxx)
 
 // ErrBadRequest  Formatting errors (including implementations that do not support MessagePack),
 // missing required fields, or incorrect field types
@@ -83,6 +89,9 @@ var ErrBadSegmentType = NewError(10006, "bad segment type")
 // ErrBadSegmentData The Chatbot implementation does not implement the semantics of this parameter
 var ErrBadSegmentData = NewError(10007, "bad segment data")
 
+// ErrMethodNotAllowed Invalid HTTP method
+var ErrMethodNotAllowed = NewError(10008, "invalid http method")
+
 // ErrWhoAmI Chatbot implements support for multiple bot accounts on a single Chatbot Connect connection,
 // but the action request does not specify the account to be used
 var ErrWhoAmI = NewError(10101, "who am i")
@@ -90,7 +99,7 @@ var ErrWhoAmI = NewError(10101, "who am i")
 // ErrUnknownSelf The bot account specified by the action request does not exist
 var ErrUnknownSelf = NewError(10102, "unknown self")
 
-// Handler Error
+// Handler Error (20xxx)
 
 // ErrBadHandler Response status not set correctly, etc.
 var ErrBadHandler = NewError(20001, "bad handler")
@@ -98,10 +107,16 @@ var ErrBadHandler = NewError(20001, "bad handler")
 // ErrInternalHandler An uncaught and unexpected exception has occurred within the Chatbot implementation.
 var ErrInternalHandler = NewError(20002, "internal handler")
 
-// Execution Error
+// Execution Error (30xxx)
 
 // ErrDatabaseError Such as database query failure
 var ErrDatabaseError = NewError(31001, "database error")
+
+// ErrDatabaseReadError Such as database read failure
+var ErrDatabaseReadError = NewError(31002, "database read error")
+
+// ErrDatabaseWriteError Such as database write failure
+var ErrDatabaseWriteError = NewError(31003, "database write error")
 
 // ErrFilesystemError If reading or writing a file fails, etc.
 var ErrFilesystemError = NewError(32001, "filesystem error")
@@ -117,6 +132,13 @@ var ErrLoginError = NewError(35001, "login error")
 
 // ErrIAmTired A Chatbot realizes the decision to strike.
 var ErrIAmTired = NewError(36001, "i am tired")
+
+// Retention Error (40xxx to 50xxx)
+
+// Business error (60xxx to 90xxx)
+
+// ErrTokenError missing, invalid or expired access token
+var ErrTokenError = NewError(60001, "missing, invalid or expired access token")
 
 func NewSuccessResponse(data any) Response {
 	return Response{
