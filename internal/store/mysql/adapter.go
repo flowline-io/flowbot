@@ -283,26 +283,18 @@ func (a *adapter) Stats() interface{} {
 	return rawDB.Stats()
 }
 
-func (a *adapter) GetBotUsers() ([]*model.User, error) {
+func (a *adapter) GetBotUsers() ([]*model.User, error) { // fixme
 	var find []*model.User
-	err := a.db.
-		Table("users").
-		Select("id, createdat, access, lastseen, useragent, public->'$.fn' AS fn, trusted->'$.verified' AS verified").
-		Where("trusted->'$.verified' = TRUE AND JSON_CONTAINS(tags, '[\"bot\"]')").
-		Find(&find).Error
+	err := a.db.Table("users").Find(&find).Error
 	if err != nil {
 		return nil, err
 	}
 	return find, nil
 }
 
-func (a *adapter) GetNormalUsers() ([]*model.User, error) {
+func (a *adapter) GetNormalUsers() ([]*model.User, error) { // fixme
 	var find []*model.User
-	err := a.db.
-		Table("users").
-		Select("id, createdat, access, lastseen, useragent, public->'$.fn' AS fn, trusted->'$.verified' AS verified").
-		Where("lastseen IS NOT NULL").
-		Find(&find).Error
+	err := a.db.Table("users").Find(&find).Error
 	if err != nil {
 		return nil, err
 	}

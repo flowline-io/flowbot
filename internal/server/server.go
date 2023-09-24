@@ -20,7 +20,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"github.com/gofiber/swagger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/pflag"
 	"os"
@@ -36,9 +35,6 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
 	_ "github.com/flowline-io/flowbot/pkg/media/minio"
 	_ "github.com/flowline-io/flowbot/pkg/media/s3"
-
-	// Swagger docs
-	_ "github.com/flowline-io/flowbot/docs"
 )
 
 const (
@@ -56,6 +52,8 @@ const (
 	// Base URL path for serving the streaming API.
 	defaultApiPath = "/"
 )
+
+var swagHandler fiber.Handler
 
 func Run() {
 	executable, _ := os.Executable()
@@ -128,7 +126,9 @@ func Run() {
 		Logger: &logger,
 	}))
 	// swagger
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	if swagHandler != nil {
+		app.Get("/swagger/*", swagHandler)
+	}
 
 	// Handle extra
 	setupMux(app)

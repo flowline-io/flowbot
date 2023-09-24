@@ -56,6 +56,8 @@ govulncheck ./...
 
 ## swagger
 
+> https://github.com/swaggo/swag/blob/master/README.md
+
 ```shell
 # install
 go install github.com/swaggo/swag/cmd/swag@latest
