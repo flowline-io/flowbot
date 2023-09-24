@@ -12,6 +12,15 @@ import (
 
 const serviceVersion = "v1"
 
+// objective list
+//
+//	@Summary		objective list
+//	@Description	objective list
+//	@Tags			okr
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	protocol.Response{data=[]model.Objective}
+//	@Router			/okr/v1/objectives [get]
 func objectiveList(ctx *fiber.Ctx) error {
 	uid := types.Uid(0) // fixme
 	topic := ""         // fixme
@@ -23,6 +32,16 @@ func objectiveList(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
 
+// objective detail
+//
+//	@Summary		objective detail
+//	@Description	objective detail
+//	@Tags			okr
+//	@Accept			json
+//	@Produce		json
+//	@Param			sequence	path		int	true	"Sequence"
+//	@Success		200			{object}	protocol.Response{data=model.Objective}
+//	@Router			/okr/v1/objective/{sequence} [get]
 func objectiveDetail(ctx *fiber.Ctx) error {
 	uid := types.Uid(0) // fixme
 	topic := ""         // fixme
@@ -37,6 +56,16 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(obj))
 }
 
+// objective create
+//
+//	@Summary		objective create
+//	@Description	objective create
+//	@Tags			okr
+//	@Accept			json
+//	@Produce		json
+//	@Param			objective	body		model.Objective	true	"objective data"
+//	@Success		200			{object}	protocol.Response
+//	@Router			/okr/v1/objective [post]
 func objectiveCreate(ctx *fiber.Ctx) error {
 	uid := types.Uid(0) // fixme
 	topic := ""         // fixme
@@ -55,6 +84,17 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
+// objective update
+//
+//	@Summary		objective update
+//	@Description	objective update
+//	@Tags			okr
+//	@Accept			json
+//	@Produce		json
+//	@Param			sequence	path		int				true	"Sequence"
+//	@Param			objective	body		model.Objective	true	"objective data"
+//	@Success		200			{object}	protocol.Response
+//	@Router			/okr/v1/objective/{sequence} [put]
 func objectiveUpdate(ctx *fiber.Ctx) error {
 	uid := types.Uid(0) // fixme
 	topic := ""         // fixme
@@ -73,6 +113,16 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
+// objective delete
+//
+//	@Summary		objective delete
+//	@Description	objective delete
+//	@Tags			okr
+//	@Accept			json
+//	@Produce		json
+//	@Param			sequence	path		int	true	"Sequence"
+//	@Success		200			{object}	protocol.Response
+//	@Router			/okr/v1/objective/{sequence} [delete]
 func objectiveDelete(ctx *fiber.Ctx) error {
 	uid := types.Uid(0) // fixme
 	topic := ""         // fixme

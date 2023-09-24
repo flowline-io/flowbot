@@ -1,5 +1,209 @@
 basePath: /bot
 definitions:
+  model.KeyResult:
+    properties:
+      created_at:
+        type: string
+      current_value:
+        type: integer
+      id:
+        type: integer
+      initial_value:
+        type: integer
+      key_result_values:
+        items:
+          $ref: '#/definitions/model.KeyResultValue'
+        type: array
+      memo:
+        type: string
+      objective_id:
+        type: integer
+      sequence:
+        type: integer
+      tag:
+        type: string
+      target_value:
+        type: integer
+      title:
+        type: string
+      todos:
+        items:
+          $ref: '#/definitions/model.Todo'
+        type: array
+      topic:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+      value_mode:
+        $ref: '#/definitions/model.ValueModeType'
+    type: object
+  model.KeyResultValue:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      key_result_id:
+        type: integer
+      updated_at:
+        type: string
+      value:
+        type: integer
+    type: object
+  model.Objective:
+    properties:
+      created_data:
+        type: string
+      current_value:
+        type: integer
+      feasibility:
+        type: string
+      id:
+        type: integer
+      is_plan:
+        type: integer
+      key_results:
+        items:
+          $ref: '#/definitions/model.KeyResult'
+        type: array
+      memo:
+        type: string
+      motive:
+        type: string
+      plan_end:
+        type: integer
+      plan_start:
+        type: integer
+      reviews:
+        items:
+          $ref: '#/definitions/model.Review'
+        type: array
+      sequence:
+        type: integer
+      tag:
+        type: string
+      title:
+        type: string
+      topic:
+        type: string
+      total_value:
+        type: integer
+      uid:
+        type: string
+      updated_date:
+        type: string
+    type: object
+  model.Review:
+    properties:
+      created_at:
+        type: string
+      evaluations:
+        items:
+          $ref: '#/definitions/model.ReviewEvaluation'
+        type: array
+      id:
+        type: integer
+      objective_id:
+        type: integer
+      rating:
+        type: integer
+      topic:
+        type: string
+      type:
+        $ref: '#/definitions/model.ReviewType'
+      uid:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.ReviewEvaluation:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      question:
+        type: string
+      reason:
+        type: string
+      review_id:
+        type: integer
+      solving:
+        type: string
+      topic:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.ReviewType:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ReviewTypeUnknown
+    - ReviewMid
+    - ReviewEnd
+  model.Todo:
+    properties:
+      category:
+        type: string
+      complete:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_remind_at_time:
+        type: integer
+      key_result_id:
+        type: integer
+      parent_id:
+        type: integer
+      priority:
+        type: integer
+      remark:
+        type: string
+      remind_at:
+        type: integer
+      repeat_end_at:
+        type: integer
+      repeat_method:
+        type: string
+      repeat_rule:
+        type: string
+      sequence:
+        type: integer
+      sub_todos:
+        items:
+          $ref: '#/definitions/model.Todo'
+        type: array
+      topic:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.ValueModeType:
+    enum:
+    - sum
+    - last
+    - avg
+    - max
+    type: string
+    x-enum-varnames:
+    - ValueSumMode
+    - ValueLastMode
+    - ValueAvgMode
+    - ValueMaxMode
   protocol.Response:
     properties:
       data:
@@ -28,6 +232,102 @@ definitions:
     x-enum-varnames:
     - Success
     - Failed
+  types.FormField:
+    properties:
+      key:
+        type: string
+      label:
+        type: string
+      option:
+        items:
+          type: string
+        type: array
+      placeholder:
+        type: string
+      rule:
+        type: string
+      type:
+        $ref: '#/definitions/types.FormFieldType'
+      value: {}
+      value_type:
+        $ref: '#/definitions/types.FormFieldValueType'
+    type: object
+  types.FormFieldType:
+    enum:
+    - text
+    - password
+    - number
+    - color
+    - file
+    - month
+    - date
+    - time
+    - email
+    - url
+    - radio
+    - checkbox
+    - range
+    - select
+    - textarea
+    - hidden
+    type: string
+    x-enum-varnames:
+    - FormFieldText
+    - FormFieldPassword
+    - FormFieldNumber
+    - FormFieldColor
+    - FormFieldFile
+    - FormFieldMonth
+    - FormFieldDate
+    - FormFieldTime
+    - FormFieldEmail
+    - FormFieldUrl
+    - FormFieldRadio
+    - FormFieldCheckbox
+    - FormFieldRange
+    - FormFieldSelect
+    - FormFieldTextarea
+    - FormFieldHidden
+  types.FormFieldValueType:
+    enum:
+    - string
+    - bool
+    - int64
+    - float64
+    - string_slice
+    - int64_slice
+    - float64_slice
+    type: string
+    x-enum-varnames:
+    - FormFieldValueString
+    - FormFieldValueBool
+    - FormFieldValueInt64
+    - FormFieldValueFloat64
+    - FormFieldValueStringSlice
+    - FormFieldValueInt64Slice
+    - FormFieldValueFloat64Slice
+  types.KV:
+    additionalProperties: true
+    type: object
+  workflow.rule:
+    properties:
+      bot:
+        type: string
+      desc:
+        type: string
+      id:
+        type: string
+      input_schema:
+        items:
+          $ref: '#/definitions/types.FormField'
+        type: array
+      output_schema:
+        items:
+          $ref: '#/definitions/types.FormField'
+        type: array
+      title:
+        type: string
+    type: object
 host: localhost:6060
 info:
   contact:
@@ -52,8 +352,213 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
       summary: Show example
       tags:
       - dev
+  /markdown/v1/editor/{flag}:
+    get:
+      description: markdown editor page
+      parameters:
+      - description: Flag
+        in: path
+        name: flag
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses: {}
+      summary: markdown editor page
+      tags:
+      - markdown
+  /markdown/v1/markdown:
+    post:
+      consumes:
+      - application/json
+      description: save markdown data
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: save markdown data
+      tags:
+      - markdown
+  /okr/v1/objective:
+    post:
+      consumes:
+      - application/json
+      description: objective create
+      parameters:
+      - description: objective data
+        in: body
+        name: objective
+        required: true
+        schema:
+          $ref: '#/definitions/model.Objective'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: objective create
+      tags:
+      - okr
+  /okr/v1/objective/{sequence}:
+    delete:
+      consumes:
+      - application/json
+      description: objective delete
+      parameters:
+      - description: Sequence
+        in: path
+        name: sequence
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: objective delete
+      tags:
+      - okr
+    get:
+      consumes:
+      - application/json
+      description: objective detail
+      parameters:
+      - description: Sequence
+        in: path
+        name: sequence
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Objective'
+              type: object
+      summary: objective detail
+      tags:
+      - okr
+    put:
+      consumes:
+      - application/json
+      description: objective update
+      parameters:
+      - description: Sequence
+        in: path
+        name: sequence
+        required: true
+        type: integer
+      - description: objective data
+        in: body
+        name: objective
+        required: true
+        schema:
+          $ref: '#/definitions/model.Objective'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: objective update
+      tags:
+      - okr
+  /okr/v1/objectives:
+    get:
+      consumes:
+      - application/json
+      description: objective list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Objective'
+                  type: array
+              type: object
+      summary: objective list
+      tags:
+      - okr
+  /webhook/v1/webhook/{flag}:
+    post:
+      consumes:
+      - application/json
+      description: trigger webhook
+      parameters:
+      - description: Flag
+        in: path
+        name: flag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: trigger webhook
+      tags:
+      - webhook
+  /workflow/v1/actions:
+    get:
+      consumes:
+      - application/json
+      description: get chatbot actions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    items:
+                      $ref: '#/definitions/workflow.rule'
+                    type: array
+                  type: object
+              type: object
+      summary: get chatbot actions
+      tags:
+      - workflow
 swagger: "2.0"

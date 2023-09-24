@@ -40,7 +40,336 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/markdown/v1/editor/{flag}": {
+            "get": {
+                "description": "markdown editor page",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "markdown"
+                ],
+                "summary": "markdown editor page",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Flag",
+                        "name": "flag",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/markdown/v1/markdown": {
+            "post": {
+                "description": "save markdown data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "markdown"
+                ],
+                "summary": "save markdown data",
+                "parameters": [
+                    {
+                        "description": "Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/v1/objective": {
+            "post": {
+                "description": "objective create",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "objective create",
+                "parameters": [
+                    {
+                        "description": "objective data",
+                        "name": "objective",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Objective"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/v1/objective/{sequence}": {
+            "get": {
+                "description": "objective detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "objective detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sequence",
+                        "name": "sequence",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.Objective"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "objective update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "objective update",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sequence",
+                        "name": "sequence",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "objective data",
+                        "name": "objective",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Objective"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "objective delete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "objective delete",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sequence",
+                        "name": "sequence",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/v1/objectives": {
+            "get": {
+                "description": "objective list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "objective list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.Objective"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/webhook/v1/webhook/{flag}": {
+            "post": {
+                "description": "trigger webhook",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhook"
+                ],
+                "summary": "trigger webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Flag",
+                        "name": "flag",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/v1/actions": {
+            "get": {
+                "description": "get chatbot actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflow"
+                ],
+                "summary": "get chatbot actions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/definitions/workflow.rule"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -48,6 +377,310 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.KeyResult": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "current_value": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "initial_value": {
+                    "type": "integer"
+                },
+                "key_result_values": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.KeyResultValue"
+                    }
+                },
+                "memo": {
+                    "type": "string"
+                },
+                "objective_id": {
+                    "type": "integer"
+                },
+                "sequence": {
+                    "type": "integer"
+                },
+                "tag": {
+                    "type": "string"
+                },
+                "target_value": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "todos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Todo"
+                    }
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value_mode": {
+                    "$ref": "#/definitions/model.ValueModeType"
+                }
+            }
+        },
+        "model.KeyResultValue": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "key_result_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Objective": {
+            "type": "object",
+            "properties": {
+                "created_data": {
+                    "type": "string"
+                },
+                "current_value": {
+                    "type": "integer"
+                },
+                "feasibility": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_plan": {
+                    "type": "integer"
+                },
+                "key_results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.KeyResult"
+                    }
+                },
+                "memo": {
+                    "type": "string"
+                },
+                "motive": {
+                    "type": "string"
+                },
+                "plan_end": {
+                    "type": "integer"
+                },
+                "plan_start": {
+                    "type": "integer"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Review"
+                    }
+                },
+                "sequence": {
+                    "type": "integer"
+                },
+                "tag": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "total_value": {
+                    "type": "integer"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updated_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Review": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "evaluations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ReviewEvaluation"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "objective_id": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/model.ReviewType"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReviewEvaluation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "question": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "review_id": {
+                    "type": "integer"
+                },
+                "solving": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReviewType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ReviewTypeUnknown",
+                "ReviewMid",
+                "ReviewEnd"
+            ]
+        },
+        "model.Todo": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "complete": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_remind_at_time": {
+                    "type": "integer"
+                },
+                "key_result_id": {
+                    "type": "integer"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "remind_at": {
+                    "type": "integer"
+                },
+                "repeat_end_at": {
+                    "type": "integer"
+                },
+                "repeat_method": {
+                    "type": "string"
+                },
+                "repeat_rule": {
+                    "type": "string"
+                },
+                "sequence": {
+                    "type": "integer"
+                },
+                "sub_todos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Todo"
+                    }
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ValueModeType": {
+            "type": "string",
+            "enum": [
+                "sum",
+                "last",
+                "avg",
+                "max"
+            ],
+            "x-enum-varnames": [
+                "ValueSumMode",
+                "ValueLastMode",
+                "ValueAvgMode",
+                "ValueMaxMode"
+            ]
+        },
         "protocol.Response": {
             "type": "object",
             "properties": {
@@ -82,6 +715,129 @@ const docTemplate = `{
                 "Success",
                 "Failed"
             ]
+        },
+        "types.FormField": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "option": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "placeholder": {
+                    "type": "string"
+                },
+                "rule": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/types.FormFieldType"
+                },
+                "value": {},
+                "value_type": {
+                    "$ref": "#/definitions/types.FormFieldValueType"
+                }
+            }
+        },
+        "types.FormFieldType": {
+            "type": "string",
+            "enum": [
+                "text",
+                "password",
+                "number",
+                "color",
+                "file",
+                "month",
+                "date",
+                "time",
+                "email",
+                "url",
+                "radio",
+                "checkbox",
+                "range",
+                "select",
+                "textarea",
+                "hidden"
+            ],
+            "x-enum-varnames": [
+                "FormFieldText",
+                "FormFieldPassword",
+                "FormFieldNumber",
+                "FormFieldColor",
+                "FormFieldFile",
+                "FormFieldMonth",
+                "FormFieldDate",
+                "FormFieldTime",
+                "FormFieldEmail",
+                "FormFieldUrl",
+                "FormFieldRadio",
+                "FormFieldCheckbox",
+                "FormFieldRange",
+                "FormFieldSelect",
+                "FormFieldTextarea",
+                "FormFieldHidden"
+            ]
+        },
+        "types.FormFieldValueType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "bool",
+                "int64",
+                "float64",
+                "string_slice",
+                "int64_slice",
+                "float64_slice"
+            ],
+            "x-enum-varnames": [
+                "FormFieldValueString",
+                "FormFieldValueBool",
+                "FormFieldValueInt64",
+                "FormFieldValueFloat64",
+                "FormFieldValueStringSlice",
+                "FormFieldValueInt64Slice",
+                "FormFieldValueFloat64Slice"
+            ]
+        },
+        "types.KV": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "workflow.rule": {
+            "type": "object",
+            "properties": {
+                "bot": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.FormField"
+                    }
+                },
+                "output_schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.FormField"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`

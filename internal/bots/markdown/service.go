@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -20,6 +21,14 @@ const serviceVersion = "v1"
 //go:embed markdown.html
 var editorTemplate string
 
+// markdown editor page
+//
+//	@Summary		markdown editor page
+//	@Description	markdown editor page
+//	@Tags			markdown
+//	@Produce		html
+//	@Param			flag	path	string	true	"Flag"
+//	@Router			/markdown/v1/editor/{flag} [get]
 func editor(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
@@ -46,27 +55,37 @@ func editor(ctx *fiber.Ctx) error {
 	return ctx.Send(buf.Bytes())
 }
 
+// save markdown data
+//
+//	@Summary		save markdown data
+//	@Description	save markdown data
+//	@Tags			markdown
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		map[string]string	true	"Data"
+//	@Success		200		{object}	protocol.Response
+//	@Router			/markdown/v1/markdown [post]
 func saveMarkdown(ctx *fiber.Ctx) error {
 	// data
 	var data map[string]string
 	err := ctx.BodyParser(&data)
 	if err != nil {
-		return route.ErrorResponse(ctx, "params error")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 
 	uid := data["uid"]
 	flag := data["flag"]
 	markdown := data["markdown"]
 	if uid == "" || flag == "" || markdown == "" {
-		return route.ErrorResponse(ctx, "params error")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return route.ErrorResponse(ctx, "flag error")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
 	}
 	if p.IsExpired() {
-		return route.ErrorResponse(ctx, "page expired")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 	}
 
 	// store
@@ -91,8 +110,8 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 	})
 	if err != nil {
 		flog.Error(err)
-		return ctx.SendString("send error")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrSendMessageFailed))
 	}
 
-	return ctx.SendString("ok")
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }

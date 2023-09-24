@@ -133,12 +133,24 @@ var ErrLoginError = NewError(35001, "login error")
 // ErrIAmTired A Chatbot realizes the decision to strike.
 var ErrIAmTired = NewError(36001, "i am tired")
 
+// ErrEmitEventError Emit event error
+var ErrEmitEventError = NewError(37001, "emit event error")
+
 // Retention Error (40xxx to 50xxx)
 
 // Business error (60xxx to 90xxx)
 
 // ErrTokenError missing, invalid or expired access token
 var ErrTokenError = NewError(60001, "missing, invalid or expired access token")
+
+// ErrSendMessageFailed Failed to send a message
+var ErrSendMessageFailed = NewError(60002, "send message failed")
+
+// ErrFlagError Flag error
+var ErrFlagError = NewError(60003, "flag error")
+
+// ErrFlagExpired Flag expired
+var ErrFlagExpired = NewError(60003, "flag expired")
 
 func NewSuccessResponse(data any) Response {
 	return Response{

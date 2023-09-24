@@ -15,7 +15,7 @@ const serviceVersion = "v1"
 //	@Tags			dev
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	protocol.Response
+//	@Success		200	{object}	protocol.Response{data=types.KV}
 //	@Router			/dev/v1/example [get]
 func example(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{

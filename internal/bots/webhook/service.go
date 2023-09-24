@@ -4,24 +4,34 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
 	"io"
 )
 
 const serviceVersion = "v1"
 
+// trigger webhook
+//
+//	@Summary		trigger webhook
+//	@Description	trigger webhook
+//	@Tags			webhook
+//	@Accept			json
+//	@Produce		json
+//	@Param			flag	path		string	true	"Flag"
+//	@Success		200		{object}	protocol.Response
+//	@Router			/webhook/v1/webhook/{flag} [post]
 func webhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return route.ErrorResponse(ctx, "flag error")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
 	}
 	if p.IsExpired() {
-		return route.ErrorResponse(ctx, "page expired")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 	}
 
 	//uid, _ := types.KV(p.Params).String("uid")
@@ -45,8 +55,8 @@ func webhook(ctx *fiber.Ctx) error {
 	})
 	if err != nil {
 		flog.Error(err)
-		return route.ErrorResponse(ctx, "error emit event")
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrEmitEventError))
 	}
 
-	return ctx.SendString("ok")
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
