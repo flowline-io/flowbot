@@ -67,6 +67,9 @@ func (e Error) GetMessage() string {
 
 // Request Error (10xxx)
 
+// ErrInternalServerError Internal server error
+var ErrInternalServerError = NewError(10000, "internal server error")
+
 // ErrBadRequest  Formatting errors (including implementations that do not support MessagePack),
 // missing required fields, or incorrect field types
 var ErrBadRequest = NewError(10001, "bad request")
@@ -151,6 +154,9 @@ var ErrFlagError = NewError(60003, "flag error")
 
 // ErrFlagExpired Flag expired
 var ErrFlagExpired = NewError(60003, "flag expired")
+
+// ErrNotAuthorized Not authorized
+var ErrNotAuthorized = NewError(60004, "not authorized")
 
 func NewSuccessResponse(data any) Response {
 	return Response{

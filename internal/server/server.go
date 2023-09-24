@@ -2,10 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/mysql"
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -97,21 +96,11 @@ func Run() {
 		WriteTimeout: 90 * time.Second,
 
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			// Status code defaults to 500
-			code := fiber.StatusInternalServerError
-
-			// Retrieve the custom status code if it's a *fiber.Error
-			var e *fiber.Error
-			if errors.As(err, &e) {
-				code = e.Code
-			}
-
 			// Send custom error page
-			err = ctx.Status(code).JSON(types.KV{"code": code, "message": err.Error()})
 			if err != nil {
 				flog.Error(err)
 				return ctx.Status(fiber.StatusInternalServerError).
-					JSON(types.KV{"code": fiber.StatusInternalServerError, "message": err.Error()})
+					JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError))
 			}
 
 			// Return from handler
@@ -211,6 +200,7 @@ func Run() {
 	// Websocket compression.
 	globals.wsCompression = !config.App.WSCompressionDisabled
 
+	// Media
 	if config.App.Media != nil {
 		if config.App.Media.UseHandler == "" {
 			config.App.Media = nil
@@ -240,6 +230,7 @@ func Run() {
 		}
 	}
 
+	// TLS
 	tlsConfig, err := utils.ParseTLSConfig(*tlsEnabled, config.App.TLS)
 	if err != nil {
 		flog.Fatal("%v", err)
