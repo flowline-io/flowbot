@@ -1,3 +1,3 @@
 package webapp
 
-//go:generate npm run build
+//go:generate yarn build

@@ -48,5 +48,5 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 ## Openapi
 
 ```shell
-npx openapi --input http://127.0.0.1:6060/bot/swagger.json --output ./src/client --client axios --indent 2 --exportSchemas true --name AppClient
+npx openapi --input http://127.0.0.1:6060/swagger/doc.json --output ./src/client --client axios --indent 2 --exportSchemas true --name AppClient
 ```
