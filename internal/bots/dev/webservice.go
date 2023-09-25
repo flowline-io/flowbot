@@ -6,9 +6,8 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	{
-		Method:        "GET",
-		Path:          "/example",
-		Function:      example,
-		Documentation: "get example data",
+		Method:   "GET",
+		Path:     "/example",
+		Function: example,
 	},
 }

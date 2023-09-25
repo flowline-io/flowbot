@@ -6,7 +6,7 @@ const UIKitCss = "https://cdn.staticfile.org/uikit/3.16.23/css/uikit.min.css"
 const UIKitJs = "https://cdn.staticfile.org/uikit/3.16.23/js/uikit.min.js"
 const UIKitIconJs = "https://cdn.staticfile.org/uikit/3.16.23/js/uikit-icons.min.js"
 
-// Github Markdown
+// GitHub Markdown
 
 const GithubMarkdownCss = "https://cdn.staticfile.org/github-markdown-css/5.2.0/github-markdown.min.css"
 

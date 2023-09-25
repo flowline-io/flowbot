@@ -6,15 +6,13 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	{
-		Method:        "GET",
-		Path:          "/editor/:flag",
-		Function:      editor,
-		Documentation: "get markdown editor",
+		Method:   "GET",
+		Path:     "/editor/:flag",
+		Function: editor,
 	},
 	{
-		Method:        "POST",
-		Path:          "/data",
-		Function:      saveMarkdown,
-		Documentation: "create markdown page",
+		Method:   "POST",
+		Path:     "/data",
+		Function: saveMarkdown,
 	},
 }

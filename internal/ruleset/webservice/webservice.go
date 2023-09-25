@@ -6,11 +6,10 @@ import (
 )
 
 type Rule struct {
-	Method        string
-	Path          string
-	Function      fiber.Handler
-	Documentation string
-	Option        []route.Option
+	Method   string
+	Path     string
+	Function fiber.Handler
+	Option   []route.Option
 }
 
 type Ruleset []Rule

@@ -1053,7 +1053,7 @@ func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
 	}
 	var routes []*route.Router
 	for _, rule := range ruleset {
-		routes = append(routes, route.Route(rule.Method, rule.Path, rule.Function, rule.Documentation, rule.Option...))
+		routes = append(routes, route.Route(rule.Method, rule.Path, rule.Function, rule.Option...))
 	}
 	route.WebService(app, name, routes...)
 }

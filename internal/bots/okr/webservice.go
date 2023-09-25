@@ -7,46 +7,65 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	{
-		Method:        "GET",
-		Path:          "/objectives",
-		Function:      objectiveList,
-		Documentation: "objective list",
+		Method:   "GET",
+		Path:     "/objectives",
+		Function: objectiveList,
 		Option: []route.Option{
 			route.WithAuth(),
 		},
 	},
 	{
-		Method:        "GET",
-		Path:          "/objective/:sequence",
-		Function:      objectiveDetail,
-		Documentation: "objective detail",
+		Method:   "GET",
+		Path:     "/objective/:sequence",
+		Function: objectiveDetail,
 		Option: []route.Option{
 			route.WithAuth(),
 		},
 	},
 	{
-		Method:        "POST",
-		Path:          "/objective",
-		Function:      objectiveCreate,
-		Documentation: "objective create",
+		Method:   "POST",
+		Path:     "/objective",
+		Function: objectiveCreate,
 		Option: []route.Option{
 			route.WithAuth(),
 		},
 	},
 	{
-		Method:        "PUT",
-		Path:          "/objective/:sequence",
-		Function:      objectiveUpdate,
-		Documentation: "objective update",
+		Method:   "PUT",
+		Path:     "/objective/:sequence",
+		Function: objectiveUpdate,
 		Option: []route.Option{
 			route.WithAuth(),
 		},
 	},
 	{
-		Method:        "DELETE",
-		Path:          "/objective/:sequence",
-		Function:      objectiveDelete,
-		Documentation: "objective delete",
+		Method:   "DELETE",
+		Path:     "/objective/:sequence",
+		Function: objectiveDelete,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "POST",
+		Path:     "/key_result",
+		Function: keyResultCreate,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "PUT",
+		Path:     "/key_result/:sequence",
+		Function: keyResultUpdate,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "DELETE",
+		Path:     "/key_result/:sequence",
+		Function: keyResultDelete,
 		Option: []route.Option{
 			route.WithAuth(),
 		},
