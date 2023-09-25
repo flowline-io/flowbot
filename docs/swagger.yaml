@@ -313,6 +313,72 @@ paths:
       summary: markdown editor page
       tags:
       - markdown
+  /okr/key_result:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: KeyResult data
+        in: body
+        name: keyResult
+        required: true
+        schema:
+          $ref: '#/definitions/model.KeyResult'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: KeyResult create
+      tags:
+      - okr
+  /okr/key_result/{sequence}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sequence
+        in: path
+        name: sequence
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: KeyResult delete
+      tags:
+      - okr
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sequence
+        in: path
+        name: sequence
+        required: true
+        type: integer
+      - description: KeyResult data
+        in: body
+        name: objective
+        required: true
+        schema:
+          $ref: '#/definitions/model.KeyResult'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: KeyResult update
+      tags:
+      - okr
   /okr/objective:
     post:
       consumes:

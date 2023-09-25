@@ -108,6 +108,108 @@
                 "responses": {}
             }
         },
+        "/okr/key_result": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "KeyResult create",
+                "parameters": [
+                    {
+                        "description": "KeyResult data",
+                        "name": "keyResult",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.KeyResult"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/key_result/{sequence}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "KeyResult update",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sequence",
+                        "name": "sequence",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "KeyResult data",
+                        "name": "objective",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.KeyResult"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "KeyResult delete",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sequence",
+                        "name": "sequence",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/okr/objective": {
             "post": {
                 "consumes": [

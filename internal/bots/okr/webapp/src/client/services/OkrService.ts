@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { model_KeyResult } from '../models/model_KeyResult';
 import type { model_Objective } from '../models/model_Objective';
 import type { protocol_Response } from '../models/protocol_Response';
 
@@ -13,7 +14,61 @@ export class OkrService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
-   * objective create
+   * KeyResult create
+   * @param keyResult KeyResult data
+   * @returns protocol_Response OK
+   * @throws ApiError
+   */
+  public postOkrKeyResult(
+keyResult: model_KeyResult,
+): CancelablePromise<protocol_Response> {
+    return this.httpRequest.request({
+      method: 'POST',
+      url: '/okr/key_result',
+      body: keyResult,
+    });
+  }
+
+  /**
+   * KeyResult update
+   * @param sequence Sequence
+   * @param objective KeyResult data
+   * @returns protocol_Response OK
+   * @throws ApiError
+   */
+  public putOkrKeyResult(
+sequence: number,
+objective: model_KeyResult,
+): CancelablePromise<protocol_Response> {
+    return this.httpRequest.request({
+      method: 'PUT',
+      url: '/okr/key_result/{sequence}',
+      path: {
+        'sequence': sequence,
+      },
+      body: objective,
+    });
+  }
+
+  /**
+   * KeyResult delete
+   * @param sequence Sequence
+   * @returns protocol_Response OK
+   * @throws ApiError
+   */
+  public deleteOkrKeyResult(
+sequence: number,
+): CancelablePromise<protocol_Response> {
+    return this.httpRequest.request({
+      method: 'DELETE',
+      url: '/okr/key_result/{sequence}',
+      path: {
+        'sequence': sequence,
+      },
+    });
+  }
+
+  /**
    * objective create
    * @param objective objective data
    * @returns protocol_Response OK
@@ -30,7 +85,6 @@ objective: model_Objective,
   }
 
   /**
-   * objective detail
    * objective detail
    * @param sequence Sequence
    * @returns any OK
@@ -51,7 +105,6 @@ data?: model_Objective;
   }
 
   /**
-   * objective update
    * objective update
    * @param sequence Sequence
    * @param objective objective data
@@ -74,7 +127,6 @@ objective: model_Objective,
 
   /**
    * objective delete
-   * objective delete
    * @param sequence Sequence
    * @returns protocol_Response OK
    * @throws ApiError
@@ -92,7 +144,6 @@ sequence: number,
   }
 
   /**
-   * objective list
    * objective list
    * @returns any OK
    * @throws ApiError

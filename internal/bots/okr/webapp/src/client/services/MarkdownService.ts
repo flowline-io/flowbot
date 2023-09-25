@@ -13,7 +13,6 @@ export class MarkdownService {
 
   /**
    * save markdown data
-   * save markdown data
    * @param data Data
    * @returns protocol_Response OK
    * @throws ApiError
@@ -29,7 +28,6 @@ data: Record<string, string>,
   }
 
   /**
-   * markdown editor page
    * markdown editor page
    * @param flag Flag
    * @returns void 

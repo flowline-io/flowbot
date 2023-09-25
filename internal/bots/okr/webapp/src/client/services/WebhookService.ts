@@ -13,7 +13,6 @@ export class WebhookService {
 
   /**
    * trigger webhook
-   * trigger webhook
    * @param flag Flag
    * @returns protocol_Response OK
    * @throws ApiError

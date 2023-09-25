@@ -14,7 +14,6 @@ export class DevService {
 
   /**
    * Show example
-   * get example data
    * @returns any OK
    * @throws ApiError
    */

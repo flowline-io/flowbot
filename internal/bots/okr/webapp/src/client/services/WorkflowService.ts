@@ -14,7 +14,6 @@ export class WorkflowService {
 
   /**
    * get chatbot actions
-   * get chatbot actions
    * @returns any OK
    * @throws ApiError
    */
