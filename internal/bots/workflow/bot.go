@@ -73,5 +73,5 @@ func (b bot) Pipeline(ctx types.Context, head types.KV, content interface{}, ope
 }
 
 func (bot) Webservice(app *fiber.App) {
-	bots.Webservice(app, Name, serviceVersion, webserviceRules)
+	bots.Webservice(app, Name, webserviceRules)
 }

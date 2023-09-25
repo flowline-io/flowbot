@@ -11,18 +11,15 @@ import (
 	"io"
 )
 
-const serviceVersion = "v1"
-
 // trigger webhook
 //
-//	@Summary		trigger webhook
-//	@Description	trigger webhook
-//	@Tags			webhook
-//	@Accept			json
-//	@Produce		json
-//	@Param			flag	path		string	true	"Flag"
-//	@Success		200		{object}	protocol.Response
-//	@Router			/webhook/v1/webhook/{flag} [post]
+//	@Summary  trigger webhook
+//	@Tags     webhook
+//	@Accept   json
+//	@Produce  json
+//	@Param    flag  path      string  true  "Flag"
+//	@Success  200   {object}  protocol.Response
+//	@Router   /webhook/trigger/{flag} [post]
 func webhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 

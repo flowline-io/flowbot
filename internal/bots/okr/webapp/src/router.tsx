@@ -1,14 +1,14 @@
 import {createHashRouter} from "react-router-dom";
-import App from "./page/App";
-import Error from "./page/Error";
-import Form from "./page/Form";
-import Objective from "./page/Objective";
-import ObjectiveForm from "./page/ObjectiveForm";
+import App from "./pages/App";
+import Error from "./pages/Error";
+import Form from "./pages/Form";
+import Objective from "./pages/Objective";
+import ObjectiveForm from "./pages/ObjectiveForm";
 
 const router = createHashRouter([
   {
     path: "/",
-    errorElement: <Error />,
+    errorElement: <Error/>,
     children: [
       {
         path: "",

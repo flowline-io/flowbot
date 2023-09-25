@@ -33,7 +33,7 @@ var commandRules = []command.Rule{
 			m := make(map[string]interface{})
 			for _, item := range items {
 				flag := strings.ReplaceAll(item.Key, "webhook:", "")
-				m[item.Key] = bots.ServiceURL(ctx, Name, serviceVersion, fmt.Sprintf("webhook/%s", flag), nil)
+				m[item.Key] = bots.ServiceURL(ctx, Name, fmt.Sprintf("webhook/%s", flag), nil)
 			}
 
 			return types.InfoMsg{
@@ -61,7 +61,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "error create"}
 			}
 
-			return types.TextMsg{Text: fmt.Sprintf("Webhook: %s", bots.ServiceURL(ctx, Name, serviceVersion, fmt.Sprintf("webhook/%s", flag), nil))}
+			return types.TextMsg{Text: fmt.Sprintf("Webhook: %s", bots.ServiceURL(ctx, Name, fmt.Sprintf("webhook/%s", flag), nil))}
 		},
 	},
 	{

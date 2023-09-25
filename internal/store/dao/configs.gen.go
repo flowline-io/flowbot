@@ -115,7 +115,7 @@ type configDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (c configDo) GetByID(id int) (result model.Config, err error) {
 	var params []interface{}
 
@@ -132,7 +132,7 @@ func (c configDo) GetByID(id int) (result model.Config, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c configDo) TakeByUidAndTopic(uid string, topic string) (result model.Config, err error) {
 	var params []interface{}
 
@@ -150,7 +150,7 @@ func (c configDo) TakeByUidAndTopic(uid string, topic string) (result model.Conf
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c configDo) FindByUidAndTopic(uid string, topic string) (result []*model.Config, err error) {
 	var params []interface{}
 

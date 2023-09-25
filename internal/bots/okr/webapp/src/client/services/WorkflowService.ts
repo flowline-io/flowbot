@@ -18,12 +18,12 @@ export class WorkflowService {
    * @returns any OK
    * @throws ApiError
    */
-  public getWorkflowV1Actions(): CancelablePromise<(protocol_Response & {
-    data?: Record<string, Array<workflow_rule>>;
-  })> {
+  public getWorkflowActions(): CancelablePromise<(protocol_Response & {
+data?: Record<string, Array<workflow_rule>>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/workflow/v1/actions',
+      url: '/workflow/actions',
     });
   }
 

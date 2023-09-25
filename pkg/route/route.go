@@ -12,10 +12,10 @@ import (
 	"strings"
 )
 
-const prefix = "bot"
+const prefix = "service"
 
-func WebService(app *fiber.App, group, version string, rs ...*Router) {
-	path := "/" + prefix + "/" + group + "/" + version
+func WebService(app *fiber.App, group string, rs ...*Router) {
+	path := "/" + prefix + "/" + group
 	for _, router := range rs {
 		funcName := utils.GetFunctionName(router.Function)
 		// method
@@ -165,4 +165,14 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	}
 	isValid = true
 	return
+}
+
+func GetUid(ctx *fiber.Ctx) types.Uid {
+	uid, _ := ctx.Locals("uid").(types.Uid)
+	return uid
+}
+
+func GetTopic(ctx *fiber.Ctx) string {
+	topic, _ := ctx.Locals("topic").(string)
+	return topic
 }

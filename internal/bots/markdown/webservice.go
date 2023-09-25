@@ -13,7 +13,7 @@ var webserviceRules = []webservice.Rule{
 	},
 	{
 		Method:        "POST",
-		Path:          "/markdown",
+		Path:          "/data",
 		Function:      saveMarkdown,
 		Documentation: "create markdown page",
 	},

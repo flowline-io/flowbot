@@ -507,7 +507,7 @@ func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDurati
 	return fmt.Sprintf("%s/extra/p/%s/%s", types.AppUrl(), pageRuleId, flag), nil
 }
 
-func ServiceURL(ctx types.Context, group, version, path string, param types.KV) string {
+func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
 	if param == nil {
 		param = types.KV{}
 	}
@@ -519,7 +519,7 @@ func ServiceURL(ctx types.Context, group, version, path string, param types.KV) 
 		return ""
 	}
 
-	return fmt.Sprintf("%s/bot/%s/%s%s?p=%s", types.AppUrl(), group, version, path, flag)
+	return fmt.Sprintf("%s/service/%s%s?p=%s", types.AppUrl(), group, path, flag)
 }
 
 func AppURL(ctx types.Context, name string, param types.KV) string {
@@ -1047,7 +1047,7 @@ func ServeFile(rw http.ResponseWriter, req *http.Request, dist embed.FS, dir str
 	_, _ = rw.Write(content)
 }
 
-func Webservice(app *fiber.App, name, version string, ruleset webservice.Ruleset) {
+func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
 	if len(ruleset) == 0 {
 		return
 	}
@@ -1055,7 +1055,7 @@ func Webservice(app *fiber.App, name, version string, ruleset webservice.Ruleset
 	for _, rule := range ruleset {
 		routes = append(routes, route.Route(rule.Method, rule.Path, rule.Function, rule.Documentation, rule.Option...))
 	}
-	route.WebService(app, name, version, routes...)
+	route.WebService(app, name, routes...)
 }
 
 // Init initializes registered handlers.

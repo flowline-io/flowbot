@@ -20,7 +20,7 @@ export type OpenAPIConfig = {
 };
 
 export const OpenAPI: OpenAPIConfig = {
-  BASE: 'http://localhost:6060/bot',
+  BASE: 'http://localhost:6060/service',
   VERSION: '1.0',
   WITH_CREDENTIALS: false,
   CREDENTIALS: 'include',

@@ -29,7 +29,7 @@ var commandRules = []command.Rule{
 			}
 			return types.LinkMsg{
 				Title: "Markdown Editor",
-				Url:   bots.ServiceURL(ctx, Name, serviceVersion, fmt.Sprintf("/editor/%s", flag), nil),
+				Url:   bots.ServiceURL(ctx, Name, fmt.Sprintf("/editor/%s", flag), nil),
 			}
 		},
 	},

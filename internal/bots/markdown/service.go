@@ -16,19 +16,16 @@ import (
 	"text/template"
 )
 
-const serviceVersion = "v1"
-
 //go:embed markdown.html
 var editorTemplate string
 
 // markdown editor page
 //
-//	@Summary		markdown editor page
-//	@Description	markdown editor page
-//	@Tags			markdown
-//	@Produce		html
-//	@Param			flag	path	string	true	"Flag"
-//	@Router			/markdown/v1/editor/{flag} [get]
+//	@Summary  markdown editor page
+//	@Tags     markdown
+//	@Produce  html
+//	@Param    flag  path  string  true  "Flag"
+//	@Router   /markdown/editor/{flag} [get]
 func editor(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
@@ -57,14 +54,13 @@ func editor(ctx *fiber.Ctx) error {
 
 // save markdown data
 //
-//	@Summary		save markdown data
-//	@Description	save markdown data
-//	@Tags			markdown
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		map[string]string	true	"Data"
-//	@Success		200		{object}	protocol.Response
-//	@Router			/markdown/v1/markdown [post]
+//	@Summary  save markdown data
+//	@Tags     markdown
+//	@Accept   json
+//	@Produce  json
+//	@Param    data  body      map[string]string  true  "Data"
+//	@Success  200   {object}  protocol.Response
+//	@Router   /markdown/data [post]
 func saveMarkdown(ctx *fiber.Ctx) error {
 	// data
 	var data map[string]string

@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const serviceVersion = "v1"
-
 type rule struct {
 	Bot          string            `json:"bot"`
 	Id           string            `json:"id"`
@@ -21,13 +19,12 @@ type rule struct {
 
 // get chatbot actions
 //
-//	@Summary		get chatbot actions
-//	@Description	get chatbot actions
-//	@Tags			workflow
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	protocol.Response{data=map[string][]rule}
-//	@Router			/workflow/v1/actions [get]
+//	@Summary  get chatbot actions
+//	@Tags     workflow
+//	@Accept   json
+//	@Produce  json
+//	@Success  200  {object}  protocol.Response{data=map[string][]rule}
+//	@Router   /workflow/actions [get]
 func actions(ctx *fiber.Ctx) error {
 	result := make(map[string][]rule, len(bots.List()))
 	for name, handler := range bots.List() {

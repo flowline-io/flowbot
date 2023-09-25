@@ -64,4 +64,7 @@ go install github.com/swaggo/swag/cmd/swag@latest
 
 # generate
 swag init -g cmd/main.go
+
+# format
+swag fmt -g cmd/main.go
 ```

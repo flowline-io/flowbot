@@ -5,19 +5,19 @@
 export const $model_KeyResultValue = {
   properties: {
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     key_result_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     value: {
-      type: 'number',
-    },
+  type: 'number',
+},
   },
 } as const;

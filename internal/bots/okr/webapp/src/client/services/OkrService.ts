@@ -19,12 +19,12 @@ export class OkrService {
    * @returns protocol_Response OK
    * @throws ApiError
    */
-  public postOkrV1Objective(
-    objective: model_Objective,
-  ): CancelablePromise<protocol_Response> {
+  public postOkrObjective(
+objective: model_Objective,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
-      url: '/okr/v1/objective',
+      url: '/okr/objective',
       body: objective,
     });
   }
@@ -36,14 +36,14 @@ export class OkrService {
    * @returns any OK
    * @throws ApiError
    */
-  public getOkrV1Objective(
-    sequence: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_Objective;
-  })> {
+  public getOkrObjective(
+sequence: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_Objective;
+})> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/okr/v1/objective/{sequence}',
+      url: '/okr/objective/{sequence}',
       path: {
         'sequence': sequence,
       },
@@ -58,13 +58,13 @@ export class OkrService {
    * @returns protocol_Response OK
    * @throws ApiError
    */
-  public putOkrV1Objective(
-    sequence: number,
-    objective: model_Objective,
-  ): CancelablePromise<protocol_Response> {
+  public putOkrObjective(
+sequence: number,
+objective: model_Objective,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
-      url: '/okr/v1/objective/{sequence}',
+      url: '/okr/objective/{sequence}',
       path: {
         'sequence': sequence,
       },
@@ -79,12 +79,12 @@ export class OkrService {
    * @returns protocol_Response OK
    * @throws ApiError
    */
-  public deleteOkrV1Objective(
-    sequence: number,
-  ): CancelablePromise<protocol_Response> {
+  public deleteOkrObjective(
+sequence: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
-      url: '/okr/v1/objective/{sequence}',
+      url: '/okr/objective/{sequence}',
       path: {
         'sequence': sequence,
       },
@@ -97,12 +97,12 @@ export class OkrService {
    * @returns any OK
    * @throws ApiError
    */
-  public getOkrV1Objectives(): CancelablePromise<(protocol_Response & {
-    data?: Array<model_Objective>;
-  })> {
+  public getOkrObjectives(): CancelablePromise<(protocol_Response & {
+data?: Array<model_Objective>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/okr/v1/objectives',
+      url: '/okr/objectives',
     });
   }
 

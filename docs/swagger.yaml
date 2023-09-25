@@ -1,4 +1,4 @@
-basePath: /bot
+basePath: /service
 definitions:
   model.KeyResult:
     properties:
@@ -37,7 +37,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        $ref: '#/definitions/model.ValueModeType'
+        type: string
     type: object
   model.KeyResultValue:
     properties:
@@ -112,7 +112,7 @@ definitions:
       topic:
         type: string
       type:
-        $ref: '#/definitions/model.ReviewType'
+        type: integer
       uid:
         type: string
       updated_at:
@@ -139,16 +139,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  model.ReviewType:
-    enum:
-    - 0
-    - 1
-    - 2
-    type: integer
-    x-enum-varnames:
-    - ReviewTypeUnknown
-    - ReviewMid
-    - ReviewEnd
   model.Todo:
     properties:
       category:
@@ -192,22 +182,11 @@ definitions:
       updated_at:
         type: string
     type: object
-  model.ValueModeType:
-    enum:
-    - sum
-    - last
-    - avg
-    - max
-    type: string
-    x-enum-varnames:
-    - ValueSumMode
-    - ValueLastMode
-    - ValueAvgMode
-    - ValueMaxMode
   protocol.Response:
     properties:
       data:
         description: Response data
+        type: any
       message:
         description: |-
           Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
@@ -218,20 +197,11 @@ definitions:
           defined later on this page
         type: integer
       status:
-        allOf:
-        - $ref: '#/definitions/protocol.ResponseStatus'
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
+        type: string
     type: object
-  protocol.ResponseStatus:
-    enum:
-    - ok
-    - failed
-    type: string
-    x-enum-varnames:
-    - Success
-    - Failed
   types.FormField:
     properties:
       key:
@@ -247,65 +217,11 @@ definitions:
       rule:
         type: string
       type:
-        $ref: '#/definitions/types.FormFieldType'
+        type: string
       value: {}
       value_type:
-        $ref: '#/definitions/types.FormFieldValueType'
+        type: string
     type: object
-  types.FormFieldType:
-    enum:
-    - text
-    - password
-    - number
-    - color
-    - file
-    - month
-    - date
-    - time
-    - email
-    - url
-    - radio
-    - checkbox
-    - range
-    - select
-    - textarea
-    - hidden
-    type: string
-    x-enum-varnames:
-    - FormFieldText
-    - FormFieldPassword
-    - FormFieldNumber
-    - FormFieldColor
-    - FormFieldFile
-    - FormFieldMonth
-    - FormFieldDate
-    - FormFieldTime
-    - FormFieldEmail
-    - FormFieldUrl
-    - FormFieldRadio
-    - FormFieldCheckbox
-    - FormFieldRange
-    - FormFieldSelect
-    - FormFieldTextarea
-    - FormFieldHidden
-  types.FormFieldValueType:
-    enum:
-    - string
-    - bool
-    - int64
-    - float64
-    - string_slice
-    - int64_slice
-    - float64_slice
-    type: string
-    x-enum-varnames:
-    - FormFieldValueString
-    - FormFieldValueBool
-    - FormFieldValueInt64
-    - FormFieldValueFloat64
-    - FormFieldValueStringSlice
-    - FormFieldValueInt64Slice
-    - FormFieldValueFloat64Slice
   types.KV:
     additionalProperties: true
     type: object
@@ -341,11 +257,10 @@ info:
   title: Flowbot API
   version: "1.0"
 paths:
-  /dev/v1/example:
+  /dev/example:
     get:
       consumes:
       - application/json
-      description: get example data
       produces:
       - application/json
       responses:
@@ -361,26 +276,10 @@ paths:
       summary: Show example
       tags:
       - dev
-  /markdown/v1/editor/{flag}:
-    get:
-      description: markdown editor page
-      parameters:
-      - description: Flag
-        in: path
-        name: flag
-        required: true
-        type: string
-      produces:
-      - text/html
-      responses: {}
-      summary: markdown editor page
-      tags:
-      - markdown
-  /markdown/v1/markdown:
+  /markdown/data:
     post:
       consumes:
       - application/json
-      description: save markdown data
       parameters:
       - description: Data
         in: body
@@ -400,11 +299,24 @@ paths:
       summary: save markdown data
       tags:
       - markdown
-  /okr/v1/objective:
+  /markdown/editor/{flag}:
+    get:
+      parameters:
+      - description: Flag
+        in: path
+        name: flag
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses: {}
+      summary: markdown editor page
+      tags:
+      - markdown
+  /okr/objective:
     post:
       consumes:
       - application/json
-      description: objective create
       parameters:
       - description: objective data
         in: body
@@ -422,11 +334,10 @@ paths:
       summary: objective create
       tags:
       - okr
-  /okr/v1/objective/{sequence}:
+  /okr/objective/{sequence}:
     delete:
       consumes:
       - application/json
-      description: objective delete
       parameters:
       - description: Sequence
         in: path
@@ -446,7 +357,6 @@ paths:
     get:
       consumes:
       - application/json
-      description: objective detail
       parameters:
       - description: Sequence
         in: path
@@ -471,7 +381,6 @@ paths:
     put:
       consumes:
       - application/json
-      description: objective update
       parameters:
       - description: Sequence
         in: path
@@ -494,11 +403,10 @@ paths:
       summary: objective update
       tags:
       - okr
-  /okr/v1/objectives:
+  /okr/objectives:
     get:
       consumes:
       - application/json
-      description: objective list
       produces:
       - application/json
       responses:
@@ -516,11 +424,10 @@ paths:
       summary: objective list
       tags:
       - okr
-  /webhook/v1/webhook/{flag}:
+  /webhook/trigger/{flag}:
     post:
       consumes:
       - application/json
-      description: trigger webhook
       parameters:
       - description: Flag
         in: path
@@ -537,11 +444,10 @@ paths:
       summary: trigger webhook
       tags:
       - webhook
-  /workflow/v1/actions:
+  /workflow/actions:
     get:
       consumes:
       - application/json
-      description: get chatbot actions
       produces:
       - application/json
       responses:

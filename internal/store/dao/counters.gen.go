@@ -119,7 +119,7 @@ type counterDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (c counterDo) GetByID(id int) (result model.Counter, err error) {
 	var params []interface{}
 
@@ -136,7 +136,7 @@ func (c counterDo) GetByID(id int) (result model.Counter, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c counterDo) TakeByUidAndTopic(uid string, topic string) (result model.Counter, err error) {
 	var params []interface{}
 
@@ -154,7 +154,7 @@ func (c counterDo) TakeByUidAndTopic(uid string, topic string) (result model.Cou
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c counterDo) FindByUidAndTopic(uid string, topic string) (result []*model.Counter, err error) {
 	var params []interface{}
 

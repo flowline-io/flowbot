@@ -85,7 +85,7 @@ var pageRules = []page.Rule{
 						),
 					),
 					uikit.Button("Submit").Type("button").Attr("@click", "submit"),
-				).Method(http.MethodPost).Action("/bot/dev/v1/example"),
+				).Method(http.MethodPost).Action("/service/dev/example"),
 				uikit.Placeholder("Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
 				uikit.Progress(10, 100),
 				uikit.Button("click event").Attr("@click", "greet"),

@@ -26,7 +26,7 @@ export class AppClient {
 
   constructor(config?: Partial<OpenAPIConfig>, HttpRequest: HttpRequestConstructor = AxiosHttpRequest) {
     this.request = new HttpRequest({
-      BASE: config?.BASE ?? 'http://localhost:6060/bot',
+      BASE: config?.BASE ?? 'http://localhost:6060/service',
       VERSION: config?.VERSION ?? '1.0',
       WITH_CREDENTIALS: config?.WITH_CREDENTIALS ?? false,
       CREDENTIALS: config?.CREDENTIALS ?? 'include',
@@ -44,4 +44,3 @@ export class AppClient {
     this.workflow = new WorkflowService(this.request);
   }
 }
-

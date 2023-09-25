@@ -3,27 +3,24 @@ package okr
 import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
 
-const serviceVersion = "v1"
-
 // objective list
 //
-//	@Summary		objective list
-//	@Description	objective list
-//	@Tags			okr
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	protocol.Response{data=[]model.Objective}
-//	@Router			/okr/v1/objectives [get]
+//	@Summary  objective list
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Success  200  {object}  protocol.Response{data=[]model.Objective}
+//	@Router   /okr/objectives [get]
 func objectiveList(ctx *fiber.Ctx) error {
-	uid := types.Uid(0) // fixme
-	topic := ""         // fixme
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
 	list, err := store.Chatbot.ListObjectives(uid, topic)
 	if err != nil {
 		flog.Error(err)
@@ -34,17 +31,16 @@ func objectiveList(ctx *fiber.Ctx) error {
 
 // objective detail
 //
-//	@Summary		objective detail
-//	@Description	objective detail
-//	@Tags			okr
-//	@Accept			json
-//	@Produce		json
-//	@Param			sequence	path		int	true	"Sequence"
-//	@Success		200			{object}	protocol.Response{data=model.Objective}
-//	@Router			/okr/v1/objective/{sequence} [get]
+//	@Summary  objective detail
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    sequence  path      int  true  "Sequence"
+//	@Success  200       {object}  protocol.Response{data=model.Objective}
+//	@Router   /okr/objective/{sequence} [get]
 func objectiveDetail(ctx *fiber.Ctx) error {
-	uid := types.Uid(0) // fixme
-	topic := ""         // fixme
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
 	s := ctx.Params("sequence")
 	sequence, _ := strconv.ParseInt(s, 10, 64)
 
@@ -58,17 +54,16 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 
 // objective create
 //
-//	@Summary		objective create
-//	@Description	objective create
-//	@Tags			okr
-//	@Accept			json
-//	@Produce		json
-//	@Param			objective	body		model.Objective	true	"objective data"
-//	@Success		200			{object}	protocol.Response
-//	@Router			/okr/v1/objective [post]
+//	@Summary  objective create
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    objective  body      model.Objective  true  "objective data"
+//	@Success  200        {object}  protocol.Response
+//	@Router   /okr/objective [post]
 func objectiveCreate(ctx *fiber.Ctx) error {
-	uid := types.Uid(0) // fixme
-	topic := ""         // fixme
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
 	obj := new(model.Objective)
 	err := ctx.BodyParser(&obj)
 	if err != nil {
@@ -86,18 +81,17 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 
 // objective update
 //
-//	@Summary		objective update
-//	@Description	objective update
-//	@Tags			okr
-//	@Accept			json
-//	@Produce		json
-//	@Param			sequence	path		int				true	"Sequence"
-//	@Param			objective	body		model.Objective	true	"objective data"
-//	@Success		200			{object}	protocol.Response
-//	@Router			/okr/v1/objective/{sequence} [put]
+//	@Summary  objective update
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    sequence   path      int              true  "Sequence"
+//	@Param    objective  body      model.Objective  true  "objective data"
+//	@Success  200        {object}  protocol.Response
+//	@Router   /okr/objective/{sequence} [put]
 func objectiveUpdate(ctx *fiber.Ctx) error {
-	uid := types.Uid(0) // fixme
-	topic := ""         // fixme
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
 	obj := new(model.Objective)
 	err := ctx.BodyParser(&obj)
 	if err != nil {
@@ -115,17 +109,16 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 
 // objective delete
 //
-//	@Summary		objective delete
-//	@Description	objective delete
-//	@Tags			okr
-//	@Accept			json
-//	@Produce		json
-//	@Param			sequence	path		int	true	"Sequence"
-//	@Success		200			{object}	protocol.Response
-//	@Router			/okr/v1/objective/{sequence} [delete]
+//	@Summary  objective delete
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    sequence  path      int  true  "Sequence"
+//	@Success  200       {object}  protocol.Response
+//	@Router   /okr/objective/{sequence} [delete]
 func objectiveDelete(ctx *fiber.Ctx) error {
-	uid := types.Uid(0) // fixme
-	topic := ""         // fixme
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
 	s := ctx.Params("sequence")
 	sequence, _ := strconv.ParseInt(s, 10, 64)
 

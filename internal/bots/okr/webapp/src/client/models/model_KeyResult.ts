@@ -5,7 +5,6 @@
 
 import type { model_KeyResultValue } from './model_KeyResultValue';
 import type { model_Todo } from './model_Todo';
-import type { model_ValueModeType } from './model_ValueModeType';
 
 export type model_KeyResult = {
   created_at?: string;
@@ -23,6 +22,5 @@ export type model_KeyResult = {
   topic?: string;
   uid?: string;
   updated_at?: string;
-  value_mode?: model_ValueModeType;
+  value_mode?: string;
 };
-

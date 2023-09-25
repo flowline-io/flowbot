@@ -18,12 +18,12 @@ export class DevService {
    * @returns any OK
    * @throws ApiError
    */
-  public getDevV1Example(): CancelablePromise<(protocol_Response & {
-    data?: types_KV;
-  })> {
+  public getDevExample(): CancelablePromise<(protocol_Response & {
+data?: types_KV;
+})> {
     return this.httpRequest.request({
       method: 'GET',
-      url: '/dev/v1/example',
+      url: '/dev/example',
     });
   }
 

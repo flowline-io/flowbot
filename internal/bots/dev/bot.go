@@ -75,7 +75,7 @@ func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (bot) Webservice(app *fiber.App) {
-	bots.Webservice(app, Name, serviceVersion, webserviceRules)
+	bots.Webservice(app, Name, webserviceRules)
 }
 
 func (b bot) Rules() []interface{} {
