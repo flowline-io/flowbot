@@ -33,7 +33,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.63
 	github.com/mmcdole/gofeed v1.2.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
-	github.com/redis/go-redis/v9 v9.1.0
+	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
