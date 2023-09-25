@@ -19,7 +19,7 @@ const router = createHashRouter([
         element: <Form/>,
       },
       {
-        path: "obj/:id",
+        path: "obj/:sequence",
         element: <Objective/>,
       },
       {

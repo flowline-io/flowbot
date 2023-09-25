@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS `key_results`
     `initial_value` int                                                            NOT NULL,
     `target_value`  int                                                            NOT NULL,
     `current_value` int                                                            NOT NULL,
-    `value_mode`    tinyint                                                        NOT NULL,
+    `value_mode`    VARCHAR(20)                                                    NOT NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
     `tag`           varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
     `created_at`    datetime                                                       NOT NULL,
     `updated_at`    datetime                                                       NOT NULL,

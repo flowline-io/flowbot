@@ -1,8 +1,12 @@
 import {Col, Input, List, Progress, Row} from "antd";
 import React from "react";
 import {PlusCircleOutlined} from "@ant-design/icons";
+import {useQuery} from "@tanstack/react-query";
+import {Client} from "../util/client";
+import {useParams} from "react-router-dom";
+import {model_KeyResult} from "../client";
 
-const data = [
+const list = [
   {
     title: 'Ant Design Title 1',
     id: "a"
@@ -22,9 +26,20 @@ const data = [
 ];
 
 function Objective() {
+
+  let {sequence} = useParams();
+
+  // Queries
+  const {data} = useQuery({
+    queryKey: ['objective'],
+    queryFn: () => {
+      return Client().okr.getOkrObjective(Number(sequence))
+    }
+  })
+
   return (
     <div className="app objective">
-      <h1>Objective</h1>
+      <h1>{data?.data?.title}</h1>
 
       <h2>进度</h2>
       <div className="item">
@@ -34,31 +49,24 @@ function Objective() {
       <h2>关键结果</h2>
       <div className="item">
         <Row>
-          <Col span={12}>
-            <div className="kr">
-              <h3>功能一</h3>
-              <div className="progress">
-                <div>7 -‣ 10</div>
-                <PlusCircleOutlined/>
+          {data?.data?.key_results?.map((item: model_KeyResult) => (
+            <Col span={12}>
+              <div className="kr">
+                <h3>{item.title}</h3>
+                <div className="progress">
+                  <div>{item.current_value} -‣ {item.target_value}</div>
+                  <PlusCircleOutlined/>
+                </div>
               </div>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div className="kr">
-              <h3>功能一</h3>
-              <div className="progress">
-                <div>7 -‣ 10</div>
-                <PlusCircleOutlined/>
-              </div>
-            </div>
-          </Col>
+            </Col>
+          ))}
         </Row>
       </div>
 
       <h2>动机</h2>
       <div className="item">
         <List
-          dataSource={data}
+          dataSource={list}
           renderItem={(item, index) => (
             <List.Item>
               <List.Item.Meta
@@ -72,7 +80,7 @@ function Objective() {
       <h2>可行性</h2>
       <div className="item">
         <List
-          dataSource={data}
+          dataSource={list}
           renderItem={(item, index) => (
             <List.Item>
               <List.Item.Meta
@@ -85,7 +93,7 @@ function Objective() {
 
       <h2>备忘</h2>
       <div>
-        <Input.TextArea value="在原有的系统升级并完善" rows={10}/>
+        <Input.TextArea value={data?.data?.memo} rows={10}/>
       </div>
     </div>
   )

@@ -23,8 +23,6 @@ const data = [
 ];
 
 
-
-
 function ObjectiveForm() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -47,7 +45,6 @@ function ObjectiveForm() {
   const  createForm2 = function () {
     setIsModalOpen(true);
   }
-
 
   return (
     <div className="app objective-form">

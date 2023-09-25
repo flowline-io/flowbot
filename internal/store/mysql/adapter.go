@@ -771,7 +771,9 @@ func (a *adapter) GetObjectiveByID(id int64) (*model.Objective, error) {
 
 func (a *adapter) GetObjectiveBySequence(uid types.Uid, topic string, sequence int64) (*model.Objective, error) {
 	var objective model.Objective
-	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).First(&objective).Error
+	err := a.db.Where("`uid` = ? AND `topic` = ? AND sequence = ?", uid, topic, sequence).
+		Preload("KeyResults").
+		First(&objective).Error
 	if err != nil {
 		return nil, err
 	}
