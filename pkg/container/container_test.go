@@ -71,3 +71,66 @@ func TestRuntime(t *testing.T) {
 		})
 	}
 }
+
+func TestPlayground(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "test container playground",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			runtime, err := NewRuntime()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// image pull
+			err = runtime.ImagePull(ctx, "gcr.io/golang-org/playground-sandbox-gvisor:latest")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// create
+			resp, err := runtime.ContainerCreate(ctx,
+				"test-playground-sandbox-gvisor",
+				"gcr.io/golang-org/playground-sandbox-gvisor:latest",
+				[]string{"/usr/local/bin/play-sandbox", "-mode", "contained"},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// start
+			err = runtime.ContainerStart(ctx, resp.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// wait
+			statusCh, errCh := runtime.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+			select {
+			case err = <-errCh:
+				if err != nil {
+					t.Fatal(err)
+				}
+			case <-statusCh:
+			}
+
+			// logs
+			err = runtime.ContainerLogs(ctx, resp.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// remove
+			err = runtime.ContainerRemove(ctx, resp.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}

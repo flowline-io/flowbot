@@ -40,6 +40,7 @@ func (r *Runtime) ContainerRemove(ctx context.Context, containerID string) error
 func (r *Runtime) ContainerLogs(ctx context.Context, containerID string) error {
 	out, err := r.cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
 		ShowStdout: true,
+		ShowStderr: true,
 		Details:    true,
 	})
 	if err != nil {
@@ -59,9 +60,10 @@ func (r *Runtime) ContainerStart(ctx context.Context, containerID string) error 
 
 func (r *Runtime) ContainerCreate(ctx context.Context, name, image string, cmd []string) (container.CreateResponse, error) {
 	return r.cli.ContainerCreate(ctx, &container.Config{
-		Image: image,
-		Cmd:   cmd,
-		Tty:   false,
+		Image:     image,
+		Cmd:       cmd,
+		Tty:       false,
+		OpenStdin: true,
 	}, nil, nil, nil, name)
 }
 
