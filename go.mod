@@ -36,7 +36,7 @@ require (
 	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/xid v1.5.0
-	github.com/rs/zerolog v1.30.0
+	github.com/rs/zerolog v1.31.0
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
