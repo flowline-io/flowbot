@@ -187,9 +187,9 @@ func isMissingDb(err error) bool {
 		return false
 	}
 
-	var myerr *ms.MySQLError
-	ok := errors.As(err, &myerr)
-	return ok && myerr.Number == 1049
+	var myErr *ms.MySQLError
+	ok := errors.As(err, &myErr)
+	return ok && myErr.Number == 1049
 }
 
 func (a *adapter) Open(adaptersConfig config.StoreType) error {
@@ -776,7 +776,7 @@ func (a *adapter) CreateInstruct(instruct *model.Instruct) (int64, error) {
 	if err != nil {
 		return 0, nil
 	}
-	return int64(instruct.ID), nil
+	return instruct.ID, nil
 }
 
 func (a *adapter) ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct, error) {
@@ -871,7 +871,7 @@ func (a *adapter) CreateObjective(objective *model.Objective) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int64(objective.ID), nil
+	return objective.ID, nil
 }
 
 func (a *adapter) UpdateObjective(objective *model.Objective) error {
@@ -981,7 +981,7 @@ func (a *adapter) CreateKeyResult(keyResult *model.KeyResult) (int64, error) {
 		}
 	}
 
-	return int64(keyResult.ID), nil
+	return keyResult.ID, nil
 }
 
 func (a *adapter) UpdateKeyResult(keyResult *model.KeyResult) error {
@@ -1050,7 +1050,7 @@ func (a *adapter) CreateKeyResultValue(keyResultValue *model.KeyResultValue) (in
 	if err != nil {
 		return 0, err
 	}
-	return int64(keyResultValue.ID), nil
+	return keyResultValue.ID, nil
 }
 
 func (a *adapter) GetKeyResultValues(keyResultId int64) ([]*model.KeyResultValue, error) {
@@ -1090,7 +1090,7 @@ func (a *adapter) CreateTodo(todo *model.Todo) (int64, error) {
 	if err != nil {
 		return 0, nil
 	}
-	return int64(todo.ID), nil
+	return todo.ID, nil
 }
 
 func (a *adapter) ListTodos(uid types.Uid, topic string) ([]*model.Todo, error) {
@@ -1177,7 +1177,7 @@ func (a *adapter) CreateReview(review *model.Review) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int64(review.ID), nil
+	return review.ID, nil
 }
 
 func (a *adapter) UpdateReview(review *model.Review) error {
@@ -1203,7 +1203,7 @@ func (a *adapter) CreateReviewEvaluation(evaluation *model.ReviewEvaluation) (in
 	if err != nil {
 		return 0, err
 	}
-	return int64(evaluation.ID), nil
+	return evaluation.ID, nil
 }
 
 func (a *adapter) UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) error {
@@ -1229,7 +1229,7 @@ func (a *adapter) CreateCycle(cycle *model.Cycle) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int64(cycle.ID), nil
+	return cycle.ID, nil
 }
 
 func (a *adapter) UpdateCycle(cycle *model.Cycle) error {
@@ -1254,8 +1254,8 @@ func (a *adapter) CreateCounter(counter *model.Counter) (int64, error) {
 	if err != nil {
 		return 0, nil
 	}
-	a.record(int64(counter.ID), counter.Digit)
-	return int64(counter.ID), nil
+	a.record(counter.ID, counter.Digit)
+	return counter.ID, nil
 }
 
 func (a *adapter) IncreaseCounter(id, amount int64) error {
@@ -1291,8 +1291,11 @@ func (a *adapter) ListCounter(uid types.Uid, topic string) ([]*model.Counter, er
 }
 
 func (a *adapter) record(id, digit int64) {
-	err := a.db.Exec("INSERT INTO `counter_records` ( `counter_id`, `digit`, `created_at`) VALUES (?, ?, ?)",
-		id, digit, time.Now()).Error
+	q := dao.Q.CounterRecord
+	err := q.Create(&model.CounterRecord{
+		CounterID: id,
+		Digit:     int32(digit),
+	})
 	if err != nil {
 		flog.Error(err)
 	}
@@ -1341,7 +1344,7 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 	if err != nil {
 		return 0, err
 	}
-	return int64(workflow.ID), nil
+	return workflow.ID, nil
 }
 
 func (a *adapter) GetWorkflow(id int64) (*model.Workflow, error) {
@@ -1456,7 +1459,7 @@ func (a *adapter) CreateStep(step *model.Step) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int64(step.ID), nil
+	return step.ID, nil
 }
 
 func (a *adapter) CreateSteps(steps []*model.Step) error {
