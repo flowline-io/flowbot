@@ -127,7 +127,7 @@ type formDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (f formDo) GetByID(id int) (result model.Form, err error) {
 	var params []interface{}
 
@@ -144,7 +144,7 @@ func (f formDo) GetByID(id int) (result model.Form, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (f formDo) TakeByUidAndTopic(uid string, topic string) (result model.Form, err error) {
 	var params []interface{}
 
@@ -162,7 +162,7 @@ func (f formDo) TakeByUidAndTopic(uid string, topic string) (result model.Form, 
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (f formDo) FindByUidAndTopic(uid string, topic string) (result []*model.Form, err error) {
 	var params []interface{}
 

@@ -115,7 +115,7 @@ type dataDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (d dataDo) GetByID(id int) (result model.Data, err error) {
 	var params []interface{}
 
@@ -132,7 +132,7 @@ func (d dataDo) GetByID(id int) (result model.Data, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (d dataDo) TakeByUidAndTopic(uid string, topic string) (result model.Data, err error) {
 	var params []interface{}
 
@@ -150,7 +150,7 @@ func (d dataDo) TakeByUidAndTopic(uid string, topic string) (result model.Data, 
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (d dataDo) FindByUidAndTopic(uid string, topic string) (result []*model.Data, err error) {
 	var params []interface{}
 

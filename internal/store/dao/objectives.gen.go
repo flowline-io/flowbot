@@ -155,7 +155,7 @@ func (o *objective) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *objective) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 18)
+	o.fieldMap = make(map[string]field.Expr, 19)
 	o.fieldMap["id"] = o.ID
 	o.fieldMap["uid"] = o.UID
 	o.fieldMap["topic"] = o.Topic
@@ -345,7 +345,7 @@ type objectiveDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (o objectiveDo) GetByID(id int) (result model.Objective, err error) {
 	var params []interface{}
 
@@ -362,7 +362,7 @@ func (o objectiveDo) GetByID(id int) (result model.Objective, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (o objectiveDo) TakeByUidAndTopic(uid string, topic string) (result model.Objective, err error) {
 	var params []interface{}
 
@@ -380,7 +380,7 @@ func (o objectiveDo) TakeByUidAndTopic(uid string, topic string) (result model.O
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (o objectiveDo) FindByUidAndTopic(uid string, topic string) (result []*model.Objective, err error) {
 	var params []interface{}
 

@@ -131,7 +131,7 @@ type pipelineDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (p pipelineDo) GetByID(id int) (result model.Pipeline, err error) {
 	var params []interface{}
 
@@ -148,7 +148,7 @@ func (p pipelineDo) GetByID(id int) (result model.Pipeline, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (p pipelineDo) TakeByUidAndTopic(uid string, topic string) (result model.Pipeline, err error) {
 	var params []interface{}
 
@@ -166,7 +166,7 @@ func (p pipelineDo) TakeByUidAndTopic(uid string, topic string) (result model.Pi
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (p pipelineDo) FindByUidAndTopic(uid string, topic string) (result []*model.Pipeline, err error) {
 	var params []interface{}
 

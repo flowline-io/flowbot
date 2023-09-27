@@ -209,7 +209,7 @@ type jobDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (j jobDo) GetByID(id int) (result model.Job, err error) {
 	var params []interface{}
 
@@ -226,7 +226,7 @@ func (j jobDo) GetByID(id int) (result model.Job, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (j jobDo) TakeByUidAndTopic(uid string, topic string) (result model.Job, err error) {
 	var params []interface{}
 
@@ -244,7 +244,7 @@ func (j jobDo) TakeByUidAndTopic(uid string, topic string) (result model.Job, er
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (j jobDo) FindByUidAndTopic(uid string, topic string) (result []*model.Job, err error) {
 	var params []interface{}
 

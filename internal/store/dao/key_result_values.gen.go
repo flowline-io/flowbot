@@ -107,7 +107,7 @@ type keyResultValueDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (k keyResultValueDo) GetByID(id int) (result model.KeyResultValue, err error) {
 	var params []interface{}
 
@@ -124,7 +124,7 @@ func (k keyResultValueDo) GetByID(id int) (result model.KeyResultValue, err erro
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (k keyResultValueDo) TakeByUidAndTopic(uid string, topic string) (result model.KeyResultValue, err error) {
 	var params []interface{}
 
@@ -142,7 +142,7 @@ func (k keyResultValueDo) TakeByUidAndTopic(uid string, topic string) (result mo
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (k keyResultValueDo) FindByUidAndTopic(uid string, topic string) (result []*model.KeyResultValue, err error) {
 	var params []interface{}
 

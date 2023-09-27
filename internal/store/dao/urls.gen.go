@@ -115,7 +115,7 @@ type urlDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (u urlDo) GetByID(id int) (result model.Url, err error) {
 	var params []interface{}
 
@@ -132,7 +132,7 @@ func (u urlDo) GetByID(id int) (result model.Url, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (u urlDo) TakeByUidAndTopic(uid string, topic string) (result model.Url, err error) {
 	var params []interface{}
 
@@ -150,7 +150,7 @@ func (u urlDo) TakeByUidAndTopic(uid string, topic string) (result model.Url, er
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (u urlDo) FindByUidAndTopic(uid string, topic string) (result []*model.Url, err error) {
 	var params []interface{}
 

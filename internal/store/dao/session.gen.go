@@ -123,7 +123,7 @@ type sessionDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (s sessionDo) GetByID(id int) (result model.Session, err error) {
 	var params []interface{}
 
@@ -140,7 +140,7 @@ func (s sessionDo) GetByID(id int) (result model.Session, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (s sessionDo) TakeByUidAndTopic(uid string, topic string) (result model.Session, err error) {
 	var params []interface{}
 
@@ -158,7 +158,7 @@ func (s sessionDo) TakeByUidAndTopic(uid string, topic string) (result model.Ses
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (s sessionDo) FindByUidAndTopic(uid string, topic string) (result []*model.Session, err error) {
 	var params []interface{}
 

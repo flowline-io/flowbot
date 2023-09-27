@@ -135,7 +135,7 @@ type instructDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (i instructDo) GetByID(id int) (result model.Instruct, err error) {
 	var params []interface{}
 
@@ -152,7 +152,7 @@ func (i instructDo) GetByID(id int) (result model.Instruct, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (i instructDo) TakeByUidAndTopic(uid string, topic string) (result model.Instruct, err error) {
 	var params []interface{}
 
@@ -170,7 +170,7 @@ func (i instructDo) TakeByUidAndTopic(uid string, topic string) (result model.In
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (i instructDo) FindByUidAndTopic(uid string, topic string) (result []*model.Instruct, err error) {
 	var params []interface{}
 
