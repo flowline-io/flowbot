@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { model_KeyResult } from '../models/model_KeyResult';
+import type { model_KeyResultValue } from '../models/model_KeyResultValue';
 import type { model_Objective } from '../models/model_Objective';
 import type { protocol_Response } from '../models/protocol_Response';
 
@@ -26,6 +27,47 @@ keyResult: model_KeyResult,
       method: 'POST',
       url: '/okr/key_result',
       body: keyResult,
+    });
+  }
+
+  /**
+   * KeyResult value create
+   * @param id key result id
+   * @param keyResultValue KeyResultValue data
+   * @returns protocol_Response OK
+   * @throws ApiError
+   */
+  public postOkrKeyResultValue(
+id: number,
+keyResultValue: model_KeyResultValue,
+): CancelablePromise<protocol_Response> {
+    return this.httpRequest.request({
+      method: 'POST',
+      url: '/okr/key_result/{id}/value',
+      path: {
+        'id': id,
+      },
+      body: keyResultValue,
+    });
+  }
+
+  /**
+   * key result value list
+   * @param id key result id
+   * @returns any OK
+   * @throws ApiError
+   */
+  public getOkrKeyResultValues(
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: Array<model_KeyResultValue>;
+})> {
+    return this.httpRequest.request({
+      method: 'GET',
+      url: '/okr/key_result/{id}/values',
+      path: {
+        'id': id,
+      },
     });
   }
 
@@ -64,6 +106,26 @@ sequence: number,
       url: '/okr/key_result/{sequence}',
       path: {
         'sequence': sequence,
+      },
+    });
+  }
+
+  /**
+   * KeyResult value detail
+   * @param id key result id
+   * @returns any OK
+   * @throws ApiError
+   */
+  public deleteOkrKeyResultValue(
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_KeyResultValue;
+})> {
+    return this.httpRequest.request({
+      method: 'DELETE',
+      url: '/okr/key_result_value/{id}',
+      path: {
+        'id': id,
       },
     });
   }

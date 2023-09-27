@@ -13,6 +13,9 @@ export const $model_KeyResultValue = {
     key_result_id: {
   type: 'number',
 },
+    memo: {
+  type: 'string',
+},
     updated_at: {
   type: 'string',
 },
