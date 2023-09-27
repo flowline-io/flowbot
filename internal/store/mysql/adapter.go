@@ -1528,6 +1528,66 @@ func (a *adapter) GetStepsByJobId(jobId int64) ([]*model.Step, error) {
 	return q.Where(q.JobID.Eq(jobId)).Find()
 }
 
+func (a *adapter) GetBot(id int64) (*model.Bot, error) {
+	q := dao.Q.Bot
+	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) GetBotByName(name string) (*model.Bot, error) {
+	q := dao.Q.Bot
+	return q.Where(q.Name.Eq(name)).First()
+}
+
+func (a *adapter) CreateBot(bot *model.Bot) (int64, error) {
+	q := dao.Q.Bot
+	err := q.Create(bot)
+	if err != nil {
+		return 0, err
+	}
+	return bot.ID, nil
+}
+
+func (a *adapter) UpdateBot(bot *model.Bot) error {
+	q := dao.Q.Bot
+	_, err := q.Where(q.ID.Eq(bot.ID)).Update(q.State, bot.State)
+	return err
+}
+
+func (a *adapter) DeleteBot(id int64) error {
+	q := dao.Q.Bot
+	_, err := q.Where(q.ID.Eq(id)).Delete()
+	return err
+}
+
+func (a *adapter) GetBots() ([]*model.Bot, error) {
+	q := dao.Q.Bot
+	return q.Find()
+}
+
+func (a *adapter) GetPlatform(id int64) (*model.Platform, error) {
+	q := dao.Q.Platform
+	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) GetPlatformByName(name string) (*model.Platform, error) {
+	q := dao.Q.Platform
+	return q.Where(q.Name.Eq(name)).First()
+}
+
+func (a *adapter) GetPlatforms() ([]*model.Platform, error) {
+	q := dao.Q.Platform
+	return q.Find()
+}
+
+func (a *adapter) CreatePlatform(platform *model.Platform) (int64, error) {
+	q := dao.Q.Platform
+	err := q.Create(platform)
+	if err != nil {
+		return 0, err
+	}
+	return platform.ID, nil
+}
+
 func Init() {
 	store.RegisterAdapter(&adapter{})
 }

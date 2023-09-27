@@ -237,7 +237,7 @@ type todoDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (t todoDo) GetByID(id int) (result model.Todo, err error) {
 	var params []interface{}
 
@@ -254,7 +254,7 @@ func (t todoDo) GetByID(id int) (result model.Todo, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (t todoDo) TakeByUidAndTopic(uid string, topic string) (result model.Todo, err error) {
 	var params []interface{}
 
@@ -272,7 +272,7 @@ func (t todoDo) TakeByUidAndTopic(uid string, topic string) (result model.Todo, 
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (t todoDo) FindByUidAndTopic(uid string, topic string) (result []*model.Todo, err error) {
 	var params []interface{}
 

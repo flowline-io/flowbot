@@ -296,7 +296,7 @@ type workflowDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT  * FROM @@table WHERE id=@id
+// SELECT * FROM @@table WHERE id=@id
 func (w workflowDo) GetByID(id int) (result model.Workflow, err error) {
 	var params []interface{}
 
@@ -313,7 +313,7 @@ func (w workflowDo) GetByID(id int) (result model.Workflow, err error) {
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (w workflowDo) TakeByUidAndTopic(uid string, topic string) (result model.Workflow, err error) {
 	var params []interface{}
 
@@ -331,7 +331,7 @@ func (w workflowDo) TakeByUidAndTopic(uid string, topic string) (result model.Wo
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid  AND topic=@topic")
+// where("uid=@uid AND topic=@topic")
 func (w workflowDo) FindByUidAndTopic(uid string, topic string) (result []*model.Workflow, err error) {
 	var params []interface{}
 

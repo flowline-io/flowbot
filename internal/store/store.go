@@ -281,6 +281,17 @@ type Adapter interface {
 	GetStepsByState(state model.StepState) ([]*model.Step, error)
 	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
 	GetStepsByJobId(jobId int64) ([]*model.Step, error)
+
+	GetBot(id int64) (*model.Bot, error)
+	GetBotByName(name string) (*model.Bot, error)
+	CreateBot(bot *model.Bot) (int64, error)
+	UpdateBot(bot *model.Bot) error
+	DeleteBot(id int64) error
+	GetBots() ([]*model.Bot, error)
+	GetPlatform(id int64) (*model.Platform, error)
+	GetPlatformByName(name string) (*model.Platform, error)
+	GetPlatforms() ([]*model.Platform, error)
+	CreatePlatform(platform *model.Platform) (int64, error)
 }
 
 var Chatbot Adapter
