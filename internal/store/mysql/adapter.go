@@ -80,58 +80,106 @@ type adapter struct {
 }
 
 func (a *adapter) SetMaxResults(val int) error {
-	//TODO implement me
-	panic("implement me")
+	a.maxResults = val
+	return nil
+}
+
+func toUser(u model.User) types.User {
+	return types.User{
+		ID:   u.ID,
+		Flag: u.Flag,
+		Name: u.Name,
+		Tags: u.Tags,
+	}
 }
 
 func (a *adapter) UserCreate(user *types.User) error {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.User
+	flag := types.Id()
+	err := q.Create(&model.User{
+		Flag:  flag,
+		Name:  user.Name,
+		Tags:  user.Tags,
+		State: model.UserActive,
+	})
+	if err != nil {
+		return err
+	}
+	user.Flag = flag
+	return nil
 }
 
-func (a *adapter) UserGet(uid types.Uid) (*types.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UserGet(uid types.Uid) (types.User, error) {
+	q := dao.Q.User
+	res, err := q.Where(q.Flag.Eq(uid.String())).First()
+	if err != nil {
+		return types.User{}, err
+	}
+	return toUser(*res), nil
 }
 
-func (a *adapter) UserGetAll(ids ...types.Uid) ([]types.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UserGetAll(uid ...types.Uid) ([]types.User, error) {
+	q := dao.Q.User
+	if len(uid) > 0 {
+		s := make([]string, len(uid))
+		for _, u := range uid {
+			s = append(s, u.String())
+		}
+		q.Where(q.Flag.In(s...))
+	}
+	list, err := q.Find()
+	if err != nil {
+		return nil, err
+	}
+	users := make([]types.User, len(list))
+	for i, u := range list {
+		users[i] = toUser(*u)
+	}
+	return users, nil
 }
 
-func (a *adapter) UserDelete(uid types.Uid, hard bool) error {
-	//TODO implement me
-	panic("implement me")
+func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
+	q := dao.Q.User
+	_, err := q.Where(q.Flag.Eq(uid.String())).Delete()
+	return err
 }
 
 func (a *adapter) UserUpdate(uid types.Uid, update map[string]interface{}) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *adapter) FileStartUpload(fd *types.FileDef) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.User
+	_, err := q.Where(q.Flag.Eq(uid.String())).UpdateColumns(update)
+	return err
 }
 
 func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Fileupload
+	res, err := q.Where(q.UID.Eq(fid)).First()
+	if err != nil {
+		return nil, err
+	}
+	return &types.FileDef{
+		ObjHeader: types.ObjHeader{
+			Id:        fid,
+			CreatedAt: res.CreatedAt,
+			UpdatedAt: res.UpdatedAt,
+		},
+		Status:   int(res.State),
+		MimeType: res.Mimetype,
+		Size:     res.Size,
+		Location: res.Location,
+	}, nil
 }
 
 func (a *adapter) FileDeleteUnused(olderThan time.Time, limit int) ([]string, error) {
-	//TODO implement me
-	return nil, nil
-}
-
-func (a *adapter) FileLinkAttachments(topic string, userId, msgId types.Uid, fids []string) error {
-	//TODO implement me
-	panic("implement me")
+	q := dao.Q.Fileupload
+	list, err := q.Where(q.CreatedAt.Lt(olderThan)).Limit(limit).Find()
+	if err != nil {
+		return nil, err
+	}
+	result := make([]string, len(list))
+	for i, f := range list {
+		result[i] = f.UID
+	}
+	return result, nil
 }
 
 func isMissingDb(err error) bool {
@@ -243,7 +291,7 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 			Colorful:                  true,                    // Disable color
 		},
 	)
-	a.db, err = gorm.Open(mysqlDriver.New(mysqlDriver.Config{Conn: db}), &gorm.Config{ // fixme
+	a.db, err = gorm.Open(mysqlDriver.New(mysqlDriver.Config{Conn: db}), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {

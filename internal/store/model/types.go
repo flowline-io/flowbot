@@ -288,6 +288,12 @@ func (j NodeStatus) Value() (driver.Value, error) {
 
 type UserState int
 
+const (
+	UserStateUnknown UserState = iota
+	UserActive
+	UserInactive
+)
+
 func (j UserState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
@@ -305,6 +311,12 @@ func (j MessageState) Value() (driver.Value, error) {
 }
 
 type FileState int
+
+const (
+	FileStateUnknown FileState = iota
+	FileActive
+	FileInactive
+)
 
 func (j FileState) Value() (driver.Value, error) {
 	return int64(j), nil

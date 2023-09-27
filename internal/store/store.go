@@ -139,7 +139,7 @@ type Adapter interface {
 	// UserCreate creates user record
 	UserCreate(user *types.User) error
 	// UserGet returns record for a given user ID
-	UserGet(uid types.Uid) (*types.User, error)
+	UserGet(uid types.Uid) (types.User, error)
 	// UserGetAll returns user records for a given list of user IDs
 	UserGetAll(ids ...types.Uid) ([]types.User, error)
 	// UserDelete deletes user record
@@ -149,18 +149,12 @@ type Adapter interface {
 
 	// File upload records. The files are stored outside the database.
 
-	// FileStartUpload initializes a file upload.
-	FileStartUpload(fd *types.FileDef) error
-	// FileFinishUpload marks file upload as completed, successfully or otherwise.
-	FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error)
 	// FileGet fetches a record of a specific file
 	FileGet(fid string) (*types.FileDef, error)
 	// FileDeleteUnused deletes records where UseCount is zero. If olderThan is non-zero, deletes
 	// unused records with UpdatedAt before olderThan.
 	// Returns array of FileDef.Location of deleted filerecords so actual files can be deleted too.
 	FileDeleteUnused(olderThan time.Time, limit int) ([]string, error)
-	// FileLinkAttachments connects given topic or message to the file record IDs from the list.
-	FileLinkAttachments(topic string, userId, msgId types.Uid, fids []string) error
 
 	// Chatbot
 
