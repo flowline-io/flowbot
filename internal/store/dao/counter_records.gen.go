@@ -99,7 +99,7 @@ type counterRecordDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (c counterRecordDo) GetByID(id int) (result model.CounterRecord, err error) {
 	var params []interface{}
 
@@ -116,7 +116,7 @@ func (c counterRecordDo) GetByID(id int) (result model.CounterRecord, err error)
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c counterRecordDo) TakeByUidAndTopic(uid string, topic string) (result model.CounterRecord, err error) {
 	var params []interface{}
 
@@ -134,7 +134,7 @@ func (c counterRecordDo) TakeByUidAndTopic(uid string, topic string) (result mod
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (c counterRecordDo) FindByUidAndTopic(uid string, topic string) (result []*model.CounterRecord, err error) {
 	var params []interface{}
 

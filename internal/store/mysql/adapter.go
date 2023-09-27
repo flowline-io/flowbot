@@ -1053,6 +1053,12 @@ func (a *adapter) CreateKeyResultValue(keyResultValue *model.KeyResultValue) (in
 	return keyResultValue.ID, nil
 }
 
+func (a *adapter) DeleteKeyResultValue(id int64) error {
+	q := dao.Q.KeyResultValue
+	_, err := q.Where(q.ID.Eq(id)).Delete()
+	return err
+}
+
 func (a *adapter) GetKeyResultValues(keyResultId int64) ([]*model.KeyResultValue, error) {
 	var values []*model.KeyResultValue
 	err := a.db.Where("key_result_id = ?", keyResultId).Order("id DESC").Find(&values).Error
@@ -1060,6 +1066,11 @@ func (a *adapter) GetKeyResultValues(keyResultId int64) ([]*model.KeyResultValue
 		return nil, err
 	}
 	return values, nil
+}
+
+func (a *adapter) GetKeyResultValue(id int64) (*model.KeyResultValue, error) {
+	q := dao.Q.KeyResultValue
+	return q.Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) CreateTodo(todo *model.Todo) (int64, error) {

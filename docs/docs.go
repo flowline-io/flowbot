@@ -148,6 +148,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/okr/key_result/{id}/value": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "KeyResult value create",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "key result id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "KeyResultValue data",
+                        "name": "KeyResultValue",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.KeyResultValue"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/key_result/{id}/values": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "key result value list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "key result id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.KeyResultValue"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/okr/key_result/{sequence}": {
             "put": {
                 "consumes": [
@@ -212,6 +298,49 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/okr/key_result_value/{id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "okr"
+                ],
+                "summary": "KeyResult value detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "key result id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.KeyResultValue"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -540,6 +669,9 @@ const docTemplate = `{
                 },
                 "key_result_id": {
                     "type": "integer"
+                },
+                "memo": {
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"

@@ -207,3 +207,102 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
+
+// key result value list
+//
+//	@Summary  key result value list
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    id   path      int  true  "key result id"
+//	@Success  200  {object}  protocol.Response{data=[]model.KeyResultValue}
+//	@Router   /okr/key_result/{id}/values [get]
+func keyResultValueList(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	keyResultId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+	}
+	list, err := store.Chatbot.GetKeyResultValues(keyResultId)
+	if err != nil {
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(list))
+}
+
+// KeyResult value create
+//
+//	@Summary  KeyResult value create
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    id              path      int                   true  "key result id"
+//	@Param    KeyResultValue  body      model.KeyResultValue  true  "KeyResultValue data"
+//	@Success  200             {object}  protocol.Response
+//	@Router   /okr/key_result/{id}/value [post]
+func keyResultValueCreate(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	keyResultId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+	}
+	item := new(model.KeyResultValue)
+	err = ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+	}
+	item.KeyResultID = keyResultId
+	_, err = store.Chatbot.CreateKeyResultValue(item)
+	if err != nil {
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
+}
+
+// KeyResult value delete
+//
+//	@Summary  KeyResult value delete
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    id              path      int                   true  "key result id"
+//	@Success  200             {object}  protocol.Response
+//	@Router   /okr/key_result_value/{id} [delete]
+func keyResultValueDelete(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	keyResultValueId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+	}
+	err = store.Chatbot.DeleteKeyResultValue(keyResultValueId)
+	if err != nil {
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
+}
+
+// KeyResult value detail
+//
+//	@Summary  KeyResult value detail
+//	@Tags     okr
+//	@Accept   json
+//	@Produce  json
+//	@Param    id              path      int                   true  "key result id"
+//	@Success  200             {object}  protocol.Response{data=model.KeyResultValue}
+//	@Router   /okr/key_result_value/{id} [delete]
+func keyResultValue(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	keyResultValueId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+	}
+	item, err := store.Chatbot.GetKeyResultValue(keyResultValueId)
+	if err != nil {
+		flog.Error(err)
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item))
+}

@@ -47,6 +47,8 @@ definitions:
         type: integer
       key_result_id:
         type: integer
+      memo:
+        type: string
       updated_at:
         type: string
       value:
@@ -334,6 +336,59 @@ paths:
       summary: KeyResult create
       tags:
       - okr
+  /okr/key_result/{id}/value:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: key result id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: KeyResultValue data
+        in: body
+        name: KeyResultValue
+        required: true
+        schema:
+          $ref: '#/definitions/model.KeyResultValue'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: KeyResult value create
+      tags:
+      - okr
+  /okr/key_result/{id}/values:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: key result id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.KeyResultValue'
+                  type: array
+              type: object
+      summary: key result value list
+      tags:
+      - okr
   /okr/key_result/{sequence}:
     delete:
       consumes:
@@ -377,6 +432,31 @@ paths:
           schema:
             $ref: '#/definitions/protocol.Response'
       summary: KeyResult update
+      tags:
+      - okr
+  /okr/key_result_value/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: key result id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.KeyResultValue'
+              type: object
+      summary: KeyResult value detail
       tags:
       - okr
   /okr/objective:

@@ -31,6 +31,7 @@ func newKeyResultValue(db *gorm.DB, opts ...gen.DOOption) keyResultValue {
 	_keyResultValue.ID = field.NewInt64(tableName, "id")
 	_keyResultValue.KeyResultID = field.NewInt64(tableName, "key_result_id")
 	_keyResultValue.Value = field.NewInt32(tableName, "value")
+	_keyResultValue.Memo = field.NewString(tableName, "memo")
 	_keyResultValue.CreatedAt = field.NewTime(tableName, "created_at")
 	_keyResultValue.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -46,6 +47,7 @@ type keyResultValue struct {
 	ID          field.Int64
 	KeyResultID field.Int64
 	Value       field.Int32
+	Memo        field.String
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 
@@ -67,6 +69,7 @@ func (k *keyResultValue) updateTableName(table string) *keyResultValue {
 	k.ID = field.NewInt64(table, "id")
 	k.KeyResultID = field.NewInt64(table, "key_result_id")
 	k.Value = field.NewInt32(table, "value")
+	k.Memo = field.NewString(table, "memo")
 	k.CreatedAt = field.NewTime(table, "created_at")
 	k.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -85,10 +88,11 @@ func (k *keyResultValue) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (k *keyResultValue) fillFieldMap() {
-	k.fieldMap = make(map[string]field.Expr, 5)
+	k.fieldMap = make(map[string]field.Expr, 6)
 	k.fieldMap["id"] = k.ID
 	k.fieldMap["key_result_id"] = k.KeyResultID
 	k.fieldMap["value"] = k.Value
+	k.fieldMap["memo"] = k.Memo
 	k.fieldMap["created_at"] = k.CreatedAt
 	k.fieldMap["updated_at"] = k.UpdatedAt
 }
@@ -107,7 +111,7 @@ type keyResultValueDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (k keyResultValueDo) GetByID(id int) (result model.KeyResultValue, err error) {
 	var params []interface{}
 
@@ -124,7 +128,7 @@ func (k keyResultValueDo) GetByID(id int) (result model.KeyResultValue, err erro
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (k keyResultValueDo) TakeByUidAndTopic(uid string, topic string) (result model.KeyResultValue, err error) {
 	var params []interface{}
 
@@ -142,7 +146,7 @@ func (k keyResultValueDo) TakeByUidAndTopic(uid string, topic string) (result mo
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (k keyResultValueDo) FindByUidAndTopic(uid string, topic string) (result []*model.KeyResultValue, err error) {
 	var params []interface{}
 

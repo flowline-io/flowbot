@@ -123,7 +123,7 @@ type reviewEvaluationDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (r reviewEvaluationDo) GetByID(id int) (result model.ReviewEvaluation, err error) {
 	var params []interface{}
 
@@ -140,7 +140,7 @@ func (r reviewEvaluationDo) GetByID(id int) (result model.ReviewEvaluation, err 
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (r reviewEvaluationDo) TakeByUidAndTopic(uid string, topic string) (result model.ReviewEvaluation, err error) {
 	var params []interface{}
 
@@ -158,7 +158,7 @@ func (r reviewEvaluationDo) TakeByUidAndTopic(uid string, topic string) (result 
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (r reviewEvaluationDo) FindByUidAndTopic(uid string, topic string) (result []*model.ReviewEvaluation, err error) {
 	var params []interface{}
 

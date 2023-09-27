@@ -70,4 +70,36 @@ var webserviceRules = []webservice.Rule{
 			route.WithAuth(),
 		},
 	},
+	{
+		Method:   "GET",
+		Path:     "/key_result/:id/values",
+		Function: keyResultValueList,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "POST",
+		Path:     "/key_result/:id/value",
+		Function: keyResultValueCreate,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "DELETE",
+		Path:     "/key_result_value/:id",
+		Function: keyResultValueDelete,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
+	{
+		Method:   "GET",
+		Path:     "/key_result_value/:id",
+		Function: keyResultValue,
+		Option: []route.Option{
+			route.WithAuth(),
+		},
+	},
 }

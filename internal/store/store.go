@@ -220,7 +220,9 @@ type Adapter interface {
 	AggregateObjectiveValue(id int64) error
 	AggregateKeyResultValue(id int64) error
 	CreateKeyResultValue(keyResultValue *model.KeyResultValue) (int64, error)
+	DeleteKeyResultValue(id int64) error
 	GetKeyResultValues(keyResultId int64) ([]*model.KeyResultValue, error)
+	GetKeyResultValue(id int64) (*model.KeyResultValue, error)
 	CreateTodo(todo *model.Todo) (int64, error)
 	ListTodos(uid types.Uid, topic string) ([]*model.Todo, error)
 	ListRemindTodos(uid types.Uid, topic string) ([]*model.Todo, error)

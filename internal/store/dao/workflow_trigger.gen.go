@@ -127,7 +127,7 @@ type workflowTriggerDo struct{ gen.DO }
 
 // GetByID
 //
-// SELECT * FROM @@table WHERE id=@id
+// SELECT  * FROM @@table WHERE id=@id
 func (w workflowTriggerDo) GetByID(id int) (result model.WorkflowTrigger, err error) {
 	var params []interface{}
 
@@ -144,7 +144,7 @@ func (w workflowTriggerDo) GetByID(id int) (result model.WorkflowTrigger, err er
 
 // TakeByUidAndTopic query data by uid and topic and return one
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (w workflowTriggerDo) TakeByUidAndTopic(uid string, topic string) (result model.WorkflowTrigger, err error) {
 	var params []interface{}
 
@@ -162,7 +162,7 @@ func (w workflowTriggerDo) TakeByUidAndTopic(uid string, topic string) (result m
 
 // FindByUidAndTopic query data by uid and topic and return array
 //
-// where("uid=@uid AND topic=@topic")
+// where("uid=@uid  AND topic=@topic")
 func (w workflowTriggerDo) FindByUidAndTopic(uid string, topic string) (result []*model.WorkflowTrigger, err error) {
 	var params []interface{}
 

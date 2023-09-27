@@ -15,6 +15,7 @@ type KeyResultValue struct {
 	ID          int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	KeyResultID int64     `gorm:"column:key_result_id" json:"key_result_id"`
 	Value       int32     `gorm:"column:value;not null" json:"value"`
+	Memo        string    `gorm:"column:memo;not null" json:"memo"`
 	CreatedAt   time.Time `gorm:"column:created_at;not null" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
