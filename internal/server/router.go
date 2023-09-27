@@ -404,7 +404,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		topicUid := types.Uid(0) // fixme
-		botSend(topic, topicUid, payload)
+		//botSend(topic, topicUid, payload)
 
 		// pipeline form stage
 		pipelineFlag, _ := types.KV(formData.Extra).String("pipeline_flag")

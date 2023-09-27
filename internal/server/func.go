@@ -31,13 +31,6 @@ import (
 	"time"
 )
 
-// botSend bot send message, rcptTo: user uid: bot
-func botSend(rcptTo string, uid types.Uid, out types.MsgPayload, option ...interface{}) {
-	if out == nil {
-		return
-	}
-}
-
 func newProvider(category string) providers.OAuthProvider {
 	var provider providers.OAuthProvider
 
@@ -179,8 +172,8 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				}
 
 				if payload != nil {
-					botUid := types.Uid(0) // todo types.ParseUserId(msg.Original)
-					botSend(topic, botUid, payload, types.WithContext(ctx))
+					//botUid := types.Uid(0) // todo types.ParseUserId(msg.Original)
+					//botSend(topic, botUid, payload, types.WithContext(ctx))
 
 					// pipeline action stage
 					//pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
@@ -413,12 +406,12 @@ func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, r
 							ctx.PipelineVersion = pipelineVersion
 							ctx.PipelineRuleId = pipelineData.RuleID
 							ctx.PipelineStepIndex = int(pipelineData.Stage)
-							payload, _, _, err := handler.Pipeline(ctx, nil, nil, types.PipelineNextOperate)
-							if err != nil {
-								flog.Error(err)
-								return
-							}
-							botSend(rcptTo, botUid, payload, types.WithContext(ctx))
+							//payload, _, _, err := handler.Pipeline(ctx, nil, nil, types.PipelineNextOperate)
+							//if err != nil {
+							//	flog.Error(err)
+							//	return
+							//}
+							//botSend(rcptTo, botUid, payload, types.WithContext(ctx))
 						}
 					}
 				}
@@ -498,9 +491,9 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 		return
 	}
 
-	uid := types.Uid(qp.Uid)
-	msg := types.ToPayload(qp.Type, qp.Msg)
-	botSend(qp.RcptTo, uid, msg)
+	//uid := types.Uid(qp.Uid)
+	//msg := types.ToPayload(qp.Type, qp.Msg)
+	//botSend(qp.RcptTo, uid, msg)
 
 	if err := delivery.Ack(); err != nil {
 		flog.Error(err)
