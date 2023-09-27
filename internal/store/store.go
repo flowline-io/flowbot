@@ -149,6 +149,10 @@ type Adapter interface {
 
 	// File upload records. The files are stored outside the database.
 
+	// FileStartUpload initializes a file upload.
+	FileStartUpload(fd *types.FileDef) error
+	// FileFinishUpload marks file upload as completed, successfully or otherwise.
+	FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error)
 	// FileGet fetches a record of a specific file
 	FileGet(fid string) (*types.FileDef, error)
 	// FileDeleteUnused deletes records where UseCount is zero. If olderThan is non-zero, deletes

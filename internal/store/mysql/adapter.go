@@ -150,6 +150,33 @@ func (a *adapter) UserUpdate(uid types.Uid, update map[string]interface{}) error
 	return err
 }
 
+func (a *adapter) FileStartUpload(fd *types.FileDef) error {
+	q := dao.Q.Fileupload
+	return q.Create(&model.Fileupload{
+		UID:      fd.Id,
+		Mimetype: fd.MimeType,
+		Location: fd.Location,
+		State:    model.FileStart,
+	})
+}
+
+func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
+	q := dao.Q.Fileupload
+	res, err := q.Where(q.UID.Eq(fd.Id)).First()
+	if err != nil {
+		return nil, err
+	}
+	if success {
+		res.State = model.FileFinish
+		res.Size = size
+		_, err = q.Where(q.UID.Eq(fd.Id)).Updates(res)
+		return fd, err
+	} else {
+		_, err = q.Where(q.UID.Eq(fd.Id)).Delete()
+		return nil, err
+	}
+}
+
 func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 	q := dao.Q.Fileupload
 	res, err := q.Where(q.UID.Eq(fid)).First()

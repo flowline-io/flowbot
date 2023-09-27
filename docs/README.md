@@ -3,10 +3,8 @@
 ## ENV
 
 ```shell
-CHANNEL_PATH=/subscribe
-REDIS_ADDR=127.0.0.1:6379
-REDIS_PASSWORD=123456
 FLOWBOT_URL=http://127.0.0.1:6060
+CHANNEL_PATH=/subscribe
 DOWNLOAD_PATH=/download
 ```
 

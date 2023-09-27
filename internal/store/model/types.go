@@ -314,8 +314,8 @@ type FileState int
 
 const (
 	FileStateUnknown FileState = iota
-	FileActive
-	FileInactive
+	FileStart
+	FileFinish
 )
 
 func (j FileState) Value() (driver.Value, error) {
