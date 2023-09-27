@@ -202,7 +202,7 @@ func (s *Session) dispatchRaw(raw []byte) {
 }
 
 func (s *Session) dispatch(msg *ClientComMessage) {
-	//result, err := linkitAction(s.uid, msg.Data)
+	//result, err := flowkitAction(s.uid, msg.Data)
 	//if err != nil {
 	//	flog.Error(err)
 	//	return

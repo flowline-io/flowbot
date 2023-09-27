@@ -19,14 +19,14 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "share [string]",
-		Help:   `share clipboard to linkit`,
+		Help:   `share clipboard to flowkit`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			txt, _ := tokens[1].Value.String()
 			data := types.KV{}
 			data["txt"] = txt
 			return bots.StoreInstruct(ctx, types.InstructMsg{
 				No:       types.Id(),
-				Object:   model.InstructObjectLinkit,
+				Object:   model.InstructObjectFlowkit,
 				Bot:      Name,
 				Flag:     ShareInstruct,
 				Content:  data,

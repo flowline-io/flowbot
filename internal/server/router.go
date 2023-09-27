@@ -62,7 +62,7 @@ func newRouter() *mux.Router {
 	s.HandleFunc("/queue/stats", queueStats)
 	s.HandleFunc("/p/{id}/{flag}", renderPage)
 	// bot
-	s.HandleFunc("/linkit", linkitData)
+	s.HandleFunc("/flowkit", flowkitData)
 	s.HandleFunc("/session", wbSession)
 
 	return s
@@ -415,7 +415,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	_, _ = rw.Write([]byte("ok"))
 }
 
-func linkitData(rw http.ResponseWriter, req *http.Request) {
+func flowkitData(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 	rw.Header().Set("Access-Control-Allow-Headers", "*")
 	if req.Method == http.MethodOptions {
@@ -442,7 +442,7 @@ func linkitData(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := linkitAction(uid, data)
+	result, err := flowkitAction(uid, data)
 	if err != nil {
 		errorResponse(rw, "error")
 		return
@@ -521,7 +521,7 @@ func wbSession(wrt http.ResponseWriter, req *http.Request) {
 	}
 	sess.uid = uid
 
-	flog.Info("linkit: session started %v %v %v", sess.sid, sess.remoteAddr, count)
+	flog.Info("flowkit: session started %v %v %v", sess.sid, sess.remoteAddr, count)
 
 	// Do work in goroutines to return from serveWebSocket() to release file pointers.
 	// Otherwise, "too many open files" will happen.

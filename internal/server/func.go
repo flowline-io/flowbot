@@ -508,7 +508,7 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 	}
 }
 
-func linkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
+func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 	switch data.Action {
 	case types.Agent:
 		//userUid := uid

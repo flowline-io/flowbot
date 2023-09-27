@@ -879,7 +879,7 @@ func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
 
 	return StoreInstruct(ctx, types.InstructMsg{
 		No:       types.Id(),
-		Object:   model.InstructObjectLinkit,
+		Object:   model.InstructObjectFlowkit,
 		Bot:      botName,
 		Flag:     id,
 		Content:  data,

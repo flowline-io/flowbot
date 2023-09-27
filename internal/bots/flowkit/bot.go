@@ -1,4 +1,4 @@
-package linkit
+package flowkit
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
-const Name = "linkit"
+const Name = "flowkit"
 
 var handler bot
 
