@@ -50,7 +50,7 @@ require (
 	github.com/yeqown/go-qrcode/writer/standard v1.2.2
 	github.com/yuin/goldmark v1.5.6
 	golang.org/x/crypto v0.13.0
-	golang.org/x/image v0.12.0
+	golang.org/x/image v0.13.0
 	golang.org/x/time v0.3.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	gonum.org/v1/plot v0.14.0
