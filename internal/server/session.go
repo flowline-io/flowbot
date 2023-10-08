@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
@@ -126,14 +127,14 @@ type Session struct {
 // Subscription is a mapper of sessions to topics.
 type Subscription struct {
 	// Channel to communicate with the topic, copy of Topic.clientMsg
-	broadcast chan<- *ClientComMessage
+	broadcast chan<- protocol.Request
 
 	// Session sends a signal to Topic when this session is unsubscribed
 	// This is a copy of Topic.unreg
-	done chan<- *ClientComMessage
+	done chan<- protocol.Request
 
 	// Channel to send {meta} requests, copy of Topic.meta
-	meta chan<- *ClientComMessage
+	meta chan<- protocol.Request
 }
 
 func (s *Session) addSub(topic string, sub *Subscription) {
@@ -186,7 +187,8 @@ func (s *Session) unsubAll() {
 		// sub.done is the same as topic.unreg
 		// The whole session is being dropped; ClientComMessage is a wrapper for session, ClientComMessage.init is false.
 		// keep redundant init: false so it can be searched for.
-		sub.done <- &ClientComMessage{sess: s, init: false}
+		//sub.done <- &ClientComMessage{sess: s, init: false}
+		sub.done <- protocol.Request{}
 	}
 }
 
@@ -199,7 +201,7 @@ func (s *Session) supportsMessageBatching() bool {
 	}
 }
 
-// queueOutBytes attempts to send a ServerComMessage already serialized to []byte.
+// queueOutBytes attempts to send a Response already serialized to []byte.
 // If the send buffer is full, it fails.
 func (s *Session) queueOutBytes(data []byte) bool {
 	if s == nil || atomic.LoadInt32(&s.terminating) > 0 {
@@ -264,24 +266,7 @@ func (s *Session) cleanUp(expired bool) {
 	s.stopSession(nil)
 }
 
-// expandTopicName expands session specific topic name to global name
-// Returns
-//
-//	topic: session-specific topic name the message recipient should see
-//	routeTo: routable global topic name
-//	err: *ServerComMessage with an error to return to the sender
-func (s *Session) expandTopicName(msg *ClientComMessage) (string, *ServerComMessage) {
-	if msg.Original == "" {
-		flog.Warn("s.etn: empty topic name %v", s.sid)
-		return "", ErrMalformed(msg.Id, "", msg.Timestamp)
-	}
-
-	routeTo := msg.Original
-
-	return routeTo, nil
-}
-
-func (s *Session) serializeAndUpdateStats(msg *ServerComMessage) any {
+func (s *Session) serializeAndUpdateStats(msg protocol.Response) any {
 	dataSize, data := s.serialize(msg)
 	if dataSize >= 0 {
 		stats.AddHistSample("OutgoingMessageSize", float64(dataSize))
@@ -289,7 +274,7 @@ func (s *Session) serializeAndUpdateStats(msg *ServerComMessage) any {
 	return data
 }
 
-func (s *Session) serialize(msg *ServerComMessage) (int, any) {
+func (s *Session) serialize(msg protocol.Response) (int, any) {
 
 	out, _ := json.Marshal(msg)
 	return len(out), out
@@ -324,11 +309,11 @@ func (s *Session) writeOnce(wrt http.ResponseWriter, req *http.Request) {
 				return
 			}
 			switch v := msg.(type) {
-			case *ServerComMessage: // single unserialized message
-				w := s.serializeAndUpdateStats(v)
-				if !s.sendMessageLp(wrt, w) {
-					return
-				}
+			//case *ServerComMessage: // single unserialized message
+			//	w := s.serializeAndUpdateStats(v)
+			//	if !s.sendMessageLp(wrt, w) {
+			//		return
+			//	}
 			default: // serialized message
 				if !s.sendMessageLp(wrt, v) {
 					return

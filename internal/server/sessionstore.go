@@ -3,6 +3,7 @@ package server
 import (
 	"container/list"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
@@ -189,7 +190,7 @@ func (ss *SessionStore) Shutdown() {
 	ss.lock.Lock()
 	defer ss.lock.Unlock()
 
-	shutdown := NoErrShutdown(types.TimeNow())
+	shutdown := protocol.NewFailedResponse(protocol.ErrShutdownError)
 	for _, s := range ss.sessCache {
 		_, data := s.serialize(shutdown)
 		s.stopSession(data)
@@ -206,8 +207,8 @@ func (ss *SessionStore) EvictUser(uid types.Uid, skipSid string) {
 	defer ss.lock.Unlock()
 
 	// FIXME: this probably needs to be optimized. This may take very long time if the node hosts 100000 sessions.
-	evicted := NoErrEvicted("", "", types.TimeNow())
-	evicted.AsUser = uid.String()
+	evicted := protocol.NewFailedResponse(protocol.ErrInternalServerError)
+	//evicted.AsUser = uid.String()
 	for _, s := range ss.sessCache {
 		if s.uid == uid && s.sid != skipSid {
 			_, data := s.serialize(evicted)

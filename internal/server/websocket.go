@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gorilla/websocket"
@@ -35,7 +35,7 @@ func (s *Session) sendMessage(msg any) bool {
 		return false
 	}
 
-	stats.Inc("OutgoingMessagesWebsockTotal", 1)
+	stats.Inc("OutgoingMessagesWebsocketTotal", 1)
 	if err := wsWrite(s.ws, websocket.TextMessage, msg); err != nil {
 		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
 			websocket.CloseNormalClosure) {
@@ -63,18 +63,18 @@ func (s *Session) writeLoop() {
 				return
 			}
 			switch v := msg.(type) {
-			case []*ServerComMessage: // batch of unserialized messages
-				for _, msg := range v {
-					w := s.serializeAndUpdateStats(msg)
-					if !s.sendMessage(w) {
-						return
-					}
-				}
-			case *ServerComMessage: // single unserialized message
-				w := s.serializeAndUpdateStats(v)
-				if !s.sendMessage(w) {
-					return
-				}
+			//case []*ServerComMessage: // batch of unserialized messages
+			//	for _, msg := range v {
+			//		w := s.serializeAndUpdateStats(msg)
+			//		if !s.sendMessage(w) {
+			//			return
+			//		}
+			//	}
+			//case *ServerComMessage: // single unserialized message
+			//	w := s.serializeAndUpdateStats(v)
+			//	if !s.sendMessage(w) {
+			//		return
+			//	}
 			default: // serialized message
 				if !s.sendMessage(v) {
 					return
@@ -109,9 +109,9 @@ func (s *Session) writeLoop() {
 	}
 }
 
-// queueOut attempts to send a ServerComMessage to a session write loop;
+// queueOut attempts to send a Response to a session write loop;
 // it fails, if the send buffer is full.
-func (s *Session) queueOut(msg *ServerComMessage) bool {
+func (s *Session) queueOut(msg protocol.Response) bool {
 	if s == nil {
 		return true
 	}
@@ -166,14 +166,13 @@ func (s *Session) readLoop() {
 	}
 }
 
-// Message received, convert bytes to ClientComMessage and dispatch
+// Message received, convert bytes to Response and dispatch
 func (s *Session) dispatchRaw(raw []byte) {
-	now := types.TimeNow()
-	var msg ClientComMessage
+	var msg protocol.Response
 
 	if atomic.LoadInt32(&s.terminating) > 0 {
 		flog.Warn("s.dispatchExtra: message received on a terminating session %v", s.sid)
-		s.queueOut(ErrLocked("", "", now))
+		s.queueOut(protocol.NewFailedResponse(protocol.ErrInternalServerError))
 		return
 	}
 
@@ -194,22 +193,15 @@ func (s *Session) dispatchRaw(raw []byte) {
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		// Malformed message
 		flog.Warn("s.dispatchExtra %v %v", err, s.sid)
-		s.queueOut(ErrMalformed("", "", now))
+		s.queueOut(protocol.NewFailedResponse(protocol.ErrInternalServerError))
 		return
 	}
 
-	s.dispatch(&msg)
+	s.dispatch(msg)
 }
 
-func (s *Session) dispatch(msg *ClientComMessage) {
-	//result, err := flowkitAction(s.uid, msg.Data)
-	//if err != nil {
-	//	flog.Error(err)
-	//	return
-	//}
-	//if result != nil {
-	//	s.queueOut(result)
-	//}
+func (s *Session) dispatch(msg protocol.Response) {
+	s.queueOut(msg)
 }
 
 // Writes a message with the given message type (mt) and payload.

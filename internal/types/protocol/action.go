@@ -139,6 +139,9 @@ var ErrIAmTired = NewError(36001, "i am tired")
 // ErrEmitEventError Emit event error
 var ErrEmitEventError = NewError(37001, "emit event error")
 
+// ErrShutdownError Shutdown error
+var ErrShutdownError = NewError(38001, "shutdown error")
+
 // Retention Error (40xxx to 50xxx)
 
 // Business error (60xxx to 90xxx)

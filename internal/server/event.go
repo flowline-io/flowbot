@@ -43,11 +43,12 @@ func onPushInstruct() {
 
 		sessionStore.Range(func(sid string, s *Session) bool {
 			if s.uid == uid {
-				s.queueOut(&ServerComMessage{
-					//Code:    http.StatusOK,
-					//Message: "",
-					//Data:    data,
-				})
+				// todo send message
+				//s.queueOut(&ServerComMessage{
+				//	//Code:    http.StatusOK,
+				//	//Message: "",
+				//	//Data:    data,
+				//})
 			}
 			return true
 		})
