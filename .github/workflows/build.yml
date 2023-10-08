@@ -42,4 +42,4 @@ jobs:
         run: |
           go env
           go mod download
-          go build -o tmp github.com/flowline-io/flowbot/cmd
+          go build -v -o tmp github.com/flowline-io/flowbot/cmd

@@ -49,10 +49,6 @@ func newProvider(category string) providers.OAuthProvider {
 	return provider
 }
 
-type Topic struct { // fixme del
-	name string
-}
-
 func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// check topic owner user
 
