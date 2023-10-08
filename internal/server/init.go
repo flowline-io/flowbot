@@ -20,7 +20,7 @@ import (
 )
 
 // init channels
-func registerChannels() error {
+func initializeChannels() error {
 	// register channels
 	registerChannels := sets.NewString()
 	for name, handler := range channels.List() {
@@ -171,7 +171,7 @@ func initializeWorkflow() error {
 }
 
 // init bots
-func registerBot() {
+func initializeBot() {
 	// register bots
 	registerBots := sets.NewString()
 	for name, handler := range bots.List() {

@@ -3,6 +3,7 @@ package dropbox
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 	jsoniter "github.com/json-iterator/go"
 	"io"
@@ -80,10 +81,10 @@ func (v *Dropbox) Redirect(req *http.Request) (string, error) {
 
 func (v *Dropbox) GetAccessToken(req *http.Request) (types.KV, error) {
 	code := req.URL.Query().Get("code")
-	clientId := ""     // todo
-	clientSecret := "" // todo
-	v.clientId = clientId
-	v.clientSecret = clientSecret
+	clientId, _ := providers.GetConfig(ID, ClientIdKey)
+	clientSecret, _ := providers.GetConfig(ID, ClientSecretKey)
+	v.clientId = clientId.String()
+	v.clientSecret = clientSecret.String()
 
 	tokenResp, err := v.completeAuth(code)
 	if err != nil {

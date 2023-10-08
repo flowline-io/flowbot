@@ -219,8 +219,7 @@ var commandRules = []command.Rule{
 		Define: "event",
 		Help:   `fire example event`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			botUid := 0 // fixme
-			err := event.Emit(event.SendEvent, types.KV{"topic": ctx.RcptTo, "topic_uid": int64(botUid), "message": "fire send event"})
+			err := event.Emit(event.SendEvent, types.KV{"topic": ctx.RcptTo, "bot": Name, "message": "fire send event"})
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}

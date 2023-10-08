@@ -56,7 +56,3 @@ func CommandTrigger(define string) types.Trigger {
 		Define: define,
 	}
 }
-
-func TriggerArg(flag interface{}) interface{} { // todo
-	return nil
-}

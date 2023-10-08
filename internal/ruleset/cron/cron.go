@@ -96,7 +96,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 				// botUid, _, _, _, _ := serverStore.Users.GetAuthUniqueRecord("basic", fmt.Sprintf("%s_bot", r.Type))
 
 				// all normal users
-				users, err := store.Chatbot.GetNormalUsers()
+				users, err := store.Chatbot.GetUsers()
 				if err != nil {
 					flog.Error(err)
 					return nil
@@ -107,7 +107,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					// check subscription
 					//uid := types.EncodeUid(int64(user.ID))
 					//topic := uid.P2PName(botUid)
-					uid := types.Uid(user.ID)
+					uid := types.Uid(user.Flag)
 					topic := "" // fixme
 
 					// get oauth token

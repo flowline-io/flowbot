@@ -34,7 +34,7 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	// register bots
-	registerBot()
+	initializeBot()
 
 	// bootstrap bots
 	err = bots.Bootstrap()
@@ -74,7 +74,7 @@ func hookChannel() {
 		flog.Fatal("Failed to initialize channel: %v", err)
 	}
 
-	err = registerChannels()
+	err = initializeChannels()
 	if err != nil {
 		flog.Fatal("Failed to create or update channels: %v", err)
 	}

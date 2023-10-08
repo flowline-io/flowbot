@@ -111,7 +111,12 @@ type FileMsg struct {
 }
 
 func (i FileMsg) Convert() (KV, interface{}) {
-	return commonHead, nil //todo
+	builder := MsgBuilder{Payload: i}
+	builder.AppendAttachment(i.Alt, AttachmentOption{
+		Mime:        "application/octet-stream",
+		RelativeUrl: i.Src,
+	})
+	return builder.Content()
 }
 
 type VideoMsg struct {
@@ -123,7 +128,12 @@ type VideoMsg struct {
 }
 
 func (i VideoMsg) Convert() (KV, interface{}) {
-	return commonHead, nil //todo
+	builder := MsgBuilder{Payload: i}
+	builder.AppendAttachment(i.Alt, AttachmentOption{
+		Mime:        "video/mp4",
+		RelativeUrl: i.Src,
+	})
+	return builder.Content()
 }
 
 type AudioMsg struct {
@@ -133,7 +143,12 @@ type AudioMsg struct {
 }
 
 func (i AudioMsg) Convert() (KV, interface{}) {
-	return commonHead, nil //todo
+	builder := MsgBuilder{Payload: i}
+	builder.AppendAttachment(i.Alt, AttachmentOption{
+		Mime:        "audio/mpeg",
+		RelativeUrl: i.Src,
+	})
+	return builder.Content()
 }
 
 type ScriptMsg struct {
@@ -142,7 +157,11 @@ type ScriptMsg struct {
 }
 
 func (a ScriptMsg) Convert() (KV, interface{}) {
-	return commonHead, nil //todo
+	builder := MsgBuilder{Payload: a}
+	builder.AppendText(a.Code, TextOption{
+		IsCode: true,
+	})
+	return builder.Content()
 }
 
 type ActionMsg struct {
@@ -186,7 +205,9 @@ type LocationMsg struct {
 }
 
 func (a LocationMsg) Convert() (KV, interface{}) {
-	return commonHead, nil //todo
+	builder := MsgBuilder{Payload: a}
+	builder.AppendTextLine(fmt.Sprintf("Location (%f, %f)", a.Longitude, a.Latitude), TextOption{})
+	return builder.Content()
 }
 
 type TableMsg struct {

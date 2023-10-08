@@ -86,11 +86,10 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 
 	// store
 	userUid := types.Uid(uid)
-	botUid := types.Uid("") // fixme
 	title := utils.MarkdownTitle(markdown)
 	topic := "" // fixme
 	payload := bots.StorePage(
-		types.Context{AsUser: userUid, Original: botUid.String()},
+		types.Context{AsUser: userUid, Original: Name},
 		model.PageMarkdown, title,
 		types.MarkdownMsg{Title: title, Raw: markdown})
 	message := ""
@@ -100,9 +99,9 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 
 	// send
 	err = event.Emit(event.SendEvent, types.KV{
-		"topic":     topic,
-		"topic_uid": botUid,
-		"message":   message,
+		"topic":   topic,
+		"bot":     Name,
+		"message": message,
 	})
 	if err != nil {
 		flog.Error(err)

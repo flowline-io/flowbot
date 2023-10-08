@@ -358,22 +358,9 @@ func (a *adapter) Stats() interface{} {
 	return rawDB.Stats()
 }
 
-func (a *adapter) GetBotUsers() ([]*model.User, error) { // fixme
-	var find []*model.User
-	err := a.db.Table("users").Find(&find).Error
-	if err != nil {
-		return nil, err
-	}
-	return find, nil
-}
-
-func (a *adapter) GetNormalUsers() ([]*model.User, error) { // fixme
-	var find []*model.User
-	err := a.db.Table("users").Find(&find).Error
-	if err != nil {
-		return nil, err
-	}
-	return find, nil
+func (a *adapter) GetUsers() ([]*model.User, error) {
+	q := dao.Q.User
+	return q.Find()
 }
 
 func (a *adapter) GetMessage(topic string, seqId int) (model.Message, error) {

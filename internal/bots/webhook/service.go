@@ -33,8 +33,7 @@ func webhook(ctx *fiber.Ctx) error {
 
 	//uid, _ := types.KV(p.Params).String("uid")
 	//userUid := types.ParseUserId(uid)
-	botUid := types.Uid(0) // fixme
-	topic := ""            // fixme
+	topic := "" // fixme
 
 	d, _ := io.ReadAll(ctx.Request().BodyStream())
 
@@ -46,9 +45,9 @@ func webhook(ctx *fiber.Ctx) error {
 	}
 	// send
 	err = event.Emit(event.SendEvent, types.KV{
-		"topic":     topic,
-		"topic_uid": botUid,
-		"message":   txt,
+		"topic":   topic,
+		"bot":     Name,
+		"message": txt,
 	})
 	if err != nil {
 		flog.Error(err)

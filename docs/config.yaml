@@ -125,3 +125,6 @@ vendors:
     secret:
   pocket:
     consumer_key: ''
+  dropbox:
+    key: ''
+    secret: ''

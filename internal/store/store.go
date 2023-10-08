@@ -162,8 +162,7 @@ type Adapter interface {
 
 	// Chatbot
 
-	GetBotUsers() ([]*model.User, error)
-	GetNormalUsers() ([]*model.User, error)
+	GetUsers() ([]*model.User, error)
 	GetMessage(topic string, seqId int) (model.Message, error)
 
 	DataSet(uid types.Uid, topic, key string, value types.KV) error
