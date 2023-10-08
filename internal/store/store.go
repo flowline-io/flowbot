@@ -286,7 +286,7 @@ type Adapter interface {
 	GetBotByName(name string) (*model.Bot, error)
 	CreateBot(bot *model.Bot) (int64, error)
 	UpdateBot(bot *model.Bot) error
-	DeleteBot(id int64) error
+	DeleteBot(name string) error
 	GetBots() ([]*model.Bot, error)
 	GetPlatform(id int64) (*model.Platform, error)
 	GetPlatformByName(name string) (*model.Platform, error)

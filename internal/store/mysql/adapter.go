@@ -1549,13 +1549,13 @@ func (a *adapter) CreateBot(bot *model.Bot) (int64, error) {
 
 func (a *adapter) UpdateBot(bot *model.Bot) error {
 	q := dao.Q.Bot
-	_, err := q.Where(q.ID.Eq(bot.ID)).Update(q.State, bot.State)
+	_, err := q.Where(q.Name.Eq(bot.Name)).Update(q.State, bot.State)
 	return err
 }
 
-func (a *adapter) DeleteBot(id int64) error {
+func (a *adapter) DeleteBot(name string) error {
 	q := dao.Q.Bot
-	_, err := q.Where(q.ID.Eq(id)).Delete()
+	_, err := q.Where(q.Name.Eq(name)).Delete()
 	return err
 }
 

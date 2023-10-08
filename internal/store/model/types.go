@@ -321,3 +321,15 @@ const (
 func (j FileState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
+
+type BotState int
+
+const (
+	BotStateUnknown BotState = iota
+	BotActive
+	BotInactive
+)
+
+func (j BotState) Value() (driver.Value, error) {
+	return int64(j), nil
+}

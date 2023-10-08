@@ -29,7 +29,7 @@ func newBot(db *gorm.DB, opts ...gen.DOOption) bot {
 	_bot.ALL = field.NewAsterisk(tableName)
 	_bot.ID = field.NewInt64(tableName, "id")
 	_bot.Name = field.NewString(tableName, "name")
-	_bot.State = field.NewInt32(tableName, "state")
+	_bot.State = field.NewField(tableName, "state")
 	_bot.CreatedAt = field.NewTime(tableName, "created_at")
 	_bot.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -44,7 +44,7 @@ type bot struct {
 	ALL       field.Asterisk
 	ID        field.Int64
 	Name      field.String
-	State     field.Int32
+	State     field.Field
 	CreatedAt field.Time
 	UpdatedAt field.Time
 
@@ -65,7 +65,7 @@ func (b *bot) updateTableName(table string) *bot {
 	b.ALL = field.NewAsterisk(table)
 	b.ID = field.NewInt64(table, "id")
 	b.Name = field.NewString(table, "name")
-	b.State = field.NewInt32(table, "state")
+	b.State = field.NewField(table, "state")
 	b.CreatedAt = field.NewTime(table, "created_at")
 	b.UpdatedAt = field.NewTime(table, "updated_at")
 

@@ -225,7 +225,8 @@ func GenerationAction(c *cli.Context) error {
 	// platform table
 	g.ApplyBasic(g.GenerateModel("users",
 		gen.FieldType("state", "UserState")))
-	g.ApplyBasic(g.GenerateModel("bots"))
+	g.ApplyBasic(g.GenerateModel("bots",
+		gen.FieldType("state", "BotState")))
 	g.ApplyBasic(g.GenerateModel("topics",
 		gen.FieldType("state", "TopicState")))
 	g.ApplyBasic(g.GenerateModel("messages",
