@@ -43,7 +43,7 @@ func setupMux(app *fiber.App) {
 		bot.Webservice(app)
 	}
 
-	app.Group("/extra", adaptor.HTTPHandler(newRouter())) // todo remove extra prefix
+	app.Group("/", adaptor.HTTPHandler(newRouter()))
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
@@ -53,8 +53,12 @@ func setupMux(app *fiber.App) {
 
 func newRouter() *mux.Router {
 	r := mux.NewRouter()
-	s := r.PathPrefix("/extra").Subrouter()
-	s.Use(mux.CORSMethodMiddleware(r))
+	s := r.PathPrefix("/").Subrouter()
+
+	// root
+	s.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		_, _ = w.Write([]byte(fmt.Sprintf("flowbot %s", currentVersion)))
+	})
 	// common
 	s.HandleFunc("/oauth/{category}/{uid1}/{uid2}", storeOAuth)
 	s.HandleFunc("/page/{id}", getPage)

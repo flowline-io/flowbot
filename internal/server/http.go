@@ -25,10 +25,6 @@ func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-cha
 
 	httpdone := make(chan bool)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(map[string]any{"flowbot": currentVersion})
-	})
-
 	go func() {
 		if tlfConf != nil {
 			err := app.ListenTLSWithCertificate(addr, tlfConf.Certificates[0])

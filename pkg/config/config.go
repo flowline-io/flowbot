@@ -99,7 +99,7 @@ type configType struct {
 	// URL path for exposing runtime stats. Disabled if the path is blank.
 	ExpvarPath string `json:"expvar" yaml:"expvar_path" mapstructure:"expvar_path"`
 	// URL path for internal server status. Disabled if the path is blank.
-	ServerStatusPath string `json:"server_status" yaml:"server_status_path" mapstructure:"server_status_path"`
+	ServerStatusPath string `json:"server_status" yaml:"server_status" mapstructure:"server_status"`
 	// Take IP address of the client from HTTP header 'X-Forwarded-For'.
 	// Useful when tinode is behind a proxy. If missing, fallback to default RemoteAddr.
 	UseXForwardedFor bool `json:"use_x_forwarded_for" yaml:"use_x_forwarded_for" mapstructure:"use_x_forwarded_for"`
