@@ -187,18 +187,15 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		// check "/" prefix
 		if strings.HasPrefix(in, "/") {
 			in = strings.Replace(in, "/", "", 1)
-			payload, err = handle.Command(ctx, in)
-			if err != nil {
-				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-			}
+		}
+		payload, err = handle.Command(ctx, in)
+		if err != nil {
+			flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+		}
 
-			// stats
+		// stats
+		if payload != nil {
 			stats.Inc("BotRunCommandTotal", 1)
-
-			// error message
-			if payload == nil {
-				payload = types.TextMsg{Text: "error command"}
-			}
 		}
 	}
 	// pipeline command trigger
@@ -280,9 +277,9 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
-		Params: types.KV{ // todo fixme
-			"text":  payload.(types.TextMsg).Text,
-			"topic": msg.TopicId,
+		Params: types.KV{
+			"topic":   msg.TopicId,
+			"message": caller.Adapter.MessageConvert(payload),
 		},
 	})
 	flog.Info("event: %+v  response: %+v", msg, resp)

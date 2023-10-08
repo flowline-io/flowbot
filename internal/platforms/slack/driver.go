@@ -13,7 +13,7 @@ import (
 )
 
 type Driver struct {
-	adapter Adapter
+	adapter *Adapter
 	action  *Action
 	api     *slack.Client
 }
@@ -25,17 +25,17 @@ func NewDriver() *Driver {
 		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
 	)
 	return &Driver{
-		adapter: Adapter{},
+		adapter: &Adapter{},
 		action:  &Action{api: api},
 		api:     api,
 	}
 }
 
-func (d *Driver) HttpServer(ctx *fiber.Ctx) error {
+func (d *Driver) HttpServer(_ *fiber.Ctx) error {
 	return nil
 }
 
-func (d *Driver) HttpWebhookClient(message protocol.Message) error {
+func (d *Driver) HttpWebhookClient(_ protocol.Message) error {
 	return nil
 }
 
@@ -63,7 +63,8 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				// emit event
 				err := pkgEvent.Emit(protocolEvent.DetailType, types.KV{
 					"caller": &platforms.Caller{
-						Action: d.action,
+						Action:  d.action,
+						Adapter: d.adapter,
 					},
 					"event": protocolEvent,
 				})
@@ -88,7 +89,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 	}()
 }
 
-func (d *Driver) WebSocketServer(stop <-chan bool) {
+func (d *Driver) WebSocketServer(_ <-chan bool) {
 	if !config.App.Platform.Slack.Enabled {
 		flog.Info("Slack is disabled")
 		return

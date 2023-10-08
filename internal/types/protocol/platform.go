@@ -35,7 +35,7 @@ type Action interface {
 	// GetVersion get version
 	GetVersion(req Request) Response
 
-	// SendMessage send message
+	// SendMessage send message///
 	SendMessage(req Request) Response
 
 	// GetUserInfo get user info

@@ -40,6 +40,15 @@ func Text(text ...interface{}) MessageSegment {
 	}
 }
 
+func Url(url string) MessageSegment {
+	return MessageSegment{
+		Type: "url",
+		Data: map[string]any{
+			"url": url,
+		},
+	}
+}
+
 func Mention(userId string) MessageSegment {
 	if userId == "" {
 		return MentionAll()
