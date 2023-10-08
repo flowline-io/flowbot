@@ -15,7 +15,7 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.2.7
 	github.com/go-openapi/spec v0.20.9
 	github.com/go-playground/validator/v10 v10.15.4
-	github.com/go-resty/resty/v2 v2.8.0
+	github.com/go-resty/resty/v2 v2.9.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofiber/contrib/fiberzerolog v0.2.2
 	github.com/gofiber/fiber/v2 v2.49.2
