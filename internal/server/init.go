@@ -1,63 +1,65 @@
 package server
 
 import (
+	"fmt"
+	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/workflow/manage"
 	"github.com/flowline-io/flowbot/internal/workflow/schedule"
 	"github.com/flowline-io/flowbot/pkg/channels"
+	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/queue"
+	"github.com/flowline-io/flowbot/pkg/utils/sets"
+	"sort"
 )
 
 // init channels
 func initializeChannels() error {
-	// bind to BotFather
-	// uid, _, _, _, err := tstore.Users.GetAuthUniqueRecord("basic", "botfather")
-	uid := types.Uid(0) // fixme
-	_ = &Session{
-		uid:    uid,
-		subs:   make(map[string]*Subscription),
-		send:   make(chan interface{}, sendQueueLimit+32),
-		stop:   make(chan interface{}, 1),
-		detach: make(chan string, 64),
+	// register channels
+	registerChannels := sets.NewString()
+	for name, handler := range channels.List() {
+		registerChannels.Insert(name)
+
+		state := model.ChannelInactive
+		if handler.Enable {
+			state = model.ChannelActive
+		}
+		channel, _ := store.Chatbot.GetChannelByName(name)
+		if channel == nil {
+			channel = &model.Channel{
+				Name:  name,
+				State: state,
+			}
+			if _, err := store.Chatbot.CreateChannel(channel); err != nil {
+				flog.Error(err)
+			}
+		} else {
+			channel.State = state
+			err := store.Chatbot.UpdateChannel(channel)
+			if err != nil {
+				flog.Error(err)
+			}
+		}
 	}
 
-	for range channels.List() {
-		//topic, _ := tstore.Topics.Get(fmt.Sprintf("grp%s", channel.Id))
-		//if topic != nil && topic.Id != "" {
-		//	flog.Info("channel %s registered", channel.Name)
-		//	continue
-		//}
-
-		//var msg = &ClientComMessage{
-		//	Sub: &MsgClientSub{
-		//		Topic: channel.Name,
-		//		Set: &MsgSetQuery{
-		//			Desc: &MsgSetDesc{
-		//				Public: map[string]interface{}{
-		//					"fn":   fmt.Sprintf("%s%s", channel.Name, channels.ChannelNameSuffix),
-		//					"note": fmt.Sprintf("%s channel", channel.Name),
-		//				},
-		//				Trusted: map[string]interface{}{
-		//					"verified": true,
-		//				},
-		//			},
-		//			Tags: []string{"channel"},
-		//		},
-		//		Created: false,
-		//		Newsub:  false,
-		//	},
-		//
-		//	Original:  fmt.Sprintf("nch%s", channel.Id),
-		//	RcptTo:    fmt.Sprintf("grp%s", channel.Id),
-		//	AsUser:    uid.UserId(),
-		//	AuthLvl:   int(auth.LevelRoot),
-		//	Timestamp: time.Now(),
-		//	init:      true,
-		//	sess:      sess,
-		//}
-		//
-		//globals.hub.join <- msg
+	// inactive channels
+	list, err := store.Chatbot.GetChannels()
+	if err != nil {
+		flog.Error(err)
+	}
+	for _, channel := range list {
+		if !registerChannels.Has(channel.Name) {
+			channel.State = model.ChannelInactive
+			if err := store.Chatbot.UpdateChannel(channel); err != nil {
+				flog.Error(err)
+			}
+		}
 	}
 
 	return nil
@@ -65,115 +67,82 @@ func initializeChannels() error {
 
 // init crawler
 func initializeCrawler() error {
-	//uid, _, _, _, err := store.Users.GetAuthUniqueRecord("basic", "botfather")
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//c := crawler.New()
-	//globals.crawler = c
-	//c.Send = func(id, name string, out []map[string]string) {
-	//	if len(out) == 0 {
-	//		return
-	//	}
-	//	topic := fmt.Sprintf("grp%s", id)
-	//	dst, err := store.Topics.Get(topic)
-	//	if err != nil {
-	//		flog.Error(err)
-	//		return
-	//	}
-	//	if dst == nil {
-	//		return
-	//	}
-	//
-	//	keys := []string{"No"}
-	//	for k := range out[0] {
-	//		keys = append(keys, k)
-	//	}
-	//	var head map[string]interface{}
-	//	var content interface{}
-	//	if len(out) <= 10 {
-	//		sort.Strings(keys)
-	//		builder := extraTypes.MsgBuilder{}
-	//		for index, item := range out {
-	//			builder.AppendTextLine(fmt.Sprintf("--- %d ---", index+1), extraTypes.TextOption{})
-	//			for _, k := range keys {
-	//				if k == "No" {
-	//					continue
-	//				}
-	//				builder.AppendText(fmt.Sprintf("%s: ", k), extraTypes.TextOption{IsBold: true})
-	//				if utils.IsUrl(item[k]) {
-	//					builder.AppendTextLine(item[k], extraTypes.TextOption{IsLink: true})
-	//				} else {
-	//					builder.AppendTextLine(item[k], extraTypes.TextOption{})
-	//				}
-	//			}
-	//		}
-	//		head, content = builder.Content()
-	//	} else {
-	//		var row [][]interface{}
-	//		for index, item := range out {
-	//			var tmp []interface{}
-	//			for _, k := range keys {
-	//				if k == "No" {
-	//					tmp = append(tmp, index+1)
-	//					continue
-	//				}
-	//				tmp = append(tmp, item[k])
-	//			}
-	//			row = append(row, tmp)
-	//		}
-	//		title := fmt.Sprintf("Channel %s (%d)", name, len(out))
-	//		res := bots.StorePage(extraTypes.Context{}, model.PageTable, title, extraTypes.TableMsg{
-	//			Title:  title,
-	//			Header: keys,
-	//			Row:    row,
-	//		})
-	//		head, content = res.Convert()
-	//	}
-	//	if content == nil {
-	//		return
-	//	}
-	//
-	//	// stats inc
-	//	stats.Inc("ChannelPublishTotal", 1)
-	//
-	//	msg := &ClientComMessage{
-	//		Pub: &MsgClientPub{
-	//			Topic:   topic,
-	//			Head:    head,
-	//			Content: content,
-	//		},
-	//		AsUser:    uid.UserId(),
-	//		Timestamp: types.TimeNow(),
-	//	}
-	//
-	//	t := &Topic{
-	//		name:   topic,
-	//		cat:    types.TopicCatGrp,
-	//		status: topicStatusLoaded,
-	//		lastID: dst.SeqId,
-	//		perUser: map[types.Uid]perUserData{
-	//			uid: {
-	//				modeGiven: types.ModeCFull,
-	//				modeWant:  types.ModeCFull,
-	//				private:   nil,
-	//			},
-	//		},
-	//	}
-	//	t.handleClientMsg(msg)
-	//}
-	//
-	//var rules []crawler.Rule
-	//for _, publisher := range channels.List() {
-	//	rules = append(rules, *publisher)
-	//}
-	//
-	//err = c.Init(rules...)
-	//if err != nil {
-	//	return err
-	//}
-	//c.Run()
+	c := crawler.New()
+	globals.crawler = c
+	c.Send = func(id, name string, out []map[string]string) {
+		if len(out) == 0 {
+			return
+		}
+
+		// todo find topic
+		fmt.Println(id)
+
+		keys := []string{"No"}
+		for k := range out[0] {
+			keys = append(keys, k)
+		}
+
+		var content interface{}
+		if len(out) <= 10 {
+			sort.Strings(keys)
+			builder := types.MsgBuilder{}
+			for index, item := range out {
+				builder.AppendTextLine(fmt.Sprintf("--- %d ---", index+1), types.TextOption{})
+				for _, k := range keys {
+					if k == "No" {
+						continue
+					}
+					builder.AppendText(fmt.Sprintf("%s: ", k), types.TextOption{IsBold: true})
+					if utils.IsUrl(item[k]) {
+						builder.AppendTextLine(item[k], types.TextOption{IsLink: true})
+					} else {
+						builder.AppendTextLine(item[k], types.TextOption{})
+					}
+				}
+			}
+			_, content = builder.Content()
+		} else {
+			var row [][]interface{}
+			for index, item := range out {
+				var tmp []interface{}
+				for _, k := range keys {
+					if k == "No" {
+						tmp = append(tmp, index+1)
+						continue
+					}
+					tmp = append(tmp, item[k])
+				}
+				row = append(row, tmp)
+			}
+			title := fmt.Sprintf("Channel %s (%d)", name, len(out))
+			res := bots.StorePage(types.Context{}, model.PageTable, title, types.TableMsg{
+				Title:  title,
+				Header: keys,
+				Row:    row,
+			})
+			_, content = res.Convert()
+		}
+		if content == nil {
+			return
+		}
+
+		// stats inc
+		stats.Inc("ChannelPublishTotal", 1)
+
+		// todo send content
+		fmt.Println("channel publish", content)
+	}
+
+	var rules []crawler.Rule
+	for _, publisher := range channels.List() {
+		rules = append(rules, *publisher)
+	}
+
+	err := c.Init(rules...)
+	if err != nil {
+		return err
+	}
+	c.Run()
 	return nil
 }
 

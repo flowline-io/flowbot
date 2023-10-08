@@ -237,6 +237,9 @@ func GenerationAction(c *cli.Context) error {
 	g.ApplyBasic(g.GenerateModel("platform_bots"))
 	g.ApplyBasic(g.GenerateModel("fileuploads",
 		gen.FieldType("state", "FileState")))
+	g.ApplyBasic(g.GenerateModel("channels",
+		gen.FieldType("state", "ChannelState")))
+	g.ApplyBasic(g.GenerateModel("platform_channels"))
 
 	g.ApplyBasic(g.GenerateModel("schema_migrations"))
 

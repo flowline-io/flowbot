@@ -292,6 +292,12 @@ type Adapter interface {
 	GetPlatformByName(name string) (*model.Platform, error)
 	GetPlatforms() ([]*model.Platform, error)
 	CreatePlatform(platform *model.Platform) (int64, error)
+	GetChannel(id int64) (*model.Channel, error)
+	GetChannelByName(name string) (*model.Channel, error)
+	CreateChannel(channel *model.Channel) (int64, error)
+	UpdateChannel(channel *model.Channel) error
+	DeleteChannel(name string) error
+	GetChannels() ([]*model.Channel, error)
 }
 
 var Chatbot Adapter

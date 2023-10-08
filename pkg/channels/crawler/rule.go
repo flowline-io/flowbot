@@ -11,11 +11,12 @@ import (
 )
 
 type Rule struct {
-	Name string
-	Id   string
-	When string
-	Mode string
-	Page *struct {
+	Name   string
+	Enable bool
+	Id     string
+	When   string
+	Mode   string
+	Page   *struct {
 		URL  string
 		List string
 		Item map[string]string

@@ -333,3 +333,15 @@ const (
 func (j BotState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
+
+type ChannelState int
+
+const (
+	ChannelStateUnknown ChannelState = iota
+	ChannelActive
+	ChannelInactive
+)
+
+func (j ChannelState) Value() (driver.Value, error) {
+	return int64(j), nil
+}

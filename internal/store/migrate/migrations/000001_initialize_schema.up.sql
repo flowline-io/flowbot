@@ -38,14 +38,14 @@ CREATE TABLE IF NOT EXISTS `behavior`
 CREATE TABLE IF NOT EXISTS `bots`
 (
     `id`         bigint                                                       NOT NULL AUTO_INCREMENT,
-    `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+    `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `state`      tinyint                                                      NOT NULL DEFAULT (0),
     `created_at` datetime                                                     NOT NULL,
     `updated_at` datetime                                                     NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
+  COLLATE = utf8mb4_unicode_ci;
 
 
 
@@ -413,7 +413,7 @@ CREATE TABLE IF NOT EXISTS `platforms`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
+  COLLATE = utf8mb4_unicode_ci;
 
 
 
@@ -429,7 +429,7 @@ CREATE TABLE IF NOT EXISTS `platform_users`
     KEY `user_id` (`user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
+  COLLATE = utf8mb4_unicode_ci;
 
 
 
@@ -667,13 +667,39 @@ CREATE TABLE `platform_bots`
     `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
     `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
     `bot_id`      BIGINT(19)  NOT NULL DEFAULT '0',
-    `flag`        VARCHAR(50) NOT NULL DEFAULT '0' COLLATE 'utf8mb4_0900_ai_ci',
+    `flag`        VARCHAR(50) NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
     `created_at`  DATETIME    NOT NULL,
     `updated_at`  DATETIME    NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
     INDEX `platform_id` (`platform_id`) USING BTREE,
     INDEX `bot_id` (`bot_id`) USING BTREE
 )
-    COLLATE = 'utf8mb4_0900_ai_ci'
-    ENGINE = InnoDB
-;
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
+
+CREATE TABLE `channels`
+(
+    `id`         BIGINT(19)  NOT NULL AUTO_INCREMENT,
+    `name`       VARCHAR(50) NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `state`      TINYINT(3)  NOT NULL DEFAULT '0',
+    `created_at` DATETIME    NOT NULL,
+    `updated_at` DATETIME    NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
+
+CREATE TABLE `platform_channels`
+(
+    `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
+    `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
+    `channel_id`  BIGINT(19)  NOT NULL DEFAULT '0',
+    `flag`        VARCHAR(50) NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
+    `created_at`  DATETIME    NOT NULL,
+    `updated_at`  DATETIME    NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `platform_id` (`platform_id`) USING BTREE,
+    INDEX `channel_id` (`channel_id`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;

@@ -1588,6 +1588,42 @@ func (a *adapter) CreatePlatform(platform *model.Platform) (int64, error) {
 	return platform.ID, nil
 }
 
+func (a *adapter) GetChannel(id int64) (*model.Channel, error) {
+	q := dao.Q.Channel
+	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) GetChannelByName(name string) (*model.Channel, error) {
+	q := dao.Q.Channel
+	return q.Where(q.Name.Eq(name)).First()
+}
+
+func (a *adapter) CreateChannel(channel *model.Channel) (int64, error) {
+	q := dao.Q.Channel
+	err := q.Create(channel)
+	if err != nil {
+		return 0, err
+	}
+	return channel.ID, nil
+}
+
+func (a *adapter) UpdateChannel(channel *model.Channel) error {
+	q := dao.Q.Channel
+	_, err := q.Where(q.Name.Eq(channel.Name)).Update(q.State, channel.State)
+	return err
+}
+
+func (a *adapter) DeleteChannel(name string) error {
+	q := dao.Q.Channel
+	_, err := q.Where(q.Name.Eq(name)).Delete()
+	return err
+}
+
+func (a *adapter) GetChannels() ([]*model.Channel, error) {
+	q := dao.Q.Channel
+	return q.Find()
+}
+
 func Init() {
 	store.RegisterAdapter(&adapter{})
 }

@@ -20,6 +20,7 @@ var (
 	Action           *action
 	Behavior         *behavior
 	Bot              *bot
+	Channel          *channel
 	Config           *config
 	Counter          *counter
 	CounterRecord    *counterRecord
@@ -40,6 +41,7 @@ var (
 	Pipeline         *pipeline
 	Platform         *platform
 	PlatformBot      *platformBot
+	PlatformChannel  *platformChannel
 	PlatformUser     *platformUser
 	Review           *review
 	ReviewEvaluation *reviewEvaluation
@@ -59,6 +61,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Action = &Q.Action
 	Behavior = &Q.Behavior
 	Bot = &Q.Bot
+	Channel = &Q.Channel
 	Config = &Q.Config
 	Counter = &Q.Counter
 	CounterRecord = &Q.CounterRecord
@@ -79,6 +82,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Pipeline = &Q.Pipeline
 	Platform = &Q.Platform
 	PlatformBot = &Q.PlatformBot
+	PlatformChannel = &Q.PlatformChannel
 	PlatformUser = &Q.PlatformUser
 	Review = &Q.Review
 	ReviewEvaluation = &Q.ReviewEvaluation
@@ -99,6 +103,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Action:           newAction(db, opts...),
 		Behavior:         newBehavior(db, opts...),
 		Bot:              newBot(db, opts...),
+		Channel:          newChannel(db, opts...),
 		Config:           newConfig(db, opts...),
 		Counter:          newCounter(db, opts...),
 		CounterRecord:    newCounterRecord(db, opts...),
@@ -119,6 +124,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Pipeline:         newPipeline(db, opts...),
 		Platform:         newPlatform(db, opts...),
 		PlatformBot:      newPlatformBot(db, opts...),
+		PlatformChannel:  newPlatformChannel(db, opts...),
 		PlatformUser:     newPlatformUser(db, opts...),
 		Review:           newReview(db, opts...),
 		ReviewEvaluation: newReviewEvaluation(db, opts...),
@@ -140,6 +146,7 @@ type Query struct {
 	Action           action
 	Behavior         behavior
 	Bot              bot
+	Channel          channel
 	Config           config
 	Counter          counter
 	CounterRecord    counterRecord
@@ -160,6 +167,7 @@ type Query struct {
 	Pipeline         pipeline
 	Platform         platform
 	PlatformBot      platformBot
+	PlatformChannel  platformChannel
 	PlatformUser     platformUser
 	Review           review
 	ReviewEvaluation reviewEvaluation
@@ -182,6 +190,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Action:           q.Action.clone(db),
 		Behavior:         q.Behavior.clone(db),
 		Bot:              q.Bot.clone(db),
+		Channel:          q.Channel.clone(db),
 		Config:           q.Config.clone(db),
 		Counter:          q.Counter.clone(db),
 		CounterRecord:    q.CounterRecord.clone(db),
@@ -202,6 +211,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Pipeline:         q.Pipeline.clone(db),
 		Platform:         q.Platform.clone(db),
 		PlatformBot:      q.PlatformBot.clone(db),
+		PlatformChannel:  q.PlatformChannel.clone(db),
 		PlatformUser:     q.PlatformUser.clone(db),
 		Review:           q.Review.clone(db),
 		ReviewEvaluation: q.ReviewEvaluation.clone(db),
@@ -231,6 +241,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Action:           q.Action.replaceDB(db),
 		Behavior:         q.Behavior.replaceDB(db),
 		Bot:              q.Bot.replaceDB(db),
+		Channel:          q.Channel.replaceDB(db),
 		Config:           q.Config.replaceDB(db),
 		Counter:          q.Counter.replaceDB(db),
 		CounterRecord:    q.CounterRecord.replaceDB(db),
@@ -251,6 +262,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Pipeline:         q.Pipeline.replaceDB(db),
 		Platform:         q.Platform.replaceDB(db),
 		PlatformBot:      q.PlatformBot.replaceDB(db),
+		PlatformChannel:  q.PlatformChannel.replaceDB(db),
 		PlatformUser:     q.PlatformUser.replaceDB(db),
 		Review:           q.Review.replaceDB(db),
 		ReviewEvaluation: q.ReviewEvaluation.replaceDB(db),
@@ -270,6 +282,7 @@ type queryCtx struct {
 	Action           *actionDo
 	Behavior         *behaviorDo
 	Bot              *botDo
+	Channel          *channelDo
 	Config           *configDo
 	Counter          *counterDo
 	CounterRecord    *counterRecordDo
@@ -290,6 +303,7 @@ type queryCtx struct {
 	Pipeline         *pipelineDo
 	Platform         *platformDo
 	PlatformBot      *platformBotDo
+	PlatformChannel  *platformChannelDo
 	PlatformUser     *platformUserDo
 	Review           *reviewDo
 	ReviewEvaluation *reviewEvaluationDo
@@ -309,6 +323,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Action:           q.Action.WithContext(ctx),
 		Behavior:         q.Behavior.WithContext(ctx),
 		Bot:              q.Bot.WithContext(ctx),
+		Channel:          q.Channel.WithContext(ctx),
 		Config:           q.Config.WithContext(ctx),
 		Counter:          q.Counter.WithContext(ctx),
 		CounterRecord:    q.CounterRecord.WithContext(ctx),
@@ -329,6 +344,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Pipeline:         q.Pipeline.WithContext(ctx),
 		Platform:         q.Platform.WithContext(ctx),
 		PlatformBot:      q.PlatformBot.WithContext(ctx),
+		PlatformChannel:  q.PlatformChannel.WithContext(ctx),
 		PlatformUser:     q.PlatformUser.WithContext(ctx),
 		Review:           q.Review.WithContext(ctx),
 		ReviewEvaluation: q.ReviewEvaluation.WithContext(ctx),
