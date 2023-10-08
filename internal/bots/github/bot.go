@@ -24,9 +24,7 @@ type bot struct {
 }
 
 type configType struct {
-	Enabled bool   `json:"enabled"`
-	ID      string `json:"id"`
-	Secret  string `json:"secret"`
+	Enabled bool `json:"enabled"`
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {

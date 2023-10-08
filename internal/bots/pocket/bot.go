@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"gorm.io/gorm"
@@ -28,8 +29,7 @@ type bot struct {
 }
 
 type configType struct {
-	Enabled     bool   `json:"enabled"`
-	ConsumerKey string `json:"consumer_key"`
+	Enabled bool `json:"enabled"`
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {
@@ -82,7 +82,8 @@ func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.Ms
 			return types.TextMsg{Text: "App is unauthorized"}, nil
 		}
 
-		provider := pocket.NewPocket(Config.ConsumerKey, "", "", oauth.Token)
+		key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
+		provider := pocket.NewPocket(key.String(), "", "", oauth.Token)
 		_, err = provider.Add(url)
 		if err != nil {
 			flog.Error(err)

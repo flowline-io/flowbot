@@ -52,8 +52,10 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
+			id, _ := providers.GetConfig(github.ID, github.ClientIdKey)
+			secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
 			redirectURI := providers.RedirectURI(github.ID, flag)
-			provider := github.NewGithub(Config.ID, Config.Secret, redirectURI, "")
+			provider := github.NewGithub(id.String(), secret.String(), redirectURI, "")
 			url, err := bots.CreateShortUrl(provider.GetAuthorizeURL())
 			if err != nil {
 				return types.TextMsg{Text: "create url error"}

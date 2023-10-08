@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/adjust/rmq/v5"
 	"github.com/flowline-io/flowbot/internal/bots"
-	botGithub "github.com/flowline-io/flowbot/internal/bots/github"
-	botPocket "github.com/flowline-io/flowbot/internal/bots/pocket"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/action"
 	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
@@ -37,9 +35,12 @@ func newProvider(category string) providers.OAuthProvider {
 
 	switch category {
 	case pocket.ID:
-		provider = pocket.NewPocket(botPocket.Config.ConsumerKey, "", "", "")
+		key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
+		provider = pocket.NewPocket(key.String(), "", "", "")
 	case github.ID:
-		provider = github.NewGithub(botGithub.Config.ID, botGithub.Config.Secret, "", "")
+		id, _ := providers.GetConfig(github.ID, github.ClientIdKey)
+		secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
+		provider = github.NewGithub(id.String(), secret.String(), "", "")
 	case dropbox.ID:
 		provider = dropbox.NewDropbox("", "", "", "")
 	default:

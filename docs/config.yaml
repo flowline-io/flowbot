@@ -109,11 +109,8 @@ platform:
 bots:
   - name: github
     enabled: true
-    id:
-    secret:
   - name: pocket
     enabled: true
-    consumer_key: ''
 
 vendors:
   oneai:
@@ -123,3 +120,8 @@ vendors:
     token:
     environment: development
     server_root: github.com/flowline-io/flowbot
+  github:
+    id:
+    secret:
+  pocket:
+    consumer_key: ''

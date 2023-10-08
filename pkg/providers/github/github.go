@@ -11,8 +11,8 @@ import (
 
 const (
 	ID              = "github"
-	ClientIdKey     = "client_id"
-	ClientSecretKey = "client_secret"
+	ClientIdKey     = "id"
+	ClientSecretKey = "secret"
 )
 
 type TokenResponse struct {

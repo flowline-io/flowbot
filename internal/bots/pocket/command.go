@@ -44,8 +44,9 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
+			key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
 			redirectURI := providers.RedirectURI(pocket.ID, flag)
-			provider := pocket.NewPocket(Config.ConsumerKey, "", redirectURI, "")
+			provider := pocket.NewPocket(key.String(), "", redirectURI, "")
 			_, err = provider.GetCode("")
 			if err != nil {
 				return types.TextMsg{Text: "get code error"}
@@ -69,7 +70,8 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "App is unauthorized"}
 			}
 
-			provider := pocket.NewPocket(Config.ConsumerKey, "", "", oauth.Token)
+			key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
+			provider := pocket.NewPocket(key.String(), "", "", oauth.Token)
 			items, err := provider.Retrieve(10)
 			if err != nil {
 				flog.Error(err)
