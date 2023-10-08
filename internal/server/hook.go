@@ -42,18 +42,6 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 		flog.Fatal("Failed to bootstrap bot: %v", err)
 	}
 
-	// bot father
-	err = initializeBotFather()
-	if err != nil {
-		flog.Fatal("Failed to create or update bot father: %v", err)
-	}
-
-	// bot users
-	err = initializeBotUsers()
-	if err != nil {
-		flog.Fatal("Failed to create or update bot users: %v", err)
-	}
-
 	// bot cron
 	globals.cronRuleset, err = bots.Cron(nil) //bots.Cron(botSend) todo
 	if err != nil {
