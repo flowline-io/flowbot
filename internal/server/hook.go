@@ -74,7 +74,7 @@ func hookChannel() {
 		flog.Fatal("Failed to initialize channel: %v", err)
 	}
 
-	err = initializeChannels()
+	err = registerChannels()
 	if err != nil {
 		flog.Fatal("Failed to create or update channels: %v", err)
 	}

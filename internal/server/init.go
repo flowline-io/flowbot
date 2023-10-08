@@ -20,7 +20,7 @@ import (
 )
 
 // init channels
-func initializeChannels() error {
+func registerChannels() error {
 	// register channels
 	registerChannels := sets.NewString()
 	for name, handler := range channels.List() {
@@ -168,4 +168,48 @@ func initializeWorkflow() error {
 		go worker.Run()
 	}
 	return nil
+}
+
+// init bots
+func registerBot() {
+	// register bots
+	registerBots := sets.NewString()
+	for name, handler := range bots.List() {
+		registerBots.Insert(name)
+
+		state := model.BotInactive
+		if handler.IsReady() {
+			state = model.BotActive
+		}
+		bot, _ := store.Chatbot.GetBotByName(name)
+		if bot == nil {
+			bot = &model.Bot{
+				Name:  name,
+				State: state,
+			}
+			if _, err := store.Chatbot.CreateBot(bot); err != nil {
+				flog.Error(err)
+			}
+		} else {
+			bot.State = state
+			err := store.Chatbot.UpdateBot(bot)
+			if err != nil {
+				flog.Error(err)
+			}
+		}
+	}
+
+	// inactive bot
+	list, err := store.Chatbot.GetBots()
+	if err != nil {
+		flog.Error(err)
+	}
+	for _, bot := range list {
+		if !registerBots.Has(bot.Name) {
+			bot.State = model.BotInactive
+			if err := store.Chatbot.UpdateBot(bot); err != nil {
+				flog.Error(err)
+			}
+		}
+	}
 }

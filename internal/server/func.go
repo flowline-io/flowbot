@@ -21,7 +21,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	json "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"net/http"
@@ -610,47 +609,4 @@ func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 
 	}
 	return nil, nil
-}
-
-func registerBot() {
-	// register bots
-	registerBots := sets.NewString()
-	for name, handler := range bots.List() {
-		registerBots.Insert(name)
-
-		state := model.BotInactive
-		if handler.IsReady() {
-			state = model.BotActive
-		}
-		bot, _ := store.Chatbot.GetBotByName(name)
-		if bot == nil {
-			bot = &model.Bot{
-				Name:  name,
-				State: state,
-			}
-			if _, err := store.Chatbot.CreateBot(bot); err != nil {
-				flog.Error(err)
-			}
-		} else {
-			bot.State = state
-			err := store.Chatbot.UpdateBot(bot)
-			if err != nil {
-				flog.Error(err)
-			}
-		}
-	}
-
-	// inactive bot
-	list, err := store.Chatbot.GetBots()
-	if err != nil {
-		flog.Error(err)
-	}
-	for _, bot := range list {
-		if !registerBots.Has(bot.Name) {
-			bot.State = model.BotInactive
-			if err := store.Chatbot.UpdateBot(bot); err != nil {
-				flog.Error(err)
-			}
-		}
-	}
 }
