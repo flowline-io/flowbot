@@ -95,6 +95,9 @@ var ErrBadSegmentData = NewError(10007, "bad segment data")
 // ErrMethodNotAllowed Invalid HTTP method
 var ErrMethodNotAllowed = NewError(10008, "invalid http method")
 
+// ErrNotFound not found
+var ErrNotFound = NewError(10009, "not found")
+
 // ErrWhoAmI Chatbot implements support for multiple bot accounts on a single Chatbot Connect connection,
 // but the action request does not specify the account to be used
 var ErrWhoAmI = NewError(10101, "who am i")
@@ -160,6 +163,9 @@ var ErrFlagExpired = NewError(60003, "flag expired")
 
 // ErrNotAuthorized Not authorized
 var ErrNotAuthorized = NewError(60004, "not authorized")
+
+// ErrOAuthError OAuth error
+var ErrOAuthError = NewError(60004, "oauth error")
 
 func NewSuccessResponse(data any) Response {
 	return Response{

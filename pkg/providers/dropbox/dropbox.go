@@ -5,6 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
+	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 	"io"
 	"net/http"
@@ -79,8 +80,8 @@ func (v *Dropbox) Redirect(req *http.Request) (string, error) {
 	return appRedirectURI, nil
 }
 
-func (v *Dropbox) GetAccessToken(req *http.Request) (types.KV, error) {
-	code := req.URL.Query().Get("code")
+func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
+	code := ctx.Query("code")
 	clientId, _ := providers.GetConfig(ID, ClientIdKey)
 	clientSecret, _ := providers.GetConfig(ID, ClientSecretKey)
 	v.clientId = clientId.String()

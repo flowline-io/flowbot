@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/go-resty/resty/v2"
+	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
@@ -342,8 +343,8 @@ func (v *Github) Redirect(_ *http.Request) (string, error) {
 	return appRedirectURI, nil
 }
 
-func (v *Github) GetAccessToken(req *http.Request) (types.KV, error) {
-	code := req.URL.Query().Get("code")
+func (v *Github) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
+	code := ctx.Query("code")
 	tokenResp, err := v.completeAuth(code)
 	if err != nil {
 		return nil, err

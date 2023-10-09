@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
@@ -133,7 +134,7 @@ func (v *Pocket) Redirect(_ *http.Request) (string, error) {
 	return appRedirectURI, nil
 }
 
-func (v *Pocket) GetAccessToken(_ *http.Request) (types.KV, error) {
+func (v *Pocket) GetAccessToken(_ *fiber.Ctx) (types.KV, error) {
 	ctx := context.Background()
 	code, err := cache.DB.Get(ctx, "pocket:code").Result() // fixme uid key
 	if err != nil && !errors.Is(err, redis.Nil) {

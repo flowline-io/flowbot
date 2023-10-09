@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -43,7 +44,7 @@ func setupMux(app *fiber.App) {
 		bot.Webservice(app)
 	}
 
-	app.Group("/", adaptor.HTTPHandler(newRouter()))
+	newRouter(app)
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
@@ -51,7 +52,7 @@ func setupMux(app *fiber.App) {
 	app.All("/chatbot/:platform", platformCallback)
 }
 
-func newRouter() *mux.Router {
+func newRouter(app *fiber.App) *mux.Router {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/").Subrouter()
 
@@ -60,14 +61,14 @@ func newRouter() *mux.Router {
 		_, _ = w.Write([]byte(fmt.Sprintf("flowbot %s", currentVersion)))
 	})
 	// common
-	s.HandleFunc("/oauth/{category}/{uid1}/{uid2}", storeOAuth)
-	s.HandleFunc("/page/{id}", getPage)
-	s.HandleFunc("/form", postForm).Methods(http.MethodPost)
-	s.HandleFunc("/queue/stats", queueStats)
-	s.HandleFunc("/p/{id}/{flag}", renderPage)
+	app.All("/oauth/:provider/:flag", storeOAuth)
+	app.Get("/page/:id", getPage)
+	app.Post("/form", adaptor.HTTPHandlerFunc(postForm))
+	app.Get("/queue/stats", adaptor.HTTPHandlerFunc(queueStats))
+	app.Get("/p/:id/:flag", renderPage)
 	// bot
-	s.HandleFunc("/flowkit", flowkitData)
-	s.HandleFunc("/session", wbSession)
+	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
+	app.All("/session", adaptor.HTTPHandlerFunc(wbSession))
 
 	return s
 }
@@ -99,35 +100,30 @@ func newDownloadRouter() *mux.Router {
 
 // handler
 
-func storeOAuth(rw http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name := vars["provider"]
-	flag := vars["flag"]
+func storeOAuth(ctx *fiber.Ctx) error {
+	name := ctx.Params("provider")
+	flag := ctx.Params("flag")
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		errorResponse(rw, "flag error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
 	}
 	if p.IsExpired() {
-		errorResponse(rw, "oauth expired")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 	}
 
 	uid, _ := types.KV(p.Params).String("uid")
 	topic, _ := types.KV(p.Params).String("topic")
 	if uid == "" || topic == "" {
-		errorResponse(rw, "path error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 
 	// code -> token
 	provider := newProvider(name)
-	tk, err := provider.GetAccessToken(req)
+	tk, err := provider.GetAccessToken(ctx)
 	if err != nil {
 		flog.Error(err)
-		errorResponse(rw, "oauth error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError))
 	}
 
 	// store
@@ -143,28 +139,26 @@ func storeOAuth(rw http.ResponseWriter, req *http.Request) {
 	})
 	if err != nil {
 		flog.Error(err)
-		errorResponse(rw, "store error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError))
 	}
 
-	_, _ = rw.Write([]byte("ok"))
+	return ctx.SendString("ok")
 }
 
-func getPage(rw http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id := vars["id"]
+func getPage(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
 
 	p, err := store.Chatbot.PageGet(id)
 	if err != nil {
 		flog.Error(err)
-		errorResponse(rw, "page not found")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
 	}
 
 	title, _ := types.KV(p.Schema).String("title")
 	if title == "" {
 		title = "Page"
 	}
+	ctx.Set("Content-Type", "text/html")
 	var comp app.UI
 	switch p.Type {
 	case model.PageForm:
@@ -183,12 +177,12 @@ func getPage(rw http.ResponseWriter, req *http.Request) {
 	case model.PageChart:
 		d, err := json.Marshal(p.Schema)
 		if err != nil {
-			return
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
 		}
 		var msg types.ChartMsg
 		err = json.Unmarshal(d, &msg)
 		if err != nil {
-			return
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
 		}
 
 		line := charts.NewLine()
@@ -204,31 +198,28 @@ func getPage(rw http.ResponseWriter, req *http.Request) {
 
 		line.SetXAxis(msg.XAxis).AddSeries("Chart", lineData)
 
-		_ = line.Render(rw)
-		return
+		buf := bytes.NewBuffer(nil)
+		_ = line.Render(buf)
+		return ctx.Send(buf.Bytes())
 	default:
-		errorResponse(rw, "page error type")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
 	}
 
-	_, _ = rw.Write([]byte(fmt.Sprintf(page.Layout, title,
+	return ctx.SendString(fmt.Sprintf(page.Layout, title,
 		library.UIKitCss, library.UIKitJs, library.UIKitIconJs,
-		"", app.HTMLString(uikit.Container(comp)), "")))
+		"", app.HTMLString(uikit.Container(comp)), ""))
 }
 
-func renderPage(rw http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	pageRuleId := vars["id"]
-	flag := vars["flag"]
+func renderPage(ctx *fiber.Ctx) error {
+	pageRuleId := ctx.Params("id")
+	flag := ctx.Params("flag")
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		errorResponse(rw, "flag error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
 	}
 	if p.IsExpired() {
-		errorResponse(rw, "page expired")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 	}
 
 	kv := types.KV(p.Params)
@@ -236,7 +227,7 @@ func renderPage(rw http.ResponseWriter, req *http.Request) {
 	topic, _ := kv.String("topic")
 	uid, _ := kv.String("uid")
 
-	ctx := types.Context{
+	typesCtx := types.Context{
 		Original:   original,
 		RcptTo:     topic,
 		AsUser:     types.Uid(uid),
@@ -258,22 +249,18 @@ func renderPage(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if botHandler == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
 	}
 
-	html, err := botHandler.Page(ctx, flag)
+	html, err := botHandler.Page(typesCtx, flag)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			rw.WriteHeader(http.StatusNotFound)
-			_, _ = rw.Write([]byte("404 not found"))
-			return
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
 		}
-		rw.WriteHeader(http.StatusBadRequest)
-		_, _ = rw.Write([]byte("error page"))
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
 	}
-	_, _ = rw.Write([]byte(html))
+	ctx.Set("Content-Type", "text/html")
+	return ctx.SendString(html)
 }
 
 func postForm(rw http.ResponseWriter, req *http.Request) {
@@ -407,7 +394,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		topicUid := types.Uid(0) // fixme
+		topicUid := types.Uid("") // fixme
 		//botSend(topic, topicUid, payload)
 
 		// pipeline form stage

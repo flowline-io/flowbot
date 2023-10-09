@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/gofiber/fiber/v2"
 	"github.com/tidwall/gjson"
-	"net/http"
 )
 
 type OAuthProvider interface {
 	GetAuthorizeURL() string
-	GetAccessToken(req *http.Request) (types.KV, error)
+	GetAccessToken(ctx *fiber.Ctx) (types.KV, error)
 }
 
 func RedirectURI(name string, flag string) string {
