@@ -59,7 +59,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	var err error
 
-	uid := types.Uid(0)  // todo msg.UserId
+	uid := types.Uid("") // todo msg.UserId
 	topic := msg.TopicId // todo
 	ctx := types.Context{
 		Id: e.Id,
@@ -69,6 +69,30 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		//AuthLvl:   msg.AuthLvl,
 		//MetaWhat:  msg.MetaWhat,
 		//Timestamp: msg.Timestamp,
+	}
+
+	// check
+	platformId := int64(1) // todo
+	findMessage, err := store.Chatbot.GetMessageByPlatform(platformId, msg.MessageId)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+	if findMessage != nil {
+		flog.Info("message %s %s already exists", msg.Self.Platform, msg.MessageId)
+		return
+	}
+	err = store.Chatbot.CreateMessage(model.Message{
+		Flag:          types.Id(),
+		PlatformID:    platformId,
+		PlatformMsgID: msg.MessageId,
+		Topic:         "",
+		Content:       nil, // todo
+		State:         0,   // todo
+	})
+	if err != nil {
+		flog.Error(err)
+		return
 	}
 
 	// behavior
@@ -133,7 +157,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		seq := msg.Seq
 		option := msg.Option
 		if seq > 0 {
-			message, err := store.Chatbot.GetMessage(topic, int(seq))
+			message, err := store.Chatbot.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}
@@ -236,8 +260,8 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		if fUid != "" && fSeq > 0 {
 			//uid2 := types.ParseUserId(fUid)
-			topic := "" // fixme
-			message, err := store.Chatbot.GetMessage(topic, int(fSeq))
+			topic := ""                                     // fixme
+			message, err := store.Chatbot.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}
@@ -339,8 +363,8 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		if fUid != "" && fSeq > 0 {
 			//uid2 := types.ParseUserId(fUid)
-			topic := "" // fixme
-			message, err := store.Chatbot.GetMessage(topic, int(fSeq))
+			topic := ""                                     // fixme
+			message, err := store.Chatbot.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}

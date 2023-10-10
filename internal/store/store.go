@@ -163,7 +163,9 @@ type Adapter interface {
 	// Chatbot
 
 	GetUsers() ([]*model.User, error)
-	GetMessage(topic string, seqId int) (model.Message, error)
+	GetMessage(flag string) (*model.Message, error)
+	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
+	CreateMessage(message model.Message) error
 
 	DataSet(uid types.Uid, topic, key string, value types.KV) error
 	DataGet(uid types.Uid, topic, key string) (types.KV, error)

@@ -363,13 +363,19 @@ func (a *adapter) GetUsers() ([]*model.User, error) {
 	return q.Find()
 }
 
-func (a *adapter) GetMessage(topic string, seqId int) (model.Message, error) {
-	var find model.Message
-	err := a.db.Where("`topic` = ? AND `seqid` = ?", topic, seqId).First(&find).Error
-	if err != nil {
-		return model.Message{}, err
-	}
-	return find, nil
+func (a *adapter) GetMessage(flag string) (*model.Message, error) {
+	q := dao.Q.Message
+	return q.Where(q.Flag.Eq(flag)).First()
+}
+
+func (a *adapter) GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error) {
+	q := dao.Q.Message
+	return q.Where(q.PlatformID.Eq(platformId), q.PlatformMsgID.Eq(platformMsgId)).First()
+}
+
+func (a *adapter) CreateMessage(message model.Message) error {
+	q := dao.Q.Message
+	return q.Create(&message)
 }
 
 func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) error {

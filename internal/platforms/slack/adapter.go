@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-type Adapter struct {
-}
+type Adapter struct{}
 
 func (a *Adapter) MessageConvert(data any) protocol.Message {
+	// todo slack message -> protocol message
 	return platforms.MessageConvert(data)
 }
 
@@ -58,9 +58,15 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 
 			// todo message data
 			result.Data = protocol.MessageEventData{
+				Self: protocol.Self{
+					Platform: ID,
+				},
+				MessageId:  messageEvent.ClientMsgID,
+				Message:    a.MessageConvert(messageEvent),
+				AltMessage: messageEvent.Text,
+				UserId:     messageEvent.User,
 				TopicId:    messageEvent.Channel,
 				TopicType:  messageEvent.ChannelType, // todo
-				AltMessage: messageEvent.Text,
 			}
 		}
 
