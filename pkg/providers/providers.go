@@ -15,7 +15,7 @@ type OAuthProvider interface {
 }
 
 func RedirectURI(name string, flag string) string {
-	return fmt.Sprintf("%s/extra/oauth/%s/%s", types.AppUrl(), name, flag)
+	return fmt.Sprintf("%s/oauth/%s/%s", types.AppUrl(), name, flag)
 }
 
 var Configs json.RawMessage

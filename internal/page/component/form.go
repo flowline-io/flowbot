@@ -38,7 +38,7 @@ func (c *Form) Render() app.UI {
 	// fields
 	builder := form.NewBuilder(c.Schema.Field)
 	builder.Method = http.MethodPost
-	builder.Action = "/extra/form"
+	builder.Action = "/form"
 	// button
 	if c.Page.State == model.PageStateCreated {
 		builder.Button = []app.UI{
@@ -64,7 +64,7 @@ func (c *Form) Render() app.UI {
 	return app.Div().Body(
 		alert,
 		app.H1().Class(".uk-heading-small").Text(c.Schema.Title),
-		app.Form().Class("uk-form-stacked").Method("POST").Action("/extra/form").
+		app.Form().Class("uk-form-stacked").Method("POST").Action("/form").
 			Body(fields...),
 	)
 }

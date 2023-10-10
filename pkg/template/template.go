@@ -25,7 +25,7 @@ func Parse(_ types.Context, text string, variable ...interface{}) (string, error
 
 	// Built-in variables
 	if strings.Contains(text, "$username") {
-		data["username"] = "username" // todo
+		data["username"] = "username" // todo find username
 		text = strings.Replace(text, "$username", "{{ .username }}", 1)
 	}
 

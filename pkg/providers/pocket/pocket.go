@@ -95,7 +95,7 @@ func (v *Pocket) GetCode(state string) (*CodeResponse, error) {
 		v.code = result.Code
 
 		ctx := context.Background()
-		_ = cache.DB.Set(ctx, "pocket:code", v.code, redis.KeepTTL) // todo
+		_ = cache.DB.Set(ctx, "pocket:code", v.code, redis.KeepTTL) // todo code param
 
 		return result, nil
 	} else {

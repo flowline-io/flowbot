@@ -504,7 +504,7 @@ func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDurati
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/extra/p/%s/%s", types.AppUrl(), pageRuleId, flag), nil
+	return fmt.Sprintf("%s/p/%s/%s", types.AppUrl(), pageRuleId, flag), nil
 }
 
 func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
@@ -710,7 +710,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 	return types.LinkMsg{
 		Title: fmt.Sprintf("%s Form[%s]", formMsg.Title, formId),
-		Url:   fmt.Sprintf("%s/extra/page/%s", types.AppUrl(), formId),
+		Url:   fmt.Sprintf("%s/page/%s", types.AppUrl(), formId),
 	}
 }
 
@@ -783,7 +783,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 
 	return types.LinkMsg{
 		Title: title,
-		Url:   fmt.Sprintf("%s/extra/page/%s", types.AppUrl(), pageId),
+		Url:   fmt.Sprintf("%s/page/%s", types.AppUrl(), pageId),
 	}
 }
 

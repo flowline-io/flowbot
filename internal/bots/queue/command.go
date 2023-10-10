@@ -19,7 +19,7 @@ var commandRules = []command.Rule{
 		Define: "stats",
 		Help:   `Stats page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/extra/queue/stats", types.AppUrl())}
+			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
 		},
 	},
 }
