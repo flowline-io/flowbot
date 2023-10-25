@@ -5,14 +5,14 @@ go 1.18
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/adjust/rmq/v5 v5.2.0
-	github.com/aws/aws-sdk-go v1.46.1
+	github.com/aws/aws-sdk-go v1.46.3
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/emicklei/go-restful-openapi/v2 v2.9.1
 	github.com/emicklei/go-restful/v3 v3.11.0
-	github.com/go-echarts/go-echarts/v2 v2.3.0
+	github.com/go-echarts/go-echarts/v2 v2.3.1
 	github.com/go-openapi/spec v0.20.9
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/go-resty/resty/v2 v2.10.0
