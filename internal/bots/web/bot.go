@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"net/http"
 )
 
 const Name = "web"
@@ -57,4 +58,8 @@ func (b bot) Input(_ types.Context, _ types.KV, _ interface{}) (types.MsgPayload
 
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	return bots.RunCommand(commandRules, ctx, content)
+}
+
+func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
+	return webapp
 }
