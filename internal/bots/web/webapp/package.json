@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "openapi": "openapi --input http://127.0.0.1:6060/swagger/doc.json --output ./src/client --client axios --indent 2 --exportSchemas true --name AppClient"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -52,6 +53,7 @@
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "openapi-typescript-codegen": "^0.25.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.4",
     "typescript": "^5.0.2",
