@@ -9,7 +9,7 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
-	github.com/docker/docker v24.0.6+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/emicklei/go-restful-openapi/v2 v2.9.1
 	github.com/emicklei/go-restful/v3 v3.11.0
 	github.com/go-echarts/go-echarts/v2 v2.3.2
