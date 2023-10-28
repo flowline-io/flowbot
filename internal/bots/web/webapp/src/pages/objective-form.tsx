@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/form"
 import {Client} from "@/util/client";
 import {useToast} from "@/components/ui/use-toast";
+import {model_Objective} from "@/client";
 
 const formSchema = z.object({
   title: z.string().min(1).max(50),
@@ -53,8 +54,14 @@ export default function ObjectiveFormPage() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    Client().okr.postOkrObjective(values).then((data) => {
+    let data: model_Objective = {
+      title: values.title,
+      is_plan: values.is_plan ? 1 : 0,
+      plan_start: values.plan_start ? values.plan_start.getTime() : 0,
+      plan_end: values.plan_end ? values.plan_end.getTime() : 0,
+      memo: values.memo
+    }
+    Client().okr.postOkrObjective(data).then((data) => {
       console.log(data)
       if (data.status == "ok") {
         console.log("ok", data)
