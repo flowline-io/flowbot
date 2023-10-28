@@ -2,9 +2,8 @@ import {Col, Input, List, Progress, Row} from "antd";
 import React from "react";
 import {PlusCircleOutlined} from "@ant-design/icons";
 import {useQuery} from "@tanstack/react-query";
-import {Client} from "../util/client";
 import {useParams} from "react-router-dom";
-import {model_KeyResult} from "../client";
+import {model_Objective, Client} from "@/client";
 
 const list = [
   {
