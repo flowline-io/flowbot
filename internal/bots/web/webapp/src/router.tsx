@@ -1,7 +1,9 @@
 import {createHashRouter} from "react-router-dom";
-import App from "@/App.tsx";
 import Error from "@/pages/Error";
 import CardsPage from "@/pages/cards/page.tsx";
+import ObjectivesPage from "@/pages/Objectives";
+import ObjectivePage from "@/pages/objective";
+import ObjectiveFormPage from "@/pages/objective-form";
 
 const router = createHashRouter([
   {
@@ -10,7 +12,15 @@ const router = createHashRouter([
     children: [
       {
         path: "",
-        element: <App/>,
+        element: <ObjectivesPage/>,
+      },
+      {
+        path: "obj",
+        element: <ObjectiveFormPage/>,
+      },
+      {
+        path: "obj/:sequence",
+        element: <ObjectivePage/>,
       },
       {
         path: "demo",
