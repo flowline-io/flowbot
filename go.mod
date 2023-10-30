@@ -48,7 +48,7 @@ require (
 	github.com/valyala/fasthttp v1.50.0
 	github.com/yeqown/go-qrcode/v2 v2.2.2
 	github.com/yeqown/go-qrcode/writer/standard v1.2.2
-	github.com/yuin/goldmark v1.5.6
+	github.com/yuin/goldmark v1.6.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/image v0.13.0
 	golang.org/x/time v0.3.0
