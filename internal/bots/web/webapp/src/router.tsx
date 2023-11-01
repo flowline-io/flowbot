@@ -1,7 +1,7 @@
 import {createHashRouter} from "react-router-dom";
 import Error from "@/pages/Error";
 import CardsPage from "@/pages/cards/page.tsx";
-import ObjectivesPage from "@/pages/Objectives";
+import ObjectivesPage from "@/pages/objectives";
 import ObjectivePage from "@/pages/objective";
 import ObjectiveFormPage from "@/pages/objective-form";
 
