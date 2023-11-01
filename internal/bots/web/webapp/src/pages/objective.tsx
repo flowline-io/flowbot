@@ -6,7 +6,7 @@ import {Textarea} from "@/components/ui/textarea";
 import {Client} from "@/util/client";
 import {useQuery} from "@tanstack/react-query";
 import {useParams} from "react-router-dom";
-import {model_Objective} from "@/client";
+import { model_KeyResult } from "@/client";
 
 export default function ObjectivePage() {
 
@@ -57,7 +57,7 @@ export default function ObjectivePage() {
 
                 <div>关键结果</div>
                 <div className="grid gap-1">
-                  {data?.data.key_results.map((item) => (
+                  {data?.data.key_results.map((item: model_KeyResult) => (
                     <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
                       <PersonIcon className="mt-px h-5 w-5"/>
                       <div className="space-y-1">

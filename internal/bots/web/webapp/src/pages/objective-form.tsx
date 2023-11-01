@@ -1,5 +1,5 @@
 import FlexContainer from "@/components/flex-container";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectLabel, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Input} from "@/components/ui/input";
@@ -14,7 +14,6 @@ import {Popover, PopoverTrigger} from "@radix-ui/react-popover";
 import {PopoverContent} from "@/components/ui/popover";
 import {Calendar} from "@/components/ui/calendar";
 import {CalendarIcon} from "lucide-react";
-import React from "react";
 import {PersonIcon} from "@radix-ui/react-icons";
 import {Dialog, DialogTrigger} from "@radix-ui/react-dialog";
 import {DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";

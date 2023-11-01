@@ -1,5 +1,5 @@
 import FlexContainer from "@/components/flex-container";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import {Client} from "@/util/client";
 import {model_Objective} from "@/client";
 import {Link} from "react-router-dom";
@@ -10,26 +10,12 @@ import {Progress} from "@/components/ui/progress";
 
 export default function ObjectivesPage() {
 
-  // Access the client
-  const queryClient = useQueryClient()
-
   // Queries
   const query = useQuery({
     queryKey: ['objectives'], queryFn: () => {
       return Client().okr.getOkrObjectives()
     }
   })
-
-  // Mutations
-  const mutation = useMutation({
-    mutationFn: Client().okr.postOkrObjective,
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({queryKey: ['objectives']})
-    },
-  })
-
-  console.log(query.data?.data)
 
   return (
     <>
