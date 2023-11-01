@@ -1,5 +1,5 @@
 import {createHashRouter} from "react-router-dom";
-import Error from "@/pages/Error";
+import Error from "@/pages/error";
 import CardsPage from "@/pages/cards/page.tsx";
 import ObjectivesPage from "@/pages/objectives";
 import ObjectivePage from "@/pages/objective";
