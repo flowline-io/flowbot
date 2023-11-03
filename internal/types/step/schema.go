@@ -1,4 +1,4 @@
-package schema
+package step
 
 import (
 	"github.com/flowline-io/flowbot/internal/types"
