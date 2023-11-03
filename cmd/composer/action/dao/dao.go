@@ -137,10 +137,6 @@ func GenerationAction(c *cli.Context) error {
 				"foreignKey": {"objective_id"},
 			},
 		}),
-		gen.FieldNew("progress", "int32", field.Tag{
-			"json": "progress",
-			"gorm": "-",
-		}),
 	)
 	g.ApplyInterface(func(Querier) {}, objectives, keyResults, keyResultValues, todos, cycles, reviews, reviewEvaluations)
 

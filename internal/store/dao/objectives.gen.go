@@ -155,7 +155,7 @@ func (o *objective) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *objective) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 19)
+	o.fieldMap = make(map[string]field.Expr, 18)
 	o.fieldMap["id"] = o.ID
 	o.fieldMap["uid"] = o.UID
 	o.fieldMap["topic"] = o.Topic
