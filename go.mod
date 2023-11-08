@@ -23,7 +23,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.4.0
 	github.com/gookit/event v1.1.1
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/heimdalr/dag v1.3.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
