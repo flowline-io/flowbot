@@ -2,7 +2,10 @@ package container
 
 import (
 	"context"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/archive"
 	"testing"
 )
 
@@ -132,5 +135,66 @@ func TestPlayground(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
+	}
+}
+
+func TestRunCode(t *testing.T) {
+
+	// create docker client
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// pull image
+	image := "golang:latest"
+	out, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer out.Close()
+
+	// create container
+	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
+		Image: image,
+	}, nil, nil, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// upload code
+	srcArchive, err := archive.TarWithOptions("./", &archive.TarOptions{
+		IncludeFiles: []string{"container.go"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = cli.CopyToContainer(context.Background(), resp.ID, "/", srcArchive, types.CopyToContainerOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// begin exec
+	execID, err := cli.ContainerExecCreate(context.Background(), resp.ID, types.ExecConfig{
+		Cmd: []string{"golang", "run", "/container.go"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = cli.ContainerExecStart(context.Background(), execID.ID, types.ExecStartCheck{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// get exec
+	_, _, err = cli.CopyFromContainer(context.Background(), resp.ID, "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// remove
+	err = cli.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{})
+	if err != nil {
+		t.Fatal(err)
 	}
 }
