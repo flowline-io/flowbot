@@ -80,6 +80,9 @@ var ErrUnsupportedAction = NewError(10002, "unsupported action")
 // ErrBadParam Missing parameter or wrong parameter type
 var ErrBadParam = NewError(10003, "bad parameter")
 
+// ErrParamVerificationFailed Missing parameter or wrong parameter type
+var ErrParamVerificationFailed = NewError(10031, "parameter verification failed")
+
 // ErrUnsupported The Chatbot implementation does not implement the semantics of this parameter
 var ErrUnsupported = NewError(10004, "unsupported")
 

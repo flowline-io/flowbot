@@ -21,28 +21,49 @@ import {SelectGroup} from "@radix-ui/react-select";
 import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form"
 import {Client} from "@/util/client";
 import {useToast} from "@/components/ui/use-toast";
 import {model_Objective} from "@/client";
+import {useNavigate} from "react-router-dom";
+import {useMutation} from "@tanstack/react-query";
 
 const formSchema = z.object({
   title: z.string().min(1).max(50),
   is_plan: z.boolean(),
-  plan_start: z.date(),
-  plan_end: z.date(),
+  plan_start: z.optional(z.date()),
+  plan_end: z.optional(z.date()),
   memo: z.string(),
 })
 
 export default function ObjectiveFormPage() {
+  const navigate = useNavigate();
   const {toast} = useToast()
+
+  const mutation = useMutation({
+    mutationFn: (data: model_Objective) => {
+      return Client().okr.postOkrObjective(data)
+    },
+    onSuccess: (data) => {
+      console.log(data)
+      if (data.status == "ok") {
+        navigate(-1)
+      } else {
+        toast({
+          title: data.status,
+          description: data.message,
+          variant: "destructive",
+        })
+      }
+    },
+    onError: error => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,19 +81,7 @@ export default function ObjectiveFormPage() {
       plan_end: values.plan_end ? values.plan_end.getTime() : 0,
       memo: values.memo
     }
-    Client().okr.postOkrObjective(data).then((data) => {
-      console.log(data)
-      if (data.status == "ok") {
-        console.log("ok", data)
-      } else {
-        console.log("toast", data)
-        toast({
-          title: data.status,
-          description: data.message,
-          variant: "destructive",
-        })
-      }
-    }).catch(console.error)
+    mutation.mutate(data);
   }
 
   return (
@@ -106,7 +115,7 @@ export default function ObjectiveFormPage() {
                                 <FormItem>
                                   <FormLabel>标题</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="shadcn" {...field} />
+                                    <Input placeholder="Place input title" {...field} />
                                   </FormControl>
                                   <FormMessage/>
                                 </FormItem>
@@ -124,7 +133,7 @@ export default function ObjectiveFormPage() {
                                     <FormItem>
                                       <FormLabel>开启</FormLabel>
                                       <FormControl>
-                                        <Switch checked={field.value} onCheckedChange={field.onChange}/>
+                                        <Switch className="ml-1" checked={field.value} onCheckedChange={field.onChange}/>
                                       </FormControl>
                                       <FormMessage/>
                                     </FormItem>
@@ -149,7 +158,7 @@ export default function ObjectiveFormPage() {
                                               )}
                                             >
                                               {field.value ? (
-                                                format(field.value, "PPP")
+                                                format(field.value, "yyyy-MM-dd")
                                               ) : (
                                                 <span>Pick a date</span>
                                               )}
@@ -162,9 +171,6 @@ export default function ObjectiveFormPage() {
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) =>
-                                              date > new Date() || date < new Date("1900-01-01")
-                                            }
                                             initialFocus
                                           />
                                         </PopoverContent>
@@ -192,7 +198,7 @@ export default function ObjectiveFormPage() {
                                               )}
                                             >
                                               {field.value ? (
-                                                format(field.value, "PPP")
+                                                format(field.value, "yyyy-MM-dd")
                                               ) : (
                                                 <span>Pick a date</span>
                                               )}
@@ -205,10 +211,11 @@ export default function ObjectiveFormPage() {
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) =>
-                                              date > new Date() || date < new Date("1900-01-01")
+                                            disabled={(date) => {
+                                                // @ts-ignore
+                                                return form.getValues().plan_start !== undefined && date < form.getValues().plan_start
+                                              }
                                             }
-                                            initialFocus
                                           />
                                         </PopoverContent>
                                       </Popover>
@@ -227,7 +234,7 @@ export default function ObjectiveFormPage() {
                                 <FormItem>
                                   <FormLabel>备忘</FormLabel>
                                   <FormControl>
-                                    <Textarea placeholder="shadcn" {...field} />
+                                    <Textarea placeholder="Place input memo" {...field} />
                                   </FormControl>
                                   <FormMessage/>
                                 </FormItem>
@@ -237,7 +244,10 @@ export default function ObjectiveFormPage() {
                         </div>
                         <div className="grid gap-6">
                           <Button type="submit">Submit</Button>
-                          <Button variant="ghost">Cancel</Button>
+                          <Button variant="ghost"
+                                  onClick={() => {
+                                    navigate(-1);
+                                  }}>Cancel</Button>
                         </div>
                       </form>
                     </Form>

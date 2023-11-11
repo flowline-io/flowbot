@@ -69,6 +69,14 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
+
+	// check
+	if item.IsPlan > 0 {
+		if item.PlanStart == 0 || item.PlanEnd == 0 {
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
+		}
+	}
+
 	item.UID = uid.String()
 	item.Topic = topic
 	_, err = store.Chatbot.CreateObjective(item)

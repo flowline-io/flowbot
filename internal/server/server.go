@@ -142,7 +142,11 @@ func Run() {
 		},
 	})
 	app.Use(recover.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
+	}))
 	app.Use(requestid.New())
 	logger := flog.GetLogger()
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
