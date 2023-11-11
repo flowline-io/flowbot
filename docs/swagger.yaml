@@ -37,7 +37,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        type: string
+        $ref: '#/definitions/model.ValueModeType'
     type: object
   model.KeyResultValue:
     properties:
@@ -75,8 +75,10 @@ definitions:
       motive:
         type: string
       plan_end:
-        type: integer
+        type: string
       plan_start:
+        type: string
+      progress:
         type: integer
       reviews:
         items:
@@ -114,7 +116,7 @@ definitions:
       topic:
         type: string
       type:
-        type: integer
+        $ref: '#/definitions/model.ReviewType'
       uid:
         type: string
       updated_at:
@@ -141,6 +143,16 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.ReviewType:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ReviewTypeUnknown
+    - ReviewMid
+    - ReviewEnd
   model.Todo:
     properties:
       category:
@@ -184,11 +196,22 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.ValueModeType:
+    enum:
+    - sum
+    - last
+    - avg
+    - max
+    type: string
+    x-enum-varnames:
+    - ValueSumMode
+    - ValueLastMode
+    - ValueAvgMode
+    - ValueMaxMode
   protocol.Response:
     properties:
       data:
         description: Response data
-        type: any
       message:
         description: |-
           Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
@@ -199,11 +222,20 @@ definitions:
           defined later on this page
         type: integer
       status:
+        allOf:
+        - $ref: '#/definitions/protocol.ResponseStatus'
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
-        type: string
     type: object
+  protocol.ResponseStatus:
+    enum:
+    - ok
+    - failed
+    type: string
+    x-enum-varnames:
+    - Success
+    - Failed
   types.FormField:
     properties:
       key:
@@ -219,11 +251,65 @@ definitions:
       rule:
         type: string
       type:
-        type: string
+        $ref: '#/definitions/types.FormFieldType'
       value: {}
       value_type:
-        type: string
+        $ref: '#/definitions/types.FormFieldValueType'
     type: object
+  types.FormFieldType:
+    enum:
+    - text
+    - password
+    - number
+    - color
+    - file
+    - month
+    - date
+    - time
+    - email
+    - url
+    - radio
+    - checkbox
+    - range
+    - select
+    - textarea
+    - hidden
+    type: string
+    x-enum-varnames:
+    - FormFieldText
+    - FormFieldPassword
+    - FormFieldNumber
+    - FormFieldColor
+    - FormFieldFile
+    - FormFieldMonth
+    - FormFieldDate
+    - FormFieldTime
+    - FormFieldEmail
+    - FormFieldUrl
+    - FormFieldRadio
+    - FormFieldCheckbox
+    - FormFieldRange
+    - FormFieldSelect
+    - FormFieldTextarea
+    - FormFieldHidden
+  types.FormFieldValueType:
+    enum:
+    - string
+    - bool
+    - int64
+    - float64
+    - string_slice
+    - int64_slice
+    - float64_slice
+    type: string
+    x-enum-varnames:
+    - FormFieldValueString
+    - FormFieldValueBool
+    - FormFieldValueInt64
+    - FormFieldValueFloat64
+    - FormFieldValueStringSlice
+    - FormFieldValueInt64Slice
+    - FormFieldValueFloat64Slice
   types.KV:
     additionalProperties: true
     type: object

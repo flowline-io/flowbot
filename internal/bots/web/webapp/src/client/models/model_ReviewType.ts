@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type types_KV = {
-};
-
+export enum model_ReviewType {
+  ReviewTypeUnknown = 0,
+  ReviewMid = 1,
+  ReviewEnd = 2,
+}

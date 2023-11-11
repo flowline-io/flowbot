@@ -4,6 +4,7 @@
 /* eslint-disable */
 
 import type { model_ReviewEvaluation } from './model_ReviewEvaluation';
+import type { model_ReviewType } from './model_ReviewType';
 
 export type model_Review = {
   created_at?: string;
@@ -12,7 +13,8 @@ export type model_Review = {
   objective_id?: number;
   rating?: number;
   topic?: string;
-  type?: number;
+  type?: model_ReviewType;
   uid?: string;
   updated_at?: string;
 };
+

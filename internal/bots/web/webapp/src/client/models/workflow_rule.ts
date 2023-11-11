@@ -13,3 +13,4 @@ export type workflow_rule = {
   output_schema?: Array<types_FormField>;
   title?: string;
 };
+

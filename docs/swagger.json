@@ -647,7 +647,7 @@
                     "type": "string"
                 },
                 "value_mode": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.ValueModeType"
                 }
             }
         },
@@ -705,9 +705,12 @@
                     "type": "string"
                 },
                 "plan_end": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "plan_start": {
+                    "type": "string"
+                },
+                "progress": {
                     "type": "integer"
                 },
                 "reviews": {
@@ -764,7 +767,7 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.ReviewType"
                 },
                 "uid": {
                     "type": "string"
@@ -805,6 +808,19 @@
                     "type": "string"
                 }
             }
+        },
+        "model.ReviewType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ReviewTypeUnknown",
+                "ReviewMid",
+                "ReviewEnd"
+            ]
         },
         "model.Todo": {
             "type": "object",
@@ -871,12 +887,26 @@
                 }
             }
         },
+        "model.ValueModeType": {
+            "type": "string",
+            "enum": [
+                "sum",
+                "last",
+                "avg",
+                "max"
+            ],
+            "x-enum-varnames": [
+                "ValueSumMode",
+                "ValueLastMode",
+                "ValueAvgMode",
+                "ValueMaxMode"
+            ]
+        },
         "protocol.Response": {
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Response data",
-                    "type": "any"
+                    "description": "Response data"
                 },
                 "message": {
                     "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
@@ -888,9 +918,24 @@
                 },
                 "status": {
                     "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/protocol.ResponseStatus"
+                        }
+                    ]
                 }
             }
+        },
+        "protocol.ResponseStatus": {
+            "type": "string",
+            "enum": [
+                "ok",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "Success",
+                "Failed"
+            ]
         },
         "types.FormField": {
             "type": "object",
@@ -914,13 +959,73 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/types.FormFieldType"
                 },
                 "value": {},
                 "value_type": {
-                    "type": "string"
+                    "$ref": "#/definitions/types.FormFieldValueType"
                 }
             }
+        },
+        "types.FormFieldType": {
+            "type": "string",
+            "enum": [
+                "text",
+                "password",
+                "number",
+                "color",
+                "file",
+                "month",
+                "date",
+                "time",
+                "email",
+                "url",
+                "radio",
+                "checkbox",
+                "range",
+                "select",
+                "textarea",
+                "hidden"
+            ],
+            "x-enum-varnames": [
+                "FormFieldText",
+                "FormFieldPassword",
+                "FormFieldNumber",
+                "FormFieldColor",
+                "FormFieldFile",
+                "FormFieldMonth",
+                "FormFieldDate",
+                "FormFieldTime",
+                "FormFieldEmail",
+                "FormFieldUrl",
+                "FormFieldRadio",
+                "FormFieldCheckbox",
+                "FormFieldRange",
+                "FormFieldSelect",
+                "FormFieldTextarea",
+                "FormFieldHidden"
+            ]
+        },
+        "types.FormFieldValueType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "bool",
+                "int64",
+                "float64",
+                "string_slice",
+                "int64_slice",
+                "float64_slice"
+            ],
+            "x-enum-varnames": [
+                "FormFieldValueString",
+                "FormFieldValueBool",
+                "FormFieldValueInt64",
+                "FormFieldValueFloat64",
+                "FormFieldValueStringSlice",
+                "FormFieldValueInt64Slice",
+                "FormFieldValueFloat64Slice"
+            ]
         },
         "types.KV": {
             "type": "object",

@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-
-export type types_KV = {
-};
-
+export const $types_FormFieldType = {
+  type: 'Enum',
+} as const;

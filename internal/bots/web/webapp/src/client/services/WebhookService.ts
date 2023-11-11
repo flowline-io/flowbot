@@ -18,8 +18,8 @@ export class WebhookService {
    * @throws ApiError
    */
   public postWebhookTrigger(
-flag: string,
-): CancelablePromise<protocol_Response> {
+    flag: string,
+  ): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/webhook/trigger/{flag}',

@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-
-export type types_KV = {
-};
-
+export const $model_ValueModeType = {
+  type: 'Enum',
+} as const;

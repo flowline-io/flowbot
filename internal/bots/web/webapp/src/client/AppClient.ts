@@ -44,3 +44,4 @@ export class AppClient {
     this.workflow = new WorkflowService(this.request);
   }
 }
+

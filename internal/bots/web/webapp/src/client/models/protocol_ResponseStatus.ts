@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type types_KV = {
-};
-
+export enum protocol_ResponseStatus {
+  Success = 'ok',
+  Failed = 'failed',
+}

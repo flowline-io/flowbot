@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-
-export type types_KV = {
-};
-
+export const $protocol_ResponseStatus = {
+  type: 'Enum',
+} as const;

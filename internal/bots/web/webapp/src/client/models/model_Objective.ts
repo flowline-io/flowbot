@@ -15,8 +15,9 @@ export type model_Objective = {
   key_results?: Array<model_KeyResult>;
   memo?: string;
   motive?: string;
-  plan_end?: number;
-  plan_start?: number;
+  plan_end?: string;
+  plan_start?: string;
+  progress?: number;
   reviews?: Array<model_Review>;
   sequence?: number;
   tag?: string;
@@ -26,3 +27,4 @@ export type model_Objective = {
   uid?: string;
   updated_date?: string;
 };
+

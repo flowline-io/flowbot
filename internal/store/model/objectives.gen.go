@@ -16,13 +16,14 @@ type Objective struct {
 	UID          string       `gorm:"column:uid;not null" json:"uid"`
 	Topic        string       `gorm:"column:topic;not null" json:"topic"`
 	Sequence     int32        `gorm:"column:sequence;not null" json:"sequence"`
+	Progress     int32        `gorm:"column:progress;not null" json:"progress"`
 	Title        string       `gorm:"column:title;not null" json:"title"`
 	Memo         string       `gorm:"column:memo;not null" json:"memo"`
 	Motive       string       `gorm:"column:motive;not null" json:"motive"`
 	Feasibility  string       `gorm:"column:feasibility;not null" json:"feasibility"`
 	IsPlan       int32        `gorm:"column:is_plan;not null" json:"is_plan"`
-	PlanStart    int64        `gorm:"column:plan_start;not null" json:"plan_start"`
-	PlanEnd      int64        `gorm:"column:plan_end;not null" json:"plan_end"`
+	PlanStart    time.Time    `gorm:"column:plan_start;not null" json:"plan_start"`
+	PlanEnd      time.Time    `gorm:"column:plan_end;not null" json:"plan_end"`
 	TotalValue   int32        `gorm:"column:total_value;not null" json:"total_value"`
 	CurrentValue int32        `gorm:"column:current_value;not null" json:"current_value"`
 	Tag          string       `gorm:"column:tag;not null" json:"tag"`

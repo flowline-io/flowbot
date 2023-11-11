@@ -72,7 +72,7 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 
 	// check
 	if item.IsPlan > 0 {
-		if item.PlanStart == 0 || item.PlanEnd == 0 {
+		if item.PlanStart.IsZero() || item.PlanEnd.IsZero() {
 			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
 		}
 	}

@@ -11,3 +11,4 @@ export type model_KeyResultValue = {
   updated_at?: string;
   value?: number;
 };
+

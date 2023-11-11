@@ -7,8 +7,6 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {CubeIcon} from "@radix-ui/react-icons";
 import {Progress} from "@/components/ui/progress";
 import {Button} from "@/components/ui/button.tsx";
-import {format} from "date-fns";
-
 
 export default function ObjectivesPage() {
 
@@ -39,7 +37,7 @@ export default function ObjectivesPage() {
                       <div className="w-[600px]">
                         <div className="text-sm font-medium leading-none mb-2">{item.title}</div>
                         <div className="text-sm text-muted-foreground mb-2">
-                          {item.is_plan ? `${format(item.plan_start, "yyyy-MM-dd")} ~ ${format(item.plan_end, "yyyy-MM-dd")}` : "-"}
+                          {item.is_plan ? `${item.plan_start?.substring(0, 10)} ~ ${item.plan_end?.substring(0, 10)}` : "-"}
                         </div>
                         <div className="text-sm">
                           <Progress value={30} className="w-[100%]"/>

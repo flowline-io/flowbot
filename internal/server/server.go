@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -89,6 +90,11 @@ const (
 var swagHandler fiber.Handler
 
 func Run() {
+	_, err := time.LoadLocation("Local")
+	if err != nil {
+		flog.Fatal(fmt.Sprintf("load time location error: %s", err))
+	}
+
 	executable, _ := os.Executable()
 
 	configFile := pflag.String("config", "flowbot.json", "Path to config file.")

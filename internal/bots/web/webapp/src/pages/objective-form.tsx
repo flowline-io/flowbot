@@ -9,7 +9,7 @@ import {TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {Tabs} from "@radix-ui/react-tabs";
 import {Switch} from "@/components/ui/switch";
 import {cn} from "@/lib/utils";
-import {format} from "date-fns"
+import {format, formatISO} from "date-fns"
 import {Popover, PopoverTrigger} from "@radix-ui/react-popover";
 import {PopoverContent} from "@/components/ui/popover";
 import {Calendar} from "@/components/ui/calendar";
@@ -77,8 +77,8 @@ export default function ObjectiveFormPage() {
     let data: model_Objective = {
       title: values.title,
       is_plan: values.is_plan ? 1 : 0,
-      plan_start: values.plan_start ? values.plan_start.getTime() : 0,
-      plan_end: values.plan_end ? values.plan_end.getTime() : 0,
+      plan_start: values.plan_start ? formatISO(values.plan_start) : "",
+      plan_end: values.plan_end ? formatISO(values.plan_end) : "",
       memo: values.memo
     }
     mutation.mutate(data);

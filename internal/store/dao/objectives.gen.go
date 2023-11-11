@@ -32,13 +32,14 @@ func newObjective(db *gorm.DB, opts ...gen.DOOption) objective {
 	_objective.UID = field.NewString(tableName, "uid")
 	_objective.Topic = field.NewString(tableName, "topic")
 	_objective.Sequence = field.NewInt32(tableName, "sequence")
+	_objective.Progress = field.NewInt32(tableName, "progress")
 	_objective.Title = field.NewString(tableName, "title")
 	_objective.Memo = field.NewString(tableName, "memo")
 	_objective.Motive = field.NewString(tableName, "motive")
 	_objective.Feasibility = field.NewString(tableName, "feasibility")
 	_objective.IsPlan = field.NewInt32(tableName, "is_plan")
-	_objective.PlanStart = field.NewInt64(tableName, "plan_start")
-	_objective.PlanEnd = field.NewInt64(tableName, "plan_end")
+	_objective.PlanStart = field.NewTime(tableName, "plan_start")
+	_objective.PlanEnd = field.NewTime(tableName, "plan_end")
 	_objective.TotalValue = field.NewInt32(tableName, "total_value")
 	_objective.CurrentValue = field.NewInt32(tableName, "current_value")
 	_objective.Tag = field.NewString(tableName, "tag")
@@ -92,13 +93,14 @@ type objective struct {
 	UID          field.String
 	Topic        field.String
 	Sequence     field.Int32
+	Progress     field.Int32
 	Title        field.String
 	Memo         field.String
 	Motive       field.String
 	Feasibility  field.String
 	IsPlan       field.Int32
-	PlanStart    field.Int64
-	PlanEnd      field.Int64
+	PlanStart    field.Time
+	PlanEnd      field.Time
 	TotalValue   field.Int32
 	CurrentValue field.Int32
 	Tag          field.String
@@ -127,13 +129,14 @@ func (o *objective) updateTableName(table string) *objective {
 	o.UID = field.NewString(table, "uid")
 	o.Topic = field.NewString(table, "topic")
 	o.Sequence = field.NewInt32(table, "sequence")
+	o.Progress = field.NewInt32(table, "progress")
 	o.Title = field.NewString(table, "title")
 	o.Memo = field.NewString(table, "memo")
 	o.Motive = field.NewString(table, "motive")
 	o.Feasibility = field.NewString(table, "feasibility")
 	o.IsPlan = field.NewInt32(table, "is_plan")
-	o.PlanStart = field.NewInt64(table, "plan_start")
-	o.PlanEnd = field.NewInt64(table, "plan_end")
+	o.PlanStart = field.NewTime(table, "plan_start")
+	o.PlanEnd = field.NewTime(table, "plan_end")
 	o.TotalValue = field.NewInt32(table, "total_value")
 	o.CurrentValue = field.NewInt32(table, "current_value")
 	o.Tag = field.NewString(table, "tag")
@@ -155,11 +158,12 @@ func (o *objective) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *objective) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 18)
+	o.fieldMap = make(map[string]field.Expr, 19)
 	o.fieldMap["id"] = o.ID
 	o.fieldMap["uid"] = o.UID
 	o.fieldMap["topic"] = o.Topic
 	o.fieldMap["sequence"] = o.Sequence
+	o.fieldMap["progress"] = o.Progress
 	o.fieldMap["title"] = o.Title
 	o.fieldMap["memo"] = o.Memo
 	o.fieldMap["motive"] = o.Motive
