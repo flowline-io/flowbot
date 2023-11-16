@@ -86,8 +86,8 @@ export default function ObjectiveFormPage() {
 
   return (
     <>
-      <div className="items-start justify-center gap-6 rounded-lg p-8 md:grid lg:grid-cols-2 xl:grid-cols-3">
-        <div className="col-span-2 grid items-start gap-6 lg:col-span-1">
+      <div className="items-start justify-center gap-6 rounded-lg p-8 grid grid-cols-1">
+        <div className="grid col-span-1 items-start gap-6">
           <FlexContainer>
             <Card>
               <CardHeader>
@@ -97,7 +97,7 @@ export default function ObjectiveFormPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
-                <Tabs defaultValue="base" className="w-[600px]">
+                <Tabs defaultValue="base" className="w-full">
                   <TabsList>
                     <TabsTrigger value="base">基本信息</TabsTrigger>
                     <TabsTrigger value="key-result" className="hidden">关键结果</TabsTrigger>
