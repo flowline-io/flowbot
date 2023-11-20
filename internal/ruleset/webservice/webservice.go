@@ -13,3 +13,39 @@ type Rule struct {
 }
 
 type Ruleset []Rule
+
+func Get(path string, function fiber.Handler, option ...route.Option) Rule {
+	return Rule{
+		Method:   "GET",
+		Path:     path,
+		Function: function,
+		Option:   option,
+	}
+}
+
+func Post(path string, function fiber.Handler, option ...route.Option) Rule {
+	return Rule{
+		Method:   "POST",
+		Path:     path,
+		Function: function,
+		Option:   option,
+	}
+}
+
+func Put(path string, function fiber.Handler, option ...route.Option) Rule {
+	return Rule{
+		Method:   "PUT",
+		Path:     path,
+		Function: function,
+		Option:   option,
+	}
+}
+
+func Delete(path string, function fiber.Handler, option ...route.Option) Rule {
+	return Rule{
+		Method:   "DELETE",
+		Path:     path,
+		Function: function,
+		Option:   option,
+	}
+}

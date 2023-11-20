@@ -5,9 +5,5 @@ import (
 )
 
 var webserviceRules = []webservice.Rule{
-	{
-		Method:   "POST",
-		Path:     "/trigger/:flag",
-		Function: webhook,
-	},
+	webservice.Post("/trigger/:flag", webhook),
 }
