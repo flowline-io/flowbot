@@ -106,7 +106,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
 	if p.IsExpired() {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
@@ -122,8 +122,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 	provider := newProvider(name)
 	tk, err := provider.GetAccessToken(ctx)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrOAuthError, err))
 	}
 
 	// store
@@ -138,8 +137,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 		Extra: model.JSON(extra),
 	})
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrOAuthError, err))
 	}
 
 	return ctx.SendString("ok")
@@ -150,8 +148,7 @@ func getPage(ctx *fiber.Ctx) error {
 
 	p, err := store.Chatbot.PageGet(id)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
 	}
 
 	title, _ := types.KV(p.Schema).String("title")
@@ -177,12 +174,12 @@ func getPage(ctx *fiber.Ctx) error {
 	case model.PageChart:
 		d, err := json.Marshal(p.Schema)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
 		var msg types.ChartMsg
 		err = json.Unmarshal(d, &msg)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
 
 		line := charts.NewLine()
@@ -216,7 +213,7 @@ func renderPage(ctx *fiber.Ctx) error {
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
 	if p.IsExpired() {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
@@ -255,9 +252,9 @@ func renderPage(ctx *fiber.Ctx) error {
 	html, err := botHandler.Page(typesCtx, flag)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
 		}
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 	ctx.Set("Content-Type", "text/html")
 	return ctx.SendString(html)
@@ -531,10 +528,9 @@ func platformCallback(ctx *fiber.Ctx) error {
 		err = slack.NewDriver().HttpServer(ctx)
 	}
 	if err != nil {
-		flog.Error(err)
 		var protocolError *protocol.Error
 		if errors.As(err, protocolError) {
-			return ctx.JSON(protocol.NewFailedResponse(protocolError))
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocolError, err))
 		}
 		return err
 	}

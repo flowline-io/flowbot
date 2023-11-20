@@ -1,6 +1,9 @@
 package protocol
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
+)
 
 type ResponseStatus string
 
@@ -179,6 +182,17 @@ func NewSuccessResponse(data any) Response {
 }
 
 func NewFailedResponse(e *Error) Response {
+	return Response{
+		Status:  Failed,
+		RetCode: e.GetCode(),
+		Message: e.GetMessage(),
+	}
+}
+
+func NewFailedResponseWithError(e *Error, err error) Response {
+	// print log
+	flog.Error(err)
+	// return failed response
 	return Response{
 		Status:  Failed,
 		RetCode: e.GetCode(),

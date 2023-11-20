@@ -193,7 +193,7 @@ func (s *Session) dispatchRaw(raw []byte) {
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		// Malformed message
 		flog.Warn("s.dispatchExtra %v %v", err, s.sid)
-		s.queueOut(protocol.NewFailedResponse(protocol.ErrInternalServerError))
+		s.queueOut(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 		return
 	}
 

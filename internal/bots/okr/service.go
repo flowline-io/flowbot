@@ -4,7 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,8 +22,7 @@ func objectiveList(ctx *fiber.Ctx) error {
 
 	list, err := store.Chatbot.ListObjectives(uid, topic)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -45,8 +43,7 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 
 	obj, err := store.Chatbot.GetObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(obj))
 }
@@ -67,7 +64,7 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 
 	// check
@@ -81,8 +78,7 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	item.Topic = topic
 	_, err = store.Chatbot.CreateObjective(item)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -105,15 +101,14 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	item.Sequence = int32(sequence)
 	err = store.Chatbot.UpdateObjective(item)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -134,8 +129,7 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 
 	err := store.Chatbot.DeleteObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -156,14 +150,13 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	_, err = store.Chatbot.CreateKeyResult(item)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -186,15 +179,14 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	item.Sequence = int32(sequence)
 	err = store.Chatbot.UpdateKeyResult(item)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -215,8 +207,7 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 
 	err := store.Chatbot.DeleteKeyResultBySequence(uid, topic, sequence)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -238,8 +229,7 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 
 	list, err := store.Chatbot.GetKeyResultValues(keyResultId)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -263,13 +253,12 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 	item := new(model.KeyResultValue)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 	item.KeyResultID = keyResultId
 	_, err = store.Chatbot.CreateKeyResultValue(item)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -291,8 +280,7 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 
 	err := store.Chatbot.DeleteKeyResultValue(keyResultValueId)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -314,8 +302,7 @@ func keyResultValue(ctx *fiber.Ctx) error {
 
 	item, err := store.Chatbot.GetKeyResultValue(keyResultValueId)
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item))
 }

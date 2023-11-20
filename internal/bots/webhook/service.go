@@ -6,7 +6,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"io"
 )
@@ -25,7 +24,7 @@ func webhook(ctx *fiber.Ctx) error {
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
 	if p.IsExpired() {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
@@ -50,8 +49,7 @@ func webhook(ctx *fiber.Ctx) error {
 		"message": txt,
 	})
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrEmitEventError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrEmitEventError, err))
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(nil))

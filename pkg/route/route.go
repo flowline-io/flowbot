@@ -88,13 +88,12 @@ func Authorize(auth bool, handler fiber.Handler) fiber.Handler {
 		// check api flag
 		var r http.Request
 		if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
-			flog.Error(err)
-			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError))
+			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 		}
 		accessToken := GetAccessToken(&r)
 		p, err := store.Chatbot.ParameterGet(accessToken)
 		if err != nil {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 		}
 		if p.ID <= 0 || p.IsExpired() {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))

@@ -138,9 +138,8 @@ func Run() {
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			// Send custom error page
 			if err != nil {
-				flog.Error(err)
 				return ctx.Status(fiber.StatusInternalServerError).
-					JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError))
+					JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 			}
 
 			// Return from handler

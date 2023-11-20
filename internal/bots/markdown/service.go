@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
@@ -66,7 +65,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 	var data map[string]string
 	err := ctx.BodyParser(&data)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 
 	uid := data["uid"]
@@ -78,7 +77,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 
 	p, err := store.Chatbot.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
 	if p.IsExpired() {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
@@ -104,8 +103,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 		"message": message,
 	})
 	if err != nil {
-		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrSendMessageFailed))
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrSendMessageFailed, err))
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
