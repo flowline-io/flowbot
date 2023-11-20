@@ -27,19 +27,19 @@ type rule struct {
 //	@Router   /workflow/actions [get]
 func actions(ctx *fiber.Ctx) error {
 	result := make(map[string][]rule, len(bots.List()))
-	for name, handler := range bots.List() {
+	for name, botHandler := range bots.List() {
 		var list []rule
-		for _, item := range handler.Rules() {
+		for _, item := range botHandler.Rules() {
 			switch v := item.(type) {
 			case []workflow.Rule:
-				for _, item := range v {
+				for _, ruleItem := range v {
 					list = append(list, rule{
 						Bot:          name,
-						Id:           item.Id,
-						Title:        item.Title,
-						Desc:         item.Desc,
-						InputSchema:  item.InputSchema,
-						OutputSchema: item.OutputSchema,
+						Id:           ruleItem.Id,
+						Title:        ruleItem.Title,
+						Desc:         ruleItem.Desc,
+						InputSchema:  ruleItem.InputSchema,
+						OutputSchema: ruleItem.OutputSchema,
 					})
 				}
 			}
@@ -50,4 +50,9 @@ func actions(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(result))
+}
+
+func example(ctx *fiber.Ctx) error {
+	return ctx.SendString("example")
+
 }
