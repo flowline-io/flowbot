@@ -55,6 +55,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/share"
 	_ "github.com/flowline-io/flowbot/internal/bots/subscribe"
 	_ "github.com/flowline-io/flowbot/internal/bots/url"
+	_ "github.com/flowline-io/flowbot/internal/bots/user"
 	_ "github.com/flowline-io/flowbot/internal/bots/web"
 	_ "github.com/flowline-io/flowbot/internal/bots/webhook"
 	_ "github.com/flowline-io/flowbot/internal/bots/workflow"
