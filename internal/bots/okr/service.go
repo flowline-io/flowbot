@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
-	"strconv"
 )
 
 // objective list
@@ -21,6 +20,7 @@ import (
 func objectiveList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
+
 	list, err := store.Chatbot.ListObjectives(uid, topic)
 	if err != nil {
 		flog.Error(err)
@@ -41,8 +41,7 @@ func objectiveList(ctx *fiber.Ctx) error {
 func objectiveDetail(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
-	s := ctx.Params("sequence")
-	sequence, _ := strconv.ParseInt(s, 10, 64)
+	sequence := route.GetIntParam(ctx, "sequence")
 
 	obj, err := store.Chatbot.GetObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
@@ -64,6 +63,7 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 func objectiveCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
+
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
@@ -100,6 +100,8 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 func objectiveUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
+	sequence := route.GetIntParam(ctx, "sequence")
+
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
@@ -107,6 +109,7 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 	}
 	item.UID = uid.String()
 	item.Topic = topic
+	item.Sequence = int32(sequence)
 	err = store.Chatbot.UpdateObjective(item)
 	if err != nil {
 		flog.Error(err)
@@ -127,8 +130,7 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 func objectiveDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
-	s := ctx.Params("sequence")
-	sequence, _ := strconv.ParseInt(s, 10, 64)
+	sequence := route.GetIntParam(ctx, "sequence")
 
 	err := store.Chatbot.DeleteObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
@@ -150,6 +152,7 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 func keyResultCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
+
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
@@ -178,6 +181,8 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 func keyResultUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
+	sequence := route.GetIntParam(ctx, "sequence")
+
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
@@ -185,6 +190,7 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 	}
 	item.UID = uid.String()
 	item.Topic = topic
+	item.Sequence = int32(sequence)
 	err = store.Chatbot.UpdateKeyResult(item)
 	if err != nil {
 		flog.Error(err)
@@ -205,8 +211,7 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 func keyResultDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
-	s := ctx.Params("sequence")
-	sequence, _ := strconv.ParseInt(s, 10, 64)
+	sequence := route.GetIntParam(ctx, "sequence")
 
 	err := store.Chatbot.DeleteKeyResultBySequence(uid, topic, sequence)
 	if err != nil {
@@ -226,11 +231,11 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=[]model.KeyResultValue}
 //	@Router   /okr/key_result/{id}/values [get]
 func keyResultValueList(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
-	keyResultId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
+	keyResultId := route.GetIntParam(ctx, "id")
+	if keyResultId == 0 {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
+
 	list, err := store.Chatbot.GetKeyResultValues(keyResultId)
 	if err != nil {
 		flog.Error(err)
@@ -250,13 +255,13 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 //	@Success  200             {object}  protocol.Response
 //	@Router   /okr/key_result/{id}/value [post]
 func keyResultValueCreate(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
-	keyResultId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
+	keyResultId := route.GetIntParam(ctx, "id")
+	if keyResultId == 0 {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
+
 	item := new(model.KeyResultValue)
-	err = ctx.BodyParser(&item)
+	err := ctx.BodyParser(&item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
@@ -279,12 +284,12 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 //	@Success  200             {object}  protocol.Response
 //	@Router   /okr/key_result_value/{id} [delete]
 func keyResultValueDelete(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
-	keyResultValueId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
+	keyResultValueId := route.GetIntParam(ctx, "id")
+	if keyResultValueId == 0 {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
-	err = store.Chatbot.DeleteKeyResultValue(keyResultValueId)
+
+	err := store.Chatbot.DeleteKeyResultValue(keyResultValueId)
 	if err != nil {
 		flog.Error(err)
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError))
@@ -302,11 +307,11 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 //	@Success  200             {object}  protocol.Response{data=model.KeyResultValue}
 //	@Router   /okr/key_result_value/{id} [delete]
 func keyResultValue(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
-	keyResultValueId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
+	keyResultValueId := route.GetIntParam(ctx, "id")
+	if keyResultValueId == 0 {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
+
 	item, err := store.Chatbot.GetKeyResultValue(keyResultValueId)
 	if err != nil {
 		flog.Error(err)

@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -70,6 +71,13 @@ func ErrorResponse(ctx *fiber.Ctx, text string) error {
 	return ctx.SendString(text)
 }
 
+const (
+	uidKey         = "uid"
+	topicKey       = "topic"
+	paramKey       = "param"
+	accessTokenKey = "accessToken"
+)
+
 func Authorize(auth bool, handler fiber.Handler) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// check skip auth
@@ -92,8 +100,8 @@ func Authorize(auth bool, handler fiber.Handler) fiber.Handler {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 		}
 
-		topic, _ := types.KV(p.Params).String("topic")
-		u, _ := types.KV(p.Params).String("uid")
+		topic, _ := types.KV(p.Params).String(topicKey)
+		u, _ := types.KV(p.Params).String(uidKey)
 		uid := types.Uid(u)
 		isValid := false
 		if !uid.IsZero() {
@@ -105,9 +113,9 @@ func Authorize(auth bool, handler fiber.Handler) fiber.Handler {
 		}
 
 		// set uid and topic
-		ctx.Locals("uid", uid)
-		ctx.Locals("topic", topic)
-		ctx.Locals("param", types.KV(p.Params))
+		ctx.Locals(uidKey, uid)
+		ctx.Locals(topicKey, topic)
+		ctx.Locals(paramKey, types.KV(p.Params))
 
 		return handler(ctx)
 	}
@@ -128,19 +136,19 @@ func GetAccessToken(req *http.Request) string {
 	}
 
 	// Check URL query parameters.
-	apikey = req.URL.Query().Get("accessToken")
+	apikey = req.URL.Query().Get(accessTokenKey)
 	if apikey != "" {
 		return apikey
 	}
 
 	// Check form values.
-	apikey = req.FormValue("accessToken")
+	apikey = req.FormValue(accessTokenKey)
 	if apikey != "" {
 		return apikey
 	}
 
 	// Check cookies.
-	if c, err := req.Cookie("accessToken"); err == nil {
+	if c, err := req.Cookie(accessTokenKey); err == nil {
 		apikey = c.Value
 	}
 
@@ -157,7 +165,7 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 		return
 	}
 
-	u, _ := types.KV(p.Params).String("uid")
+	u, _ := types.KV(p.Params).String(uidKey)
 	uid = types.Uid(u)
 	if uid.IsZero() {
 		return
@@ -167,11 +175,17 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 }
 
 func GetUid(ctx *fiber.Ctx) types.Uid {
-	uid, _ := ctx.Locals("uid").(types.Uid)
+	uid, _ := ctx.Locals(uidKey).(types.Uid)
 	return uid
 }
 
 func GetTopic(ctx *fiber.Ctx) string {
-	topic, _ := ctx.Locals("topic").(string)
+	topic, _ := ctx.Locals(topicKey).(string)
 	return topic
+}
+
+func GetIntParam(ctx *fiber.Ctx, name string) int64 {
+	s := ctx.Params(name)
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return i
 }
