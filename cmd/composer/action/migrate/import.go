@@ -15,9 +15,9 @@ import (
 )
 
 func ImportAction(c *cli.Context) error {
-	conffile := c.String("config")
+	confFile := c.String("config")
 
-	file, err := os.Open(conffile)
+	file, err := os.Open(confFile)
 	if err != nil {
 		panic(err)
 	}
