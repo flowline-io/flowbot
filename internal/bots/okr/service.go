@@ -293,7 +293,7 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 //	@Produce  json
 //	@Param    id              path      int                   true  "key result id"
 //	@Success  200             {object}  protocol.Response{data=model.KeyResultValue}
-//	@Router   /okr/key_result_value/{id} [delete]
+//	@Router   /okr/key_result_value/{id} [get]
 func keyResultValue(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {

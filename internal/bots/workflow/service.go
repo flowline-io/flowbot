@@ -182,7 +182,7 @@ func workflowTriggerDelete(ctx *fiber.Ctx) error {
 //	@Accept   json
 //	@Produce  json
 //	@Param    id  path      int  true  "Workflow ID"
-//	@Success  200  {object}  protocol.Response{data=[]model.WorkflowJob}
+//	@Success  200  {object}  protocol.Response{data=[]model.Job}
 //	@Router   /workflow/workflow/{id}/jobs [get]
 func workflowJobList(ctx *fiber.Ctx) error {
 	return nil
@@ -195,7 +195,7 @@ func workflowJobList(ctx *fiber.Ctx) error {
 //	@Accept   json
 //	@Produce  json
 //	@Param    id  path      int  true  "Job ID"
-//	@Success  200  {object}  protocol.Response{data=model.WorkflowJob}
+//	@Success  200  {object}  protocol.Response{data=model.Job}
 //	@Router   /workflow/job/{id} [get]
 func workflowJobDetail(ctx *fiber.Ctx) error {
 	return nil
@@ -221,7 +221,7 @@ func workflowJobRerun(ctx *fiber.Ctx) error {
 //	@Accept   json
 //	@Produce  json
 //	@Param    id  path      int  true  "Workflow ID"
-//	@Success  200  {object}  protocol.Response{data=model.WorkflowDag}
+//	@Success  200  {object}  protocol.Response{data=model.Dag}
 //	@Router   /workflow/workflow/{id}/dag [get]
 func workflowDagDetail(ctx *fiber.Ctx) error {
 	return nil
@@ -234,7 +234,7 @@ func workflowDagDetail(ctx *fiber.Ctx) error {
 //	@Accept   json
 //	@Produce  json
 //	@Param    id  path      int  true  "Workflow ID"
-//	@Param    trigger  body      model.WorkflowDag  true  "workflow dag data"
+//	@Param    trigger  body      model.Dag  true  "workflow dag data"
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow/{id}/dag [put]
 func workflowDagUpdate(ctx *fiber.Ctx) error {

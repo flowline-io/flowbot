@@ -1,5 +1,93 @@
 basePath: /service
 definitions:
+  model.Dag:
+    properties:
+      created_at:
+        type: string
+      edges:
+        items:
+          $ref: '#/definitions/model.Edge'
+        type: array
+      id:
+        type: integer
+      nodes:
+        items:
+          $ref: '#/definitions/model.Node'
+        type: array
+      topic:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+      workflow_id:
+        type: integer
+    type: object
+  model.Edge:
+    properties:
+      connector:
+        properties:
+          name:
+            type: string
+        type: object
+      edgeContentHeight:
+        type: integer
+      edgeContentWidth:
+        type: integer
+      id:
+        type: string
+      label:
+        type: string
+      router:
+        properties:
+          name:
+            type: string
+        type: object
+      source:
+        type: string
+      sourcePort:
+        type: string
+      sourcePortId:
+        type: string
+      target:
+        type: string
+      targetPort:
+        type: string
+      targetPortId:
+        type: string
+    type: object
+  model.JSON:
+    additionalProperties: true
+    type: object
+  model.Job:
+    properties:
+      created_at:
+        type: string
+      dag_id:
+        type: integer
+      finished_at:
+        type: string
+      id:
+        type: integer
+      started_at:
+        type: string
+      state:
+        type: integer
+      steps:
+        items:
+          $ref: '#/definitions/model.Step'
+        type: array
+      topic:
+        type: string
+      trigger_id:
+        type: integer
+      uid:
+        type: string
+      updated_at:
+        type: string
+      workflow_id:
+        type: integer
+    type: object
   model.KeyResult:
     properties:
       created_at:
@@ -37,7 +125,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        $ref: '#/definitions/model.ValueModeType'
+        type: string
     type: object
   model.KeyResultValue:
     properties:
@@ -52,6 +140,63 @@ definitions:
       updated_at:
         type: string
       value:
+        type: integer
+    type: object
+  model.Node:
+    properties:
+      _order:
+        type: integer
+      bot:
+        type: string
+      connections:
+        items:
+          type: string
+        type: array
+      group:
+        type: string
+      height:
+        type: integer
+      id:
+        type: string
+      isGroup:
+        type: boolean
+      label:
+        type: string
+      parameters:
+        additionalProperties: true
+        type: object
+      parentId:
+        type: string
+      ports:
+        items:
+          properties:
+            connected:
+              type: boolean
+            group:
+              type: string
+            id:
+              type: string
+            tooltip:
+              type: string
+            type:
+              type: string
+          type: object
+        type: array
+      renderKey:
+        type: string
+      rule_id:
+        type: string
+      status:
+        type: string
+      variables:
+        items:
+          type: string
+        type: array
+      width:
+        type: integer
+      x:
+        type: integer
+      "y":
         type: integer
     type: object
   model.Objective:
@@ -116,7 +261,7 @@ definitions:
       topic:
         type: string
       type:
-        $ref: '#/definitions/model.ReviewType'
+        type: integer
       uid:
         type: string
       updated_at:
@@ -143,16 +288,45 @@ definitions:
       updated_at:
         type: string
     type: object
-  model.ReviewType:
-    enum:
-    - 0
-    - 1
-    - 2
-    type: integer
-    x-enum-varnames:
-    - ReviewTypeUnknown
-    - ReviewMid
-    - ReviewEnd
+  model.Step:
+    properties:
+      action:
+        $ref: '#/definitions/model.JSON'
+      created_at:
+        type: string
+      depend:
+        items:
+          type: string
+        type: array
+      describe:
+        type: string
+      error:
+        type: string
+      finished_at:
+        type: string
+      id:
+        type: integer
+      input:
+        $ref: '#/definitions/model.JSON'
+      job_id:
+        type: integer
+      name:
+        type: string
+      node_id:
+        type: string
+      output:
+        $ref: '#/definitions/model.JSON'
+      started_at:
+        type: string
+      state:
+        type: integer
+      topic:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+    type: object
   model.Todo:
     properties:
       category:
@@ -196,22 +370,71 @@ definitions:
       updated_at:
         type: string
     type: object
-  model.ValueModeType:
-    enum:
-    - sum
-    - last
-    - avg
-    - max
-    type: string
-    x-enum-varnames:
-    - ValueSumMode
-    - ValueLastMode
-    - ValueAvgMode
-    - ValueMaxMode
+  model.Workflow:
+    properties:
+      canceled_count:
+        type: integer
+      created_at:
+        type: string
+      dag:
+        items:
+          $ref: '#/definitions/model.Dag'
+        type: array
+      describe:
+        type: string
+      failed_count:
+        type: integer
+      flag:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      running_count:
+        type: integer
+      state:
+        type: integer
+      successful_count:
+        type: integer
+      topic:
+        type: string
+      triggers:
+        items:
+          $ref: '#/definitions/model.WorkflowTrigger'
+        type: array
+      uid:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.WorkflowTrigger:
+    properties:
+      count:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      rule:
+        type: string
+      state:
+        type: integer
+      topic:
+        type: string
+      type:
+        type: string
+      uid:
+        type: string
+      updated_at:
+        type: string
+      workflow_id:
+        type: integer
+    type: object
   protocol.Response:
     properties:
       data:
         description: Response data
+        type: any
       message:
         description: |-
           Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
@@ -222,20 +445,11 @@ definitions:
           defined later on this page
         type: integer
       status:
-        allOf:
-        - $ref: '#/definitions/protocol.ResponseStatus'
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
+        type: string
     type: object
-  protocol.ResponseStatus:
-    enum:
-    - ok
-    - failed
-    type: string
-    x-enum-varnames:
-    - Success
-    - Failed
   types.FormField:
     properties:
       key:
@@ -251,65 +465,11 @@ definitions:
       rule:
         type: string
       type:
-        $ref: '#/definitions/types.FormFieldType'
+        type: string
       value: {}
       value_type:
-        $ref: '#/definitions/types.FormFieldValueType'
+        type: string
     type: object
-  types.FormFieldType:
-    enum:
-    - text
-    - password
-    - number
-    - color
-    - file
-    - month
-    - date
-    - time
-    - email
-    - url
-    - radio
-    - checkbox
-    - range
-    - select
-    - textarea
-    - hidden
-    type: string
-    x-enum-varnames:
-    - FormFieldText
-    - FormFieldPassword
-    - FormFieldNumber
-    - FormFieldColor
-    - FormFieldFile
-    - FormFieldMonth
-    - FormFieldDate
-    - FormFieldTime
-    - FormFieldEmail
-    - FormFieldUrl
-    - FormFieldRadio
-    - FormFieldCheckbox
-    - FormFieldRange
-    - FormFieldSelect
-    - FormFieldTextarea
-    - FormFieldHidden
-  types.FormFieldValueType:
-    enum:
-    - string
-    - bool
-    - int64
-    - float64
-    - string_slice
-    - int64_slice
-    - float64_slice
-    type: string
-    x-enum-varnames:
-    - FormFieldValueString
-    - FormFieldValueBool
-    - FormFieldValueInt64
-    - FormFieldValueFloat64
-    - FormFieldValueStringSlice
-    - FormFieldValueInt64Slice
-    - FormFieldValueFloat64Slice
   types.KV:
     additionalProperties: true
     type: object
@@ -536,6 +696,25 @@ paths:
         "200":
           description: OK
           schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: KeyResult value delete
+      tags:
+      - okr
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: key result id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
             allOf:
             - $ref: '#/definitions/protocol.Response'
             - properties:
@@ -656,6 +835,25 @@ paths:
       summary: objective list
       tags:
       - okr
+  /user/dashboard:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      summary: Show dashboard
+      tags:
+      - dev
   /webhook/trigger/{flag}:
     post:
       consumes:
@@ -697,6 +895,337 @@ paths:
                   type: object
               type: object
       summary: get chatbot actions
+      tags:
+      - workflow
+  /workflow/job/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Job'
+              type: object
+      summary: workflow job detail
+      tags:
+      - workflow
+  /workflow/job/{id}/rerun:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow job rerun
+      tags:
+      - workflow
+  /workflow/trigger/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Trigger ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow trigger delete
+      tags:
+      - workflow
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Trigger ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: workflow trigger data
+        in: body
+        name: trigger
+        required: true
+        schema:
+          $ref: '#/definitions/model.WorkflowTrigger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow trigger update
+      tags:
+      - workflow
+  /workflow/workflow:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: workflow data
+        in: body
+        name: workflow
+        required: true
+        schema:
+          $ref: '#/definitions/model.Workflow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow create
+      tags:
+      - workflow
+  /workflow/workflow/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow delete
+      tags:
+      - workflow
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Workflow'
+              type: object
+      summary: workflow detail
+      tags:
+      - workflow
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: workflow data
+        in: body
+        name: workflow
+        required: true
+        schema:
+          $ref: '#/definitions/model.Workflow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow update
+      tags:
+      - workflow
+  /workflow/workflow/{id}/dag:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Dag'
+              type: object
+      summary: workflow dag detail
+      tags:
+      - workflow
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: workflow dag data
+        in: body
+        name: trigger
+        required: true
+        schema:
+          $ref: '#/definitions/model.Dag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow dag update
+      tags:
+      - workflow
+  /workflow/workflow/{id}/jobs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Job'
+                  type: array
+              type: object
+      summary: workflow job list
+      tags:
+      - workflow
+  /workflow/workflow/{id}/trigger:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: workflow trigger data
+        in: body
+        name: trigger
+        required: true
+        schema:
+          $ref: '#/definitions/model.WorkflowTrigger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protocol.Response'
+      summary: workflow trigger create
+      tags:
+      - workflow
+  /workflow/workflow/{id}/triggers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.WorkflowTrigger'
+                  type: array
+              type: object
+      summary: workflow trigger list
+      tags:
+      - workflow
+  /workflow/workflows:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Workflow'
+                  type: array
+              type: object
+      summary: workflow list
       tags:
       - workflow
 swagger: "2.0"
