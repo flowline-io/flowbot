@@ -870,13 +870,13 @@ func (a *adapter) CreateObjective(objective *model.Objective) (int64, error) {
 
 	// sequence
 	sequence := int32(0)
-	var max model.Objective
-	err = a.db.Where("`uid` = ? AND `topic` = ?", objective.UID, objective.Topic).Order("sequence DESC").Take(&max).Error
+	var maxObjective model.Objective
+	err = a.db.Where("`uid` = ? AND `topic` = ?", objective.UID, objective.Topic).Order("sequence DESC").Take(&maxObjective).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, err
 	}
-	if max.Sequence > 0 {
-		sequence = max.Sequence
+	if maxObjective.Sequence > 0 {
+		sequence = maxObjective.Sequence
 	}
 	sequence += 1
 
@@ -974,13 +974,13 @@ func (a *adapter) CreateKeyResult(keyResult *model.KeyResult) (int64, error) {
 
 	// sequence
 	sequence := int32(0)
-	var max model.KeyResult
-	err = a.db.Where("`uid` = ? AND `topic` = ?", keyResult.UID, keyResult.Topic).Order("sequence DESC").Take(&max).Error
+	var maxKeyResult model.KeyResult
+	err = a.db.Where("`uid` = ? AND `topic` = ?", keyResult.UID, keyResult.Topic).Order("sequence DESC").Take(&maxKeyResult).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, err
 	}
-	if max.Sequence > 0 {
-		sequence = max.Sequence
+	if maxKeyResult.Sequence > 0 {
+		sequence = maxKeyResult.Sequence
 	}
 	sequence += 1
 
@@ -1106,13 +1106,13 @@ func (a *adapter) CreateTodo(todo *model.Todo) (int64, error) {
 
 	// sequence
 	sequence := int32(0)
-	var max model.Todo
-	err = a.db.Where("`uid` = ? AND `topic` = ?", todo.UID, todo.Topic).Order("sequence DESC").Take(&max).Error
+	var maxTodo model.Todo
+	err = a.db.Where("`uid` = ? AND `topic` = ?", todo.UID, todo.Topic).Order("sequence DESC").Take(&maxTodo).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, err
 	}
-	if max.Sequence > 0 {
-		sequence = max.Sequence
+	if maxTodo.Sequence > 0 {
+		sequence = maxTodo.Sequence
 	}
 	sequence += 1
 
@@ -1358,15 +1358,19 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 			return err
 		}
 
-		err = tx.Dag.Create(dag)
-		if err != nil {
-			return err
-		}
-
-		for _, trigger := range triggers {
-			err = tx.WorkflowTrigger.Create(trigger)
+		if dag != nil {
+			err = tx.Dag.Create(dag)
 			if err != nil {
 				return err
+			}
+		}
+
+		if len(triggers) > 0 {
+			for _, trigger := range triggers {
+				err = tx.WorkflowTrigger.Create(trigger)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -1381,6 +1385,12 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 func (a *adapter) GetWorkflow(id int64) (*model.Workflow, error) {
 	q := dao.Q.Workflow
 	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) UpdateWorkflow(item *model.Workflow) error {
+	q := dao.Q.Workflow
+	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
+	return err
 }
 
 func (a *adapter) UpdateWorkflowState(id int64, state model.WorkflowState) error {
@@ -1407,6 +1417,27 @@ func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32
 func (a *adapter) DeleteWorkflow(id int64) error {
 	q := dao.Q.Workflow
 	_, err := q.Where(q.ID.Eq(id)).Delete()
+	return err
+}
+
+func (a *adapter) CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error) {
+	q := dao.Q.WorkflowTrigger
+	err := q.Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
+}
+
+func (a *adapter) UpdateWorkflowTrigger(item *model.WorkflowTrigger) error {
+	q := dao.Q.WorkflowTrigger
+	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
+	return err
+}
+
+func (a *adapter) UpdateDag(item *model.Dag) error {
+	q := dao.Q.Dag
+	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
 	return err
 }
 

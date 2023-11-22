@@ -3,8 +3,11 @@ package workflow
 import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -52,10 +55,6 @@ func actions(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(result))
 }
 
-func example(ctx *fiber.Ctx) error {
-	return ctx.SendString("example")
-}
-
 // workflow list
 //
 //	@Summary  workflow list
@@ -65,7 +64,14 @@ func example(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=[]model.Workflow}
 //	@Router   /workflow/workflows [get]
 func workflowList(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+
+	list, err := store.Chatbot.ListWorkflows(uid, topic)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
 
 // workflow detail
@@ -91,7 +97,22 @@ func workflowDetail(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow [post]
 func workflowCreate(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+
+	item := new(model.Workflow)
+	err := ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
+	item.UID = uid.String()
+	item.Topic = topic
+	_, err = store.Chatbot.CreateWorkflow(item, nil, nil)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow update
@@ -105,7 +126,23 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+	id := route.GetIntParam(ctx, "id")
+
+	item := new(model.Workflow)
+	err := ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+	item.UID = uid.String()
+	item.Topic = topic
+	item.ID = id
+	err = store.Chatbot.UpdateWorkflow(item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow delete
@@ -118,7 +155,13 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow/{id} [delete]
 func workflowDelete(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	err := store.Chatbot.DeleteWorkflow(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow trigger list
@@ -131,7 +174,13 @@ func workflowDelete(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=[]model.WorkflowTrigger}
 //	@Router   /workflow/workflow/{id}/triggers [get]
 func workflowTriggerList(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	item, err := store.Chatbot.GetWorkflow(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item.Triggers))
 }
 
 // workflow trigger create
@@ -145,7 +194,24 @@ func workflowTriggerList(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow/{id}/trigger [post]
 func workflowTriggerCreate(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+	id := route.GetIntParam(ctx, "id")
+
+	item := new(model.WorkflowTrigger)
+	err := ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
+	item.UID = uid.String()
+	item.Topic = topic
+	item.ID = id
+	_, err = store.Chatbot.CreateWorkflowTrigger(item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow trigger update

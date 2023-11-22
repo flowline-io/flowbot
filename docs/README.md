@@ -66,3 +66,13 @@ swag init -g cmd/main.go
 # format
 swag fmt -g cmd/main.go
 ```
+
+## nil away
+
+```shell
+# install
+go install go.uber.org/nilaway/cmd/nilaway@latest
+
+# check
+nilaway ./...
+```

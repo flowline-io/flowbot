@@ -260,10 +260,14 @@ type Adapter interface {
 
 	CreateWorkflow(workflow *model.Workflow, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error)
 	GetWorkflow(id int64) (*model.Workflow, error)
+	UpdateWorkflow(item *model.Workflow) error
 	UpdateWorkflowState(id int64, state model.WorkflowState) error
 	ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error)
 	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error
 	DeleteWorkflow(id int64) error
+	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
+	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error
+	UpdateDag(item *model.Dag) error
 	GetDag(id int64) (*model.Dag, error)
 	GetJob(id int64) (*model.Job, error)
 	DeleteJob(id int64) error
