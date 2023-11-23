@@ -84,7 +84,13 @@ func workflowList(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=model.Workflow}
 //	@Router   /workflow/workflow/{id} [get]
 func workflowDetail(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	item, err := store.Chatbot.GetWorkflow(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item))
 }
 
 // workflow create
@@ -206,7 +212,7 @@ func workflowTriggerCreate(ctx *fiber.Ctx) error {
 
 	item.UID = uid.String()
 	item.Topic = topic
-	item.ID = id
+	item.WorkflowID = id
 	_, err = store.Chatbot.CreateWorkflowTrigger(item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
@@ -225,7 +231,24 @@ func workflowTriggerCreate(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/trigger/{id} [put]
 func workflowTriggerUpdate(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+	id := route.GetIntParam(ctx, "id")
+
+	item := new(model.WorkflowTrigger)
+	err := ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
+	item.UID = uid.String()
+	item.Topic = topic
+	item.ID = id
+	err = store.Chatbot.UpdateWorkflowTrigger(item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow trigger delete
@@ -238,7 +261,13 @@ func workflowTriggerUpdate(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/trigger/{id} [delete]
 func workflowTriggerDelete(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	err := store.Chatbot.DeleteWorkflowTrigger(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // workflow job list
@@ -251,7 +280,13 @@ func workflowTriggerDelete(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=[]model.Job}
 //	@Router   /workflow/workflow/{id}/jobs [get]
 func workflowJobList(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	list, err := store.Chatbot.GetJobsByWorkflowId(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
 
 // workflow job detail
@@ -264,7 +299,13 @@ func workflowJobList(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=model.Job}
 //	@Router   /workflow/job/{id} [get]
 func workflowJobDetail(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	item, err := store.Chatbot.GetJob(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item))
 }
 
 // workflow job rerun
@@ -290,7 +331,16 @@ func workflowJobRerun(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response{data=model.Dag}
 //	@Router   /workflow/workflow/{id}/dag [get]
 func workflowDagDetail(ctx *fiber.Ctx) error {
-	return nil
+	id := route.GetIntParam(ctx, "id")
+
+	item, err := store.Chatbot.GetWorkflow(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	if len(item.Dag) == 0 {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, nil))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item.Dag[0]))
 }
 
 // workflow dag update
@@ -304,5 +354,22 @@ func workflowDagDetail(ctx *fiber.Ctx) error {
 //	@Success  200  {object}  protocol.Response
 //	@Router   /workflow/workflow/{id}/dag [put]
 func workflowDagUpdate(ctx *fiber.Ctx) error {
-	return nil
+	uid := route.GetUid(ctx)
+	topic := route.GetTopic(ctx)
+	id := route.GetIntParam(ctx, "id")
+
+	item := new(model.Dag)
+	err := ctx.BodyParser(&item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
+	item.UID = uid.String()
+	item.Topic = topic
+	item.ID = id
+	err = store.Chatbot.UpdateDag(item)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }

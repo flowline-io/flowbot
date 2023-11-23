@@ -267,12 +267,14 @@ type Adapter interface {
 	DeleteWorkflow(id int64) error
 	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
 	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error
+	DeleteWorkflowTrigger(id int64) error
 	UpdateDag(item *model.Dag) error
 	GetDag(id int64) (*model.Dag, error)
 	GetJob(id int64) (*model.Job, error)
 	DeleteJob(id int64) error
 	ListJobs(workflowID int64) ([]*model.Job, error)
 	GetJobsByState(state model.JobState) ([]*model.Job, error)
+	GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error)
 	UpdateJobState(id int64, state model.JobState) error
 	UpdateJobStartedAt(id int64, at time.Time) error
 	UpdateJobFinishedAt(id int64, at time.Time) error

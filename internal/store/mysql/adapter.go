@@ -1435,6 +1435,12 @@ func (a *adapter) UpdateWorkflowTrigger(item *model.WorkflowTrigger) error {
 	return err
 }
 
+func (a *adapter) DeleteWorkflowTrigger(id int64) error {
+	q := dao.Q.WorkflowTrigger
+	_, err := q.Where(q.ID.Eq(id)).Delete()
+	return err
+}
+
 func (a *adapter) UpdateDag(item *model.Dag) error {
 	q := dao.Q.Dag
 	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
@@ -1465,6 +1471,11 @@ func (a *adapter) ListJobs(workflowID int64) ([]*model.Job, error) {
 func (a *adapter) GetJobsByState(state model.JobState) ([]*model.Job, error) {
 	q := dao.Q.Job
 	return q.Where(q.State.Eq(state)).Find()
+}
+
+func (a *adapter) GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error) {
+	q := dao.Q.Job
+	return q.Where(q.WorkflowID.Eq(workflowID)).Find()
 }
 
 func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
