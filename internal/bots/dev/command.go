@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/task"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
 	"gonum.org/v1/plot"
@@ -52,15 +53,15 @@ var commandRules = []command.Rule{
 		Define: "rand [number] [number]",
 		Help:   `Generate random numbers`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			min, _ := tokens[1].Value.Int64()
-			max, _ := tokens[2].Value.Int64()
+			minNum, _ := tokens[1].Value.Int64()
+			maxNum, _ := tokens[2].Value.Int64()
 
-			nBing, err := rand.Int(rand.Reader, big.NewInt(max+1-min))
+			nBing, err := rand.Int(rand.Reader, big.NewInt(maxNum+1-minNum))
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
-			t := nBing.Int64() + min
+			t := nBing.Int64() + minNum
 
 			return types.TextMsg{Text: strconv.FormatInt(t, 10)}
 		},
@@ -133,7 +134,7 @@ var commandRules = []command.Rule{
 			// rand number
 			big, _ := rand.Int(rand.Reader, big.NewInt(1000))
 
-			var initValue types.KV = types.KV{"number": big.Int64()}
+			var initValue = types.KV{"number": big.Int64()}
 			return bots.SessionMsg(ctx, guessSessionID, initValue)
 		},
 	},
@@ -171,12 +172,32 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "queue",
-		Help:   `[example] publish queue`,
+		Help:   `[example] publish mq and task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			// mq
 			err := queue.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
+
+			// task
+			t, err := task.NewExampleTask(time.Now().Unix())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = task.PushTask(t)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			t, err = task.NewDemoTask(time.Now().Unix())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = task.PushTask(t)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
 			return types.TextMsg{Text: "ok"}
 		},
 	},

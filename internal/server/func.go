@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/adjust/rmq/v5"
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -23,6 +24,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"strings"
@@ -74,7 +76,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// check
 	platformId := int64(1) // todo
 	findMessage, err := store.Chatbot.GetMessageByPlatform(platformId, msg.MessageId)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		flog.Error(err)
 		return
 	}

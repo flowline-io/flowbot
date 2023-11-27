@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/task"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/contrib/fiberzerolog"
@@ -297,6 +298,9 @@ func Run() {
 	// Queue
 	queue.Init()
 	queue.InitMessageQueue(NewAsyncMessageConsumer())
+
+	// Task
+	task.Init()
 
 	// Event
 	hookEvent()
