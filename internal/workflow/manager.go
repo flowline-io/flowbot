@@ -1,14 +1,10 @@
 package workflow
 
 import (
-	"context"
-	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/dag"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
-	"github.com/looplab/fsm"
 	"time"
 )
 
@@ -139,99 +135,4 @@ func (m *Manager) checkJob() {
 			continue
 		}
 	}
-}
-
-func NewJobFSM(state model.JobState) *fsm.FSM {
-	initial := "created"
-	switch state {
-	case model.JobReady:
-		initial = "ready"
-	case model.JobStart:
-		initial = "start"
-	case model.JobFinished:
-		initial = "finished"
-	case model.JobCanceled:
-		initial = "canceled"
-	case model.JobFailed:
-		initial = "failed"
-	}
-	f := fsm.NewFSM(
-		initial,
-		fsm.Events{
-			{Name: "run", Src: []string{"ready"}, Dst: "start"},
-			{Name: "success", Src: []string{"start"}, Dst: "finished"},
-			{Name: "cancel", Src: []string{"start"}, Dst: "canceled"},
-			{Name: "error", Src: []string{"start"}, Dst: "failed"},
-		},
-		fsm.Callbacks{
-			// split dag
-			"before_run": func(_ context.Context, e *fsm.Event) {
-				var job *model.Job
-				for _, item := range e.Args {
-					if m, ok := item.(*model.Job); ok {
-						job = m
-					}
-				}
-				if job == nil {
-					e.Cancel(errors.New("error job"))
-					return
-				}
-
-				d, err := store.Chatbot.GetDag(job.DagID)
-				if err != nil {
-					e.Cancel(err)
-					return
-				}
-				list, err := dag.TopologySort(d)
-				if err != nil {
-					e.Cancel(err)
-					return
-				}
-
-				// create steps
-				steps := make([]*model.Step, 0, len(list))
-				for _, step := range list {
-					m := &model.Step{
-						UID:    job.UID,
-						Topic:  job.Topic,
-						JobID:  job.ID,
-						Action: step.Action,
-						Name:   step.Name,
-						State:  step.State,
-						NodeID: step.NodeID,
-						Depend: step.Depend,
-					}
-					// update started at
-					if step.State == model.StepReady {
-						now := time.Now()
-						m.StartedAt = &now
-					}
-					steps = append(steps, m)
-				}
-				err = store.Chatbot.CreateSteps(steps)
-				if err != nil {
-					e.Cancel(err)
-					return
-				}
-
-				// update job state
-				err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
-				if err != nil {
-					e.Cancel(err)
-					return
-				}
-				// update job started at
-				err = store.Chatbot.UpdateJobStartedAt(job.ID, time.Now())
-				if err != nil {
-					flog.Error(err)
-				}
-				// running count
-				err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
-				if err != nil {
-					flog.Error(err)
-				}
-			},
-		},
-	)
-	return f
 }
