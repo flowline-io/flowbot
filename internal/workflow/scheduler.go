@@ -1,4 +1,4 @@
-package schedule
+package workflow
 
 import (
 	"context"
@@ -11,23 +11,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
-	"github.com/flowline-io/flowbot/pkg/utils/queue"
 	"github.com/looplab/fsm"
 	"time"
 )
 
 type Scheduler struct {
 	stop chan struct{}
-
-	SchedulingQueue *queue.DeltaFIFO
-
-	//nextStartWorkerIndex int
 }
 
-func NewScheduler(queue *queue.DeltaFIFO) *Scheduler {
+func NewScheduler() *Scheduler {
 	s := &Scheduler{
-		SchedulingQueue: queue,
-		stop:            make(chan struct{}),
+		stop: make(chan struct{}),
 	}
 	return s
 }
@@ -40,7 +34,6 @@ func (sched *Scheduler) Run() {
 
 	<-sched.stop
 	flog.Info("scheduler stopped")
-	sched.SchedulingQueue.Close()
 }
 
 func (sched *Scheduler) Shutdown() {
@@ -54,19 +47,12 @@ func (sched *Scheduler) pushReadyStep() {
 		return
 	}
 	for _, step := range list {
-		_, exists, err := sched.SchedulingQueue.GetByKey(stepKey(step))
+		t, err := NewWorkerTask(step)
 		if err != nil {
 			flog.Error(err)
 			continue
 		}
-		if exists {
-			continue
-		}
-
-		err = sched.SchedulingQueue.Add(&types.StepInfo{
-			Step: step,
-			FSM:  NewStepFSM(step.State),
-		})
+		err = PushTask(t)
 		if err != nil {
 			flog.Error(err)
 		}
@@ -80,7 +66,7 @@ func (sched *Scheduler) dependStep() {
 		return
 	}
 	for _, step := range list {
-		dependSteps, err := store.Chatbot.GetStepsByDepend(int64(step.JobID), step.Depend)
+		dependSteps, err := store.Chatbot.GetStepsByDepend(step.JobID, step.Depend)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -95,7 +81,7 @@ func (sched *Scheduler) dependStep() {
 				// merge output
 				mergeOutput = mergeOutput.Merge(types.KV(dependStep.Output))
 			case model.StepFailed, model.StepCanceled, model.StepSkipped:
-				err = store.Chatbot.UpdateStepState(int64(step.ID), dependStep.State)
+				err = store.Chatbot.UpdateStepState(step.ID, dependStep.State)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -103,17 +89,17 @@ func (sched *Scheduler) dependStep() {
 			}
 		}
 		if allFinished {
-			err = store.Chatbot.UpdateStepState(int64(step.ID), model.StepReady)
+			err = store.Chatbot.UpdateStepState(step.ID, model.StepReady)
 			if err != nil {
 				flog.Error(err)
 			}
 			// update input
-			err = store.Chatbot.UpdateStepInput(int64(step.ID), mergeOutput)
+			err = store.Chatbot.UpdateStepInput(step.ID, mergeOutput)
 			if err != nil {
 				flog.Error(err)
 			}
 			// update started at
-			err = store.Chatbot.UpdateStepStartedAt(int64(step.ID), time.Now())
+			err = store.Chatbot.UpdateStepStartedAt(step.ID, time.Now())
 			if err != nil {
 				flog.Error(err)
 			}
@@ -173,7 +159,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateStepState(int64(step.ID), model.StepRunning)
+				err := store.Chatbot.UpdateStepState(step.ID, model.StepRunning)
 				if err != nil {
 					e.Cancel(err)
 					return
@@ -232,13 +218,13 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateStepState(int64(step.ID), model.StepFinished)
+				err := store.Chatbot.UpdateStepState(step.ID, model.StepFinished)
 				if err != nil {
 					e.Cancel(err)
 					return
 				}
 				// update finished at
-				err = store.Chatbot.UpdateStepFinishedAt(int64(step.ID), time.Now())
+				err = store.Chatbot.UpdateStepFinishedAt(step.ID, time.Now())
 				if err != nil {
 					e.Cancel(err)
 					return
@@ -256,7 +242,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateStepState(int64(step.ID), model.StepFailed)
+				err := store.Chatbot.UpdateStepState(step.ID, model.StepFailed)
 				if err != nil {
 					e.Cancel(err)
 					return

@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -61,10 +61,10 @@ func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.Ms
 		go func() {
 			originalName, filename, err := fileDownload(text)
 			if err != nil {
-				_ = queue.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: err.Error()})
+				_ = mq.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: err.Error()})
 				return
 			}
-			_ = queue.AsyncMessage(ctx.RcptTo, ctx.Original, types.LinkMsg{
+			_ = mq.AsyncMessage(ctx.RcptTo, ctx.Original, types.LinkMsg{
 				Title: originalName,
 				Url:   fmt.Sprintf("%s/d/%s", types.AppUrl(), filename),
 			})

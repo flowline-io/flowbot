@@ -6,15 +6,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/workflow/manage"
-	"github.com/flowline-io/flowbot/internal/workflow/schedule"
+	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/flowline-io/flowbot/pkg/utils/queue"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"sort"
 )
@@ -148,25 +145,16 @@ func initializeCrawler() error {
 
 // init workflow
 func initializeWorkflow() error {
-	var workerNum = config.App.Workflow.Worker
-	// default worker num
-	if workerNum == 0 {
-		workerNum = 1
-	}
+	// Task queue
+	globals.taskQueue = workflow.NewQueue()
+	go globals.taskQueue.Run()
 	// manager
-	globals.manager = manage.NewManager()
+	globals.manager = workflow.NewManager()
 	go globals.manager.Run()
 	// scheduler
-	q := queue.NewDeltaFIFOWithOptions(queue.DeltaFIFOOptions{
-		KeyFunction: schedule.KeyFunc,
-	})
-	globals.scheduler = schedule.NewScheduler(q)
+	globals.scheduler = workflow.NewScheduler()
 	go globals.scheduler.Run()
-	for i := 0; i < workerNum; i++ {
-		worker := schedule.NewWorker(q)
-		globals.workers = append(globals.workers, worker)
-		go worker.Run()
-	}
+
 	return nil
 }
 

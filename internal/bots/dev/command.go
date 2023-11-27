@@ -11,9 +11,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/queue"
-	"github.com/flowline-io/flowbot/pkg/task"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
 	"gonum.org/v1/plot"
@@ -175,25 +174,7 @@ var commandRules = []command.Rule{
 		Help:   `[example] publish mq and task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// mq
-			err := queue.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			// task
-			t, err := task.NewExampleTask(time.Now().Unix())
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-			err = task.PushTask(t)
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-			t, err = task.NewDemoTask(time.Now().Unix())
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-			err = task.PushTask(t)
+			err := mq.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

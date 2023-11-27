@@ -7,7 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/fiber/v2"
@@ -69,16 +69,14 @@ Loop:
 
 			// Shutdown Extra
 			globals.crawler.Shutdown()
-			for _, worker := range globals.workers {
-				worker.Shutdown()
-			}
+			globals.taskQueue.Shutdown()
 			globals.scheduler.Shutdown()
 			globals.manager.Shutdown()
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}
 			event.Shutdown()
-			queue.Shutdown()
+			mq.Shutdown()
 			cache.Shutdown()
 
 			break Loop

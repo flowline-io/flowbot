@@ -1,4 +1,4 @@
-package queue
+package mq
 
 import (
 	"encoding/json"
@@ -45,7 +45,7 @@ func Init() {
 
 var messageQueue rmq.Queue
 
-func InitMessageQueue(consumer rmq.Consumer) {
+func InitMessageConsumer(consumer rmq.Consumer) {
 	var err error
 	messageQueue, err = connection.OpenQueue("messages")
 	if err != nil {

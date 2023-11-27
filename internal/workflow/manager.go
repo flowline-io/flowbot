@@ -1,31 +1,23 @@
-package manage
+package workflow
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/dag"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
-	"github.com/flowline-io/flowbot/pkg/utils/queue"
 	"github.com/looplab/fsm"
 	"time"
 )
 
 type Manager struct {
-	Queue *queue.DeltaFIFO
-
 	stop chan struct{}
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		Queue: queue.NewDeltaFIFOWithOptions(queue.DeltaFIFOOptions{
-			KeyFunction: keyFunc,
-		}),
 		stop: make(chan struct{}),
 	}
 }
@@ -39,11 +31,8 @@ func (m *Manager) Run() {
 	for {
 		select {
 		case <-m.stop:
-			m.Queue.Close()
 			flog.Info("manager stopped")
 			return
-		default:
-			m.popJob()
 		}
 	}
 }
@@ -59,19 +48,12 @@ func (m *Manager) pushReadyJob() {
 		return
 	}
 	for _, job := range list {
-		_, exists, err := m.Queue.GetByKey(jobKey(job))
+		t, err := NewJobTask(job)
 		if err != nil {
 			flog.Error(err)
 			continue
 		}
-		if exists {
-			continue
-		}
-
-		err = m.Queue.Add(&types.JobInfo{
-			Job: job,
-			FSM: NewJobFSM(job.State),
-		})
+		err = PushTask(t)
 		if err != nil {
 			flog.Error(err)
 		}
@@ -85,7 +67,7 @@ func (m *Manager) checkJob() {
 		return
 	}
 	for _, job := range list {
-		steps, err := store.Chatbot.GetStepsByJobId(int64(job.ID))
+		steps, err := store.Chatbot.GetStepsByJobId(job.ID)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -116,77 +98,47 @@ func (m *Manager) checkJob() {
 			continue
 		}
 		if allFinished {
-			err = store.Chatbot.UpdateJobState(int64(job.ID), model.JobFinished)
+			err = store.Chatbot.UpdateJobState(job.ID, model.JobFinished)
 			if err != nil {
 				flog.Error(err)
 			}
 			// update finished at
-			err = store.Chatbot.UpdateJobFinishedAt(int64(job.ID), lastFinishedAt)
+			err = store.Chatbot.UpdateJobFinishedAt(job.ID, lastFinishedAt)
 			if err != nil {
 				flog.Error(err)
 			}
 			// successful count
-			err = store.Chatbot.IncreaseWorkflowCount(int64(job.WorkflowID), 1, 0, -1, 0)
+			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 1, 0, -1, 0)
 			if err != nil {
 				flog.Error(err)
 			}
 			continue
 		}
 		if failed {
-			err = store.Chatbot.UpdateJobState(int64(job.ID), model.JobFailed)
+			err = store.Chatbot.UpdateJobState(job.ID, model.JobFailed)
 			if err != nil {
 				flog.Error(err)
 			}
 			// failed count
-			err = store.Chatbot.IncreaseWorkflowCount(int64(job.WorkflowID), 0, 1, -1, 0)
+			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 1, -1, 0)
 			if err != nil {
 				flog.Error(err)
 			}
 			continue
 		}
 		if canceled {
-			err = store.Chatbot.UpdateJobState(int64(job.ID), model.JobCanceled)
+			err = store.Chatbot.UpdateJobState(job.ID, model.JobCanceled)
 			if err != nil {
 				flog.Error(err)
 			}
 			// canceled count
-			err = store.Chatbot.IncreaseWorkflowCount(int64(job.WorkflowID), 0, 0, -1, 1)
+			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, -1, 1)
 			if err != nil {
 				flog.Error(err)
 			}
 			continue
 		}
 	}
-}
-
-func (m *Manager) popJob() {
-	_, err := m.Queue.Pop(func(i interface{}) error {
-		if d, ok := i.(queue.Deltas); ok {
-			for _, delta := range d {
-				if delta.Type != queue.Added {
-					return nil
-				}
-				if j, ok := delta.Object.(*types.JobInfo); ok {
-					return j.FSM.Event(context.Background(), "run", j.Job)
-				}
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		flog.Error(err)
-	}
-}
-
-func keyFunc(obj interface{}) (string, error) {
-	if j, ok := obj.(*types.JobInfo); ok {
-		return jobKey(j.Job), nil
-	}
-	return "", errors.New("unknown object")
-}
-
-func jobKey(job *model.Job) string {
-	return fmt.Sprintf("job-%d", job.ID)
 }
 
 func NewJobFSM(state model.JobState) *fsm.FSM {
@@ -225,7 +177,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					return
 				}
 
-				d, err := store.Chatbot.GetDag(int64(job.DagID))
+				d, err := store.Chatbot.GetDag(job.DagID)
 				if err != nil {
 					e.Cancel(err)
 					return
@@ -263,18 +215,18 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				}
 
 				// update job state
-				err = store.Chatbot.UpdateJobState(int64(job.ID), model.JobStart)
+				err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
 				if err != nil {
 					e.Cancel(err)
 					return
 				}
 				// update job started at
-				err = store.Chatbot.UpdateJobStartedAt(int64(job.ID), time.Now())
+				err = store.Chatbot.UpdateJobStartedAt(job.ID, time.Now())
 				if err != nil {
 					flog.Error(err)
 				}
 				// running count
-				err = store.Chatbot.IncreaseWorkflowCount(int64(job.WorkflowID), 0, 0, 1, 0)
+				err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
 				if err != nil {
 					flog.Error(err)
 				}

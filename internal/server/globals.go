@@ -2,8 +2,7 @@ package server
 
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
-	"github.com/flowline-io/flowbot/internal/workflow/manage"
-	"github.com/flowline-io/flowbot/internal/workflow/schedule"
+	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"time"
 )
@@ -46,7 +45,7 @@ var globals struct {
 	cronRuleset []*cron.Ruleset
 
 	// Workflow
-	manager   *manage.Manager
-	scheduler *schedule.Scheduler
-	workers   []*schedule.Worker
+	taskQueue *workflow.Queue
+	manager   *workflow.Manager
+	scheduler *workflow.Scheduler
 }

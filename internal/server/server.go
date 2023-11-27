@@ -9,10 +9,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
-	"github.com/flowline-io/flowbot/pkg/queue"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/pkg/task"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/version"
 	"github.com/gofiber/contrib/fiberzerolog"
@@ -296,11 +295,8 @@ func Run() {
 	hookMounted()
 
 	// Queue
-	queue.Init()
-	queue.InitMessageQueue(NewAsyncMessageConsumer())
-
-	// Task
-	task.Init()
+	mq.Init()
+	mq.InitMessageConsumer(NewAsyncMessageConsumer())
 
 	// Event
 	hookEvent()

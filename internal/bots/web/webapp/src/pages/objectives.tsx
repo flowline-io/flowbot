@@ -40,7 +40,7 @@ export default function ObjectivesPage() {
                           {item.is_plan ? `${item.plan_start?.substring(0, 10)} ~ ${item.plan_end?.substring(0, 10)}` : "-"}
                         </div>
                         <div className="text-sm">
-                          <Progress value={30} className="w-[100%]"/>
+                          <Progress value={item.progress} className="w-[100%]"/>
                         </div>
                       </div>
                     </div>

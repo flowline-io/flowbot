@@ -20,7 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/queue"
+	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -466,7 +466,7 @@ func urlRedirect(rw http.ResponseWriter, req *http.Request) {
 }
 
 func queueStats(rw http.ResponseWriter, _ *http.Request) {
-	html, err := queue.Stats()
+	html, err := mq.Stats()
 	if err != nil {
 		errorResponse(rw, "queue stats error")
 		return
