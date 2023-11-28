@@ -154,6 +154,9 @@ func initializeWorkflow() error {
 	// scheduler
 	globals.scheduler = workflow.NewScheduler()
 	go globals.scheduler.Run()
+	// cron task manager
+	globals.cronTaskManager = workflow.NewCronTaskManager()
+	go globals.cronTaskManager.Run()
 
 	return nil
 }

@@ -1441,6 +1441,11 @@ func (a *adapter) DeleteWorkflowTrigger(id int64) error {
 	return err
 }
 
+func (a *adapter) ListWorkflowTriggerByType(t model.TriggerType) ([]*model.WorkflowTrigger, error) {
+	q := dao.Q.WorkflowTrigger
+	return q.Where(q.Type.Eq(t)).Find()
+}
+
 func (a *adapter) UpdateDag(item *model.Dag) error {
 	q := dao.Q.Dag
 	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)

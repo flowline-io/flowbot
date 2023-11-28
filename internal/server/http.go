@@ -72,6 +72,7 @@ Loop:
 			globals.taskQueue.Shutdown()
 			globals.scheduler.Shutdown()
 			globals.manager.Shutdown()
+			globals.cronTaskManager.Shutdown()
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}

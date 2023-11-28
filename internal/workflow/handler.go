@@ -52,6 +52,22 @@ func NewWorkerTask(step *model.Step) (*Task, error) {
 	}, nil
 }
 
+func HandleCronTask(ctx context.Context, t *asynq.Task) error {
+	var trigger model.WorkflowTrigger
+	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
+		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
+	}
+	flog.Info("trigger: %v", trigger)
+
+	flog.Info("%s task has been received", t.Type())
+
+	// todo get workflow
+	// todo create job
+	// todo push queue
+
+	return nil
+}
+
 func HandleJobTask(ctx context.Context, t *asynq.Task) error {
 	var job types.JobInfo
 	if err := json.Unmarshal(t.Payload(), &job); err != nil {

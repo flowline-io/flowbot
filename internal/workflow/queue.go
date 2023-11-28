@@ -8,10 +8,12 @@ import (
 )
 
 const (
+	TypeCron   = "cron"
 	TypeJob    = "job"
 	TypeStep   = "step"
 	TypeWorker = "worker"
 
+	cronQueueName   = "workflow_cron"
 	jobQueueName    = "workflow_job"
 	stepQueueName   = "workflow_step"
 	workerQueueName = "workflow_worker"
@@ -65,6 +67,7 @@ func NewQueue() *Queue {
 
 func (q *Queue) Run() {
 	mux := asynq.NewServeMux()
+	mux.HandleFunc(TypeCron, HandleCronTask)
 	mux.HandleFunc(TypeJob, HandleJobTask)
 	mux.HandleFunc(TypeStep, HandleStepTask)
 	mux.HandleFunc(TypeWorker, HandleWorkerTask)
