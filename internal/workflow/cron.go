@@ -24,6 +24,7 @@ func NewCronTaskManager() *CronTaskManager {
 				flog.Info("CronTaskManager:  Enqueued task %s with payload %s with error %v",
 					info.ID, string(info.Payload), err)
 			},
+			Location: time.Local,
 		},
 	})
 	if err != nil {

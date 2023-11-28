@@ -108,6 +108,7 @@ func HandleWorkerTask(ctx context.Context, t *asynq.Task) error {
 		flog.Error(err)
 		return step.FSM.Event(context.Background(), "error", step.Step)
 	} else {
+		_, _ = t.ResultWriter().Write([]byte("success"))
 		return step.FSM.Event(context.Background(), "success", step.Step)
 	}
 }
