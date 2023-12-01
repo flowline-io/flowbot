@@ -1,20 +1,439 @@
 package server
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/internal/workflow"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/mq"
+	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
+	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/gofiber/contrib/fiberzerolog"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
+	"os"
+	"runtime"
+	"runtime/pprof"
 	"sort"
+	"strings"
+	"time"
 )
+
+var (
+	// stop signal
+	stopSignal <-chan bool
+	// tls config
+	tlsConfig *tls.Config
+	// swagger
+	swagHandler fiber.Handler
+	// fiber app
+	httpApp *fiber.App
+	// flag variables
+	appFlag struct {
+		configFile       *string
+		listenOn         *string
+		apiPath          *string
+		tlsEnabled       *bool
+		expvarPath       *string
+		serverStatusPath *string
+		pprofFile        *string
+		pprofUrl         *string
+	}
+)
+
+func initialize() error {
+	var err error
+
+	// init timezone
+	if err = initializeTimezone(); err != nil {
+		return err
+	}
+	flog.Info("initialize Timezone ok")
+
+	// init flag
+	if err = initializeFlag(); err != nil {
+		return err
+	}
+	flog.Info("initialize Flag ok")
+
+	// init config
+	if err = initializeConfig(); err != nil {
+		return err
+	}
+	flog.Info("initialize Config ok")
+
+	// init http
+	if err = initializeHttp(); err != nil {
+		return err
+	}
+	flog.Info("initialize Http ok")
+
+	// init stats
+	if err = initializeStats(); err != nil {
+		return err
+	}
+	flog.Info("initialize Stats ok")
+
+	// init pprof
+	if err = initializePprof(); err != nil {
+		return err
+	}
+	flog.Info("initialize Pprof ok")
+
+	// init cache
+	if err = initializeCache(); err != nil {
+		return err
+	}
+	flog.Info("initialize Cache ok")
+
+	// init database
+	if err = initializeDatabase(); err != nil {
+		return err
+	}
+	flog.Info("initialize Database ok")
+
+	// init media
+	if err = initializeMedia(); err != nil {
+		return err
+	}
+	flog.Info("initialize Media ok")
+
+	// init signal
+	if err = initializeSignal(); err != nil {
+		return err
+	}
+	flog.Info("initialize Signal ok")
+
+	// init tls
+	if err = initializeTLS(); err != nil {
+		return err
+	}
+	flog.Info("initialize TLS ok")
+
+	// init queue
+	if err = initializeQueue(); err != nil {
+		return err
+	}
+	flog.Info("initialize Queue ok")
+
+	// init chatbot
+	if err = initializeChatbot(stopSignal); err != nil {
+		return err
+	}
+	flog.Info("initialize Chatbot ok")
+
+	return nil
+}
+
+func initializeTimezone() error {
+	_, err := time.LoadLocation("Local")
+	if err != nil {
+		return errors.Wrap(err, "load time location error")
+	}
+	return nil
+}
+
+func initializeFlag() error {
+	appFlag.configFile = pflag.String("config", "flowbot.json", "Path to config file.")
+	appFlag.listenOn = pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
+	appFlag.apiPath = pflag.String("api_path", "", "Override the base URL path where API is served.")
+	appFlag.tlsEnabled = pflag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
+	appFlag.expvarPath = pflag.String("expvar", "", "Override the URL path where runtime stats are exposed. Use '-' to disable.")
+	appFlag.serverStatusPath = pflag.String("server_status", "",
+		"Override the URL path where the server's internal status is displayed. Use '-' to disable.")
+	appFlag.pprofFile = pflag.String("pprof", "", "File name to save profiling info to. Disabled if not set.")
+	appFlag.pprofUrl = pflag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
+	pflag.Parse()
+	return nil
+}
+
+func initializeConfig() error {
+	executable, _ := os.Executable()
+
+	curwd, err := os.Getwd()
+	if err != nil {
+		flog.Fatal("Couldn't get current working directory: %v", err)
+	}
+
+	flog.Debug("Server v%s:%s:%s; pid %d; %d process(es)",
+		currentVersion, executable, version.Buildstamp,
+		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
+
+	*appFlag.configFile = utils.ToAbsolutePath(curwd, *appFlag.configFile)
+	flog.Debug("Using config from '%s'", *appFlag.configFile)
+
+	// Load config
+	config.Load(".", curwd)
+
+	if *appFlag.listenOn != "" {
+		config.App.Listen = *appFlag.listenOn
+	}
+
+	// Maximum message size
+	globals.maxMessageSize = int64(config.App.MaxMessageSize)
+	if globals.maxMessageSize <= 0 {
+		globals.maxMessageSize = defaultMaxMessageSize
+	}
+
+	globals.useXForwardedFor = config.App.UseXForwardedFor
+
+	// Websocket compression.
+	globals.wsCompression = !config.App.WSCompressionDisabled
+
+	// Initialize session store
+	globals.sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second)
+
+	// Configure root path for serving API calls.
+	if *appFlag.apiPath != "" {
+		config.App.ApiPath = *appFlag.apiPath
+	}
+	if config.App.ApiPath == "" {
+		config.App.ApiPath = defaultApiPath
+	} else {
+		if !strings.HasPrefix(config.App.ApiPath, "/") {
+			config.App.ApiPath = "/" + config.App.ApiPath
+		}
+		if !strings.HasSuffix(config.App.ApiPath, "/") {
+			config.App.ApiPath += "/"
+		}
+	}
+	flog.Debug("API served from root URL path '%s'", config.App.ApiPath)
+
+	return nil
+}
+
+func initializeHttp() error {
+	// Set up HTTP server. Must use non-default mux because of expvar.
+	httpApp = fiber.New(fiber.Config{
+		JSONDecoder:  jsoniter.Unmarshal,
+		JSONEncoder:  jsoniter.Marshal,
+		ReadTimeout:  10 * time.Second,
+		IdleTimeout:  30 * time.Second,
+		WriteTimeout: 90 * time.Second,
+
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			// Send custom error page
+			if err != nil {
+				return ctx.Status(fiber.StatusInternalServerError).
+					JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
+			}
+
+			// Return from handler
+			return nil
+		},
+	})
+	httpApp.Use(recover.New())
+	httpApp.Use(cors.New(cors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
+	}))
+	httpApp.Use(requestid.New())
+	logger := flog.GetLogger()
+	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
+		Logger: &logger,
+	}))
+	// swagger
+	if swagHandler != nil {
+		httpApp.Get("/swagger/*", swagHandler)
+	}
+
+	// Handle extra
+	setupMux(httpApp)
+
+	return nil
+}
+
+func initializeStats() error {
+	// Exposing values for statistics and monitoring.
+	evpath := *appFlag.expvarPath
+	if evpath == "" {
+		evpath = config.App.ExpvarPath
+	}
+	stats.Init(httpApp, evpath)
+	stats.RegisterInt("Version")
+	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
+	if decVersion <= 0 {
+		decVersion = utils.Base10Version(utils.ParseVersion(currentVersion))
+	}
+	stats.Set("Version", decVersion)
+
+	sspath := *appFlag.serverStatusPath
+	if sspath == "" || sspath == "-" {
+		sspath = config.App.ServerStatusPath
+	}
+	if sspath != "" && sspath != "-" {
+		flog.Debug("Server status is available at '%s'", sspath)
+		httpApp.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
+	}
+
+	return nil
+}
+
+func initializePprof() error {
+	// Initialize serving debug profiles (optional).
+	pprofs.ServePprof(httpApp, *appFlag.pprofUrl)
+
+	if *appFlag.pprofFile != "" {
+		curwd, err := os.Getwd()
+		if err != nil {
+			return errors.Wrap(err, "failed to get current working directory")
+		}
+		*appFlag.pprofFile = utils.ToAbsolutePath(curwd, *appFlag.pprofFile)
+
+		cpuf, err := os.Create(*appFlag.pprofFile + ".cpu")
+		if err != nil {
+			flog.Fatal("Failed to create CPU pprof file: %v", err)
+		}
+		defer func() {
+			_ = cpuf.Close()
+		}()
+
+		memf, err := os.Create(*appFlag.pprofFile + ".mem")
+		if err != nil {
+			flog.Fatal("Failed to create Mem pprof file: %v", err)
+		}
+		defer func() {
+			_ = memf.Close()
+		}()
+
+		_ = pprof.StartCPUProfile(cpuf)
+		defer pprof.StopCPUProfile()
+		defer func() {
+			_ = pprof.WriteHeapProfile(memf)
+		}()
+
+		flog.Info("Profiling info saved to '%s.(cpu|mem)'", *appFlag.pprofFile)
+	}
+	return nil
+}
+
+func initializeCache() error {
+	// init cache
+	cache.InitCache()
+	return nil
+}
+
+func initializeDatabase() error {
+	// init database
+	mysql.Init()
+	store.Init()
+
+	// Open database
+	err := store.Store.Open(config.App.Store)
+	if err != nil {
+		return errors.Wrap(err, "failed to open DB")
+	}
+	flog.Debug("DB adapter opened")
+	if err != nil {
+		return errors.Wrap(err, "failed to connect to DB")
+	}
+	go func() {
+		<-stopSignal
+		err = store.Store.Close()
+		if err != nil {
+			flog.Error(err)
+		}
+		flog.Debug("Closed database connection(s)")
+	}()
+	stats.RegisterDbStats()
+
+	return nil
+}
+
+func initializeMedia() error {
+	// Media
+	if config.App.Media != nil {
+		if config.App.Media.UseHandler == "" {
+			config.App.Media = nil
+		} else {
+			globals.maxFileUploadSize = config.App.Media.MaxFileUploadSize
+			if config.App.Media.Handlers != nil {
+				var conf string
+				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
+					data, err := json.Marshal(params)
+					if err != nil {
+						return errors.Wrap(err, "failed to marshal media handler")
+					}
+					conf = string(data)
+				}
+				if err := store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
+					return errors.Wrap(err, "failed to init media handler")
+				}
+			}
+			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
+				globals.mediaGcPeriod = time.Second * time.Duration(config.App.Media.GcPeriod)
+				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.App.Media.GcBlockSize)
+				defer func() {
+					stopFilesGc <- true
+					flog.Info("Stopped files garbage collector")
+				}()
+			}
+		}
+	}
+	return nil
+}
+
+func initializeSignal() error {
+	stopSignal = signalHandler()
+	return nil
+}
+
+func initializeTLS() error {
+	var err error
+	// TLS
+	tlsConfig, err = utils.ParseTLSConfig(*appFlag.tlsEnabled, config.App.TLS)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse TLS config")
+	}
+	return nil
+}
+
+func initializeQueue() error {
+	// Queue
+	mq.Init()
+	mq.InitMessageConsumer(NewAsyncMessageConsumer())
+	return nil
+}
+
+func initializeChatbot(signal <-chan bool) error {
+	// Initialize bots
+	hookBot(config.App.Bots, config.App.Vendors)
+
+	// Initialize channels
+	hookChannel()
+
+	// Mounted
+	hookMounted()
+
+	// Event
+	hookEvent()
+
+	// Platform
+	hookPlatform(signal)
+
+	return nil
+}
 
 // init channels
 func initializeChannels() error {

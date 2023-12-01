@@ -60,7 +60,7 @@ func (s *Crawler) Init(rules ...Rule) error {
 }
 
 func (s *Crawler) Run() {
-	flog.Info("crawler starting...")
+	flog.Debug("crawler starting...")
 
 	for name, job := range s.jobs {
 		go s.ruleWorker(name, job)
@@ -74,7 +74,7 @@ func (s *Crawler) Shutdown() {
 }
 
 func (s *Crawler) ruleWorker(name string, r Rule) {
-	flog.Info("crawler %s start", name)
+	flog.Debug("crawler %s start", name)
 	p, err := cron.ParseUTC(r.When)
 	if err != nil {
 		flog.Error(err)

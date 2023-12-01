@@ -517,7 +517,7 @@ var (
 
 func HandleWebsocket(stop <-chan bool) {
 	if !config.App.Platform.Discord.Enabled {
-		flog.Info("Discord is disabled")
+		flog.Debug("Discord is disabled")
 		return
 	}
 

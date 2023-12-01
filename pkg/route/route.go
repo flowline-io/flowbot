@@ -34,7 +34,7 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 		default:
 			continue
 		}
-		flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
+		flog.Debug("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
 	}
 }
 
