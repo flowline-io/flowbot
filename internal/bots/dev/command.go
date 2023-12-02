@@ -2,6 +2,7 @@ package dev
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	_ "embed"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -251,6 +253,19 @@ var commandRules = []command.Rule{
 			}
 
 			return types.LinkMsg{Url: url}
+		},
+	},
+	{
+		Define: "docker",
+		Help:   `run docker image`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			engine := executer.New()
+			err := engine.Run(context.Background(), &types.Task{})
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }

@@ -8,69 +8,6 @@ import (
 
 var App configType
 
-// Large file handler config.
-type mediaConfig struct {
-	// The name of the handler to use for file uploads.
-	UseHandler string `json:"use_handler" yaml:"use_handler" mapstructure:"use_handler"`
-	// Maximum allowed size of an uploaded file
-	MaxFileUploadSize int64 `json:"max_size" yaml:"max_file_upload_size" mapstructure:"max_file_upload_size"`
-	// Garbage collection timeout
-	GcPeriod int `json:"gc_period" yaml:"gc_period" mapstructure:"gc_period"`
-	// Number of entries to delete in one pass
-	GcBlockSize int `json:"gc_block_size" yaml:"gc_block_size" mapstructure:"gc_block_size"`
-	// Individual handler config params to pass to handlers unchanged.
-	Handlers map[string]interface{} `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
-}
-
-type tlsAutocertConfig struct {
-	// Domains to support by autocert
-	Domains []string `json:"domains" yaml:"domains" mapstructure:"domains"`
-	// Name of directory where auto-certificates are cached, e.g. /etc/letsencrypt/live/your-domain-here
-	CertCache string `json:"cache" yaml:"cert_cache" mapstructure:"cert_cache"`
-	// Contact email for letsencrypt
-	Email string `json:"email" yaml:"email" mapstructure:"email"`
-}
-
-type TLSConfig struct {
-	// Flag enabling TLS
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Listen for connections on this address:port and redirect them to HTTPS port.
-	RedirectHTTP string `json:"http_redirect" yaml:"redirect_http" mapstructure:"redirect_http"`
-	// Enable Strict-Transport-Security by setting max_age > 0
-	StrictMaxAge int `json:"strict_max_age" yaml:"strict_max_age" mapstructure:"strict_max_age"`
-	// ACME autocert config, e.g. letsencrypt.org
-	Autocert *tlsAutocertConfig `json:"autocert" yaml:"autocert" mapstructure:"autocert"`
-	// If Autocert is not defined, provide file names of static certificate and key
-	CertFile string `json:"cert_file" yaml:"certFile" mapstructure:"cert_file"`
-	KeyFile  string `json:"key_file" yaml:"keyFile" mapstructure:"key_file"`
-}
-
-type StoreType struct {
-	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
-	UidKey string `json:"uid_key" yaml:"uid_key" mapstructure:"uid_key"`
-	// Maximum number of results to return from adapter.
-	MaxResults int `json:"max_results" yaml:"max_results" mapstructure:"max_results"`
-	// DB adapter name to use. Should be one of those specified in `Adapters`.
-	UseAdapter string `json:"use_adapter" yaml:"use_adapter" mapstructure:"use_adapter"`
-	// Configurations for individual adapters.
-	Adapters map[string]interface{} `json:"adapters" yaml:"adapters" mapstructure:"adapters"`
-}
-
-type Log struct {
-	Level string `json:"level" yaml:"level" mapstructure:"level"`
-}
-
-type Workflow struct {
-	Worker int `json:"worker" yaml:"worker" mapstructure:"worker"`
-}
-
-type Redis struct {
-	Host     string `json:"host" yaml:"host" mapstructure:"host"`
-	Port     int    `json:"port" yaml:"port" mapstructure:"port"`
-	DB       int    `json:"db" yaml:"db" mapstructure:"db"`
-	Password string `json:"password" yaml:"pass" mapstructure:"password"`
-}
-
 // Contentx of the configuration file
 type configType struct {
 	// HTTP(S) address:port to listen on for websocket and long polling clients. Either a
@@ -135,6 +72,72 @@ type configType struct {
 
 	// Platform
 	Platform platform `json:"platform" yaml:"platform" mapstructure:"platform"`
+
+	// Engine
+	Engine Engine `json:"engine" yaml:"engine" mapstructure:"engine"`
+}
+
+// Large file handler config.
+type mediaConfig struct {
+	// The name of the handler to use for file uploads.
+	UseHandler string `json:"use_handler" yaml:"use_handler" mapstructure:"use_handler"`
+	// Maximum allowed size of an uploaded file
+	MaxFileUploadSize int64 `json:"max_size" yaml:"max_file_upload_size" mapstructure:"max_file_upload_size"`
+	// Garbage collection timeout
+	GcPeriod int `json:"gc_period" yaml:"gc_period" mapstructure:"gc_period"`
+	// Number of entries to delete in one pass
+	GcBlockSize int `json:"gc_block_size" yaml:"gc_block_size" mapstructure:"gc_block_size"`
+	// Individual handler config params to pass to handlers unchanged.
+	Handlers map[string]interface{} `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
+}
+
+type tlsAutocertConfig struct {
+	// Domains to support by autocert
+	Domains []string `json:"domains" yaml:"domains" mapstructure:"domains"`
+	// Name of directory where auto-certificates are cached, e.g. /etc/letsencrypt/live/your-domain-here
+	CertCache string `json:"cache" yaml:"cert_cache" mapstructure:"cert_cache"`
+	// Contact email for letsencrypt
+	Email string `json:"email" yaml:"email" mapstructure:"email"`
+}
+
+type TLSConfig struct {
+	// Flag enabling TLS
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Listen for connections on this address:port and redirect them to HTTPS port.
+	RedirectHTTP string `json:"http_redirect" yaml:"redirect_http" mapstructure:"redirect_http"`
+	// Enable Strict-Transport-Security by setting max_age > 0
+	StrictMaxAge int `json:"strict_max_age" yaml:"strict_max_age" mapstructure:"strict_max_age"`
+	// ACME autocert config, e.g. letsencrypt.org
+	Autocert *tlsAutocertConfig `json:"autocert" yaml:"autocert" mapstructure:"autocert"`
+	// If Autocert is not defined, provide file names of static certificate and key
+	CertFile string `json:"cert_file" yaml:"certFile" mapstructure:"cert_file"`
+	KeyFile  string `json:"key_file" yaml:"keyFile" mapstructure:"key_file"`
+}
+
+type StoreType struct {
+	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
+	UidKey string `json:"uid_key" yaml:"uid_key" mapstructure:"uid_key"`
+	// Maximum number of results to return from adapter.
+	MaxResults int `json:"max_results" yaml:"max_results" mapstructure:"max_results"`
+	// DB adapter name to use. Should be one of those specified in `Adapters`.
+	UseAdapter string `json:"use_adapter" yaml:"use_adapter" mapstructure:"use_adapter"`
+	// Configurations for individual adapters.
+	Adapters map[string]interface{} `json:"adapters" yaml:"adapters" mapstructure:"adapters"`
+}
+
+type Log struct {
+	Level string `json:"level" yaml:"level" mapstructure:"level"`
+}
+
+type Workflow struct {
+	Worker int `json:"worker" yaml:"worker" mapstructure:"worker"`
+}
+
+type Redis struct {
+	Host     string `json:"host" yaml:"host" mapstructure:"host"`
+	Port     int    `json:"port" yaml:"port" mapstructure:"port"`
+	DB       int    `json:"db" yaml:"db" mapstructure:"db"`
+	Password string `json:"password" yaml:"pass" mapstructure:"password"`
 }
 
 type platform struct {
@@ -173,6 +176,27 @@ type Tailchat struct {
 	ApiURL    string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
 	AppID     string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
+}
+
+type Engine struct {
+	Type   string `json:"type" yaml:"type" mapstructure:"type"`
+	Limits struct {
+		Cpus   string `json:"cpus" yaml:"cpus" mapstructure:"cpus"`
+		Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
+	} `json:"limits" yaml:"limits" mapstructure:"limits"`
+	Mounts struct {
+		Bind struct {
+			Allowed bool `json:"allowed" yaml:"allowed" mapstructure:"allowed"`
+		} `json:"bind" yaml:"bind" mapstructure:"bind"`
+	} `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
+	Docker struct {
+		Config string `json:"config" yaml:"config" mapstructure:"config"`
+	} `json:"docker" yaml:"docker" mapstructure:"docker"`
+	Shell struct {
+		CMD []string `json:"cmd" yaml:"cmd" mapstructure:"cmd"`
+		UID string   `json:"uid" yaml:"uid" mapstructure:"uid"`
+		GID string   `json:"gid" yaml:"gid" mapstructure:"gid"`
+	} `json:"shell" yaml:"shell" mapstructure:"shell"`
 }
 
 func Load(path ...string) {

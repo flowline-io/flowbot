@@ -48,7 +48,7 @@ func PushTask(t *Task) error {
 	if err != nil {
 		return err
 	}
-	flog.Info("Enqueued %s: %d", t.Task.Type(), info.ID)
+	flog.Info("Enqueued %s: %s", t.Task.Type(), info.ID)
 	return nil
 }
 

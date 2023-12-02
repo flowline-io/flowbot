@@ -319,7 +319,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	var err error
 
-	uid := types.Uid(0) // todo msg.UserId
+	uid := types.Uid("") // todo msg.UserId
 	//topic := msg.TopicId // todo
 
 	ctx := types.Context{

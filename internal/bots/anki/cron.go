@@ -32,7 +32,7 @@ var cronRules = []cron.Rule{
 			if num == 0 {
 				return nil
 			}
-			key := fmt.Sprintf("anki:review_remind:%d", ctx.AsUser)
+			key := fmt.Sprintf("anki:review_remind:%s", ctx.AsUser)
 
 			sendString, err := cache.DB.Get(context.Background(), key).Result()
 			if err != nil && !errors.Is(err, redis.Nil) {

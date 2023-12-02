@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
+	"github.com/google/uuid"
 	"math/big"
 	"regexp"
 	"strings"
@@ -99,4 +100,9 @@ func MarkdownTitle(txt string) string {
 		return first
 	}
 	return ""
+}
+
+func NewUUID() string {
+	u := uuid.New()
+	return u.String()
 }

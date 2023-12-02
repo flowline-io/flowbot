@@ -147,6 +147,7 @@ func (s *Session) addSub(topic string, sub *Subscription) {
 	// Sessions that serve as an interface between proxy topics and their masters (proxy sessions)
 	// may have only one subscription, that is, to its master topic.
 	// Normal sessions may be subscribed to multiple topics.
+	flog.Debug("do something")
 
 	s.subsLock.Unlock()
 }

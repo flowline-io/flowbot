@@ -6,8 +6,8 @@ import "time"
 type ObjHeader struct {
 	// using string to get around rethinkdb's problems with uint64;
 	// `bson:"_id"` tag is for mongodb to use as primary key '_id'.
-	Id        string `bson:"_id"`
-	id        Uid
+	Id string `bson:"_id"`
+	//id        Uid
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
