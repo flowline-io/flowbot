@@ -92,7 +92,7 @@ func newUrlRouter() *mux.Router {
 }
 
 func newDownloadRouter() *mux.Router {
-	dir := config.App.DownloadPath
+	dir := config.App.Flowbot.DownloadPath
 	r := mux.NewRouter()
 	r.PathPrefix("/d").Handler(http.StripPrefix("/d/", http.FileServer(http.Dir(dir))))
 	return r

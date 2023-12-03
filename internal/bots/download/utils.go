@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/cavaliergopher/grab/v3"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -24,7 +24,7 @@ func fileDownload(fullUrlFile string) (string, string, error) {
 	if ext == "" {
 		return "", "", errors.New("ext error")
 	}
-	downloadPath := os.Getenv("DOWNLOAD_PATH")
+	downloadPath := config.App.Flowbot.DownloadPath
 	if downloadPath == "" {
 		return "", "", errors.New("download path error")
 	}

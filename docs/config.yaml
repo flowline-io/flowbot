@@ -10,9 +10,6 @@ server_status: "/debug/status"
 use_x_forwarded_for: true
 default_country_code: ''
 
-download_path: ""
-api_url: ""
-
 media:
   use_handler: fs
   max_size: 8388608
@@ -75,8 +72,27 @@ redis:
 log:
   level: info
 
-workflow:
-  worker: 2
+engine:
+  type: 'docker'
+  limits:
+    cpus: ''
+    memory: ''
+  mounts:
+    bind:
+      allowed: true
+  docker:
+    config: ''
+  shell:
+    cmd:
+      - ''
+      - ''
+    uid: ''
+    gid: ''
+
+flowbot:
+  url: ''
+  channel_path: ''
+  download_path: ''
 
 platform:
   slack:

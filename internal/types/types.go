@@ -74,7 +74,7 @@ func Id() string {
 }
 
 func AppUrl() string {
-	return config.App.ApiUrl
+	return config.App.Flowbot.URL
 }
 
 type QueuePayload struct {

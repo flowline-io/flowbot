@@ -3,6 +3,7 @@ package download
 import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"io/fs"
@@ -16,7 +17,7 @@ var cronRules = []cron.Rule{
 		Name: "download_clean_expired_files",
 		When: "* * * * *",
 		Action: func(types.Context) []types.MsgPayload {
-			downloadPath := os.Getenv("DOWNLOAD_PATH")
+			downloadPath := config.App.Flowbot.DownloadPath
 			if !utils.FileExist(downloadPath) {
 				return nil
 			}

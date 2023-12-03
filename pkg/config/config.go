@@ -45,11 +45,6 @@ type configType struct {
 	// it's impossible to infer it.
 	DefaultCountryCode string `json:"default_country_code" yaml:"default_country_code" mapstructure:"default_country_code"`
 
-	// download_path
-	DownloadPath string `json:"download_path" yaml:"download_path" mapstructure:"download_path"`
-	// api_url
-	ApiUrl string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
-
 	// Configs for subsystems
 	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`
 	TLS   TLSConfig    `json:"tls" yaml:"tls" mapstructure:"tls"`
@@ -60,9 +55,6 @@ type configType struct {
 
 	// Log
 	Log Log `json:"log" yaml:"log" mapstructure:"log"`
-
-	// Config for workflows
-	Workflow Workflow `json:"workflow" yaml:"workflow" mapstructure:"workflow"`
 
 	// Config for bots
 	Bots interface{} `json:"bots" yaml:"bots" mapstructure:"bots"`
@@ -75,6 +67,9 @@ type configType struct {
 
 	// Engine
 	Engine Engine `json:"engine" yaml:"engine" mapstructure:"engine"`
+
+	// Project
+	Flowbot Flowbot `json:"flowbot" yaml:"flowbot" mapstructure:"flowbot"`
 }
 
 // Large file handler config.
@@ -127,10 +122,6 @@ type StoreType struct {
 
 type Log struct {
 	Level string `json:"level" yaml:"level" mapstructure:"level"`
-}
-
-type Workflow struct {
-	Worker int `json:"worker" yaml:"worker" mapstructure:"worker"`
 }
 
 type Redis struct {
@@ -199,6 +190,12 @@ type Engine struct {
 	} `json:"shell" yaml:"shell" mapstructure:"shell"`
 }
 
+type Flowbot struct {
+	URL          string `json:"url" yaml:"url" mapstructure:"url"`
+	ChannelPath  string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
+	DownloadPath string `json:"download_path" yaml:"download_path" mapstructure:"download_path"`
+}
+
 func Load(path ...string) {
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
@@ -207,7 +204,7 @@ func Load(path ...string) {
 	for _, p := range path {
 		viper.AddConfigPath(p)
 	}
-	viper.SetConfigName("flowbot.yaml")
+	viper.SetConfigName("flowbot")
 	viper.SetConfigType("yaml")
 	err = viper.ReadInConfig()
 	if err != nil {

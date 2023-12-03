@@ -344,7 +344,6 @@ func initializeDatabase() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to open DB")
 	}
-	flog.Debug("DB adapter opened")
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to DB")
 	}
@@ -384,7 +383,8 @@ func initializeMedia() error {
 			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
 				globals.mediaGcPeriod = time.Second * time.Duration(config.App.Media.GcPeriod)
 				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.App.Media.GcBlockSize)
-				defer func() {
+				go func() {
+					<-stopSignal
 					stopFilesGc <- true
 					flog.Info("Stopped files garbage collector")
 				}()

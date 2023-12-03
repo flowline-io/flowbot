@@ -3,6 +3,7 @@ package channels
 import (
 	"errors"
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"gopkg.in/yaml.v2"
 	"io/fs"
 	"os"
@@ -17,7 +18,7 @@ var publishers map[string]Publisher
 
 // Init initializes registered publishers.
 func Init() error {
-	configPath := os.Getenv("CHANNEL_PATH")
+	configPath := config.App.Flowbot.ChannelPath
 	if configPath == "" {
 		return errors.New("channel failed to parse config env")
 	}
