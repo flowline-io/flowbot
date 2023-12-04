@@ -21,8 +21,9 @@ const (
 	stepQueueName   = "workflow_step"
 	workerQueueName = "workflow_worker"
 
-	jobPriority  = 6
-	stepPriority = 4
+	jobPriority    = 2
+	stepPriority   = 3
+	workerPriority = 5
 )
 
 type Task struct {
@@ -49,7 +50,7 @@ func PushTask(t *Task) error {
 	if err != nil {
 		return err
 	}
-	flog.Info("Enqueued %s: %s", t.Task.Type(), info.ID)
+	flog.Info("Enqueued %s, ID:%s", t.Task.Type(), info.ID)
 	return nil
 }
 
@@ -63,8 +64,9 @@ func NewQueue() *Queue {
 		LogLevel:    flog.AsynqLogger.Level,
 		Concurrency: runtime.NumCPU() * 2,
 		Queues: map[string]int{
-			jobQueueName:  jobPriority,
-			stepQueueName: stepPriority,
+			jobQueueName:    jobPriority,
+			stepQueueName:   stepPriority,
+			workerQueueName: workerPriority,
 		},
 	})
 	return &Queue{srv: srv}
@@ -90,12 +92,13 @@ func (q *Queue) Shutdown() {
 func loggingMiddleware(h asynq.Handler) asynq.Handler {
 	return asynq.HandlerFunc(func(ctx context.Context, t *asynq.Task) error {
 		start := time.Now()
-		flog.Info("Start processing %q", t.Type())
+		flog.Debug("Start processing %q", t.Type())
 		err := h.ProcessTask(ctx, t)
 		if err != nil {
 			return err
 		}
-		flog.Info("Finished processing %q: Elapsed Time = %v", t.Type(), time.Since(start))
+		flog.Debug("Finished processing %q: Elapsed Time = %v, Payload = %s",
+			t.Type(), time.Since(start), string(t.Payload()))
 		return nil
 	})
 }

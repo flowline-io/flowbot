@@ -41,6 +41,7 @@ func (sched *Scheduler) pushReadyStep() {
 		return
 	}
 	for _, step := range list {
+		step.State = model.StepStart
 		t, err := NewWorkerTask(step)
 		if err != nil {
 			flog.Error(err)

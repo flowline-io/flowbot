@@ -78,7 +78,7 @@ func (m *Manager) checkJob() {
 		keeping := false
 		canceled := false
 		failed := false
-		lastFinishedAt := time.Now().AddDate(-1000, 0, 0)
+		lastFinishedAt := time.Time{}
 		for _, step := range steps {
 			switch step.State {
 			case model.StepCreated, model.StepReady, model.StepRunning:
