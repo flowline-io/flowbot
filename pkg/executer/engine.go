@@ -42,10 +42,6 @@ type Limits struct {
 	DefaultMemoryLimit string
 }
 
-type runningTask struct {
-	cancel context.CancelFunc
-}
-
 func New() *Engine {
 	return &Engine{
 		quit:       make(chan os.Signal, 1),
@@ -91,16 +87,7 @@ func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
 		return err
 	}
 
-	err := e.doRunTask(ctx, t)
-
-	go func() {
-		e.awaitTerm()
-
-		log.Debug().Msg("shutting down")
-		close(e.terminated)
-	}()
-
-	return err
+	return e.doRunTask(ctx, t)
 }
 
 func (e *Engine) mustState(state string) {

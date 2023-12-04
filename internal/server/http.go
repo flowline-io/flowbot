@@ -9,7 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 	json "github.com/json-iterator/go"
 	"net/http"

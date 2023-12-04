@@ -21,7 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
-	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
@@ -154,7 +154,7 @@ func initializeTimezone() error {
 }
 
 func initializeFlag() error {
-	appFlag.configFile = pflag.String("config", "flowbot.json", "Path to config file.")
+	appFlag.configFile = pflag.String("config", "flowbot.yaml", "Path to config file.")
 	appFlag.listenOn = pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	appFlag.apiPath = pflag.String("api_path", "", "Override the base URL path where API is served.")
 	appFlag.tlsEnabled = pflag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
@@ -176,7 +176,7 @@ func initializeConfig() error {
 	}
 
 	flog.Debug("Server v%s:%s:%s; pid %d; %d process(es)",
-		currentVersion, executable, version.Buildstamp,
+		version.CurrentVersion, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
 	*appFlag.configFile = utils.ToAbsolutePath(curwd, *appFlag.configFile)
@@ -274,7 +274,7 @@ func initializeStats() error {
 	stats.RegisterInt("Version")
 	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
 	if decVersion <= 0 {
-		decVersion = utils.Base10Version(utils.ParseVersion(currentVersion))
+		decVersion = utils.Base10Version(utils.ParseVersion(version.CurrentVersion))
 	}
 	stats.Set("Version", decVersion)
 

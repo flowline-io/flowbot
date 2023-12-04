@@ -260,16 +260,17 @@ var commandRules = []command.Rule{
 		Help:   `run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			engine := executer.New()
-			err := engine.Run(context.Background(), &types.Task{
+			task := &types.Task{
 				ID:    utils.NewUUID(),
 				Image: "ubuntu:mantic",
-				Run:   "echo -n hello > $TORK_OUTPUT",
-			})
+				Run:   "echo -n hello > $OUTPUT",
+			}
+			err := engine.Run(context.Background(), task)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: err.Error()}
 			}
-			return types.TextMsg{Text: "ok"}
+			return types.TextMsg{Text: task.Result}
 		},
 	},
 }

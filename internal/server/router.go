@@ -24,6 +24,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
@@ -58,7 +59,7 @@ func newRouter(app *fiber.App) *mux.Router {
 
 	// root
 	s.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		_, _ = w.Write([]byte(fmt.Sprintf("flowbot %s", currentVersion)))
+		_, _ = w.Write([]byte(fmt.Sprintf("flowbot %s(%s)", version.CurrentVersion, version.Buildstamp)))
 	})
 	// common
 	app.All("/oauth/:provider/:flag", storeOAuth)
