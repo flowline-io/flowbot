@@ -1,13 +1,5 @@
 # extra chatbot framework
 
-## ENV
-
-```shell
-FLOWBOT_URL=http://127.0.0.1:6060
-CHANNEL_PATH=/subscribe
-DOWNLOAD_PATH=/download
-```
-
 ## extra json config
 
 > See extra.conf

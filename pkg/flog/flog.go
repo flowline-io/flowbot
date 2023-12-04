@@ -1,11 +1,13 @@
 package flog
 
 import (
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"io"
 	"os"
+	"time"
 )
 
 var l zerolog.Logger
@@ -21,8 +23,11 @@ func init() {
 	// console
 	console := zerolog.ConsoleWriter{
 		Out:        os.Stdout,
-		TimeFormat: zerolog.TimeFieldFormat,
+		TimeFormat: time.DateTime,
 		NoColor:    true,
+		FormatLevel: func(i interface{}) string {
+			return fmt.Sprintf("%s", i)
+		},
 	}
 	writer = append(writer, console)
 
