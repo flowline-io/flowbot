@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
+	"strconv"
 )
 
 func NewJobTask(job *model.Job) (*Task, error) {
@@ -19,7 +20,7 @@ func NewJobTask(job *model.Job) (*Task, error) {
 		return nil, err
 	}
 	return &Task{
-		ID:    job.UID,
+		ID:    strconv.FormatInt(job.ID, 10),
 		Queue: jobQueueName,
 		Task:  asynq.NewTask(TypeJob, payload),
 	}, nil
@@ -33,7 +34,7 @@ func NewStepTask(step *model.Step) (*Task, error) {
 		return nil, err
 	}
 	return &Task{
-		ID:    step.UID,
+		ID:    strconv.FormatInt(step.ID, 10),
 		Queue: stepQueueName,
 		Task:  asynq.NewTask(TypeStep, payload),
 	}, nil
@@ -47,7 +48,7 @@ func NewWorkerTask(step *model.Step) (*Task, error) {
 		return nil, err
 	}
 	return &Task{
-		ID:    step.UID,
+		ID:    strconv.FormatInt(step.ID, 10),
 		Queue: workerQueueName,
 		Task:  asynq.NewTask(TypeWorker, payload),
 	}, nil
