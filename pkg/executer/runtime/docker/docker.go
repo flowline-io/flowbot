@@ -18,10 +18,10 @@ import (
 	"github.com/docker/go-units"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"io"
 	"math/big"
 	"os"
@@ -104,9 +104,7 @@ func (d *DockerRuntime) Run(ctx context.Context, t *types.Task) error {
 			uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := d.mounter.Unmount(uctx, &m); err != nil {
-				log.Error().
-					Err(err).
-					Msgf("error deleting mount: %s", m)
+				flog.Error(errors.Wrapf(err, "error unmounting mount: %s", m))
 			}
 		}(mnt)
 		t.Mounts[i] = mnt
@@ -180,7 +178,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 			Source: m.Source,
 			Target: m.Target,
 		}
-		log.Debug().Msgf("Mounting %s -> %s", item.Source, item.Target)
+		flog.Debug("Mounting %s -> %s", item.Source, item.Target)
 		mounts = append(mounts, item)
 	}
 	// create the workdir mount
@@ -192,7 +190,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 		uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		if err := d.mounter.Unmount(uctx, workdir); err != nil {
-			log.Error().Err(err).Msgf("error unmounting workdir")
+			flog.Error(errors.Wrap(err, "error unmounting workdir"))
 		}
 	}()
 	mounts = append(mounts, mount.Mount{
@@ -262,27 +260,21 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	resp, err := d.client.ContainerCreate(
 		ctx, &cc, &hc, &nc, nil, "")
 	if err != nil {
-		log.Error().Msgf(
-			"Error creating container using image %s: %v\n",
-			t.Image, err,
-		)
+		flog.Error(errors.Wrapf(err, "Error creating container using image %s: %v\n", t.Image, err))
 		return err
 	}
 
 	// create a mapping between task id and container id
 	d.tasks.Set(t.ID, resp.ID)
 
-	log.Debug().Msgf("created container %s", resp.ID)
+	flog.Debug("created container %s", resp.ID)
 
 	// remove the container
 	defer func() {
 		stopContext, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		if err := d.Stop(stopContext, t); err != nil {
-			log.Error().
-				Err(err).
-				Str("container-id", resp.ID).
-				Msg("error removing container upon completion")
+			flog.Error(errors.Wrapf(err, "container-id: %s, error removing container upon completion", resp.ID))
 		}
 	}()
 
@@ -292,7 +284,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	}
 
 	// start the container
-	log.Debug().Msgf("Starting container %s", resp.ID)
+	flog.Debug("Starting container %s", resp.ID)
 	err = d.client.ContainerStart(
 		ctx, resp.ID, dockerTypes.ContainerStartOptions{})
 	if err != nil {
@@ -313,7 +305,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	}
 	defer func() {
 		if err := out.Close(); err != nil {
-			log.Error().Err(err).Msgf("error closing stdout on container %s", resp.ID)
+			flog.Error(errors.Wrapf(err, "error closing stdout on container %s", resp.ID))
 		}
 	}()
 	_, err = io.Copy(os.Stdout, out)
@@ -338,12 +330,12 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 				},
 			)
 			if err != nil {
-				log.Error().Err(err).Msg("error tailing the log")
+				flog.Error(errors.Wrap(err, "error tailing the log"))
 				return errors.Errorf("exit code %d", status.StatusCode)
 			}
 			buf, err := io.ReadAll(printableReader{reader: out})
 			if err != nil {
-				log.Error().Err(err).Msg("error copying the output")
+				flog.Error(errors.Wrap(err, "error copying the output"))
 			}
 			return errors.Errorf("exit code %d: %s", status.StatusCode, string(buf))
 		} else {
@@ -353,10 +345,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 			}
 			t.Result = stdout
 		}
-		log.Debug().
-			Int64("status-code", status.StatusCode).
-			Str("task-id", t.ID).
-			Msg("task completed")
+		flog.Debug("task-i: %s status-code: %d, task completed", t.ID, status.StatusCode)
 	}
 	return nil
 }
@@ -369,7 +358,7 @@ func (d *DockerRuntime) readOutput(ctx context.Context, containerID string) (str
 	defer func() {
 		err := r.Close()
 		if err != nil {
-			log.Error().Err(err).Msgf("error closing /flowbot/stdout reader")
+			flog.Error(errors.Wrap(err, "error closing /flowbot/stdout reader"))
 		}
 	}()
 	tr := tar.NewReader(r)
@@ -391,7 +380,7 @@ func (d *DockerRuntime) readOutput(ctx context.Context, containerID string) (str
 }
 
 func (d *DockerRuntime) initWorkdir(ctx context.Context, containerID string, t *types.Task) error {
-	log.Debug().Msgf("initialize the workdir for container %s", containerID)
+	flog.Debug("initialize the workdir for container %s", containerID)
 	// create the archive
 	filename, err := createArchive(t)
 	if err != nil {
@@ -401,7 +390,7 @@ func (d *DockerRuntime) initWorkdir(ctx context.Context, containerID string, t *
 	defer func() {
 		err := os.Remove(filename)
 		if err != nil {
-			log.Error().Err(err).Msgf("error removing archive: %s", filename)
+			flog.Error(errors.Wrapf(err, "error removing archive: %s", filename))
 		}
 	}()
 	// open the archive for reading by the container
@@ -413,7 +402,7 @@ func (d *DockerRuntime) initWorkdir(ctx context.Context, containerID string, t *
 	defer func() {
 		err := ar.Close()
 		if err != nil {
-			log.Error().Err(err).Msg("error closing archive file")
+			flog.Error(errors.Wrap(err, "error closing archive file"))
 		}
 	}()
 	r := bufio.NewReader(ar)
@@ -431,7 +420,7 @@ func createArchive(t *types.Task) (string, error) {
 	}
 	defer func() {
 		if err := ar.Close(); err != nil {
-			log.Error().Err(err).Msg("error closing archive.tar file")
+			flog.Error(errors.Wrap(err, "error closing archive.tar file"))
 		}
 	}()
 	// write the run script as an entrypoint
@@ -492,7 +481,7 @@ func (d *DockerRuntime) Stop(ctx context.Context, t *types.Task) error {
 		return nil
 	}
 	d.tasks.Delete(t.ID)
-	log.Debug().Msgf("Attempting to stop and remove container %v", containerID)
+	flog.Debug("Attempting to stop and remove container %v", containerID)
 	return d.client.ContainerRemove(ctx, containerID, dockerTypes.ContainerRemoveOptions{
 		RemoveVolumes: true,
 		RemoveLinks:   false,

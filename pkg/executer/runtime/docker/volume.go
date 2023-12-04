@@ -6,9 +6,9 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type VolumeMounter struct {
@@ -30,8 +30,7 @@ func (m *VolumeMounter) Mount(ctx context.Context, mn *types.Mount) error {
 	if err != nil {
 		return err
 	}
-	log.Debug().
-		Str("mount-point", v.Mountpoint).Msgf("created volume %s", v.Name)
+	flog.Debug("mount-point: %s, created volume %s", v.Mountpoint, v.Name)
 	return nil
 }
 
@@ -46,6 +45,6 @@ func (m *VolumeMounter) Unmount(ctx context.Context, mn *types.Mount) error {
 	if err := m.client.VolumeRemove(ctx, mn.Source, true); err != nil {
 		return err
 	}
-	log.Debug().Msgf("removed volume %s", mn.Source)
+	flog.Debug("removed volume %s", mn.Source)
 	return nil
 }

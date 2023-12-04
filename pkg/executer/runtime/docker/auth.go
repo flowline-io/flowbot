@@ -3,6 +3,7 @@ package docker // import "https://github.com/cpuguy83/dockercfg"
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"fmt"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 // Errors from credential helpers
@@ -208,7 +208,7 @@ func loadConfig(configFile string) (config, error) {
 
 // FromFile loads config from the specified path into cfg
 func fromFile(configPath string, cfg *config) error {
-	log.Debug().Msgf("Loading docker config: %s", configPath)
+	flog.Debug("Loading docker config: %s", configPath)
 	f, err := os.Open(configPath)
 	if err != nil {
 		return err

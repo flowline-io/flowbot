@@ -76,9 +76,9 @@ func Error(err error) {
 }
 
 func Fatal(format string, a ...any) {
-	l.Fatal().Caller(1).Msgf(format, a...)
+	l.Fatal().Caller(1).Stack().Msgf(format, a...)
 }
 
 func Panic(format string, a ...any) {
-	l.Panic().Caller(1).Msgf(format, a...)
+	l.Panic().Caller(1).Stack().Msgf(format, a...)
 }

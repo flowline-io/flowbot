@@ -3,11 +3,11 @@ package docker
 import (
 	"context"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"os"
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type BindMounter struct {
@@ -44,7 +44,7 @@ func (m *BindMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 		if err := os.MkdirAll(mnt.Source, 0707); err != nil {
 			return errors.Wrapf(err, "error creating mount directory: %s", mnt.Source)
 		}
-		log.Info().Msgf("Created bind mount: %s", mnt.Source)
+		flog.Info("Created bind mount: %s", mnt.Source)
 	} else if err != nil {
 		return errors.Wrapf(err, "error stat on directory: %s", mnt.Source)
 	}
