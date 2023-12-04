@@ -225,6 +225,8 @@ func initializeConfig() error {
 func initializeHttp() error {
 	// Set up HTTP server. Must use non-default mux because of expvar.
 	httpApp = fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+
 		JSONDecoder:  jsoniter.Unmarshal,
 		JSONEncoder:  jsoniter.Marshal,
 		ReadTimeout:  10 * time.Second,
