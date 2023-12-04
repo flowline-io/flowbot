@@ -22,6 +22,7 @@ func NewDriver() *Driver {
 	api := slack.New(
 		config.App.Platform.Slack.BotToken,
 		slack.OptionDebug(true),
+		slack.OptionLog(flog.SlackLogger),
 		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
 	)
 	return &Driver{
@@ -45,7 +46,11 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 		return
 	}
 
-	client := socketmode.New(d.api, socketmode.OptionDebug(true))
+	client := socketmode.New(
+		d.api,
+		socketmode.OptionDebug(true),
+		socketmode.OptionLog(flog.SlackLogger),
+	)
 
 	go func() {
 		for {
