@@ -182,6 +182,18 @@ func (j WorkflowState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
+type WorkflowTriggerState int
+
+const (
+	WorkflowTriggerStateUnknown WorkflowTriggerState = iota
+	WorkflowTriggerEnable
+	WorkflowTriggerDisable
+)
+
+func (j WorkflowTriggerState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type JobState int
 
 const (

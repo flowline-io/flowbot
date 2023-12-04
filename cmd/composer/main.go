@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
 	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
-	"github.com/flowline-io/flowbot/pkg/version"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v2"
 	"os"
 )

@@ -161,7 +161,9 @@ func GenerationAction(c *cli.Context) error {
 			}
 		}))
 	workflowTriggers := g.GenerateModelAs("workflow_trigger", "WorkflowTrigger",
-		gen.FieldType("type", "TriggerType"))
+		gen.FieldType("type", "TriggerType"),
+		gen.FieldType("state", "WorkflowTriggerState"),
+	)
 	workflows := g.GenerateModelAs("workflow", "Workflow",
 		gen.FieldType("state", "WorkflowState"),
 		gen.FieldRelate(field.HasOne, "Dag", dag, &field.RelateConfig{
