@@ -49,6 +49,12 @@ func (sched *Scheduler) pushReadyStep() {
 		err = PushTask(t)
 		if err != nil {
 			flog.Error(err)
+			continue
+		}
+		err = store.Chatbot.UpdateStepState(step.ID, model.StepStart)
+		if err != nil {
+			flog.Error(err)
+			continue
 		}
 	}
 }

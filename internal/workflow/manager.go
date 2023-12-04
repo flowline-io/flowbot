@@ -52,6 +52,12 @@ func (m *Manager) pushReadyJob() {
 		err = PushTask(t)
 		if err != nil {
 			flog.Error(err)
+			continue
+		}
+		err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
+		if err != nil {
+			flog.Error(err)
+			continue
 		}
 	}
 }

@@ -203,6 +203,7 @@ const (
 	StepStateUnknown StepState = iota
 	StepCreated
 	StepReady
+	StepStart
 	StepRunning
 	StepFinished
 	StepFailed

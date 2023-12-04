@@ -272,6 +272,7 @@ type Adapter interface {
 	UpdateDag(item *model.Dag) error
 	GetDag(id int64) (*model.Dag, error)
 	GetJob(id int64) (*model.Job, error)
+	CreateJob(item *model.Job) (int64, error)
 	DeleteJob(id int64) error
 	ListJobs(workflowID int64) ([]*model.Job, error)
 	GetJobsByState(state model.JobState) ([]*model.Job, error)

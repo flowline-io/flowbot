@@ -53,11 +53,13 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				d, err := store.Chatbot.GetDag(job.DagID)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 				list, err := dag.TopologySort(d)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 
@@ -84,6 +86,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err = store.Chatbot.CreateSteps(steps)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 
@@ -91,6 +94,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 				// update job started at
@@ -116,6 +120,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 		initial = "created"
 	case model.StepReady:
 		initial = "ready"
+	case model.StepStart:
+		initial = "start"
 	case model.StepRunning:
 		initial = "running"
 	case model.StepFinished:
@@ -131,7 +137,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 		initial,
 		fsm.Events{
 			{Name: "bind", Src: []string{"created"}, Dst: "ready"},
-			{Name: "run", Src: []string{"ready"}, Dst: "running"},
+			{Name: "queue", Src: []string{"ready"}, Dst: "start"},
+			{Name: "run", Src: []string{"start"}, Dst: "running"},
 			{Name: "success", Src: []string{"running"}, Dst: "finished"},
 			{Name: "error", Src: []string{"running"}, Dst: "failed"},
 			{Name: "cancel", Src: []string{"running"}, Dst: "canceled"},
@@ -153,6 +160,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				err := store.Chatbot.UpdateStepState(step.ID, model.StepRunning)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 
@@ -192,7 +200,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				}
 
 				// update output
-				err = store.Chatbot.UpdateStepOutput(int64(step.ID), output)
+				err = store.Chatbot.UpdateStepOutput(step.ID, output)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -212,12 +220,14 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				err := store.Chatbot.UpdateStepState(step.ID, model.StepFinished)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 				// update finished at
 				err = store.Chatbot.UpdateStepFinishedAt(step.ID, time.Now())
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 			},
@@ -236,6 +246,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				err := store.Chatbot.UpdateStepState(step.ID, model.StepFailed)
 				if err != nil {
 					e.Cancel(err)
+					e.Err = err
 					return
 				}
 			},

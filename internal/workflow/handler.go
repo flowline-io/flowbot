@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -52,54 +53,70 @@ func NewWorkerTask(step *model.Step) (*Task, error) {
 	}, nil
 }
 
-func HandleCronTask(ctx context.Context, t *asynq.Task) error {
+func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	var trigger model.WorkflowTrigger
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
 	}
 	flog.Info("trigger: %v", trigger)
-
 	flog.Info("%s task has been received", t.Type())
 
-	// todo get workflow
-	// todo create job
-	// todo push queue
+	// get workflow
+	workflow, err := store.Chatbot.GetWorkflow(trigger.WorkflowID)
+	if err != nil {
+		flog.Error(err)
+		return err
+	}
+	if workflow.State == model.WorkflowDisable {
+		flog.Debug("workflow %d is disabled", workflow.ID)
+		return nil
+	}
+	// create job
+	dagId := int64(0)
+	if len(workflow.Dag) > 0 {
+		dagId = workflow.Dag[0].ID
+	}
+	_, err = store.Chatbot.CreateJob(&model.Job{
+		UID:        workflow.UID,
+		Topic:      workflow.Topic,
+		WorkflowID: workflow.ID,
+		DagID:      dagId,
+		TriggerID:  trigger.ID,
+		State:      model.JobReady,
+	})
 
-	return nil
+	return err
 }
 
-func HandleJobTask(ctx context.Context, t *asynq.Task) error {
+func HandleJobTask(_ context.Context, t *asynq.Task) error {
 	var job types.JobInfo
 	if err := json.Unmarshal(t.Payload(), &job); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
 	flog.Info("job: %v", job)
-
 	flog.Info("%s task has been received", t.Type())
 
 	job.FSM = NewJobFSM(job.Job.State)
 	return job.FSM.Event(context.Background(), "run", job.Job)
 }
 
-func HandleStepTask(ctx context.Context, t *asynq.Task) error {
+func HandleStepTask(_ context.Context, t *asynq.Task) error {
 	var step types.StepInfo
 	if err := json.Unmarshal(t.Payload(), &step); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
 	flog.Info("step: %v", step)
-
 	flog.Info("%s task has been received", t.Type())
 
 	return nil
 }
 
-func HandleWorkerTask(ctx context.Context, t *asynq.Task) error {
+func HandleWorkerTask(_ context.Context, t *asynq.Task) error {
 	var step types.StepInfo
 	if err := json.Unmarshal(t.Payload(), &step); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
 	flog.Info("step: %v", step)
-
 	flog.Info("%s task has been received", t.Type())
 
 	step.FSM = NewStepFSM(step.Step.State)

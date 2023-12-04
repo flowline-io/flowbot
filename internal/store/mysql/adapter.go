@@ -1450,6 +1450,15 @@ func (a *adapter) GetJob(id int64) (*model.Job, error) {
 	return q.Where(q.ID.Eq(id)).First()
 }
 
+func (a *adapter) CreateJob(item *model.Job) (int64, error) {
+	q := dao.Q.Job
+	err := q.Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
+}
+
 func (a *adapter) DeleteJob(id int64) error {
 	q := dao.Q.Job
 	_, err := q.Where(q.ID.Eq(id)).Delete()
