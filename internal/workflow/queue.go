@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
+	"runtime"
 	"time"
 )
 
@@ -44,7 +45,7 @@ func PushTask(t *Task) error {
 		asynq.TaskID(t.ID),
 		asynq.MaxRetry(3),
 		asynq.Retention(3*24*time.Hour),
-	) // todo options
+	)
 	if err != nil {
 		return err
 	}
@@ -58,12 +59,13 @@ type Queue struct {
 
 func NewQueue() *Queue {
 	srv := asynq.NewServer(defaultRedisClientOpt(), asynq.Config{
-		Concurrency: 2,
+		Logger:      flog.AsynqLogger,
+		LogLevel:    flog.AsynqLogger.Level,
+		Concurrency: runtime.NumCPU() * 2,
 		Queues: map[string]int{
 			jobQueueName:  jobPriority,
 			stepQueueName: stepPriority,
 		},
-		// todo options
 	})
 	return &Queue{srv: srv}
 }
