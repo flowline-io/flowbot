@@ -150,7 +150,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s=%s", name, value))
 	}
-	env = append(env, "TORK_OUTPUT=/tork/stdout")
+	env = append(env, "OUTPUT=/flowbot/stdout")
 
 	var mounts []mount.Mount
 
@@ -184,7 +184,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 		mounts = append(mounts, item)
 	}
 	// create the workdir mount
-	workdir := &types.Mount{Type: types.MountTypeVolume, Target: "/tork"}
+	workdir := &types.Mount{Type: types.MountTypeVolume, Target: "/flowbot"}
 	if err := d.mounter.Mount(ctx, workdir); err != nil {
 		return err
 	}
@@ -362,14 +362,14 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 }
 
 func (d *DockerRuntime) readOutput(ctx context.Context, containerID string) (string, error) {
-	r, _, err := d.client.CopyFromContainer(ctx, containerID, "/tork/stdout")
+	r, _, err := d.client.CopyFromContainer(ctx, containerID, "/flowbot/stdout")
 	if err != nil {
 		return "", err
 	}
 	defer func() {
 		err := r.Close()
 		if err != nil {
-			log.Error().Err(err).Msgf("error closing /tork/stdout reader")
+			log.Error().Err(err).Msgf("error closing /flowbot/stdout reader")
 		}
 	}()
 	tr := tar.NewReader(r)
@@ -417,7 +417,7 @@ func (d *DockerRuntime) initWorkdir(ctx context.Context, containerID string, t *
 		}
 	}()
 	r := bufio.NewReader(ar)
-	if err := d.client.CopyToContainer(ctx, containerID, "/tork", r, dockerTypes.CopyToContainerOptions{}); err != nil {
+	if err := d.client.CopyToContainer(ctx, containerID, "/flowbot", r, dockerTypes.CopyToContainerOptions{}); err != nil {
 		return err
 	}
 	return nil

@@ -110,7 +110,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 			tk := &types.Task{
 				ID:    utils.NewUUID(),
 				Image: "ubuntu:mantic",
-				Run:   "echo -n hello > $TORK_OUTPUT",
+				Run:   "echo -n hello > $OUTPUT",
 			}
 			err := rt.Run(context.Background(), tk)
 			assert.NoError(t, err)
@@ -305,7 +305,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 	t1 := &types.Task{
 		ID:    utils.NewUUID(),
 		Image: "ubuntu:mantic",
-		Run:   "cat hello.txt > $TORK_OUTPUT",
+		Run:   "cat hello.txt > $OUTPUT",
 		Files: map[string]string{
 			"hello.txt": "hello world",
 			"large.txt": strings.Repeat("a", 100_000),
@@ -367,15 +367,15 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, images, 1)
 
-	err = rt.client.ImageTag(ctx, "alpine:3.18.3", "localhost:5001/tork/alpine:3.18.3")
+	err = rt.client.ImageTag(ctx, "alpine:3.18.3", "localhost:5001/flowbot/alpine:3.18.3")
 	assert.NoError(t, err)
 
-	r2, err := rt.client.ImagePush(ctx, "localhost:5001/tork/alpine:3.18.3", dockerTypes.ImagePushOptions{RegistryAuth: "noauth"})
+	r2, err := rt.client.ImagePush(ctx, "localhost:5001/flowbot/alpine:3.18.3", dockerTypes.ImagePushOptions{RegistryAuth: "noauth"})
 	assert.NoError(t, err)
 	assert.NoError(t, r2.Close())
 
 	err = rt.imagePull(ctx, &types.Task{
-		Image: "localhost:5001/tork/alpine:3.18.3",
+		Image: "localhost:5001/flowbot/alpine:3.18.3",
 		Registry: &types.Registry{
 			Username: "username",
 			Password: "password",
