@@ -240,6 +240,10 @@ func (j TriggerType) Value() (driver.Value, error) {
 	return string(j), nil
 }
 
+type TriggerCronRule struct {
+	Spec string `json:"spec"`
+}
+
 type Node struct {
 	Id        string `json:"id,omitempty"`
 	X         int    `json:"x,omitempty"`

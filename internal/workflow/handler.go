@@ -72,6 +72,9 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 		flog.Debug("workflow %d is disabled", workflow.ID)
 		return nil
 	}
+
+	// todo update trigger count
+
 	// create job
 	dagId := int64(0)
 	if len(workflow.Dag) > 0 {

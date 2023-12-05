@@ -1372,7 +1372,7 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 
 func (a *adapter) GetWorkflow(id int64) (*model.Workflow, error) {
 	q := dao.Q.Workflow
-	return q.Where(q.ID.Eq(id)).First()
+	return q.Preload(q.Dag, q.Triggers).Where(q.ID.Eq(id)).First()
 }
 
 func (a *adapter) UpdateWorkflow(item *model.Workflow) error {

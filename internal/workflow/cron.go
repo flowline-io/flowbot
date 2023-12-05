@@ -1,10 +1,12 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/hibiken/asynq"
 	"time"
 )
@@ -23,8 +25,13 @@ func NewCronTaskManager() *CronTaskManager {
 			PostEnqueueFunc: func(info *asynq.TaskInfo, err error) {
 				flog.Info("CronTaskManager:  Enqueued task %s with payload %s with error %v",
 					info.ID, string(info.Payload), err)
+				err = HandleCronTask(context.Background(), asynq.NewTask(info.Type, info.Payload))
+				if err != nil {
+					flog.Error(err)
+				}
 			},
 			Location: time.Local,
+			Logger:   flog.AsynqLogger,
 		},
 	})
 	if err != nil {
@@ -58,8 +65,17 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 			flog.Error(err)
 			continue
 		}
+		var rule model.TriggerCronRule
+		err = json.Unmarshal(utils.StringToBytes(trigger.Rule), &rule)
+		if err != nil {
+			flog.Error(err)
+			continue
+		}
+		if rule.Spec == "" {
+			continue
+		}
 		configs = append(configs, &asynq.PeriodicTaskConfig{
-			Cronspec: trigger.Rule,
+			Cronspec: rule.Spec,
 			Task:     asynq.NewTask(TypeCron, payload),
 			Opts: []asynq.Option{
 				asynq.Queue(cronQueueName),
