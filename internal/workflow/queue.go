@@ -95,9 +95,11 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		flog.Debug("Start processing %q", t.Type())
 		err := h.ProcessTask(ctx, t)
 		if err != nil {
+			flog.Error(fmt.Errorf("failed processing %q: Elapsed Time = %v, Payload = %s, Error = %v",
+				t.Type(), time.Since(start), string(t.Payload()), err))
 			return err
 		}
-		flog.Debug("Finished processing %q: Elapsed Time = %v, Payload = %s",
+		flog.Debug("finished processing %q: Elapsed Time = %v, Payload = %s",
 			t.Type(), time.Since(start), string(t.Payload()))
 		return nil
 	})

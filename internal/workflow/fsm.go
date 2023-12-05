@@ -224,17 +224,31 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 			},
 			"before_error": func(_ context.Context, e *fsm.Event) {
 				var step *model.Step
+				var err error
 				for _, item := range e.Args {
-					if m, ok := item.(*model.Step); ok {
-						step = m
+					switch v := item.(type) {
+					case *model.Step:
+						step = v
+					case error:
+						err = v
+					default:
+						e.Cancel(errors.New("error args type"))
+						return
 					}
 				}
 				if step == nil {
 					e.Cancel(errors.New("error step"))
 					return
 				}
+				if err == nil {
+					e.Cancel(errors.New("error err"))
+					return
+				}
 
-				err := store.Chatbot.UpdateStepState(step.ID, model.StepFailed)
+				err = store.Chatbot.UpdateStep(step.ID, &model.Step{
+					State: model.StepFailed,
+					Error: err.Error(),
+				})
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err

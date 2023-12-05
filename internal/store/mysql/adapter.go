@@ -1486,7 +1486,7 @@ func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
 	switch state {
 	case model.JobStart:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.StartedAt.Value(time.Now()))
-	case model.JobFinished, model.JobFailed:
+	case model.JobFinished, model.JobFailed, model.JobCanceled:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.EndedAt.Value(time.Now()))
 	default:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state))
@@ -1506,7 +1506,7 @@ func (a *adapter) UpdateStepState(id int64, state model.StepState) error {
 	switch state {
 	case model.StepStart:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.StartedAt.Value(time.Now()))
-	case model.StepFinished, model.StepCanceled, model.StepSkipped:
+	case model.StepFinished, model.StepFailed, model.StepCanceled, model.StepSkipped:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.EndedAt.Value(time.Now()))
 	default:
 		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state))

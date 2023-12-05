@@ -123,10 +123,8 @@ func HandleWorkerTask(_ context.Context, t *asynq.Task) error {
 	step.FSM = NewStepFSM(step.Step.State)
 	err := step.FSM.Event(context.Background(), "run", step.Step)
 	if err != nil {
-		flog.Error(err)
-		return step.FSM.Event(context.Background(), "error", step.Step)
+		return step.FSM.Event(context.Background(), "error", step.Step, err)
 	} else {
-		_, _ = t.ResultWriter().Write([]byte("success"))
 		return step.FSM.Event(context.Background(), "success", step.Step)
 	}
 }

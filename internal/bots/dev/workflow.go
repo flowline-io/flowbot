@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
+	"time"
 )
 
 const (
-	inWorkflowActionID  = "in_workflow_action"
-	addWorkflowActionID = "add_workflow_action"
-	outWorkflowActionID = "out_workflow_action"
+	inWorkflowActionID    = "in_workflow_action"
+	addWorkflowActionID   = "add_workflow_action"
+	outWorkflowActionID   = "out_workflow_action"
+	errorWorkflowActionID = "error_workflow_action"
 )
 
 var workflowRules = []workflow.Rule{
@@ -44,6 +46,16 @@ var workflowRules = []workflow.Rule{
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			fmt.Println("=========>", input)
 			return nil, nil
+		},
+	},
+	{
+		Id:           errorWorkflowActionID,
+		Title:        "error",
+		Desc:         "",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			return nil, fmt.Errorf("workflow run error %s", time.Now().Format(time.DateTime))
 		},
 	},
 }
