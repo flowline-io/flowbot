@@ -20,9 +20,9 @@ func NewManager() *Manager {
 
 func (m *Manager) Run() {
 	// ready job
-	go parallelizer.JitterUntil(m.pushReadyJob, time.Second, 0.0, true, m.stop)
+	go parallelizer.JitterUntil(m.pushReadyJob, 2*time.Second, 0.0, true, m.stop)
 	// check job
-	go parallelizer.JitterUntil(m.checkJob, 10*time.Second, 0.0, true, m.stop)
+	go parallelizer.JitterUntil(m.checkJob, 2*time.Second, 0.0, true, m.stop)
 
 	for {
 		select {
@@ -44,6 +44,7 @@ func (m *Manager) pushReadyJob() {
 		return
 	}
 	for _, job := range list {
+		job.State = model.JobStart
 		t, err := NewJobTask(job)
 		if err != nil {
 			flog.Error(err)
@@ -63,7 +64,7 @@ func (m *Manager) pushReadyJob() {
 }
 
 func (m *Manager) checkJob() {
-	list, err := store.Chatbot.GetJobsByState(model.JobStart)
+	list, err := store.Chatbot.GetJobsByState(model.JobRunning)
 	if err != nil {
 		flog.Error(err)
 		return

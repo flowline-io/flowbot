@@ -24,7 +24,7 @@ func (sched *Scheduler) Run() {
 	// ready step
 	go parallelizer.JitterUntil(sched.pushReadyStep, time.Second, 0.0, true, sched.stop)
 	// depend step
-	go parallelizer.JitterUntil(sched.dependStep, 2*time.Second, 0.0, true, sched.stop)
+	go parallelizer.JitterUntil(sched.dependStep, time.Second, 0.0, true, sched.stop)
 
 	<-sched.stop
 	flog.Info("scheduler stopped")

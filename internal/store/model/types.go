@@ -200,6 +200,7 @@ const (
 	JobStateUnknown JobState = iota
 	JobReady
 	JobStart
+	JobRunning
 	JobFinished
 	JobCanceled
 	JobFailed

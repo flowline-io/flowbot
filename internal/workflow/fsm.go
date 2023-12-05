@@ -21,6 +21,8 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 		initial = "ready"
 	case model.JobStart:
 		initial = "start"
+	case model.JobRunning:
+		initial = "running"
 	case model.JobFinished:
 		initial = "finished"
 	case model.JobCanceled:
@@ -31,10 +33,11 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 	f := fsm.NewFSM(
 		initial,
 		fsm.Events{
-			{Name: "run", Src: []string{"ready"}, Dst: "start"},
-			{Name: "success", Src: []string{"start"}, Dst: "finished"},
-			{Name: "cancel", Src: []string{"start"}, Dst: "canceled"},
-			{Name: "error", Src: []string{"start"}, Dst: "failed"},
+			{Name: "queue", Src: []string{"ready"}, Dst: "start"},
+			{Name: "run", Src: []string{"start"}, Dst: "running"},
+			{Name: "success", Src: []string{"running"}, Dst: "finished"},
+			{Name: "cancel", Src: []string{"running"}, Dst: "canceled"},
+			{Name: "error", Src: []string{"running"}, Dst: "failed"},
 		},
 		fsm.Callbacks{
 			// split dag
@@ -47,6 +50,13 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				}
 				if job == nil {
 					e.Cancel(errors.New("error job"))
+					return
+				}
+
+				err := store.Chatbot.UpdateJobState(job.ID, model.JobRunning)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
 					return
 				}
 
@@ -90,13 +100,6 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					return
 				}
 
-				// update job state
-				err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
-				if err != nil {
-					e.Cancel(err)
-					e.Err = err
-					return
-				}
 				// update job started at
 				err = store.Chatbot.UpdateJobStartedAt(job.ID, time.Now())
 				if err != nil {
