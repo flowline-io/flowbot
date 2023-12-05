@@ -90,12 +90,14 @@ func (sched *Scheduler) dependStep() {
 			}
 		}
 		if allFinished {
-			err = store.Chatbot.UpdateStepState(step.ID, model.StepReady)
-			if err != nil {
-				flog.Error(err)
+			for _, dependStep := range dependSteps {
+				flog.Debug("job %d depend steps %+v", step.JobID, dependStep)
 			}
-			// update input
-			err = store.Chatbot.UpdateStepInput(step.ID, mergeOutput)
+			flog.Debug("all depend step finished for step %d output: %+v", step.ID, mergeOutput)
+			err = store.Chatbot.UpdateStep(step.ID, &model.Step{
+				Input: model.JSON(mergeOutput),
+				State: model.StepReady,
+			})
 			if err != nil {
 				flog.Error(err)
 			}

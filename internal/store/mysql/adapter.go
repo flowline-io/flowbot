@@ -1494,6 +1494,12 @@ func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
 	return err
 }
 
+func (a *adapter) UpdateStep(id int64, item *model.Step) error {
+	q := dao.Q.Step
+	_, err := q.Where(q.ID.Eq(id)).Updates(item)
+	return err
+}
+
 func (a *adapter) UpdateStepState(id int64, state model.StepState) error {
 	q := dao.Q.Step
 	var err error
