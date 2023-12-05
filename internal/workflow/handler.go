@@ -59,7 +59,7 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Info("trigger: %v", trigger)
+	flog.Info("trigger: %+v", trigger)
 	flog.Info("%s task has been received", t.Type())
 
 	// get workflow
@@ -94,7 +94,7 @@ func HandleJobTask(_ context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &job); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Info("job: %v", job)
+	flog.Info("job: %+v", job)
 	flog.Info("%s task has been received", t.Type())
 
 	job.FSM = NewJobFSM(job.Job.State)
@@ -106,7 +106,7 @@ func HandleStepTask(_ context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &step); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Info("step: %v", step)
+	flog.Info("step: %+v", step)
 	flog.Info("%s task has been received", t.Type())
 
 	return nil
@@ -117,7 +117,7 @@ func HandleWorkerTask(_ context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &step); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Info("step: %v", step)
+	flog.Info("step: %+v", step)
 	flog.Info("%s task has been received", t.Type())
 
 	step.FSM = NewStepFSM(step.Step.State)

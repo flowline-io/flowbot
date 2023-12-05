@@ -75,6 +75,9 @@ func (m *Manager) checkJob() {
 			flog.Error(err)
 			continue
 		}
+		if len(steps) == 0 {
+			continue
+		}
 		allFinished := true
 		keeping := false
 		canceled := false
