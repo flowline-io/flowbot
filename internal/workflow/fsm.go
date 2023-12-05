@@ -100,11 +100,6 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					return
 				}
 
-				// update job started at
-				err = store.Chatbot.UpdateJobStartedAt(job.ID, time.Now())
-				if err != nil {
-					flog.Error(err)
-				}
 				// running count
 				err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
 				if err != nil {
@@ -221,13 +216,6 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				}
 
 				err := store.Chatbot.UpdateStepState(step.ID, model.StepFinished)
-				if err != nil {
-					e.Cancel(err)
-					e.Err = err
-					return
-				}
-				// update finished at
-				err = store.Chatbot.UpdateStepFinishedAt(step.ID, time.Now())
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err

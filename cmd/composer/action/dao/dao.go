@@ -191,11 +191,13 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("action", "JSON"),
 		gen.FieldType("input", "JSON"),
 		gen.FieldType("output", "JSON"),
+		gen.FieldType("state", "StepState"),
 		gen.FieldType("started_at", "*time.Time"),
-		gen.FieldType("finished_at", "*time.Time"),
-		gen.FieldType("state", "StepState"))
+		gen.FieldType("ended_at", "*time.Time"))
 	jobs := g.GenerateModelAs("jobs", "Job",
 		gen.FieldType("state", "JobState"),
+		gen.FieldType("started_at", "*time.Time"),
+		gen.FieldType("ended_at", "*time.Time"),
 		gen.FieldRelate(field.HasMany, "Steps", steps, &field.RelateConfig{
 			RelateSlicePointer: true,
 			GORMTag: map[string][]string{

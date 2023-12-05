@@ -99,11 +99,6 @@ func (sched *Scheduler) dependStep() {
 			if err != nil {
 				flog.Error(err)
 			}
-			// update started at
-			err = store.Chatbot.UpdateStepStartedAt(step.ID, time.Now())
-			if err != nil {
-				flog.Error(err)
-			}
 		}
 	}
 }

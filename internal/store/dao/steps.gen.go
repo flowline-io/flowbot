@@ -42,7 +42,7 @@ func newStep(db *gorm.DB, opts ...gen.DOOption) step {
 	_step.Error = field.NewString(tableName, "error")
 	_step.State = field.NewField(tableName, "state")
 	_step.StartedAt = field.NewTime(tableName, "started_at")
-	_step.FinishedAt = field.NewTime(tableName, "finished_at")
+	_step.EndedAt = field.NewTime(tableName, "ended_at")
 	_step.CreatedAt = field.NewTime(tableName, "created_at")
 	_step.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -54,24 +54,24 @@ func newStep(db *gorm.DB, opts ...gen.DOOption) step {
 type step struct {
 	stepDo
 
-	ALL        field.Asterisk
-	ID         field.Int64
-	UID        field.String
-	Topic      field.String
-	JobID      field.Int64
-	Action     field.Field
-	Name       field.String
-	Describe   field.String
-	NodeID     field.String
-	Depend     field.Field
-	Input      field.Field
-	Output     field.Field
-	Error      field.String
-	State      field.Field
-	StartedAt  field.Time
-	FinishedAt field.Time
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
+	ALL       field.Asterisk
+	ID        field.Int64
+	UID       field.String
+	Topic     field.String
+	JobID     field.Int64
+	Action    field.Field
+	Name      field.String
+	Describe  field.String
+	NodeID    field.String
+	Depend    field.Field
+	Input     field.Field
+	Output    field.Field
+	Error     field.String
+	State     field.Field
+	StartedAt field.Time
+	EndedAt   field.Time
+	CreatedAt field.Time
+	UpdatedAt field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -102,7 +102,7 @@ func (s *step) updateTableName(table string) *step {
 	s.Error = field.NewString(table, "error")
 	s.State = field.NewField(table, "state")
 	s.StartedAt = field.NewTime(table, "started_at")
-	s.FinishedAt = field.NewTime(table, "finished_at")
+	s.EndedAt = field.NewTime(table, "ended_at")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -136,7 +136,7 @@ func (s *step) fillFieldMap() {
 	s.fieldMap["error"] = s.Error
 	s.fieldMap["state"] = s.State
 	s.fieldMap["started_at"] = s.StartedAt
-	s.fieldMap["finished_at"] = s.FinishedAt
+	s.fieldMap["ended_at"] = s.EndedAt
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 }

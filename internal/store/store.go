@@ -278,11 +278,7 @@ type Adapter interface {
 	GetJobsByState(state model.JobState) ([]*model.Job, error)
 	GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error)
 	UpdateJobState(id int64, state model.JobState) error
-	UpdateJobStartedAt(id int64, at time.Time) error
-	UpdateJobFinishedAt(id int64, at time.Time) error
 	UpdateStepState(id int64, state model.StepState) error
-	UpdateStepStartedAt(id int64, at time.Time) error
-	UpdateStepFinishedAt(id int64, at time.Time) error
 	UpdateStepInput(id int64, input types.KV) error
 	UpdateStepOutput(id int64, output types.KV) error
 	CreateStep(step *model.Step) (int64, error)

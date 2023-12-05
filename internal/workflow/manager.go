@@ -86,8 +86,8 @@ func (m *Manager) checkJob() {
 				keeping = true
 				allFinished = false
 			case model.StepFinished, model.StepSkipped:
-				if step.FinishedAt != nil && step.FinishedAt.After(lastFinishedAt) {
-					lastFinishedAt = *step.FinishedAt
+				if step.EndedAt != nil && step.EndedAt.After(lastFinishedAt) {
+					lastFinishedAt = *step.EndedAt
 				}
 			case model.StepFailed:
 				failed = true
@@ -102,11 +102,6 @@ func (m *Manager) checkJob() {
 		}
 		if allFinished {
 			err = store.Chatbot.UpdateJobState(job.ID, model.JobFinished)
-			if err != nil {
-				flog.Error(err)
-			}
-			// update finished at
-			err = store.Chatbot.UpdateJobFinishedAt(job.ID, lastFinishedAt)
 			if err != nil {
 				flog.Error(err)
 			}

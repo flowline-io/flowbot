@@ -1482,37 +1482,29 @@ func (a *adapter) GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error) {
 
 func (a *adapter) UpdateJobState(id int64, state model.JobState) error {
 	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(id)).Update(q.State, state)
-	return err
-}
-
-func (a *adapter) UpdateJobStartedAt(id int64, at time.Time) error {
-	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(id)).Update(q.StartedAt, at)
-	return err
-}
-
-func (a *adapter) UpdateJobFinishedAt(id int64, at time.Time) error {
-	q := dao.Q.Job
-	_, err := q.Where(q.ID.Eq(id)).Update(q.FinishedAt, at)
+	var err error
+	switch state {
+	case model.JobStart:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.StartedAt.Value(time.Now()))
+	case model.JobFinished, model.JobFailed:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.EndedAt.Value(time.Now()))
+	default:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state))
+	}
 	return err
 }
 
 func (a *adapter) UpdateStepState(id int64, state model.StepState) error {
 	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(id)).Update(q.State, state)
-	return err
-}
-
-func (a *adapter) UpdateStepStartedAt(id int64, at time.Time) error {
-	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(id)).Update(q.StartedAt, at)
-	return err
-}
-
-func (a *adapter) UpdateStepFinishedAt(id int64, at time.Time) error {
-	q := dao.Q.Step
-	_, err := q.Where(q.ID.Eq(id)).Update(q.FinishedAt, at)
+	var err error
+	switch state {
+	case model.StepStart:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.StartedAt.Value(time.Now()))
+	case model.StepFinished, model.StepCanceled, model.StepSkipped:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state), q.EndedAt.Value(time.Now()))
+	default:
+		_, err = q.Where(q.ID.Eq(id)).UpdateSimple(q.State.Value(state))
+	}
 	return err
 }
 

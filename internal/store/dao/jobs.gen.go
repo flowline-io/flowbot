@@ -36,7 +36,7 @@ func newJob(db *gorm.DB, opts ...gen.DOOption) job {
 	_job.TriggerID = field.NewInt64(tableName, "trigger_id")
 	_job.State = field.NewField(tableName, "state")
 	_job.StartedAt = field.NewTime(tableName, "started_at")
-	_job.FinishedAt = field.NewTime(tableName, "finished_at")
+	_job.EndedAt = field.NewTime(tableName, "ended_at")
 	_job.CreatedAt = field.NewTime(tableName, "created_at")
 	_job.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_job.Steps = jobHasManySteps{
@@ -62,7 +62,7 @@ type job struct {
 	TriggerID  field.Int64
 	State      field.Field
 	StartedAt  field.Time
-	FinishedAt field.Time
+	EndedAt    field.Time
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 	Steps      jobHasManySteps
@@ -90,7 +90,7 @@ func (j *job) updateTableName(table string) *job {
 	j.TriggerID = field.NewInt64(table, "trigger_id")
 	j.State = field.NewField(table, "state")
 	j.StartedAt = field.NewTime(table, "started_at")
-	j.FinishedAt = field.NewTime(table, "finished_at")
+	j.EndedAt = field.NewTime(table, "ended_at")
 	j.CreatedAt = field.NewTime(table, "created_at")
 	j.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -118,7 +118,7 @@ func (j *job) fillFieldMap() {
 	j.fieldMap["trigger_id"] = j.TriggerID
 	j.fieldMap["state"] = j.State
 	j.fieldMap["started_at"] = j.StartedAt
-	j.fieldMap["finished_at"] = j.FinishedAt
+	j.fieldMap["ended_at"] = j.EndedAt
 	j.fieldMap["created_at"] = j.CreatedAt
 	j.fieldMap["updated_at"] = j.UpdatedAt
 
