@@ -76,7 +76,7 @@ func (sched *Scheduler) dependStep() {
 		mergeOutput := types.KV{}
 		for _, dependStep := range dependSteps {
 			switch dependStep.State {
-			case model.StepCreated, model.StepReady, model.StepRunning:
+			case model.StepCreated, model.StepReady, model.StepStart, model.StepRunning:
 				allFinished = false
 			case model.StepFinished:
 				// merge output
@@ -87,11 +87,13 @@ func (sched *Scheduler) dependStep() {
 					flog.Error(err)
 				}
 				allFinished = false
+			default:
+				allFinished = false
 			}
 		}
 		if allFinished {
 			for _, dependStep := range dependSteps {
-				flog.Debug("job %d depend steps %+v", step.JobID, dependStep)
+				flog.Debug("step %d depend steps: %+v", step.ID, dependStep)
 			}
 			flog.Debug("all depend step finished for step %d output: %+v", step.ID, mergeOutput)
 			err = store.Chatbot.UpdateStep(step.ID, &model.Step{

@@ -85,7 +85,7 @@ func (m *Manager) checkJob() {
 		lastFinishedAt := time.Time{}
 		for _, step := range steps {
 			switch step.State {
-			case model.StepCreated, model.StepReady, model.StepRunning:
+			case model.StepCreated, model.StepReady, model.StepStart, model.StepRunning:
 				keeping = true
 				allFinished = false
 			case model.StepFinished, model.StepSkipped:
@@ -97,6 +97,8 @@ func (m *Manager) checkJob() {
 				allFinished = false
 			case model.StepCanceled:
 				canceled = true
+				allFinished = false
+			default:
 				allFinished = false
 			}
 		}
