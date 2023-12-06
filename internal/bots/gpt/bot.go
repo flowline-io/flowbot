@@ -57,7 +57,7 @@ func (bot) IsReady() bool {
 
 func (b bot) Input(ctx types.Context, _ types.KV, context interface{}) (types.MsgPayload, error) {
 	// key
-	v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
+	v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 	if err != nil {
 		flog.Error(err)
 	}

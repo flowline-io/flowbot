@@ -147,7 +147,7 @@ func (ah *handler) GetIdFromUrl(url string) types.Uid {
 
 // getFileRecord given file ID reads file record from the database.
 func (ah *handler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
-	fd, err := store.Chatbot.FileGet(fid.String())
+	fd, err := store.Database.FileGet(fid.String())
 	if err != nil {
 		return nil, err
 	}

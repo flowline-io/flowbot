@@ -63,7 +63,7 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	flog.Info("%s task has been received", t.Type())
 
 	// get workflow
-	workflow, err := store.Chatbot.GetWorkflow(trigger.WorkflowID)
+	workflow, err := store.Database.GetWorkflow(trigger.WorkflowID)
 	if err != nil {
 		flog.Error(err)
 		return err
@@ -80,7 +80,7 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	if len(workflow.Dag) > 0 {
 		dagId = workflow.Dag[0].ID
 	}
-	_, err = store.Chatbot.CreateJob(&model.Job{
+	_, err = store.Database.CreateJob(&model.Job{
 		UID:        workflow.UID,
 		Topic:      workflow.Topic,
 		WorkflowID: workflow.ID,

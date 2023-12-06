@@ -36,7 +36,7 @@ var commandRules = []command.Rule{
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -68,7 +68,7 @@ var commandRules = []command.Rule{
 		Help:   `Get current user info`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -103,7 +103,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -153,7 +153,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -210,7 +210,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			str, _ := tokens[1].Value.String()
 
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -262,7 +262,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			username, _ := tokens[1].Value.String()
 
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
 			if err != nil {
 				return nil
 			}

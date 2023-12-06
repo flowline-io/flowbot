@@ -59,7 +59,7 @@ func (bot) IsReady() bool {
 func (b bot) Input(_ types.Context, _ types.KV, content interface{}) (types.MsgPayload, error) {
 	text := types.ExtractText(content)
 	if utils.IsUrl(text) {
-		url, err := store.Chatbot.UrlGetByUrl(text)
+		url, err := store.Database.UrlGetByUrl(text)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return types.TextMsg{Text: "query url error"}, nil
 		}
@@ -67,7 +67,7 @@ func (b bot) Input(_ types.Context, _ types.KV, content interface{}) (types.MsgP
 			return types.LinkMsg{Url: fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag)}, nil
 		}
 		flag := types.Id()
-		err = store.Chatbot.UrlCreate(model.Url{
+		err = store.Database.UrlCreate(model.Url{
 			Flag:  flag,
 			URL:   text,
 			State: model.UrlStateEnable,
@@ -77,7 +77,7 @@ func (b bot) Input(_ types.Context, _ types.KV, content interface{}) (types.MsgP
 		}
 		return types.LinkMsg{Url: fmt.Sprintf("%s/u/%s", types.AppUrl(), flag)}, nil
 	} else {
-		url, err := store.Chatbot.UrlGetByFlag(text)
+		url, err := store.Database.UrlGetByFlag(text)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return types.TextMsg{Text: "query url error"}, nil
 		}

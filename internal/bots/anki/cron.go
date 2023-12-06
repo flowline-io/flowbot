@@ -20,7 +20,7 @@ var cronRules = []cron.Rule{
 		Help: "Regular reminders to review",
 		When: "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			j, err := store.Chatbot.DataGet(ctx.AsUser, ctx.Original, "getNumCardsReviewedToday")
+			j, err := store.Database.DataGet(ctx.AsUser, ctx.Original, "getNumCardsReviewedToday")
 			if err != nil {
 				return nil
 			}

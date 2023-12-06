@@ -75,7 +75,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// check
 	platformId := int64(1) // todo
-	findMessage, err := store.Chatbot.GetMessageByPlatform(platformId, msg.MessageId)
+	findMessage, err := store.Database.GetMessageByPlatform(platformId, msg.MessageId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		flog.Error(err)
 		return
@@ -84,7 +84,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		flog.Info("message %s %s already exists", msg.Self.Platform, msg.MessageId)
 		return
 	}
-	err = store.Chatbot.CreateMessage(model.Message{
+	err = store.Database.CreateMessage(model.Message{
 		Flag:          types.Id(),
 		PlatformID:    platformId,
 		PlatformMsgID: msg.MessageId,
@@ -121,7 +121,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		// session cancel command
 		isCancel := false
 		if msg.AltMessage == "cancel" {
-			_ = store.Chatbot.SessionState(ctx.AsUser, ctx.Original, model.SessionCancel)
+			_ = store.Database.SessionState(ctx.AsUser, ctx.Original, model.SessionCancel)
 			payload = types.TextMsg{Text: "session cancel"}
 			isCancel = true
 		}
@@ -159,7 +159,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		seq := msg.Seq
 		option := msg.Option
 		if seq > 0 {
-			message, err := store.Chatbot.GetMessage(topic) // fixme
+			message, err := store.Database.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}
@@ -262,8 +262,8 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		if fUid != "" && fSeq > 0 {
 			//uid2 := types.ParseUserId(fUid)
-			topic := ""                                     // fixme
-			message, err := store.Chatbot.GetMessage(topic) // fixme
+			topic := ""                                      // fixme
+			message, err := store.Database.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}
@@ -365,8 +365,8 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		if fUid != "" && fSeq > 0 {
 			//uid2 := types.ParseUserId(fUid)
-			topic := ""                                     // fixme
-			message, err := store.Chatbot.GetMessage(topic) // fixme
+			topic := ""                                      // fixme
+			message, err := store.Database.GetMessage(topic) // fixme
 			if err != nil {
 				flog.Error(err)
 			}
@@ -411,7 +411,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, rcptTo string, botUid types.Uid) {
 	if pipelineFlag != "" && pipelineVersion > 0 {
-		pipelineData, err := store.Chatbot.PipelineGet(ctx.AsUser, ctx.Original, pipelineFlag)
+		pipelineData, err := store.Database.PipelineGet(ctx.AsUser, ctx.Original, pipelineFlag)
 		if err != nil {
 			flog.Error(err)
 			return
@@ -478,7 +478,7 @@ func onlineStatus(usrStr string) {
 }
 
 func sessionCurrent(uid types.Uid, topic string) (model.Session, bool) {
-	sess, err := store.Chatbot.SessionGet(uid, topic)
+	sess, err := store.Database.SessionGet(uid, topic)
 	if err != nil {
 		return model.Session{}, false
 	}
@@ -582,7 +582,7 @@ func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 		//	botSend(uid.P2PName(topicUid), topicUid, payload)
 		//}
 	case types.Pull:
-		list, err := store.Chatbot.ListInstruct(uid, false)
+		list, err := store.Database.ListInstruct(uid, false)
 		if err != nil {
 			return nil, err
 		}

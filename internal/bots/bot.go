@@ -396,7 +396,7 @@ func RunPipeline(pipelineRules []pipeline.Rule, ctx types.Context, head types.KV
 
 func StorePipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (string, error) {
 	flag := types.Id()
-	return flag, store.Chatbot.PipelineCreate(model.Pipeline{
+	return flag, store.Database.PipelineCreate(model.Pipeline{
 		UID:     ctx.AsUser.String(),
 		Topic:   ctx.Original,
 		Flag:    flag,
@@ -408,14 +408,14 @@ func StorePipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (st
 }
 
 func SetPipelineState(ctx types.Context, flag string, state model.PipelineState) error {
-	return store.Chatbot.PipelineState(ctx.AsUser, ctx.Original, model.Pipeline{
+	return store.Database.PipelineState(ctx.AsUser, ctx.Original, model.Pipeline{
 		Flag:  flag,
 		State: state,
 	})
 }
 
 func SetPipelineStep(ctx types.Context, flag string, index int) error {
-	return store.Chatbot.PipelineStep(ctx.AsUser, ctx.Original, model.Pipeline{
+	return store.Database.PipelineStep(ctx.AsUser, ctx.Original, model.Pipeline{
 		Flag:  flag,
 		Stage: int32(index),
 	})
@@ -445,7 +445,7 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content interfac
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	// check form
-	exForm, err := store.Chatbot.FormGet(ctx.FormId)
+	exForm, err := store.Database.FormGet(ctx.FormId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -472,13 +472,13 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 	}
 	if !isLongTerm {
 		// store form
-		err = store.Chatbot.FormSet(ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
+		err = store.Database.FormSet(ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
 		if err != nil {
 			return nil, err
 		}
 
 		// store page state
-		err = store.Chatbot.PageSet(ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
+		err = store.Database.PageSet(ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
 		if err != nil {
 			return nil, err
 		}
@@ -539,7 +539,7 @@ func AppURL(ctx types.Context, name string, param types.KV) string {
 
 func RunAction(actionRules []action.Rule, ctx types.Context, option string) (types.MsgPayload, error) {
 	// check action
-	exAction, err := store.Chatbot.ActionGet(ctx.RcptTo, ctx.SeqId)
+	exAction, err := store.Database.ActionGet(ctx.RcptTo, ctx.SeqId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -568,7 +568,7 @@ func RunAction(actionRules []action.Rule, ctx types.Context, option string) (typ
 		state = model.ActionStateLongTerm
 	}
 	// store action
-	err = store.Chatbot.ActionSet(ctx.RcptTo, ctx.SeqId, model.Action{UID: ctx.AsUser.String(), Value: option, State: state})
+	err = store.Database.ActionSet(ctx.RcptTo, ctx.SeqId, model.Action{UID: ctx.AsUser.String(), Value: option, State: state})
 	if err != nil {
 		return nil, err
 	}
@@ -680,7 +680,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	// store form
-	err = store.Chatbot.FormSet(formId, model.Form{
+	err = store.Database.FormSet(formId, model.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
@@ -695,7 +695,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	// store page
-	err = store.Chatbot.PageSet(formId, model.Page{
+	err = store.Database.PageSet(formId, model.Page{
 		PageID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
@@ -716,7 +716,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	flag := types.Id()
-	return flag, store.Chatbot.ParameterSet(flag, params, expiredAt)
+	return flag, store.Database.ParameterSet(flag, params, expiredAt)
 }
 
 func ActionMsg(_ types.Context, id string) types.MsgPayload {
@@ -762,7 +762,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 	}
 
 	// store page
-	err = store.Chatbot.PageSet(pageId, model.Page{
+	err = store.Database.PageSet(pageId, model.Page{
 		PageID: pageId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
@@ -815,7 +815,7 @@ func SessionMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
 }
 
 func SessionStart(ctx types.Context, initValues types.KV) error {
-	sess, err := store.Chatbot.SessionGet(ctx.AsUser, ctx.Original)
+	sess, err := store.Database.SessionGet(ctx.AsUser, ctx.Original)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
@@ -823,7 +823,7 @@ func SessionStart(ctx types.Context, initValues types.KV) error {
 		return errors.New("already a session started")
 	}
 	var values = types.KV{"val": nil}
-	_ = store.Chatbot.SessionCreate(model.Session{
+	_ = store.Database.SessionCreate(model.Session{
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Original,
 		RuleID: ctx.SessionRuleId,
@@ -835,7 +835,7 @@ func SessionStart(ctx types.Context, initValues types.KV) error {
 }
 
 func SessionDone(ctx types.Context) {
-	_ = store.Chatbot.SessionState(ctx.AsUser, ctx.Original, model.SessionDone)
+	_ = store.Database.SessionState(ctx.AsUser, ctx.Original, model.SessionDone)
 }
 
 func CreateShortUrl(text string) (string, error) {
@@ -843,7 +843,7 @@ func CreateShortUrl(text string) (string, error) {
 		return "", errors.New("error url")
 	}
 
-	url, err := store.Chatbot.UrlGetByUrl(text)
+	url, err := store.Database.UrlGetByUrl(text)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", err
 	}
@@ -851,7 +851,7 @@ func CreateShortUrl(text string) (string, error) {
 		return fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag), nil
 	}
 	flag := types.Id()
-	err = store.Chatbot.UrlCreate(model.Url{
+	err = store.Database.UrlCreate(model.Url{
 		Flag:  flag,
 		URL:   text,
 		State: model.UrlStateEnable,
@@ -895,7 +895,7 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 		return types.TextMsg{Text: "error instruct msg type"}
 	}
 
-	_, err := store.Chatbot.CreateInstruct(&model.Instruct{
+	_, err := store.Database.CreateInstruct(&model.Instruct{
 		UID:      ctx.AsUser.String(),
 		No:       msg.No,
 		Object:   msg.Object,
@@ -944,7 +944,7 @@ func SettingCovertForm(id string, rule setting.Rule) form.Rule {
 
 	result.Handler = func(ctx types.Context, values types.KV) types.MsgPayload {
 		for key, value := range values {
-			err := store.Chatbot.ConfigSet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key), types.KV{
+			err := store.Database.ConfigSet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key), types.KV{
 				"value": value,
 			})
 			if err != nil {
@@ -958,7 +958,7 @@ func SettingCovertForm(id string, rule setting.Rule) form.Rule {
 }
 
 func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {
-	return store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key))
+	return store.Database.ConfigGet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key))
 }
 
 func SettingMsg(ctx types.Context, id string) types.MsgPayload {
@@ -971,14 +971,14 @@ const (
 )
 
 func Behavior(uid types.Uid, flag string, number int) {
-	b, err := store.Chatbot.BehaviorGet(uid, flag)
+	b, err := store.Database.BehaviorGet(uid, flag)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return
 	}
 	if b.ID > 0 {
-		_ = store.Chatbot.BehaviorIncrease(uid, flag, number)
+		_ = store.Database.BehaviorIncrease(uid, flag, number)
 	} else {
-		_ = store.Chatbot.BehaviorSet(model.Behavior{
+		_ = store.Database.BehaviorSet(model.Behavior{
 			UID:    uid.String(),
 			Flag:   flag,
 			Count_: int32(number),
@@ -1026,7 +1026,7 @@ func ServeFile(rw http.ResponseWriter, req *http.Request, dist embed.FS, dir str
 			return
 		}
 
-		param, err := store.Chatbot.ParameterGet(flag)
+		param, err := store.Database.ParameterGet(flag)
 		if err != nil {
 			rw.WriteHeader(http.StatusForbidden)
 			return

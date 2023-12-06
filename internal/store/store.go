@@ -306,9 +306,9 @@ type Adapter interface {
 	GetChannels() ([]*model.Channel, error)
 }
 
-var Chatbot Adapter
+var Database Adapter
 
 func Init() {
 	Store = storeObj{}
-	Chatbot = availableAdapters["mysql"] // default use mysql
+	Database = availableAdapters["mysql"] // default use mysql
 }

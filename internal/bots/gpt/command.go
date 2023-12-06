@@ -23,7 +23,7 @@ var commandRules = []command.Rule{
 		Help:   `get api key`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get
-			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
+			v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 			if err != nil {
 				flog.Error(err)
 			}
@@ -39,14 +39,14 @@ var commandRules = []command.Rule{
 			key, _ := tokens[1].Value.String()
 
 			// get
-			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
+			v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, ApiKey)
 			if err != nil {
 				flog.Error(err)
 			}
 			old, _ := v.String("value")
 
 			// set
-			err = store.Chatbot.ConfigSet(ctx.AsUser, ctx.Original, ApiKey, types.KV{
+			err = store.Database.ConfigSet(ctx.AsUser, ctx.Original, ApiKey, types.KV{
 				"value": key,
 			})
 			if err != nil {

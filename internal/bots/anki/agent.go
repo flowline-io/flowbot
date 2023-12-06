@@ -30,7 +30,7 @@ var agentRules = []agent.Rule{
 			if html == "" {
 				return nil
 			}
-			_ = store.Chatbot.DataSet(ctx.AsUser, ctx.Original, "getCollectionStatsHTML", types.KV{
+			_ = store.Database.DataSet(ctx.AsUser, ctx.Original, "getCollectionStatsHTML", types.KV{
 				"value": html,
 			})
 			return nil
@@ -50,7 +50,7 @@ var agentRules = []agent.Rule{
 				return nil
 			}
 			num, _ := j.Int64("num")
-			_ = store.Chatbot.DataSet(ctx.AsUser, ctx.Original, "getNumCardsReviewedToday", types.KV{
+			_ = store.Database.DataSet(ctx.AsUser, ctx.Original, "getNumCardsReviewedToday", types.KV{
 				"value": num,
 			})
 			return nil

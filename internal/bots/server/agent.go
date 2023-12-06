@@ -26,7 +26,7 @@ var agentRules = []agent.Rule{
 			// alert
 
 			// store
-			err = store.Chatbot.DataSet(ctx.AsUser, ctx.Original, "stats", j)
+			err = store.Database.DataSet(ctx.AsUser, ctx.Original, "stats", j)
 			if err != nil {
 				flog.Error(err)
 				return nil

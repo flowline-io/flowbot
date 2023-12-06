@@ -79,7 +79,7 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 		return "", 0, err
 	}
 
-	if err = store.Chatbot.FileStartUpload(fdef); err != nil {
+	if err = store.Database.FileStartUpload(fdef); err != nil {
 		_ = outfile.Close()
 		_ = os.Remove(fdef.Location)
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
@@ -147,7 +147,7 @@ func (fh *fshandler) GetIdFromUrl(url string) types.Uid {
 
 // getFileRecord given file ID reads file record from the database.
 func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
-	fd, err := store.Chatbot.FileGet(fid.String())
+	fd, err := store.Database.FileGet(fid.String())
 	if err != nil {
 		return nil, err
 	}

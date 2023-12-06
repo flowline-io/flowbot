@@ -30,7 +30,7 @@ var pageRules = []page.Rule{
 	{
 		Id: devPageId,
 		UI: func(ctx types.Context, flag string) (*types.UI, error) {
-			p, err := store.Chatbot.ParameterGet(flag)
+			p, err := store.Database.ParameterGet(flag)
 			if err != nil {
 				return nil, err
 			}

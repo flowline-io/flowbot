@@ -25,18 +25,18 @@ var pageRules = []page.Rule{
 	{
 		Id: okrPageId,
 		UI: func(ctx types.Context, flag string) (*types.UI, error) {
-			p, err := store.Chatbot.ParameterGet(flag)
+			p, err := store.Database.ParameterGet(flag)
 			if err != nil {
 				return nil, err
 			}
 
 			sequence, _ := types.KV(p.Params).Int64("sequence")
-			objective, err := store.Chatbot.GetObjectiveBySequence(ctx.AsUser, ctx.Original, sequence)
+			objective, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Original, sequence)
 			if err != nil {
 				return nil, err
 			}
 
-			keyResult, err := store.Chatbot.ListKeyResultsByObjectiveId(int64(objective.ID))
+			keyResult, err := store.Database.ListKeyResultsByObjectiveId(int64(objective.ID))
 			if err != nil {
 				return nil, err
 			}

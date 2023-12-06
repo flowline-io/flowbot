@@ -53,14 +53,14 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateJobState(job.ID, model.JobRunning)
+				err := store.Database.UpdateJobState(job.ID, model.JobRunning)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
 					return
 				}
 
-				d, err := store.Chatbot.GetDag(job.DagID)
+				d, err := store.Database.GetDag(job.DagID)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
@@ -93,7 +93,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					}
 					steps = append(steps, m)
 				}
-				err = store.Chatbot.CreateSteps(steps)
+				err = store.Database.CreateSteps(steps)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
@@ -101,7 +101,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				}
 
 				// running count
-				err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
+				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -155,7 +155,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateStepState(step.ID, model.StepRunning)
+				err := store.Database.UpdateStepState(step.ID, model.StepRunning)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
@@ -198,7 +198,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				}
 
 				// update output
-				err = store.Chatbot.UpdateStepOutput(step.ID, output)
+				err = store.Database.UpdateStepOutput(step.ID, output)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -215,7 +215,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Chatbot.UpdateStepState(step.ID, model.StepFinished)
+				err := store.Database.UpdateStepState(step.ID, model.StepFinished)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
@@ -245,7 +245,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err = store.Chatbot.UpdateStep(step.ID, &model.Step{
+				err = store.Database.UpdateStep(step.ID, &model.Step{
 					State: model.StepFailed,
 					Error: err.Error(),
 				})

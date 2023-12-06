@@ -25,7 +25,7 @@ var commandRules = []command.Rule{
 		Help:   `List webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			prefix := "webhook:"
-			items, err := store.Chatbot.DataList(ctx.AsUser, ctx.Original, types.DataFilter{Prefix: &prefix})
+			items, err := store.Database.DataList(ctx.AsUser, ctx.Original, types.DataFilter{Prefix: &prefix})
 			if err != nil {
 				return nil
 			}
@@ -53,7 +53,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "error parameter"}
 			}
 
-			err = store.Chatbot.DataSet(ctx.AsUser, ctx.Original,
+			err = store.Database.DataSet(ctx.AsUser, ctx.Original,
 				fmt.Sprintf("webhook:%s", flag), types.KV{
 					"value": "",
 				})
@@ -70,13 +70,13 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()
 
-			err := store.Chatbot.ParameterDelete(flag)
+			err := store.Database.ParameterDelete(flag)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed"}
 			}
 
-			err = store.Chatbot.DataDelete(ctx.AsUser, ctx.Original, fmt.Sprintf("webhook:%s", flag))
+			err = store.Database.DataDelete(ctx.AsUser, ctx.Original, fmt.Sprintf("webhook:%s", flag))
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed"}

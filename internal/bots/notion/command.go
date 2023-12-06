@@ -32,7 +32,7 @@ var commandRules = []command.Rule{
 			query, _ := tokens[1].Value.String()
 
 			// token value
-			j, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, "token")
+			j, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, "token")
 			if err != nil {
 				return nil
 			}

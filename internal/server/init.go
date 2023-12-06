@@ -448,18 +448,18 @@ func initializeChannels() error {
 		if handler.Enable {
 			state = model.ChannelActive
 		}
-		channel, _ := store.Chatbot.GetChannelByName(name)
+		channel, _ := store.Database.GetChannelByName(name)
 		if channel == nil {
 			channel = &model.Channel{
 				Name:  name,
 				State: state,
 			}
-			if _, err := store.Chatbot.CreateChannel(channel); err != nil {
+			if _, err := store.Database.CreateChannel(channel); err != nil {
 				flog.Error(err)
 			}
 		} else {
 			channel.State = state
-			err := store.Chatbot.UpdateChannel(channel)
+			err := store.Database.UpdateChannel(channel)
 			if err != nil {
 				flog.Error(err)
 			}
@@ -467,14 +467,14 @@ func initializeChannels() error {
 	}
 
 	// inactive channels
-	list, err := store.Chatbot.GetChannels()
+	list, err := store.Database.GetChannels()
 	if err != nil {
 		flog.Error(err)
 	}
 	for _, channel := range list {
 		if !registerChannels.Has(channel.Name) {
 			channel.State = model.ChannelInactive
-			if err := store.Chatbot.UpdateChannel(channel); err != nil {
+			if err := store.Database.UpdateChannel(channel); err != nil {
 				flog.Error(err)
 			}
 		}
@@ -593,18 +593,18 @@ func initializeBot() {
 		if handler.IsReady() {
 			state = model.BotActive
 		}
-		bot, _ := store.Chatbot.GetBotByName(name)
+		bot, _ := store.Database.GetBotByName(name)
 		if bot == nil {
 			bot = &model.Bot{
 				Name:  name,
 				State: state,
 			}
-			if _, err := store.Chatbot.CreateBot(bot); err != nil {
+			if _, err := store.Database.CreateBot(bot); err != nil {
 				flog.Error(err)
 			}
 		} else {
 			bot.State = state
-			err := store.Chatbot.UpdateBot(bot)
+			err := store.Database.UpdateBot(bot)
 			if err != nil {
 				flog.Error(err)
 			}
@@ -612,14 +612,14 @@ func initializeBot() {
 	}
 
 	// inactive bot
-	list, err := store.Chatbot.GetBots()
+	list, err := store.Database.GetBots()
 	if err != nil {
 		flog.Error(err)
 	}
 	for _, bot := range list {
 		if !registerBots.Has(bot.Name) {
 			bot.State = model.BotInactive
-			if err := store.Chatbot.UpdateBot(bot); err != nil {
+			if err := store.Database.UpdateBot(bot); err != nil {
 				flog.Error(err)
 			}
 		}

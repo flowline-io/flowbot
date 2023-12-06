@@ -28,7 +28,7 @@ var commandRules = []command.Rule{
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -62,7 +62,7 @@ var commandRules = []command.Rule{
 		Define: "list",
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			oauth, err := store.Chatbot.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}

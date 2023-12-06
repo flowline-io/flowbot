@@ -214,7 +214,7 @@ func (ah *awshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, i
 
 	uploader := s3manager.NewUploaderWithClient(ah.svc)
 
-	if err = store.Chatbot.FileStartUpload(fdef); err != nil {
+	if err = store.Database.FileStartUpload(fdef); err != nil {
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, err
 	}
@@ -268,7 +268,7 @@ func (ah *awshandler) GetIdFromUrl(url string) types.Uid {
 
 // getFileRecord given file ID reads file record from the database.
 func (ah *awshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
-	fd, err := store.Chatbot.FileGet(fid.String())
+	fd, err := store.Database.FileGet(fid.String())
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ var commandRules = []command.Rule{
 		Help:   `get uid`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get
-			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, "uid")
+			v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, "uid")
 			if err != nil {
 				flog.Error(err)
 			}
@@ -38,14 +38,14 @@ var commandRules = []command.Rule{
 			uid, _ := tokens[1].Value.Int64()
 
 			// get
-			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, "uid")
+			v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, "uid")
 			if err != nil {
 				flog.Error(err)
 			}
 			old, _ := v.Int64("value")
 
 			// set
-			err = store.Chatbot.ConfigSet(ctx.AsUser, ctx.Original, "uid", types.KV{
+			err = store.Database.ConfigSet(ctx.AsUser, ctx.Original, "uid", types.KV{
 				"value": uid,
 			})
 			if err != nil {
@@ -60,7 +60,7 @@ var commandRules = []command.Rule{
 		Help:   `genshin profile`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get
-			v, err := store.Chatbot.ConfigGet(ctx.AsUser, ctx.Original, "uid")
+			v, err := store.Database.ConfigGet(ctx.AsUser, ctx.Original, "uid")
 			if err != nil {
 				flog.Error(err)
 			}

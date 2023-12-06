@@ -66,7 +66,7 @@ var commandRules = []command.Rule{
 		Define: "server stats",
 		Help:   `Server stats`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			data, err := store.Chatbot.DataGet(ctx.AsUser, ctx.Original, "stats")
+			data, err := store.Database.DataGet(ctx.AsUser, ctx.Original, "stats")
 			if err != nil {
 				return types.TextMsg{Text: "Empty server stats"}
 			}

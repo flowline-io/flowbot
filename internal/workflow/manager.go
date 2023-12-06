@@ -38,7 +38,7 @@ func (m *Manager) Shutdown() {
 }
 
 func (m *Manager) pushReadyJob() {
-	list, err := store.Chatbot.GetJobsByState(model.JobReady)
+	list, err := store.Database.GetJobsByState(model.JobReady)
 	if err != nil {
 		flog.Error(err)
 		return
@@ -55,7 +55,7 @@ func (m *Manager) pushReadyJob() {
 			flog.Error(err)
 			continue
 		}
-		err = store.Chatbot.UpdateJobState(job.ID, model.JobStart)
+		err = store.Database.UpdateJobState(job.ID, model.JobStart)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -64,13 +64,13 @@ func (m *Manager) pushReadyJob() {
 }
 
 func (m *Manager) checkJob() {
-	list, err := store.Chatbot.GetJobsByState(model.JobRunning)
+	list, err := store.Database.GetJobsByState(model.JobRunning)
 	if err != nil {
 		flog.Error(err)
 		return
 	}
 	for _, job := range list {
-		steps, err := store.Chatbot.GetStepsByJobId(job.ID)
+		steps, err := store.Database.GetStepsByJobId(job.ID)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -106,36 +106,36 @@ func (m *Manager) checkJob() {
 			continue
 		}
 		if allFinished {
-			err = store.Chatbot.UpdateJobState(job.ID, model.JobFinished)
+			err = store.Database.UpdateJobState(job.ID, model.JobFinished)
 			if err != nil {
 				flog.Error(err)
 			}
 			// successful count
-			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 1, 0, -1, 0)
+			err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 1, 0, -1, 0)
 			if err != nil {
 				flog.Error(err)
 			}
 			continue
 		}
 		if failed {
-			err = store.Chatbot.UpdateJobState(job.ID, model.JobFailed)
+			err = store.Database.UpdateJobState(job.ID, model.JobFailed)
 			if err != nil {
 				flog.Error(err)
 			}
 			// failed count
-			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 1, -1, 0)
+			err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 1, -1, 0)
 			if err != nil {
 				flog.Error(err)
 			}
 			continue
 		}
 		if canceled {
-			err = store.Chatbot.UpdateJobState(job.ID, model.JobCanceled)
+			err = store.Database.UpdateJobState(job.ID, model.JobCanceled)
 			if err != nil {
 				flog.Error(err)
 			}
 			// canceled count
-			err = store.Chatbot.IncreaseWorkflowCount(job.WorkflowID, 0, 0, -1, 1)
+			err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, -1, 1)
 			if err != nil {
 				flog.Error(err)
 			}

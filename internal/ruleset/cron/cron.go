@@ -96,7 +96,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 				// botUid, _, _, _, _ := serverStore.Users.GetAuthUniqueRecord("basic", fmt.Sprintf("%s_bot", r.Type))
 
 				// all normal users
-				users, err := store.Chatbot.GetUsers()
+				users, err := store.Database.GetUsers()
 				if err != nil {
 					flog.Error(err)
 					return nil
@@ -111,7 +111,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					topic := "" // fixme
 
 					// get oauth token
-					oauth, err := store.Chatbot.OAuthGet(uid, topic, r.Type)
+					oauth, err := store.Database.OAuthGet(uid, topic, r.Type)
 					if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 						continue
 					}

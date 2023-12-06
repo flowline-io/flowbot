@@ -91,7 +91,7 @@ func Authorize(auth bool, handler fiber.Handler) fiber.Handler {
 			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 		}
 		accessToken := GetAccessToken(&r)
-		p, err := store.Chatbot.ParameterGet(accessToken)
+		p, err := store.Database.ParameterGet(accessToken)
 		if err != nil {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 		}
@@ -156,7 +156,7 @@ func GetAccessToken(req *http.Request) string {
 
 // CheckAccessToken check access token valid
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
-	p, err := store.Chatbot.ParameterGet(accessToken)
+	p, err := store.Database.ParameterGet(accessToken)
 	if err != nil {
 		return
 	}

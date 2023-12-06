@@ -28,7 +28,7 @@ var editorTemplate string
 func editor(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
-	p, err := store.Chatbot.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
 		return route.ErrorResponse(ctx, "flag error")
 	}
@@ -75,7 +75,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 
-	p, err := store.Chatbot.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}

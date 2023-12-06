@@ -105,7 +105,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
-	p, err := store.Chatbot.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
@@ -129,7 +129,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 	// store
 	extra := types.KV{}
 	_ = extra.Scan(tk["extra"])
-	err = store.Chatbot.OAuthSet(model.OAuth{
+	err = store.Database.OAuthSet(model.OAuth{
 		UID:   uid,
 		Topic: topic,
 		Name:  name,
@@ -147,7 +147,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 func getPage(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	p, err := store.Chatbot.PageGet(id)
+	p, err := store.Database.PageGet(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
 	}
@@ -160,7 +160,7 @@ func getPage(ctx *fiber.Ctx) error {
 	var comp app.UI
 	switch p.Type {
 	case model.PageForm:
-		f, _ := store.Chatbot.FormGet(p.PageID)
+		f, _ := store.Database.FormGet(p.PageID)
 		comp = page.RenderForm(p, f)
 	case model.PageTable:
 		comp = page.RenderTable(p)
@@ -212,7 +212,7 @@ func renderPage(ctx *fiber.Ctx) error {
 	pageRuleId := ctx.Params("id")
 	flag := ctx.Params("flag")
 
-	p, err := store.Chatbot.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
@@ -273,7 +273,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	//topicUid := types.ParseUserId(uid2)
 	topic := "" // fixme
 
-	formData, err := store.Chatbot.FormGet(formId)
+	formData, err := store.Database.FormGet(formId)
 	if err != nil {
 		return
 	}
@@ -453,14 +453,14 @@ func urlRedirect(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url, err := store.Chatbot.UrlGetByFlag(flag)
+	url, err := store.Database.UrlGetByFlag(flag)
 	if err != nil {
 		errorResponse(rw, "error")
 		return
 	}
 
 	// view count
-	_ = store.Chatbot.UrlViewIncrease(flag)
+	_ = store.Database.UrlViewIncrease(flag)
 
 	// redirect
 	http.Redirect(rw, req, url.URL, http.StatusFound)

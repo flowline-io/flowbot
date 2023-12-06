@@ -27,7 +27,7 @@ var commandRules = []command.Rule{
 		Help:   `get access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
-			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
+			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -39,7 +39,7 @@ var commandRules = []command.Rule{
 				}
 				idValue = strings.ToLower(idValue)
 				// set token
-				err = store.Chatbot.ConfigSet(ctx.AsUser, "",
+				err = store.Database.ConfigSet(ctx.AsUser, "",
 					fmt.Sprintf("flowkit:%s:token", ctx.AsUser), types.KV{
 						"value": idValue,
 					})
@@ -49,7 +49,7 @@ var commandRules = []command.Rule{
 				}
 				data := types.KV{}
 				data["uid"] = ctx.AsUser.String()
-				err = store.Chatbot.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
+				err = store.Database.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
 				if err != nil {
 					flog.Error(err)
 					return types.TextMsg{Text: "set token error"}
@@ -64,7 +64,7 @@ var commandRules = []command.Rule{
 		Help:   `reset access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get old token
-			value, err := store.Chatbot.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
+			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -73,7 +73,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 			// expire old token
-			err = store.Chatbot.ParameterSet(idValue, types.KV{}, time.Now())
+			err = store.Database.ParameterSet(idValue, types.KV{}, time.Now())
 			if err != nil {
 				return nil
 			}
@@ -85,7 +85,7 @@ var commandRules = []command.Rule{
 			}
 			idValue = strings.ToLower(idValue)
 			// set token
-			err = store.Chatbot.ConfigSet(ctx.AsUser, "",
+			err = store.Database.ConfigSet(ctx.AsUser, "",
 				fmt.Sprintf("flowkit:%s:token", ctx.AsUser), types.KV{
 					"value": idValue,
 				})
@@ -95,7 +95,7 @@ var commandRules = []command.Rule{
 			}
 			data := types.KV{}
 			data["uid"] = ctx.AsUser.String()
-			err = store.Chatbot.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
+			err = store.Database.ParameterSet(idValue, data, time.Now().AddDate(1, 0, 0))
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "set token error"}

@@ -35,7 +35,7 @@ func (sched *Scheduler) Shutdown() {
 }
 
 func (sched *Scheduler) pushReadyStep() {
-	list, err := store.Chatbot.GetStepsByState(model.StepReady)
+	list, err := store.Database.GetStepsByState(model.StepReady)
 	if err != nil {
 		flog.Error(err)
 		return
@@ -52,7 +52,7 @@ func (sched *Scheduler) pushReadyStep() {
 			flog.Error(err)
 			continue
 		}
-		err = store.Chatbot.UpdateStepState(step.ID, model.StepStart)
+		err = store.Database.UpdateStepState(step.ID, model.StepStart)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -61,13 +61,13 @@ func (sched *Scheduler) pushReadyStep() {
 }
 
 func (sched *Scheduler) dependStep() {
-	list, err := store.Chatbot.GetStepsByState(model.StepCreated)
+	list, err := store.Database.GetStepsByState(model.StepCreated)
 	if err != nil {
 		flog.Error(err)
 		return
 	}
 	for _, step := range list {
-		dependSteps, err := store.Chatbot.GetStepsByDepend(step.JobID, step.Depend)
+		dependSteps, err := store.Database.GetStepsByDepend(step.JobID, step.Depend)
 		if err != nil {
 			flog.Error(err)
 			continue
@@ -82,7 +82,7 @@ func (sched *Scheduler) dependStep() {
 				// merge output
 				mergeOutput = mergeOutput.Merge(types.KV(dependStep.Output))
 			case model.StepFailed, model.StepCanceled, model.StepSkipped:
-				err = store.Chatbot.UpdateStepState(step.ID, dependStep.State)
+				err = store.Database.UpdateStepState(step.ID, dependStep.State)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -96,7 +96,7 @@ func (sched *Scheduler) dependStep() {
 				flog.Debug("step %d depend steps: %+v", step.ID, dependStep)
 			}
 			flog.Debug("all depend step finished for step %d output: %+v", step.ID, mergeOutput)
-			err = store.Chatbot.UpdateStep(step.ID, &model.Step{
+			err = store.Database.UpdateStep(step.ID, &model.Step{
 				Input: model.JSON(mergeOutput),
 				State: model.StepReady,
 			})

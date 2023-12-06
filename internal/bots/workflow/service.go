@@ -67,7 +67,7 @@ func workflowList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
-	list, err := store.Chatbot.ListWorkflows(uid, topic)
+	list, err := store.Database.ListWorkflows(uid, topic)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -86,7 +86,7 @@ func workflowList(ctx *fiber.Ctx) error {
 func workflowDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	item, err := store.Chatbot.GetWorkflow(id)
+	item, err := store.Database.GetWorkflow(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -114,7 +114,7 @@ func workflowCreate(ctx *fiber.Ctx) error {
 
 	item.UID = uid.String()
 	item.Topic = topic
-	_, err = store.Chatbot.CreateWorkflow(item, nil, nil)
+	_, err = store.Database.CreateWorkflow(item, nil, nil)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -144,7 +144,7 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 	item.UID = uid.String()
 	item.Topic = topic
 	item.ID = id
-	err = store.Chatbot.UpdateWorkflow(item)
+	err = store.Database.UpdateWorkflow(item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -163,7 +163,7 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 func workflowDelete(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	err := store.Chatbot.DeleteWorkflow(id)
+	err := store.Database.DeleteWorkflow(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -182,7 +182,7 @@ func workflowDelete(ctx *fiber.Ctx) error {
 func workflowTriggerList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	item, err := store.Chatbot.GetWorkflow(id)
+	item, err := store.Database.GetWorkflow(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -213,7 +213,7 @@ func workflowTriggerCreate(ctx *fiber.Ctx) error {
 	item.UID = uid.String()
 	item.Topic = topic
 	item.WorkflowID = id
-	_, err = store.Chatbot.CreateWorkflowTrigger(item)
+	_, err = store.Database.CreateWorkflowTrigger(item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -244,7 +244,7 @@ func workflowTriggerUpdate(ctx *fiber.Ctx) error {
 	item.UID = uid.String()
 	item.Topic = topic
 	item.ID = id
-	err = store.Chatbot.UpdateWorkflowTrigger(item)
+	err = store.Database.UpdateWorkflowTrigger(item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -263,7 +263,7 @@ func workflowTriggerUpdate(ctx *fiber.Ctx) error {
 func workflowTriggerDelete(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	err := store.Chatbot.DeleteWorkflowTrigger(id)
+	err := store.Database.DeleteWorkflowTrigger(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -282,7 +282,7 @@ func workflowTriggerDelete(ctx *fiber.Ctx) error {
 func workflowJobList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	list, err := store.Chatbot.GetJobsByWorkflowId(id)
+	list, err := store.Database.GetJobsByWorkflowId(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -301,7 +301,7 @@ func workflowJobList(ctx *fiber.Ctx) error {
 func workflowJobDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	item, err := store.Chatbot.GetJob(id)
+	item, err := store.Database.GetJob(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -333,7 +333,7 @@ func workflowJobRerun(ctx *fiber.Ctx) error {
 func workflowDagDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
-	item, err := store.Chatbot.GetWorkflow(id)
+	item, err := store.Database.GetWorkflow(id)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
 	}
@@ -367,7 +367,7 @@ func workflowDagUpdate(ctx *fiber.Ctx) error {
 	item.UID = uid.String()
 	item.Topic = topic
 	item.ID = id
-	err = store.Chatbot.UpdateDag(item)
+	err = store.Database.UpdateDag(item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}

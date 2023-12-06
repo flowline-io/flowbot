@@ -30,7 +30,7 @@ var commandRules = []command.Rule{
 		Help:   `today detail`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			today := time.Now().Format("2006-01-02")
-			datas, err := store.Chatbot.DataList(ctx.AsUser, ctx.Original, types.DataFilter{Prefix: &today})
+			datas, err := store.Database.DataList(ctx.AsUser, ctx.Original, types.DataFilter{Prefix: &today})
 			if err != nil || len(datas) == 0 {
 				return types.TextMsg{Text: "Empty"}
 			}
@@ -61,7 +61,7 @@ var commandRules = []command.Rule{
 			today := time.Now().Format("2006-01-02")
 			key := fmt.Sprintf("%s:%s:%d", today, topic, time.Now().Unix())
 			var value = types.KV{"summary": summary}
-			err := store.Chatbot.DataSet(ctx.AsUser, ctx.Original, key, value)
+			err := store.Database.DataSet(ctx.AsUser, ctx.Original, key, value)
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}
@@ -75,7 +75,7 @@ var commandRules = []command.Rule{
 			topic, _ := tokens[1].Value.String()
 
 			start := time.Now().AddDate(-1, 0, 0)
-			datas, err := store.Chatbot.DataList(ctx.AsUser, ctx.Original, types.DataFilter{CreatedStart: &start})
+			datas, err := store.Database.DataList(ctx.AsUser, ctx.Original, types.DataFilter{CreatedStart: &start})
 			if err != nil || len(datas) == 0 {
 				return types.TextMsg{Text: "Empty"}
 			}

@@ -53,7 +53,7 @@ func (c *CronTaskManager) Shutdown() {
 type DatabaseProvider struct{}
 
 func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
-	list, err := store.Chatbot.ListWorkflowTriggerByType(model.TriggerCron)
+	list, err := store.Database.ListWorkflowTriggerByType(model.TriggerCron)
 	if err != nil {
 		return nil, err
 	}
