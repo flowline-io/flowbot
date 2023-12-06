@@ -23,6 +23,13 @@ func NewCronTaskManager() *CronTaskManager {
 		SyncInterval:               time.Minute,
 		SchedulerOpts: &asynq.SchedulerOpts{
 			PostEnqueueFunc: func(info *asynq.TaskInfo, err error) {
+				if err != nil {
+					flog.Error(err)
+					return
+				}
+				if info == nil {
+					return
+				}
 				flog.Info("CronTaskManager:  Enqueued task %s with payload %s with error %v",
 					info.ID, string(info.Payload), err)
 				err = HandleCronTask(context.Background(), asynq.NewTask(info.Type, info.Payload))
@@ -60,6 +67,9 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 
 	var configs []*asynq.PeriodicTaskConfig
 	for _, trigger := range list {
+		if trigger.State == model.WorkflowTriggerDisable {
+			continue
+		}
 		payload, err := json.Marshal(trigger)
 		if err != nil {
 			flog.Error(err)

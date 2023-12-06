@@ -201,7 +201,7 @@ const (
 	JobReady
 	JobStart
 	JobRunning
-	JobFinished
+	JobSucceeded
 	JobCanceled
 	JobFailed
 )
@@ -218,7 +218,7 @@ const (
 	StepReady
 	StepStart
 	StepRunning
-	StepFinished
+	StepSucceeded
 	StepFailed
 	StepCanceled
 	StepSkipped

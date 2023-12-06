@@ -36,6 +36,7 @@ require (
 	github.com/maxence-charriere/go-app/v9 v9.8.0
 	github.com/minio/minio-go/v7 v7.0.65
 	github.com/mmcdole/gofeed v1.2.1
+	github.com/montanaflynn/stats v0.7.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.3.0

@@ -78,7 +78,7 @@ func (sched *Scheduler) dependStep() {
 			switch dependStep.State {
 			case model.StepCreated, model.StepReady, model.StepStart, model.StepRunning:
 				allFinished = false
-			case model.StepFinished:
+			case model.StepSucceeded:
 				// merge output
 				mergeOutput = mergeOutput.Merge(types.KV(dependStep.Output))
 			case model.StepFailed, model.StepCanceled, model.StepSkipped:

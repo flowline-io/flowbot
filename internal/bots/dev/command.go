@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -17,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
+	"github.com/montanaflynn/stats"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
@@ -271,6 +273,63 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 			return types.TextMsg{Text: task.Result}
+		},
+	},
+	{
+		Define: "workflow stat",
+		Help:   `workflow job statisticians`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			jobs, err := store.Database.GetJobsByState(model.JobSucceeded)
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+			steps, err := store.Database.GetStepsByState(model.StepSucceeded)
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			jobElapsed := make([]float64, 0, len(jobs))
+			for _, job := range jobs {
+				if job.StartedAt == nil || job.EndedAt == nil {
+					continue
+				}
+				elapsed := job.EndedAt.Sub(*job.StartedAt).Seconds()
+				if elapsed < 0 {
+					continue
+				}
+				jobElapsed = append(jobElapsed, elapsed)
+			}
+
+			stepElapsed := make([]float64, 0, len(steps))
+			for _, step := range steps {
+				if step.StartedAt == nil || step.EndedAt == nil {
+					continue
+				}
+				elapsed := step.EndedAt.Sub(*step.StartedAt).Seconds()
+				if elapsed < 0 {
+					continue
+				}
+				stepElapsed = append(stepElapsed, elapsed)
+			}
+
+			str := strings.Builder{}
+			minVal, _ := stats.Min(jobElapsed)
+			medianVal, _ := stats.Median(jobElapsed)
+			maxVal, _ := stats.Max(jobElapsed)
+			avgVal, _ := stats.Mean(jobElapsed)
+			varVal, _ := stats.Variance(jobElapsed)
+			str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n", len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
+
+			minVal, _ = stats.Min(stepElapsed)
+			medianVal, _ = stats.Median(stepElapsed)
+			maxVal, _ = stats.Max(stepElapsed)
+			avgVal, _ = stats.Mean(stepElapsed)
+			varVal, _ = stats.Variance(stepElapsed)
+			str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n", len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
+
+			return types.TextMsg{Text: str.String()}
 		},
 	},
 }

@@ -23,8 +23,8 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 		initial = "start"
 	case model.JobRunning:
 		initial = "running"
-	case model.JobFinished:
-		initial = "finished"
+	case model.JobSucceeded:
+		initial = "succeeded"
 	case model.JobCanceled:
 		initial = "canceled"
 	case model.JobFailed:
@@ -35,7 +35,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 		fsm.Events{
 			{Name: "queue", Src: []string{"ready"}, Dst: "start"},
 			{Name: "run", Src: []string{"start"}, Dst: "running"},
-			{Name: "success", Src: []string{"running"}, Dst: "finished"},
+			{Name: "success", Src: []string{"running"}, Dst: "succeeded"},
 			{Name: "cancel", Src: []string{"running"}, Dst: "canceled"},
 			{Name: "error", Src: []string{"running"}, Dst: "failed"},
 		},
@@ -122,8 +122,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 		initial = "start"
 	case model.StepRunning:
 		initial = "running"
-	case model.StepFinished:
-		initial = "finished"
+	case model.StepSucceeded:
+		initial = "succeeded"
 	case model.StepCanceled:
 		initial = "canceled"
 	case model.StepFailed:
@@ -137,7 +137,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 			{Name: "bind", Src: []string{"created"}, Dst: "ready"},
 			{Name: "queue", Src: []string{"ready"}, Dst: "start"},
 			{Name: "run", Src: []string{"start"}, Dst: "running"},
-			{Name: "success", Src: []string{"running"}, Dst: "finished"},
+			{Name: "success", Src: []string{"running"}, Dst: "succeeded"},
 			{Name: "error", Src: []string{"running"}, Dst: "failed"},
 			{Name: "cancel", Src: []string{"running"}, Dst: "canceled"},
 			{Name: "skip", Src: []string{"running"}, Dst: "skipped"},
@@ -215,7 +215,7 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 
-				err := store.Database.UpdateStepState(step.ID, model.StepFinished)
+				err := store.Database.UpdateStepState(step.ID, model.StepSucceeded)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err

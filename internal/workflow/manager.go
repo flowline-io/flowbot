@@ -88,7 +88,7 @@ func (m *Manager) checkJob() {
 			case model.StepCreated, model.StepReady, model.StepStart, model.StepRunning:
 				keeping = true
 				allFinished = false
-			case model.StepFinished, model.StepSkipped:
+			case model.StepSucceeded, model.StepSkipped:
 				if step.EndedAt != nil && step.EndedAt.After(lastFinishedAt) {
 					lastFinishedAt = *step.EndedAt
 				}
@@ -106,7 +106,7 @@ func (m *Manager) checkJob() {
 			continue
 		}
 		if allFinished {
-			err = store.Database.UpdateJobState(job.ID, model.JobFinished)
+			err = store.Database.UpdateJobState(job.ID, model.JobSucceeded)
 			if err != nil {
 				flog.Error(err)
 			}
