@@ -60,11 +60,6 @@ Loop:
 			// Stop publishing statistics.
 			stats.Shutdown()
 
-			// Shutdown the hub. The hub will shutdown topics.
-			hubdone := make(chan bool)
-
-			// Wait for the hub to finish.
-			<-hubdone
 			cancel()
 
 			// Shutdown Extra
