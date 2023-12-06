@@ -5,9 +5,7 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-var AsynqLogger = &asynqLogger{
-	Level: asynq.DebugLevel,
-}
+var AsynqLogger = &asynqLogger{}
 
 type asynqLogger struct {
 	Level asynq.LogLevel
@@ -31,4 +29,21 @@ func (a *asynqLogger) Error(args ...interface{}) {
 
 func (a *asynqLogger) Fatal(args ...interface{}) {
 	l.Fatal().Caller(2).Msg(fmt.Sprint(args...))
+}
+
+func AsynqLogLevel(level string) asynq.LogLevel {
+	switch level {
+	case DebugLevel:
+		return asynq.DebugLevel
+	case InfoLevel:
+		return asynq.InfoLevel
+	case WarnLevel:
+		return asynq.WarnLevel
+	case ErrorLevel:
+		return asynq.ErrorLevel
+	case FatalLevel:
+		return asynq.FatalLevel
+	default:
+		return asynq.InfoLevel
+	}
 }

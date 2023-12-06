@@ -21,7 +21,7 @@ type Driver struct {
 func NewDriver() *Driver {
 	api := slack.New(
 		config.App.Platform.Slack.BotToken,
-		slack.OptionDebug(true),
+		slack.OptionDebug(config.App.Log.Level == flog.DebugLevel),
 		slack.OptionLog(flog.SlackLogger),
 		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
 	)
@@ -48,7 +48,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 
 	client := socketmode.New(
 		d.api,
-		socketmode.OptionDebug(true),
+		socketmode.OptionDebug(config.App.Log.Level == flog.DebugLevel),
 		socketmode.OptionLog(flog.SlackLogger),
 	)
 

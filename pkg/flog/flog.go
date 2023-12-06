@@ -12,7 +12,7 @@ import (
 
 var l zerolog.Logger
 
-func init() {
+func Init() {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	// json marshaling
@@ -39,6 +39,15 @@ func GetLogger() zerolog.Logger {
 	return l
 }
 
+const (
+	DebugLevel = "debug"
+	InfoLevel  = "info"
+	WarnLevel  = "warn"
+	ErrorLevel = "error"
+	FatalLevel = "fatal"
+	PanicLevel = "panic"
+)
+
 // SetLevel sets the global logging level based on the provided level.
 //
 // level: The logging level to set. Valid values are "debug", "info", "warn",
@@ -47,17 +56,17 @@ func GetLogger() zerolog.Logger {
 //	default level is set to "info".
 func SetLevel(level string) {
 	switch level {
-	case "debug":
+	case DebugLevel:
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	case "info":
+	case InfoLevel:
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	case "warn":
+	case WarnLevel:
 		zerolog.SetGlobalLevel(zerolog.WarnLevel)
-	case "error":
+	case ErrorLevel:
 		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-	case "fatal":
+	case FatalLevel:
 		zerolog.SetGlobalLevel(zerolog.FatalLevel)
-	case "panic":
+	case PanicLevel:
 		zerolog.SetGlobalLevel(zerolog.PanicLevel)
 	default:
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)

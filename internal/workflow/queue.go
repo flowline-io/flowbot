@@ -61,7 +61,7 @@ type Queue struct {
 func NewQueue() *Queue {
 	srv := asynq.NewServer(defaultRedisClientOpt(), asynq.Config{
 		Logger:      flog.AsynqLogger,
-		LogLevel:    flog.AsynqLogger.Level,
+		LogLevel:    flog.AsynqLogLevel(config.App.Log.Level),
 		Concurrency: runtime.NumCPU() * 2,
 		Queues: map[string]int{
 			jobQueueName:    jobPriority,

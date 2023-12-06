@@ -64,6 +64,12 @@ var (
 func initialize() error {
 	var err error
 
+	// init log
+	if err = initializeLog(); err != nil {
+		return err
+	}
+	flog.Info("initialize Log ok")
+
 	// init timezone
 	if err = initializeTimezone(); err != nil {
 		return err
@@ -145,6 +151,11 @@ func initialize() error {
 	return nil
 }
 
+func initializeLog() error {
+	flog.Init()
+	return nil
+}
+
 func initializeTimezone() error {
 	_, err := time.LoadLocation("Local")
 	if err != nil {
@@ -218,6 +229,9 @@ func initializeConfig() error {
 		}
 	}
 	flog.Debug("API served from root URL path '%s'", config.App.ApiPath)
+
+	// log level
+	flog.SetLevel(config.App.Log.Level)
 
 	return nil
 }

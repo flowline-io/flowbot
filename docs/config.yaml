@@ -70,7 +70,7 @@ redis:
   password:
 
 log:
-  level: info
+  level: info # debug, info, warn, error, fatal, panic
 
 engine:
   type: 'docker'
