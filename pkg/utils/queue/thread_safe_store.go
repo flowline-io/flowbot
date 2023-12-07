@@ -22,17 +22,17 @@ import (
 // to a re-index. So it's not a good idea to directly modify the objects returned by
 // Get/List, in general.
 type ThreadSafeStore interface {
-	Add(key string, obj interface{})
-	Update(key string, obj interface{})
+	Add(key string, obj any)
+	Update(key string, obj any)
 	Delete(key string)
-	Get(key string) (item interface{}, exists bool)
-	List() []interface{}
+	Get(key string) (item any, exists bool)
+	List() []any
 	ListKeys() []string
-	Replace(map[string]interface{}, string)
-	Index(indexName string, obj interface{}) ([]interface{}, error)
+	Replace(map[string]any, string)
+	Index(indexName string, obj any) ([]any, error)
 	IndexKeys(indexName, indexedValue string) ([]string, error)
 	ListIndexFuncValues(name string) []string
-	ByIndex(indexName, indexedValue string) ([]interface{}, error)
+	ByIndex(indexName, indexedValue string) ([]any, error)
 	GetIndexers() Indexers
 
 	// AddIndexers adds more indexers to this store.  If you call this after you already have data
@@ -45,7 +45,7 @@ type ThreadSafeStore interface {
 // threadSafeMap implements ThreadSafeStore
 type threadSafeMap struct {
 	lock  sync.RWMutex
-	items map[string]interface{}
+	items map[string]any
 
 	// indexers maps a name to an IndexFunc
 	indexers Indexers
@@ -53,11 +53,11 @@ type threadSafeMap struct {
 	indices Indices
 }
 
-func (c *threadSafeMap) Add(key string, obj interface{}) {
+func (c *threadSafeMap) Add(key string, obj any) {
 	c.Update(key, obj)
 }
 
-func (c *threadSafeMap) Update(key string, obj interface{}) {
+func (c *threadSafeMap) Update(key string, obj any) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	oldObject := c.items[key]
@@ -74,17 +74,17 @@ func (c *threadSafeMap) Delete(key string) {
 	}
 }
 
-func (c *threadSafeMap) Get(key string) (item interface{}, exists bool) {
+func (c *threadSafeMap) Get(key string) (item any, exists bool) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	item, exists = c.items[key]
 	return item, exists
 }
 
-func (c *threadSafeMap) List() []interface{} {
+func (c *threadSafeMap) List() []any {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	list := make([]interface{}, 0, len(c.items))
+	list := make([]any, 0, len(c.items))
 	for _, item := range c.items {
 		list = append(list, item)
 	}
@@ -103,7 +103,7 @@ func (c *threadSafeMap) ListKeys() []string {
 	return list
 }
 
-func (c *threadSafeMap) Replace(items map[string]interface{}, resourceVersion string) {
+func (c *threadSafeMap) Replace(items map[string]any, resourceVersion string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.items = items
@@ -117,7 +117,7 @@ func (c *threadSafeMap) Replace(items map[string]interface{}, resourceVersion st
 
 // Index returns a list of items that match the given object on the index function.
 // Index is thread-safe so long as you treat all items as immutable.
-func (c *threadSafeMap) Index(indexName string, obj interface{}) ([]interface{}, error) {
+func (c *threadSafeMap) Index(indexName string, obj any) ([]any, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
@@ -148,7 +148,7 @@ func (c *threadSafeMap) Index(indexName string, obj interface{}) ([]interface{},
 		}
 	}
 
-	list := make([]interface{}, 0, storeKeySet.Len())
+	list := make([]any, 0, storeKeySet.Len())
 	for storeKey := range storeKeySet {
 		list = append(list, c.items[storeKey])
 	}
@@ -156,7 +156,7 @@ func (c *threadSafeMap) Index(indexName string, obj interface{}) ([]interface{},
 }
 
 // ByIndex returns a list of the items whose indexed values in the given index include the given indexed value
-func (c *threadSafeMap) ByIndex(indexName, indexedValue string) ([]interface{}, error) {
+func (c *threadSafeMap) ByIndex(indexName, indexedValue string) ([]any, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
@@ -168,7 +168,7 @@ func (c *threadSafeMap) ByIndex(indexName, indexedValue string) ([]interface{}, 
 	index := c.indices[indexName]
 
 	set := index[indexedValue]
-	list := make([]interface{}, 0, set.Len())
+	list := make([]any, 0, set.Len())
 	for key := range set {
 		list = append(list, c.items[key])
 	}
@@ -235,7 +235,7 @@ func (c *threadSafeMap) AddIndexers(newIndexers Indexers) error {
 // - for update you must provide both the oldObj and the newObj
 // - for delete you must provide only the oldObj
 // updateIndices must be called from a function that already has a lock on the cache
-func (c *threadSafeMap) updateIndices(oldObj interface{}, newObj interface{}, key string) {
+func (c *threadSafeMap) updateIndices(oldObj any, newObj any, key string) {
 	var oldIndexValues, indexValues []string
 	var err error
 	for name, indexFunc := range c.indexers {
@@ -308,7 +308,7 @@ func (c *threadSafeMap) Resync() error {
 // NewThreadSafeStore creates a new instance of ThreadSafeStore.
 func NewThreadSafeStore(indexers Indexers, indices Indices) ThreadSafeStore {
 	return &threadSafeMap{
-		items:    map[string]interface{}{},
+		items:    map[string]any{},
 		indexers: indexers,
 		indices:  indices,
 	}

@@ -16,7 +16,7 @@ type Indexer interface {
 	// Index returns the stored objects whose set of indexed values
 	// intersects the set of indexed values of the given object, for
 	// the named index
-	Index(indexName string, obj interface{}) ([]interface{}, error)
+	Index(indexName string, obj any) ([]any, error)
 	// IndexKeys returns the storage keys of the stored objects whose
 	// set of indexed values for the named index includes the given
 	// indexed value
@@ -25,7 +25,7 @@ type Indexer interface {
 	ListIndexFuncValues(indexName string) []string
 	// ByIndex returns the stored objects whose set of indexed values
 	// for the named index includes the given indexed value
-	ByIndex(indexName, indexedValue string) ([]interface{}, error)
+	ByIndex(indexName, indexedValue string) ([]any, error)
 	// GetIndexers return the indexers
 	GetIndexers() Indexers
 
@@ -35,7 +35,7 @@ type Indexer interface {
 }
 
 // IndexFunc knows how to compute the set of indexed values for an object.
-type IndexFunc func(obj interface{}) ([]string, error)
+type IndexFunc func(obj any) ([]string, error)
 
 // Index maps the indexed value to a set of keys in the store that match on that value
 type Index map[string]sets.String

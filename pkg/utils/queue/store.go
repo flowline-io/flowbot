@@ -20,30 +20,30 @@ import (
 type Store interface {
 
 	// Add adds the given object to the accumulator associated with the given object's key
-	Add(obj interface{}) error
+	Add(obj any) error
 
 	// Update updates the given object in the accumulator associated with the given object's key
-	Update(obj interface{}) error
+	Update(obj any) error
 
 	// Delete deletes the given object from the accumulator associated with the given object's key
-	Delete(obj interface{}) error
+	Delete(obj any) error
 
 	// List returns a list of all the currently non-empty accumulators
-	List() []interface{}
+	List() []any
 
 	// ListKeys returns a list of all the keys currently associated with non-empty accumulators
 	ListKeys() []string
 
 	// Get returns the accumulator associated with the given object's key
-	Get(obj interface{}) (item interface{}, exists bool, err error)
+	Get(obj any) (item any, exists bool, err error)
 
 	// GetByKey returns the accumulator associated with the given key
-	GetByKey(key string) (item interface{}, exists bool, err error)
+	GetByKey(key string) (item any, exists bool, err error)
 
 	// Replace will delete the contents of the store, using instead the
 	// given list. Store takes ownership of the list, you should not reference
 	// it after calling this function.
-	Replace([]interface{}, string) error
+	Replace([]any, string) error
 
 	// Resync is meaningless in the terms appearing here but has
 	// meaning in some implementations that have non-trivial
@@ -52,12 +52,12 @@ type Store interface {
 }
 
 // KeyFunc knows how to make a key from an object. Implementations should be deterministic.
-type KeyFunc func(obj interface{}) (string, error)
+type KeyFunc func(obj any) (string, error)
 
 // KeyError will be returned any time a KeyFunc gives an error; it includes the object
 // at fault.
 type KeyError struct {
-	Obj interface{}
+	Obj any
 	Err error
 }
 
@@ -84,7 +84,7 @@ type cache struct {
 var _ Store = &cache{}
 
 // Add inserts an item into the cache.
-func (c *cache) Add(obj interface{}) error {
+func (c *cache) Add(obj any) error {
 	key, err := c.keyFunc(obj)
 	if err != nil {
 		return KeyError{obj, err}
@@ -94,7 +94,7 @@ func (c *cache) Add(obj interface{}) error {
 }
 
 // Update sets an item in the cache to its updated state.
-func (c *cache) Update(obj interface{}) error {
+func (c *cache) Update(obj any) error {
 	key, err := c.keyFunc(obj)
 	if err != nil {
 		return KeyError{obj, err}
@@ -104,7 +104,7 @@ func (c *cache) Update(obj interface{}) error {
 }
 
 // Delete removes an item from the cache.
-func (c *cache) Delete(obj interface{}) error {
+func (c *cache) Delete(obj any) error {
 	key, err := c.keyFunc(obj)
 	if err != nil {
 		return KeyError{obj, err}
@@ -115,7 +115,7 @@ func (c *cache) Delete(obj interface{}) error {
 
 // List returns a list of all the items.
 // List is completely threadsafe as long as you treat all items as immutable.
-func (c *cache) List() []interface{} {
+func (c *cache) List() []any {
 	return c.cacheStorage.List()
 }
 
@@ -132,7 +132,7 @@ func (c *cache) GetIndexers() Indexers {
 
 // Index returns a list of items that match on the index function
 // Index is thread-safe so long as you treat all items as immutable
-func (c *cache) Index(indexName string, obj interface{}) ([]interface{}, error) {
+func (c *cache) Index(indexName string, obj any) ([]any, error) {
 	return c.cacheStorage.Index(indexName, obj)
 }
 
@@ -150,7 +150,7 @@ func (c *cache) ListIndexFuncValues(indexName string) []string {
 
 // ByIndex returns the stored objects whose set of indexed values
 // for the named index includes the given indexed value.
-func (c *cache) ByIndex(indexName, indexedValue string) ([]interface{}, error) {
+func (c *cache) ByIndex(indexName, indexedValue string) ([]any, error) {
 	return c.cacheStorage.ByIndex(indexName, indexedValue)
 }
 
@@ -160,7 +160,7 @@ func (c *cache) AddIndexers(newIndexers Indexers) error {
 
 // Get returns the requested item, or sets exists=false.
 // Get is completely threadsafe as long as you treat all items as immutable.
-func (c *cache) Get(obj interface{}) (item interface{}, exists bool, err error) {
+func (c *cache) Get(obj any) (item any, exists bool, err error) {
 	key, err := c.keyFunc(obj)
 	if err != nil {
 		return nil, false, KeyError{obj, err}
@@ -170,7 +170,7 @@ func (c *cache) Get(obj interface{}) (item interface{}, exists bool, err error) 
 
 // GetByKey returns the request item, or exists=false.
 // GetByKey is completely threadsafe as long as you treat all items as immutable.
-func (c *cache) GetByKey(key string) (item interface{}, exists bool, err error) {
+func (c *cache) GetByKey(key string) (item any, exists bool, err error) {
 	item, exists = c.cacheStorage.Get(key)
 	return item, exists, nil
 }
@@ -178,8 +178,8 @@ func (c *cache) GetByKey(key string) (item interface{}, exists bool, err error) 
 // Replace will delete the contents of 'c', using instead the given list.
 // 'c' takes ownership of the list, you should not reference the list again
 // after calling this function.
-func (c *cache) Replace(list []interface{}, resourceVersion string) error {
-	items := make(map[string]interface{}, len(list))
+func (c *cache) Replace(list []any, resourceVersion string) error {
+	items := make(map[string]any, len(list))
 	for _, item := range list {
 		key, err := c.keyFunc(item)
 		if err != nil {
@@ -208,7 +208,7 @@ func NewStore(keyFunc KeyFunc) Store {
 // the object but not the object itself.
 type ExplicitKey string
 
-func MetaNamespaceKeyFunc(obj interface{}) (string, error) {
+func MetaNamespaceKeyFunc(obj any) (string, error) {
 	if key, ok := obj.(ExplicitKey); ok {
 		return string(key), nil
 	}
