@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -320,14 +321,67 @@ var commandRules = []command.Rule{
 			maxVal, _ := stats.Max(jobElapsed)
 			avgVal, _ := stats.Mean(jobElapsed)
 			varVal, _ := stats.Variance(jobElapsed)
-			str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n", len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
+			str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
+				len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
 
 			minVal, _ = stats.Min(stepElapsed)
 			medianVal, _ = stats.Median(stepElapsed)
 			maxVal, _ = stats.Max(stepElapsed)
 			avgVal, _ = stats.Mean(stepElapsed)
 			varVal, _ = stats.Variance(stepElapsed)
-			str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n", len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
+			str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
+				len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
+
+			return types.TextMsg{Text: str.String()}
+		},
+	},
+	{
+		Define: "workflow queue",
+		Help:   `workflow queue statisticians`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			inspector := workflow.GetInspector()
+			queues, err := inspector.Queues()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			str := strings.Builder{}
+			for _, queueName := range queues {
+				info, err := inspector.GetQueueInfo(queueName)
+				if err != nil {
+					return types.TextMsg{Text: err.Error()}
+				}
+
+				str.WriteString(fmt.Sprintf("queue %s: size %d memory %d processed %d failed %d \n",
+					info.Queue, info.Size, info.MemoryUsage, info.Processed, info.Failed))
+			}
+
+			return types.TextMsg{Text: str.String()}
+		},
+	},
+	{
+		Define: "workflow history",
+		Help:   `workflow task history`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			inspector := workflow.GetInspector()
+			queues, err := inspector.Queues()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			str := strings.Builder{}
+			for _, queueName := range queues {
+				stats, err := inspector.History(queueName, 7)
+				if err != nil {
+					return types.TextMsg{Text: err.Error()}
+				}
+				str.WriteString(fmt.Sprintf("queue %s:", queueName))
+				for _, info := range stats {
+					str.WriteString(fmt.Sprintf("%s -> processed %d failed %d, ",
+						info.Date.Format(time.DateOnly), info.Processed, info.Failed))
+				}
+				str.WriteString("\n")
+			}
 
 			return types.TextMsg{Text: str.String()}
 		},

@@ -95,3 +95,7 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		return nil
 	})
 }
+
+func GetInspector() *asynq.Inspector {
+	return asynq.NewInspector(defaultRedisClientOpt())
+}
