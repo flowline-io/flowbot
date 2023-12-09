@@ -40,7 +40,6 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 			{Name: "error", Src: []string{"running"}, Dst: "failed"},
 		},
 		fsm.Callbacks{
-			// split dag
 			"before_run": func(_ context.Context, e *fsm.Event) {
 				var job *model.Job
 				for _, item := range e.Args {
@@ -60,6 +59,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					return
 				}
 
+				// split dag
 				d, err := store.Database.GetDag(job.DagID)
 				if err != nil {
 					e.Cancel(err)
@@ -75,35 +75,205 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 
 				// create steps
 				steps := make([]*model.Step, 0, len(list))
-				for _, step := range list {
-					m := &model.Step{
-						UID:    job.UID,
-						Topic:  job.Topic,
-						JobID:  job.ID,
-						Action: step.Action,
-						Name:   step.Name,
-						State:  step.State,
-						NodeID: step.NodeID,
-						Depend: step.Depend,
-					}
-					// update started at
-					if step.State == model.StepReady {
-						now := time.Now()
-						m.StartedAt = &now
-					}
-					steps = append(steps, m)
+				findSteps, err := store.Database.GetStepsByJobId(job.ID)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
 				}
-				err = store.Database.CreateSteps(steps)
+				if len(findSteps) == 0 {
+					for _, step := range list {
+						steps = append(steps, &model.Step{
+							UID:    job.UID,
+							Topic:  job.Topic,
+							JobID:  job.ID,
+							Action: step.Action,
+							Name:   step.Name,
+							State:  model.StepReady,
+							NodeID: step.NodeID,
+							Depend: step.Depend,
+						})
+					}
+					err = store.Database.CreateSteps(steps)
+					if err != nil {
+						e.Cancel(err)
+						e.Err = err
+						return
+					}
+				} else {
+					steps = findSteps
+				}
+
+				// running count
+				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
 					return
 				}
 
-				// running count
-				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, 1, 0)
+				// run step
+				for _, step := range steps {
+					// start
+					now := time.Now()
+					step.State = model.StepStart
+					err = store.Database.UpdateStep(step.ID, &model.Step{
+						StartedAt: &now,
+						EndedAt:   nil,
+						State:     model.StepStart,
+					})
+					if err != nil {
+						e.Cancel(err)
+						e.Err = err
+						return
+					}
+
+					// depend
+					dependSteps, err := store.Database.GetStepsByDepend(step.JobID, step.Depend)
+					if err != nil {
+						e.Cancel(err)
+						e.Err = err
+						return
+					}
+					allFinished := true
+					mergeOutput := types.KV{}
+					for _, dependStep := range dependSteps {
+						switch dependStep.State {
+						case model.StepCreated, model.StepReady, model.StepStart, model.StepRunning:
+							allFinished = false
+						case model.StepSucceeded:
+							// merge output
+							mergeOutput = mergeOutput.Merge(types.KV(dependStep.Output))
+						case model.StepFailed, model.StepCanceled, model.StepSkipped:
+							err = store.Database.UpdateStepState(step.ID, dependStep.State)
+							if err != nil {
+								flog.Error(err)
+							}
+							allFinished = false
+						default:
+							allFinished = false
+						}
+					}
+					if len(dependSteps) > 0 && allFinished {
+						for _, dependStep := range dependSteps {
+							flog.Debug("step %d depend steps: %+v", step.ID, dependStep)
+						}
+						flog.Debug("all depend step finished for step %d output: %+v", step.ID, mergeOutput)
+						step.Input = model.JSON(mergeOutput)
+						err = store.Database.UpdateStep(step.ID, &model.Step{
+							Input: model.JSON(mergeOutput),
+						})
+						if err != nil {
+							e.Cancel(err)
+							e.Err = err
+							return
+						}
+					}
+
+					// run
+					stepFSM := NewStepFSM(step.State)
+					err = stepFSM.Event(context.Background(), "run", step)
+					if err != nil {
+						err = stepFSM.Event(context.Background(), "error", step, err)
+					} else {
+						err = stepFSM.Event(context.Background(), "success", step)
+					}
+					if err != nil {
+						e.Cancel(err)
+						e.Err = err
+						return
+					}
+				}
+			},
+			"before_success": func(_ context.Context, e *fsm.Event) {
+				var job *model.Job
+				for _, item := range e.Args {
+					if m, ok := item.(*model.Job); ok {
+						job = m
+					}
+				}
+				if job == nil {
+					e.Cancel(errors.New("error job"))
+					return
+				}
+
+				err := store.Database.UpdateJobState(job.ID, model.JobSucceeded)
 				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+				// successful count
+				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 1, 0, -1, 0)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+			},
+			"before_error": func(_ context.Context, e *fsm.Event) {
+				var job *model.Job
+				var err error
+				for _, item := range e.Args {
+					switch v := item.(type) {
+					case *model.Job:
+						job = v
+					case error:
+						err = v
+					default:
+						e.Cancel(errors.New("error args type"))
+						return
+					}
+				}
+				if job == nil {
+					e.Cancel(errors.New("error job"))
+					return
+				}
+				if err == nil {
+					e.Cancel(errors.New("error err"))
+					return
+				} else {
 					flog.Error(err)
+				}
+
+				err = store.Database.UpdateJobState(job.ID, model.JobFailed)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+				// failed count
+				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 1, -1, 0)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+			},
+			"before_cancel": func(_ context.Context, e *fsm.Event) {
+				var job *model.Job
+				for _, item := range e.Args {
+					if m, ok := item.(*model.Job); ok {
+						job = m
+					}
+				}
+				if job == nil {
+					e.Cancel(errors.New("error job"))
+					return
+				}
+
+				err := store.Database.UpdateJobState(job.ID, model.JobCanceled)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+				// successful count
+				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, -1, 1)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
 				}
 			},
 		},

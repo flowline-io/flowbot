@@ -47,6 +47,5 @@ var globals struct {
 	// Workflow
 	taskQueue       *workflow.Queue
 	manager         *workflow.Manager
-	scheduler       *workflow.Scheduler
 	cronTaskManager *workflow.CronTaskManager
 }

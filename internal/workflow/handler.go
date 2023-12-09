@@ -6,53 +6,11 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
 	"strconv"
+	"time"
 )
-
-func NewJobTask(job *model.Job) (*Task, error) {
-	payload, err := json.Marshal(types.JobInfo{
-		Job: job,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Task{
-		ID:    strconv.FormatInt(job.ID, 10),
-		Queue: jobQueueName,
-		Task:  asynq.NewTask(TypeJob, payload),
-	}, nil
-}
-
-func NewStepTask(step *model.Step) (*Task, error) {
-	payload, err := json.Marshal(types.StepInfo{
-		Step: step,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Task{
-		ID:    strconv.FormatInt(step.ID, 10),
-		Queue: stepQueueName,
-		Task:  asynq.NewTask(TypeStep, payload),
-	}, nil
-}
-
-func NewWorkerTask(step *model.Step) (*Task, error) {
-	payload, err := json.Marshal(types.StepInfo{
-		Step: step,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Task{
-		ID:    strconv.FormatInt(step.ID, 10),
-		Queue: workerQueueName,
-		Task:  asynq.NewTask(TypeWorker, payload),
-	}, nil
-}
 
 func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	var trigger model.WorkflowTrigger
@@ -92,42 +50,34 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 	return err
 }
 
-func HandleJobTask(_ context.Context, t *asynq.Task) error {
-	var job types.JobInfo
+func NewJobTask(job *model.Job) (*Task, error) {
+	payload, err := json.Marshal(job)
+	if err != nil {
+		return nil, err
+	}
+	return &Task{
+		ID:    strconv.FormatInt(job.ID, 10),
+		Queue: jobQueueName,
+		Task: asynq.NewTask(TypeJob, payload,
+			asynq.MaxRetry(0),
+			asynq.Retention(3*24*time.Hour),
+		),
+	}, nil
+}
+
+func HandleJobTask(ctx context.Context, t *asynq.Task) error {
+	var job *model.Job
 	if err := json.Unmarshal(t.Payload(), &job); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
 	}
 	flog.Debug("job: %+v", job)
 	flog.Debug("%s task has been received", t.Type())
 
-	job.FSM = NewJobFSM(job.Job.State)
-	return job.FSM.Event(context.Background(), "run", job.Job)
-}
-
-func HandleStepTask(_ context.Context, t *asynq.Task) error {
-	var step types.StepInfo
-	if err := json.Unmarshal(t.Payload(), &step); err != nil {
-		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
-	}
-	flog.Debug("step: %+v", step)
-	flog.Debug("%s task has been received", t.Type())
-
-	return nil
-}
-
-func HandleWorkerTask(_ context.Context, t *asynq.Task) error {
-	var step types.StepInfo
-	if err := json.Unmarshal(t.Payload(), &step); err != nil {
-		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
-	}
-	flog.Debug("step: %+v", step)
-	flog.Debug("%s task has been received", t.Type())
-
-	step.FSM = NewStepFSM(step.Step.State)
-	err := step.FSM.Event(context.Background(), "run", step.Step)
+	fsm := NewJobFSM(job.State)
+	err := fsm.Event(ctx, "run", job)
 	if err != nil {
-		return step.FSM.Event(context.Background(), "error", step.Step, err)
+		return fsm.Event(ctx, "error", job, err)
 	} else {
-		return step.FSM.Event(context.Background(), "success", step.Step)
+		return fsm.Event(ctx, "success", job)
 	}
 }

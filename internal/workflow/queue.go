@@ -11,19 +11,11 @@ import (
 )
 
 const (
-	TypeCron   = "cron"
-	TypeJob    = "job"
-	TypeStep   = "step"
-	TypeWorker = "worker"
+	TypeCron = "cron"
+	TypeJob  = "job"
 
-	cronQueueName   = "workflow_cron"
-	jobQueueName    = "workflow_job"
-	stepQueueName   = "workflow_step"
-	workerQueueName = "workflow_worker"
-
-	jobPriority    = 2
-	stepPriority   = 3
-	workerPriority = 5
+	cronQueueName = "workflow_cron"
+	jobQueueName  = "workflow_job"
 )
 
 type Task struct {
@@ -64,9 +56,7 @@ func NewQueue() *Queue {
 		LogLevel:    flog.AsynqLogLevel(config.App.Log.Level),
 		Concurrency: runtime.NumCPU() * 2,
 		Queues: map[string]int{
-			jobQueueName:    jobPriority,
-			stepQueueName:   stepPriority,
-			workerQueueName: workerPriority,
+			jobQueueName: 10,
 		},
 	})
 	return &Queue{srv: srv}
@@ -77,8 +67,6 @@ func (q *Queue) Run() {
 	mux.Use(loggingMiddleware)
 	mux.HandleFunc(TypeCron, HandleCronTask)
 	mux.HandleFunc(TypeJob, HandleJobTask)
-	mux.HandleFunc(TypeStep, HandleStepTask)
-	mux.HandleFunc(TypeWorker, HandleWorkerTask)
 
 	if err := q.srv.Start(mux); err != nil {
 		flog.Fatal("task queue failed %v", err)
