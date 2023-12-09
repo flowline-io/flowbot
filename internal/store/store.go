@@ -264,6 +264,7 @@ type Adapter interface {
 	UpdateWorkflowState(id int64, state model.WorkflowState) error
 	ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error)
 	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error
+	IncreaseWorkflowTriggerCount(id int64, count int32) error
 	DeleteWorkflow(id int64) error
 	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
 	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error

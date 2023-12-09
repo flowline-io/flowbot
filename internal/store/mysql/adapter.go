@@ -1402,6 +1402,14 @@ func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32
 	return err
 }
 
+func (a *adapter) IncreaseWorkflowTriggerCount(id int64, count int32) error {
+	q := dao.Q.WorkflowTrigger
+	_, err := q.Where(q.ID.Eq(id)).UpdateSimple(
+		q.Count_.Add(count),
+	)
+	return err
+}
+
 func (a *adapter) DeleteWorkflow(id int64) error {
 	q := dao.Q.Workflow
 	_, err := q.Where(q.ID.Eq(id)).Delete()

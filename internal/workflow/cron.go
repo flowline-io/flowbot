@@ -21,7 +21,7 @@ func NewCronTaskManager() *CronTaskManager {
 	mgr, err := asynq.NewPeriodicTaskManager(asynq.PeriodicTaskManagerOpts{
 		RedisConnOpt:               defaultRedisClientOpt(),
 		PeriodicTaskConfigProvider: provider,
-		SyncInterval:               time.Minute,
+		SyncInterval:               60 * time.Second,
 		SchedulerOpts: &asynq.SchedulerOpts{
 			PostEnqueueFunc: func(info *asynq.TaskInfo, err error) {
 				if err != nil {

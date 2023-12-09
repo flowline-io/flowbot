@@ -31,7 +31,11 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 		return nil
 	}
 
-	// todo update trigger count
+	// update trigger count
+	err = store.Database.IncreaseWorkflowTriggerCount(trigger.ID, 1)
+	if err != nil {
+		flog.Error(err)
+	}
 
 	// create job
 	dagId := int64(0)
