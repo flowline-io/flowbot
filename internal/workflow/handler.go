@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
 	"strconv"
-	"time"
 )
 
 func HandleCronTask(_ context.Context, t *asynq.Task) error {
@@ -63,8 +62,8 @@ func NewJobTask(job *model.Job) (*Task, error) {
 		ID:    strconv.FormatInt(job.ID, 10),
 		Queue: jobQueueName,
 		Task: asynq.NewTask(TypeJob, payload,
-			asynq.MaxRetry(0),
-			asynq.Retention(3*24*time.Hour),
+			asynq.MaxRetry(defaultMaxRetry),
+			asynq.Retention(defaultRetention),
 		),
 	}, nil
 }
@@ -80,6 +79,7 @@ func HandleJobTask(ctx context.Context, t *asynq.Task) error {
 	fsm := NewJobFSM(job.State)
 	err := fsm.Event(ctx, "run", job)
 	if err != nil {
+		fsm.SetState("running")
 		return fsm.Event(ctx, "error", job, err)
 	} else {
 		return fsm.Event(ctx, "success", job)

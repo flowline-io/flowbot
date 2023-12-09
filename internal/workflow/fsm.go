@@ -174,7 +174,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					stepFSM := NewStepFSM(step.State)
 					err = stepFSM.Event(context.Background(), "run", step)
 					if err != nil {
-						err = stepFSM.Event(context.Background(), "error", step, err)
+						_ = stepFSM.Event(context.Background(), "error", step, err)
 					} else {
 						err = stepFSM.Event(context.Background(), "success", step)
 					}
