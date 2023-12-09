@@ -27,7 +27,7 @@ require (
 	github.com/gookit/event v1.1.1
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
-	github.com/heimdalr/dag v1.3.1
+	github.com/heimdalr/dag v1.4.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
 	github.com/jmoiron/sqlx v1.3.5
