@@ -1,6 +1,10 @@
 package main
 
-import "github.com/flowline-io/flowbot/internal/server"
+import (
+	"github.com/flowline-io/flowbot/internal/server"
+	// Importing automaxprocs automatically adjusts GOMAXPROCS.
+	_ "go.uber.org/automaxprocs"
+)
 
 // @title           Flowbot API
 // @version         1.0
