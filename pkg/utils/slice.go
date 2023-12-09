@@ -22,3 +22,12 @@ func SameStringSlice(x, y []string) bool {
 	}
 	return len(diff) == 0
 }
+
+func InStringSlice(x []string, find string) bool {
+	for _, s := range x {
+		if find == s {
+			return true
+		}
+	}
+	return false
+}
