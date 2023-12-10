@@ -38,8 +38,8 @@ func MessageConvert(data any) protocol.Message {
 	case types.InfoMsg:
 		_, info := v.Convert()
 		txt := ""
-		if v, ok := info.(map[string]any); ok {
-			txt, _ = types.KV(v).String("txt")
+		if kv, ok := info.(map[string]any); ok {
+			txt, _ = types.KV(kv).String("txt")
 		}
 		return protocol.Message{
 			protocol.Text(v.Title),
