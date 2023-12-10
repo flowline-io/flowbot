@@ -74,9 +74,6 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		DefaultCPUsLimit:   config.App.Engine.Limits.Cpus,
 		DefaultMemoryLimit: config.App.Engine.Limits.Memory,
 	}
-	if e.runtime != nil {
-		return e.runtime, nil
-	}
 	runtimeType := runtime.Docker // default engine type
 	switch runtimeType {
 	case runtime.Docker:
