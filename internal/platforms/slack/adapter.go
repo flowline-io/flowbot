@@ -1,7 +1,6 @@
 package slack
 
 import (
-	"fmt"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -39,7 +38,6 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 		switch apiEvent.InnerEvent.Type {
 		case "message":
 			messageEvent := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
-			fmt.Println(messageEvent.Text)
 
 			// Ignore all messages created by the bot itself
 			if messageEvent.BotID != "" {
@@ -60,6 +58,7 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 			result.Data = protocol.MessageEventData{
 				Self: protocol.Self{
 					Platform: ID,
+					UserId:   "", // todo
 				},
 				MessageId:  messageEvent.ClientMsgID,
 				Message:    a.MessageConvert(messageEvent),

@@ -324,6 +324,11 @@ func (j TopicState) Value() (driver.Value, error) {
 
 type MessageState int
 
+const (
+	MessageStateUnknown MessageState = iota
+	MessageCreated
+)
+
 func (j MessageState) Value() (driver.Value, error) {
 	return int64(j), nil
 }

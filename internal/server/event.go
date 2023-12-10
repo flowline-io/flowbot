@@ -60,7 +60,7 @@ func onPushInstruct() {
 func onPlatformMetaEvent() {
 	event.On("meta.*", func(data types.KV) error {
 		// todo
-		flog.Info("%v", data)
+		flog.Debug("%v", data)
 		return nil
 	})
 }
@@ -68,7 +68,7 @@ func onPlatformMetaEvent() {
 func onPlatformMessageEvent() {
 	event.On("message.*", func(data types.KV) error {
 		// todo
-		flog.Info("%v", data)
+		flog.Debug("%v", data)
 
 		var pe protocol.Event
 		if e, ok := data.Any("event"); ok {

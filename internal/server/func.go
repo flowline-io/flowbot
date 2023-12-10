@@ -73,8 +73,15 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		//Timestamp: msg.Timestamp,
 	}
 
+	// platform
+	findPlatform, err := store.Database.GetPlatformByName(msg.Self.Platform)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+	platformId := findPlatform.ID
+
 	// check
-	platformId := int64(1) // todo
 	findMessage, err := store.Database.GetMessageByPlatform(platformId, msg.MessageId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		flog.Error(err)
@@ -88,9 +95,9 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Flag:          types.Id(),
 		PlatformID:    platformId,
 		PlatformMsgID: msg.MessageId,
-		Topic:         "",
-		Content:       nil, // todo
-		State:         0,   // todo
+		Topic:         "", // todo
+		Content:       model.JSON{"text": msg.AltMessage},
+		State:         model.MessageCreated,
 	})
 	if err != nil {
 		flog.Error(err)

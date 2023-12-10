@@ -1,8 +1,12 @@
 package platforms
 
 import (
+	"errors"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"gorm.io/gorm"
 )
 
 type Caller struct {
@@ -42,6 +46,22 @@ func MessageConvert(data any) protocol.Message {
 		return protocol.Message{
 			protocol.Text(v.Title),
 			protocol.Url(v.Url),
+		}
+	}
+	return nil
+}
+
+func PlatformRegister(name string) error {
+	_, err := store.Database.GetPlatformByName(name)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		_, err = store.Database.CreatePlatform(&model.Platform{
+			Name: name,
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return nil

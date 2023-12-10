@@ -5,11 +5,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
-	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
+	"time"
 )
 
 type Driver struct {
@@ -19,6 +20,12 @@ type Driver struct {
 }
 
 func NewDriver() *Driver {
+	// register
+	err := platforms.PlatformRegister(ID)
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
+
 	api := slack.New(
 		config.App.Platform.Slack.BotToken,
 		slack.OptionDebug(config.App.Log.Level == flog.DebugLevel),
@@ -50,6 +57,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 		d.api,
 		socketmode.OptionDebug(config.App.Log.Level == flog.DebugLevel),
 		socketmode.OptionLog(flog.SlackLogger),
+		socketmode.OptionPingInterval(10*time.Second),
 	)
 
 	go func() {
@@ -58,15 +66,15 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 			case <-stop:
 				flog.Info("Slack is shutting down.")
 				return
-			case event := <-client.Events:
+			case e := <-client.Events:
 				// convert
-				protocolEvent := d.adapter.EventConvert(event)
+				protocolEvent := d.adapter.EventConvert(e)
 				if protocolEvent.DetailType == "" {
 					continue
 				}
 
 				// emit event
-				err := pkgEvent.Emit(protocolEvent.DetailType, types.KV{
+				err := event.Emit(protocolEvent.DetailType, types.KV{
 					"caller": &platforms.Caller{
 						Action:  d.action,
 						Adapter: d.adapter,
@@ -80,7 +88,10 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 
 				// ack
 				if protocolEvent.Type == protocol.MessageEventType {
-					client.Ack(*event.Request)
+					client.Ack(*e.Request)
+				}
+				if protocolEvent.Type == protocol.MetaEventType {
+					client.Ack(*e.Request)
 				}
 			}
 		}
