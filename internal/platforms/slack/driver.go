@@ -79,18 +79,20 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 					continue
 				}
 
-				// emit event
-				err := event.Emit(protocolEvent.DetailType, types.KV{
-					"caller": &platforms.Caller{
-						Action:  d.action,
-						Adapter: d.adapter,
-					},
-					"event": protocolEvent,
-				})
-				if err != nil {
-					flog.Error(err)
-					continue
-				}
+				go func() {
+					// emit event
+					err := event.Emit(protocolEvent.DetailType, types.KV{
+						"caller": &platforms.Caller{
+							Action:  d.action,
+							Adapter: d.adapter,
+						},
+						"event": protocolEvent,
+					})
+					if err != nil {
+						flog.Error(err)
+						continue
+					}
+				}()
 			}
 		}
 	}()
