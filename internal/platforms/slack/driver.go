@@ -67,6 +67,12 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				flog.Info("Slack is shutting down.")
 				return
 			case evt := <-client.Events:
+				// ack
+				switch evt.Type {
+				case socketmode.EventTypeEventsAPI:
+					client.Ack(*evt.Request)
+				}
+
 				// convert
 				protocolEvent := d.adapter.EventConvert(evt)
 				if protocolEvent.DetailType == "" {
@@ -84,11 +90,6 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				if err != nil {
 					flog.Error(err)
 					continue
-				}
-
-				// ack
-				if protocolEvent.Type == protocol.MessageEventType {
-					client.Ack(*evt.Request)
 				}
 			}
 		}
