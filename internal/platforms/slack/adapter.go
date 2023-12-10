@@ -67,8 +67,8 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 					Platform: ID,
 					UserId:   "", // todo
 				},
-				MessageId:  messageEvent.ClientMsgID,
-				Message:    a.MessageConvert(messageEvent),
+				MessageId: messageEvent.ClientMsgID,
+				// Message:    a.MessageConvert(messageEvent),
 				AltMessage: messageEvent.Text,
 				UserId:     messageEvent.User,
 				TopicId:    messageEvent.Channel,

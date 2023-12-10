@@ -79,7 +79,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 					continue
 				}
 
-				go func() {
+				go func() { // todo fixme
 					// emit event
 					err := event.Emit(protocolEvent.DetailType, types.KV{
 						"caller": &platforms.Caller{

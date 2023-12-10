@@ -262,6 +262,7 @@ var commandRules = []command.Rule{
 		Define: "docker",
 		Help:   `run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			flog.Debug("start docker command")
 			engine := executer.New()
 			task := &types.Task{
 				ID:    utils.NewUUID(),
@@ -273,6 +274,7 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return types.TextMsg{Text: err.Error()}
 			}
+			flog.Debug("docker command result %v", task.Result)
 			return types.TextMsg{Text: task.Result}
 		},
 	},
