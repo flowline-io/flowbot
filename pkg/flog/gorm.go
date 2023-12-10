@@ -43,6 +43,10 @@ func (g *GormLogger) Error(_ context.Context, s string, i ...interface{}) {
 }
 
 func (g *GormLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+	if g.level == DebugLevel { // fixme
+		return
+	}
+
 	if !(g.level == DebugLevel || g.level == InfoLevel) {
 		return
 	}

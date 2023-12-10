@@ -68,7 +68,7 @@ func onPlatformMetaEvent() {
 func onPlatformMessageEvent() {
 	event.On("message.*", func(data types.KV) error {
 		// todo
-		flog.Debug("%v", data)
+		flog.Debug("on message event %+v", data)
 
 		var pe protocol.Event
 		if e, ok := data.Any("event"); ok {

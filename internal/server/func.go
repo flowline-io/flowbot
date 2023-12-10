@@ -308,6 +308,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		return
 	}
 
+	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
 		Params: types.KV{

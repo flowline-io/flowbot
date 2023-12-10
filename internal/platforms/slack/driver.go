@@ -80,6 +80,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				}
 
 				go func() { // todo fixme
+					flog.Debug("slack emit event %+v", protocolEvent)
 					// emit event
 					err := event.Emit(protocolEvent.DetailType, types.KV{
 						"caller": &platforms.Caller{

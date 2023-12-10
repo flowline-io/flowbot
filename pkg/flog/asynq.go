@@ -12,7 +12,7 @@ type asynqLogger struct {
 }
 
 func (a *asynqLogger) Debug(args ...interface{}) {
-	l.Debug().Caller(2).Msg(fmt.Sprint(args...))
+	// l.Debug().Caller(2).Msg(fmt.Sprint(args...))  // fixme
 }
 
 func (a *asynqLogger) Info(args ...interface{}) {
