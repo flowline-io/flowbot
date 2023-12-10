@@ -2,6 +2,7 @@ package platforms
 
 import (
 	"errors"
+	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -25,7 +26,9 @@ func (c *Caller) Do(req protocol.Request) protocol.Response {
 func MessageConvert(data any) protocol.Message {
 	d, ok := data.(types.MsgPayload)
 	if !ok {
-		return nil
+		return protocol.Message{
+			protocol.Text("error message payload"),
+		}
 	}
 	switch v := d.(type) {
 	case types.TextMsg:
@@ -33,9 +36,9 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Text(v.Text),
 		}
 	case types.InfoMsg:
-		_, model := v.Convert()
+		_, info := v.Convert()
 		txt := ""
-		if v, ok := model.(map[string]any); ok {
+		if v, ok := info.(map[string]any); ok {
 			txt, _ = types.KV(v).String("txt")
 		}
 		return protocol.Message{
@@ -47,8 +50,11 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Text(v.Title),
 			protocol.Url(v.Url),
 		}
+	default:
+		return protocol.Message{
+			protocol.Text(fmt.Sprintf("error message type %+v", d)),
+		}
 	}
-	return nil
 }
 
 func PlatformRegister(name string) error {
