@@ -90,7 +90,6 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 					})
 					if err != nil {
 						flog.Error(err)
-						continue
 					}
 				}()
 			}
