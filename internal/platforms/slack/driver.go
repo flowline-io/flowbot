@@ -80,7 +80,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				}
 
 				go func() { // todo fixme
-					flog.Debug("slack emit event %+v", protocolEvent)
+					flog.Debug("start slack emit event %+v", protocolEvent)
 					// emit event
 					err := event.Emit(protocolEvent.DetailType, types.KV{
 						"caller": &platforms.Caller{
@@ -92,6 +92,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 					if err != nil {
 						flog.Error(err)
 					}
+					flog.Debug("end slack emit event %+v", protocolEvent)
 				}()
 			}
 		}

@@ -7,34 +7,26 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/docker"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/shell"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type Mode string
 
 const (
-	StateIdle        = "IDLE"
-	StateRunning     = "RUNNING"
-	StateTerminating = "TERMINATING"
-	StateTerminated  = "TERMINATED"
+	StateIdle      = "IDLE"
+	StateRunning   = "RUNNING"
+	StateCompleted = "COMPLETED"
 )
 
 type Engine struct {
-	quit       chan os.Signal
-	terminate  chan any
-	terminated chan any
-	state      string
-	mu         sync.Mutex
-	mounters   map[string]*runtime.MultiMounter
-	runtime    runtime.Runtime
-	limits     Limits
+	state    string
+	mu       sync.Mutex
+	mounters map[string]*runtime.MultiMounter
+	runtime  runtime.Runtime
+	limits   Limits
 }
 
 type Limits struct {
@@ -44,11 +36,8 @@ type Limits struct {
 
 func New() *Engine {
 	return &Engine{
-		quit:       make(chan os.Signal, 1),
-		terminate:  make(chan any),
-		terminated: make(chan any),
-		state:      StateIdle,
-		mounters:   make(map[string]*runtime.MultiMounter),
+		state:    StateIdle,
+		mounters: make(map[string]*runtime.MultiMounter),
 	}
 }
 
@@ -62,24 +51,8 @@ func (e *Engine) Run(ctx context.Context, t *types.Task) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.mustState(StateIdle)
-	err := e.runTask(ctx, t)
-	if err == nil {
-		e.state = StateRunning
-	}
-	<-e.terminated
-	return err
-}
-
-func (e *Engine) Terminate() error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.mustState(StateRunning)
-	e.state = StateTerminating
-	log.Debug().Msg("Terminating engine")
-	e.terminate <- 1
-	<-e.terminated
-	e.state = StateTerminated
-	return nil
+	e.state = StateRunning
+	return e.runTask(ctx, t)
 }
 
 func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
@@ -93,36 +66,6 @@ func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
 func (e *Engine) mustState(state string) {
 	if e.state != state {
 		panic(errors.Errorf("engine is not %s", state))
-	}
-}
-
-func (e *Engine) RegisterMounter(rt string, name string, mounter runtime.Mounter) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.mustState(StateIdle)
-	mounters, ok := e.mounters[rt]
-	if !ok {
-		mounters = runtime.NewMultiMounter()
-		e.mounters[rt] = mounters
-	}
-	mounters.RegisterMounter(name, mounter)
-}
-
-func (e *Engine) RegisterRuntime(rt runtime.Runtime) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.mustState(StateIdle)
-	if e.runtime != nil {
-		panic("engine: RegisterRuntime called twice")
-	}
-	e.runtime = rt
-}
-
-func (e *Engine) awaitTerm() {
-	signal.Notify(e.quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-e.quit:
-	case <-e.terminate:
 	}
 }
 
@@ -209,5 +152,6 @@ func (e *Engine) doRunTask(ctx context.Context, t *types.Task) error {
 	t.CompletedAt = &finished
 	t.State = types.TaskStateCompleted
 	t.Result = rtTask.Result
+	e.state = StateCompleted
 	return nil
 }
