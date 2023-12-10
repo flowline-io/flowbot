@@ -57,7 +57,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 		d.api,
 		socketmode.OptionDebug(config.App.Log.Level == flog.DebugLevel),
 		socketmode.OptionLog(flog.SlackLogger),
-		socketmode.OptionPingInterval(10*time.Second),
+		socketmode.OptionPingInterval(30*time.Second),
 	)
 
 	go func() {
@@ -66,9 +66,9 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 			case <-stop:
 				flog.Info("Slack is shutting down.")
 				return
-			case e := <-client.Events:
+			case evt := <-client.Events:
 				// convert
-				protocolEvent := d.adapter.EventConvert(e)
+				protocolEvent := d.adapter.EventConvert(evt)
 				if protocolEvent.DetailType == "" {
 					continue
 				}
@@ -88,10 +88,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 
 				// ack
 				if protocolEvent.Type == protocol.MessageEventType {
-					client.Ack(*e.Request)
-				}
-				if protocolEvent.Type == protocol.MetaEventType {
-					client.Ack(*e.Request)
+					client.Ack(*evt.Request)
 				}
 			}
 		}
