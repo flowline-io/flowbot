@@ -56,7 +56,7 @@ func (c *CronTaskManager) Run() {
 }
 
 func (c *CronTaskManager) Shutdown() {
-	c.mgr.Shutdown()
+	// c.mgr.Shutdown() fixme panic: close of closed channel
 }
 
 type DatabaseProvider struct{}
