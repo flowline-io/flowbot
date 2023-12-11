@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/rs/xid"
+	"github.com/lithammer/shortuuid/v3"
 	"time"
 )
 
@@ -70,7 +70,7 @@ type Context struct {
 }
 
 func Id() string {
-	return xid.New().String()
+	return shortuuid.New()
 }
 
 func AppUrl() string {
