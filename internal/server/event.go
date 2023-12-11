@@ -2,6 +2,8 @@ package server
 
 import (
 	"errors"
+	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -96,4 +98,12 @@ func onPlatformNoticeEvent() {
 		flog.Info("%v", data)
 		return nil
 	})
+}
+
+func printMessages(msg *message.Message) error {
+	fmt.Printf(
+		"\n> Received message: %s\n> %s\n> metadata: %v\n\n",
+		msg.UUID, string(msg.Payload), msg.Metadata,
+	)
+	return nil
 }

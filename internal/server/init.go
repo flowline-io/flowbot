@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
@@ -141,6 +143,12 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Queue ok")
+
+	// init event
+	if err = initializeEvent(); err != nil {
+		return err
+	}
+	flog.Info("initialize Event ok")
 
 	// init chatbot
 	if err = initializeChatbot(stopSignal); err != nil {
@@ -635,4 +643,41 @@ func initializeBot() {
 			}
 		}
 	}
+}
+
+// init event
+func initializeEvent() error {
+	router, err := event.NewRouter()
+	if err != nil {
+		return err
+	}
+
+	subscriber, err := event.NewSubscriber()
+	if err != nil {
+		return err
+	}
+
+	router.AddNoPublisherHandler(
+		"print_incoming_messages",
+		"example.topic",
+		subscriber,
+		printMessages,
+	)
+
+	go func() { // todo example publisher
+		pub, err := event.NewPublisher()
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+		event.PublishMessages(pub)
+	}()
+
+	go func() {
+		if err = router.Run(context.Background()); err != nil {
+			flog.Error(err)
+		}
+	}()
+
+	return nil
 }
