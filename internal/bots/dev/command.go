@@ -6,6 +6,12 @@ import (
 	"crypto/rand"
 	_ "embed"
 	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -25,10 +31,6 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"gonum.org/v1/plot/vg/vgimg"
-	"math/big"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -354,8 +356,8 @@ var commandRules = []command.Rule{
 					return types.TextMsg{Text: err.Error()}
 				}
 
-				str.WriteString(fmt.Sprintf("queue %s: size %d memory %d processed %d failed %d \n",
-					info.Queue, info.Size, info.MemoryUsage, info.Processed, info.Failed))
+				str.WriteString(fmt.Sprintf("queue %s: size %d memory %v processed %d failed %d \n",
+					info.Queue, info.Size, humanize.Bytes(uint64(info.MemoryUsage)), info.Processed, info.Failed))
 			}
 
 			return types.TextMsg{Text: str.String()}
