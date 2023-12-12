@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -62,14 +61,6 @@ func onPlatformNoticeEvent() {
 	// todo "event.*"
 }
 
-func printMessages(msg *message.Message) error {
-	fmt.Printf(
-		"\n> Received message: %s\n> %s\n> metadata: %v\n\n",
-		msg.UUID, string(msg.Payload), msg.Metadata,
-	)
-	return nil
-}
-
 func onPlatformMessageEventHandler(msg *message.Message) error {
 	flog.Debug("on message event %+v", msg)
 
@@ -78,6 +69,17 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 	if err != nil {
 		return err
 	}
+
+	data, err := json.Marshal(pe.Data)
+	if err != nil {
+		return err
+	}
+	var v protocol.MessageEventData
+	err = json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	pe.Data = v
 
 	var caller *platforms.Caller
 	// todo make caller

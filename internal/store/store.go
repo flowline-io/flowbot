@@ -137,11 +137,11 @@ type Adapter interface {
 	// User management
 
 	// UserCreate creates user record
-	UserCreate(user *types.User) error
+	UserCreate(user *model.User) error
 	// UserGet returns record for a given user ID
-	UserGet(uid types.Uid) (types.User, error)
+	UserGet(uid types.Uid) (*model.User, error)
 	// UserGetAll returns user records for a given list of user IDs
-	UserGetAll(ids ...types.Uid) ([]types.User, error)
+	UserGetAll(ids ...types.Uid) ([]*model.User, error)
 	// UserDelete deletes user record
 	UserDelete(uid types.Uid, hard bool) error
 	// UserUpdate updates user record
@@ -160,9 +160,13 @@ type Adapter interface {
 	// Returns array of FileDef.Location of deleted filerecords so actual files can be deleted too.
 	FileDeleteUnused(olderThan time.Time, limit int) ([]string, error)
 
-	// Chatbot
-
 	GetUsers() ([]*model.User, error)
+	GetUserById(id int64) (*model.User, error)
+	CreatePlatformUser(item *model.PlatformUser) (int64, error)
+	GetPlatformUserByFlag(flag string) (*model.PlatformUser, error)
+	UpdatePlatformUser(item *model.PlatformUser) error
+	GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error)
+	CreatePlatformChannel(item *model.PlatformChannel) (int64, error)
 	GetMessage(flag string) (*model.Message, error)
 	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
 	CreateMessage(message model.Message) error

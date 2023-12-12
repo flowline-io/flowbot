@@ -61,18 +61,15 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 				result.DetailType = protocol.MessageGroupEvent
 			}
 
-			// todo message data
 			result.Data = protocol.MessageEventData{
 				Self: protocol.Self{
 					Platform: ID,
-					UserId:   "", // todo
 				},
-				MessageId: messageEvent.ClientMsgID,
-				// Message:    a.MessageConvert(messageEvent),
+				MessageId:  messageEvent.ClientMsgID,
 				AltMessage: messageEvent.Text,
 				UserId:     messageEvent.User,
 				TopicId:    messageEvent.Channel,
-				TopicType:  messageEvent.ChannelType, // todo
+				TopicType:  messageEvent.ChannelType, // im
 			}
 		}
 	// slash command

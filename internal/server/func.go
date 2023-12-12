@@ -59,12 +59,21 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		return
 	}
 
-	var err error
+	uid, err := registerPlatformUser(msg)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
 
-	uid := types.Uid("") // todo msg.UserId
-	topic := msg.TopicId // todo
+	topic, err := registerPlatformChannel(msg)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+
 	ctx := types.Context{
-		Id: e.Id,
+		Id:     e.Id,
+		AsUser: uid,
 		//Original:  msg.Original,
 		//RcptTo:    msg.RcptTo,
 		//AsUser:    uid,
@@ -95,7 +104,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Flag:          types.Id(),
 		PlatformID:    platformId,
 		PlatformMsgID: msg.MessageId,
-		Topic:         "", // todo
+		Topic:         topic,
 		Content:       model.JSON{"text": msg.AltMessage},
 		State:         model.MessageCreated,
 	})
@@ -325,16 +334,24 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		return
 	}
 
-	var err error
+	uid, err := registerPlatformUser(msg)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
 
-	uid := types.Uid("") // todo msg.UserId
-	//topic := msg.TopicId // todo
+	topic, err := registerPlatformChannel(msg)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
 
 	ctx := types.Context{
-		Id: e.Id,
+		Id:       e.Id,
+		Original: topic,
+		AsUser:   uid,
 		//Original:  msg.Original,
 		//RcptTo:    msg.RcptTo,
-		//AsUser:    uid,
 		//AuthLvl:   msg.AuthLvl,
 		//MetaWhat:  msg.MetaWhat,
 		//Timestamp: msg.Timestamp,
@@ -607,7 +624,7 @@ func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 		}
 		return instruct, nil
 	case types.Info:
-		var user *types.User // fixme
+		var user *model.User // fixme
 		return utils.Fn(user), nil
 	case types.Bots:
 		var list []map[string]interface{}
@@ -636,4 +653,87 @@ func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
 
 	}
 	return nil, nil
+}
+
+func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
+	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
+	if err != nil {
+		return "", err
+	}
+
+	platformUser, err := store.Database.GetPlatformUserByFlag(data.UserId)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", err
+	}
+
+	if platformUser != nil && platformUser.ID > 0 {
+		user, err := store.Database.GetUserById(platformUser.UserID)
+		if err != nil {
+			return "", err
+		}
+		return types.Uid(user.Flag), nil
+	} else {
+		user := &model.User{
+			Flag:  types.Id(),
+			Name:  "user",
+			Tags:  "[]",
+			State: model.UserActive,
+		}
+		err = store.Database.UserCreate(user)
+		if err != nil {
+			return "", err
+		}
+
+		_, err = store.Database.CreatePlatformUser(&model.PlatformUser{
+			PlatformID: platform.ID,
+			UserID:     user.ID,
+			Flag:       data.UserId,
+			Name:       "user",
+			IsBot:      false,
+		})
+		if err != nil {
+			return "", err
+		}
+		return types.Uid(user.Flag), nil
+	}
+}
+
+func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
+	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
+	if err != nil {
+		return "", err
+	}
+
+	platformChannel, err := store.Database.GetPlatformChannelByFlag(data.TopicId)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", err
+	}
+
+	if platformChannel != nil && platformChannel.ID > 0 {
+		channel, err := store.Database.GetChannel(platformChannel.ChannelID)
+		if err != nil {
+			return "", err
+		}
+		return channel.Flag, nil
+	} else {
+		channel := &model.Channel{
+			Flag:  types.Id(),
+			Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
+			State: model.ChannelActive,
+		}
+		_, err = store.Database.CreateChannel(channel)
+		if err != nil {
+			return "", err
+		}
+
+		_, err = store.Database.CreatePlatformChannel(&model.PlatformChannel{
+			PlatformID: platform.ID,
+			ChannelID:  channel.ID,
+			Flag:       data.TopicId,
+		})
+		if err != nil {
+			return "", err
+		}
+		return channel.Flag, nil
+	}
 }

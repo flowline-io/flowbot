@@ -81,41 +81,17 @@ func (a *adapter) SetMaxResults(val int) error {
 	return nil
 }
 
-func toUser(u model.User) types.User {
-	return types.User{
-		ID:   u.ID,
-		Flag: u.Flag,
-		Name: u.Name,
-		Tags: u.Tags,
-	}
-}
-
-func (a *adapter) UserCreate(user *types.User) error {
+func (a *adapter) UserCreate(user *model.User) error {
 	q := dao.Q.User
-	flag := types.Id()
-	err := q.Create(&model.User{
-		Flag:  flag,
-		Name:  user.Name,
-		Tags:  user.Tags,
-		State: model.UserActive,
-	})
-	if err != nil {
-		return err
-	}
-	user.Flag = flag
-	return nil
+	return q.Create(user)
 }
 
-func (a *adapter) UserGet(uid types.Uid) (types.User, error) {
+func (a *adapter) UserGet(uid types.Uid) (*model.User, error) {
 	q := dao.Q.User
-	res, err := q.Where(q.Flag.Eq(uid.String())).First()
-	if err != nil {
-		return types.User{}, err
-	}
-	return toUser(*res), nil
+	return q.Where(q.Flag.Eq(uid.String())).First()
 }
 
-func (a *adapter) UserGetAll(uid ...types.Uid) ([]types.User, error) {
+func (a *adapter) UserGetAll(uid ...types.Uid) ([]*model.User, error) {
 	q := dao.Q.User
 	if len(uid) > 0 {
 		s := make([]string, len(uid))
@@ -124,15 +100,7 @@ func (a *adapter) UserGetAll(uid ...types.Uid) ([]types.User, error) {
 		}
 		q.Where(q.Flag.In(s...))
 	}
-	list, err := q.Find()
-	if err != nil {
-		return nil, err
-	}
-	users := make([]types.User, len(list))
-	for i, u := range list {
-		users[i] = toUser(*u)
-	}
-	return users, nil
+	return q.Find()
 }
 
 func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
@@ -349,6 +317,45 @@ func (a *adapter) Stats() interface{} {
 func (a *adapter) GetUsers() ([]*model.User, error) {
 	q := dao.Q.User
 	return q.Find()
+}
+
+func (a *adapter) GetUserById(id int64) (*model.User, error) {
+	q := dao.Q.User
+	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) CreatePlatformUser(item *model.PlatformUser) (int64, error) {
+	q := dao.Q.PlatformUser
+	err := q.Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
+}
+
+func (a *adapter) GetPlatformUserByFlag(flag string) (*model.PlatformUser, error) {
+	q := dao.Q.PlatformUser
+	return q.Where(q.Flag.Eq(flag)).First()
+}
+
+func (a *adapter) UpdatePlatformUser(item *model.PlatformUser) error {
+	q := dao.Q.PlatformUser
+	_, err := q.Updates(item)
+	return err
+}
+
+func (a *adapter) GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error) {
+	q := dao.Q.PlatformChannel
+	return q.Where(q.Flag.Eq(flag)).First()
+}
+
+func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, error) {
+	q := dao.Q.PlatformChannel
+	err := q.Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
 }
 
 func (a *adapter) GetMessage(flag string) (*model.Message, error) {

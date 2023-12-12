@@ -30,6 +30,11 @@ func newPlatformUser(db *gorm.DB, opts ...gen.DOOption) platformUser {
 	_platformUser.ID = field.NewInt64(tableName, "id")
 	_platformUser.PlatformID = field.NewInt64(tableName, "platform_id")
 	_platformUser.UserID = field.NewInt64(tableName, "user_id")
+	_platformUser.Flag = field.NewString(tableName, "flag")
+	_platformUser.Name = field.NewString(tableName, "name")
+	_platformUser.Email = field.NewString(tableName, "email")
+	_platformUser.AvatarURL = field.NewString(tableName, "avatar_url")
+	_platformUser.IsBot = field.NewBool(tableName, "is_bot")
 	_platformUser.CreatedAt = field.NewTime(tableName, "created_at")
 	_platformUser.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -45,6 +50,11 @@ type platformUser struct {
 	ID         field.Int64
 	PlatformID field.Int64
 	UserID     field.Int64
+	Flag       field.String
+	Name       field.String
+	Email      field.String
+	AvatarURL  field.String
+	IsBot      field.Bool
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 
@@ -66,6 +76,11 @@ func (p *platformUser) updateTableName(table string) *platformUser {
 	p.ID = field.NewInt64(table, "id")
 	p.PlatformID = field.NewInt64(table, "platform_id")
 	p.UserID = field.NewInt64(table, "user_id")
+	p.Flag = field.NewString(table, "flag")
+	p.Name = field.NewString(table, "name")
+	p.Email = field.NewString(table, "email")
+	p.AvatarURL = field.NewString(table, "avatar_url")
+	p.IsBot = field.NewBool(table, "is_bot")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -84,10 +99,15 @@ func (p *platformUser) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *platformUser) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 5)
+	p.fieldMap = make(map[string]field.Expr, 10)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["platform_id"] = p.PlatformID
 	p.fieldMap["user_id"] = p.UserID
+	p.fieldMap["flag"] = p.Flag
+	p.fieldMap["name"] = p.Name
+	p.fieldMap["email"] = p.Email
+	p.fieldMap["avatar_url"] = p.AvatarURL
+	p.fieldMap["is_bot"] = p.IsBot
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 }

@@ -29,6 +29,7 @@ func newChannel(db *gorm.DB, opts ...gen.DOOption) channel {
 	_channel.ALL = field.NewAsterisk(tableName)
 	_channel.ID = field.NewInt64(tableName, "id")
 	_channel.Name = field.NewString(tableName, "name")
+	_channel.Flag = field.NewString(tableName, "flag")
 	_channel.State = field.NewField(tableName, "state")
 	_channel.CreatedAt = field.NewTime(tableName, "created_at")
 	_channel.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -44,6 +45,7 @@ type channel struct {
 	ALL       field.Asterisk
 	ID        field.Int64
 	Name      field.String
+	Flag      field.String
 	State     field.Field
 	CreatedAt field.Time
 	UpdatedAt field.Time
@@ -65,6 +67,7 @@ func (c *channel) updateTableName(table string) *channel {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewInt64(table, "id")
 	c.Name = field.NewString(table, "name")
+	c.Flag = field.NewString(table, "flag")
 	c.State = field.NewField(table, "state")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
@@ -84,9 +87,10 @@ func (c *channel) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *channel) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 5)
+	c.fieldMap = make(map[string]field.Expr, 6)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["name"] = c.Name
+	c.fieldMap["flag"] = c.Flag
 	c.fieldMap["state"] = c.State
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt

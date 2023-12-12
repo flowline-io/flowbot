@@ -2,7 +2,6 @@ package slack
 
 import (
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -81,13 +80,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 
 				flog.Debug("start slack emit event %+v", protocolEvent)
 				// emit event
-				err := event.PublishMessage(protocolEvent.DetailType, types.KV{
-					"caller": &platforms.Caller{
-						Action:  d.action,
-						Adapter: d.adapter,
-					},
-					"event": protocolEvent,
-				})
+				err := event.PublishMessage(protocolEvent.DetailType, protocolEvent)
 				if err != nil {
 					flog.Error(err)
 				}

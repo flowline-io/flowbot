@@ -471,6 +471,7 @@ func initializeChannels() error {
 		if channel == nil {
 			channel = &model.Channel{
 				Name:  name,
+				Flag:  types.Id(),
 				State: state,
 			}
 			if _, err := store.Database.CreateChannel(channel); err != nil {
