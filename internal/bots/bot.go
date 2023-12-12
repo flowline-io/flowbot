@@ -23,7 +23,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
-	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -910,20 +909,20 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 		return types.TextMsg{Text: "store instruct error"}
 	}
 
-	// event
-	err = pkgEvent.Emit(pkgEvent.InstructEvent, types.KV{
-		"uid":       ctx.AsUser.String(),
-		"no":        msg.No,
-		"object":    msg.Object,
-		"bot":       msg.Bot,
-		"flag":      msg.Flag,
-		"content":   msg.Content,
-		"state":     msg.State,
-		"expire_at": msg.ExpireAt,
-	})
-	if err != nil {
-		flog.Error(err)
-	}
+	// event todo
+	//err = pkgEvent.PublishMessage(pkgEvent.InstructEvent, types.KV{
+	//	"uid":       ctx.AsUser.String(),
+	//	"no":        msg.No,
+	//	"object":    msg.Object,
+	//	"bot":       msg.Bot,
+	//	"flag":      msg.Flag,
+	//	"content":   msg.Content,
+	//	"state":     msg.State,
+	//	"expire_at": msg.ExpireAt,
+	//})
+	//if err != nil {
+	//	flog.Error(err)
+	//}
 
 	return types.TextMsg{Text: fmt.Sprintf("Instruct[%s:%s]", msg.Flag, msg.No)}
 }

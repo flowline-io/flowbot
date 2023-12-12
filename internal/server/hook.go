@@ -107,11 +107,3 @@ func hookMounted() {
 	// notify after reboot
 	go notifyAfterReboot()
 }
-
-func hookEvent() {
-	onSendEvent()
-	onPushInstruct()
-	onPlatformMetaEvent()
-	onPlatformMessageEvent()
-	onPlatformNoticeEvent()
-}

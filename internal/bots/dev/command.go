@@ -18,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/workflow"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/mq"
@@ -228,11 +227,14 @@ var commandRules = []command.Rule{
 		Define: "event",
 		Help:   `fire example event`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			err := event.Emit(event.SendEvent, types.KV{"topic": ctx.RcptTo, "bot": Name, "message": "fire send event"})
-			if err != nil {
-				return types.TextMsg{Text: "error"}
-			}
-			event.AsyncEmit(event.ExampleEvent, types.KV{"now": time.Now().Unix()})
+			//err := event.PublishMessage(event.SendEvent, types.KV{"topic": ctx.RcptTo, "bot": Name, "message": "fire send event"})
+			//if err != nil {
+			//	return types.TextMsg{Text: "error"}
+			//}
+			//err = event.PublishMessage(event.ExampleEvent, types.KV{"now": time.Now().Unix()})
+			//if err != nil {
+			//	return types.TextMsg{Text: "error"}
+			//}
 			return types.TextMsg{Text: "ok"}
 		},
 	},

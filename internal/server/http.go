@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -70,7 +69,6 @@ Loop:
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}
-			event.Shutdown()
 			mq.Shutdown()
 			cache.Shutdown()
 

@@ -6,9 +6,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	json "github.com/json-iterator/go"
 	"log"
 	"time"
@@ -19,9 +17,8 @@ var logger = watermill.NewStdLogger(true, false)
 func NewSubscriber() (message.Subscriber, error) {
 	return redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
-			Client:        cache.DB,
-			Unmarshaller:  redisstream.DefaultMarshallerUnmarshaller{},
-			ConsumerGroup: "test_consumer_group",
+			Client:       cache.DB,
+			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
 	)
@@ -78,18 +75,19 @@ func NewMessage(payload any) (*message.Message, error) {
 	return msg, nil
 }
 
-func PublishMessages(publisher message.Publisher) {
-	for {
-		msg, err := NewMessage(model.Platform{Name: "example"})
-		if err != nil {
-			flog.Error(err)
-			continue
-		}
-
-		if err := publisher.Publish("example.topic", msg); err != nil {
-			panic(err)
-		}
-
-		time.Sleep(time.Second)
+func PublishMessage(topic string, payload any) error {
+	msg, err := NewMessage(payload)
+	if err != nil {
+		return err
 	}
+
+	publisher, err := NewPublisher()
+	if err != nil {
+		return err
+	}
+	if err := publisher.Publish(topic, msg); err != nil {
+		return err
+	}
+
+	return nil
 }

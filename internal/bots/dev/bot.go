@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -64,9 +63,7 @@ func (bot) Bootstrap() error {
 }
 
 func (bot) OnEvent() error {
-	event.On(event.ExampleEvent, func(data types.KV) error {
-		return nil
-	})
+	// todo ExampleEvent
 	return nil
 }
 

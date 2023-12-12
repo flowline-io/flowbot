@@ -450,9 +450,6 @@ func initializeChatbot(signal <-chan bool) error {
 	// Mounted
 	hookMounted()
 
-	// Event
-	hookEvent()
-
 	// Platform
 	hookPlatform(signal)
 
@@ -658,20 +655,17 @@ func initializeEvent() error {
 	}
 
 	router.AddNoPublisherHandler(
-		"print_incoming_messages",
-		"example.topic",
+		"onMessageChannelEvent",
+		protocol.MessageChannelEvent,
 		subscriber,
-		printMessages,
+		onPlatformMessageEventHandler,
 	)
-
-	go func() { // todo example publisher
-		pub, err := event.NewPublisher()
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-		event.PublishMessages(pub)
-	}()
+	router.AddNoPublisherHandler(
+		"onMessageDirectEvent",
+		protocol.MessageDirectEvent,
+		subscriber,
+		onPlatformMessageEventHandler,
+	)
 
 	go func() {
 		if err = router.Run(context.Background()); err != nil {
