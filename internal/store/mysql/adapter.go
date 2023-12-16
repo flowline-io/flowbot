@@ -15,12 +15,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/locker"
 	ms "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	mysqlDriver "gorm.io/driver/mysql"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -208,28 +205,8 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
 
-	if dsn := conf.FormatDSN(); dsn != defaultCfg.FormatDSN() {
-		// MySql config is specified. Use it.
-		a.dbName = conf.DBName
-		a.dsn = dsn
-		if conf.DSN != "" {
-			return errors.New("mysql config: conflicting config and DSN are provided")
-		}
-	} else {
-		// Otherwise, use DSN to configure database connection.
-		// Note: this method is deprecated.
-		if conf.DSN != "" {
-			// Remove optional schema.
-			a.dsn = strings.TrimPrefix(conf.DSN, "mysql://")
-		}
-
-		// Parse out the database name from the DSN.
-		// Add schema to create a valid URL.
-		if uri, err := url.Parse("mysql://" + a.dsn); err == nil {
-			a.dbName = strings.TrimPrefix(uri.Path, "/")
-		} else {
-			return err
-		}
+	if a.dsn == "" {
+		a.dsn = conf.DSN
 	}
 
 	if a.dbName == "" {
@@ -245,7 +222,7 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	}
 
 	// This just initializes the driver but does not open the network connection.
-	db, err := sqlx.Open("mysql", a.dsn)
+	db, err := sql.Open("mysql", a.dsn)
 	if err != nil {
 		return err
 	}
