@@ -20,7 +20,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -65,7 +64,6 @@ func newRouter(app *fiber.App) *mux.Router {
 	app.All("/oauth/:provider/:flag", storeOAuth)
 	app.Get("/page/:id", getPage)
 	app.Post("/form", adaptor.HTTPHandlerFunc(postForm))
-	app.Get("/queue/stats", adaptor.HTTPHandlerFunc(queueStats))
 	app.Get("/p/:id/:flag", renderPage)
 	// bot
 	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
@@ -464,15 +462,6 @@ func urlRedirect(rw http.ResponseWriter, req *http.Request) {
 
 	// redirect
 	http.Redirect(rw, req, url.URL, http.StatusFound)
-}
-
-func queueStats(rw http.ResponseWriter, _ *http.Request) {
-	html, err := mq.Stats()
-	if err != nil {
-		errorResponse(rw, "queue stats error")
-		return
-	}
-	_, _ = fmt.Fprint(rw, html)
 }
 
 func wbSession(wrt http.ResponseWriter, req *http.Request) {

@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	_ "embed"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"math/big"
 	"strconv"
 	"strings"
@@ -20,7 +21,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
@@ -179,8 +179,7 @@ var commandRules = []command.Rule{
 		Define: "queue",
 		Help:   `[example] publish mq and task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			// mq
-			err := mq.AsyncMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
+			err := event.SendMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

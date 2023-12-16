@@ -18,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -137,12 +136,6 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize TLS ok")
-
-	// init queue
-	if err = initializeQueue(); err != nil {
-		return err
-	}
-	flog.Info("initialize Queue ok")
 
 	// init event
 	if err = initializeEvent(); err != nil {
@@ -430,13 +423,6 @@ func initializeTLS() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to parse TLS config")
 	}
-	return nil
-}
-
-func initializeQueue() error {
-	// Queue
-	mq.Init()
-	mq.InitMessageConsumer(NewAsyncMessageConsumer())
 	return nil
 }
 

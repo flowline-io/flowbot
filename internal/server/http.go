@@ -6,7 +6,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/mq"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
@@ -69,7 +68,6 @@ Loop:
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}
-			mq.Shutdown()
 			cache.Shutdown()
 
 			break Loop
