@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/adjust/rmq/v5"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/action"
@@ -513,37 +512,6 @@ func sessionCurrent(uid types.Uid, topic string) (model.Session, bool) {
 func errorResponse(rw http.ResponseWriter, text string) {
 	rw.WriteHeader(http.StatusBadRequest)
 	_, _ = rw.Write([]byte(text))
-}
-
-type AsyncMessageConsumer struct {
-	name string
-}
-
-func NewAsyncMessageConsumer() *AsyncMessageConsumer {
-	return &AsyncMessageConsumer{name: "consumer"}
-}
-
-func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
-	payload := delivery.Payload()
-
-	var qp types.QueuePayload
-	err := json.Unmarshal([]byte(payload), &qp)
-	if err != nil {
-		if err := delivery.Reject(); err != nil {
-			flog.Error(err)
-			return
-		}
-		return
-	}
-
-	//uid := types.Uid(qp.Uid)
-	//msg := types.ToPayload(qp.Type, qp.Msg)
-	//botSend(qp.RcptTo, uid, msg)
-
-	if err := delivery.Ack(); err != nil {
-		flog.Error(err)
-		return
-	}
 }
 
 func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {

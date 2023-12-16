@@ -6,7 +6,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-redisstream v1.2.2
-	github.com/adjust/rmq/v5 v5.2.0
 	github.com/aws/aws-sdk-go v1.48.16
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.27.1
@@ -77,8 +76,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
-	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
-	github.com/alicebob/miniredis/v2 v2.30.4 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/campoy/embedmd v1.0.0 // indirect
@@ -153,7 +150,6 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
-	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
