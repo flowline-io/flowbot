@@ -1467,6 +1467,15 @@ func (a *adapter) GetJobsByState(state model.JobState) ([]*model.Job, error) {
 	return q.Where(q.State.Eq(state)).Find()
 }
 
+func (a *adapter) GetJobsByStates(states []model.JobState) ([]*model.Job, error) {
+	q := dao.Q.Job
+	build := q.Order(q.ID)
+	for _, state := range states {
+		build = build.Or(q.State.Eq(state))
+	}
+	return build.Find()
+}
+
 func (a *adapter) GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error) {
 	q := dao.Q.Job
 	return q.Where(q.WorkflowID.Eq(workflowID)).Find()

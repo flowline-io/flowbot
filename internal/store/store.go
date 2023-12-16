@@ -281,6 +281,7 @@ type Adapter interface {
 	DeleteJob(id int64) error
 	ListJobs(workflowID int64) ([]*model.Job, error)
 	GetJobsByState(state model.JobState) ([]*model.Job, error)
+	GetJobsByStates(states []model.JobState) ([]*model.Job, error)
 	GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error)
 	UpdateJobState(id int64, state model.JobState) error
 	UpdateStep(id int64, item *model.Step) error

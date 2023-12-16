@@ -29,6 +29,8 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 		initial = "canceled"
 	case model.JobFailed:
 		initial = "failed"
+	case model.JobStateUnknown:
+		initial = "unknown"
 	}
 	f := fsm.NewFSM(
 		initial,
@@ -300,6 +302,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 		initial = "failed"
 	case model.StepSkipped:
 		initial = "skipped"
+	case model.StepStateUnknown:
+		initial = "unknown"
 	}
 	f := fsm.NewFSM(
 		initial,
