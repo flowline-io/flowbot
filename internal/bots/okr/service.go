@@ -10,12 +10,12 @@ import (
 
 // objective list
 //
-//	@Summary  objective list
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Success  200  {object}  protocol.Response{data=[]model.Objective}
-//	@Router   /okr/objectives [get]
+//	@Summary	objective list
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=[]model.Objective}
+//	@Router		/okr/objectives [get]
 func objectiveList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -29,13 +29,13 @@ func objectiveList(ctx *fiber.Ctx) error {
 
 // objective detail
 //
-//	@Summary  objective detail
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    sequence  path      int  true  "Sequence"
-//	@Success  200       {object}  protocol.Response{data=model.Objective}
-//	@Router   /okr/objective/{sequence} [get]
+//	@Summary	objective detail
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		sequence	path		int	true	"Sequence"
+//	@Success	200			{object}	protocol.Response{data=model.Objective}
+//	@Router		/okr/objective/{sequence} [get]
 func objectiveDetail(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -50,13 +50,13 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 
 // objective create
 //
-//	@Summary  objective create
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    objective  body      model.Objective  true  "objective data"
-//	@Success  200        {object}  protocol.Response
-//	@Router   /okr/objective [post]
+//	@Summary	objective create
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		objective	body		model.Objective	true	"objective data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/objective [post]
 func objectiveCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -85,14 +85,14 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 
 // objective update
 //
-//	@Summary  objective update
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    sequence   path      int              true  "Sequence"
-//	@Param    objective  body      model.Objective  true  "objective data"
-//	@Success  200        {object}  protocol.Response
-//	@Router   /okr/objective/{sequence} [put]
+//	@Summary	objective update
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		sequence	path		int				true	"Sequence"
+//	@Param		objective	body		model.Objective	true	"objective data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/objective/{sequence} [put]
 func objectiveUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -115,13 +115,13 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 
 // objective delete
 //
-//	@Summary  objective delete
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    sequence  path      int  true  "Sequence"
-//	@Success  200       {object}  protocol.Response
-//	@Router   /okr/objective/{sequence} [delete]
+//	@Summary	objective delete
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		sequence	path		int	true	"Sequence"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/objective/{sequence} [delete]
 func objectiveDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -136,13 +136,13 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 
 // KeyResult create
 //
-//	@Summary  KeyResult create
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    keyResult  body      model.KeyResult  true  "KeyResult data"
-//	@Success  200        {object}  protocol.Response
-//	@Router   /okr/key_result [post]
+//	@Summary	KeyResult create
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		keyResult	body		model.KeyResult	true	"KeyResult data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/key_result [post]
 func keyResultCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -163,14 +163,14 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 
 // KeyResult update
 //
-//	@Summary  KeyResult update
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    sequence   path      int              true  "Sequence"
-//	@Param    objective  body      model.KeyResult  true  "KeyResult data"
-//	@Success  200        {object}  protocol.Response
-//	@Router   /okr/key_result/{sequence} [put]
+//	@Summary	KeyResult update
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		sequence	path		int				true	"Sequence"
+//	@Param		objective	body		model.KeyResult	true	"KeyResult data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/key_result/{sequence} [put]
 func keyResultUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -193,13 +193,13 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 
 // KeyResult delete
 //
-//	@Summary  KeyResult delete
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    sequence  path      int  true  "Sequence"
-//	@Success  200       {object}  protocol.Response
-//	@Router   /okr/key_result/{sequence} [delete]
+//	@Summary	KeyResult delete
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		sequence	path		int	true	"Sequence"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/okr/key_result/{sequence} [delete]
 func keyResultDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -214,13 +214,13 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 
 // key result value list
 //
-//	@Summary  key result value list
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    id   path      int  true  "key result id"
-//	@Success  200  {object}  protocol.Response{data=[]model.KeyResultValue}
-//	@Router   /okr/key_result/{id}/values [get]
+//	@Summary	key result value list
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"key result id"
+//	@Success	200	{object}	protocol.Response{data=[]model.KeyResultValue}
+//	@Router		/okr/key_result/{id}/values [get]
 func keyResultValueList(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
@@ -236,14 +236,14 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 
 // KeyResult value create
 //
-//	@Summary  KeyResult value create
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    id              path      int                   true  "key result id"
-//	@Param    KeyResultValue  body      model.KeyResultValue  true  "KeyResultValue data"
-//	@Success  200             {object}  protocol.Response
-//	@Router   /okr/key_result/{id}/value [post]
+//	@Summary	KeyResult value create
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		id				path		int						true	"key result id"
+//	@Param		KeyResultValue	body		model.KeyResultValue	true	"KeyResultValue data"
+//	@Success	200				{object}	protocol.Response
+//	@Router		/okr/key_result/{id}/value [post]
 func keyResultValueCreate(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
@@ -265,13 +265,13 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 
 // KeyResult value delete
 //
-//	@Summary  KeyResult value delete
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    id              path      int                   true  "key result id"
-//	@Success  200             {object}  protocol.Response
-//	@Router   /okr/key_result_value/{id} [delete]
+//	@Summary	KeyResult value delete
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"key result id"
+//	@Success	200	{object}	protocol.Response
+//	@Router		/okr/key_result_value/{id} [delete]
 func keyResultValueDelete(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {
@@ -287,13 +287,13 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 
 // KeyResult value detail
 //
-//	@Summary  KeyResult value detail
-//	@Tags     okr
-//	@Accept   json
-//	@Produce  json
-//	@Param    id              path      int                   true  "key result id"
-//	@Success  200             {object}  protocol.Response{data=model.KeyResultValue}
-//	@Router   /okr/key_result_value/{id} [get]
+//	@Summary	KeyResult value detail
+//	@Tags		okr
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"key result id"
+//	@Success	200	{object}	protocol.Response{data=model.KeyResultValue}
+//	@Router		/okr/key_result_value/{id} [get]
 func keyResultValue(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {

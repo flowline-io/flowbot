@@ -22,12 +22,12 @@ type rule struct {
 
 // get chatbot actions
 //
-//	@Summary  get chatbot actions
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Success  200  {object}  protocol.Response{data=map[string][]rule}
-//	@Router   /workflow/actions [get]
+//	@Summary	get chatbot actions
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=map[string][]rule}
+//	@Router		/workflow/actions [get]
 func actions(ctx *fiber.Ctx) error {
 	result := make(map[string][]rule, len(bots.List()))
 	for name, botHandler := range bots.List() {
@@ -57,12 +57,12 @@ func actions(ctx *fiber.Ctx) error {
 
 // workflow list
 //
-//	@Summary  workflow list
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Success  200  {object}  protocol.Response{data=[]model.Workflow}
-//	@Router   /workflow/workflows [get]
+//	@Summary	workflow list
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=[]model.Workflow}
+//	@Router		/workflow/workflows [get]
 func workflowList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -76,13 +76,13 @@ func workflowList(ctx *fiber.Ctx) error {
 
 // workflow detail
 //
-//	@Summary  workflow detail
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "ID"
-//	@Success  200  {object}  protocol.Response{data=model.Workflow}
-//	@Router   /workflow/workflow/{id} [get]
+//	@Summary	workflow detail
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"ID"
+//	@Success	200	{object}	protocol.Response{data=model.Workflow}
+//	@Router		/workflow/workflow/{id} [get]
 func workflowDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -95,13 +95,13 @@ func workflowDetail(ctx *fiber.Ctx) error {
 
 // workflow create
 //
-//	@Summary  workflow create
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    workflow  body      model.Workflow  true  "workflow data"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/workflow [post]
+//	@Summary	workflow create
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		workflow	body		model.Workflow	true	"workflow data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/workflow/workflow [post]
 func workflowCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -123,14 +123,14 @@ func workflowCreate(ctx *fiber.Ctx) error {
 
 // workflow update
 //
-//	@Summary  workflow update
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "ID"
-//	@Param    workflow  body      model.Workflow  true  "workflow data"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/workflow/{id} [put]
+//	@Summary	workflow update
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id			path		int				true	"ID"
+//	@Param		workflow	body		model.Workflow	true	"workflow data"
+//	@Success	200			{object}	protocol.Response
+//	@Router		/workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -153,13 +153,13 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 
 // workflow delete
 //
-//	@Summary  workflow delete
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "ID"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/workflow/{id} [delete]
+//	@Summary	workflow delete
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"ID"
+//	@Success	200	{object}	protocol.Response
+//	@Router		/workflow/workflow/{id} [delete]
 func workflowDelete(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -172,13 +172,13 @@ func workflowDelete(ctx *fiber.Ctx) error {
 
 // workflow trigger list
 //
-//	@Summary  workflow trigger list
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Workflow ID"
-//	@Success  200  {object}  protocol.Response{data=[]model.WorkflowTrigger}
-//	@Router   /workflow/workflow/{id}/triggers [get]
+//	@Summary	workflow trigger list
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Workflow ID"
+//	@Success	200	{object}	protocol.Response{data=[]model.WorkflowTrigger}
+//	@Router		/workflow/workflow/{id}/triggers [get]
 func workflowTriggerList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -191,14 +191,14 @@ func workflowTriggerList(ctx *fiber.Ctx) error {
 
 // workflow trigger create
 //
-//	@Summary  workflow trigger create
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Workflow ID"
-//	@Param    trigger  body      model.WorkflowTrigger  true  "workflow trigger data"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/workflow/{id}/trigger [post]
+//	@Summary	workflow trigger create
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		int						true	"Workflow ID"
+//	@Param		trigger	body		model.WorkflowTrigger	true	"workflow trigger data"
+//	@Success	200		{object}	protocol.Response
+//	@Router		/workflow/workflow/{id}/trigger [post]
 func workflowTriggerCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -222,14 +222,14 @@ func workflowTriggerCreate(ctx *fiber.Ctx) error {
 
 // workflow trigger update
 //
-//	@Summary  workflow trigger update
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Trigger ID"
-//	@Param    trigger  body      model.WorkflowTrigger  true  "workflow trigger data"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/trigger/{id} [put]
+//	@Summary	workflow trigger update
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		int						true	"Trigger ID"
+//	@Param		trigger	body		model.WorkflowTrigger	true	"workflow trigger data"
+//	@Success	200		{object}	protocol.Response
+//	@Router		/workflow/trigger/{id} [put]
 func workflowTriggerUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
@@ -253,13 +253,13 @@ func workflowTriggerUpdate(ctx *fiber.Ctx) error {
 
 // workflow trigger delete
 //
-//	@Summary  workflow trigger delete
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Trigger ID"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/trigger/{id} [delete]
+//	@Summary	workflow trigger delete
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Trigger ID"
+//	@Success	200	{object}	protocol.Response
+//	@Router		/workflow/trigger/{id} [delete]
 func workflowTriggerDelete(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -272,13 +272,13 @@ func workflowTriggerDelete(ctx *fiber.Ctx) error {
 
 // workflow job list
 //
-//	@Summary  workflow job list
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Workflow ID"
-//	@Success  200  {object}  protocol.Response{data=[]model.Job}
-//	@Router   /workflow/workflow/{id}/jobs [get]
+//	@Summary	workflow job list
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Workflow ID"
+//	@Success	200	{object}	protocol.Response{data=[]model.Job}
+//	@Router		/workflow/workflow/{id}/jobs [get]
 func workflowJobList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -291,13 +291,13 @@ func workflowJobList(ctx *fiber.Ctx) error {
 
 // workflow job detail
 //
-//	@Summary  workflow job detail
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Job ID"
-//	@Success  200  {object}  protocol.Response{data=model.Job}
-//	@Router   /workflow/job/{id} [get]
+//	@Summary	workflow job detail
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Job ID"
+//	@Success	200	{object}	protocol.Response{data=model.Job}
+//	@Router		/workflow/job/{id} [get]
 func workflowJobDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -310,26 +310,26 @@ func workflowJobDetail(ctx *fiber.Ctx) error {
 
 // workflow job rerun
 //
-//	@Summary  workflow job rerun
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Job ID"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/job/{id}/rerun [post]
+//	@Summary	workflow job rerun
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Job ID"
+//	@Success	200	{object}	protocol.Response
+//	@Router		/workflow/job/{id}/rerun [post]
 func workflowJobRerun(ctx *fiber.Ctx) error {
 	return nil
 }
 
 // workflow dag detail
 //
-//	@Summary  workflow dag detail
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Workflow ID"
-//	@Success  200  {object}  protocol.Response{data=model.Dag}
-//	@Router   /workflow/workflow/{id}/dag [get]
+//	@Summary	workflow dag detail
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Workflow ID"
+//	@Success	200	{object}	protocol.Response{data=model.Dag}
+//	@Router		/workflow/workflow/{id}/dag [get]
 func workflowDagDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
@@ -345,14 +345,14 @@ func workflowDagDetail(ctx *fiber.Ctx) error {
 
 // workflow dag update
 //
-//	@Summary  workflow dag update
-//	@Tags     workflow
-//	@Accept   json
-//	@Produce  json
-//	@Param    id  path      int  true  "Workflow ID"
-//	@Param    trigger  body      model.Dag  true  "workflow dag data"
-//	@Success  200  {object}  protocol.Response
-//	@Router   /workflow/workflow/{id}/dag [put]
+//	@Summary	workflow dag update
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		int			true	"Workflow ID"
+//	@Param		trigger	body		model.Dag	true	"workflow dag data"
+//	@Success	200		{object}	protocol.Response
+//	@Router		/workflow/workflow/{id}/dag [put]
 func workflowDagUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)

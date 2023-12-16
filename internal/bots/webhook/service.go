@@ -12,13 +12,13 @@ import (
 
 // trigger webhook
 //
-//	@Summary  trigger webhook
-//	@Tags     webhook
-//	@Accept   json
-//	@Produce  json
-//	@Param    flag  path      string  true  "Flag"
-//	@Success  200   {object}  protocol.Response
-//	@Router   /webhook/trigger/{flag} [post]
+//	@Summary	trigger webhook
+//	@Tags		webhook
+//	@Accept		json
+//	@Produce	json
+//	@Param		flag	path		string	true	"Flag"
+//	@Success	200		{object}	protocol.Response
+//	@Router		/webhook/trigger/{flag} [post]
 func webhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 

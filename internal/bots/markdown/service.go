@@ -20,11 +20,11 @@ var editorTemplate string
 
 // markdown editor page
 //
-//	@Summary  markdown editor page
-//	@Tags     markdown
-//	@Produce  html
-//	@Param    flag  path  string  true  "Flag"
-//	@Router   /markdown/editor/{flag} [get]
+//	@Summary	markdown editor page
+//	@Tags		markdown
+//	@Produce	html
+//	@Param		flag	path	string	true	"Flag"
+//	@Router		/markdown/editor/{flag} [get]
 func editor(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
@@ -53,13 +53,13 @@ func editor(ctx *fiber.Ctx) error {
 
 // save markdown data
 //
-//	@Summary  save markdown data
-//	@Tags     markdown
-//	@Accept   json
-//	@Produce  json
-//	@Param    data  body      map[string]string  true  "Data"
-//	@Success  200   {object}  protocol.Response
-//	@Router   /markdown/data [post]
+//	@Summary	save markdown data
+//	@Tags		markdown
+//	@Accept		json
+//	@Produce	json
+//	@Param		data	body		map[string]string	true	"Data"
+//	@Success	200		{object}	protocol.Response
+//	@Router		/markdown/data [post]
 func saveMarkdown(ctx *fiber.Ctx) error {
 	// data
 	var data map[string]string

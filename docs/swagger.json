@@ -1290,7 +1290,7 @@
                 "dag_id": {
                     "type": "integer"
                 },
-                "finished_at": {
+                "ended_at": {
                     "type": "string"
                 },
                 "id": {
@@ -1300,7 +1300,7 @@
                     "type": "string"
                 },
                 "state": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.JobState"
                 },
                 "steps": {
                     "type": "array",
@@ -1324,6 +1324,27 @@
                     "type": "integer"
                 }
             }
+        },
+        "model.JobState": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "JobStateUnknown",
+                "JobReady",
+                "JobStart",
+                "JobRunning",
+                "JobSucceeded",
+                "JobCanceled",
+                "JobFailed"
+            ]
         },
         "model.KeyResult": {
             "type": "object",
@@ -1380,7 +1401,7 @@
                     "type": "string"
                 },
                 "value_mode": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.ValueModeType"
                 }
             }
         },
@@ -1474,7 +1495,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.NodeStatus"
                 },
                 "variables": {
                     "type": "array",
@@ -1492,6 +1513,23 @@
                     "type": "integer"
                 }
             }
+        },
+        "model.NodeStatus": {
+            "type": "string",
+            "enum": [
+                "default",
+                "success",
+                "processing",
+                "error",
+                "warning"
+            ],
+            "x-enum-varnames": [
+                "NodeDefault",
+                "NodeSuccess",
+                "NodeProcessing",
+                "NodeError",
+                "NodeWarning"
+            ]
         },
         "model.Objective": {
             "type": "object",
@@ -1586,7 +1624,7 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.ReviewType"
                 },
                 "uid": {
                     "type": "string"
@@ -1628,6 +1666,19 @@
                 }
             }
         },
+        "model.ReviewType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ReviewTypeUnknown",
+                "ReviewMid",
+                "ReviewEnd"
+            ]
+        },
         "model.Step": {
             "type": "object",
             "properties": {
@@ -1646,10 +1697,10 @@
                 "describe": {
                     "type": "string"
                 },
-                "error": {
+                "ended_at": {
                     "type": "string"
                 },
-                "finished_at": {
+                "error": {
                     "type": "string"
                 },
                 "id": {
@@ -1674,7 +1725,7 @@
                     "type": "string"
                 },
                 "state": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.StepState"
                 },
                 "topic": {
                     "type": "string"
@@ -1686,6 +1737,31 @@
                     "type": "string"
                 }
             }
+        },
+        "model.StepState": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "x-enum-varnames": [
+                "StepStateUnknown",
+                "StepCreated",
+                "StepReady",
+                "StepStart",
+                "StepRunning",
+                "StepSucceeded",
+                "StepFailed",
+                "StepCanceled",
+                "StepSkipped"
+            ]
         },
         "model.Todo": {
             "type": "object",
@@ -1752,6 +1828,34 @@
                 }
             }
         },
+        "model.TriggerType": {
+            "type": "string",
+            "enum": [
+                "cron",
+                "manual",
+                "webhook"
+            ],
+            "x-enum-varnames": [
+                "TriggerCron",
+                "TriggerManual",
+                "TriggerWebhook"
+            ]
+        },
+        "model.ValueModeType": {
+            "type": "string",
+            "enum": [
+                "sum",
+                "last",
+                "avg",
+                "max"
+            ],
+            "x-enum-varnames": [
+                "ValueSumMode",
+                "ValueLastMode",
+                "ValueAvgMode",
+                "ValueMaxMode"
+            ]
+        },
         "model.Workflow": {
             "type": "object",
             "properties": {
@@ -1786,7 +1890,7 @@
                     "type": "integer"
                 },
                 "state": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.WorkflowState"
                 },
                 "successful_count": {
                     "type": "integer"
@@ -1808,6 +1912,19 @@
                 }
             }
         },
+        "model.WorkflowState": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "WorkflowStateUnknown",
+                "WorkflowEnable",
+                "WorkflowDisable"
+            ]
+        },
         "model.WorkflowTrigger": {
             "type": "object",
             "properties": {
@@ -1824,13 +1941,13 @@
                     "type": "string"
                 },
                 "state": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.WorkflowTriggerState"
                 },
                 "topic": {
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.TriggerType"
                 },
                 "uid": {
                     "type": "string"
@@ -1843,12 +1960,24 @@
                 }
             }
         },
+        "model.WorkflowTriggerState": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "WorkflowTriggerStateUnknown",
+                "WorkflowTriggerEnable",
+                "WorkflowTriggerDisable"
+            ]
+        },
         "protocol.Response": {
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Response data",
-                    "type": "any"
+                    "description": "Response data"
                 },
                 "message": {
                     "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
@@ -1860,9 +1989,24 @@
                 },
                 "status": {
                     "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/protocol.ResponseStatus"
+                        }
+                    ]
                 }
             }
+        },
+        "protocol.ResponseStatus": {
+            "type": "string",
+            "enum": [
+                "ok",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "Success",
+                "Failed"
+            ]
         },
         "types.FormField": {
             "type": "object",
@@ -1886,13 +2030,73 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/types.FormFieldType"
                 },
                 "value": {},
                 "value_type": {
-                    "type": "string"
+                    "$ref": "#/definitions/types.FormFieldValueType"
                 }
             }
+        },
+        "types.FormFieldType": {
+            "type": "string",
+            "enum": [
+                "text",
+                "password",
+                "number",
+                "color",
+                "file",
+                "month",
+                "date",
+                "time",
+                "email",
+                "url",
+                "radio",
+                "checkbox",
+                "range",
+                "select",
+                "textarea",
+                "hidden"
+            ],
+            "x-enum-varnames": [
+                "FormFieldText",
+                "FormFieldPassword",
+                "FormFieldNumber",
+                "FormFieldColor",
+                "FormFieldFile",
+                "FormFieldMonth",
+                "FormFieldDate",
+                "FormFieldTime",
+                "FormFieldEmail",
+                "FormFieldUrl",
+                "FormFieldRadio",
+                "FormFieldCheckbox",
+                "FormFieldRange",
+                "FormFieldSelect",
+                "FormFieldTextarea",
+                "FormFieldHidden"
+            ]
+        },
+        "types.FormFieldValueType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "bool",
+                "int64",
+                "float64",
+                "string_slice",
+                "int64_slice",
+                "float64_slice"
+            ],
+            "x-enum-varnames": [
+                "FormFieldValueString",
+                "FormFieldValueBool",
+                "FormFieldValueInt64",
+                "FormFieldValueFloat64",
+                "FormFieldValueStringSlice",
+                "FormFieldValueInt64Slice",
+                "FormFieldValueFloat64Slice"
+            ]
         },
         "types.KV": {
             "type": "object",

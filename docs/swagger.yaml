@@ -65,14 +65,14 @@ definitions:
         type: string
       dag_id:
         type: integer
-      finished_at:
+      ended_at:
         type: string
       id:
         type: integer
       started_at:
         type: string
       state:
-        type: integer
+        $ref: '#/definitions/model.JobState'
       steps:
         items:
           $ref: '#/definitions/model.Step'
@@ -88,6 +88,24 @@ definitions:
       workflow_id:
         type: integer
     type: object
+  model.JobState:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-varnames:
+    - JobStateUnknown
+    - JobReady
+    - JobStart
+    - JobRunning
+    - JobSucceeded
+    - JobCanceled
+    - JobFailed
   model.KeyResult:
     properties:
       created_at:
@@ -125,7 +143,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        type: string
+        $ref: '#/definitions/model.ValueModeType'
     type: object
   model.KeyResultValue:
     properties:
@@ -187,7 +205,7 @@ definitions:
       rule_id:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/model.NodeStatus'
       variables:
         items:
           type: string
@@ -199,6 +217,20 @@ definitions:
       "y":
         type: integer
     type: object
+  model.NodeStatus:
+    enum:
+    - default
+    - success
+    - processing
+    - error
+    - warning
+    type: string
+    x-enum-varnames:
+    - NodeDefault
+    - NodeSuccess
+    - NodeProcessing
+    - NodeError
+    - NodeWarning
   model.Objective:
     properties:
       created_data:
@@ -261,7 +293,7 @@ definitions:
       topic:
         type: string
       type:
-        type: integer
+        $ref: '#/definitions/model.ReviewType'
       uid:
         type: string
       updated_at:
@@ -288,6 +320,16 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.ReviewType:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ReviewTypeUnknown
+    - ReviewMid
+    - ReviewEnd
   model.Step:
     properties:
       action:
@@ -300,9 +342,9 @@ definitions:
         type: array
       describe:
         type: string
-      error:
+      ended_at:
         type: string
-      finished_at:
+      error:
         type: string
       id:
         type: integer
@@ -319,7 +361,7 @@ definitions:
       started_at:
         type: string
       state:
-        type: integer
+        $ref: '#/definitions/model.StepState'
       topic:
         type: string
       uid:
@@ -327,6 +369,28 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.StepState:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    type: integer
+    x-enum-varnames:
+    - StepStateUnknown
+    - StepCreated
+    - StepReady
+    - StepStart
+    - StepRunning
+    - StepSucceeded
+    - StepFailed
+    - StepCanceled
+    - StepSkipped
   model.Todo:
     properties:
       category:
@@ -370,6 +434,28 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.TriggerType:
+    enum:
+    - cron
+    - manual
+    - webhook
+    type: string
+    x-enum-varnames:
+    - TriggerCron
+    - TriggerManual
+    - TriggerWebhook
+  model.ValueModeType:
+    enum:
+    - sum
+    - last
+    - avg
+    - max
+    type: string
+    x-enum-varnames:
+    - ValueSumMode
+    - ValueLastMode
+    - ValueAvgMode
+    - ValueMaxMode
   model.Workflow:
     properties:
       canceled_count:
@@ -393,7 +479,7 @@ definitions:
       running_count:
         type: integer
       state:
-        type: integer
+        $ref: '#/definitions/model.WorkflowState'
       successful_count:
         type: integer
       topic:
@@ -407,6 +493,16 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.WorkflowState:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - WorkflowStateUnknown
+    - WorkflowEnable
+    - WorkflowDisable
   model.WorkflowTrigger:
     properties:
       count:
@@ -418,11 +514,11 @@ definitions:
       rule:
         type: string
       state:
-        type: integer
+        $ref: '#/definitions/model.WorkflowTriggerState'
       topic:
         type: string
       type:
-        type: string
+        $ref: '#/definitions/model.TriggerType'
       uid:
         type: string
       updated_at:
@@ -430,11 +526,20 @@ definitions:
       workflow_id:
         type: integer
     type: object
+  model.WorkflowTriggerState:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - WorkflowTriggerStateUnknown
+    - WorkflowTriggerEnable
+    - WorkflowTriggerDisable
   protocol.Response:
     properties:
       data:
         description: Response data
-        type: any
       message:
         description: |-
           Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
@@ -445,11 +550,20 @@ definitions:
           defined later on this page
         type: integer
       status:
+        allOf:
+        - $ref: '#/definitions/protocol.ResponseStatus'
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
-        type: string
     type: object
+  protocol.ResponseStatus:
+    enum:
+    - ok
+    - failed
+    type: string
+    x-enum-varnames:
+    - Success
+    - Failed
   types.FormField:
     properties:
       key:
@@ -465,11 +579,65 @@ definitions:
       rule:
         type: string
       type:
-        type: string
+        $ref: '#/definitions/types.FormFieldType'
       value: {}
       value_type:
-        type: string
+        $ref: '#/definitions/types.FormFieldValueType'
     type: object
+  types.FormFieldType:
+    enum:
+    - text
+    - password
+    - number
+    - color
+    - file
+    - month
+    - date
+    - time
+    - email
+    - url
+    - radio
+    - checkbox
+    - range
+    - select
+    - textarea
+    - hidden
+    type: string
+    x-enum-varnames:
+    - FormFieldText
+    - FormFieldPassword
+    - FormFieldNumber
+    - FormFieldColor
+    - FormFieldFile
+    - FormFieldMonth
+    - FormFieldDate
+    - FormFieldTime
+    - FormFieldEmail
+    - FormFieldUrl
+    - FormFieldRadio
+    - FormFieldCheckbox
+    - FormFieldRange
+    - FormFieldSelect
+    - FormFieldTextarea
+    - FormFieldHidden
+  types.FormFieldValueType:
+    enum:
+    - string
+    - bool
+    - int64
+    - float64
+    - string_slice
+    - int64_slice
+    - float64_slice
+    type: string
+    x-enum-varnames:
+    - FormFieldValueString
+    - FormFieldValueBool
+    - FormFieldValueInt64
+    - FormFieldValueFloat64
+    - FormFieldValueStringSlice
+    - FormFieldValueInt64Slice
+    - FormFieldValueFloat64Slice
   types.KV:
     additionalProperties: true
     type: object
