@@ -8,7 +8,6 @@ import (
 const ID = "tailchat"
 
 func HandleWebsocket(stop <-chan bool) {
-	return
 }
 
 func HandleHttp(c *fiber.Ctx) error {

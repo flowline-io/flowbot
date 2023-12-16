@@ -24,14 +24,6 @@ func (m *Manager) Run() {
 	go parallelizer.JitterUntil(m.syncJob, time.Minute, 0.0, true, m.stop)
 	// ready job
 	go parallelizer.JitterUntil(m.pushReadyJob, time.Second, 0.0, true, m.stop)
-
-	for {
-		select {
-		case <-m.stop:
-			flog.Info("manager stopped")
-			return
-		}
-	}
 }
 
 func (m *Manager) Shutdown() {

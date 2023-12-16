@@ -49,8 +49,7 @@ type Session struct {
 	lpTracker *list.Element
 
 	// Reference to multiplexing session. Set only for proxy sessions.
-	multi        *Session
-	proxiedTopic string
+	multi *Session
 
 	// IP address of the client. For long polling this is the IP of the last poll.
 	remoteAddr string
@@ -58,27 +57,12 @@ type Session struct {
 	// User agent, a string provived by an authenticated client in {login} packet.
 	userAgent string
 
-	// Protocol version of the client: ((major & 0xff) << 8) | (minor & 0xff).
-	ver int
-
-	// Device ID of the client
-	deviceID string
-	// Platform: web, ios, android
-	platf string
-	// Human language of the client
-	lang string
-	// Country code of the client
-	countryCode string
-
 	// ID of the current user. Could be zero if session is not authenticated
 	// or for multiplexing sessions.
 	uid types.Uid
 
 	// Time when the long polling session was last refreshed
 	lastTouched time.Time
-
-	// Time when the session received any packer from client
-	lastAction int64
 
 	// Timer which triggers after some seconds to mark background session as foreground.
 	bkgTimer *time.Timer

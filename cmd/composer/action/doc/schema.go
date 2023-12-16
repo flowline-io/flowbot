@@ -103,7 +103,9 @@ func SchemaAction(c *cli.Context) error {
 		fmt.Println(err)
 		panic(err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	// Tables
 	var tables []Table

@@ -1,5 +1,12 @@
 # extra chatbot framework
 
+## Setup
+
+### install dev tools
+```shell
+./docs/install.sh
+```
+
 ## extra json config
 
 > See extra.conf
@@ -32,6 +39,10 @@ golangci-lint run --timeout=10m --config=./.golangci.yaml ./...
 ## cloc
 
 ```shell
+# install
+sudo apt install cloc
+
+# count
 cloc --exclude-dir=node_modules --exclude-ext=json .
 ```
 

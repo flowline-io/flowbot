@@ -173,7 +173,6 @@ func (Base) Page(_ types.Context, _ string) (string, error) {
 }
 
 func (Base) Webservice(_ *fiber.App) {
-	return
 }
 
 func (Base) Webapp() func(rw http.ResponseWriter, req *http.Request) {

@@ -120,7 +120,9 @@ func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(workdir)
+	defer func() {
+		_ = os.RemoveAll(workdir)
+	}()
 
 	log.Debug().Msgf("Created workdir %s", workdir)
 
@@ -155,7 +157,7 @@ func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
 	if err != nil {
 		return err
 	}
-	defer stdout.Close()
+	defer func() { _ = stdout.Close() }()
 	cmd.Stderr = cmd.Stdout
 
 	if err := cmd.Start(); err != nil {
@@ -243,7 +245,7 @@ func reexecRun() {
 	}
 }
 
-func (r *ShellRuntime) Stop(ctx context.Context, t *types.Task) error {
+func (r *ShellRuntime) Stop(_ context.Context, t *types.Task) error {
 	proc, ok := r.cmds.Get(t.ID)
 	if !ok {
 		return nil
@@ -254,6 +256,6 @@ func (r *ShellRuntime) Stop(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *ShellRuntime) HealthCheck(ctx context.Context) error {
+func (r *ShellRuntime) HealthCheck(_ context.Context) error {
 	return nil
 }

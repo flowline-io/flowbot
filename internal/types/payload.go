@@ -11,10 +11,6 @@ import (
 	"unicode/utf8"
 )
 
-var commonHead = map[string]interface{}{
-	"mime": "text/x-drafty",
-}
-
 type FmtMessage struct {
 	At  int    `json:"at,omitempty"`
 	Len int    `json:"len,omitempty"`
