@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var callers = make(map[string]*Caller)
+
 type Caller struct {
 	Action  protocol.Action
 	Adapter protocol.Adapter
@@ -57,7 +59,7 @@ func MessageConvert(data any) protocol.Message {
 	}
 }
 
-func PlatformRegister(name string) error {
+func PlatformRegister(name string, caller *Caller) error {
 	_, err := store.Database.GetPlatformByName(name)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
@@ -70,5 +72,13 @@ func PlatformRegister(name string) error {
 			return err
 		}
 	}
+	callers[name] = caller
 	return nil
+}
+
+func GetCaller(name string) (*Caller, error) {
+	if c, ok := callers[name]; ok {
+		return c, nil
+	}
+	return nil, errors.New("caller not found")
 }

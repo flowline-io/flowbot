@@ -81,8 +81,10 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 	}
 	pe.Data = v
 
-	var caller *platforms.Caller
-	// todo make caller
+	caller, err := platforms.GetCaller(v.Self.Platform)
+	if err != nil {
+		return err
+	}
 
 	hookIncomingMessage(caller, pe)
 

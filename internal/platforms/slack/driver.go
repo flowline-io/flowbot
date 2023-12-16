@@ -19,18 +19,22 @@ type Driver struct {
 }
 
 func NewDriver() *Driver {
-	// register
-	err := platforms.PlatformRegister(ID)
-	if err != nil {
-		flog.Fatal(err.Error())
-	}
-
 	api := slack.New(
 		config.App.Platform.Slack.BotToken,
 		slack.OptionDebug(config.App.Log.Level == flog.DebugLevel),
 		slack.OptionLog(flog.SlackLogger),
 		slack.OptionAppLevelToken(config.App.Platform.Slack.AppToken),
 	)
+
+	// register
+	err := platforms.PlatformRegister(ID, &platforms.Caller{
+		Action:  &Action{api: api},
+		Adapter: &Adapter{},
+	})
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
+
 	return &Driver{
 		adapter: &Adapter{},
 		action:  &Action{api: api},
