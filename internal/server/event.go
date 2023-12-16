@@ -1,68 +1,61 @@
 package server
 
 import (
+	"errors"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/flowline-io/flowbot/internal/platforms"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	json "github.com/json-iterator/go"
 )
 
 // send message
-func onSendEvent() {
-	// todo SendEvent
+func onMessageSendEventHandler(msg *message.Message) error {
+	flog.Debug("on event %+v", msg)
 
-	//topic, ok := data.String("topic")
-	//if !ok {
-	//	return errors.New("error param topic")
-	//}
-	//topicUid, ok := data.Int64("topic_uid")
-	//if !ok {
-	//	return errors.New("error param topic_uid")
-	//}
-	//message, ok := data.String("message")
-	//if !ok {
-	//	return errors.New("error param message")
-	//}
-	//botSend(topic, types.Uid(topicUid), types.TextMsg{Text: message})
+	var pe types.Message
+	err := json.Unmarshal(msg.Payload, &pe)
+	if err != nil {
+		return err
+	}
+
+	if pe.Platform == "" {
+		return errors.New("error param platform")
+	}
+	if pe.Topic == "" {
+		return errors.New("error param topic")
+	}
+
+	caller, err := platforms.GetCaller(pe.Platform)
+	if err != nil {
+		return err
+	}
+
+	resp := caller.Do(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: types.KV{
+			"topic":   pe.Topic,
+			"message": caller.Adapter.MessageConvert(pe.Payload),
+		},
+	})
+
+	if resp.Status != protocol.Success {
+		return errors.New(resp.Message)
+	}
+
+	return nil
 }
 
 // push instruct
-func onPushInstruct() {
-	// todo InstructEvent
+func onInstructPushEventHandler(msg *message.Message) error {
+	flog.Debug("on event %+v", msg)
 
-	//uidStr, ok := data.String("uid")
-	//if !ok {
-	//	return errors.New("error param uid")
-	//}
-	//uid := types.Uid(uidStr)
-	//if uid.IsZero() {
-	//	return errors.New("error param uid")
-	//}
-	//
-	//sessionStore.Range(func(sid string, s *Session) bool {
-	//	if s.uid == uid {
-	//		// todo send message
-	//		//s.queueOut(&ServerComMessage{
-	//		//	//Code:    http.StatusOK,
-	//		//	//Message: "",
-	//		//	//Data:    data,
-	//		//})
-	//	}
-	//	return true
-	//})
-}
-
-func onPlatformMetaEvent() {
-	// todo "meta.*"
-}
-
-func onPlatformNoticeEvent() {
-	// todo "event.*"
+	return nil
 }
 
 func onPlatformMessageEventHandler(msg *message.Message) error {
-	flog.Debug("on message event %+v", msg)
+	flog.Debug("on event %+v", msg)
 
 	var pe protocol.Event
 	err := json.Unmarshal(msg.Payload, &pe)

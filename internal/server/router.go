@@ -424,7 +424,7 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var data types.LinkData
+	var data types.FlowkitData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		errorResponse(rw, "error")

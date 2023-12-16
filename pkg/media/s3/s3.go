@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
@@ -163,7 +164,7 @@ func (ah *awshandler) Headers(req *http.Request, serve bool) (http.Header, int, 
 
 	fid := ah.GetIdFromUrl(req.URL.String())
 	if fid.IsZero() {
-		return nil, 0, types.ErrNotFound
+		return nil, 0, protocol.ErrNotFound
 	}
 
 	fd, err := ah.getFileRecord(fid)
@@ -241,8 +242,8 @@ func (ah *awshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, i
 
 // Download processes request for file download.
 // The returned ReadSeekCloser must be closed after use.
-func (ah *awshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser, error) {
-	return nil, nil, types.ErrUnsupported
+func (ah *awshandler) Download(_ string) (*types.FileDef, media.ReadSeekCloser, error) {
+	return nil, nil, protocol.ErrUnsupported
 }
 
 // Delete deletes files from aws by provided slice of locations.
@@ -273,7 +274,7 @@ func (ah *awshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 		return nil, err
 	}
 	if fd == nil {
-		return nil, types.ErrNotFound
+		return nil, protocol.ErrNotFound
 	}
 	return fd, nil
 }

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
@@ -107,7 +108,7 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser, error) {
 	fid := fh.GetIdFromUrl(url)
 	if fid.IsZero() {
-		return nil, nil, types.ErrNotFound
+		return nil, nil, protocol.ErrNotFound
 	}
 
 	fd, err := fh.getFileRecord(fid)
@@ -120,7 +121,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 	if err != nil {
 		if os.IsNotExist(err) {
 			// If the file is not found, send 404 instead of the default 500
-			err = types.ErrNotFound
+			err = protocol.ErrNotFound
 		}
 		return nil, nil, err
 	}
@@ -132,7 +133,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 func (fh *fshandler) Delete(locations []string) error {
 	for _, loc := range locations {
 		if err, _ := os.Remove(loc).(*os.PathError); err != nil {
-			if err != os.ErrNotExist {
+			if !errors.Is(err, os.ErrNotExist) {
 				flog.Warn("fs: error deleting file %v %v", loc, err)
 			}
 		}
@@ -152,7 +153,7 @@ func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 		return nil, err
 	}
 	if fd == nil {
-		return nil, types.ErrNotFound
+		return nil, protocol.ErrNotFound
 	}
 	return fd, nil
 }

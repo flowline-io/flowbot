@@ -493,7 +493,7 @@ func onlineStatus(usrStr string) {
 	ctx := context.Background()
 	key := fmt.Sprintf("online:%s", usrStr)
 	_, err = cache.DB.Get(ctx, key).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		cache.DB.Set(ctx, key, time.Now().Unix(), 30*time.Minute)
 	} else if err != nil {
 		return
@@ -546,7 +546,7 @@ func (c *AsyncMessageConsumer) Consume(delivery rmq.Delivery) {
 	}
 }
 
-func flowkitAction(uid types.Uid, data types.LinkData) (interface{}, error) {
+func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 	switch data.Action {
 	case types.Agent:
 		//userUid := uid

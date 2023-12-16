@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -113,8 +114,8 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 
 // Download processes request for file download.
 // The returned ReadSeekCloser must be closed after use.
-func (ah *handler) Download(url string) (*types.FileDef, media.ReadSeekCloser, error) {
-	return nil, nil, types.ErrUnsupported
+func (ah *handler) Download(_ string) (*types.FileDef, media.ReadSeekCloser, error) {
+	return nil, nil, protocol.ErrUnsupported
 }
 
 // Delete deletes files from aws by provided slice of locations.
@@ -152,7 +153,7 @@ func (ah *handler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 		return nil, err
 	}
 	if fd == nil {
-		return nil, types.ErrNotFound
+		return nil, protocol.ErrNotFound
 	}
 	return fd, nil
 }

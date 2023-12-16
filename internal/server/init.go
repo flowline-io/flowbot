@@ -667,6 +667,18 @@ func initializeEvent() error {
 		subscriber,
 		onPlatformMessageEventHandler,
 	)
+	router.AddNoPublisherHandler(
+		"onMessageSendEventHandler",
+		types.MessageSendEvent,
+		subscriber,
+		onMessageSendEventHandler,
+	)
+	router.AddNoPublisherHandler(
+		"onInstructPushEventHandler",
+		types.InstructPushEvent,
+		subscriber,
+		onInstructPushEventHandler,
+	)
 
 	go func() {
 		if err = router.Run(context.Background()); err != nil {

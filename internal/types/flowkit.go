@@ -11,7 +11,7 @@ const (
 	Ack   Action = "ack"
 )
 
-type LinkData struct {
+type FlowkitData struct {
 	Action  Action `json:"action"`
 	Version int    `json:"version"`
 	Content KV     `json:"content"`
