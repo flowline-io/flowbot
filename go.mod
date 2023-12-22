@@ -54,7 +54,7 @@ require (
 	github.com/yeqown/go-qrcode/writer/standard v1.2.2
 	github.com/yuin/goldmark v1.6.0
 	go.uber.org/automaxprocs v1.5.3
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/image v0.14.0
 	golang.org/x/sys v0.15.0
