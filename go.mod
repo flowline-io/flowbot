@@ -44,7 +44,7 @@ require (
 	github.com/rs/zerolog v1.31.0
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/swag v1.16.2
 	github.com/tidwall/gjson v1.17.0
