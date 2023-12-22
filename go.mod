@@ -39,7 +39,7 @@ require (
 	github.com/montanaflynn/stats v0.7.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
 	github.com/pkg/errors v0.9.1
-	github.com/redis/go-redis/v9 v9.3.0
+	github.com/redis/go-redis/v9 v9.3.1
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/zerolog v1.31.0
 	github.com/slack-go/slack v0.12.3
