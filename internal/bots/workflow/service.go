@@ -99,22 +99,27 @@ func workflowDetail(ctx *fiber.Ctx) error {
 //	@Tags		workflow
 //	@Accept		json
 //	@Produce	json
-//	@Param		workflow	body		model.Workflow	true	"workflow data"
+//	@Param		script	body		model.WorkflowScript	true	"workflow script data"
 //	@Success	200			{object}	protocol.Response
 //	@Router		/workflow/workflow [post]
 func workflowCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
-	item := new(model.Workflow)
+	item := new(model.WorkflowScript)
 	err := ctx.BodyParser(&item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 
-	item.UID = uid.String()
-	item.Topic = topic
-	_, err = store.Database.CreateWorkflow(item, nil, nil)
+	if item.Lang != model.WorkflowScriptYaml {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported))
+	}
+
+	wf := new(model.Workflow) // todo create
+	wf.UID = uid.String()
+	wf.Topic = topic
+	_, err = store.Database.CreateWorkflow(wf, nil, nil)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}

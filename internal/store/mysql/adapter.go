@@ -1400,6 +1400,25 @@ func (a *adapter) DeleteWorkflow(id int64) error {
 	return err
 }
 
+func (a *adapter) CreateWorkflowScript(item *model.WorkflowScript) (int64, error) {
+	q := dao.Q.WorkflowScript
+	err := q.Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
+}
+
+func (a *adapter) GetWorkflowScript(id int64) (any, error) {
+	q := dao.Q.WorkflowScript
+	return q.Where(q.ID.Eq(id)).First()
+}
+
+func (a *adapter) GetWorkflowScriptByWorkflowId(workflowId int64) (any, error) {
+	q := dao.Q.WorkflowScript
+	return q.Where(q.WorkflowID.Eq(workflowId)).First()
+}
+
 func (a *adapter) CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error) {
 	q := dao.Q.WorkflowTrigger
 	err := q.Create(item)

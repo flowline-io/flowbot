@@ -194,6 +194,16 @@ func (j WorkflowTriggerState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
+type WorkflowScriptLang string
+
+const (
+	WorkflowScriptYaml WorkflowScriptLang = "yaml"
+)
+
+func (j WorkflowScriptLang) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
 type JobState int
 
 const (
@@ -245,7 +255,8 @@ type TriggerCronRule struct {
 }
 
 type Node struct {
-	Id        string `json:"id,omitempty"`
+	Id        string `json:"id"`
+	Describe  string `json:"describe"`
 	X         int    `json:"x,omitempty"`
 	Y         int    `json:"y,omitempty"`
 	Width     int    `json:"width,omitempty"`
@@ -265,16 +276,16 @@ type Node struct {
 	Order       int                    `json:"_order,omitempty"`
 	Bot         string                 `json:"bot"`
 	RuleId      string                 `json:"rule_id"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	Variables   []string               `json:"variables"`
-	Connections []string               `json:"connections"`
+	Parameters  map[string]interface{} `json:"parameters,omitempty"`
+	Variables   []string               `json:"variables,omitempty"`
+	Connections []string               `json:"connections,omitempty"`
 	Status      NodeStatus             `json:"status,omitempty"`
 }
 
 type Edge struct {
-	Id                string `json:"id,omitempty"`
-	Source            string `json:"source,omitempty"`
-	Target            string `json:"target,omitempty"`
+	Id                string `json:"id"`
+	Source            string `json:"source"`
+	Target            string `json:"target"`
 	SourcePortId      string `json:"sourcePortId,omitempty"`
 	TargetPortId      string `json:"targetPortId,omitempty"`
 	Label             string `json:"label,omitempty"`
@@ -282,10 +293,10 @@ type Edge struct {
 	EdgeContentHeight int    `json:"edgeContentHeight,omitempty"`
 	Connector         struct {
 		Name string `json:"name,omitempty"`
-	} `json:"connector"`
+	} `json:"connector,omitempty"`
 	Router struct {
 		Name string `json:"name,omitempty"`
-	} `json:"router"`
+	} `json:"router,omitempty"`
 	SourcePort string `json:"sourcePort,omitempty"`
 	TargetPort string `json:"targetPort,omitempty"`
 }

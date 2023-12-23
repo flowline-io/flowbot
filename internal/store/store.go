@@ -270,6 +270,9 @@ type Adapter interface {
 	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error
 	IncreaseWorkflowTriggerCount(id int64, count int32) error
 	DeleteWorkflow(id int64) error
+	CreateWorkflowScript(item *model.WorkflowScript) (int64, error)
+	GetWorkflowScript(id int64) (any, error)
+	GetWorkflowScriptByWorkflowId(workflowId int64) (any, error)
 	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
 	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error
 	DeleteWorkflowTrigger(id int64) error

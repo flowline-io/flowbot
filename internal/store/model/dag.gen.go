@@ -12,14 +12,16 @@ const TableNameDag = "dag"
 
 // Dag mapped from table <dag>
 type Dag struct {
-	ID         int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	UID        string    `gorm:"column:uid;not null" json:"uid"`
-	Topic      string    `gorm:"column:topic;not null" json:"topic"`
-	WorkflowID int64     `gorm:"column:workflow_id;not null" json:"workflow_id"`
-	Nodes      []*Node   `gorm:"column:nodes;type:json;not null;serializer:json" json:"nodes"`
-	Edges      []*Edge   `gorm:"column:edges;type:json;not null;serializer:json" json:"edges"`
-	CreatedAt  time.Time `gorm:"column:created_at;not null" json:"created_at"`
-	UpdatedAt  time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
+	ID            int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	UID           string    `gorm:"column:uid;not null" json:"uid"`
+	Topic         string    `gorm:"column:topic;not null" json:"topic"`
+	WorkflowID    int64     `gorm:"column:workflow_id;not null" json:"workflow_id"`
+	ScriptID      int64     `gorm:"column:script_id;not null" json:"script_id"`
+	ScriptVersion int32     `gorm:"column:script_version;not null" json:"script_version"`
+	Nodes         []*Node   `gorm:"column:nodes;type:json;not null;serializer:json" json:"nodes"`
+	Edges         []*Edge   `gorm:"column:edges;type:json;not null;serializer:json" json:"edges"`
+	CreatedAt     time.Time `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at;not null" json:"updated_at"`
 }
 
 // TableName Dag's table name

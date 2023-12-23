@@ -1,0 +1,38 @@
+---
+name: example
+describe: do something...
+
+trigger:
+  type: cron # cron, manual, webhook
+  rule:
+    spec: '* * * * *' # if cron
+
+
+pipeline:
+  - input -> add_two_number -> out1
+  - add_two_number -> out2
+
+
+tasks:
+  - id: input
+    action: in_workflow_action@dev
+    describe: do something... # optional
+    params: # optional
+      param1: val1
+      param2: val2
+    vars: # optional
+      - var1
+      - var2
+    conn: # optional
+      - conn1
+      - conn2
+
+  - id: add_two_number
+    action: add_workflow_action@dev
+
+  - id: out1
+    action: out_workflow_action@dev
+
+  - id: out2
+    action: out_workflow_action@dev
+

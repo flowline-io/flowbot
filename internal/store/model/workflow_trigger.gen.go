@@ -17,7 +17,7 @@ type WorkflowTrigger struct {
 	Topic      string               `gorm:"column:topic;not null" json:"topic"`
 	WorkflowID int64                `gorm:"column:workflow_id;not null" json:"workflow_id"`
 	Type       TriggerType          `gorm:"column:type;not null" json:"type"`
-	Rule       string               `gorm:"column:rule;not null" json:"rule"`
+	Rule       JSON                 `gorm:"column:rule;not null" json:"rule"`
 	Count_     int32                `gorm:"column:count;not null" json:"count"`
 	State      WorkflowTriggerState `gorm:"column:state;not null" json:"state"`
 	CreatedAt  time.Time            `gorm:"column:created_at;not null" json:"created_at"`
