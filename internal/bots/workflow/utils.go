@@ -228,7 +228,7 @@ func parseTaskAction(action string) (string, string, bool) {
 		return "", "", false
 	}
 
-	return tokens[0], tokens[1], true
+	return tokens[1], tokens[0], true
 }
 
 func parsePipelineEdges(pipeline string) [][2]string {

@@ -115,21 +115,25 @@ func TestParseYamlWorkflow(t *testing.T) {
 						},
 						Variables:   []string{"var1", "var2"},
 						Connections: []string{"conn1", "conn2"},
+						Status:      model.NodeDefault,
 					},
 					{
 						Id:     "add_two_number",
 						Bot:    "dev",
 						RuleId: "add_workflow_action",
+						Status: model.NodeDefault,
 					},
 					{
 						Id:     "out1",
 						Bot:    "dev",
 						RuleId: "out_workflow_action",
+						Status: model.NodeDefault,
 					},
 					{
 						Id:     "out2",
 						Bot:    "dev",
 						RuleId: "out_workflow_action",
+						Status: model.NodeDefault,
 					},
 				},
 				Edges: []*model.Edge{
