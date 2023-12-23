@@ -106,20 +106,24 @@ func workflowCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
-	item := new(model.WorkflowScript)
-	err := ctx.BodyParser(&item)
+	script := new(model.WorkflowScript)
+	err := ctx.BodyParser(&script)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 
-	if item.Lang != model.WorkflowScriptYaml {
+	if script.Lang != model.WorkflowScriptYaml {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported))
 	}
 
-	wf := new(model.Workflow) // todo create
+	wf, triggers, dag, err := ParseYamlWorkflow(script.Code)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
 	wf.UID = uid.String()
 	wf.Topic = topic
-	_, err = store.Database.CreateWorkflow(wf, nil, nil)
+	_, err = store.Database.CreateWorkflow(wf, script, dag, triggers)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
@@ -133,7 +137,7 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Param		id			path		int				true	"ID"
-//	@Param		workflow	body		model.Workflow	true	"workflow data"
+//	@Param		script	body		model.WorkflowScript	true	"workflow script data"
 //	@Success	200			{object}	protocol.Response
 //	@Router		/workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
@@ -141,8 +145,20 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 	topic := route.GetTopic(ctx)
 	id := route.GetIntParam(ctx, "id")
 
+	script := new(model.WorkflowScript)
+	err := ctx.BodyParser(&script)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+	}
+
+	if script.Lang != model.WorkflowScriptYaml {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported))
+	}
+
+	// todo script update
+
 	item := new(model.Workflow)
-	err := ctx.BodyParser(&item)
+	err = ctx.BodyParser(&item)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}

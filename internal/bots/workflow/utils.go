@@ -23,7 +23,7 @@ func parseWorkflowMetadata(code string) (types.WorkflowMetadata, error) {
 	return meta, nil
 }
 
-func ParseYamlWorkflow(code string) (workflow *model.Workflow, trigger *model.WorkflowTrigger, dag *model.Dag, err error) {
+func ParseYamlWorkflow(code string) (workflow *model.Workflow, triggers []*model.WorkflowTrigger, dag *model.Dag, err error) {
 	meta, err := parseWorkflowMetadata(code)
 	if err != nil {
 		return
@@ -39,10 +39,14 @@ func ParseYamlWorkflow(code string) (workflow *model.Workflow, trigger *model.Wo
 	workflow.Describe = meta.Describe
 
 	// trigger
-	trigger = new(model.WorkflowTrigger)
-	trigger.Type = model.TriggerType(meta.Trigger.Type)
-	trigger.Rule = model.JSON(meta.Trigger.Rule)
-	trigger.State = model.WorkflowTriggerEnable
+	triggers = make([]*model.WorkflowTrigger, 0, len(meta.Triggers))
+	for _, trigger := range meta.Triggers {
+		triggers = append(triggers, &model.WorkflowTrigger{
+			Type:  model.TriggerType(trigger.Type),
+			Rule:  model.JSON(trigger.Rule),
+			State: model.WorkflowTriggerEnable,
+		})
+	}
 
 	// dag
 	dag = new(model.Dag)
@@ -93,34 +97,40 @@ func MetaDataValidate(meta types.WorkflowMetadata) (err error) {
 		return
 	}
 
-	if !utils.InStringSlice([]string{
-		string(model.TriggerManual),
-		string(model.TriggerCron),
-		string(model.TriggerWebhook),
-	}, meta.Trigger.Type) {
-		err = errors.New("trigger type error")
+	if len(meta.Triggers) == 0 {
+		err = errors.New("triggers empty")
 		return
 	}
-
-	switch model.TriggerType(meta.Trigger.Type) {
-	case model.TriggerCron:
-		spec, ok := meta.Trigger.Rule.String("spec")
-		if !ok {
-			err = errors.New("trigger cron: rule error")
-			return
-		}
-		if strings.TrimSpace(spec) == "" {
-			err = errors.New("trigger cron: spec empty")
+	for _, trigger := range meta.Triggers {
+		if !utils.InStringSlice([]string{
+			string(model.TriggerManual),
+			string(model.TriggerCron),
+			string(model.TriggerWebhook),
+		}, trigger.Type) {
+			err = errors.New("trigger type error")
 			return
 		}
 
-		specParser := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
-		_, err = specParser.Parse(spec)
-		if err != nil {
-			return
+		switch model.TriggerType(trigger.Type) {
+		case model.TriggerCron:
+			spec, ok := trigger.Rule.String("spec")
+			if !ok {
+				err = errors.New("trigger cron: rule error")
+				return
+			}
+			if strings.TrimSpace(spec) == "" {
+				err = errors.New("trigger cron: spec empty")
+				return
+			}
+
+			specParser := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
+			_, err = specParser.Parse(spec)
+			if err != nil {
+				return
+			}
+		case model.TriggerWebhook:
+			// todo webhook params validate
 		}
-	case model.TriggerWebhook:
-		// todo webhook params validate
 	}
 
 	if len(meta.Pipeline) == 0 {

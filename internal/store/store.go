@@ -262,7 +262,7 @@ type Adapter interface {
 	GetCounter(id int64) (model.Counter, error)
 	GetCounterByFlag(uid types.Uid, topic string, flag string) (model.Counter, error)
 
-	CreateWorkflow(workflow *model.Workflow, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error)
+	CreateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error)
 	GetWorkflow(id int64) (*model.Workflow, error)
 	UpdateWorkflow(item *model.Workflow) error
 	UpdateWorkflowState(id int64, state model.WorkflowState) error

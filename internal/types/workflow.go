@@ -3,10 +3,10 @@ package types
 type WorkflowMetadata struct {
 	Name     string `json:"name" yaml:"name"`
 	Describe string `json:"describe" yaml:"describe"`
-	Trigger  struct {
+	Triggers []struct {
 		Type string `json:"type" yaml:"type"`
 		Rule KV     `json:"rule,omitempty" yaml:"rule"`
-	} `json:"trigger" yaml:"trigger"`
+	} `json:"triggers" yaml:"triggers"`
 	Pipeline []string `json:"pipeline" yaml:"pipeline"`
 	Tasks    []struct {
 		ID       string   `json:"id" yaml:"id"`

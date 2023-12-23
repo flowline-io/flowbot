@@ -11,10 +11,11 @@ const okYaml = `---
 name: example
 describe: do something...
 
-trigger:
-  type: cron # cron, manual, webhook
-  rule:
-    spec: '* * * * *' # if cron
+triggers:
+  - type: manual # cron, manual, webhook
+  - type: cron
+    rule:
+      spec: '* * * * *' # if cron
 
 
 pipeline:
@@ -49,10 +50,11 @@ const failYaml = `---
 name: example
 describe: do something...
 
-trigger:
-  type: cron # cron, manual, webhook
-  rule:
-    spec: '* * *' # if cron
+triggers:
+  - type: manual # cron, manual, webhook
+  - type: cron
+    rule:
+      spec: '* * * * *' # if cron
 
 
 pipeline:
@@ -82,7 +84,7 @@ func TestParseYamlWorkflow(t *testing.T) {
 		name    string
 		args    args
 		want    *model.Workflow
-		want1   *model.WorkflowTrigger
+		want1   []*model.WorkflowTrigger
 		want2   *model.Dag
 		wantErr bool
 	}{
@@ -95,12 +97,18 @@ func TestParseYamlWorkflow(t *testing.T) {
 				Name:     "example",
 				Describe: "do something...",
 			},
-			want1: &model.WorkflowTrigger{
-				Type: model.TriggerCron,
-				Rule: model.JSON{
-					"spec": "* * * * *",
+			want1: []*model.WorkflowTrigger{
+				{
+					Type:  model.TriggerManual,
+					State: model.WorkflowTriggerEnable,
 				},
-				State: model.WorkflowTriggerEnable,
+				{
+					Type: model.TriggerCron,
+					Rule: model.JSON{
+						"spec": "* * * * *",
+					},
+					State: model.WorkflowTriggerEnable,
+				},
 			},
 			want2: &model.Dag{
 				Nodes: []*model.Node{

@@ -2,10 +2,11 @@
 name: example
 describe: do something...
 
-trigger:
-  type: cron # cron, manual, webhook
-  rule:
-    spec: '* * * * *' # if cron
+triggers:
+  - type: manual # cron, manual, webhook
+  - type: cron
+    rule:
+      spec: '* * * * *' # if cron
 
 
 pipeline:

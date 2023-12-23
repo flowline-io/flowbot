@@ -1322,7 +1322,7 @@ func (a *adapter) GetCounterByFlag(uid types.Uid, topic string, flag string) (mo
 	return find, nil
 }
 
-func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error) {
+func (a *adapter) CreateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error) {
 	q := dao.Q
 	err := q.Transaction(func(tx *dao.Query) error {
 		err := tx.Workflow.Create(workflow)
@@ -1330,7 +1330,18 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 			return err
 		}
 
+		if script != nil {
+			script.WorkflowID = workflow.ID
+			err = tx.WorkflowScript.Create(script)
+			if err != nil {
+				return err
+			}
+		}
+
 		if dag != nil {
+			dag.WorkflowID = workflow.ID
+			dag.ScriptID = script.ID
+			dag.ScriptVersion = script.Version
 			err = tx.Dag.Create(dag)
 			if err != nil {
 				return err
@@ -1339,6 +1350,7 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, dag *model.Dag, trigg
 
 		if len(triggers) > 0 {
 			for _, trigger := range triggers {
+				trigger.WorkflowID = workflow.ID
 				err = tx.WorkflowTrigger.Create(trigger)
 				if err != nil {
 					return err
