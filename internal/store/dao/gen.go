@@ -53,6 +53,7 @@ var (
 	Url              *url
 	User             *user
 	Workflow         *workflow
+	WorkflowScript   *workflowScript
 	WorkflowTrigger  *workflowTrigger
 )
 
@@ -94,6 +95,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Url = &Q.Url
 	User = &Q.User
 	Workflow = &Q.Workflow
+	WorkflowScript = &Q.WorkflowScript
 	WorkflowTrigger = &Q.WorkflowTrigger
 }
 
@@ -136,6 +138,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Url:              newUrl(db, opts...),
 		User:             newUser(db, opts...),
 		Workflow:         newWorkflow(db, opts...),
+		WorkflowScript:   newWorkflowScript(db, opts...),
 		WorkflowTrigger:  newWorkflowTrigger(db, opts...),
 	}
 }
@@ -179,6 +182,7 @@ type Query struct {
 	Url              url
 	User             user
 	Workflow         workflow
+	WorkflowScript   workflowScript
 	WorkflowTrigger  workflowTrigger
 }
 
@@ -223,6 +227,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Url:              q.Url.clone(db),
 		User:             q.User.clone(db),
 		Workflow:         q.Workflow.clone(db),
+		WorkflowScript:   q.WorkflowScript.clone(db),
 		WorkflowTrigger:  q.WorkflowTrigger.clone(db),
 	}
 }
@@ -274,6 +279,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Url:              q.Url.replaceDB(db),
 		User:             q.User.replaceDB(db),
 		Workflow:         q.Workflow.replaceDB(db),
+		WorkflowScript:   q.WorkflowScript.replaceDB(db),
 		WorkflowTrigger:  q.WorkflowTrigger.replaceDB(db),
 	}
 }
@@ -315,6 +321,7 @@ type queryCtx struct {
 	Url              *urlDo
 	User             *userDo
 	Workflow         *workflowDo
+	WorkflowScript   *workflowScriptDo
 	WorkflowTrigger  *workflowTriggerDo
 }
 
@@ -356,6 +363,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Url:              q.Url.WithContext(ctx),
 		User:             q.User.WithContext(ctx),
 		Workflow:         q.Workflow.WithContext(ctx),
+		WorkflowScript:   q.WorkflowScript.WithContext(ctx),
 		WorkflowTrigger:  q.WorkflowTrigger.WithContext(ctx),
 	}
 }

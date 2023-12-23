@@ -33,7 +33,7 @@ func newWorkflowTrigger(db *gorm.DB, opts ...gen.DOOption) workflowTrigger {
 	_workflowTrigger.Topic = field.NewString(tableName, "topic")
 	_workflowTrigger.WorkflowID = field.NewInt64(tableName, "workflow_id")
 	_workflowTrigger.Type = field.NewField(tableName, "type")
-	_workflowTrigger.Rule = field.NewString(tableName, "rule")
+	_workflowTrigger.Rule = field.NewField(tableName, "rule")
 	_workflowTrigger.Count_ = field.NewInt32(tableName, "count")
 	_workflowTrigger.State = field.NewField(tableName, "state")
 	_workflowTrigger.CreatedAt = field.NewTime(tableName, "created_at")
@@ -53,7 +53,7 @@ type workflowTrigger struct {
 	Topic      field.String
 	WorkflowID field.Int64
 	Type       field.Field
-	Rule       field.String
+	Rule       field.Field
 	Count_     field.Int32
 	State      field.Field
 	CreatedAt  field.Time
@@ -79,7 +79,7 @@ func (w *workflowTrigger) updateTableName(table string) *workflowTrigger {
 	w.Topic = field.NewString(table, "topic")
 	w.WorkflowID = field.NewInt64(table, "workflow_id")
 	w.Type = field.NewField(table, "type")
-	w.Rule = field.NewString(table, "rule")
+	w.Rule = field.NewField(table, "rule")
 	w.Count_ = field.NewInt32(table, "count")
 	w.State = field.NewField(table, "state")
 	w.CreatedAt = field.NewTime(table, "created_at")

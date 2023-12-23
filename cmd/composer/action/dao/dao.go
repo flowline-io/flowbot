@@ -160,10 +160,12 @@ func GenerationAction(c *cli.Context) error {
 				"not null":   nil,
 			}
 		}))
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("workflow_script", "WorkflowScript",
+		gen.FieldType("lang", "WorkflowScriptLang")))
 	workflowTriggers := g.GenerateModelAs("workflow_trigger", "WorkflowTrigger",
 		gen.FieldType("type", "TriggerType"),
-		gen.FieldType("state", "WorkflowTriggerState"),
-	)
+		gen.FieldType("rule", "JSON"),
+		gen.FieldType("state", "WorkflowTriggerState"))
 	workflows := g.GenerateModelAs("workflow", "Workflow",
 		gen.FieldType("state", "WorkflowState"),
 		gen.FieldRelate(field.HasOne, "Dag", dag, &field.RelateConfig{

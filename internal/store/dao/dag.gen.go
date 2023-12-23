@@ -32,6 +32,8 @@ func newDag(db *gorm.DB, opts ...gen.DOOption) dag {
 	_dag.UID = field.NewString(tableName, "uid")
 	_dag.Topic = field.NewString(tableName, "topic")
 	_dag.WorkflowID = field.NewInt64(tableName, "workflow_id")
+	_dag.ScriptID = field.NewInt64(tableName, "script_id")
+	_dag.ScriptVersion = field.NewInt32(tableName, "script_version")
 	_dag.Nodes = field.NewField(tableName, "nodes")
 	_dag.Edges = field.NewField(tableName, "edges")
 	_dag.CreatedAt = field.NewTime(tableName, "created_at")
@@ -45,15 +47,17 @@ func newDag(db *gorm.DB, opts ...gen.DOOption) dag {
 type dag struct {
 	dagDo
 
-	ALL        field.Asterisk
-	ID         field.Int64
-	UID        field.String
-	Topic      field.String
-	WorkflowID field.Int64
-	Nodes      field.Field
-	Edges      field.Field
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
+	ALL           field.Asterisk
+	ID            field.Int64
+	UID           field.String
+	Topic         field.String
+	WorkflowID    field.Int64
+	ScriptID      field.Int64
+	ScriptVersion field.Int32
+	Nodes         field.Field
+	Edges         field.Field
+	CreatedAt     field.Time
+	UpdatedAt     field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -74,6 +78,8 @@ func (d *dag) updateTableName(table string) *dag {
 	d.UID = field.NewString(table, "uid")
 	d.Topic = field.NewString(table, "topic")
 	d.WorkflowID = field.NewInt64(table, "workflow_id")
+	d.ScriptID = field.NewInt64(table, "script_id")
+	d.ScriptVersion = field.NewInt32(table, "script_version")
 	d.Nodes = field.NewField(table, "nodes")
 	d.Edges = field.NewField(table, "edges")
 	d.CreatedAt = field.NewTime(table, "created_at")
@@ -94,11 +100,13 @@ func (d *dag) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *dag) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 8)
+	d.fieldMap = make(map[string]field.Expr, 10)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["uid"] = d.UID
 	d.fieldMap["topic"] = d.Topic
 	d.fieldMap["workflow_id"] = d.WorkflowID
+	d.fieldMap["script_id"] = d.ScriptID
+	d.fieldMap["script_version"] = d.ScriptVersion
 	d.fieldMap["nodes"] = d.Nodes
 	d.fieldMap["edges"] = d.Edges
 	d.fieldMap["created_at"] = d.CreatedAt

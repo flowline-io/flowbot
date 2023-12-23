@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/hibiken/asynq"
 	"time"
 )
@@ -78,12 +78,11 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 			continue
 		}
 		var rule model.TriggerCronRule
-		err = json.Unmarshal(utils.StringToBytes(trigger.Rule), &rule)
-		if err != nil {
-			flog.Error(err)
+		spec, ok := types.KV(trigger.Rule).String("spec")
+		if !ok {
 			continue
 		}
-		if rule.Spec == "" {
+		if spec == "" {
 			continue
 		}
 		configs = append(configs, &asynq.PeriodicTaskConfig{
