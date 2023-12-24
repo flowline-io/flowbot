@@ -25,7 +25,7 @@ export default function TaskPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button>Create workflow</Button>
+            <Button>+</Button>
           </div>
         </div>
         <DataTable data={tasks} columns={columns} />
