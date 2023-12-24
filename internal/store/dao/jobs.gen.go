@@ -34,6 +34,7 @@ func newJob(db *gorm.DB, opts ...gen.DOOption) job {
 	_job.WorkflowID = field.NewInt64(tableName, "workflow_id")
 	_job.DagID = field.NewInt64(tableName, "dag_id")
 	_job.TriggerID = field.NewInt64(tableName, "trigger_id")
+	_job.ScriptVersion = field.NewInt32(tableName, "script_version")
 	_job.State = field.NewField(tableName, "state")
 	_job.StartedAt = field.NewTime(tableName, "started_at")
 	_job.EndedAt = field.NewTime(tableName, "ended_at")
@@ -53,19 +54,20 @@ func newJob(db *gorm.DB, opts ...gen.DOOption) job {
 type job struct {
 	jobDo
 
-	ALL        field.Asterisk
-	ID         field.Int64
-	UID        field.String
-	Topic      field.String
-	WorkflowID field.Int64
-	DagID      field.Int64
-	TriggerID  field.Int64
-	State      field.Field
-	StartedAt  field.Time
-	EndedAt    field.Time
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
-	Steps      jobHasManySteps
+	ALL           field.Asterisk
+	ID            field.Int64
+	UID           field.String
+	Topic         field.String
+	WorkflowID    field.Int64
+	DagID         field.Int64
+	TriggerID     field.Int64
+	ScriptVersion field.Int32
+	State         field.Field
+	StartedAt     field.Time
+	EndedAt       field.Time
+	CreatedAt     field.Time
+	UpdatedAt     field.Time
+	Steps         jobHasManySteps
 
 	fieldMap map[string]field.Expr
 }
@@ -88,6 +90,7 @@ func (j *job) updateTableName(table string) *job {
 	j.WorkflowID = field.NewInt64(table, "workflow_id")
 	j.DagID = field.NewInt64(table, "dag_id")
 	j.TriggerID = field.NewInt64(table, "trigger_id")
+	j.ScriptVersion = field.NewInt32(table, "script_version")
 	j.State = field.NewField(table, "state")
 	j.StartedAt = field.NewTime(table, "started_at")
 	j.EndedAt = field.NewTime(table, "ended_at")
@@ -109,13 +112,14 @@ func (j *job) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (j *job) fillFieldMap() {
-	j.fieldMap = make(map[string]field.Expr, 12)
+	j.fieldMap = make(map[string]field.Expr, 13)
 	j.fieldMap["id"] = j.ID
 	j.fieldMap["uid"] = j.UID
 	j.fieldMap["topic"] = j.Topic
 	j.fieldMap["workflow_id"] = j.WorkflowID
 	j.fieldMap["dag_id"] = j.DagID
 	j.fieldMap["trigger_id"] = j.TriggerID
+	j.fieldMap["script_version"] = j.ScriptVersion
 	j.fieldMap["state"] = j.State
 	j.fieldMap["started_at"] = j.StartedAt
 	j.fieldMap["ended_at"] = j.EndedAt

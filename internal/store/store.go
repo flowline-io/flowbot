@@ -264,7 +264,7 @@ type Adapter interface {
 
 	CreateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error)
 	GetWorkflow(id int64) (*model.Workflow, error)
-	UpdateWorkflow(item *model.Workflow) error
+	UpdateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) error
 	UpdateWorkflowState(id int64, state model.WorkflowState) error
 	ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error)
 	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error

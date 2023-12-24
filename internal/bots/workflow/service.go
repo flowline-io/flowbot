@@ -100,7 +100,7 @@ func workflowDetail(ctx *fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Param		script	body		model.WorkflowScript	true	"workflow script data"
-//	@Success	200			{object}	protocol.Response
+//	@Success	200		{object}	protocol.Response
 //	@Router		/workflow/workflow [post]
 func workflowCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -136,9 +136,9 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Tags		workflow
 //	@Accept		json
 //	@Produce	json
-//	@Param		id			path		int				true	"ID"
+//	@Param		id		path		int						true	"ID"
 //	@Param		script	body		model.WorkflowScript	true	"workflow script data"
-//	@Success	200			{object}	protocol.Response
+//	@Success	200		{object}	protocol.Response
 //	@Router		/workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -155,20 +155,22 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported))
 	}
 
-	// todo script update
-
-	item := new(model.Workflow)
-	err = ctx.BodyParser(&item)
+	wf, triggers, dag, err := ParseYamlWorkflow(script.Code)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
+
+	item := new(model.Workflow)
 	item.UID = uid.String()
 	item.Topic = topic
 	item.ID = id
-	err = store.Database.UpdateWorkflow(item)
+	item.Name = wf.Name
+	item.Describe = wf.Describe
+	err = store.Database.UpdateWorkflow(wf, script, dag, triggers)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
+
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
@@ -393,4 +395,23 @@ func workflowDagUpdate(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
+}
+
+// workflow script detail
+//
+//	@Summary	workflow script detail
+//	@Tags		workflow
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		int	true	"Workflow ID"
+//	@Success	200	{object}	protocol.Response{data=model.WorkflowScript}
+//	@Router		/workflow/workflow/{id}/script [get]
+func workflowScriptDetail(ctx *fiber.Ctx) error {
+	id := route.GetIntParam(ctx, "id")
+
+	item, err := store.Database.GetWorkflowScriptByWorkflowId(id)
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(item))
 }

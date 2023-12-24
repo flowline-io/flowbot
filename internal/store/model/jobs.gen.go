@@ -12,18 +12,19 @@ const TableNameJob = "jobs"
 
 // Job mapped from table <jobs>
 type Job struct {
-	ID         int64      `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	UID        string     `gorm:"column:uid;not null" json:"uid"`
-	Topic      string     `gorm:"column:topic;not null" json:"topic"`
-	WorkflowID int64      `gorm:"column:workflow_id;not null" json:"workflow_id"`
-	DagID      int64      `gorm:"column:dag_id;not null" json:"dag_id"`
-	TriggerID  int64      `gorm:"column:trigger_id;not null" json:"trigger_id"`
-	State      JobState   `gorm:"column:state;not null" json:"state"`
-	StartedAt  *time.Time `gorm:"column:started_at" json:"started_at"`
-	EndedAt    *time.Time `gorm:"column:ended_at" json:"ended_at"`
-	CreatedAt  time.Time  `gorm:"column:created_at;not null" json:"created_at"`
-	UpdatedAt  time.Time  `gorm:"column:updated_at;not null" json:"updated_at"`
-	Steps      []*Step    `gorm:"foreignKey:job_id" json:"steps"`
+	ID            int64      `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	UID           string     `gorm:"column:uid;not null" json:"uid"`
+	Topic         string     `gorm:"column:topic;not null" json:"topic"`
+	WorkflowID    int64      `gorm:"column:workflow_id;not null" json:"workflow_id"`
+	DagID         int64      `gorm:"column:dag_id;not null" json:"dag_id"`
+	TriggerID     int64      `gorm:"column:trigger_id;not null" json:"trigger_id"`
+	ScriptVersion int32      `gorm:"column:script_version;not null" json:"script_version"`
+	State         JobState   `gorm:"column:state;not null" json:"state"`
+	StartedAt     *time.Time `gorm:"column:started_at" json:"started_at"`
+	EndedAt       *time.Time `gorm:"column:ended_at" json:"ended_at"`
+	CreatedAt     time.Time  `gorm:"column:created_at;not null" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"column:updated_at;not null" json:"updated_at"`
+	Steps         []*Step    `gorm:"foreignKey:job_id" json:"steps"`
 }
 
 // TableName Job's table name

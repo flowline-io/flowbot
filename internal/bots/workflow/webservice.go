@@ -24,4 +24,6 @@ var webserviceRules = []webservice.Rule{
 
 	webservice.Get("/workflow/:id/dag", workflowDagDetail),
 	webservice.Put("/workflow/:id/dag", workflowDagUpdate),
+
+	webservice.Get("/workflow/:id/script", workflowScriptDetail),
 }

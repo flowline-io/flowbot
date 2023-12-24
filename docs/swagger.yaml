@@ -14,6 +14,10 @@ definitions:
         items:
           $ref: '#/definitions/model.Node'
         type: array
+      script_id:
+        type: integer
+      script_version:
+        type: integer
       topic:
         type: string
       uid:
@@ -68,6 +72,8 @@ definitions:
       ended_at:
         type: string
       id:
+        type: integer
+      script_version:
         type: integer
       started_at:
         type: string
@@ -170,6 +176,8 @@ definitions:
         items:
           type: string
         type: array
+      describe:
+        type: string
       group:
         type: string
       height:
@@ -493,6 +501,29 @@ definitions:
       updated_at:
         type: string
     type: object
+  model.WorkflowScript:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      lang:
+        $ref: '#/definitions/model.WorkflowScriptLang'
+      updated_at:
+        type: string
+      version:
+        type: integer
+      workflow_id:
+        type: integer
+    type: object
+  model.WorkflowScriptLang:
+    enum:
+    - yaml
+    type: string
+    x-enum-varnames:
+    - WorkflowScriptYaml
   model.WorkflowState:
     enum:
     - 0
@@ -512,7 +543,7 @@ definitions:
       id:
         type: integer
       rule:
-        type: string
+        $ref: '#/definitions/model.JSON'
       state:
         $ref: '#/definitions/model.WorkflowTriggerState'
       topic:
@@ -1160,12 +1191,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: workflow data
+      - description: workflow script data
         in: body
-        name: workflow
+        name: script
         required: true
         schema:
-          $ref: '#/definitions/model.Workflow'
+          $ref: '#/definitions/model.WorkflowScript'
       produces:
       - application/json
       responses:
@@ -1229,12 +1260,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: workflow data
+      - description: workflow script data
         in: body
-        name: workflow
+        name: script
         required: true
         schema:
-          $ref: '#/definitions/model.Workflow'
+          $ref: '#/definitions/model.WorkflowScript'
       produces:
       - application/json
       responses:
@@ -1320,6 +1351,31 @@ paths:
                   type: array
               type: object
       summary: workflow job list
+      tags:
+      - workflow
+  /workflow/workflow/{id}/script:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.WorkflowScript'
+              type: object
+      summary: workflow script detail
       tags:
       - workflow
   /workflow/workflow/{id}/trigger:

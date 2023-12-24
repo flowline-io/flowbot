@@ -816,12 +816,12 @@ const docTemplate = `{
                 "summary": "workflow create",
                 "parameters": [
                     {
-                        "description": "workflow data",
-                        "name": "workflow",
+                        "description": "workflow script data",
+                        "name": "script",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Workflow"
+                            "$ref": "#/definitions/model.WorkflowScript"
                         }
                     }
                 ],
@@ -897,12 +897,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "workflow data",
-                        "name": "workflow",
+                        "description": "workflow script data",
+                        "name": "script",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Workflow"
+                            "$ref": "#/definitions/model.WorkflowScript"
                         }
                     }
                 ],
@@ -1072,6 +1072,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/workflow/workflow/{id}/script": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflow"
+                ],
+                "summary": "workflow script detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.WorkflowScript"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/workflow/workflow/{id}/trigger": {
             "post": {
                 "consumes": [
@@ -1218,6 +1261,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/model.Node"
                     }
                 },
+                "script_id": {
+                    "type": "integer"
+                },
+                "script_version": {
+                    "type": "integer"
+                },
                 "topic": {
                     "type": "string"
                 },
@@ -1300,6 +1349,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "script_version": {
                     "type": "integer"
                 },
                 "started_at": {
@@ -1448,6 +1500,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "describe": {
+                    "type": "string"
                 },
                 "group": {
                     "type": "string"
@@ -1918,6 +1973,41 @@ const docTemplate = `{
                 }
             }
         },
+        "model.WorkflowScript": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lang": {
+                    "$ref": "#/definitions/model.WorkflowScriptLang"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "workflow_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.WorkflowScriptLang": {
+            "type": "string",
+            "enum": [
+                "yaml"
+            ],
+            "x-enum-varnames": [
+                "WorkflowScriptYaml"
+            ]
+        },
         "model.WorkflowState": {
             "type": "integer",
             "enum": [
@@ -1944,7 +2034,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "rule": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.JSON"
                 },
                 "state": {
                     "$ref": "#/definitions/model.WorkflowTriggerState"

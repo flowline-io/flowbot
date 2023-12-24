@@ -1336,15 +1336,15 @@ func (a *adapter) CreateWorkflow(workflow *model.Workflow, script *model.Workflo
 			if err != nil {
 				return err
 			}
-		}
 
-		if dag != nil {
-			dag.WorkflowID = workflow.ID
-			dag.ScriptID = script.ID
-			dag.ScriptVersion = script.Version
-			err = tx.Dag.Create(dag)
-			if err != nil {
-				return err
+			if dag != nil {
+				dag.WorkflowID = workflow.ID
+				dag.ScriptID = script.ID
+				dag.ScriptVersion = script.Version
+				err = tx.Dag.Create(dag)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -1371,10 +1371,50 @@ func (a *adapter) GetWorkflow(id int64) (*model.Workflow, error) {
 	return q.Preload(q.Dag, q.Triggers).Where(q.ID.Eq(id)).First()
 }
 
-func (a *adapter) UpdateWorkflow(item *model.Workflow) error {
-	q := dao.Q.Workflow
-	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
-	return err
+func (a *adapter) UpdateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) error {
+	q := dao.Q
+	return q.Transaction(func(tx *dao.Query) error {
+		_, err := tx.Workflow.Where(tx.Workflow.UID.Eq(workflow.UID), tx.Workflow.Topic.Eq(workflow.Topic), tx.Workflow.ID.Eq(workflow.ID)).
+			UpdateColumns(workflow)
+		if err != nil {
+			return err
+		}
+
+		if script != nil {
+			version := script.Version
+			script.Version += 1
+			_, err = tx.WorkflowScript.Where(tx.WorkflowScript.WorkflowID.Eq(workflow.ID), tx.WorkflowScript.Version.Eq(version)).
+				UpdateColumns(script)
+			if err != nil {
+				return err
+			}
+
+			if dag != nil {
+				dag.ScriptVersion = script.Version
+				_, err = tx.Dag.Where(tx.Dag.WorkflowID.Eq(workflow.ID)).
+					UpdateColumns(dag)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		if len(triggers) > 0 {
+			_, err = tx.WorkflowTrigger.Where(tx.WorkflowTrigger.WorkflowID.Eq(workflow.ID)).Delete()
+			if err != nil {
+				return err
+			}
+			for _, trigger := range triggers {
+				trigger.WorkflowID = workflow.ID
+				err = tx.WorkflowTrigger.Create(trigger)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }
 
 func (a *adapter) UpdateWorkflowState(id int64, state model.WorkflowState) error {
