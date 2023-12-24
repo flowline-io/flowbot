@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { labels, statuses } from "../data/data"
+import { statuses } from "../data/data"
 import { Task } from "../data/schema"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
@@ -50,12 +50,12 @@ export const columns: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const label = labels.find((label) => label.value === row.original.label)
-
       return (
-        <div className="flex space-x-2">
-          {label && <Badge variant="outline">{label.label}</Badge>}
-          <span className="max-w-[500px] truncate font-medium">
+        <div className="flex space-x-1">
+          <Badge variant="outline">manual</Badge>
+          <Badge variant="outline">cron</Badge>
+          <Badge variant="outline">webhook</Badge>
+          <span className="max-w-[200px] truncate font-medium">
             {row.getValue("name")}
           </span>
         </div>
@@ -92,12 +92,17 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: "priority",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Priority" />
+      <DataTableColumnHeader column={column} title="Count" />
     ),
-    cell: ({ row }) => {
+    cell: ({}) => {
       return (
         <div className="flex items-center">
-          <span>{row.getValue("priority")}</span>
+          <span>
+            Running: <Badge variant="secondary" color={"blue"}>10</Badge>
+            Successful: <Badge variant="secondary">50</Badge>
+            Canceled: <Badge variant="secondary">10</Badge>
+            Failed: <Badge variant="secondary">30</Badge>
+          </span>
         </div>
       )
     }
