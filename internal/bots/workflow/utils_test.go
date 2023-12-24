@@ -96,6 +96,7 @@ func TestParseYamlWorkflow(t *testing.T) {
 			want: &model.Workflow{
 				Name:     "example",
 				Describe: "do something...",
+				State:    model.WorkflowEnable,
 			},
 			want1: []*model.WorkflowTrigger{
 				{

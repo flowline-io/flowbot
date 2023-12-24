@@ -37,6 +37,7 @@ func ParseYamlWorkflow(code string) (workflow *model.Workflow, triggers []*model
 	workflow = new(model.Workflow)
 	workflow.Name = meta.Name
 	workflow.Describe = meta.Describe
+	workflow.State = model.WorkflowEnable
 
 	// trigger
 	triggers = make([]*model.WorkflowTrigger, 0, len(meta.Triggers))

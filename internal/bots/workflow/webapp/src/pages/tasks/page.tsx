@@ -1,19 +1,18 @@
-import { z } from "zod"
 import { columns } from "./components/columns"
 import { DataTable } from "./components/data-table"
-import {taskSchema} from "./data/schema"
-import data from "./data/tasks.json"
 import {Button} from "@/components/ui/button.tsx";
 import {Link} from "react-router-dom";
-
-
-// Simulate a database read for tasks.
-function getTasks() {
-  return z.array(taskSchema).parse(data)
-}
+import {useQuery} from "@tanstack/react-query";
+import {Client} from "@/util/client.ts";
 
 export default function TaskPage() {
-  let tasks = getTasks()
+
+  // Queries
+  const query = useQuery({
+    queryKey: ['workflows'], queryFn: () => {
+      return Client().workflow.getWorkflowWorkflows()
+    }
+  })
 
   return (
     <>
@@ -29,7 +28,7 @@ export default function TaskPage() {
             <Link to="/script"><Button>+</Button></Link>
           </div>
         </div>
-        <DataTable data={tasks} columns={columns} />
+        {query.data?.data ? <DataTable data={query.data?.data} columns={columns} /> : <div className="text-center">Empty</div>}
       </div>
     </>
   )

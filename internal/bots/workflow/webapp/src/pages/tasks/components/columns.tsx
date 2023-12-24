@@ -5,12 +5,12 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { statuses } from "../data/data"
-import { Task } from "../data/schema"
+import { workflowState} from "../data/data"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
+import {model_Workflow} from "@/client";
 
-export const columns: ColumnDef<Task>[] = [
+export const columns: ColumnDef<model_Workflow>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -52,24 +52,37 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex space-x-1">
-          <Badge variant="outline">manual</Badge>
-          <Badge variant="outline">cron</Badge>
-          <Badge variant="outline">webhook</Badge>
-          <span className="max-w-[200px] truncate font-medium">
-            {row.getValue("name")}
-          </span>
+          <div className="max-w-[300px] truncate font-medium">
+            <h2>{row.getValue("name")}</h2>
+            <h3 className="text-xs">{row.original.describe}</h3>
+          </div>
         </div>
       )
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "triggers",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Triggers" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-1">
+          {row.original.triggers?.map((trigger, index) => (
+            <Badge key={index} variant="outline">{trigger.type}</Badge>
+          ))}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "state",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const status = statuses.find(
-        (status) => status.value === row.getValue("status")
+      const status = workflowState.find(
+        (status) => status.value === row.getValue("state")
       )
 
       if (!status) {
@@ -90,18 +103,18 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
   {
-    accessorKey: "priority",
+    accessorKey: "running_count",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Count" />
     ),
-    cell: ({}) => {
+    cell: ({row}) => {
       return (
         <div className="flex items-center">
           <span>
-            Running: <Badge variant="secondary" color={"blue"}>10</Badge>
-            Successful: <Badge variant="secondary">50</Badge>
-            Canceled: <Badge variant="secondary">10</Badge>
-            Failed: <Badge variant="secondary">30</Badge>
+            Running: <Badge variant="secondary" color={"blue"}>{row.original.running_count}</Badge>
+            Successful: <Badge variant="secondary">{row.original.successful_count}</Badge>
+            Canceled: <Badge variant="secondary">{row.original.canceled_count}</Badge>
+            Failed: <Badge variant="secondary">{row.original.failed_count}</Badge>
           </span>
         </div>
       )

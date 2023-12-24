@@ -1425,7 +1425,12 @@ func (a *adapter) UpdateWorkflowState(id int64, state model.WorkflowState) error
 
 func (a *adapter) ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error) {
 	q := dao.Q.Workflow
-	return q.Where(q.UID.Eq(string(uid))).Where(q.Topic.Eq(topic)).Find()
+	return q.
+		Where(q.UID.Eq(string(uid))).
+		Where(q.Topic.Eq(topic)).
+		Preload(q.Triggers).
+		Order(q.UpdatedAt.Desc()).
+		Find()
 }
 
 func (a *adapter) IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error {
@@ -1482,7 +1487,7 @@ func (a *adapter) CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, err
 
 func (a *adapter) UpdateWorkflowTrigger(item *model.WorkflowTrigger) error {
 	q := dao.Q.WorkflowTrigger
-	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
+	_, err := q.Where(q.ID.Eq(item.ID)).UpdateColumns(item)
 	return err
 }
 
@@ -1499,7 +1504,7 @@ func (a *adapter) ListWorkflowTriggerByType(t model.TriggerType) ([]*model.Workf
 
 func (a *adapter) UpdateDag(item *model.Dag) error {
 	q := dao.Q.Dag
-	_, err := q.Where(q.UID.Eq(item.UID), q.Topic.Eq(item.Topic), q.ID.Eq(item.ID)).UpdateColumns(item)
+	_, err := q.Where(q.ID.Eq(item.ID)).UpdateColumns(item)
 	return err
 }
 

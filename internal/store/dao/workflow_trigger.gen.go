@@ -29,8 +29,6 @@ func newWorkflowTrigger(db *gorm.DB, opts ...gen.DOOption) workflowTrigger {
 	tableName := _workflowTrigger.workflowTriggerDo.TableName()
 	_workflowTrigger.ALL = field.NewAsterisk(tableName)
 	_workflowTrigger.ID = field.NewInt64(tableName, "id")
-	_workflowTrigger.UID = field.NewString(tableName, "uid")
-	_workflowTrigger.Topic = field.NewString(tableName, "topic")
 	_workflowTrigger.WorkflowID = field.NewInt64(tableName, "workflow_id")
 	_workflowTrigger.Type = field.NewField(tableName, "type")
 	_workflowTrigger.Rule = field.NewField(tableName, "rule")
@@ -49,8 +47,6 @@ type workflowTrigger struct {
 
 	ALL        field.Asterisk
 	ID         field.Int64
-	UID        field.String
-	Topic      field.String
 	WorkflowID field.Int64
 	Type       field.Field
 	Rule       field.Field
@@ -75,8 +71,6 @@ func (w workflowTrigger) As(alias string) *workflowTrigger {
 func (w *workflowTrigger) updateTableName(table string) *workflowTrigger {
 	w.ALL = field.NewAsterisk(table)
 	w.ID = field.NewInt64(table, "id")
-	w.UID = field.NewString(table, "uid")
-	w.Topic = field.NewString(table, "topic")
 	w.WorkflowID = field.NewInt64(table, "workflow_id")
 	w.Type = field.NewField(table, "type")
 	w.Rule = field.NewField(table, "rule")
@@ -100,10 +94,8 @@ func (w *workflowTrigger) GetFieldByName(fieldName string) (field.OrderExpr, boo
 }
 
 func (w *workflowTrigger) fillFieldMap() {
-	w.fieldMap = make(map[string]field.Expr, 10)
+	w.fieldMap = make(map[string]field.Expr, 8)
 	w.fieldMap["id"] = w.ID
-	w.fieldMap["uid"] = w.UID
-	w.fieldMap["topic"] = w.Topic
 	w.fieldMap["workflow_id"] = w.WorkflowID
 	w.fieldMap["type"] = w.Type
 	w.fieldMap["rule"] = w.Rule

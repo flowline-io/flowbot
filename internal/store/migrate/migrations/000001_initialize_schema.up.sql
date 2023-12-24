@@ -118,8 +118,6 @@ CREATE TABLE IF NOT EXISTS `cycles`
 CREATE TABLE `dag`
 (
     `id`             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `uid`            CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
-    `topic`          CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
     `workflow_id`    BIGINT(19)          NOT NULL DEFAULT '0',
     `script_id`      BIGINT(19)          NOT NULL,
     `script_version` SMALLINT(5)         NOT NULL,
@@ -128,7 +126,6 @@ CREATE TABLE `dag`
     `created_at`     DATETIME            NOT NULL,
     `updated_at`     DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    INDEX `uid` (`uid`, `topic`) USING BTREE,
     INDEX `workflow_id` (`workflow_id`) USING BTREE
 )
     COLLATE = 'utf8mb4_unicode_ci'
@@ -655,8 +652,6 @@ CREATE TABLE `workflow`
 CREATE TABLE `workflow_trigger`
 (
     `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `uid`         CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
-    `topic`       CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
     `workflow_id` BIGINT(19)          NOT NULL DEFAULT '0',
     `type`        VARCHAR(20)         NOT NULL COLLATE 'utf8mb4_unicode_ci',
     `rule`        JSON                NULL     DEFAULT NULL,
@@ -665,7 +660,6 @@ CREATE TABLE `workflow_trigger`
     `created_at`  DATETIME            NOT NULL,
     `updated_at`  DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    INDEX `uid` (`uid`, `topic`) USING BTREE,
     INDEX `workflow_id` (`workflow_id`) USING BTREE
 )
     COLLATE = 'utf8mb4_unicode_ci'

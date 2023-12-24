@@ -1,9 +1,9 @@
 "use client"
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons"
-import { Row } from "@tanstack/react-table"
+import {DotsHorizontalIcon} from "@radix-ui/react-icons"
+import {Row} from "@tanstack/react-table"
 
-import { Button } from "@/components/ui/button"
+import {Button} from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,8 @@ interface DataTableRowActionsProps<TData> {
 }
 
 export function DataTableRowActions<TData>({
-  row,
-}: DataTableRowActionsProps<TData>) {
+                                             row,
+                                           }: DataTableRowActionsProps<TData>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,7 +33,8 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem>Jobs</DropdownMenuItem>
         <DropdownMenuItem>trigger {row.id}</DropdownMenuItem>
-        <DropdownMenuItem>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => {
+        }}>Edit</DropdownMenuItem>
         <DropdownMenuSeparator/>
         <DropdownMenuItem>
           Delete

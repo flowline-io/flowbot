@@ -33,3 +33,16 @@ export const statuses = [
     icon: CrossCircledIcon,
   },
 ]
+
+export const workflowState = [
+  {
+    value: 1,
+    label: "Enable",
+    icon: CheckCircledIcon,
+  },
+  {
+    value: 2,
+    label: "Disable",
+    icon: CrossCircledIcon,
+  },
+]

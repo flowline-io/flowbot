@@ -19,7 +19,7 @@ const router = createHashRouter([
         element: <ScriptFormPage/>,
       },
       {
-        path: "obj/:sequence",
+        path: "workflow/:sequence",
         element: <ObjectivePage/>,
       },
       {

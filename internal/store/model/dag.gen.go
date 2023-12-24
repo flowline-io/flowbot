@@ -13,8 +13,6 @@ const TableNameDag = "dag"
 // Dag mapped from table <dag>
 type Dag struct {
 	ID            int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	UID           string    `gorm:"column:uid;not null" json:"uid"`
-	Topic         string    `gorm:"column:topic;not null" json:"topic"`
 	WorkflowID    int64     `gorm:"column:workflow_id;not null" json:"workflow_id"`
 	ScriptID      int64     `gorm:"column:script_id;not null" json:"script_id"`
 	ScriptVersion int32     `gorm:"column:script_version;not null" json:"script_version"`

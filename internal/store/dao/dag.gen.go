@@ -29,8 +29,6 @@ func newDag(db *gorm.DB, opts ...gen.DOOption) dag {
 	tableName := _dag.dagDo.TableName()
 	_dag.ALL = field.NewAsterisk(tableName)
 	_dag.ID = field.NewInt64(tableName, "id")
-	_dag.UID = field.NewString(tableName, "uid")
-	_dag.Topic = field.NewString(tableName, "topic")
 	_dag.WorkflowID = field.NewInt64(tableName, "workflow_id")
 	_dag.ScriptID = field.NewInt64(tableName, "script_id")
 	_dag.ScriptVersion = field.NewInt32(tableName, "script_version")
@@ -49,8 +47,6 @@ type dag struct {
 
 	ALL           field.Asterisk
 	ID            field.Int64
-	UID           field.String
-	Topic         field.String
 	WorkflowID    field.Int64
 	ScriptID      field.Int64
 	ScriptVersion field.Int32
@@ -75,8 +71,6 @@ func (d dag) As(alias string) *dag {
 func (d *dag) updateTableName(table string) *dag {
 	d.ALL = field.NewAsterisk(table)
 	d.ID = field.NewInt64(table, "id")
-	d.UID = field.NewString(table, "uid")
-	d.Topic = field.NewString(table, "topic")
 	d.WorkflowID = field.NewInt64(table, "workflow_id")
 	d.ScriptID = field.NewInt64(table, "script_id")
 	d.ScriptVersion = field.NewInt32(table, "script_version")
@@ -100,10 +94,8 @@ func (d *dag) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *dag) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 10)
+	d.fieldMap = make(map[string]field.Expr, 8)
 	d.fieldMap["id"] = d.ID
-	d.fieldMap["uid"] = d.UID
-	d.fieldMap["topic"] = d.Topic
 	d.fieldMap["workflow_id"] = d.WorkflowID
 	d.fieldMap["script_id"] = d.ScriptID
 	d.fieldMap["script_version"] = d.ScriptVersion
