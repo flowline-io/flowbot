@@ -21,8 +21,8 @@ export class OkrService {
    * @throws ApiError
    */
   public postOkrKeyResult(
-    keyResult: model_KeyResult,
-  ): CancelablePromise<protocol_Response> {
+keyResult: model_KeyResult,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/okr/key_result',
@@ -38,9 +38,9 @@ export class OkrService {
    * @throws ApiError
    */
   public postOkrKeyResultValue(
-    id: number,
-    keyResultValue: model_KeyResultValue,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+keyResultValue: model_KeyResultValue,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/okr/key_result/{id}/value',
@@ -58,10 +58,10 @@ export class OkrService {
    * @throws ApiError
    */
   public getOkrKeyResultValues(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: Array<model_KeyResultValue>;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: Array<model_KeyResultValue>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/okr/key_result/{id}/values',
@@ -79,9 +79,9 @@ export class OkrService {
    * @throws ApiError
    */
   public putOkrKeyResult(
-    sequence: number,
-    objective: model_KeyResult,
-  ): CancelablePromise<protocol_Response> {
+sequence: number,
+objective: model_KeyResult,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/okr/key_result/{sequence}',
@@ -99,8 +99,8 @@ export class OkrService {
    * @throws ApiError
    */
   public deleteOkrKeyResult(
-    sequence: number,
-  ): CancelablePromise<protocol_Response> {
+sequence: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/okr/key_result/{sequence}',
@@ -117,10 +117,10 @@ export class OkrService {
    * @throws ApiError
    */
   public getOkrKeyResultValue(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_KeyResultValue;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_KeyResultValue;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/okr/key_result_value/{id}',
@@ -137,8 +137,8 @@ export class OkrService {
    * @throws ApiError
    */
   public deleteOkrKeyResultValue(
-    id: number,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/okr/key_result_value/{id}',
@@ -155,8 +155,8 @@ export class OkrService {
    * @throws ApiError
    */
   public postOkrObjective(
-    objective: model_Objective,
-  ): CancelablePromise<protocol_Response> {
+objective: model_Objective,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/okr/objective',
@@ -171,10 +171,10 @@ export class OkrService {
    * @throws ApiError
    */
   public getOkrObjective(
-    sequence: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_Objective;
-  })> {
+sequence: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_Objective;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/okr/objective/{sequence}',
@@ -192,9 +192,9 @@ export class OkrService {
    * @throws ApiError
    */
   public putOkrObjective(
-    sequence: number,
-    objective: model_Objective,
-  ): CancelablePromise<protocol_Response> {
+sequence: number,
+objective: model_Objective,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/okr/objective/{sequence}',
@@ -212,8 +212,8 @@ export class OkrService {
    * @throws ApiError
    */
   public deleteOkrObjective(
-    sequence: number,
-  ): CancelablePromise<protocol_Response> {
+sequence: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/okr/objective/{sequence}',
@@ -229,8 +229,8 @@ export class OkrService {
    * @throws ApiError
    */
   public getOkrObjectives(): CancelablePromise<(protocol_Response & {
-    data?: Array<model_Objective>;
-  })> {
+data?: Array<model_Objective>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/okr/objectives',

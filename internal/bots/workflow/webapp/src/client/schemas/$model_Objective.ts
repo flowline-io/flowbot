@@ -5,67 +5,67 @@
 export const $model_Objective = {
   properties: {
     created_data: {
-      type: 'string',
-    },
+  type: 'string',
+},
     current_value: {
-      type: 'number',
-    },
+  type: 'number',
+},
     feasibility: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     is_plan: {
-      type: 'number',
-    },
+  type: 'number',
+},
     key_results: {
-      type: 'array',
-      contains: {
-        type: 'model_KeyResult',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_KeyResult',
+  },
+},
     memo: {
-      type: 'string',
-    },
+  type: 'string',
+},
     motive: {
-      type: 'string',
-    },
+  type: 'string',
+},
     plan_end: {
-      type: 'string',
-    },
+  type: 'string',
+},
     plan_start: {
-      type: 'string',
-    },
+  type: 'string',
+},
     progress: {
-      type: 'number',
-    },
+  type: 'number',
+},
     reviews: {
-      type: 'array',
-      contains: {
-        type: 'model_Review',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Review',
+  },
+},
     sequence: {
-      type: 'number',
-    },
+  type: 'number',
+},
     tag: {
-      type: 'string',
-    },
+  type: 'string',
+},
     title: {
-      type: 'string',
-    },
+  type: 'string',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     total_value: {
-      type: 'number',
-    },
+  type: 'number',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_date: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

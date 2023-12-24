@@ -11,6 +11,7 @@ export type model_Job = {
   dag_id?: number;
   ended_at?: string;
   id?: number;
+  script_version?: number;
   started_at?: string;
   state?: model_JobState;
   steps?: Array<model_Step>;
@@ -20,4 +21,3 @@ export type model_Job = {
   updated_at?: string;
   workflow_id?: number;
 };
-

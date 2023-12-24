@@ -5,84 +5,87 @@
 export const $model_Node = {
   properties: {
     _order: {
-      type: 'number',
-    },
+  type: 'number',
+},
     bot: {
-      type: 'string',
-    },
+  type: 'string',
+},
     connections: {
-      type: 'array',
-      contains: {
-        type: 'string',
-      },
-    },
+  type: 'array',
+  contains: {
+  type: 'string',
+},
+},
+    describe: {
+  type: 'string',
+},
     group: {
-      type: 'string',
-    },
+  type: 'string',
+},
     height: {
-      type: 'number',
-    },
+  type: 'number',
+},
     id: {
-      type: 'string',
-    },
+  type: 'string',
+},
     isGroup: {
-      type: 'boolean',
-    },
+  type: 'boolean',
+},
     label: {
-      type: 'string',
-    },
+  type: 'string',
+},
     parameters: {
-      properties: {
-      },
-    },
+  properties: {
+  },
+},
     parentId: {
-      type: 'string',
-    },
+  type: 'string',
+},
     ports: {
-      type: 'array',
-      contains: {
-        properties: {
-          connected: {
-            type: 'boolean',
-          },
-          group: {
-            type: 'string',
-          },
-          id: {
-            type: 'string',
-          },
-          tooltip: {
-            type: 'string',
-          },
-          type: {
-            type: 'string',
-          },
-        },
-      },
-    },
+  type: 'array',
+  contains: {
+  properties: {
+    connected: {
+  type: 'boolean',
+},
+    group: {
+  type: 'string',
+},
+    id: {
+  type: 'string',
+},
+    tooltip: {
+  type: 'string',
+},
+    type: {
+  type: 'string',
+},
+  },
+},
+},
     renderKey: {
-      type: 'string',
-    },
+  type: 'string',
+},
     rule_id: {
-      type: 'string',
-    },
+  type: 'string',
+},
     status: {
-      type: 'model_NodeStatus',
-    },
+  type: 'model_NodeStatus',
+},
     variables: {
-      type: 'array',
-      contains: {
-        type: 'string',
-      },
-    },
+  type: 'array',
+  contains: {
+  type: 'string',
+},
+},
     width: {
-      type: 'number',
-    },
+  type: 'number',
+},
     'x': {
-      type: 'number',
-    },
+  type: 'number',
+},
     'y': {
-      type: 'number',
-    },
+  type: 'number',
+},
   },
 } as const;

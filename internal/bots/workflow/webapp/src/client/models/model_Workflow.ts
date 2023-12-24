@@ -24,4 +24,3 @@ export type model_Workflow = {
   uid?: string;
   updated_at?: string;
 };
-

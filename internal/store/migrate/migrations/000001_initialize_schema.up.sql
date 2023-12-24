@@ -115,22 +115,24 @@ CREATE TABLE IF NOT EXISTS `cycles`
 
 
 
-CREATE TABLE IF NOT EXISTS `dag`
+CREATE TABLE `dag`
 (
-    `id`          bigint unsigned                                           NOT NULL AUTO_INCREMENT,
-    `uid`         char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `topic`       char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `workflow_id` bigint                                                    NOT NULL DEFAULT (0),
-    `nodes`       json                                                      NOT NULL,
-    `edges`       json                                                      NOT NULL,
-    `created_at`  datetime                                                  NOT NULL,
-    `updated_at`  datetime                                                  NOT NULL,
+    `id`             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uid`            CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `topic`          CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `workflow_id`    BIGINT(19)          NOT NULL DEFAULT '0',
+    `script_id`      BIGINT(19)          NOT NULL,
+    `script_version` SMALLINT(5)         NOT NULL,
+    `nodes`          JSON                NOT NULL,
+    `edges`          JSON                NOT NULL,
+    `created_at`     DATETIME            NOT NULL,
+    `updated_at`     DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    KEY `uid` (`uid`, `topic`) USING BTREE,
-    KEY `workflow_id` (`workflow_id`) USING BTREE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    INDEX `uid` (`uid`, `topic`) USING BTREE,
+    INDEX `workflow_id` (`workflow_id`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
 
 
 
@@ -214,27 +216,27 @@ CREATE TABLE IF NOT EXISTS `instruct`
   COLLATE = utf8mb4_unicode_ci;
 
 
-
-CREATE TABLE IF NOT EXISTS `jobs`
+CREATE TABLE `jobs`
 (
-    `id`          bigint unsigned                                           NOT NULL AUTO_INCREMENT,
-    `uid`         char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `topic`       char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `workflow_id` bigint                                                    NOT NULL DEFAULT (0),
-    `dag_id`      bigint                                                    NOT NULL DEFAULT (0),
-    `trigger_id`  bigint                                                    NOT NULL DEFAULT (0),
-    `state`       tinyint                                                   NOT NULL,
-    `started_at`  datetime                                                           DEFAULT NULL,
-    `ended_at`    datetime                                                           DEFAULT NULL,
-    `created_at`  datetime                                                  NOT NULL,
-    `updated_at`  datetime                                                  NOT NULL,
+    `id`             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uid`            CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `topic`          CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `workflow_id`    BIGINT(19)          NOT NULL DEFAULT '0',
+    `dag_id`         BIGINT(19)          NOT NULL DEFAULT '0',
+    `trigger_id`     BIGINT(19)          NOT NULL DEFAULT '0',
+    `script_version` SMALLINT(5)         NOT NULL DEFAULT '0',
+    `state`          TINYINT(3)          NOT NULL,
+    `started_at`     DATETIME            NULL     DEFAULT NULL,
+    `ended_at`       DATETIME            NULL     DEFAULT NULL,
+    `created_at`     DATETIME            NOT NULL,
+    `updated_at`     DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    KEY `uid` (`uid`, `topic`) USING BTREE,
-    KEY `workflow_id` (`workflow_id`) USING BTREE,
-    KEY `state` (`state`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    INDEX `uid` (`uid`, `topic`) USING BTREE,
+    INDEX `workflow_id` (`workflow_id`) USING BTREE,
+    INDEX `state` (`state`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
 
 
 
@@ -508,33 +510,33 @@ CREATE TABLE IF NOT EXISTS `session`
 
 
 
-CREATE TABLE IF NOT EXISTS `steps`
+CREATE TABLE `steps`
 (
-    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `job_id`     bigint                                                        NOT NULL DEFAULT (0),
-    `action`     json                                                          NOT NULL,
-    `name`       varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-    `describe`   varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-    `node_id`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL DEFAULT '',
-    `depend`     json                                                                   DEFAULT NULL,
-    `input`      json                                                                   DEFAULT NULL,
-    `output`     json                                                                   DEFAULT NULL,
-    `error`      varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci         DEFAULT NULL,
-    `state`      tinyint                                                       NOT NULL,
-    `started_at` datetime                                                               DEFAULT NULL,
-    `ended_at`   datetime                                                               DEFAULT NULL,
-    `created_at` datetime                                                      NOT NULL,
-    `updated_at` datetime                                                      NOT NULL,
+    `id`         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uid`        CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `topic`      CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `job_id`     BIGINT(19)          NOT NULL DEFAULT '0',
+    `action`     JSON                NOT NULL,
+    `name`       VARCHAR(100)        NOT NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
+    `describe`   VARCHAR(300)        NOT NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
+    `node_id`    VARCHAR(50)         NOT NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
+    `depend`     JSON                NULL     DEFAULT NULL,
+    `input`      JSON                NULL     DEFAULT NULL,
+    `output`     JSON                NULL     DEFAULT NULL,
+    `error`      VARCHAR(1000)       NULL     DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+    `state`      TINYINT(3)          NOT NULL,
+    `started_at` DATETIME            NULL     DEFAULT NULL,
+    `ended_at`   DATETIME            NULL     DEFAULT NULL,
+    `created_at` DATETIME            NOT NULL,
+    `updated_at` DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    KEY `uid` (`uid`, `topic`) USING BTREE,
-    KEY `job_id` (`job_id`) USING BTREE,
-    KEY `node_id` (`node_id`),
-    KEY `state` (`state`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    INDEX `uid` (`uid`, `topic`) USING BTREE,
+    INDEX `job_id` (`job_id`) USING BTREE,
+    INDEX `node_id` (`node_id`) USING BTREE,
+    INDEX `state` (`state`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
 
 
 
@@ -626,48 +628,64 @@ CREATE TABLE IF NOT EXISTS `users`
 
 
 
-CREATE TABLE IF NOT EXISTS `workflow`
+CREATE TABLE `workflow`
 (
-    `id`               bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `uid`              char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `topic`            char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `flag`             char(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `name`             varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `describe`         varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `successful_count` int                                                           NOT NULL DEFAULT '0',
-    `failed_count`     int                                                           NOT NULL DEFAULT '0',
-    `running_count`    int                                                           NOT NULL DEFAULT '0',
-    `canceled_count`   int                                                           NOT NULL DEFAULT '0',
-    `state`            tinyint                                                       NOT NULL,
-    `created_at`       datetime                                                      NOT NULL,
-    `updated_at`       datetime                                                      NOT NULL,
+    `id`               BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uid`              CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `topic`            CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `flag`             CHAR(25)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `name`             VARCHAR(100)        NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `describe`         VARCHAR(300)        NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `successful_count` INT(10)             NOT NULL DEFAULT '0',
+    `failed_count`     INT(10)             NOT NULL DEFAULT '0',
+    `running_count`    INT(10)             NOT NULL DEFAULT '0',
+    `canceled_count`   INT(10)             NOT NULL DEFAULT '0',
+    `state`            TINYINT(3)          NOT NULL,
+    `created_at`       DATETIME            NOT NULL,
+    `updated_at`       DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    KEY `uid` (`uid`, `topic`) USING BTREE,
-    KEY `flag` (`flag`) USING BTREE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    INDEX `uid` (`uid`, `topic`) USING BTREE,
+    INDEX `flag` (`flag`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
 
 
 
-CREATE TABLE IF NOT EXISTS `workflow_trigger`
+CREATE TABLE `workflow_trigger`
 (
-    `id`          bigint unsigned                                              NOT NULL AUTO_INCREMENT,
-    `uid`         char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci    NOT NULL,
-    `topic`       char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci    NOT NULL,
-    `workflow_id` bigint                                                       NOT NULL DEFAULT (0),
-    `type`        varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `rule`        json                                                         NOT NULL,
-    `count`       int                                                          NOT NULL DEFAULT '0',
-    `state`       tinyint                                                      NOT NULL,
-    `created_at`  datetime                                                     NOT NULL,
-    `updated_at`  datetime                                                     NOT NULL,
+    `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uid`         CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `topic`       CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `workflow_id` BIGINT(19)          NOT NULL DEFAULT '0',
+    `type`        VARCHAR(20)         NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `rule`        JSON                NULL     DEFAULT NULL,
+    `count`       INT(10)             NOT NULL DEFAULT '0',
+    `state`       TINYINT(3)          NOT NULL,
+    `created_at`  DATETIME            NOT NULL,
+    `updated_at`  DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
-    KEY `uid` (`uid`, `topic`) USING BTREE,
-    KEY `workflow_id` (`workflow_id`) USING BTREE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    INDEX `uid` (`uid`, `topic`) USING BTREE,
+    INDEX `workflow_id` (`workflow_id`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
+
+
+CREATE TABLE `workflow_script`
+(
+    `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `workflow_id` BIGINT(20) UNSIGNED NOT NULL,
+    `lang`        VARCHAR(10)         NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `code`        TEXT                NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `version`     SMALLINT(5)         NOT NULL DEFAULT '1',
+    `created_at`  DATETIME            NOT NULL,
+    `updated_at`  DATETIME            NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+)
+    COLLATE = 'utf8mb4_unicode_ci'
+    ENGINE = InnoDB;
+
 
 CREATE TABLE `platform_bots`
 (

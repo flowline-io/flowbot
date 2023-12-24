@@ -5,58 +5,58 @@
 export const $model_Step = {
   properties: {
     action: {
-      type: 'model_JSON',
-    },
+  type: 'model_JSON',
+},
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     depend: {
-      type: 'array',
-      contains: {
-        type: 'string',
-      },
-    },
+  type: 'array',
+  contains: {
+  type: 'string',
+},
+},
     describe: {
-      type: 'string',
-    },
+  type: 'string',
+},
     ended_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     error: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     input: {
-      type: 'model_JSON',
-    },
+  type: 'model_JSON',
+},
     job_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     name: {
-      type: 'string',
-    },
+  type: 'string',
+},
     node_id: {
-      type: 'string',
-    },
+  type: 'string',
+},
     output: {
-      type: 'model_JSON',
-    },
+  type: 'model_JSON',
+},
     started_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     state: {
-      type: 'model_StepState',
-    },
+  type: 'model_StepState',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

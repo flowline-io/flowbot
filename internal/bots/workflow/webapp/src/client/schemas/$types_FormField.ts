@@ -5,32 +5,32 @@
 export const $types_FormField = {
   properties: {
     key: {
-      type: 'string',
-    },
+  type: 'string',
+},
     label: {
-      type: 'string',
-    },
+  type: 'string',
+},
     option: {
-      type: 'array',
-      contains: {
-        type: 'string',
-      },
-    },
+  type: 'array',
+  contains: {
+  type: 'string',
+},
+},
     placeholder: {
-      type: 'string',
-    },
+  type: 'string',
+},
     rule: {
-      type: 'string',
-    },
+  type: 'string',
+},
     type: {
-      type: 'types_FormFieldType',
-    },
+  type: 'types_FormFieldType',
+},
     value: {
-      properties: {
-      },
-    },
+  properties: {
+  },
+},
     value_type: {
-      type: 'types_FormFieldValueType',
-    },
+  type: 'types_FormFieldValueType',
+},
   },
 } as const;

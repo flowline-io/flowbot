@@ -5,43 +5,46 @@
 export const $model_Job = {
   properties: {
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     dag_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     ended_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
+    script_version: {
+  type: 'number',
+},
     started_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     state: {
-      type: 'model_JobState',
-    },
+  type: 'model_JobState',
+},
     steps: {
-      type: 'array',
-      contains: {
-        type: 'model_Step',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Step',
+  },
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     trigger_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     workflow_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
   },
 } as const;

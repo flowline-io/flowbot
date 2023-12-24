@@ -25,4 +25,3 @@ export type model_KeyResult = {
   updated_at?: string;
   value_mode?: model_ValueModeType;
 };
-

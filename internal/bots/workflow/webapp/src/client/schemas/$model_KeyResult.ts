@@ -5,58 +5,58 @@
 export const $model_KeyResult = {
   properties: {
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     current_value: {
-      type: 'number',
-    },
+  type: 'number',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     initial_value: {
-      type: 'number',
-    },
+  type: 'number',
+},
     key_result_values: {
-      type: 'array',
-      contains: {
-        type: 'model_KeyResultValue',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_KeyResultValue',
+  },
+},
     memo: {
-      type: 'string',
-    },
+  type: 'string',
+},
     objective_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     sequence: {
-      type: 'number',
-    },
+  type: 'number',
+},
     tag: {
-      type: 'string',
-    },
+  type: 'string',
+},
     target_value: {
-      type: 'number',
-    },
+  type: 'number',
+},
     title: {
-      type: 'string',
-    },
+  type: 'string',
+},
     todos: {
-      type: 'array',
-      contains: {
-        type: 'model_Todo',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Todo',
+  },
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     value_mode: {
-      type: 'model_ValueModeType',
-    },
+  type: 'model_ValueModeType',
+},
   },
 } as const;

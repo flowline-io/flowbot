@@ -5,34 +5,40 @@
 export const $model_Dag = {
   properties: {
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     edges: {
-      type: 'array',
-      contains: {
-        type: 'model_Edge',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Edge',
+  },
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     nodes: {
-      type: 'array',
-      contains: {
-        type: 'model_Node',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Node',
+  },
+},
+    script_id: {
+  type: 'number',
+},
+    script_version: {
+  type: 'number',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     workflow_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
   },
 } as const;

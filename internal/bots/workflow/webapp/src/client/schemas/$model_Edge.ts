@@ -5,48 +5,48 @@
 export const $model_Edge = {
   properties: {
     connector: {
-      properties: {
-        name: {
-          type: 'string',
-        },
-      },
-    },
+  properties: {
+    name: {
+  type: 'string',
+},
+  },
+},
     edgeContentHeight: {
-      type: 'number',
-    },
+  type: 'number',
+},
     edgeContentWidth: {
-      type: 'number',
-    },
+  type: 'number',
+},
     id: {
-      type: 'string',
-    },
+  type: 'string',
+},
     label: {
-      type: 'string',
-    },
+  type: 'string',
+},
     router: {
-      properties: {
-        name: {
-          type: 'string',
-        },
-      },
-    },
+  properties: {
+    name: {
+  type: 'string',
+},
+  },
+},
     source: {
-      type: 'string',
-    },
+  type: 'string',
+},
     sourcePort: {
-      type: 'string',
-    },
+  type: 'string',
+},
     sourcePortId: {
-      type: 'string',
-    },
+  type: 'string',
+},
     target: {
-      type: 'string',
-    },
+  type: 'string',
+},
     targetPort: {
-      type: 'string',
-    },
+  type: 'string',
+},
     targetPortId: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

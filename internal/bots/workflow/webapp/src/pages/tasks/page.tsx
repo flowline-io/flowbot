@@ -4,6 +4,7 @@ import { DataTable } from "./components/data-table"
 import {taskSchema} from "./data/schema"
 import data from "./data/tasks.json"
 import {Button} from "@/components/ui/button.tsx";
+import {Link} from "react-router-dom";
 
 
 // Simulate a database read for tasks.
@@ -25,7 +26,7 @@ export default function TaskPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button>+</Button>
+            <Link to="/script"><Button>+</Button></Link>
           </div>
         </div>
         <DataTable data={tasks} columns={columns} />

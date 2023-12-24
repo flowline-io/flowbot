@@ -5,15 +5,15 @@
 
 export type model_Edge = {
   connector?: {
-    name?: string;
-  };
+name?: string;
+};
   edgeContentHeight?: number;
   edgeContentWidth?: number;
   id?: string;
   label?: string;
   router?: {
-    name?: string;
-  };
+name?: string;
+};
   source?: string;
   sourcePort?: string;
   sourcePortId?: string;
@@ -21,4 +21,3 @@ export type model_Edge = {
   targetPort?: string;
   targetPortId?: string;
 };
-

@@ -5,55 +5,55 @@
 export const $model_Workflow = {
   properties: {
     canceled_count: {
-      type: 'number',
-    },
+  type: 'number',
+},
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     dag: {
-      type: 'array',
-      contains: {
-        type: 'model_Dag',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Dag',
+  },
+},
     describe: {
-      type: 'string',
-    },
+  type: 'string',
+},
     failed_count: {
-      type: 'number',
-    },
+  type: 'number',
+},
     flag: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     name: {
-      type: 'string',
-    },
+  type: 'string',
+},
     running_count: {
-      type: 'number',
-    },
+  type: 'number',
+},
     state: {
-      type: 'model_WorkflowState',
-    },
+  type: 'model_WorkflowState',
+},
     successful_count: {
-      type: 'number',
-    },
+  type: 'number',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     triggers: {
-      type: 'array',
-      contains: {
-        type: 'model_WorkflowTrigger',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_WorkflowTrigger',
+  },
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

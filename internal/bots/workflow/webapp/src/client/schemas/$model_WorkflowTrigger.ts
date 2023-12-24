@@ -5,34 +5,34 @@
 export const $model_WorkflowTrigger = {
   properties: {
     count: {
-      type: 'number',
-    },
+  type: 'number',
+},
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     rule: {
-      type: 'string',
-    },
+  type: 'model_JSON',
+},
     state: {
-      type: 'model_WorkflowTriggerState',
-    },
+  type: 'model_WorkflowTriggerState',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     type: {
-      type: 'model_TriggerType',
-    },
+  type: 'model_TriggerType',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     workflow_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
   },
 } as const;

@@ -2,8 +2,8 @@ import {createHashRouter} from "react-router-dom";
 import Error from "@/pages/error";
 import CardsPage from "@/pages/cards/page.tsx";
 import ObjectivePage from "@/pages/objective";
-import ObjectiveFormPage from "@/pages/objective-form";
 import TaskPage from "@/pages/tasks/page.tsx";
+import ScriptFormPage from "@/pages/script-form.tsx";
 
 const router = createHashRouter([
   {
@@ -15,8 +15,8 @@ const router = createHashRouter([
         element: <TaskPage/>,
       },
       {
-        path: "obj",
-        element: <ObjectiveFormPage/>,
+        path: "script",
+        element: <ScriptFormPage/>,
       },
       {
         path: "obj/:sequence",

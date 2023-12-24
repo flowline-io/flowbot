@@ -17,4 +17,3 @@ export type model_Review = {
   uid?: string;
   updated_at?: string;
 };
-

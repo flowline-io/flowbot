@@ -5,6 +5,7 @@
 import type { model_Dag } from '../models/model_Dag';
 import type { model_Job } from '../models/model_Job';
 import type { model_Workflow } from '../models/model_Workflow';
+import type { model_WorkflowScript } from '../models/model_WorkflowScript';
 import type { model_WorkflowTrigger } from '../models/model_WorkflowTrigger';
 import type { protocol_Response } from '../models/protocol_Response';
 import type { workflow_rule } from '../models/workflow_rule';
@@ -22,8 +23,8 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowActions(): CancelablePromise<(protocol_Response & {
-    data?: Record<string, Array<workflow_rule>>;
-  })> {
+data?: Record<string, Array<workflow_rule>>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/actions',
@@ -37,10 +38,10 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowJob(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_Job;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_Job;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/job/{id}',
@@ -57,8 +58,8 @@ export class WorkflowService {
    * @throws ApiError
    */
   public postWorkflowJobRerun(
-    id: number,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/workflow/job/{id}/rerun',
@@ -76,9 +77,9 @@ export class WorkflowService {
    * @throws ApiError
    */
   public putWorkflowTrigger(
-    id: number,
-    trigger: model_WorkflowTrigger,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+trigger: model_WorkflowTrigger,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/workflow/trigger/{id}',
@@ -96,8 +97,8 @@ export class WorkflowService {
    * @throws ApiError
    */
   public deleteWorkflowTrigger(
-    id: number,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/workflow/trigger/{id}',
@@ -109,17 +110,17 @@ export class WorkflowService {
 
   /**
    * workflow create
-   * @param workflow workflow data
+   * @param script workflow script data
    * @returns protocol_Response OK
    * @throws ApiError
    */
   public postWorkflowWorkflow(
-    workflow: model_Workflow,
-  ): CancelablePromise<protocol_Response> {
+script: model_WorkflowScript,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/workflow/workflow',
-      body: workflow,
+      body: script,
     });
   }
 
@@ -130,10 +131,10 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowWorkflow(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_Workflow;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_Workflow;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/workflow/{id}',
@@ -146,21 +147,21 @@ export class WorkflowService {
   /**
    * workflow update
    * @param id ID
-   * @param workflow workflow data
+   * @param script workflow script data
    * @returns protocol_Response OK
    * @throws ApiError
    */
   public putWorkflowWorkflow(
-    id: number,
-    workflow: model_Workflow,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+script: model_WorkflowScript,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/workflow/workflow/{id}',
       path: {
         'id': id,
       },
-      body: workflow,
+      body: script,
     });
   }
 
@@ -171,8 +172,8 @@ export class WorkflowService {
    * @throws ApiError
    */
   public deleteWorkflowWorkflow(
-    id: number,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'DELETE',
       url: '/workflow/workflow/{id}',
@@ -189,10 +190,10 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowWorkflowDag(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: model_Dag;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_Dag;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/workflow/{id}/dag',
@@ -210,9 +211,9 @@ export class WorkflowService {
    * @throws ApiError
    */
   public putWorkflowWorkflowDag(
-    id: number,
-    trigger: model_Dag,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+trigger: model_Dag,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'PUT',
       url: '/workflow/workflow/{id}/dag',
@@ -230,13 +231,33 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowWorkflowJobs(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: Array<model_Job>;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: Array<model_Job>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/workflow/{id}/jobs',
+      path: {
+        'id': id,
+      },
+    });
+  }
+
+  /**
+   * workflow script detail
+   * @param id Workflow ID
+   * @returns any OK
+   * @throws ApiError
+   */
+  public getWorkflowWorkflowScript(
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: model_WorkflowScript;
+})> {
+    return this.httpRequest.request({
+      method: 'GET',
+      url: '/workflow/workflow/{id}/script',
       path: {
         'id': id,
       },
@@ -251,9 +272,9 @@ export class WorkflowService {
    * @throws ApiError
    */
   public postWorkflowWorkflowTrigger(
-    id: number,
-    trigger: model_WorkflowTrigger,
-  ): CancelablePromise<protocol_Response> {
+id: number,
+trigger: model_WorkflowTrigger,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/workflow/workflow/{id}/trigger',
@@ -271,10 +292,10 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowWorkflowTriggers(
-    id: number,
-  ): CancelablePromise<(protocol_Response & {
-    data?: Array<model_WorkflowTrigger>;
-  })> {
+id: number,
+): CancelablePromise<(protocol_Response & {
+data?: Array<model_WorkflowTrigger>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/workflow/{id}/triggers',
@@ -290,8 +311,8 @@ export class WorkflowService {
    * @throws ApiError
    */
   public getWorkflowWorkflows(): CancelablePromise<(protocol_Response & {
-    data?: Array<model_Workflow>;
-  })> {
+data?: Array<model_Workflow>;
+})> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/workflow/workflows',

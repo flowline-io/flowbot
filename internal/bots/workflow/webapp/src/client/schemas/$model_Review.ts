@@ -5,34 +5,34 @@
 export const $model_Review = {
   properties: {
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     evaluations: {
-      type: 'array',
-      contains: {
-        type: 'model_ReviewEvaluation',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_ReviewEvaluation',
+  },
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     objective_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     rating: {
-      type: 'number',
-    },
+  type: 'number',
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     type: {
-      type: 'model_ReviewType',
-    },
+  type: 'model_ReviewType',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

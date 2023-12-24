@@ -196,6 +196,6 @@ func NewFailedResponseWithError(e *Error, err error) Response {
 	return Response{
 		Status:  Failed,
 		RetCode: e.GetCode(),
-		Message: e.GetMessage(),
+		Message: fmt.Sprintf("%s (%s)", e.GetMessage(), err.Error()),
 	}
 }

@@ -18,8 +18,8 @@ export class MarkdownService {
    * @throws ApiError
    */
   public postMarkdownData(
-    data: Record<string, string>,
-  ): CancelablePromise<protocol_Response> {
+data: Record<string, string>,
+): CancelablePromise<protocol_Response> {
     return this.httpRequest.request({
       method: 'POST',
       url: '/markdown/data',
@@ -30,12 +30,12 @@ export class MarkdownService {
   /**
    * markdown editor page
    * @param flag Flag
-   * @returns void
+   * @returns void 
    * @throws ApiError
    */
   public getMarkdownEditor(
-    flag: string,
-  ): CancelablePromise<void> {
+flag: string,
+): CancelablePromise<void> {
     return this.httpRequest.request({
       method: 'GET',
       url: '/markdown/editor/{flag}',

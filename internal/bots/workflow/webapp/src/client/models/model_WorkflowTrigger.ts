@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import type { model_JSON } from './model_JSON';
 import type { model_TriggerType } from './model_TriggerType';
 import type { model_WorkflowTriggerState } from './model_WorkflowTriggerState';
 
@@ -10,7 +11,7 @@ export type model_WorkflowTrigger = {
   count?: number;
   created_at?: string;
   id?: number;
-  rule?: string;
+  rule?: model_JSON;
   state?: model_WorkflowTriggerState;
   topic?: string;
   type?: model_TriggerType;
@@ -18,4 +19,3 @@ export type model_WorkflowTrigger = {
   updated_at?: string;
   workflow_id?: number;
 };
-

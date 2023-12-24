@@ -11,9 +11,10 @@ export type model_Dag = {
   edges?: Array<model_Edge>;
   id?: number;
   nodes?: Array<model_Node>;
+  script_id?: number;
+  script_version?: number;
   topic?: string;
   uid?: string;
   updated_at?: string;
   workflow_id?: number;
 };
-

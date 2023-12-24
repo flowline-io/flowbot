@@ -2,34 +2,28 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $model_ReviewEvaluation = {
+export const $model_WorkflowScript = {
   properties: {
+    code: {
+  type: 'string',
+},
     created_at: {
   type: 'string',
 },
     id: {
   type: 'number',
 },
-    question: {
-  type: 'string',
-},
-    reason: {
-  type: 'string',
-},
-    review_id: {
-  type: 'number',
-},
-    solving: {
-  type: 'string',
-},
-    topic: {
-  type: 'string',
-},
-    uid: {
-  type: 'string',
+    lang: {
+  type: 'model_WorkflowScriptLang',
 },
     updated_at: {
   type: 'string',
+},
+    version: {
+  type: 'number',
+},
+    workflow_id: {
+  type: 'number',
 },
   },
 } as const;

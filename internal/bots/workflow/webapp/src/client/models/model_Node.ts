@@ -9,6 +9,7 @@ export type model_Node = {
   _order?: number;
   bot?: string;
   connections?: Array<string>;
+  describe?: string;
   group?: string;
   height?: number;
   id?: string;
@@ -17,12 +18,12 @@ export type model_Node = {
   parameters?: any;
   parentId?: string;
   ports?: Array<{
-    connected?: boolean;
-    group?: string;
-    id?: string;
-    tooltip?: string;
-    type?: string;
-  }>;
+connected?: boolean;
+group?: string;
+id?: string;
+tooltip?: string;
+type?: string;
+}>;
   renderKey?: string;
   rule_id?: string;
   status?: model_NodeStatus;
@@ -31,4 +32,3 @@ export type model_Node = {
   'x'?: number;
   'y'?: number;
 };
-

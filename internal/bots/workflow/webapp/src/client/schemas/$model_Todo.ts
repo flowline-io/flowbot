@@ -5,64 +5,64 @@
 export const $model_Todo = {
   properties: {
     category: {
-      type: 'string',
-    },
+  type: 'string',
+},
     complete: {
-      type: 'number',
-    },
+  type: 'number',
+},
     content: {
-      type: 'string',
-    },
+  type: 'string',
+},
     created_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     is_remind_at_time: {
-      type: 'number',
-    },
+  type: 'number',
+},
     key_result_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     parent_id: {
-      type: 'number',
-    },
+  type: 'number',
+},
     priority: {
-      type: 'number',
-    },
+  type: 'number',
+},
     remark: {
-      type: 'string',
-    },
+  type: 'string',
+},
     remind_at: {
-      type: 'number',
-    },
+  type: 'number',
+},
     repeat_end_at: {
-      type: 'number',
-    },
+  type: 'number',
+},
     repeat_method: {
-      type: 'string',
-    },
+  type: 'string',
+},
     repeat_rule: {
-      type: 'string',
-    },
+  type: 'string',
+},
     sequence: {
-      type: 'number',
-    },
+  type: 'number',
+},
     sub_todos: {
-      type: 'array',
-      contains: {
-        type: 'model_Todo',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'model_Todo',
+  },
+},
     topic: {
-      type: 'string',
-    },
+  type: 'string',
+},
     uid: {
-      type: 'string',
-    },
+  type: 'string',
+},
     updated_at: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;

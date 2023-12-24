@@ -3,5 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type model_JSON = {
-};
+export enum model_WorkflowScriptLang {
+  WorkflowScriptYaml = 'yaml',
+}

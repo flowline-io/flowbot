@@ -27,4 +27,3 @@ export type model_Objective = {
   uid?: string;
   updated_date?: string;
 };
-

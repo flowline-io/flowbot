@@ -5,28 +5,28 @@
 export const $workflow_rule = {
   properties: {
     bot: {
-      type: 'string',
-    },
+  type: 'string',
+},
     desc: {
-      type: 'string',
-    },
+  type: 'string',
+},
     id: {
-      type: 'string',
-    },
+  type: 'string',
+},
     input_schema: {
-      type: 'array',
-      contains: {
-        type: 'types_FormField',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'types_FormField',
+  },
+},
     output_schema: {
-      type: 'array',
-      contains: {
-        type: 'types_FormField',
-      },
-    },
+  type: 'array',
+  contains: {
+    type: 'types_FormField',
+  },
+},
     title: {
-      type: 'string',
-    },
+  type: 'string',
+},
   },
 } as const;
