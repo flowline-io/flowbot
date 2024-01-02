@@ -9,8 +9,8 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@
 import {Client} from "@/util/client";
 import {useToast} from "@/components/ui/use-toast";
 import {model_WorkflowScript, model_WorkflowScriptLang} from "@/client";
-import {useNavigate} from "react-router-dom";
-import {useMutation} from "@tanstack/react-query";
+import {useNavigate, useParams} from "react-router-dom";
+import {useMutation, useQuery} from "@tanstack/react-query";
 
 const formSchema = z.object({
   code: z.string(),
@@ -20,9 +20,43 @@ export default function ScriptFormPage() {
   const navigate = useNavigate();
   const {toast} = useToast()
 
+  let {id} = useParams();
+
+  const script = useQuery({
+    queryKey: ['script'], queryFn: () => {
+      return Client().workflow.getWorkflowWorkflowScript(parseInt(id))
+    },
+  })
+
+
   const mutation = useMutation({
     mutationFn: (data: model_WorkflowScript) => {
       return Client().workflow.postWorkflowWorkflow(data)
+    },
+    onSuccess: (data) => {
+      console.log(data)
+      if (data.status == "ok") {
+        navigate(-1)
+      } else {
+        toast({
+          title: data.status,
+          description: data.message,
+          variant: "destructive",
+        })
+      }
+    },
+    onError: error => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  })
+
+  const editMutation = useMutation({
+    mutationFn: (data: model_WorkflowScript) => {
+      return Client().workflow.putWorkflowWorkflow(id, data)
     },
     onSuccess: (data) => {
       console.log(data)
@@ -53,11 +87,19 @@ export default function ScriptFormPage() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    let data: model_WorkflowScript = {
-      lang: model_WorkflowScriptLang.WorkflowScriptYaml,
-      code: values.code
+    if (id != "") {
+      let data: model_WorkflowScript = {
+        lang: model_WorkflowScriptLang.WorkflowScriptYaml,
+        code: values.code
+      }
+      editMutation.mutate(data)
+    } else {
+      let data: model_WorkflowScript = {
+        lang: model_WorkflowScriptLang.WorkflowScriptYaml,
+        code: values.code
+      }
+      mutation.mutate(data);
     }
-    mutation.mutate(data);
   }
 
   return (

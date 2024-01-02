@@ -1,9 +1,9 @@
 import {createHashRouter} from "react-router-dom";
 import Error from "@/pages/error";
 import CardsPage from "@/pages/cards/page.tsx";
-import ObjectivePage from "@/pages/objective";
 import TaskPage from "@/pages/tasks/page.tsx";
 import ScriptFormPage from "@/pages/script-form.tsx";
+import JobPage from "@/pages/jobs/page.tsx";
 
 const router = createHashRouter([
   {
@@ -19,13 +19,13 @@ const router = createHashRouter([
         element: <ScriptFormPage/>,
       },
       {
-        path: "workflow/:sequence",
-        element: <ObjectivePage/>,
+        path: "workflow/:id",
+        element: <ScriptFormPage/>,
       },
       {
-        path: "demo",
-        element: <CardsPage/>,
-      },
+        path: "workflow/:id/jobs",
+        element: <JobPage/>,
+      }
     ]
   },
 ])

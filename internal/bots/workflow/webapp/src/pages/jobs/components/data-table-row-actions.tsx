@@ -8,54 +8,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {useMutation} from "@tanstack/react-query";
 import {Client} from "@/util/client.ts";
 import {toast} from "@/components/ui/use-toast.ts";
-import {useNavigate} from "react-router-dom";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
 }
 
 export function DataTableRowActions<TData>({row}: DataTableRowActionsProps<TData>) {
-  const navigate = useNavigate();
 
-  const workflowDelete = useMutation({
-    mutationFn: (id: number) => {
-      return Client().workflow.deleteWorkflowWorkflow(id)
-    },
-    onSuccess: (data) => {
-      console.log(data)
-      if (data.status == "ok") {
-        alert('deleted')
-      } else {
-        toast({
-          title: data.status,
-          description: data.message,
-          variant: "destructive",
-        })
-      }
-    },
-    onError: error => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    }
-  })
-
-  const workflowTrigger = useMutation({
+  const jobRerun = useMutation({
     mutationFn: (id: number) => {
       return Client().workflow.postWorkflowJobRerun(id)
     },
     onSuccess: (data) => {
       console.log(data)
       if (data.status == "ok") {
-        alert('deleted')
+        alert('rerun')
       } else {
         toast({
           title: data.status,
@@ -86,20 +58,10 @@ export function DataTableRowActions<TData>({row}: DataTableRowActionsProps<TData
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem onClick={() => {
-          navigate(`/workflow/${row.original.id}/jobs`)
-        }}>Jobs</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => {
-          workflowTrigger.mutate(row.original.id)
-        }}>manual trigger</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => {
-          navigate(`/workflow/${row.original.id}`)
-        }}>Edit</DropdownMenuItem>
-        <DropdownMenuSeparator/>
-        <DropdownMenuItem onClick={() => {
-          if (confirm("delete workflow?")) {
-            workflowDelete.mutate(row.original.id)
+          if (confirm("rerun job?")) {
+            jobRerun.mutate(row.original.id)
           }
-        }}>Delete</DropdownMenuItem>
+        }}>Rerun</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
