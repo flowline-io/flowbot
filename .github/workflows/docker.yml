@@ -68,5 +68,5 @@ jobs:
         with:
           context: .
           push: true
-          file: deployments/docker/Dockerfile
+          file: deployments/Dockerfile
           tags: ghcr.io/flowline-io/flowbot:latest
