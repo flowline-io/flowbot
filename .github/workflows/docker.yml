@@ -22,6 +22,12 @@ jobs:
       - name: Login to Github Container Registry
         uses: docker/login-action@v3
         with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -33,3 +39,11 @@ jobs:
           push: true
           file: deployments/Dockerfile
           tags: ghcr.io/flowline-io/flowbot:latest
+
+      - name: Build and push server
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: deployments/Dockerfile
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/flowbot:latest
