@@ -18,25 +18,14 @@ jobs:
         with:
           go-version: '^1.21'
 
-      - id: go-cache-paths
-        run: |
-          echo "go-build=$(go env GOCACHE)" >> $GITHUB_ENV
-          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_ENV
-
-      # Cache go build cache, used to speedup go test
-      - name: Go Build Cache
-        uses: actions/cache@v4
+      - uses: actions/cache@v3
         with:
-          path: ${{ env.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      # Cache go mod cache, used to speedup builds
-      - name: Go Mod Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          args: --timeout=10m --config=./.golangci.yaml
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Build
         run: |
