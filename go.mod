@@ -21,7 +21,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofiber/contrib/fiberzerolog v0.2.3
 	github.com/gofiber/fiber/v2 v2.52.0
-	github.com/gofiber/swagger v0.1.14
+	github.com/gofiber/swagger v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
@@ -47,7 +47,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
-	github.com/swaggo/swag v1.16.2
+	github.com/swaggo/swag v1.16.3
 	github.com/tidwall/gjson v1.17.0
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/valyala/fasthttp v1.51.0
