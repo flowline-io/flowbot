@@ -48,7 +48,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/swag v1.16.3
-	github.com/tidwall/gjson v1.17.0
+	github.com/tidwall/gjson v1.17.1
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/valyala/fasthttp v1.52.0
 	github.com/yeqown/go-qrcode/v2 v2.2.2
