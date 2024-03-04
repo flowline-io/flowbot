@@ -46,7 +46,7 @@ require (
 	github.com/slack-go/slack v0.12.5
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/swag v1.16.3
 	github.com/tidwall/gjson v1.17.1
 	github.com/urfave/cli/v2 v2.27.1
