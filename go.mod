@@ -67,7 +67,7 @@ require (
 	gorm.io/driver/mysql v1.5.4
 	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.25.7
-	gorm.io/plugin/dbresolver v1.5.0
+	gorm.io/plugin/dbresolver v1.5.1
 	gotest.tools/v3 v3.5.1
 )
 
