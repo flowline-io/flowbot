@@ -34,7 +34,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/looplab/fsm v1.0.1
 	github.com/maxence-charriere/go-app/v9 v9.8.0
-	github.com/minio/minio-go/v7 v7.0.67
+	github.com/minio/minio-go/v7 v7.0.68
 	github.com/mmcdole/gofeed v1.2.1
 	github.com/montanaflynn/stats v0.7.1
 	github.com/nikolaydubina/calendarheatmap v1.7.0
