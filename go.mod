@@ -20,7 +20,7 @@ require (
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofiber/contrib/fiberzerolog v0.2.3
-	github.com/gofiber/fiber/v2 v2.52.1
+	github.com/gofiber/fiber/v2 v2.52.2
 	github.com/gofiber/swagger v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.6.0
