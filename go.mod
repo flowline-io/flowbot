@@ -3,7 +3,7 @@ module github.com/flowline-io/flowbot
 go 1.21
 
 require (
-	github.com/PuerkitoBio/goquery v1.9.0
+	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-redisstream v1.2.2
 	github.com/aws/aws-sdk-go v1.50.30
