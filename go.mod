@@ -64,7 +64,7 @@ require (
 	gonum.org/v1/plot v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/mysql v1.5.4
+	gorm.io/driver/mysql v1.5.6
 	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.25.8
 	gorm.io/plugin/dbresolver v1.5.1
