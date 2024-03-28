@@ -337,7 +337,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
-func groupIncomingMessage(_ *platforms.Caller, e protocol.Event) {
+func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
@@ -369,69 +369,68 @@ func groupIncomingMessage(_ *platforms.Caller, e protocol.Event) {
 	// behavior
 	bots.Behavior(uid, bots.MessageGroupIncomingBehavior, 1)
 
-	// user auth record
-
-	// bot name
-	name := "dev" // todo botName(sub)
-	handle, ok := bots.List()[name]
-	if !ok {
-		return
-	}
-
-	if !handle.IsReady() {
-		flog.Info("bot %s unavailable", name)
-		return
-	}
+	// user auth record todo
 
 	var payload types.MsgPayload
 
-	// condition
-	if payload == nil {
-		fUid := ""
-		fSeq := int64(0)
-		if forwarded := msg.Forwarded; forwarded != "" {
-			f := strings.Split(forwarded, ":")
-			if len(f) == 2 {
-				fUid = f[0]
-				fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-			}
+	for name, handle := range bots.List() {
+
+		if !handle.IsReady() {
+			flog.Info("bot %s unavailable", name)
+			continue
 		}
 
-		if fUid != "" && fSeq > 0 {
-			//uid2 := types.ParseUserId(fUid)
-			topic := ""                                      // fixme
-			message, err := store.Database.GetMessage(topic) // fixme
-			if err != nil {
-				flog.Error(err)
+		// condition
+		if payload == nil {
+			fUid := ""
+			fSeq := int64(0)
+			if forwarded := msg.Forwarded; forwarded != "" {
+				f := strings.Split(forwarded, ":")
+				if len(f) == 2 {
+					fUid = f[0]
+					fSeq, _ = strconv.ParseInt(f[1], 10, 64)
+				}
 			}
 
-			if message.ID > 0 {
-				src, _ := types.KV(message.Content).Map("src")
-				tye, _ := types.KV(message.Content).String("tye")
-				d, _ := json.Marshal(src)
-				pl := types.ToPayload(tye, d)
-				ctx.Condition = tye
-				payload, err = handle.Condition(ctx, pl)
+			if fUid != "" && fSeq > 0 {
+				//uid2 := types.ParseUserId(fUid)
+				topic := ""                                      // fixme
+				message, err := store.Database.GetMessage(topic) // fixme
 				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+					flog.Error(err)
 				}
 
-				// stats
-				stats.Inc("BotRunConditionTotal", 1)
+				if message.ID > 0 {
+					src, _ := types.KV(message.Content).Map("src")
+					tye, _ := types.KV(message.Content).String("tye")
+					d, _ := json.Marshal(src)
+					pl := types.ToPayload(tye, d)
+					ctx.Condition = tye
+					payload, err = handle.Condition(ctx, pl)
+					if err != nil {
+						flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+					}
+
+					// stats
+					stats.Inc("BotRunConditionTotal", 1)
+				}
 			}
 		}
-	}
+		// group
+		if payload == nil {
+			payload, err = handle.Group(ctx, nil, msg.AltMessage)
+			if err != nil {
+				flog.Warn("topic[%s]: failed to run group bot: %v", name, err)
+				return
+			}
 
-	// group
-	if payload == nil {
-		payload, err = handle.Group(ctx, nil, msg.AltMessage)
-		if err != nil {
-			flog.Warn("topic[%s]: failed to run group bot: %v", name, err)
-			return
+			// stats
+			stats.Inc("BotRunGroupTotal", 1)
 		}
 
-		// stats
-		stats.Inc("BotRunGroupTotal", 1)
+		if payload != nil {
+			break
+		}
 	}
 
 	// send message
@@ -439,8 +438,15 @@ func groupIncomingMessage(_ *platforms.Caller, e protocol.Event) {
 		return
 	}
 
-	//botUid := types.Uid(0) // fixme
-	//botSend(topic, botUid, payload)
+	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
+	resp := caller.Do(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: types.KV{
+			"topic":   msg.TopicId,
+			"message": caller.Adapter.MessageConvert(payload),
+		},
+	})
+	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
 func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, rcptTo string, botUid types.Uid) {
