@@ -93,7 +93,7 @@ func hookChannel() {
 
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {
 	// update online status
-	//onlineStatus(msg.AsUser)
+	onlineStatus(msg)
 	// check grp or p2p
 	if strings.HasSuffix(msg.DetailType, ".direct") {
 		directIncomingMessage(caller, msg)

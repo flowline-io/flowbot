@@ -327,7 +327,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
-func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
+func groupIncomingMessage(_ *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
@@ -481,17 +481,15 @@ func notifyAfterReboot() {
 	//}
 }
 
-func onlineStatus(usrStr string) {
-	//uid := types.ParseUserId(usrStr)
-	var err error
-	//var user *types.User // fixme
-	//if isBotUser(user) {
-	//	return
-	//}
+func onlineStatus(msg protocol.Event) {
+	med, ok := msg.Data.(protocol.MessageEventData)
+	if !ok {
+		return
+	}
 
 	ctx := context.Background()
-	key := fmt.Sprintf("online:%s", usrStr)
-	_, err = cache.DB.Get(ctx, key).Result()
+	key := fmt.Sprintf("online:%s", med.UserId)
+	_, err := cache.DB.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
 		cache.DB.Set(ctx, key, time.Now().Unix(), 30*time.Minute)
 	} else if err != nil {
