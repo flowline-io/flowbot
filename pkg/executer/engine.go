@@ -94,7 +94,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		mounter.RegisterMounter("volume", vm)
 		// register tmpfs mounter
 		mounter.RegisterMounter("tmpfs", docker.NewTmpfsMounter())
-		rt, err := docker.NewDockerRuntime(
+		rt, err := docker.NewRuntime(
 			docker.WithMounter(mounter),
 			docker.WithConfig(config.App.Engine.Docker.Config),
 		)

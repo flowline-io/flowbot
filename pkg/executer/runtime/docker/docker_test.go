@@ -79,13 +79,13 @@ func TestParseMemory(t *testing.T) {
 }
 
 func TestNewDockerRuntime(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 }
 
 func TestRunTaskCMD(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 
@@ -98,7 +98,7 @@ func TestRunTaskCMD(t *testing.T) {
 }
 
 func TestRunTaskConcurrently(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	wg := sync.WaitGroup{}
@@ -121,7 +121,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 }
 
 func TestRunTaskWithTimeout(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -135,7 +135,7 @@ func TestRunTaskWithTimeout(t *testing.T) {
 }
 
 func TestRunTaskWithError(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -149,7 +149,7 @@ func TestRunTaskWithError(t *testing.T) {
 }
 
 func TestRunAndStopTask(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	t1 := &types.Task{
@@ -168,7 +168,7 @@ func TestRunAndStopTask(t *testing.T) {
 }
 
 func TestHealthCheck(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -177,7 +177,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckFailed(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -186,7 +186,7 @@ func TestHealthCheckFailed(t *testing.T) {
 }
 
 func TestRunTaskWithNetwork(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	err = rt.Run(context.Background(), &types.Task{
@@ -196,7 +196,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 		Networks: []string{"default"},
 	})
 	assert.NoError(t, err)
-	rt, err = NewDockerRuntime()
+	rt, err = NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 	err = rt.Run(context.Background(), &types.Task{
@@ -209,7 +209,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 }
 
 func TestRunTaskWithVolume(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 
 	ctx := context.Background()
@@ -235,7 +235,7 @@ func TestRunTaskWithBind(t *testing.T) {
 	assert.NoError(t, err)
 	mm.RegisterMounter("bind", NewBindMounter(BindConfig{Allowed: true}))
 	mm.RegisterMounter("volume", vm)
-	rt, err := NewDockerRuntime(WithMounter(mm))
+	rt, err := NewRuntime(WithMounter(mm))
 	assert.NoError(t, err)
 	ctx := context.Background()
 	dir := path.Join(os.TempDir(), utils.NewUUID())
@@ -254,7 +254,7 @@ func TestRunTaskWithBind(t *testing.T) {
 }
 
 func TestRunTaskWithTempfs(t *testing.T) {
-	rt, err := NewDockerRuntime(
+	rt, err := NewRuntime(
 		WithMounter(NewTmpfsMounter()),
 	)
 	assert.NoError(t, err)
@@ -281,7 +281,7 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 	vmounter, err := NewVolumeMounter()
 	assert.NoError(t, err)
 	mounter.RegisterMounter(types.MountTypeVolume, vmounter)
-	rt, err := NewDockerRuntime(WithMounter(mounter))
+	rt, err := NewRuntime(WithMounter(mounter))
 	assert.NoError(t, err)
 	t1 := &types.Task{
 		ID:    utils.NewUUID(),
@@ -300,7 +300,7 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 }
 
 func TestRunTaskInitWorkdir(t *testing.T) {
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	t1 := &types.Task{
 		ID:    utils.NewUUID(),
@@ -320,7 +320,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 func Test_imagePull(t *testing.T) {
 	ctx := context.Background()
 
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 
@@ -353,7 +353,7 @@ func Test_imagePull(t *testing.T) {
 func Test_imagePullPrivateRegistry(t *testing.T) {
 	ctx := context.Background()
 
-	rt, err := NewDockerRuntime()
+	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 

@@ -11,6 +11,7 @@ import (
 	cliopts "github.com/docker/cli/opts"
 	dockerTypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	regtypes "github.com/docker/docker/api/types/registry"
@@ -29,7 +30,7 @@ import (
 	"unicode"
 )
 
-type DockerRuntime struct {
+type Runtime struct {
 	client  *client.Client
 	tasks   *syncx.Map[string, string]
 	images  *syncx.Map[string, bool]
@@ -53,26 +54,26 @@ type registry struct {
 	password string
 }
 
-type Option = func(rt *DockerRuntime)
+type Option = func(rt *Runtime)
 
 func WithMounter(mounter runtime.Mounter) Option {
-	return func(rt *DockerRuntime) {
+	return func(rt *Runtime) {
 		rt.mounter = mounter
 	}
 }
 
 func WithConfig(config string) Option {
-	return func(rt *DockerRuntime) {
+	return func(rt *Runtime) {
 		rt.config = config
 	}
 }
 
-func NewDockerRuntime(opts ...Option) (*DockerRuntime, error) {
+func NewRuntime(opts ...Option) (*Runtime, error) {
 	dc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, err
 	}
-	rt := &DockerRuntime{
+	rt := &Runtime{
 		client: dc,
 		tasks:  new(syncx.Map[string, string]),
 		images: new(syncx.Map[string, bool]),
@@ -93,7 +94,7 @@ func NewDockerRuntime(opts ...Option) (*DockerRuntime, error) {
 	return rt, nil
 }
 
-func (d *DockerRuntime) Run(ctx context.Context, t *types.Task) error {
+func (d *Runtime) Run(ctx context.Context, t *types.Task) error {
 	// prepare mounts
 	for i, mnt := range t.Mounts {
 		err := d.mounter.Mount(ctx, &mnt)
@@ -136,7 +137,7 @@ func (d *DockerRuntime) Run(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
+func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if t.ID == "" {
 		return errors.New("task id is required")
 	}
@@ -350,7 +351,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (d *DockerRuntime) readOutput(ctx context.Context, containerID string) (string, error) {
+func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, error) {
 	r, _, err := d.client.CopyFromContainer(ctx, containerID, "/flowbot/stdout")
 	if err != nil {
 		return "", err
@@ -379,7 +380,7 @@ func (d *DockerRuntime) readOutput(ctx context.Context, containerID string) (str
 	return buf.String(), nil
 }
 
-func (d *DockerRuntime) initWorkdir(ctx context.Context, containerID string, t *types.Task) error {
+func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.Task) error {
 	flog.Debug("initialize the workdir for container %s", containerID)
 	// create the archive
 	filename, err := createArchive(t)
@@ -475,7 +476,7 @@ func createArchive(t *types.Task) (string, error) {
 	return ar.Name(), nil
 }
 
-func (d *DockerRuntime) Stop(ctx context.Context, t *types.Task) error {
+func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 	containerID, ok := d.tasks.Get(t.ID)
 	if !ok {
 		return nil
@@ -489,7 +490,7 @@ func (d *DockerRuntime) Stop(ctx context.Context, t *types.Task) error {
 	})
 }
 
-func (d *DockerRuntime) HealthCheck(ctx context.Context) error {
+func (d *Runtime) HealthCheck(ctx context.Context) error {
 	_, err := d.client.ContainerList(ctx, container.ListOptions{})
 	return err
 }
@@ -535,7 +536,7 @@ func (r printableReader) Read(p []byte) (int, error) {
 	return j, err
 }
 
-func (d *DockerRuntime) imagePull(ctx context.Context, t *types.Task) error {
+func (d *Runtime) imagePull(ctx context.Context, t *types.Task) error {
 	_, ok := d.images.Get(t.Image)
 	if ok {
 		return nil
@@ -544,7 +545,7 @@ func (d *DockerRuntime) imagePull(ctx context.Context, t *types.Task) error {
 	// locally already
 	images, err := d.client.ImageList(
 		ctx,
-		dockerTypes.ImageListOptions{All: true},
+		image.ListOptions{All: true},
 	)
 	if err != nil {
 		return err
@@ -573,7 +574,7 @@ func (d *DockerRuntime) imagePull(ctx context.Context, t *types.Task) error {
 
 // puller is a goroutine that serializes all requests
 // to pull images from the docker repo
-func (d *DockerRuntime) puller(ctx context.Context) {
+func (d *Runtime) puller(ctx context.Context) {
 	for pr := range d.pullq {
 		var authConfig regtypes.AuthConfig
 		if pr.registry.username != "" {
@@ -607,7 +608,7 @@ func (d *DockerRuntime) puller(ctx context.Context) {
 		}
 		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 		reader, err := d.client.ImagePull(
-			ctx, pr.image, dockerTypes.ImagePullOptions{RegistryAuth: authStr})
+			ctx, pr.image, image.PullOptions{RegistryAuth: authStr})
 		if err != nil {
 			pr.done <- err
 			continue
