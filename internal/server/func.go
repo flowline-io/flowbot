@@ -115,19 +115,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// behavior
 	bots.Behavior(uid, bots.MessageBotIncomingBehavior, 1)
 
-	// user auth record
-
-	// bot name
-	name := "dev" // todo botName(sub)
-	handle, ok := bots.List()[name]
-	if !ok {
-		return
-	}
-
-	if !handle.IsReady() {
-		flog.Info("bot %s unavailable", name)
-		return
-	}
+	// user auth record todo
 
 	var payload types.MsgPayload
 
@@ -146,14 +134,16 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			ctx.SessionLastValues = types.KV(sess.Values)
 
 			// get action handler
+			name := "unknown"
 			var botHandler bots.Handler
-			for _, handler := range bots.List() {
+			for n, handler := range bots.List() {
 				for _, item := range handler.Rules() {
 					switch v := item.(type) {
 					case []session.Rule:
 						for _, rule := range v {
 							if rule.Id == sess.RuleID {
 								botHandler = handler
+								name = n
 							}
 						}
 					}
@@ -169,6 +159,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			}
 		}
 	}
+
 	// action
 	if payload == nil {
 		seq := msg.Seq
@@ -188,14 +179,16 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			ctx.ActionRuleId = actionRuleId
 
 			// get action handler
+			name := "unknown"
 			var botHandler bots.Handler
-			for _, handler := range bots.List() {
+			for n, handler := range bots.List() {
 				for _, item := range handler.Rules() {
 					switch v := item.(type) {
 					case []action.Rule:
 						for _, rule := range v {
 							if rule.Id == actionRuleId {
 								botHandler = handler
+								name = n
 							}
 						}
 					}
@@ -222,98 +215,115 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			}
 		}
 	}
-	// command
-	if payload == nil {
-		in := msg.AltMessage
-		// check "/" prefix
-		if strings.HasPrefix(in, "/") {
-			in = strings.Replace(in, "/", "", 1)
-		}
-		payload, err = handle.Command(ctx, in)
-		if err != nil {
-			flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+
+	for name, handle := range bots.List() {
+		if !handle.IsReady() {
+			flog.Info("bot %s unavailable", name)
+			continue
 		}
 
-		// stats
-		if payload != nil {
-			stats.Inc("BotRunCommandTotal", 1)
-		}
-	}
-	// pipeline command trigger
-	if payload == nil {
-		in := msg.AltMessage
-		// check "~" prefix
-		if strings.HasPrefix(in, "~") {
-			var pipelineFlag string
-			var pipelineVersion int
-			in = strings.Replace(in, "~", "", 1)
-			payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, nil, in, types.PipelineCommandTriggerOperate)
+		// command
+		if payload == nil {
+			in := msg.AltMessage
+			// check "/" prefix
+			if strings.HasPrefix(in, "/") {
+				in = strings.Replace(in, "/", "", 1)
+			}
+			payload, err = handle.Command(ctx, in)
 			if err != nil {
 				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
 			}
-			ctx.PipelineFlag = pipelineFlag
-			ctx.PipelineVersion = pipelineVersion
 
 			// stats
-			stats.Inc("BotTriggerPipelineTotal", 1)
-
-			// error message
-			if payload == nil {
-				payload = types.TextMsg{Text: "error pipeline"}
+			if payload != nil {
+				stats.Inc("BotRunCommandTotal", 1)
 			}
 		}
-	}
-	// condition
-	if payload == nil {
-		fUid := ""
-		fSeq := int64(0)
-		if msg.Forwarded != "" {
-			f := strings.Split(msg.Forwarded, ":")
-			if len(f) == 2 {
-				fUid = f[0]
-				fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-			}
-		}
-
-		if fUid != "" && fSeq > 0 {
-			//uid2 := types.ParseUserId(fUid)
-			topic := ""                                      // fixme
-			message, err := store.Database.GetMessage(topic) // fixme
-			if err != nil {
-				flog.Error(err)
-			}
-
-			if message.ID > 0 {
-				src, _ := types.KV(message.Content).Map("src")
-				tye, _ := types.KV(message.Content).String("tye")
-				d, _ := json.Marshal(src)
-				pl := types.ToPayload(tye, d)
-				ctx.Condition = tye
-				payload, err = handle.Condition(ctx, pl)
+		// pipeline command trigger
+		if payload == nil {
+			in := msg.AltMessage
+			// check "~" prefix
+			if strings.HasPrefix(in, "~") {
+				var pipelineFlag string
+				var pipelineVersion int
+				in = strings.Replace(in, "~", "", 1)
+				payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, nil, in, types.PipelineCommandTriggerOperate)
 				if err != nil {
 					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
 				}
+				ctx.PipelineFlag = pipelineFlag
+				ctx.PipelineVersion = pipelineVersion
 
 				// stats
-				stats.Inc("BotRunConditionTotal", 1)
+				stats.Inc("BotTriggerPipelineTotal", 1)
+
+				// error message
+				if payload == nil {
+					payload = types.TextMsg{Text: "error pipeline"}
+				}
 			}
 		}
-	}
-	// input
-	if payload == nil {
-		payload, err = handle.Input(ctx, nil, msg.AltMessage)
-		if err != nil {
-			flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-			return
+		// condition
+		if payload == nil {
+			fUid := ""
+			fSeq := int64(0)
+			if msg.Forwarded != "" {
+				f := strings.Split(msg.Forwarded, ":")
+				if len(f) == 2 {
+					fUid = f[0]
+					fSeq, _ = strconv.ParseInt(f[1], 10, 64)
+				}
+			}
+
+			if fUid != "" && fSeq > 0 {
+				//uid2 := types.ParseUserId(fUid)
+				topic := ""                                      // fixme
+				message, err := store.Database.GetMessage(topic) // fixme
+				if err != nil {
+					flog.Error(err)
+				}
+
+				if message.ID > 0 {
+					src, _ := types.KV(message.Content).Map("src")
+					tye, _ := types.KV(message.Content).String("tye")
+					d, _ := json.Marshal(src)
+					pl := types.ToPayload(tye, d)
+					ctx.Condition = tye
+					payload, err = handle.Condition(ctx, pl)
+					if err != nil {
+						flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+					}
+
+					// stats
+					stats.Inc("BotRunConditionTotal", 1)
+				}
+			}
+		}
+		// input
+		if payload == nil {
+			/*
+				payload, err = handle.Input(ctx, nil, msg.AltMessage)
+				if err != nil {
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+					return
+				}
+
+				if payload != nil {
+					// stats
+					stats.Inc("BotRunInputTotal", 1)
+				}
+			*/
 		}
 
-		// stats
-		stats.Inc("BotRunInputTotal", 1)
+		if payload != nil {
+			break
+		}
 	}
 
 	// send message
 	if payload == nil {
-		return
+		// empty
+		payload = types.TextMsg{Text: "empty"}
 	}
 
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
