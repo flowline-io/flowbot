@@ -18,10 +18,6 @@ definitions:
         type: integer
       script_version:
         type: integer
-      topic:
-        type: string
-      uid:
-        type: string
       updated_at:
         type: string
       workflow_id:
@@ -546,12 +542,8 @@ definitions:
         $ref: '#/definitions/model.JSON'
       state:
         $ref: '#/definitions/model.WorkflowTriggerState'
-      topic:
-        type: string
       type:
         $ref: '#/definitions/model.TriggerType'
-      uid:
-        type: string
       updated_at:
         type: string
       workflow_id:
@@ -1141,51 +1133,6 @@ paths:
       summary: workflow job rerun
       tags:
       - workflow
-  /workflow/trigger/{id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Trigger ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      summary: workflow trigger delete
-      tags:
-      - workflow
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Trigger ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: workflow trigger data
-        in: body
-        name: trigger
-        required: true
-        schema:
-          $ref: '#/definitions/model.WorkflowTrigger'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      summary: workflow trigger update
-      tags:
-      - workflow
   /workflow/workflow:
     post:
       consumes:
@@ -1276,56 +1223,6 @@ paths:
       summary: workflow update
       tags:
       - workflow
-  /workflow/workflow/{id}/dag:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Dag'
-              type: object
-      summary: workflow dag detail
-      tags:
-      - workflow
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: workflow dag data
-        in: body
-        name: trigger
-        required: true
-        schema:
-          $ref: '#/definitions/model.Dag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      summary: workflow dag update
-      tags:
-      - workflow
   /workflow/workflow/{id}/jobs:
     get:
       consumes:
@@ -1376,32 +1273,6 @@ paths:
                   $ref: '#/definitions/model.WorkflowScript'
               type: object
       summary: workflow script detail
-      tags:
-      - workflow
-  /workflow/workflow/{id}/trigger:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: workflow trigger data
-        in: body
-        name: trigger
-        required: true
-        schema:
-          $ref: '#/definitions/model.WorkflowTrigger'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      summary: workflow trigger create
       tags:
       - workflow
   /workflow/workflow/{id}/triggers:

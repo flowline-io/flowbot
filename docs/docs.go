@@ -733,75 +733,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/workflow/trigger/{id}": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "workflow"
-                ],
-                "summary": "workflow trigger update",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Trigger ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "workflow trigger data",
-                        "name": "trigger",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.WorkflowTrigger"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "workflow"
-                ],
-                "summary": "workflow trigger delete",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Trigger ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/workflow/workflow": {
             "post": {
                 "consumes": [
@@ -945,87 +876,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/workflow/workflow/{id}/dag": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "workflow"
-                ],
-                "summary": "workflow dag detail",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Workflow ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.Dag"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "workflow"
-                ],
-                "summary": "workflow dag update",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Workflow ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "workflow dag data",
-                        "name": "trigger",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Dag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/workflow/workflow/{id}/jobs": {
             "get": {
                 "consumes": [
@@ -1110,46 +960,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    }
-                }
-            }
-        },
-        "/workflow/workflow/{id}/trigger": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "workflow"
-                ],
-                "summary": "workflow trigger create",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Workflow ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "workflow trigger data",
-                        "name": "trigger",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.WorkflowTrigger"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 }
@@ -1266,12 +1076,6 @@ const docTemplate = `{
                 },
                 "script_version": {
                     "type": "integer"
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "uid": {
-                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
@@ -2039,14 +1843,8 @@ const docTemplate = `{
                 "state": {
                     "$ref": "#/definitions/model.WorkflowTriggerState"
                 },
-                "topic": {
-                    "type": "string"
-                },
                 "type": {
                     "$ref": "#/definitions/model.TriggerType"
-                },
-                "uid": {
-                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
