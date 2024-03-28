@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/action"
+	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -118,6 +119,27 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// user auth record todo
 
 	var payload types.MsgPayload
+
+	// help command
+	if strings.ToLower(msg.AltMessage) == "help" || strings.ToLower(msg.AltMessage) == "h" {
+		m := make(map[string]interface{})
+		for name, handle := range bots.List() {
+			for _, item := range handle.Rules() {
+				switch v := item.(type) {
+				case []command.Rule:
+					for _, rule := range v {
+						m[fmt.Sprintf("[%s] /%s", name, rule.Define)] = rule.Help
+					}
+				}
+			}
+		}
+		if len(m) > 0 {
+			payload = types.InfoMsg{
+				Title: "Help",
+				Model: m,
+			}
+		}
+	}
 
 	// session
 	if sess, ok := sessionCurrent(uid, topic); ok && sess.State == model.SessionStart {
