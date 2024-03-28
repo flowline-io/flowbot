@@ -3,8 +3,8 @@ package docker
 import (
 	"bytes"
 	"context"
-	dockerTypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -33,7 +33,7 @@ func TestParseCPUs(t *testing.T) {
 }
 
 func TestPrintableReader(t *testing.T) {
-	s := []byte{}
+	var s []byte
 	for i := 0; i < 1000; i++ {
 		s = append(s, 0)
 	}
@@ -324,13 +324,13 @@ func Test_imagePull(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 
-	images, err := rt.client.ImageList(ctx, dockerTypes.ImageListOptions{
+	images, err := rt.client.ImageList(ctx, image.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("reference", "busybox:*")),
 	})
 	assert.NoError(t, err)
 
 	for _, img := range images {
-		_, err = rt.client.ImageRemove(ctx, img.ID, dockerTypes.ImageRemoveOptions{Force: true})
+		_, err = rt.client.ImageRemove(ctx, img.ID, image.RemoveOptions{Force: true})
 		assert.NoError(t, err)
 	}
 
@@ -357,11 +357,11 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 
-	r1, err := rt.client.ImagePull(ctx, "alpine:3.18.3", dockerTypes.ImagePullOptions{})
+	r1, err := rt.client.ImagePull(ctx, "alpine:3.18.3", image.PullOptions{})
 	assert.NoError(t, err)
 	assert.NoError(t, r1.Close())
 
-	images, err := rt.client.ImageList(ctx, dockerTypes.ImageListOptions{
+	images, err := rt.client.ImageList(ctx, image.ListOptions{
 		Filters: filters.NewArgs(filters.Arg("reference", "alpine:3.18.3")),
 	})
 	assert.NoError(t, err)
@@ -370,7 +370,7 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 	err = rt.client.ImageTag(ctx, "alpine:3.18.3", "localhost:5001/flowbot/alpine:3.18.3")
 	assert.NoError(t, err)
 
-	r2, err := rt.client.ImagePush(ctx, "localhost:5001/flowbot/alpine:3.18.3", dockerTypes.ImagePushOptions{RegistryAuth: "noauth"})
+	r2, err := rt.client.ImagePush(ctx, "localhost:5001/flowbot/alpine:3.18.3", image.PushOptions{RegistryAuth: "noauth"})
 	assert.NoError(t, err)
 	assert.NoError(t, r2.Close())
 

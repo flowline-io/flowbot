@@ -286,7 +286,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	// start the container
 	flog.Debug("Starting container %s", resp.ID)
 	err = d.client.ContainerStart(
-		ctx, resp.ID, dockerTypes.ContainerStartOptions{})
+		ctx, resp.ID, container.StartOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "error starting container %s: %v\n", resp.ID, err)
 	}
@@ -294,7 +294,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 	out, err := d.client.ContainerLogs(
 		ctx,
 		resp.ID,
-		dockerTypes.ContainerLogsOptions{
+		container.LogsOptions{
 			ShowStdout: true,
 			ShowStderr: true,
 			Follow:     true,
@@ -323,7 +323,7 @@ func (d *DockerRuntime) doRun(ctx context.Context, t *types.Task) error {
 			out, err := d.client.ContainerLogs(
 				ctx,
 				resp.ID,
-				dockerTypes.ContainerLogsOptions{
+				container.LogsOptions{
 					ShowStdout: true,
 					ShowStderr: true,
 					Tail:       "10",
@@ -482,7 +482,7 @@ func (d *DockerRuntime) Stop(ctx context.Context, t *types.Task) error {
 	}
 	d.tasks.Delete(t.ID)
 	flog.Debug("Attempting to stop and remove container %v", containerID)
-	return d.client.ContainerRemove(ctx, containerID, dockerTypes.ContainerRemoveOptions{
+	return d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
 		RemoveVolumes: true,
 		RemoveLinks:   false,
 		Force:         true,
@@ -490,7 +490,7 @@ func (d *DockerRuntime) Stop(ctx context.Context, t *types.Task) error {
 }
 
 func (d *DockerRuntime) HealthCheck(ctx context.Context) error {
-	_, err := d.client.ContainerList(ctx, dockerTypes.ContainerListOptions{})
+	_, err := d.client.ContainerList(ctx, container.ListOptions{})
 	return err
 }
 
