@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS `behavior`
     KEY `uid` (`uid`),
     KEY `flag` (`flag`)
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 3
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
@@ -294,7 +293,6 @@ CREATE TABLE IF NOT EXISTS `messages`
     KEY `topic` (`topic`),
     KEY `platform` (`platform_id`) USING BTREE
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 36
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
@@ -361,7 +359,6 @@ CREATE TABLE IF NOT EXISTS `pages`
     KEY `page_id` (`page_id`),
     KEY `uid` (`uid`, `topic`)
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 9
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
@@ -585,7 +582,6 @@ CREATE TABLE IF NOT EXISTS `topics`
     KEY `topics_owner` (`owner`),
     KEY `platform` (`platform`)
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 16
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
