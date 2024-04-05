@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/ruleset/setting"
+	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -606,6 +607,11 @@ func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.K
 func RunSession(sessionRules []session.Rule, ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	rs := session.Ruleset(sessionRules)
 	return rs.ProcessSession(ctx, content)
+}
+
+func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	rs := webhook.Ruleset(webhookRules)
+	return rs.Process(ctx, content)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {

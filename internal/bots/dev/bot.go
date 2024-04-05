@@ -87,6 +87,7 @@ func (b bot) Rules() []interface{} {
 		agentRules,
 		webserviceRules,
 		workflowRules,
+		webhookRules,
 	}
 }
 
@@ -136,4 +137,8 @@ func (b bot) Page(ctx types.Context, flag string) (string, error) {
 
 func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
 	return bots.RunWorkflow(workflowRules, ctx, input)
+}
+
+func (b bot) Webhook(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	return bots.RunWebhook(webhookRules, ctx, content)
 }
