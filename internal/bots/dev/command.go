@@ -7,6 +7,8 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"math/big"
 	"strconv"
 	"strings"
@@ -389,6 +391,25 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: str.String()}
+		},
+	},
+	{
+		Define: "torrent demo",
+		Help:   `torrent download demo`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
+			client, err := transmission.NewTransmission(endpoint.String())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			url := "magnet:?xt=urn:btih:f07e0b0584745b7bcb35e98097488d34e68623d0&dn=ubuntu-17.10.1-desktop-amd64.iso&tr=http%3A%2F%2Ftorrent.ubuntu.com%3A6969%2Fannounce&tr=http%3A%2F%2Fipv6.torrent.ubuntu.com%3A6969%2Fannounce"
+			torrent, err := client.TorrentAddUrl(context.Background(), url)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: fmt.Sprintf("torrent %s added", *torrent.Name)}
 		},
 	},
 }

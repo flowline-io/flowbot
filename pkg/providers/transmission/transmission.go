@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	ID = "transmission"
+	ID          = "transmission"
+	EndpointKey = "endpoint"
 )
 
 type Transmission struct {
@@ -42,12 +43,12 @@ func (v *Transmission) TorrentAddFile(ctx context.Context, filepath string) (tra
 	return v.c.TorrentAddFile(ctx, filepath)
 }
 
-// TorrentAddFileDownloadDir adds a torrent to the Transmission client using a magnet link.
+// TorrentAddUrl adds a torrent to the Transmission client using a magnet link.
 //
 // ctx - the context for the function.
 // url - the magnet link to add.
 // (transmissionrpc.Torrent, error) - returns the added torrent or an error.
-func (v *Transmission) TorrentAddFileDownloadDir(ctx context.Context, url string) (transmissionrpc.Torrent, error) {
+func (v *Transmission) TorrentAddUrl(ctx context.Context, url string) (transmissionrpc.Torrent, error) {
 
 	if !strings.HasPrefix(url, "magnet") {
 		return transmissionrpc.Torrent{}, errors.New("only magnet links are supported")
