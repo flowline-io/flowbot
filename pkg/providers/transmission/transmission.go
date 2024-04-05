@@ -16,15 +16,15 @@ type Transmission struct {
 	c *transmissionrpc.Client
 }
 
-func NewTransmission() (*Transmission, error) {
+func NewTransmission(endpoint string) (*Transmission, error) {
 	v := &Transmission{}
 
-	endpoint, err := url.Parse("http://127.0.0.1:9091")
+	e, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	tbt, err := transmissionrpc.New(endpoint, nil)
+	tbt, err := transmissionrpc.New(e, nil)
 	if err != nil {
 		return nil, err
 	}

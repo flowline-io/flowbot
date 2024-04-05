@@ -144,3 +144,5 @@ vendors:
   dropbox:
     key: ''
     secret: ''
+  transmission:
+    endpoint: ''
