@@ -146,3 +146,6 @@ vendors:
     secret: ''
   transmission:
     endpoint: ''
+  gitea:
+    endpoint: ''
+    token: ''

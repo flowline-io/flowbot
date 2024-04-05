@@ -1,9 +1,17 @@
 package gitea
 
-import "time"
+import (
+	"fmt"
+	"github.com/go-resty/resty/v2"
+	jsoniter "github.com/json-iterator/go"
+	"net/http"
+	"time"
+)
 
 const (
-	ID = "gitea"
+	ID          = "gitea"
+	EndpointKey = "endpoint"
+	TokenKey    = "token"
 )
 
 type Payload struct {
@@ -185,4 +193,36 @@ type Payload struct {
 		StarredReposCount int       `json:"starred_repos_count"`
 		Username          string    `json:"username"`
 	} `json:"sender"`
+}
+
+type Gitea struct {
+	token string
+	c     *resty.Client
+}
+
+func NewGitea(endpoint, token string) *Gitea {
+	v := &Gitea{token: token}
+	v.c = resty.New()
+	v.c.SetBaseURL(endpoint)
+	v.c.SetTimeout(time.Minute)
+	v.c.SetAuthToken(token)
+
+	return v
+}
+
+func (v *Gitea) GetRepositories() ([]string, error) {
+	resp, err := v.c.R().Get("/user/repos")
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() == http.StatusOK {
+		var results []string
+		var json = jsoniter.ConfigCompatibleWithStandardLibrary
+		_ = json.Unmarshal(resp.Body(), &results)
+		return results, nil
+	} else {
+		return nil, fmt.Errorf("%d", resp.StatusCode())
+	}
+
 }
