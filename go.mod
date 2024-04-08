@@ -27,6 +27,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/heimdalr/dag v1.4.0
+	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
 	github.com/jmoiron/sqlx v1.3.5
@@ -53,7 +54,7 @@ require (
 	github.com/valyala/fasthttp v1.52.0
 	github.com/yeqown/go-qrcode/v2 v2.2.2
 	github.com/yeqown/go-qrcode/writer/standard v1.2.2
-	github.com/yuin/goldmark v1.7.0
+	github.com/yuin/goldmark v1.7.1
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.21.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
@@ -114,7 +115,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hekmon/cunits/v2 v2.1.0 // indirect
-	github.com/hekmon/transmissionrpc/v3 v3.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
