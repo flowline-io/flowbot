@@ -52,7 +52,7 @@ require (
 	github.com/tidwall/gjson v1.17.1
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/valyala/fasthttp v1.52.0
-	github.com/yeqown/go-qrcode/v2 v2.2.2
+	github.com/yeqown/go-qrcode/v2 v2.2.3
 	github.com/yeqown/go-qrcode/writer/standard v1.2.3
 	github.com/yuin/goldmark v1.7.1
 	go.uber.org/automaxprocs v1.5.3
