@@ -19,7 +19,7 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/go-resty/resty/v2 v2.12.0
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/gofiber/contrib/fiberzerolog v1.0.0
+	github.com/gofiber/contrib/fiberzerolog v1.0.1
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/gofiber/swagger v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.17.1
