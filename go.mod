@@ -30,7 +30,7 @@ require (
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
-	github.com/jmoiron/sqlx v1.3.5
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/looplab/fsm v1.0.1
