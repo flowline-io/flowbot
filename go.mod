@@ -11,7 +11,7 @@ require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/docker/cli v26.0.2+incompatible
-	github.com/docker/docker v26.0.2+incompatible
+	github.com/docker/docker v26.1.0+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/emicklei/go-restful/v3 v3.12.0
