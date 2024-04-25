@@ -5,6 +5,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -32,12 +39,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"os"
-	"runtime"
-	"runtime/pprof"
-	"sort"
-	"strings"
-	"time"
 )
 
 var (
@@ -187,12 +188,12 @@ func initializeConfig() error {
 		flog.Fatal("Couldn't get current working directory: %v", err)
 	}
 
-	flog.Debug("Server v%s:%s:%s; pid %d; %d process(es)",
+	flog.Info("Server v%s:%s:%s; pid %d; %d process(es)",
 		version.CurrentVersion, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
 	*appFlag.configFile = utils.ToAbsolutePath(curwd, *appFlag.configFile)
-	flog.Debug("Using config from '%s'", *appFlag.configFile)
+	flog.Info("Using config from '%s'", *appFlag.configFile)
 
 	// Load config
 	config.Load(".", curwd)
@@ -229,7 +230,7 @@ func initializeConfig() error {
 			config.App.ApiPath += "/"
 		}
 	}
-	flog.Debug("API served from root URL path '%s'", config.App.ApiPath)
+	flog.Info("API served from root URL path '%s'", config.App.ApiPath)
 
 	// log level
 	flog.SetLevel(config.App.Log.Level)

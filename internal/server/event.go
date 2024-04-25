@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -12,7 +13,7 @@ import (
 
 // send message
 func onMessageSendEventHandler(msg *message.Message) error {
-	flog.Debug("on event %+v", msg)
+	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe types.Message
 	err := json.Unmarshal(msg.Payload, &pe)
@@ -49,13 +50,13 @@ func onMessageSendEventHandler(msg *message.Message) error {
 
 // push instruct
 func onInstructPushEventHandler(msg *message.Message) error {
-	flog.Debug("on event %+v", msg)
+	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	return nil
 }
 
 func onPlatformMessageEventHandler(msg *message.Message) error {
-	flog.Debug("on event %+v", msg)
+	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe protocol.Event
 	err := json.Unmarshal(msg.Payload, &pe)
