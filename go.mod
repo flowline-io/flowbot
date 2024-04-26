@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-redisstream v1.3.0
-	github.com/aws/aws-sdk-go v1.51.27
+	github.com/aws/aws-sdk-go v1.51.29
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
