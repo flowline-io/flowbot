@@ -32,7 +32,7 @@ func NewCronTaskManager() *CronTaskManager {
 				if info == nil {
 					return
 				}
-				flog.Debug("CronTaskManager:  Enqueued task %s with payload %s with error %v",
+				flog.Info("[workflow] Enqueued task %s with payload %s with error %v",
 					info.ID, string(info.Payload), err)
 				err = HandleCronTask(context.Background(), asynq.NewTask(info.Type, info.Payload))
 				if err != nil {

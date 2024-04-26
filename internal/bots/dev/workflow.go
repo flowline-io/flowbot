@@ -2,9 +2,11 @@ package dev
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
-	"time"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
@@ -44,7 +46,7 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			fmt.Println("=========>", input)
+			flog.Info("%s => %+v", outWorkflowActionID, input)
 			return nil, nil
 		},
 	},
