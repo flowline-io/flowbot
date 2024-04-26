@@ -2,10 +2,12 @@ package workflow
 
 import (
 	"context"
+	"errors"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
+	"github.com/hibiken/asynq"
 	"time"
 )
 
@@ -70,6 +72,25 @@ func (m *Manager) pushReadyJob() {
 		}
 		err = PushTask(t)
 		if err != nil {
+
+			// duplicate task
+			if errors.Is(err, asynq.ErrDuplicateTask) {
+				flog.Warn("duplicate task: %s, skip", t.ID)
+				continue
+			}
+
+			// task id conflict
+			if errors.Is(err, asynq.ErrTaskIDConflict) {
+				flog.Warn("task id conflict: %s, skip", t.ID)
+
+				err = store.Database.UpdateJobState(job.ID, model.JobFailed)
+				if err != nil {
+					flog.Error(err)
+				}
+
+				continue
+			}
+
 			flog.Error(err)
 			continue
 		}
