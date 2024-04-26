@@ -1,18 +1,20 @@
 package event
 
 import (
+	"log"
+	"time"
+
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	json "github.com/json-iterator/go"
-	"log"
-	"time"
 )
 
-var logger = watermill.NewStdLogger(true, false)
+var logger = flog.WatermillLogger
 
 func NewSubscriber() (message.Subscriber, error) {
 	return redisstream.NewSubscriber(
