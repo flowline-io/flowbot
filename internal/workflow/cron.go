@@ -3,13 +3,14 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
-	"time"
 )
 
 type CronTaskManager struct {
@@ -85,6 +86,7 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 		if spec == "" {
 			continue
 		}
+		rule.Spec = spec
 		configs = append(configs, &asynq.PeriodicTaskConfig{
 			Cronspec: rule.Spec,
 			Task:     asynq.NewTask(TypeCron, payload),
