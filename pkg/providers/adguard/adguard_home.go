@@ -16,14 +16,14 @@ type AdGuardHome struct {
 	c *resty.Client
 }
 
-func NewAdGuardHome(endpoint string, username string, password string) (*AdGuardHome, error) {
+func NewAdGuardHome(endpoint string, username string, password string) *AdGuardHome {
 	v := &AdGuardHome{}
 	v.c = resty.New()
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetBasicAuth(username, password)
 
-	return v, nil
+	return v
 }
 
 func (v *AdGuardHome) GetStatus() (*StatusResponse, error) {

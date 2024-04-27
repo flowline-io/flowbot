@@ -153,3 +153,7 @@ vendors:
     endpoint: ''
     username: ''
     password: ''
+  shiori:
+    endpoint: ''
+    username: ''
+    password: ''

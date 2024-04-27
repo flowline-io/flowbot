@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"math/big"
 	"strconv"
@@ -420,10 +421,7 @@ var commandRules = []command.Rule{
 			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
 			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
 			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client, err := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
+			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
 
 			resp, err := client.GetStatus()
 			if err != nil {
@@ -440,10 +438,7 @@ var commandRules = []command.Rule{
 			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
 			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
 			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client, err := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
+			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
 
 			resp, err := client.GetStats()
 			if err != nil {
@@ -452,6 +447,27 @@ var commandRules = []command.Rule{
 
 			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d，avg processing time %f ms",
 				resp.NumDnsQueries, resp.NumBlockedFiltering, resp.AvgProcessingTime*1000)}
+		},
+	},
+	{
+		Define: "bookmarks",
+		Help:   `get bookmarks`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(shiori.ID, shiori.EndpointKey)
+			username, _ := providers.GetConfig(shiori.ID, shiori.UsernameKey)
+			password, _ := providers.GetConfig(shiori.ID, shiori.PasswordKey)
+			client := shiori.NewShiori(endpoint.String())
+			_, err := client.Login(username.String(), password.String())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			resp, err := client.GetBookmarks()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: fmt.Sprintf("bookmarks count %d, page size %d", len(resp.Bookmarks), resp.Page)}
 		},
 	},
 }
