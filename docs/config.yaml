@@ -149,3 +149,7 @@ vendors:
   gitea:
     endpoint: ''
     token: ''
+  adguard_home:
+    endpoint: ''
+    username: ''
+    password: ''

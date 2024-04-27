@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"math/big"
 	"strconv"
@@ -410,6 +411,47 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: fmt.Sprintf("torrent %s added", *torrent.Name)}
+		},
+	},
+	{
+		Define: "adguard status",
+		Help:   `get adguard home status`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
+			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
+			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
+			client, err := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			resp, err := client.GetStatus()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: fmt.Sprintf("adguard home status %+v", resp)}
+		},
+	},
+	{
+		Define: "adguard stats",
+		Help:   `get adguard home statistics`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
+			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
+			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
+			client, err := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			resp, err := client.GetStats()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d，avg processing time %f ms",
+				resp.NumDnsQueries, resp.NumBlockedFiltering, resp.AvgProcessingTime*1000)}
 		},
 	},
 }
