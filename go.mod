@@ -10,7 +10,7 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
-	github.com/docker/cli v26.1.1+incompatible
+	github.com/docker/cli v26.1.2+incompatible
 	github.com/docker/docker v26.1.1+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/dustin/go-humanize v1.0.1
