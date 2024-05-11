@@ -17,7 +17,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.0
 	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/go-playground/validator/v10 v10.20.0
-	github.com/go-resty/resty/v2 v2.12.0
+	github.com/go-resty/resty/v2 v2.13.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofiber/contrib/fiberzerolog v1.0.1
 	github.com/gofiber/fiber/v2 v2.52.4
@@ -168,7 +168,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/mod v0.16.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
