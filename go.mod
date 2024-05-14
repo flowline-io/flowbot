@@ -17,7 +17,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.0
 	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/go-playground/validator/v10 v10.20.0
-	github.com/go-resty/resty/v2 v2.13.0
+	github.com/go-resty/resty/v2 v2.13.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofiber/contrib/fiberzerolog v1.0.1
 	github.com/gofiber/fiber/v2 v2.52.4
