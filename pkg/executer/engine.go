@@ -2,13 +2,14 @@ package executer
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/docker"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/shell"
-	"sync"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -143,7 +144,7 @@ func (e *Engine) doRunTask(ctx context.Context, t *types.Task) error {
 		t.FailedAt = &finished
 		t.State = types.TaskStateFailed
 		t.Error = err.Error()
-		return nil
+		return err
 	}
 	finished := time.Now().UTC()
 	t.CompletedAt = &finished
