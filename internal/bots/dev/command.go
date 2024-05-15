@@ -6,15 +6,16 @@ import (
 	"crypto/rand"
 	_ "embed"
 	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
-	"math/big"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -468,6 +469,13 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: fmt.Sprintf("bookmarks count %d, page size %d", len(resp.Bookmarks), resp.Page)}
+		},
+	},
+	{
+		Define: "test",
+		Help:   `test`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			return types.TextMsg{Text: "test"}
 		},
 	},
 }

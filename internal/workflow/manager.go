@@ -3,12 +3,13 @@ package workflow
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"github.com/hibiken/asynq"
-	"time"
 )
 
 type Manager struct {
@@ -82,6 +83,11 @@ func (m *Manager) pushReadyJob() {
 			// task id conflict
 			if errors.Is(err, asynq.ErrTaskIDConflict) {
 				flog.Warn("task id conflict: %s, skip", t.ID)
+
+				err = DeleteJob(context.Background(), job)
+				if err != nil {
+					flog.Error(err)
+				}
 
 				err = store.Database.UpdateJobState(job.ID, model.JobFailed)
 				if err != nil {

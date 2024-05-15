@@ -1,13 +1,14 @@
 package cloudflare
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/cloudflare"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -26,7 +27,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "test",
+		Define: "cloudflare test",
 		Help:   "Test",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			c1, _ := bots.SettingGet(ctx, Name, tokenSettingKey)
