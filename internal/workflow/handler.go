@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func HandleCronTask(_ context.Context, t *asynq.Task) error {
+func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	var trigger model.WorkflowTrigger
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
@@ -54,7 +54,7 @@ func HandleCronTask(_ context.Context, t *asynq.Task) error {
 		flog.Error(err)
 		return err
 	}
-	err = SyncJob(context.Background(), job)
+	err = SyncJob(ctx, job)
 	if err != nil {
 		flog.Error(err)
 		return err
