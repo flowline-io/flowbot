@@ -3,11 +3,12 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
-	"runtime"
-	"time"
 )
 
 const (
@@ -45,7 +46,7 @@ func PushTask(t *Task) error {
 	if err != nil {
 		return err
 	}
-	flog.Info("Enqueued %s, ID:%s", t.Task.Type(), info.ID)
+	flog.Info("Enqueued %s, ID:%s Payload: %s", t.Task.Type(), info.ID, string(t.Task.Payload()))
 	return nil
 }
 

@@ -73,6 +73,11 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 		if trigger.State == model.WorkflowTriggerDisable {
 			continue
 		}
+		_, err = store.Database.GetWorkflow(trigger.WorkflowID)
+		if err != nil {
+			flog.Warn(err.Error())
+			continue
+		}
 		payload, err := json.Marshal(trigger)
 		if err != nil {
 			flog.Error(err)
