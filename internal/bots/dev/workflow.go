@@ -46,7 +46,7 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			flog.Info("%s => %+v", outWorkflowActionID, input)
+			flog.Debug("%s => %+v", outWorkflowActionID, input)
 			return nil, nil
 		},
 	},

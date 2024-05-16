@@ -3,10 +3,11 @@ package cache
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/redis/go-redis/v9"
-	"time"
 )
 
 var DB *redis.Client
@@ -32,10 +33,13 @@ func InitCache() {
 }
 
 func Shutdown() {
-	err := DB.Close()
-	if err != nil {
-		flog.Error(err)
-		return
+	_, err := DB.Ping(context.Background()).Result()
+	if err == nil {
+		err = DB.Close()
+		if err != nil {
+			flog.Error(err)
+			return
+		}
 	}
 	flog.Info("cache stopped")
 }
