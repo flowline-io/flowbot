@@ -116,7 +116,7 @@ func (r *ShellRuntime) Run(ctx context.Context, t *types.Task) error {
 func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
 	defer r.cmds.Delete(t.ID)
 
-	workdir, err := os.MkdirTemp("", "tork")
+	workdir, err := os.MkdirTemp("", "flowbot")
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
 	}
-	env = append(env, fmt.Sprintf("%sTORK_OUTPUT=%s/stdout", envVarPrefix, workdir))
+	env = append(env, fmt.Sprintf("%sFLOWBOT_OUTPUT=%s/stdout", envVarPrefix, workdir))
 	env = append(env, fmt.Sprintf("WORKDIR=%s", workdir))
 	env = append(env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
 
