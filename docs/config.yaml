@@ -157,3 +157,5 @@ vendors:
     endpoint: ''
     username: ''
     password: ''
+  archivebox:
+    endpoint: ''

@@ -44,17 +44,6 @@ func (m *Manager) syncJob() {
 			flog.Error(err)
 		}
 	}
-
-	list, err = store.Database.GetJobsByStates([]model.JobState{model.JobSucceeded, model.JobFailed, model.JobCanceled})
-	if err != nil {
-		flog.Error(err)
-	}
-	for _, job := range list {
-		err = DeleteJob(context.Background(), job)
-		if err != nil {
-			flog.Error(err)
-		}
-	}
 }
 
 func (m *Manager) pushReadyJob() {

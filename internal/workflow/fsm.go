@@ -187,7 +187,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					}
 				}
 			},
-			"before_success": func(_ context.Context, e *fsm.Event) {
+			"before_success": func(ctx context.Context, e *fsm.Event) {
 				var job *model.Job
 				for _, item := range e.Args {
 					if m, ok := item.(*model.Job); ok {
@@ -200,6 +200,12 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				}
 
 				err := store.Database.UpdateJobState(job.ID, model.JobSucceeded)
+				if err != nil {
+					e.Cancel(err)
+					e.Err = err
+					return
+				}
+				err = DeleteJob(ctx, job)
 				if err != nil {
 					e.Cancel(err)
 					e.Err = err
