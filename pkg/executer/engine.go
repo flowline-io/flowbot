@@ -23,11 +23,12 @@ const (
 )
 
 type Engine struct {
-	state    string
-	mu       sync.Mutex
-	mounters map[string]*runtime.MultiMounter
-	runtime  runtime.Runtime
-	limits   Limits
+	state       string
+	mu          sync.Mutex
+	mounters    map[string]*runtime.MultiMounter
+	runtime     runtime.Runtime
+	limits      Limits
+	runtimeType string
 }
 
 type Limits struct {
@@ -35,10 +36,11 @@ type Limits struct {
 	DefaultMemoryLimit string
 }
 
-func New() *Engine {
+func New(runtimeType string) *Engine {
 	return &Engine{
-		state:    StateIdle,
-		mounters: make(map[string]*runtime.MultiMounter),
+		state:       StateIdle,
+		mounters:    make(map[string]*runtime.MultiMounter),
+		runtimeType: runtimeType,
 	}
 }
 
@@ -75,8 +77,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		DefaultCPUsLimit:   config.App.Engine.Limits.Cpus,
 		DefaultMemoryLimit: config.App.Engine.Limits.Memory,
 	}
-	runtimeType := runtime.Docker // default engine type
-	switch runtimeType {
+	switch e.runtimeType {
 	case runtime.Docker:
 		mounter, ok := e.mounters[runtime.Docker]
 		if !ok {
@@ -110,7 +111,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			GID: config.App.Engine.Shell.GID,
 		})
 	default:
-		return nil, errors.Errorf("unknown runtime type: %s", runtimeType)
+		return nil, errors.Errorf("unknown runtime type: %s", e.runtimeType)
 	}
 	return e.runtime, nil
 }

@@ -2,12 +2,14 @@ package runtime // import "https://github.com/runabol/tork"
 
 import (
 	"context"
+
 	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const (
-	Docker = "docker"
-	Shell  = "shell"
+	Docker  = "docker"
+	Shell   = "shell"
+	Machine = "machine"
 )
 
 // Runtime is the actual runtime environment that executes a task.

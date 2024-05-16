@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
@@ -271,7 +272,7 @@ var commandRules = []command.Rule{
 		Help:   `run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Debug("start docker command")
-			engine := executer.New()
+			engine := executer.New(runtime.Docker)
 			task := &types.Task{
 				ID:    utils.NewUUID(),
 				Image: "ubuntu:mantic",
@@ -475,7 +476,19 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.TextMsg{Text: "test"}
+			flog.Debug("start machine command")
+			engine := executer.New(runtime.Machine)
+			task := &types.Task{
+				ID:    utils.NewUUID(),
+				Run:   "echo -n hello",
+			}
+			err := engine.Run(context.Background(), task)
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+			flog.Debug("machine command result %v", task.Result)
+			return types.TextMsg{Text: task.Result}
 		},
 	},
 }
