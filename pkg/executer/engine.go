@@ -2,6 +2,7 @@ package executer
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 	"sync"
 	"time"
 
@@ -110,6 +111,17 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			UID: config.App.Engine.Shell.UID,
 			GID: config.App.Engine.Shell.GID,
 		})
+	case runtime.Machine:
+		rt, err := machine.NewRuntime(machine.WithConfig(machine.Config{
+			Host:     config.App.Engine.Machine.Host,
+			Port:     config.App.Engine.Machine.Port,
+			Username: config.App.Engine.Machine.Username,
+			Password: config.App.Engine.Machine.Password,
+		}))
+		if err != nil {
+			return nil, err
+		}
+		e.runtime = rt
 	default:
 		return nil, errors.Errorf("unknown runtime type: %s", e.runtimeType)
 	}

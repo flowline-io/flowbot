@@ -110,7 +110,7 @@ func (d *Runtime) Run(ctx context.Context, t *types.Task) error {
 		}(mnt)
 		t.Mounts[i] = mnt
 	}
-	// excute pre-tasks
+	// execute pre-tasks
 	for _, pre := range t.Pre {
 		pre.ID = utils.NewUUID()
 		pre.Mounts = t.Mounts

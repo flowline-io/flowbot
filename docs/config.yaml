@@ -88,6 +88,11 @@ engine:
       - ''
     uid: ''
     gid: ''
+  machine:
+    host: ''
+    port: 0
+    username: ''
+    password: ''
 
 flowbot:
   url: ''

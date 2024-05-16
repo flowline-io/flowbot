@@ -479,8 +479,8 @@ var commandRules = []command.Rule{
 			flog.Debug("start machine command")
 			engine := executer.New(runtime.Machine)
 			task := &types.Task{
-				ID:    utils.NewUUID(),
-				Run:   "echo -n hello",
+				ID:  utils.NewUUID(),
+				Run: "hostnamectl",
 			}
 			err := engine.Run(context.Background(), task)
 			if err != nil {

@@ -188,6 +188,12 @@ type Engine struct {
 		UID string   `json:"uid" yaml:"uid" mapstructure:"uid"`
 		GID string   `json:"gid" yaml:"gid" mapstructure:"gid"`
 	} `json:"shell" yaml:"shell" mapstructure:"shell"`
+	Machine struct {
+		Host     string `json:"host" yaml:"host" mapstructure:"host"`
+		Port     int    `json:"post" yaml:"port" mapstructure:"port"`
+		Username string `json:"username" yaml:"username" mapstructure:"username"`
+		Password string `json:"password" yaml:"password" mapstructure:"password"`
+	} `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
 
 type Flowbot struct {
