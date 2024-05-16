@@ -10,7 +10,7 @@ import (
 )
 
 func SetUID(uid string) {
-	if uid != DEFAULT_UID {
+	if uid != DefaultUid {
 		uidi, err := strconv.Atoi(uid)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("invalid uid: %s", uid)
@@ -22,7 +22,7 @@ func SetUID(uid string) {
 }
 
 func SetGID(gid string) {
-	if gid != DEFAULT_GID {
+	if gid != DefaultGid {
 		gidi, err := strconv.Atoi(gid)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("invalid gid: %s", gid)

@@ -21,8 +21,8 @@ import (
 type Rexec func(args ...string) *exec.Cmd
 
 const (
-	DEFAULT_UID  = "-"
-	DEFAULT_GID  = "-"
+	DefaultUid   = "-"
+	DefaultGid   = "-"
 	envVarPrefix = "REEXEC_"
 )
 
@@ -30,7 +30,7 @@ func init() {
 	reexec.Register("shell", reexecRun)
 }
 
-type ShellRuntime struct {
+type Runtime struct {
 	cmds   *syncx.Map[string, *exec.Cmd]
 	shell  []string
 	uid    string
@@ -45,7 +45,7 @@ type Config struct {
 	Rexec Rexec
 }
 
-func NewShellRuntime(cfg Config) *ShellRuntime {
+func NewShellRuntime(cfg Config) *Runtime {
 	if len(cfg.CMD) == 0 {
 		cfg.CMD = []string{"bash", "-c"}
 	}
@@ -53,12 +53,12 @@ func NewShellRuntime(cfg Config) *ShellRuntime {
 		cfg.Rexec = reexec.Command
 	}
 	if cfg.UID == "" {
-		cfg.UID = DEFAULT_UID
+		cfg.UID = DefaultUid
 	}
 	if cfg.GID == "" {
-		cfg.GID = DEFAULT_GID
+		cfg.GID = DefaultGid
 	}
-	return &ShellRuntime{
+	return &Runtime{
 		cmds:   new(syncx.Map[string, *exec.Cmd]),
 		shell:  cfg.CMD,
 		uid:    cfg.UID,
@@ -67,7 +67,7 @@ func NewShellRuntime(cfg Config) *ShellRuntime {
 	}
 }
 
-func (r *ShellRuntime) Run(ctx context.Context, t *types.Task) error {
+func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 	if t.ID == "" {
 		return errors.New("task id is required")
 	}
@@ -113,7 +113,7 @@ func (r *ShellRuntime) Run(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
+func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	defer r.cmds.Delete(t.ID)
 
 	workdir, err := os.MkdirTemp("", "flowbot")
@@ -137,7 +137,7 @@ func (r *ShellRuntime) doRun(ctx context.Context, t *types.Task) error {
 		}
 	}
 
-	env := []string{}
+	var env []string
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
 	}
@@ -220,7 +220,7 @@ func reexecRun() {
 		log.Fatal().Msg("work dir not set")
 	}
 
-	env := []string{}
+	var env []string
 	for _, entry := range os.Environ() {
 		kv := strings.Split(entry, "=")
 		if len(kv) != 2 {
@@ -245,7 +245,7 @@ func reexecRun() {
 	}
 }
 
-func (r *ShellRuntime) Stop(_ context.Context, t *types.Task) error {
+func (r *Runtime) Stop(_ context.Context, t *types.Task) error {
 	proc, ok := r.cmds.Get(t.ID)
 	if !ok {
 		return nil
@@ -256,6 +256,6 @@ func (r *ShellRuntime) Stop(_ context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *ShellRuntime) HealthCheck(_ context.Context) error {
+func (r *Runtime) HealthCheck(_ context.Context) error {
 	return nil
 }

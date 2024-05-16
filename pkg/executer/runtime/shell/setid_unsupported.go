@@ -7,13 +7,13 @@ import (
 )
 
 func SetUID(uid string) {
-	if uid != DEFAULT_UID {
+	if uid != DefaultUid {
 		log.Fatal().Msgf("setting uid is only supported on unix/linux systems")
 	}
 }
 
 func SetGID(gid string) {
-	if gid != DEFAULT_GID {
+	if gid != DefaultGid {
 		log.Fatal().Msgf("setting gid is only supported on unix/linux systems")
 	}
 }

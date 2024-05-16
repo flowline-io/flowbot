@@ -12,8 +12,8 @@ import (
 
 func TestShellRuntimeRunResult(t *testing.T) {
 	rt := NewShellRuntime(Config{
-		UID: DEFAULT_UID,
-		GID: DEFAULT_GID,
+		UID: DefaultUid,
+		GID: DefaultGid,
 		Rexec: func(args ...string) *exec.Cmd {
 			cmd := exec.Command(args[5], args[6:]...)
 			return cmd
@@ -33,8 +33,8 @@ func TestShellRuntimeRunResult(t *testing.T) {
 
 func TestShellRuntimeRunFile(t *testing.T) {
 	rt := NewShellRuntime(Config{
-		UID: DEFAULT_UID,
-		GID: DEFAULT_GID,
+		UID: DefaultUid,
+		GID: DefaultGid,
 		Rexec: func(args ...string) *exec.Cmd {
 			cmd := exec.Command(args[5], args[6:]...)
 			return cmd
@@ -71,8 +71,8 @@ func TestShellRuntimeRunNotSupported(t *testing.T) {
 
 func TestShellRuntimeRunError(t *testing.T) {
 	rt := NewShellRuntime(Config{
-		UID: DEFAULT_UID,
-		GID: DEFAULT_GID,
+		UID: DefaultUid,
+		GID: DefaultGid,
 		Rexec: func(args ...string) *exec.Cmd {
 			cmd := exec.Command(args[5], args[6:]...)
 			return cmd
@@ -91,8 +91,8 @@ func TestShellRuntimeRunError(t *testing.T) {
 
 func TestShellRuntimeRunTimeout(t *testing.T) {
 	rt := NewShellRuntime(Config{
-		UID: DEFAULT_UID,
-		GID: DEFAULT_GID,
+		UID: DefaultUid,
+		GID: DefaultGid,
 		Rexec: func(args ...string) *exec.Cmd {
 			cmd := exec.Command(args[5], args[6:]...)
 			return cmd
@@ -114,8 +114,8 @@ func TestShellRuntimeRunTimeout(t *testing.T) {
 
 func TestShellRuntimeStop(t *testing.T) {
 	rt := NewShellRuntime(Config{
-		UID: DEFAULT_UID,
-		GID: DEFAULT_GID,
+		UID: DefaultUid,
+		GID: DefaultGid,
 		Rexec: func(args ...string) *exec.Cmd {
 			cmd := exec.Command(args[5], args[6:]...)
 			return cmd
