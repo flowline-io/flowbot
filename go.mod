@@ -33,7 +33,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v3 v3.0.7
-	github.com/looplab/fsm v1.0.1
+	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v9 v9.8.0
 	github.com/minio/minio-go/v7 v7.0.70
 	github.com/mmcdole/gofeed v1.3.0
