@@ -6,7 +6,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-redisstream v1.3.0
-	github.com/aws/aws-sdk-go v1.53.3
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
@@ -119,7 +118,6 @@ require (
 	github.com/hekmon/cunits/v2 v2.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
