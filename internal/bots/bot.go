@@ -648,9 +648,6 @@ func Bootstrap() error {
 		if err := bot.Bootstrap(); err != nil {
 			return err
 		}
-		if err := bot.OnEvent(); err != nil {
-			return err
-		}
 	}
 	return nil
 }

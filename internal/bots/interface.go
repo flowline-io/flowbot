@@ -20,9 +20,6 @@ type Handler interface {
 	// Bootstrap Lifecycle hook
 	Bootstrap() error
 
-	// OnEvent event
-	OnEvent() error
-
 	// Help return bot help
 	Help() (map[string][]string, error)
 
@@ -70,10 +67,6 @@ func (Base) Bootstrap() error {
 }
 
 func (Base) WebService() *restful.WebService {
-	return nil
-}
-
-func (Base) OnEvent() error {
 	return nil
 }
 

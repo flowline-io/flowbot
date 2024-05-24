@@ -62,11 +62,6 @@ func (bot) Bootstrap() error {
 	return nil
 }
 
-func (bot) OnEvent() error {
-	// todo ExampleEvent
-	return nil
-}
-
 func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
 	return webapp
 }
