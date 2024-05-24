@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sort"
 	"syscall"
 	"time"
 )
@@ -51,9 +50,6 @@ Loop:
 				// failure/timeout shutting down the server gracefully
 				flog.Error(err)
 			}
-
-			// While the server shuts down, termianate all sessions.
-			globals.sessionStore.Shutdown()
 
 			// Stop publishing statistics.
 			stats.Shutdown()
@@ -138,28 +134,9 @@ func serveStatus(wrt http.ResponseWriter, _ *http.Request) {
 		Version:   version.CurrentVersion,
 		Build:     version.Buildstamp,
 		Timestamp: types.TimeNow(),
-		Sessions:  make([]debugSession, 0, len(globals.sessionStore.sessCache)),
 		Topics:    make([]debugTopic, 0, 10),
 		UserCache: make([]debugCachedUser, 0, 10),
 	}
-	// Sessions.
-	globals.sessionStore.Range(func(sid string, s *Session) bool {
-		keys := make([]string, 0, len(s.subs))
-		for tn := range s.subs {
-			keys = append(keys, tn)
-		}
-		sort.Strings(keys)
-		var clnode string
-		result.Sessions = append(result.Sessions, debugSession{
-			RemoteAddr: s.remoteAddr,
-			Ua:         s.userAgent,
-			Uid:        s.uid.String(),
-			Sid:        sid,
-			Clnode:     clnode,
-			Subs:       keys,
-		})
-		return true
-	})
 
 	_ = json.NewEncoder(wrt).Encode(result)
 }

@@ -21,9 +21,6 @@ type configType struct {
 	ApiPath string `json:"api_path" yaml:"api_path" mapstructure:"api_path"`
 	// Cache-Control value for static content.
 	CacheControl int `json:"cache_control" yaml:"cache_control" mapstructure:"cache_control"`
-	// If true, do not attempt to negotiate websocket per message compression (RFC 7692.4).
-	// It should be disabled (set to true) if you are using MSFT IIS as a reverse proxy.
-	WSCompressionDisabled bool `json:"ws_compression_disabled" yaml:"ws_compression_disabled" mapstructure:"ws_compression_disabled"`
 	// URL path for mounting the directory with static files (usually TinodeWeb).
 	StaticMount string `json:"static_mount" yaml:"static_mount" mapstructure:"static_mount"`
 	// Local path to static files. All files in this path are made accessible by HTTP.

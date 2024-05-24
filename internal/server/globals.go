@@ -10,8 +10,6 @@ import (
 var globals struct {
 	// Indicator that shutdown is in progress
 	shuttingDown bool
-	// Sessions cache.
-	sessionStore *SessionStore
 
 	// Add Strict-Transport-Security to headers, the value signifies age.
 	// Empty string "" turns it off
@@ -31,9 +29,6 @@ var globals struct {
 
 	// Time before the call is dropped if not answered.
 	callEstablishmentTimeout int
-
-	// Websocket per-message compression negotiation is enabled.
-	wsCompression bool
 
 	// URL of the main endpoint.
 	servingAt string

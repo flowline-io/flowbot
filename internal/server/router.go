@@ -22,14 +22,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	json "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"gorm.io/gorm"
@@ -67,7 +65,6 @@ func newRouter(app *fiber.App) *mux.Router {
 	app.Get("/p/:id/:flag", renderPage)
 	// bot
 	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
-	app.All("/session", adaptor.HTTPHandlerFunc(wbSession))
 
 	return s
 }
@@ -457,49 +454,6 @@ func urlRedirect(rw http.ResponseWriter, req *http.Request) {
 
 	// redirect
 	http.Redirect(rw, req, url.URL, http.StatusFound)
-}
-
-func wbSession(wrt http.ResponseWriter, req *http.Request) {
-	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))
-	if !isValid {
-		wrt.WriteHeader(http.StatusForbidden)
-		_ = json.NewEncoder(wrt).Encode(protocol.NewFailedResponse(protocol.ErrTokenError))
-		return
-	}
-
-	if req.Method != http.MethodGet {
-		wrt.WriteHeader(http.StatusMethodNotAllowed)
-		_ = json.NewEncoder(wrt).Encode(protocol.NewFailedResponse(protocol.ErrMethodNotAllowed))
-		return
-	}
-
-	ws, err := upgrader.Upgrade(wrt, req, nil)
-	if errors.As(err, &websocket.HandshakeError{}) {
-		flog.Error(err)
-		return
-	} else if err != nil {
-		flog.Error(err)
-		return
-	}
-
-	sess, count := sessionStore.NewSession(ws, "")
-	if globals.useXForwardedFor {
-		sess.remoteAddr = req.Header.Get("X-Forwarded-For")
-		if !utils.IsRoutableIP(sess.remoteAddr) {
-			sess.remoteAddr = ""
-		}
-	}
-	if sess.remoteAddr == "" {
-		sess.remoteAddr = req.RemoteAddr
-	}
-	sess.uid = uid
-
-	flog.Info("flowkit: session started %v %v %v", sess.sid, sess.remoteAddr, count)
-
-	// Do work in goroutines to return from serveWebSocket() to release file pointers.
-	// Otherwise, "too many open files" will happen.
-	go sess.writeLoop()
-	go sess.readLoop()
 }
 
 func platformCallback(ctx *fiber.Ctx) error {

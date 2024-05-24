@@ -210,12 +210,6 @@ func initializeConfig() error {
 
 	globals.useXForwardedFor = config.App.UseXForwardedFor
 
-	// Websocket compression.
-	globals.wsCompression = !config.App.WSCompressionDisabled
-
-	// Initialize session store
-	globals.sessionStore = NewSessionStore(idleSessionTimeout + 15*time.Second)
-
 	// Configure root path for serving API calls.
 	if *appFlag.apiPath != "" {
 		config.App.ApiPath = *appFlag.apiPath
@@ -361,9 +355,6 @@ func initializeDatabase() error {
 	err := store.Store.Open(config.App.Store)
 	if err != nil {
 		return errors.Wrap(err, "failed to open DB")
-	}
-	if err != nil {
-		return errors.Wrap(err, "failed to connect to DB")
 	}
 	go func() {
 		<-stopSignal
