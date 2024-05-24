@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/action"
 	"github.com/flowline-io/flowbot/internal/ruleset/agent"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
-	"github.com/flowline-io/flowbot/internal/ruleset/condition"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
@@ -415,11 +414,6 @@ func RunCron(cronRules []cron.Rule, name string, send types.SendFunc) (*cron.Rul
 	ruleset.Send = send
 	ruleset.Daemon()
 	return ruleset, nil
-}
-
-func RunCondition(conditionRules []condition.Rule, ctx types.Context, forwarded types.MsgPayload) (types.MsgPayload, error) {
-	rs := condition.Ruleset(conditionRules)
-	return rs.ProcessCondition(ctx, forwarded)
 }
 
 func RunAgent(agentVersion int, agentRules []agent.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {

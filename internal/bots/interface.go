@@ -47,9 +47,6 @@ type Handler interface {
 	// Cron cron script daemon
 	Cron(send types.SendFunc) (*cron.Ruleset, error)
 
-	// Condition run conditional process
-	Condition(ctx types.Context, forwarded types.MsgPayload) (types.MsgPayload, error)
-
 	// Pipeline return pipeline result
 	Pipeline(ctx types.Context, head types.KV, content interface{}, operate types.PipelineOperate) (types.MsgPayload, string, int, error)
 
@@ -118,10 +115,6 @@ func (Base) Session(_ types.Context, _ interface{}) (types.MsgPayload, error) {
 }
 
 func (Base) Cron(_ types.SendFunc) (*cron.Ruleset, error) {
-	return nil, nil
-}
-
-func (Base) Condition(_ types.Context, _ types.MsgPayload) (types.MsgPayload, error) {
 	return nil, nil
 }
 

@@ -22,11 +22,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	json "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -285,42 +283,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				}
 			}
 		}
-		// condition
-		if payload == nil {
-			fUid := ""
-			fSeq := int64(0)
-			if msg.Forwarded != "" {
-				f := strings.Split(msg.Forwarded, ":")
-				if len(f) == 2 {
-					fUid = f[0]
-					fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-				}
-			}
-
-			if fUid != "" && fSeq > 0 {
-				//uid2 := types.ParseUserId(fUid)
-				topic := ""                                      // fixme
-				message, err := store.Database.GetMessage(topic) // fixme
-				if err != nil {
-					flog.Error(err)
-				}
-
-				if message.ID > 0 {
-					src, _ := types.KV(message.Content).Map("src")
-					tye, _ := types.KV(message.Content).String("tye")
-					d, _ := json.Marshal(src)
-					pl := types.ToPayload(tye, d)
-					ctx.Condition = tye
-					payload, err = handle.Condition(ctx, pl)
-					if err != nil {
-						flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-					}
-
-					// stats
-					stats.Inc("BotRunConditionTotal", 1)
-				}
-			}
-		}
 		// input
 		if payload == nil {
 			/*
@@ -387,6 +349,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		//MetaWhat:  msg.MetaWhat,
 		//Timestamp: msg.Timestamp,
 	}
+	fmt.Println(ctx)
 
 	// behavior
 	bots.Behavior(uid, bots.MessageGroupIncomingBehavior, 1)
@@ -402,51 +365,6 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			continue
 		}
 
-		// condition
-		if payload == nil {
-			fUid := ""
-			fSeq := int64(0)
-			if forwarded := msg.Forwarded; forwarded != "" {
-				f := strings.Split(forwarded, ":")
-				if len(f) == 2 {
-					fUid = f[0]
-					fSeq, _ = strconv.ParseInt(f[1], 10, 64)
-				}
-			}
-
-			if fUid != "" && fSeq > 0 {
-				//uid2 := types.ParseUserId(fUid)
-				topic := ""                                      // fixme
-				message, err := store.Database.GetMessage(topic) // fixme
-				if err != nil {
-					flog.Error(err)
-				}
-
-				if message.ID > 0 {
-					src, _ := types.KV(message.Content).Map("src")
-					tye, _ := types.KV(message.Content).String("tye")
-					d, _ := json.Marshal(src)
-					pl := types.ToPayload(tye, d)
-					ctx.Condition = tye
-					payload, err = handle.Condition(ctx, pl)
-					if err != nil {
-						flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-					}
-
-					// stats
-					stats.Inc("BotRunConditionTotal", 1)
-				}
-			}
-		}
-
-		if payload != nil {
-			break
-		}
-	}
-
-	// send message
-	if payload == nil {
-		return
 	}
 
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
