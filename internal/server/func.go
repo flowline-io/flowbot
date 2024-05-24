@@ -438,17 +438,6 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				}
 			}
 		}
-		// group
-		if payload == nil {
-			payload, err = handle.Group(ctx, nil, msg.AltMessage)
-			if err != nil {
-				flog.Warn("topic[%s]: failed to run group bot: %v", name, err)
-				return
-			}
-
-			// stats
-			stats.Inc("BotRunGroupTotal", 1)
-		}
 
 		if payload != nil {
 			break

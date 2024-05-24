@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/condition"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
-	"github.com/flowline-io/flowbot/internal/ruleset/event"
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/ruleset/page"
@@ -92,19 +91,6 @@ func Help(rules []interface{}) (map[string][]string, error) {
 	}
 
 	return result, nil
-}
-
-func RunGroup(eventRules []event.Rule, ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error) {
-	rs := event.Ruleset(eventRules)
-	payload, err := rs.ProcessEvent(ctx, head, content)
-	if err != nil {
-		return nil, err
-	}
-	// todo
-	if len(payload) > 0 {
-		return payload[0], nil
-	}
-	return nil, nil
 }
 
 func HelpPipeline(pipelineRules []pipeline.Rule, _ types.Context, _ types.KV, content interface{}) (types.MsgPayload, error) {

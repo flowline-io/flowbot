@@ -53,8 +53,6 @@ type Context struct {
 	SessionInitValues KV
 	// session last values
 	SessionLastValues KV
-	// group event
-	GroupEvent GroupEvent
 	// pipeline flag id
 	PipelineFlag string
 	// pipeline rule id

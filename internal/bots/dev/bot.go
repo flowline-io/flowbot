@@ -115,10 +115,6 @@ func (b bot) Condition(ctx types.Context, forwarded types.MsgPayload) (types.Msg
 	return bots.RunCondition(conditionRules, ctx, forwarded)
 }
 
-func (b bot) Group(ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error) {
-	return bots.RunGroup(eventRules, ctx, head, content)
-}
-
 func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	return bots.RunAgent(AgentVersion, agentRules, ctx, content)
 }

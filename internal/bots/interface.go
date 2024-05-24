@@ -50,9 +50,6 @@ type Handler interface {
 	// Condition run conditional process
 	Condition(ctx types.Context, forwarded types.MsgPayload) (types.MsgPayload, error)
 
-	// Group return group result
-	Group(ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error)
-
 	// Pipeline return pipeline result
 	Pipeline(ctx types.Context, head types.KV, content interface{}, operate types.PipelineOperate) (types.MsgPayload, string, int, error)
 
@@ -125,10 +122,6 @@ func (Base) Cron(_ types.SendFunc) (*cron.Ruleset, error) {
 }
 
 func (Base) Condition(_ types.Context, _ types.MsgPayload) (types.MsgPayload, error) {
-	return nil, nil
-}
-
-func (Base) Group(_ types.Context, _ types.KV, _ interface{}) (types.MsgPayload, error) {
 	return nil, nil
 }
 
