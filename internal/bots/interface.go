@@ -44,9 +44,6 @@ type Handler interface {
 	// Cron cron script daemon
 	Cron(send types.SendFunc) (*cron.Ruleset, error)
 
-	// Pipeline return pipeline result
-	Pipeline(ctx types.Context, head types.KV, content interface{}, operate types.PipelineOperate) (types.MsgPayload, string, int, error)
-
 	// Agent return group result
 	Agent(ctx types.Context, content types.KV) (types.MsgPayload, error)
 
@@ -109,10 +106,6 @@ func (Base) Session(_ types.Context, _ interface{}) (types.MsgPayload, error) {
 
 func (Base) Cron(_ types.SendFunc) (*cron.Ruleset, error) {
 	return nil, nil
-}
-
-func (Base) Pipeline(_ types.Context, _ types.KV, _ interface{}, _ types.PipelineOperate) (types.MsgPayload, string, int, error) {
-	return nil, "", 0, nil
 }
 
 func (Base) Agent(_ types.Context, _ types.KV) (types.MsgPayload, error) {

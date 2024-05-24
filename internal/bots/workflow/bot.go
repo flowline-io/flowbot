@@ -56,7 +56,6 @@ func (bot) IsReady() bool {
 func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
-		pipelineRules,
 	}
 }
 
@@ -66,10 +65,6 @@ func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
 
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	return bots.RunCommand(commandRules, ctx, content)
-}
-
-func (b bot) Pipeline(ctx types.Context, head types.KV, content interface{}, operate types.PipelineOperate) (types.MsgPayload, string, int, error) {
-	return bots.RunPipeline(pipelineRules, ctx, head, content, operate)
 }
 
 func (bot) Webservice(app *fiber.App) {

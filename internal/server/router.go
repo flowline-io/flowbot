@@ -390,13 +390,8 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		topicUid := types.Uid("") // fixme
+		//topicUid := types.Uid("")
 		//botSend(topic, topicUid, payload)
-
-		// pipeline form stage
-		pipelineFlag, _ := types.KV(formData.Extra).String("pipeline_flag")
-		pipelineVersion, _ := types.KV(formData.Extra).Int64("pipeline_version")
-		nextPipeline(ctx, pipelineFlag, int(pipelineVersion), topic, topicUid)
 	}
 
 	_, _ = rw.Write([]byte("ok"))

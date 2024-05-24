@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
-	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -202,30 +201,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				stats.Inc("BotRunCommandTotal", 1)
 			}
 		}
-		// pipeline command trigger
-		if payload == nil {
-			in := msg.AltMessage
-			// check "~" prefix
-			if strings.HasPrefix(in, "~") {
-				var pipelineFlag string
-				var pipelineVersion int
-				in = strings.Replace(in, "~", "", 1)
-				payload, pipelineFlag, pipelineVersion, err = handle.Pipeline(ctx, nil, in, types.PipelineCommandTriggerOperate)
-				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-				}
-				ctx.PipelineFlag = pipelineFlag
-				ctx.PipelineVersion = pipelineVersion
-
-				// stats
-				stats.Inc("BotTriggerPipelineTotal", 1)
-
-				// error message
-				if payload == nil {
-					payload = types.TextMsg{Text: "error pipeline"}
-				}
-			}
-		}
 		// input
 		if payload == nil {
 			/*
@@ -319,37 +294,6 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		},
 	})
 	flog.Info("event: %+v  response: %+v", msg, resp)
-}
-
-func nextPipeline(ctx types.Context, pipelineFlag string, pipelineVersion int, rcptTo string, botUid types.Uid) {
-	if pipelineFlag != "" && pipelineVersion > 0 {
-		pipelineData, err := store.Database.PipelineGet(ctx.AsUser, ctx.Original, pipelineFlag)
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-		for _, handler := range bots.List() {
-			for _, item := range handler.Rules() {
-				switch v := item.(type) {
-				case []pipeline.Rule:
-					for _, rule := range v {
-						if rule.Id == pipelineData.RuleID {
-							ctx.PipelineFlag = pipelineFlag
-							ctx.PipelineVersion = pipelineVersion
-							ctx.PipelineRuleId = pipelineData.RuleID
-							ctx.PipelineStepIndex = int(pipelineData.Stage)
-							//payload, _, _, err := handler.Pipeline(ctx, nil, nil, types.PipelineNextOperate)
-							//if err != nil {
-							//	flog.Error(err)
-							//	return
-							//}
-							//botSend(rcptTo, botUid, payload, types.WithContext(ctx))
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 func notifyAfterReboot() {

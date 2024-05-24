@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/ruleset/page"
-	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/ruleset/setting"
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
@@ -21,7 +20,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
@@ -89,166 +87,6 @@ func Help(rules []interface{}) (map[string][]string, error) {
 	}
 
 	return result, nil
-}
-
-func HelpPipeline(pipelineRules []pipeline.Rule, _ types.Context, _ types.KV, content interface{}) (types.MsgPayload, error) {
-	rs := pipeline.Ruleset(pipelineRules)
-	in, ok := content.(string)
-	if ok {
-		payload, err := rs.Help(in)
-		if err != nil {
-			return nil, err
-		}
-		if payload != nil {
-			return payload, nil
-		}
-	}
-	return nil, nil
-}
-
-func TriggerPipeline(pipelineRules []pipeline.Rule, ctx types.Context, _ types.KV, content interface{}, trigger types.TriggerType) (string, pipeline.Rule, error) {
-	rs := pipeline.Ruleset(pipelineRules)
-	in, ok := content.(string)
-	if ok {
-		rule, err := rs.TriggerPipeline(ctx, trigger, in)
-		if err != nil {
-			return "", pipeline.Rule{}, err
-		}
-
-		pipelineFlag := ""
-		if ctx.PipelineFlag == "" {
-			// store pipeline
-			flag, err := StorePipeline(ctx, rule, 0)
-			if err != nil {
-				flog.Error(err)
-				return "", pipeline.Rule{}, err
-			}
-			pipelineFlag = flag
-		}
-
-		return pipelineFlag, rule, nil
-	}
-	return "", pipeline.Rule{}, errors.New("error trigger")
-}
-
-func ProcessPipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (types.MsgPayload, error) {
-	if index < 0 || index > len(pipelineRule.Step) {
-		return nil, errors.New("error pipeline stage index")
-	}
-	if index == len(pipelineRule.Step) {
-		return types.TextMsg{Text: "Pipeline Done"}, SetPipelineState(ctx, ctx.PipelineFlag, model.PipelineDone)
-	}
-	var payload types.MsgPayload
-	stage := pipelineRule.Step[index]
-	switch stage.Type {
-	case types.FormStage:
-		payload = FormMsg(ctx, stage.Flag)
-	case types.CommandStage:
-		for name, handler := range List() {
-			if stage.Bot != types.Bot(name) {
-				continue
-			}
-			for _, item := range handler.Rules() {
-				switch v := item.(type) {
-				case []command.Rule:
-					for _, rule := range v {
-						tokens, err := parser.ParseString(strings.Join(stage.Args, " "))
-						if err != nil {
-							return nil, err
-						}
-						check, err := parser.SyntaxCheck(rule.Define, tokens)
-						if err != nil {
-							return nil, err
-						}
-						if !check {
-							continue
-						}
-						payload = rule.Handler(ctx, tokens)
-					}
-				}
-			}
-		}
-	case types.InstructStage:
-		data := make(map[string]interface{}) // fixme
-		for i, arg := range stage.Args {
-			data[fmt.Sprintf("val%d", i+1)] = arg
-		}
-		payload = InstructMsg(ctx, stage.Flag, data)
-	case types.SessionStage:
-		data := make(map[string]interface{}) // fixme
-		for i, arg := range stage.Args {
-			data[fmt.Sprintf("val%d", i+1)] = arg
-		}
-		payload = SessionMsg(ctx, stage.Flag, data)
-	}
-
-	if payload != nil {
-		return payload, nil
-	}
-	return nil, errors.New("error pipeline process")
-}
-
-func RunPipeline(pipelineRules []pipeline.Rule, ctx types.Context, head types.KV, content interface{}, operate types.PipelineOperate) (types.MsgPayload, string, int, error) {
-	switch operate {
-	case types.PipelineCommandTriggerOperate:
-		payload, err := HelpPipeline(pipelineRules, ctx, head, content)
-		if err != nil {
-			return nil, "", 0, err
-		}
-		if payload != nil {
-			return payload, "", 0, nil
-		}
-		flag, rule, err := TriggerPipeline(pipelineRules, ctx, head, content, types.TriggerCommandType)
-		if err != nil {
-			return nil, "", 0, err
-		}
-		ctx.PipelineFlag = flag
-		ctx.PipelineVersion = rule.Version
-		payload, err = ProcessPipeline(ctx, rule, 0)
-		if err != nil {
-			return nil, "", 0, err
-		}
-		return payload, flag, rule.Version, SetPipelineStep(ctx, flag, 1)
-	case types.PipelineProcessOperate:
-	case types.PipelineNextOperate:
-		for _, rule := range pipelineRules {
-			if rule.Id == ctx.PipelineRuleId {
-				payload, err := ProcessPipeline(ctx, rule, ctx.PipelineStepIndex)
-				if err != nil {
-					return nil, "", 0, err
-				}
-				return payload, ctx.PipelineFlag, ctx.PipelineVersion, SetPipelineStep(ctx, ctx.PipelineFlag, ctx.PipelineStepIndex+1)
-			}
-		}
-	}
-	return nil, "", 0, nil
-}
-
-func StorePipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (string, error) {
-	flag := types.Id()
-	return flag, store.Database.PipelineCreate(model.Pipeline{
-		UID:     ctx.AsUser.String(),
-		Topic:   ctx.Original,
-		Flag:    flag,
-		RuleID:  pipelineRule.Id,
-		Version: int32(pipelineRule.Version),
-		Stage:   int32(index),
-		State:   model.PipelineStart,
-	})
-}
-
-func SetPipelineState(ctx types.Context, flag string, state model.PipelineState) error {
-	return store.Database.PipelineState(ctx.AsUser, ctx.Original, model.Pipeline{
-		Flag:  flag,
-		State: state,
-	})
-}
-
-func SetPipelineStep(ctx types.Context, flag string, index int) error {
-	return store.Database.PipelineStep(ctx.AsUser, ctx.Original, model.Pipeline{
-		Flag:  flag,
-		Stage: int32(index),
-	})
 }
 
 func RunCommand(commandRules []command.Rule, ctx types.Context, content interface{}) (types.MsgPayload, error) {
