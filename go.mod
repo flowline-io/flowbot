@@ -43,7 +43,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rollbar/rollbar-go v1.4.5
-	github.com/rs/zerolog v1.32.0
+	github.com/rs/zerolog v1.33.0
 	github.com/slack-go/slack v0.13.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
