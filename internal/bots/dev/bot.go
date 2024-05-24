@@ -79,7 +79,6 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		formRules,
-		actionRules,
 		instructRules,
 		sessionRules,
 		pageRules,
@@ -100,10 +99,6 @@ func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, 
 
 func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return bots.RunForm(formRules, ctx, values)
-}
-
-func (b bot) Action(ctx types.Context, option string) (types.MsgPayload, error) {
-	return bots.RunAction(actionRules, ctx, option)
 }
 
 func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {

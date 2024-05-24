@@ -9,7 +9,6 @@ const (
 type StageType string
 
 const (
-	ActionStage   StageType = "action"
 	CommandStage  StageType = "command"
 	FormStage     StageType = "form"
 	InstructStage StageType = "instruct"

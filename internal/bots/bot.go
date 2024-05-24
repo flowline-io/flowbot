@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/ruleset/action"
 	"github.com/flowline-io/flowbot/internal/ruleset/agent"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
@@ -144,8 +143,6 @@ func ProcessPipeline(ctx types.Context, pipelineRule pipeline.Rule, index int) (
 	switch stage.Type {
 	case types.FormStage:
 		payload = FormMsg(ctx, stage.Flag)
-	case types.ActionStage:
-		payload = ActionMsg(ctx, stage.Flag)
 	case types.CommandStage:
 		for name, handler := range List() {
 			if stage.Bot != types.Bot(name) {
@@ -370,45 +367,6 @@ func AppURL(ctx types.Context, name string, param types.KV) string {
 	return fmt.Sprintf("%s/app/%s/?p=%s", types.AppUrl(), name, flag)
 }
 
-func RunAction(actionRules []action.Rule, ctx types.Context, option string) (types.MsgPayload, error) {
-	// check action
-	exAction, err := store.Database.ActionGet(ctx.RcptTo, ctx.SeqId)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-	if exAction.ID > 0 && exAction.State > model.ActionStateLongTerm {
-		return types.TextMsg{Text: "done"}, nil
-	}
-
-	// process action
-	rs := action.Ruleset(actionRules)
-	payload, err := rs.ProcessAction(ctx, option)
-	if err != nil {
-		return nil, err
-	}
-
-	// is long term
-	isLongTerm := false
-	for _, rule := range rs {
-		if rule.Id == ctx.ActionRuleId {
-			isLongTerm = rule.IsLongTerm
-		}
-	}
-	var state model.ActionState
-	if !isLongTerm {
-		state = model.ActionStateSubmitSuccess
-	} else {
-		state = model.ActionStateLongTerm
-	}
-	// store action
-	err = store.Database.ActionSet(ctx.RcptTo, ctx.SeqId, model.Action{UID: ctx.AsUser.String(), Value: option, State: state})
-	if err != nil {
-		return nil, err
-	}
-
-	return payload, nil
-}
-
 func RunCron(cronRules []cron.Rule, name string, send types.SendFunc) (*cron.Ruleset, error) {
 	ruleset := cron.NewCronRuleset(name, cronRules)
 	ruleset.Send = send
@@ -550,33 +508,6 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	flag := types.Id()
 	return flag, store.Database.ParameterSet(flag, params, expiredAt)
-}
-
-func ActionMsg(_ types.Context, id string) types.MsgPayload {
-	var title string
-	var option []string
-	for _, handler := range List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []action.Rule:
-				for _, rule := range v {
-					if rule.Id == id {
-						title = rule.Title
-						option = rule.Option
-					}
-				}
-			}
-		}
-	}
-	if len(option) <= 0 {
-		return types.TextMsg{Text: "error action rule id"}
-	}
-
-	return types.ActionMsg{
-		ID:     id,
-		Title:  title,
-		Option: option,
-	}
 }
 
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {

@@ -8,13 +8,6 @@ func Stage(stages ...types.Stage) []types.Stage {
 	return stages
 }
 
-func Action(id string) types.Stage {
-	return types.Stage{
-		Type: types.ActionStage,
-		Flag: id,
-	}
-}
-
 func Bot(name string) types.Bot {
 	return types.Bot(name)
 }

@@ -132,13 +132,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "action",
-		Help:   "[example] action",
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.ActionMsg(ctx, devActionID)
-		},
-	},
-	{
 		Define: "guess",
 		Help:   "Guess number game",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

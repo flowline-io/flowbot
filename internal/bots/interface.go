@@ -38,9 +38,6 @@ type Handler interface {
 	// Form return bot form result
 	Form(ctx types.Context, values types.KV) (types.MsgPayload, error)
 
-	// Action return bot action result
-	Action(ctx types.Context, option string) (types.MsgPayload, error)
-
 	// Session return bot session result
 	Session(ctx types.Context, content interface{}) (types.MsgPayload, error)
 
@@ -103,10 +100,6 @@ func (Base) Command(_ types.Context, _ interface{}) (types.MsgPayload, error) {
 }
 
 func (Base) Form(_ types.Context, _ types.KV) (types.MsgPayload, error) {
-	return nil, nil
-}
-
-func (Base) Action(_ types.Context, _ string) (types.MsgPayload, error) {
 	return nil, nil
 }
 

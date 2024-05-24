@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/internal/ruleset/action"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/pipeline"
 	"github.com/flowline-io/flowbot/internal/ruleset/session"
@@ -175,62 +174,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				payload, err = botHandler.Session(ctx, msg.AltMessage)
 				if err != nil {
 					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-				}
-			}
-		}
-	}
-
-	// action
-	if payload == nil {
-		seq := msg.Seq
-		option := msg.Option
-		if seq > 0 {
-			message, err := store.Database.GetMessage(topic) // fixme
-			if err != nil {
-				flog.Error(err)
-			}
-			actionRuleId := ""
-			if src, ok := types.KV(message.Content).Map("src"); ok {
-				if id, ok := src["id"]; ok {
-					actionRuleId = id.(string)
-				}
-			}
-			ctx.SeqId = int(seq)
-			ctx.ActionRuleId = actionRuleId
-
-			// get action handler
-			name := "unknown"
-			var botHandler bots.Handler
-			for n, handler := range bots.List() {
-				for _, item := range handler.Rules() {
-					switch v := item.(type) {
-					case []action.Rule:
-						for _, rule := range v {
-							if rule.Id == actionRuleId {
-								botHandler = handler
-								name = n
-							}
-						}
-					}
-				}
-			}
-			if botHandler == nil {
-				payload = types.TextMsg{Text: "error action"}
-			} else {
-				payload, err = botHandler.Action(ctx, option)
-				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-				}
-
-				if payload != nil {
-					//botUid := types.Uid(0) // todo types.ParseUserId(msg.Original)
-					//botSend(topic, botUid, payload, types.WithContext(ctx))
-
-					// pipeline action stage
-					//pipelineFlag, _ := types.KV(message.Head).String("x-pipeline-flag")
-					//pipelineVersion, _ := types.KV(message.Head).Int64("x-pipeline-version")
-					//nextPipeline(ctx, pipelineFlag, int(pipelineVersion), topic, botUid)
-					return
 				}
 			}
 		}
