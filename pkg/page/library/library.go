@@ -24,5 +24,5 @@ const JoiJs = "https://cdn.jsdelivr.net/npm/joi@17.9.2/dist/joi-browser.min.js"
 
 // json formatter
 
-const JsonFormatterCss = "https://cdn.staticfile.org/json-formatter/0.7.0/json-formatter.min.css"
-const JsonFormatterJs = "https://azimi.me/json-formatter-js/dist/json-formatter.umd.js"
+const JsonFormatterCss = "https://cdn.jsdelivr.net/npm/json-formatter-js@2.5.11/dist/json-formatter.min.css"
+const JsonFormatterJs = "https://cdn.jsdelivr.net/npm/json-formatter-js@2.5.11/dist/json-formatter.umd.min.js"
