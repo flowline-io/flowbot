@@ -17,13 +17,6 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "info",
-		Help:   `Bot info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return nil
-		},
-	},
-	{
 		Define: "oauth",
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

@@ -14,14 +14,7 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "info",
-		Help:   `Bot info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return nil
-		},
-	},
-	{
-		Define: `list`,
+		Define: `webhook list`,
 		Help:   `List webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			prefix := "webhook:"
@@ -43,7 +36,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: `create`,
+		Define: `webhook create`,
 		Help:   `create webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			p := types.KV{}
@@ -65,7 +58,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: `del [string]`,
+		Define: `webhook del [string]`,
 		Help:   `delete webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()

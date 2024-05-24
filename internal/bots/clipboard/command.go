@@ -11,13 +11,6 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "info",
-		Help:   `Bot info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return nil
-		},
-	},
-	{
 		Define: "share [string]",
 		Help:   `share clipboard to flowkit`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

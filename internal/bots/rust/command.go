@@ -10,13 +10,6 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "info",
-		Help:   `Bot info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return nil
-		},
-	},
-	{
 		Define: "crate [string]",
 		Help:   `crate info`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
