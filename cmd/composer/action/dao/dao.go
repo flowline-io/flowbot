@@ -214,10 +214,6 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("state", "PageState")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("parameter", "Parameter",
 		gen.FieldType("params", "JSON")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("session", "Session",
-		gen.FieldType("init", "JSON"),
-		gen.FieldType("values", "JSON"),
-		gen.FieldType("state", "SessionState")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("urls", "Url",
 		gen.FieldType("state", "UrlState")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("pipelines", "Pipeline",

@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
-	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -133,47 +132,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			payload = types.InfoMsg{
 				Title: "Help",
 				Model: m,
-			}
-		}
-	}
-
-	// session
-	if sess, ok := sessionCurrent(uid, topic); ok && sess.State == model.SessionStart {
-		// session cancel command
-		isCancel := false
-		if msg.AltMessage == "cancel" {
-			_ = store.Database.SessionState(ctx.AsUser, ctx.Original, model.SessionCancel)
-			payload = types.TextMsg{Text: "session cancel"}
-			isCancel = true
-		}
-		if !isCancel {
-			ctx.SessionRuleId = sess.RuleID
-			ctx.SessionInitValues = types.KV(sess.Init)
-			ctx.SessionLastValues = types.KV(sess.Values)
-
-			// get action handler
-			name := "unknown"
-			var botHandler bots.Handler
-			for n, handler := range bots.List() {
-				for _, item := range handler.Rules() {
-					switch v := item.(type) {
-					case []session.Rule:
-						for _, rule := range v {
-							if rule.Id == sess.RuleID {
-								botHandler = handler
-								name = n
-							}
-						}
-					}
-				}
-			}
-			if botHandler == nil {
-				payload = types.TextMsg{Text: "error session"}
-			} else {
-				payload, err = botHandler.Session(ctx, msg.AltMessage)
-				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-				}
 			}
 		}
 	}

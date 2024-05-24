@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/ruleset/page"
-	"github.com/flowline-io/flowbot/internal/ruleset/session"
 	"github.com/flowline-io/flowbot/internal/ruleset/setting"
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
@@ -222,11 +221,6 @@ func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.K
 	return rs.ProcessRule(ctx, input)
 }
 
-func RunSession(sessionRules []session.Rule, ctx types.Context, content interface{}) (types.MsgPayload, error) {
-	rs := session.Ruleset(sessionRules)
-	return rs.ProcessSession(ctx, content)
-}
-
 func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	rs := webhook.Ruleset(webhookRules)
 	return rs.Process(ctx, content)
@@ -387,57 +381,6 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		Title: title,
 		Url:   fmt.Sprintf("%s/page/%s", types.AppUrl(), pageId),
 	}
-}
-
-func SessionMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
-	var title string
-	for _, handler := range List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []session.Rule:
-				for _, rule := range v {
-					if rule.Id == id {
-						title = rule.Title
-					}
-				}
-			}
-		}
-	}
-	if title == "" {
-		return types.TextMsg{Text: "error session id"}
-	}
-
-	ctx.SessionRuleId = id
-	err := SessionStart(ctx, data)
-	if err != nil {
-		return types.TextMsg{Text: "session error"}
-	}
-
-	return types.TextMsg{Text: title}
-}
-
-func SessionStart(ctx types.Context, initValues types.KV) error {
-	sess, err := store.Database.SessionGet(ctx.AsUser, ctx.Original)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	}
-	if sess.ID > 0 && sess.State == model.SessionStart {
-		return errors.New("already a session started")
-	}
-	var values = types.KV{"val": nil}
-	_ = store.Database.SessionCreate(model.Session{
-		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Original,
-		RuleID: ctx.SessionRuleId,
-		Init:   model.JSON(initValues),
-		Values: model.JSON(values),
-		State:  model.SessionStart,
-	})
-	return nil
-}
-
-func SessionDone(ctx types.Context) {
-	_ = store.Database.SessionState(ctx.AsUser, ctx.Original, model.SessionDone)
 }
 
 func CreateShortUrl(text string) (string, error) {

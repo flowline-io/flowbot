@@ -80,7 +80,6 @@ func (b bot) Rules() []interface{} {
 		commandRules,
 		formRules,
 		instructRules,
-		sessionRules,
 		pageRules,
 		agentRules,
 		webserviceRules,
@@ -107,10 +106,6 @@ func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {
 
 func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	return bots.RunAgent(AgentVersion, agentRules, ctx, content)
-}
-
-func (b bot) Session(ctx types.Context, content interface{}) (types.MsgPayload, error) {
-	return bots.RunSession(sessionRules, ctx, content)
 }
 
 func (b bot) Instruct() (instruct.Ruleset, error) {

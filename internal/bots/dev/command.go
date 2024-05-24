@@ -132,17 +132,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "guess",
-		Help:   "Guess number game",
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			// rand number
-			big, _ := rand.Int(rand.Reader, big.NewInt(1000))
-
-			var initValue = types.KV{"number": big.Int64()}
-			return bots.SessionMsg(ctx, guessSessionID, initValue)
-		},
-	},
-	{
 		Define: "plot",
 		Help:   `[example] plot graph`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
