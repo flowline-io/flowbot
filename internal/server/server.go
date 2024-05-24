@@ -3,8 +3,6 @@ package server
 import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"time"
-
 	// bots
 	_ "github.com/flowline-io/flowbot/internal/bots/anki"
 	_ "github.com/flowline-io/flowbot/internal/bots/attendance"
@@ -49,9 +47,6 @@ import (
 )
 
 const (
-	// idleSessionTimeout defines duration of being idle before terminating a session.
-	idleSessionTimeout = time.Second * 55
-
 	// defaultMaxMessageSize is the default maximum message size
 	defaultMaxMessageSize = 1 << 19 // 512K
 

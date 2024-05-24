@@ -146,18 +146,6 @@ func (ah *handler) GetIdFromUrl(url string) types.Uid {
 	return media.GetIdFromUrl(url, ah.conf.ServeURL)
 }
 
-// getFileRecord given file ID reads file record from the database.
-func (ah *handler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
-	fd, err := store.Database.FileGet(fid.String())
-	if err != nil {
-		return nil, err
-	}
-	if fd == nil {
-		return nil, protocol.ErrNotFound
-	}
-	return fd, nil
-}
-
 func init() {
 	store.RegisterMediaHandler(handlerName, &handler{})
 }

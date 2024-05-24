@@ -289,14 +289,6 @@ func onlineStatus(msg protocol.Event) {
 	}
 }
 
-func sessionCurrent(uid types.Uid, topic string) (model.Session, bool) {
-	sess, err := store.Database.SessionGet(uid, topic)
-	if err != nil {
-		return model.Session{}, false
-	}
-	return sess, true
-}
-
 func errorResponse(rw http.ResponseWriter, text string) {
 	rw.WriteHeader(http.StatusBadRequest)
 	_, _ = rw.Write([]byte(text))
