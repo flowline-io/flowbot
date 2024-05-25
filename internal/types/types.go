@@ -25,42 +25,16 @@ type Context struct {
 	RcptTo string
 	// Sender's UserId as string.
 	AsUser Uid
-	// Sender's authentication level.
-	AuthLvl int
-	// Denormalized 'what' field of meta messages (set, get, del).
-	MetaWhat int
-	// Timestamp when this message was received by the server.
-	Timestamp time.Time
 	// OAuth token
 	Token string
 	// form id
 	FormId string
 	// form Rule id
 	FormRuleId string
-	// seq id
-	SeqId int
-	// form Rule id
-	ActionRuleId string
-	// condition
-	Condition string
 	// agent
 	AgentId string
 	// agent
 	AgentVersion int
-	// session Rule id
-	SessionRuleId string
-	// session init values
-	SessionInitValues KV
-	// session last values
-	SessionLastValues KV
-	// pipeline flag id
-	PipelineFlag string
-	// pipeline rule id
-	PipelineRuleId string
-	// pipeline version
-	PipelineVersion int
-	// pipeline stage index
-	PipelineStepIndex int
 	// page rule id
 	PageRuleId string
 	// workflow rule id

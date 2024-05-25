@@ -297,10 +297,6 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 	// set extra
 	var extra types.KV = make(map[string]interface{})
-	if ctx.PipelineFlag != "" {
-		extra["pipeline_flag"] = ctx.PipelineFlag
-		extra["pipeline_version"] = ctx.PipelineVersion
-	}
 
 	// store form
 	err = store.Database.FormSet(formId, model.Form{
