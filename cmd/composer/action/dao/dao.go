@@ -68,8 +68,6 @@ func GenerationAction(c *cli.Context) error {
 	g.UseDB(db)
 
 	// chatbot table
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("action", "Action",
-		gen.FieldType("state", "ActionState")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("behavior", "Behavior",
 		gen.FieldType("extra", "*JSON")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("configs", "Config",
@@ -216,9 +214,6 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("params", "JSON")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("urls", "Url",
 		gen.FieldType("state", "UrlState")))
-	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("pipelines", "Pipeline",
-		gen.FieldType("values", "JSON"),
-		gen.FieldType("state", "PipelineState")))
 
 	// platform table
 	g.ApplyBasic(g.GenerateModel("users",

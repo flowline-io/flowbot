@@ -1,21 +1,3 @@
-CREATE TABLE IF NOT EXISTS `action`
-(
-    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `seqid`      int                                                           NOT NULL,
-    `value`      varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `state`      tinyint                                                       NOT NULL,
-    `created_at` datetime                                                      NOT NULL,
-    `updated_at` datetime                                                      NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `uid` (`uid`, `topic`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
-
-
 CREATE TABLE IF NOT EXISTS `behavior`
 (
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
@@ -380,27 +362,6 @@ CREATE TABLE IF NOT EXISTS `parameter`
 
 
 
-CREATE TABLE IF NOT EXISTS `pipelines`
-(
-    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `flag`       char(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `rule_id`    varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `version`    int                                                           NOT NULL,
-    `stage`      int                                                           NOT NULL,
-    `values`     json DEFAULT NULL,
-    `state`      tinyint                                                       NOT NULL,
-    `created_at` datetime                                                      NOT NULL,
-    `updated_at` datetime                                                      NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `uid` (`uid`, `topic`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
-
-
 CREATE TABLE IF NOT EXISTS `platforms`
 (
     `id`         bigint      NOT NULL AUTO_INCREMENT,
@@ -479,25 +440,6 @@ CREATE TABLE IF NOT EXISTS `schema_migrations`
     `version` int     NOT NULL AUTO_INCREMENT,
     `dirty`   tinyint NOT NULL DEFAULT (0),
     PRIMARY KEY (`version`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
-
-
-CREATE TABLE IF NOT EXISTS `session`
-(
-    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
-    `rule_id`    varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-    `init`       json                                                          NOT NULL,
-    `values`     json                                                          NOT NULL,
-    `state`      tinyint                                                       NOT NULL,
-    `created_at` datetime                                                      NOT NULL,
-    `updated_at` datetime                                                      NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `uid` (`uid`, `topic`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;

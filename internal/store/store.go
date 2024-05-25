@@ -182,16 +182,6 @@ type Adapter interface {
 	OAuthGetAvailable(t string) ([]model.OAuth, error)
 	FormSet(formId string, form model.Form) error
 	FormGet(formId string) (model.Form, error)
-	ActionSet(topic string, seqId int, action model.Action) error
-	ActionGet(topic string, seqId int) (model.Action, error)
-	SessionCreate(session model.Session) error
-	SessionSet(uid types.Uid, topic string, session model.Session) error
-	SessionState(uid types.Uid, topic string, state model.SessionState) error
-	SessionGet(uid types.Uid, topic string) (model.Session, error)
-	PipelineCreate(pipeline model.Pipeline) error
-	PipelineState(uid types.Uid, topic string, pipeline model.Pipeline) error
-	PipelineStep(uid types.Uid, topic string, pipeline model.Pipeline) error
-	PipelineGet(uid types.Uid, topic string, flag string) (model.Pipeline, error)
 	PageSet(pageId string, page model.Page) error
 	PageGet(pageId string) (model.Page, error)
 	UrlCreate(url model.Url) error

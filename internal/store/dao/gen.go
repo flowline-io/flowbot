@@ -17,7 +17,6 @@ import (
 
 var (
 	Q                = new(Query)
-	Action           *action
 	Behavior         *behavior
 	Bot              *bot
 	Channel          *channel
@@ -38,7 +37,6 @@ var (
 	Objective        *objective
 	Page             *page
 	Parameter        *parameter
-	Pipeline         *pipeline
 	Platform         *platform
 	PlatformBot      *platformBot
 	PlatformChannel  *platformChannel
@@ -46,7 +44,6 @@ var (
 	Review           *review
 	ReviewEvaluation *reviewEvaluation
 	SchemaMigration  *schemaMigration
-	Session          *session
 	Step             *step
 	Todo             *todo
 	Topic            *topic
@@ -59,7 +56,6 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	Action = &Q.Action
 	Behavior = &Q.Behavior
 	Bot = &Q.Bot
 	Channel = &Q.Channel
@@ -80,7 +76,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Objective = &Q.Objective
 	Page = &Q.Page
 	Parameter = &Q.Parameter
-	Pipeline = &Q.Pipeline
 	Platform = &Q.Platform
 	PlatformBot = &Q.PlatformBot
 	PlatformChannel = &Q.PlatformChannel
@@ -88,7 +83,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Review = &Q.Review
 	ReviewEvaluation = &Q.ReviewEvaluation
 	SchemaMigration = &Q.SchemaMigration
-	Session = &Q.Session
 	Step = &Q.Step
 	Todo = &Q.Todo
 	Topic = &Q.Topic
@@ -102,7 +96,6 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:               db,
-		Action:           newAction(db, opts...),
 		Behavior:         newBehavior(db, opts...),
 		Bot:              newBot(db, opts...),
 		Channel:          newChannel(db, opts...),
@@ -123,7 +116,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Objective:        newObjective(db, opts...),
 		Page:             newPage(db, opts...),
 		Parameter:        newParameter(db, opts...),
-		Pipeline:         newPipeline(db, opts...),
 		Platform:         newPlatform(db, opts...),
 		PlatformBot:      newPlatformBot(db, opts...),
 		PlatformChannel:  newPlatformChannel(db, opts...),
@@ -131,7 +123,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Review:           newReview(db, opts...),
 		ReviewEvaluation: newReviewEvaluation(db, opts...),
 		SchemaMigration:  newSchemaMigration(db, opts...),
-		Session:          newSession(db, opts...),
 		Step:             newStep(db, opts...),
 		Todo:             newTodo(db, opts...),
 		Topic:            newTopic(db, opts...),
@@ -146,7 +137,6 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
-	Action           action
 	Behavior         behavior
 	Bot              bot
 	Channel          channel
@@ -167,7 +157,6 @@ type Query struct {
 	Objective        objective
 	Page             page
 	Parameter        parameter
-	Pipeline         pipeline
 	Platform         platform
 	PlatformBot      platformBot
 	PlatformChannel  platformChannel
@@ -175,7 +164,6 @@ type Query struct {
 	Review           review
 	ReviewEvaluation reviewEvaluation
 	SchemaMigration  schemaMigration
-	Session          session
 	Step             step
 	Todo             todo
 	Topic            topic
@@ -191,7 +179,6 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:               db,
-		Action:           q.Action.clone(db),
 		Behavior:         q.Behavior.clone(db),
 		Bot:              q.Bot.clone(db),
 		Channel:          q.Channel.clone(db),
@@ -212,7 +199,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Objective:        q.Objective.clone(db),
 		Page:             q.Page.clone(db),
 		Parameter:        q.Parameter.clone(db),
-		Pipeline:         q.Pipeline.clone(db),
 		Platform:         q.Platform.clone(db),
 		PlatformBot:      q.PlatformBot.clone(db),
 		PlatformChannel:  q.PlatformChannel.clone(db),
@@ -220,7 +206,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Review:           q.Review.clone(db),
 		ReviewEvaluation: q.ReviewEvaluation.clone(db),
 		SchemaMigration:  q.SchemaMigration.clone(db),
-		Session:          q.Session.clone(db),
 		Step:             q.Step.clone(db),
 		Todo:             q.Todo.clone(db),
 		Topic:            q.Topic.clone(db),
@@ -243,7 +228,6 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:               db,
-		Action:           q.Action.replaceDB(db),
 		Behavior:         q.Behavior.replaceDB(db),
 		Bot:              q.Bot.replaceDB(db),
 		Channel:          q.Channel.replaceDB(db),
@@ -264,7 +248,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Objective:        q.Objective.replaceDB(db),
 		Page:             q.Page.replaceDB(db),
 		Parameter:        q.Parameter.replaceDB(db),
-		Pipeline:         q.Pipeline.replaceDB(db),
 		Platform:         q.Platform.replaceDB(db),
 		PlatformBot:      q.PlatformBot.replaceDB(db),
 		PlatformChannel:  q.PlatformChannel.replaceDB(db),
@@ -272,7 +255,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Review:           q.Review.replaceDB(db),
 		ReviewEvaluation: q.ReviewEvaluation.replaceDB(db),
 		SchemaMigration:  q.SchemaMigration.replaceDB(db),
-		Session:          q.Session.replaceDB(db),
 		Step:             q.Step.replaceDB(db),
 		Todo:             q.Todo.replaceDB(db),
 		Topic:            q.Topic.replaceDB(db),
@@ -285,7 +267,6 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
-	Action           *actionDo
 	Behavior         *behaviorDo
 	Bot              *botDo
 	Channel          *channelDo
@@ -306,7 +287,6 @@ type queryCtx struct {
 	Objective        *objectiveDo
 	Page             *pageDo
 	Parameter        *parameterDo
-	Pipeline         *pipelineDo
 	Platform         *platformDo
 	PlatformBot      *platformBotDo
 	PlatformChannel  *platformChannelDo
@@ -314,7 +294,6 @@ type queryCtx struct {
 	Review           *reviewDo
 	ReviewEvaluation *reviewEvaluationDo
 	SchemaMigration  *schemaMigrationDo
-	Session          *sessionDo
 	Step             *stepDo
 	Todo             *todoDo
 	Topic            *topicDo
@@ -327,7 +306,6 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Action:           q.Action.WithContext(ctx),
 		Behavior:         q.Behavior.WithContext(ctx),
 		Bot:              q.Bot.WithContext(ctx),
 		Channel:          q.Channel.WithContext(ctx),
@@ -348,7 +326,6 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Objective:        q.Objective.WithContext(ctx),
 		Page:             q.Page.WithContext(ctx),
 		Parameter:        q.Parameter.WithContext(ctx),
-		Pipeline:         q.Pipeline.WithContext(ctx),
 		Platform:         q.Platform.WithContext(ctx),
 		PlatformBot:      q.PlatformBot.WithContext(ctx),
 		PlatformChannel:  q.PlatformChannel.WithContext(ctx),
@@ -356,7 +333,6 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Review:           q.Review.WithContext(ctx),
 		ReviewEvaluation: q.ReviewEvaluation.WithContext(ctx),
 		SchemaMigration:  q.SchemaMigration.WithContext(ctx),
-		Session:          q.Session.WithContext(ctx),
 		Step:             q.Step.WithContext(ctx),
 		Todo:             q.Todo.WithContext(ctx),
 		Topic:            q.Topic.WithContext(ctx),
