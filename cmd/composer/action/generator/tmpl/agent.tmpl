@@ -13,7 +13,7 @@ const (
 var agentRules = []agent.Rule{
     {
         Id: ExampleAgentID,
-        Handler: func(ctx types.Context, content interface{}) types.MsgPayload {
+        Handler: func(ctx types.Context, content types.KV) types.MsgPayload {
             return nil
         },
     },

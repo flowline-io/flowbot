@@ -6,7 +6,7 @@ import (
     "github.com/flowline-io/flowbot/internal/bots"
     "github.com/flowline-io/flowbot/internal/types"
     "github.com/flowline-io/flowbot/pkg/flog"
-    {{if .HasCron}}serverTypes "github.com/flowline-io/flowbot/tstore/types"{{end}}
+    {{if .HasCron}}"github.com/flowline-io/flowbot/internal/ruleset/cron"{{end}}
 )
 
 const Name = "{{ .BotName }}"
@@ -51,14 +51,23 @@ func (bot) Init(jsonconf json.RawMessage) error {
 func (bot) IsReady() bool {
     return handler.initialized
 }
+
+func (bot) Bootstrap() error {
+	return nil
+}
+
+func (b bot) Rules() []interface{} {
+	return []interface{}{
+		commandRules,
+		{{if .HasForm}}formRules,{{end}}
+		{{if .HasAgent}}agentRules,{{end}}
+		{{if .HasInstruct}}instructRules,{{end}}
+	}
+}
+
 {{if .HasInput}}
 func (b bot) Input(_ types.Context, _ types.KV, _ interface{}) (types.MsgPayload, error) {
     return nil, nil
-}
-{{end}}
-{{if .HasGroup}}
-func (b bot) Group(ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error) {
-    return bots.RunGroup(eventRules, ctx, head, content)
 }
 {{end}}
 {{if .HasCommand}}
@@ -71,28 +80,13 @@ func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) 
     return bots.RunForm(formRules, ctx, values)
 }
 {{end}}
-{{if .HasAction}}
-func (b bot) Action(ctx types.Context, option string) (types.MsgPayload, error) {
-    return bots.RunAction(actionRules, ctx, option)
-}
-{{end}}
 {{if .HasCron}}
-func (b bot) Cron(send func(rcptTo string, uid serverTypes.Uid, out types.MsgPayload)) error {
-    return bots.RunCron(cronRules, Name, b.AuthLevel(), send)
-}
-{{end}}
-{{if .HasCondition}}
-func (b bot) Condition(ctx types.Context, forwarded types.MsgPayload) (types.MsgPayload, error) {
-    return bots.RunCondition(conditionRules, ctx, forwarded)
+func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {
+    return bots.RunCron(cronRules, Name, send)
 }
 {{end}}
 {{if .HasAgent}}
-func (b bot) Agent(ctx types.Context, content interface{}) (types.MsgPayload, error) {
-    return bots.RunAgent(agentRules, ctx, content)
-}
-{{end}}
-{{if .HasSession}}
-func (b bot) Session(ctx types.Context, content interface{}) (types.MsgPayload, error) {
-    return bots.RunSession(sessionRules, ctx, content)
+func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+    return bots.RunAgent(AgentVersion, agentRules, ctx, content)
 }
 {{end}}

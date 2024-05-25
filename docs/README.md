@@ -16,7 +16,7 @@
 ```shell
 
 # Generator cli
-go run github.com/flowline-io/flowbot/cmd/composer generator bot -name example -rule input,group,agent,command,condition,cron,form
+go run github.com/flowline-io/flowbot/cmd/composer generator bot -name example -rule agent,command,cron,form,input,instruct
 go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name example
 
 # Migrate cli
