@@ -35,6 +35,7 @@ type Column struct {
 	Privileges             string         `db:"PRIVILEGES"`
 	ColumnComment          string         `db:"COLUMN_COMMENT"`
 	GenerationExpression   string         `db:"GENERATION_EXPRESSION"`
+	SrsID                  sql.NullInt64  `db:"SRS_ID"`
 }
 
 type Table struct {
