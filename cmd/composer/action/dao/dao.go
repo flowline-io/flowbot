@@ -88,6 +88,8 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("state", "InstructState")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("oauth", "OAuth",
 		gen.FieldType("extra", "JSON")))
+	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("webhook", "Webhook",
+		gen.FieldType("state", "WebhookState")))
 
 	// OKR
 	todos := g.GenerateModelAs("todos", "Todo", gen.FieldRelate(field.HasMany, "SubTodos",

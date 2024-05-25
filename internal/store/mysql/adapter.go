@@ -745,6 +745,59 @@ func (a *adapter) UpdateInstruct(instruct *model.Instruct) error {
 		}).Error
 }
 
+func (a *adapter) ListWebhook(uid types.Uid) ([]*model.Webhook, error) {
+	q := dao.Q.Webhook
+	return q.
+		Where(q.UID.Eq(uid.String())).
+		Find()
+}
+
+func (a *adapter) CreateWebhook(webhook *model.Webhook) (int64, error) {
+	q := dao.Q.Webhook
+	err := q.Create(webhook)
+	if err != nil {
+		return 0, err
+	}
+	return webhook.ID, nil
+}
+
+func (a *adapter) UpdateWebhook(webhook *model.Webhook) error {
+	q := dao.Q.Webhook
+	_, err := q.
+		Where(q.ID.Eq(webhook.ID)).
+		Update(q.State, webhook.State)
+	return err
+}
+
+func (a *adapter) DeleteWebhook(id int64) error {
+	q := dao.Q.Webhook
+	_, err := q.Where(q.ID.Eq(id)).Delete()
+	return err
+}
+
+func (a *adapter) IncreaseWebhookCount(id int64) error {
+	q := dao.Q.Webhook
+	_, err := q.
+		Where(q.ID.Eq(id)).
+		Update(q.TriggerCount, gorm.Expr("trigger_count + ?", 1))
+	return err
+}
+
+func (a *adapter) GetWebhookBySecret(secret string) (*model.Webhook, error) {
+	q := dao.Q.Webhook
+	return q.
+		Where(q.Secret.Eq(secret)).
+		First()
+}
+
+func (a *adapter) GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Webhook, error) {
+	q := dao.Q.Webhook
+	return q.
+		Where(q.UID.Eq(uid.String())).
+		Where(q.Flag.Eq(flag)).
+		First()
+}
+
 func (a *adapter) GetObjectiveByID(id int64) (*model.Objective, error) {
 	var objective model.Objective
 	err := a.db.

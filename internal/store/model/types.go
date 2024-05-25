@@ -379,3 +379,15 @@ const (
 func (j ChannelState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
+
+type WebhookState int
+
+const (
+	WebhookStateUnknown WebhookState = iota
+	WebhookActive
+	WebhookInactive
+)
+
+func (j WebhookState) Value() (driver.Value, error) {
+	return int64(j), nil
+}

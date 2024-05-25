@@ -199,6 +199,13 @@ type Adapter interface {
 	CreateInstruct(instruct *model.Instruct) (int64, error)
 	ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct, error)
 	UpdateInstruct(instruct *model.Instruct) error
+	ListWebhook(uid types.Uid) ([]*model.Webhook, error)
+	CreateWebhook(webhook *model.Webhook) (int64, error)
+	UpdateWebhook(webhook *model.Webhook) error
+	DeleteWebhook(id int64) error
+	IncreaseWebhookCount(id int64) error
+	GetWebhookBySecret(secret string) (*model.Webhook, error)
+	GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Webhook, error)
 
 	GetObjectiveByID(id int64) (*model.Objective, error)
 	GetObjectiveBySequence(uid types.Uid, topic string, sequence int64) (*model.Objective, error)

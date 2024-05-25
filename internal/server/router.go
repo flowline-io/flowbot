@@ -483,6 +483,8 @@ func platformCallback(ctx *fiber.Ctx) error {
 func doWebhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 
+	flog.Info("webhook flag: %s", flag)
+
 	var webhookRule webhook.Rule
 	var botHandler bots.Handler
 	for _, handler := range bots.List() {
@@ -503,6 +505,10 @@ func doWebhook(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
 	}
 
+	typesCtx := types.Context{}
+
+	var err error
+	var find *model.Webhook
 	if webhookRule.Secret {
 		secret := ""
 		val := ctx.FormValue("secret")
@@ -524,13 +530,32 @@ func doWebhook(ctx *fiber.Ctx) error {
 		if secret == "" {
 			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
 		}
+		find, err = store.Database.GetWebhookBySecret(secret)
+		if err != nil {
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotAuthorized, err))
+		}
+		if find.State != model.WebhookActive {
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
+		}
+
+		typesCtx.AsUser = types.Uid(find.UID)
+		typesCtx.RcptTo = find.Topic
 	}
 
-	typesCtx := types.Context{}
+	data := types.KV{}
+	data["method"] = ctx.Method()
+	data["body"] = ctx.Body()
 
-	payload, err := botHandler.Webhook(typesCtx, types.KV{})
+	payload, err := botHandler.Webhook(typesCtx, data)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
+	}
+
+	if find != nil {
+		err = store.Database.IncreaseWebhookCount(find.ID)
+		if err != nil {
+			flog.Error(err)
+		}
 	}
 
 	return ctx.JSON(payload)

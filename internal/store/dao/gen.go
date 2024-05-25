@@ -49,6 +49,7 @@ var (
 	Topic            *topic
 	Url              *url
 	User             *user
+	Webhook          *webhook
 	Workflow         *workflow
 	WorkflowScript   *workflowScript
 	WorkflowTrigger  *workflowTrigger
@@ -88,6 +89,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Topic = &Q.Topic
 	Url = &Q.Url
 	User = &Q.User
+	Webhook = &Q.Webhook
 	Workflow = &Q.Workflow
 	WorkflowScript = &Q.WorkflowScript
 	WorkflowTrigger = &Q.WorkflowTrigger
@@ -128,6 +130,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Topic:            newTopic(db, opts...),
 		Url:              newUrl(db, opts...),
 		User:             newUser(db, opts...),
+		Webhook:          newWebhook(db, opts...),
 		Workflow:         newWorkflow(db, opts...),
 		WorkflowScript:   newWorkflowScript(db, opts...),
 		WorkflowTrigger:  newWorkflowTrigger(db, opts...),
@@ -169,6 +172,7 @@ type Query struct {
 	Topic            topic
 	Url              url
 	User             user
+	Webhook          webhook
 	Workflow         workflow
 	WorkflowScript   workflowScript
 	WorkflowTrigger  workflowTrigger
@@ -211,6 +215,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Topic:            q.Topic.clone(db),
 		Url:              q.Url.clone(db),
 		User:             q.User.clone(db),
+		Webhook:          q.Webhook.clone(db),
 		Workflow:         q.Workflow.clone(db),
 		WorkflowScript:   q.WorkflowScript.clone(db),
 		WorkflowTrigger:  q.WorkflowTrigger.clone(db),
@@ -260,6 +265,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Topic:            q.Topic.replaceDB(db),
 		Url:              q.Url.replaceDB(db),
 		User:             q.User.replaceDB(db),
+		Webhook:          q.Webhook.replaceDB(db),
 		Workflow:         q.Workflow.replaceDB(db),
 		WorkflowScript:   q.WorkflowScript.replaceDB(db),
 		WorkflowTrigger:  q.WorkflowTrigger.replaceDB(db),
@@ -299,6 +305,7 @@ type queryCtx struct {
 	Topic            *topicDo
 	Url              *urlDo
 	User             *userDo
+	Webhook          *webhookDo
 	Workflow         *workflowDo
 	WorkflowScript   *workflowScriptDo
 	WorkflowTrigger  *workflowTriggerDo
@@ -338,6 +345,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Topic:            q.Topic.WithContext(ctx),
 		Url:              q.Url.WithContext(ctx),
 		User:             q.User.WithContext(ctx),
+		Webhook:          q.Webhook.WithContext(ctx),
 		Workflow:         q.Workflow.WithContext(ctx),
 		WorkflowScript:   q.WorkflowScript.WithContext(ctx),
 		WorkflowTrigger:  q.WorkflowTrigger.WithContext(ctx),
