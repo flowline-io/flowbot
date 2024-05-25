@@ -202,12 +202,6 @@ func initializeConfig() error {
 		config.App.Listen = *appFlag.listenOn
 	}
 
-	// Maximum message size
-	globals.maxMessageSize = int64(config.App.MaxMessageSize)
-	if globals.maxMessageSize <= 0 {
-		globals.maxMessageSize = defaultMaxMessageSize
-	}
-
 	globals.useXForwardedFor = config.App.UseXForwardedFor
 
 	// Configure root path for serving API calls.

@@ -1,14 +1,9 @@
 ---
 listen: ":6060"
 api_path: "/"
-cache_control: 39600
-ws_compression_disabled: false
-api_key_salt: "T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4="
-max_message_size: 262144
 expvar: "/debug/vars"
 server_status: "/debug/status"
 use_x_forwarded_for: true
-default_country_code: ''
 
 media:
   use_handler: fs
@@ -18,16 +13,6 @@ media:
   handlers:
     fs:
       upload_dir: uploads
-    s3:
-      access_key_id: your_s3_access_key_id
-      secret_access_key: your_s3_secret_access_key
-      region: s3 region, like us-east-2
-      bucket: your_s3_bucket_name
-      disable_ssl: false
-      force_path_style: false
-      endpoint: ''
-      cors_origins:
-        - "*"
     minio:
       access_key_id: your_s3_access_key_id
       secret_access_key: your_s3_secret_access_key

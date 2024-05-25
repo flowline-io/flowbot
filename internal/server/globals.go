@@ -16,8 +16,6 @@ var globals struct {
 	tlsStrictMaxAge string
 	// Listen for connections on this address:port and redirect them to HTTPS port.
 	tlsRedirectHTTP string
-	// Maximum message size allowed from peer.
-	maxMessageSize int64
 
 	// Maximum allowed upload size.
 	maxFileUploadSize int64
@@ -26,12 +24,6 @@ var globals struct {
 
 	// Prioritize X-Forwarded-For header as the source of IP address of the client.
 	useXForwardedFor bool
-
-	// Time before the call is dropped if not answered.
-	callEstablishmentTimeout int
-
-	// URL of the main endpoint.
-	servingAt string
 
 	// Crawler
 	crawler *crawler.Crawler

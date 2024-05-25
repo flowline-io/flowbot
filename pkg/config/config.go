@@ -19,17 +19,6 @@ type configType struct {
 	// Base URL path where the streaming and large file API calls are served, default is '/'.
 	// Can be overridden from the command line, see option --api_path.
 	ApiPath string `json:"api_path" yaml:"api_path" mapstructure:"api_path"`
-	// Cache-Control value for static content.
-	CacheControl int `json:"cache_control" yaml:"cache_control" mapstructure:"cache_control"`
-	// URL path for mounting the directory with static files (usually TinodeWeb).
-	StaticMount string `json:"static_mount" yaml:"static_mount" mapstructure:"static_mount"`
-	// Local path to static files. All files in this path are made accessible by HTTP.
-	StaticData string `json:"static_data" yaml:"static_data" mapstructure:"static_data"`
-	// Salt used in signing API keys
-	APIKeySalt string `json:"api_key_salt" yaml:"api_key_salt" mapstructure:"api_key_salt"`
-	// Maximum message size allowed from client. Intended to prevent malicious client from sending
-	// very large files inband (does not affect out of band uploads).
-	MaxMessageSize int `json:"max_message_size" yaml:"max_message_size" mapstructure:"max_message_size"`
 	// URL path for exposing runtime stats. Disabled if the path is blank.
 	ExpvarPath string `json:"expvar" yaml:"expvar_path" mapstructure:"expvar_path"`
 	// URL path for internal server status. Disabled if the path is blank.
@@ -37,10 +26,6 @@ type configType struct {
 	// Take IP address of the client from HTTP header 'X-Forwarded-For'.
 	// Useful when tinode is behind a proxy. If missing, fallback to default RemoteAddr.
 	UseXForwardedFor bool `json:"use_x_forwarded_for" yaml:"use_x_forwarded_for" mapstructure:"use_x_forwarded_for"`
-	// 2-letter country code (ISO 3166-1 alpha-2) to assign to sessions by default
-	// when the country isn't specified by the client explicitly and
-	// it's impossible to infer it.
-	DefaultCountryCode string `json:"default_country_code" yaml:"default_country_code" mapstructure:"default_country_code"`
 
 	// Configs for subsystems
 	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`
