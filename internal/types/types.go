@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/flowline-io/flowbot/pkg/config"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/lithammer/shortuuid/v3"
 	"time"
 )
@@ -49,27 +48,6 @@ func AppUrl() string {
 	return config.App.Flowbot.URL
 }
 
-type QueuePayload struct {
-	RcptTo string `json:"rcpt_to"`
-	Uid    string `json:"uid"`
-	Type   string `json:"type"`
-	Msg    []byte `json:"msg"`
-}
-
-func ConvertQueuePayload(rcptTo string, uid string, msg MsgPayload) (QueuePayload, error) {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	data, err := json.Marshal(msg)
-	if err != nil {
-		return QueuePayload{}, err
-	}
-	return QueuePayload{
-		RcptTo: rcptTo,
-		Uid:    uid,
-		Type:   Tye(msg),
-		Msg:    data,
-	}, nil
-}
-
 type DataFilter struct {
 	Prefix       *string
 	CreatedStart *time.Time
@@ -77,10 +55,6 @@ type DataFilter struct {
 }
 
 type SendFunc func(rcptTo string, uid Uid, out MsgPayload, option ...interface{})
-
-func WithContext(ctx Context) Context {
-	return ctx
-}
 
 // TimeNow returns current wall time in UTC rounded to milliseconds.
 func TimeNow() time.Time {
