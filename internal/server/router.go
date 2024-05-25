@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	formRule "github.com/flowline-io/flowbot/internal/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/internal/ruleset/page"
+	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -65,6 +66,8 @@ func newRouter(app *fiber.App) *mux.Router {
 	app.Get("/p/:id/:flag", renderPage)
 	// bot
 	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
+	// webhook
+	app.All("/webhook/:flag", doWebhook)
 
 	return s
 }
@@ -475,4 +478,60 @@ func platformCallback(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
+}
+
+func doWebhook(ctx *fiber.Ctx) error {
+	flag := ctx.Params("flag")
+
+	var webhookRule webhook.Rule
+	var botHandler bots.Handler
+	for _, handler := range bots.List() {
+		for _, item := range handler.Rules() {
+			switch v := item.(type) {
+			case []webhook.Rule:
+				for _, rule := range v {
+					if rule.Id == flag {
+						botHandler = handler
+						webhookRule = rule
+					}
+				}
+			}
+		}
+	}
+
+	if botHandler == nil {
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
+	}
+
+	if webhookRule.Secret {
+		secret := ""
+		val := ctx.FormValue("secret")
+		if val != "" {
+			secret = val
+		}
+		val = ctx.Query("secret")
+		if val != "" {
+			secret = val
+		}
+		val = ctx.Cookies("secret")
+		if val != "" {
+			secret = val
+		}
+		val = ctx.Get("X-Secret")
+		if val != "" {
+			secret = val
+		}
+		if secret == "" {
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
+		}
+	}
+
+	typesCtx := types.Context{}
+
+	payload, err := botHandler.Webhook(typesCtx, types.KV{})
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
+	}
+
+	return ctx.JSON(payload)
 }
