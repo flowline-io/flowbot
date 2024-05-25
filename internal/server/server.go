@@ -13,6 +13,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/finance"
 	_ "github.com/flowline-io/flowbot/internal/bots/flowkit"
 	_ "github.com/flowline-io/flowbot/internal/bots/genshin"
+	_ "github.com/flowline-io/flowbot/internal/bots/gitea"
 	_ "github.com/flowline-io/flowbot/internal/bots/github"
 	_ "github.com/flowline-io/flowbot/internal/bots/gpt"
 	_ "github.com/flowline-io/flowbot/internal/bots/iot"
