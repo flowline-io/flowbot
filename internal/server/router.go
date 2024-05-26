@@ -47,6 +47,9 @@ func setupMux(app *fiber.App) {
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("ok")
+	})
 
 	app.All("/chatbot/:platform", platformCallback)
 }
