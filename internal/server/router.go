@@ -45,8 +45,8 @@ func setupMux(app *fiber.App) {
 
 	newRouter(app)
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	app.Group("/u", adaptor.HTTPHandler(newUrlRouter()))
 	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
+	app.Get("/u/:flag", urlRedirect)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
 	})
@@ -83,13 +83,6 @@ func newWebappRouter() *mux.Router {
 			s.HandleFunc(fmt.Sprintf("/%s/{subpath:.*}", name), f)
 		}
 	}
-	return s
-}
-
-func newUrlRouter() *mux.Router {
-	r := mux.NewRouter()
-	s := r.PathPrefix("/u").Subrouter()
-	s.HandleFunc("/{flag}", urlRedirect)
 	return s
 }
 
@@ -441,25 +434,19 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 	//_, _ = rw.Write(res)
 }
 
-func urlRedirect(rw http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	flag, ok := vars["flag"]
-	if !ok {
-		errorResponse(rw, "error")
-		return
-	}
+func urlRedirect(ctx *fiber.Ctx) error {
+	flag := ctx.Params("flag")
 
 	url, err := store.Database.UrlGetByFlag(flag)
 	if err != nil {
-		errorResponse(rw, "error")
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}
 
 	// view count
 	_ = store.Database.UrlViewIncrease(flag)
 
 	// redirect
-	http.Redirect(rw, req, url.URL, http.StatusFound)
+	return ctx.Redirect(url.URL, http.StatusFound)
 }
 
 func platformCallback(ctx *fiber.Ctx) error {
