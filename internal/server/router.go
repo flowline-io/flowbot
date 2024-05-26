@@ -44,8 +44,8 @@ func setupMux(app *fiber.App) {
 	}
 
 	newRouter(app)
+	app.Static("/d", config.App.Flowbot.DownloadPath)
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	app.Group("/d", adaptor.HTTPHandler(newDownloadRouter()))
 	app.Get("/u/:flag", urlRedirect)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
@@ -84,13 +84,6 @@ func newWebappRouter() *mux.Router {
 		}
 	}
 	return s
-}
-
-func newDownloadRouter() *mux.Router {
-	dir := config.App.Flowbot.DownloadPath
-	r := mux.NewRouter()
-	r.PathPrefix("/d").Handler(http.StripPrefix("/d/", http.FileServer(http.Dir(dir))))
-	return r
 }
 
 // handler
