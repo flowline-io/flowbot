@@ -9,7 +9,6 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/clipboard"
 	_ "github.com/flowline-io/flowbot/internal/bots/cloudflare"
 	_ "github.com/flowline-io/flowbot/internal/bots/dev"
-	_ "github.com/flowline-io/flowbot/internal/bots/download"
 	_ "github.com/flowline-io/flowbot/internal/bots/finance"
 	_ "github.com/flowline-io/flowbot/internal/bots/flowkit"
 	_ "github.com/flowline-io/flowbot/internal/bots/genshin"

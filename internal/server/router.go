@@ -19,7 +19,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page"
 	"github.com/flowline-io/flowbot/pkg/page/form"
@@ -45,7 +44,6 @@ func setupMux(app *fiber.App) {
 	}
 
 	newRouter(app)
-	app.Static("/d", config.App.Flowbot.DownloadPath)
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")

@@ -179,9 +179,8 @@ type Engine struct {
 }
 
 type Flowbot struct {
-	URL          string `json:"url" yaml:"url" mapstructure:"url"`
-	ChannelPath  string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
-	DownloadPath string `json:"download_path" yaml:"download_path" mapstructure:"download_path"`
+	URL         string `json:"url" yaml:"url" mapstructure:"url"`
+	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 }
 
 func Load(path ...string) {
