@@ -15,7 +15,6 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/gitea"
 	_ "github.com/flowline-io/flowbot/internal/bots/github"
 	_ "github.com/flowline-io/flowbot/internal/bots/gpt"
-	_ "github.com/flowline-io/flowbot/internal/bots/iot"
 	_ "github.com/flowline-io/flowbot/internal/bots/leetcode"
 	_ "github.com/flowline-io/flowbot/internal/bots/markdown"
 	_ "github.com/flowline-io/flowbot/internal/bots/mtg"
