@@ -22,7 +22,6 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
 	_ "github.com/flowline-io/flowbot/internal/bots/pocket"
-	_ "github.com/flowline-io/flowbot/internal/bots/rust"
 	_ "github.com/flowline-io/flowbot/internal/bots/server"
 	_ "github.com/flowline-io/flowbot/internal/bots/share"
 	_ "github.com/flowline-io/flowbot/internal/bots/subscribe"

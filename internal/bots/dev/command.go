@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/providers/crates"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 
@@ -486,6 +487,34 @@ var commandRules = []command.Rule{
 		Help:   `Queue Stats page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
+		},
+	},
+	{
+		Define: "crate [string]",
+		Help:   `crate info`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			name, _ := tokens[1].Value.String()
+
+			api := crates.NewCrates()
+			resp, err := api.Info(name)
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: "error create"}
+			}
+			if resp == nil || resp.Crate.ID == "" {
+				return types.TextMsg{Text: "empty create"}
+			}
+
+			return types.CrateMsg{
+				ID:            resp.Crate.ID,
+				Name:          resp.Crate.Name,
+				Description:   resp.Crate.Description,
+				Documentation: resp.Crate.Documentation,
+				Homepage:      resp.Crate.Homepage,
+				Repository:    resp.Crate.Repository,
+				NewestVersion: resp.Crate.NewestVersion,
+				Downloads:     resp.Crate.Downloads,
+			}
 		},
 	},
 }
