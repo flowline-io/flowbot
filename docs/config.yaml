@@ -149,3 +149,5 @@ vendors:
     password: ''
   archivebox:
     endpoint: ''
+  slash:
+    endpoint: ''
