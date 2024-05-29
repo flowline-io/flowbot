@@ -2,14 +2,15 @@ package dropbox
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
-	"io"
-	"net/http"
-	"time"
 )
 
 const (
@@ -17,14 +18,6 @@ const (
 	ClientIdKey     = "key"
 	ClientSecretKey = "secret"
 )
-
-type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	UID         string `json:"uid"`
-	AccountID   string `json:"account_id"`
-	Scope       string `json:"scope"`
-}
 
 type Dropbox struct {
 	c            *resty.Client

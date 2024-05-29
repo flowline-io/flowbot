@@ -2,9 +2,10 @@ package cloudflare
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -13,23 +14,6 @@ const (
 	ZoneID    = "zone_id"
 	AccountID = "account_id"
 )
-
-type AnalyticResponse struct {
-	Data struct {
-		Viewer struct {
-			Zones []struct {
-				FirewallEventsAdaptive []struct {
-					Action                string     `json:"action"`
-					ClientRequestHTTPHost string     `json:"clientRequestHTTPHost"`
-					Datetime              *time.Time `json:"datetime"`
-					RayName               string     `json:"rayName"`
-					UserAgent             string     `json:"userAgent"`
-				} `json:"firewallEventsAdaptive"`
-			} `json:"zones"`
-		} `json:"viewer"`
-	} `json:"data"`
-	Errors interface{} `json:"errors"`
-}
 
 type Cloudflare struct {
 	c      *resty.Client

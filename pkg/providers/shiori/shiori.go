@@ -2,8 +2,9 @@ package shiori
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -53,15 +54,6 @@ func (v *Shiori) Login(username string, password string) (*LoginResponse, error)
 	return r, nil
 }
 
-type LoginResponse struct {
-	Session string `json:"session"`
-	Account struct {
-		Id       int    `json:"id"`
-		Username string `json:"username"`
-		Owner    bool   `json:"owner"`
-	} `json:"account"`
-}
-
 func (v *Shiori) Logout(sessionId string) error {
 	resp, err := v.c.R().
 		SetHeader("X-Session-Id", sessionId).
@@ -86,28 +78,6 @@ func (v *Shiori) GetBookmarks() (*BookmarksResponse, error) {
 	return resp.Result().(*BookmarksResponse), nil
 }
 
-type BookmarksResponse struct {
-	Bookmarks []struct {
-		Id         int    `json:"id"`
-		Url        string `json:"url"`
-		Title      string `json:"title"`
-		Excerpt    string `json:"excerpt"`
-		Author     string `json:"author"`
-		Public     int    `json:"public"`
-		Modified   string `json:"modified"`
-		ImageURL   string `json:"imageURL"`
-		HasContent bool   `json:"hasContent"`
-		HasArchive bool   `json:"hasArchive"`
-		Tags       []struct {
-			Id   int    `json:"id"`
-			Name string `json:"name"`
-		} `json:"tags"`
-		CreateArchive bool `json:"createArchive"`
-	} `json:"bookmarks"`
-	MaxPage int `json:"maxPage"`
-	Page    int `json:"page"`
-}
-
 func (v *Shiori) AddBookmark(url, title string) (*BookmarkResponse, error) {
 	resp, err := v.c.R().
 		SetResult(&BookmarkResponse{}).
@@ -129,24 +99,6 @@ func (v *Shiori) AddBookmark(url, title string) (*BookmarkResponse, error) {
 	}
 
 	return resp.Result().(*BookmarkResponse), nil
-}
-
-type BookmarkResponse struct {
-	Id         int    `json:"id"`
-	Url        string `json:"url"`
-	Title      string `json:"title"`
-	Excerpt    string `json:"excerpt"`
-	Author     string `json:"author"`
-	Public     int    `json:"public"`
-	Modified   string `json:"modified"`
-	Html       string `json:"html"`
-	ImageURL   string `json:"imageURL"`
-	HasContent bool   `json:"hasContent"`
-	HasArchive bool   `json:"hasArchive"`
-	Tags       []struct {
-		Name string `json:"name"`
-	} `json:"tags"`
-	CreateArchive bool `json:"createArchive"`
 }
 
 func (v *Shiori) DeleteBookmark(bookmarkIds []int) error {
