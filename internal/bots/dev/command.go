@@ -473,4 +473,12 @@ var commandRules = []command.Rule{
 			return types.TextMsg{Text: "empty"}
 		},
 	},
+	{
+		Define: "qr [string]",
+		Help:   `gen QR code`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			text, _ := tokens[1].Value.String()
+			return qrEncode(text)
+		},
+	},
 }
