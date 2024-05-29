@@ -10,7 +10,7 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "input",
+		Define: "share",
 		Help:   `submit share`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.StoreForm(ctx, types.FormMsg{
