@@ -379,30 +379,6 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 	}
 }
 
-func CreateShortUrl(text string) (string, error) {
-	if !utils.IsUrl(text) {
-		return "", errors.New("error url")
-	}
-
-	url, err := store.Database.UrlGetByUrl(text)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return "", err
-	}
-	if url.ID > 0 {
-		return fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag), nil
-	}
-	flag := types.Id()
-	err = store.Database.UrlCreate(model.Url{
-		Flag:  flag,
-		URL:   text,
-		State: model.UrlStateEnable,
-	})
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/u/%s", types.AppUrl(), flag), nil
-}
-
 func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
 	var botName string
 	for name, handler := range List() {

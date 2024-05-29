@@ -49,11 +49,7 @@ var commandRules = []command.Rule{
 			secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
 			redirectURI := providers.RedirectURI(github.ID, flag)
 			provider := github.NewGithub(id.String(), secret.String(), redirectURI, "")
-			url, err := bots.CreateShortUrl(provider.GetAuthorizeURL())
-			if err != nil {
-				return types.TextMsg{Text: "create url error"}
-			}
-			return types.LinkMsg{Title: "OAuth", Url: url}
+			return types.LinkMsg{Title: "OAuth", Url: provider.GetAuthorizeURL()}
 		},
 	},
 	{

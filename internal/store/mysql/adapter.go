@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/bsm/redislock"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/dao"
@@ -18,7 +20,6 @@ import (
 	mysqlDriver "gorm.io/driver/mysql"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
-	"time"
 )
 
 const (
@@ -624,52 +625,6 @@ func (a *adapter) ParameterDelete(flag string) error {
 		Where(dao.Parameter.Flag.Eq(flag)).
 		Delete()
 	return err
-}
-
-func (a *adapter) UrlCreate(url model.Url) error {
-	return a.db.Create(&model.Url{
-		Flag:  url.Flag,
-		URL:   url.URL,
-		State: url.State,
-	}).Error
-}
-
-func (a *adapter) UrlViewIncrease(flag string) error {
-	return a.db.
-		Model(&model.Url{}).
-		Where("`flag` = ?", flag).
-		UpdateColumn("view_count", gorm.Expr("view_count + ?", 1)).Error
-}
-
-func (a *adapter) UrlState(flag string, state model.UrlState) error {
-	return a.db.
-		Model(&model.Url{}).
-		Where("`flag` = ?", flag).
-		Updates(map[string]interface{}{
-			"state": state,
-		}).Error
-}
-
-func (a *adapter) UrlGetByFlag(flag string) (model.Url, error) {
-	var find model.Url
-	err := a.db.
-		Where("`flag` = ?", flag).
-		First(&find).Error
-	if err != nil {
-		return model.Url{}, err
-	}
-	return find, nil
-}
-
-func (a *adapter) UrlGetByUrl(url string) (model.Url, error) {
-	var find model.Url
-	err := a.db.
-		Where("`url` = ?", url).
-		First(&find).Error
-	if err != nil {
-		return model.Url{}, err
-	}
-	return find, nil
 }
 
 func (a *adapter) PageSet(pageId string, page model.Page) error {

@@ -184,11 +184,6 @@ type Adapter interface {
 	FormGet(formId string) (model.Form, error)
 	PageSet(pageId string, page model.Page) error
 	PageGet(pageId string) (model.Page, error)
-	UrlCreate(url model.Url) error
-	UrlGetByFlag(flag string) (model.Url, error)
-	UrlGetByUrl(url string) (model.Url, error)
-	UrlState(flag string, state model.UrlState) error
-	UrlViewIncrease(flag string) error
 	BehaviorSet(behavior model.Behavior) error
 	BehaviorGet(uid types.Uid, flag string) (model.Behavior, error)
 	BehaviorList(uid types.Uid) ([]*model.Behavior, error)

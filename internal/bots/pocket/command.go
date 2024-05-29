@@ -2,6 +2,8 @@ package pocket
 
 import (
 	"errors"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -12,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"gorm.io/gorm"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -44,11 +45,7 @@ var commandRules = []command.Rule{
 			if err != nil {
 				return types.TextMsg{Text: "get code error"}
 			}
-			url, err := bots.CreateShortUrl(provider.GetAuthorizeURL())
-			if err != nil {
-				return types.TextMsg{Text: "create url error"}
-			}
-			return types.LinkMsg{Title: "OAuth", Url: url}
+			return types.LinkMsg{Title: "OAuth", Url: provider.GetAuthorizeURL()}
 		},
 	},
 	{

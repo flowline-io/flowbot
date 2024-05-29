@@ -5,6 +5,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -32,9 +36,6 @@ import (
 	json "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"gorm.io/gorm"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 func setupMux(app *fiber.App) {
@@ -46,7 +47,6 @@ func setupMux(app *fiber.App) {
 	newRouter(app)
 	app.Static("/d", config.App.Flowbot.DownloadPath)
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	app.Get("/u/:flag", urlRedirect)
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
 	})
@@ -425,21 +425,6 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 	//})
 	//rw.Header().Set("Content-Type", "application/json")
 	//_, _ = rw.Write(res)
-}
-
-func urlRedirect(ctx *fiber.Ctx) error {
-	flag := ctx.Params("flag")
-
-	url, err := store.Database.UrlGetByFlag(flag)
-	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
-	}
-
-	// view count
-	_ = store.Database.UrlViewIncrease(flag)
-
-	// redirect
-	return ctx.Redirect(url.URL, http.StatusFound)
 }
 
 func platformCallback(ctx *fiber.Ctx) error {
