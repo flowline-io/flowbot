@@ -481,4 +481,11 @@ var commandRules = []command.Rule{
 			return qrEncode(text)
 		},
 	},
+	{
+		Define: "queue stats",
+		Help:   `Queue Stats page`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
+		},
+	},
 }
