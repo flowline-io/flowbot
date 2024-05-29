@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	_ "embed"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"gorm.io/gorm"
 
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -464,6 +466,41 @@ var commandRules = []command.Rule{
 			}
 			flog.Debug("machine command result %v", task.Result)
 			return types.TextMsg{Text: task.Result}
+		},
+	},
+	{
+		Define: "url [string]",
+		Help:   `gen shortcut`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			text, _ := tokens[1].Value.String()
+			if utils.IsUrl(text) {
+				url, err := store.Database.UrlGetByUrl(text)
+				if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+					return types.TextMsg{Text: "query url error"}
+				}
+				if url.ID > 0 {
+					return types.LinkMsg{Url: fmt.Sprintf("%s/u/%s", types.AppUrl(), url.Flag)}
+				}
+				flag := types.Id()
+				err = store.Database.UrlCreate(model.Url{
+					Flag:  flag,
+					URL:   text,
+					State: model.UrlStateEnable,
+				})
+				if err != nil {
+					return types.TextMsg{Text: "create error"}
+				}
+				return types.LinkMsg{Url: fmt.Sprintf("%s/u/%s", types.AppUrl(), flag)}
+			} else {
+				url, err := store.Database.UrlGetByFlag(text)
+				if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+					return types.TextMsg{Text: "query url error"}
+				}
+				if url.ID > 0 {
+					return types.LinkMsg{Url: url.URL}
+				}
+				return types.TextMsg{Text: "empty"}
+			}
 		},
 	},
 }
