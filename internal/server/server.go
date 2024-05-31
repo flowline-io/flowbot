@@ -42,9 +42,6 @@ import (
 )
 
 const (
-	// defaultMaxMessageSize is the default maximum message size
-	defaultMaxMessageSize = 1 << 19 // 512K
-
 	// Base URL path for serving the streaming API.
 	defaultApiPath = "/"
 )
