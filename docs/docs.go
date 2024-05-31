@@ -588,37 +588,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhook/trigger/{flag}": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "webhook"
-                ],
-                "summary": "trigger webhook",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Flag",
-                        "name": "flag",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/workflow/actions": {
             "get": {
                 "consumes": [

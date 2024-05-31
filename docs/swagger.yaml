@@ -1045,26 +1045,6 @@ paths:
       summary: Show dashboard
       tags:
       - dev
-  /webhook/trigger/{flag}:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Flag
-        in: path
-        name: flag
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      summary: trigger webhook
-      tags:
-      - webhook
   /workflow/actions:
     get:
       consumes:
