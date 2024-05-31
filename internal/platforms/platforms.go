@@ -1,12 +1,12 @@
 package platforms
 
 import (
-	"errors"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -69,7 +69,7 @@ func PlatformRegister(name string, caller *Caller) error {
 			Name: name,
 		})
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to create platform %s", name)
 		}
 	}
 	callers[name] = caller
