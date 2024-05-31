@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"strconv"
 )
 
@@ -24,14 +25,14 @@ func DeleteJob(ctx context.Context, job *model.Job) error {
 func GetJobsByState(ctx context.Context, state model.JobState) ([]*model.Job, error) {
 	res, err := cache.DB.HGetAll(ctx, jobListKey).Result()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get jobs from cache key %s", jobListKey)
 	}
 	var jobs []*model.Job
 	for _, v := range res {
 		job := &model.Job{}
 		err = json.Unmarshal(utils.StringToBytes(v), job)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed to unmarshal job %s", v)
 		}
 		jobs = append(jobs, job)
 	}

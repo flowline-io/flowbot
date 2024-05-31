@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"runtime"
 	"time"
 
@@ -44,7 +45,7 @@ func PushTask(t *Task) error {
 		asynq.Retention(3*24*time.Hour),
 	)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to enqueue task %s", t.Task.Type())
 	}
 	flog.Info("Enqueued %s, ID:%s Payload: %s", t.Task.Type(), info.ID, string(t.Task.Payload()))
 	return nil
@@ -89,7 +90,7 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		if err != nil {
 			flog.Error(fmt.Errorf("failed processing %q: Elapsed Time = %v, Payload = %s, Error = %v",
 				t.Type(), time.Since(start), string(t.Payload()), err))
-			return err
+			return errors.Wrapf(err, "failed processing %q", t.Type())
 		}
 		flog.Debug("finished processing %q: Elapsed Time = %v, Payload = %s",
 			t.Type(), time.Since(start), string(t.Payload()))

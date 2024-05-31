@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"errors"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -11,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/dag"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/looplab/fsm"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -57,7 +57,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err := store.Database.UpdateJobState(job.ID, model.JobRunning)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to update job state %d", job.ID)
 					return
 				}
 
@@ -71,7 +71,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				list, err := dag.TopologySort(d)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to topology sort dag %d", job.DagID)
 					return
 				}
 
@@ -99,7 +99,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					err = store.Database.CreateSteps(steps)
 					if err != nil {
 						e.Cancel(err)
-						e.Err = err
+						e.Err = errors.Wrapf(err, "failed to create steps for job %d", job.ID)
 						return
 					}
 				} else {
@@ -126,7 +126,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					})
 					if err != nil {
 						e.Cancel(err)
-						e.Err = err
+						e.Err = errors.Wrapf(err, "failed to update step state %d", step.ID)
 						return
 					}
 
@@ -134,7 +134,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					dependSteps, err := store.Database.GetStepsByDepend(step.JobID, step.Depend)
 					if err != nil {
 						e.Cancel(err)
-						e.Err = err
+						e.Err = errors.Wrapf(err, "failed to get depend steps for step %d", step.ID)
 						return
 					}
 					allFinished := true
@@ -167,7 +167,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 						})
 						if err != nil {
 							e.Cancel(err)
-							e.Err = err
+							e.Err = errors.Wrapf(err, "failed to update step input %d", step.ID)
 							return
 						}
 					}
@@ -182,7 +182,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					}
 					if err != nil {
 						e.Cancel(err)
-						e.Err = err
+						e.Err = errors.Wrapf(err, "failed to run step %d", step.ID)
 						return
 					}
 				}
@@ -208,7 +208,7 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err = DeleteJob(ctx, job)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to delete job %d", job.ID)
 					return
 				}
 				// successful count
@@ -247,14 +247,14 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err = store.Database.UpdateJobState(job.ID, model.JobFailed)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to update job state %d", job.ID)
 					return
 				}
 				// failed count
 				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 1, -1, 0)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to increase workflow count %d", job.WorkflowID)
 					return
 				}
 			},
@@ -273,14 +273,14 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				err := store.Database.UpdateJobState(job.ID, model.JobCanceled)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to update job state %d", job.ID)
 					return
 				}
 				// successful count
 				err = store.Database.IncreaseWorkflowCount(job.WorkflowID, 0, 0, -1, 1)
 				if err != nil {
 					e.Cancel(err)
-					e.Err = err
+					e.Err = errors.Wrapf(err, "failed to increase workflow count %d", job.WorkflowID)
 					return
 				}
 			},

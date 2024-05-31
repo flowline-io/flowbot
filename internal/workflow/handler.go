@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
+	"github.com/pkg/errors"
 	"strconv"
 )
 
@@ -16,14 +17,13 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Debug("trigger: %+v", trigger)
-	flog.Debug("%s task has been received", t.Type())
+	flog.Debug("trigger %+v, task has been received", trigger, t.Type())
 
 	// get workflow
 	workflow, err := store.Database.GetWorkflow(trigger.WorkflowID)
 	if err != nil {
 		flog.Error(err)
-		return err
+		return errors.Wrapf(err, "failed to get workflow %d", trigger.WorkflowID)
 	}
 	if workflow.State == model.WorkflowDisable {
 		flog.Debug("workflow %d is disabled", workflow.ID)
@@ -52,12 +52,12 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	_, err = store.Database.CreateJob(job)
 	if err != nil {
 		flog.Error(err)
-		return err
+		return errors.Wrapf(err, "failed to create job %d", job.ID)
 	}
 	err = SyncJob(ctx, job)
 	if err != nil {
 		flog.Error(err)
-		return err
+		return errors.Wrapf(err, "failed to sync job %d", job.ID)
 	}
 
 	return err
@@ -66,7 +66,7 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 func NewJobTask(job *model.Job) (*Task, error) {
 	payload, err := json.Marshal(job)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to marshal job %d", job.ID)
 	}
 	return &Task{
 		ID:    strconv.FormatInt(job.ID, 10),
