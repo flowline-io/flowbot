@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
+	"strconv"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -12,9 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/redis/go-redis/v9"
-	"runtime"
-	"strconv"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -22,7 +23,7 @@ var commandRules = []command.Rule{
 		Define: "version",
 		Help:   `Version`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.TextMsg{Text: fmt.Sprintf("v%s(%s)", version.CurrentVersion, version.Buildstamp)}
+			return types.TextMsg{Text: fmt.Sprintf("%s (%s)", version.Buildtags, version.Buildstamp)}
 		},
 	},
 	{

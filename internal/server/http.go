@@ -3,6 +3,12 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -10,11 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 	json "github.com/json-iterator/go"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-chan bool) error {
@@ -131,7 +132,7 @@ func serveStatus(wrt http.ResponseWriter, _ *http.Request) {
 	wrt.Header().Set("Content-Type", "application/json")
 
 	result := &debugDump{
-		Version:   version.CurrentVersion,
+		Version:   version.Buildtags,
 		Build:     version.Buildstamp,
 		Timestamp: types.TimeNow(),
 		Topics:    make([]debugTopic, 0, 10),

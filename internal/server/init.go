@@ -188,8 +188,8 @@ func initializeConfig() error {
 		flog.Fatal("Couldn't get current working directory: %v", err)
 	}
 
-	flog.Info("Server v%s:%s:%s; pid %d; %d process(es)",
-		version.CurrentVersion, executable, version.Buildstamp,
+	flog.Info("Server %s:%s:%s; pid %d; %d process(es)",
+		version.Buildtags, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
 	*appFlag.configFile = utils.ToAbsolutePath(curwd, *appFlag.configFile)
@@ -280,7 +280,7 @@ func initializeStats() error {
 	stats.RegisterInt("Version")
 	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
 	if decVersion <= 0 {
-		decVersion = utils.Base10Version(utils.ParseVersion(version.CurrentVersion))
+		decVersion = utils.Base10Version(utils.ParseVersion(version.Buildtags))
 	}
 	stats.Set("Version", decVersion)
 
