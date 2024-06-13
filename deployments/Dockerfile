@@ -18,8 +18,7 @@ WORKDIR /opt/app
 COPY --from=builder /opt/app/flowbot .
 COPY deployments/entrypoint.sh .
 
-RUN chmod +x flowbot && chmod +x entrypoint.sh
-RUN mkdir subscribe
+RUN chmod +x flowbot && chmod +x entrypoint.sh && mkdir subscribe
 
 ENTRYPOINT ./entrypoint.sh
 
