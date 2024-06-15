@@ -52,7 +52,7 @@ require (
 	github.com/valyala/fasthttp v1.54.0
 	github.com/yeqown/go-qrcode/v2 v2.2.4
 	github.com/yeqown/go-qrcode/writer/standard v1.2.4
-	github.com/yuin/goldmark v1.7.1
+	github.com/yuin/goldmark v1.7.2
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.24.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
