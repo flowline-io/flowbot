@@ -18,9 +18,9 @@ media:
       secret_access_key: your_s3_secret_access_key
       region: s3 region, like us-east-2
       bucket: your_s3_bucket_name
-      disable_ssl: false
+      disable_ssl: true
       force_path_style: false
-      endpoint: ''
+      endpoint: '127.0.0.1:9000'
       cors_origins:
         - "*"
 
