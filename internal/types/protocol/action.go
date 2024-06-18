@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
@@ -41,7 +42,7 @@ type Response struct {
 	// The return code, which must conform to the return code rules defined later on this page
 	RetCode int64 `json:"retcode,omitempty"`
 	// Response data
-	Data any `json:"data"`
+	Data any `json:"data,omitempty"`
 	// Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
 	// or an empty string when it succeeds.
 	Message string `json:"message,omitempty"`

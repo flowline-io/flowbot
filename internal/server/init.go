@@ -240,8 +240,8 @@ func initializeHttp() error {
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			// Send custom error page
 			if err != nil {
-				return ctx.Status(fiber.StatusInternalServerError).
-					JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
+				return ctx.Status(fiber.StatusBadRequest).
+					JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 			}
 
 			// Return from handler

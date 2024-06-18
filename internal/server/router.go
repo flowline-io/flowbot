@@ -44,6 +44,9 @@ func setupMux(app *fiber.App) {
 	}
 
 	newRouter(app)
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString(fmt.Sprintf("flowbot %s (%s)", version.Buildtags, version.Buildstamp))
+	})
 	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
@@ -56,10 +59,6 @@ func newRouter(app *fiber.App) *mux.Router {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/").Subrouter()
 
-	// root
-	s.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		_, _ = w.Write([]byte(fmt.Sprintf("flowbot %s (%s)", version.Buildtags, version.Buildstamp)))
-	})
 	// common
 	app.All("/oauth/:provider/:flag", storeOAuth)
 	app.Get("/page/:id", getPage)
