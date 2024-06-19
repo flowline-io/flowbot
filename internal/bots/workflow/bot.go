@@ -3,11 +3,11 @@ package workflow
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 const Name = "workflow"
@@ -57,10 +57,6 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 	}
-}
-
-func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
-	return webapp
 }
 
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {

@@ -3,11 +3,11 @@ package okr
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 const Name = "okr"
@@ -59,10 +59,6 @@ func (b bot) Rules() []interface{} {
 		formRules,
 		pageRules,
 	}
-}
-
-func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
-	return webapp
 }
 
 func (bot) Webservice(app *fiber.App) {
