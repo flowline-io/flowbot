@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 func HandleCronTask(ctx context.Context, t *asynq.Task) error {
@@ -17,7 +18,7 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
 	}
-	flog.Debug("trigger %+v, task has been received", trigger, t.Type())
+	flog.Debug("trigger %+v, %s task has been received", trigger, t.Type())
 
 	// get workflow
 	workflow, err := store.Database.GetWorkflow(trigger.WorkflowID)
