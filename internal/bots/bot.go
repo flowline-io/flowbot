@@ -19,6 +19,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/slash"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
@@ -573,6 +575,29 @@ func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
 		routes = append(routes, route.Route(rule.Method, rule.Path, rule.Function, rule.Option...))
 	}
 	route.WebService(app, name, routes...)
+}
+
+func Shortcut(title, link string) (string, error) {
+	endpoint, _ := providers.GetConfig(slash.ID, slash.EndpointKey)
+	token, _ := providers.GetConfig(slash.ID, slash.TokenKey)
+
+	name, err := utils.GenerateRandomString(6)
+	if err != nil {
+		return "", err
+	}
+
+	client := slash.NewSlash(endpoint.String(), token.String())
+	err = client.CreateShortcut(slash.Shortcut{
+		Name:  name,
+		Link:  link,
+		Title: title,
+		Tags:  []string{"flowbot"},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/s/%s", endpoint, name), nil
 }
 
 type configType struct {

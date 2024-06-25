@@ -517,4 +517,17 @@ var commandRules = []command.Rule{
 			}
 		},
 	},
+	{
+		Define: "slash",
+		Help:   `Slash example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+
+			url, err := bots.Shortcut("test", "https://example.com")
+			if err != nil {
+				return types.TextMsg{Text: "error"}
+			}
+
+			return types.TextMsg{Text: url}
+		},
+	},
 }
