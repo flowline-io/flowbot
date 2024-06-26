@@ -106,3 +106,7 @@ func NewUUID() string {
 	u := uuid.New()
 	return u.String()
 }
+
+func ValidImageContentType(ct string) bool {
+	return strings.HasPrefix(ct, "image/")
+}

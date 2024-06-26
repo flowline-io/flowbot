@@ -6,4 +6,5 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/example", example),
+	webservice.Post("/upload", upload),
 }

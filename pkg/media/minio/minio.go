@@ -14,6 +14,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -92,21 +93,17 @@ func (ah *handler) Headers(req *http.Request, serve bool) (http.Header, int, err
 func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int64, error) {
 	var err error
 
-	// Using String32 just for consistency with the file handler.
-	key := fdef.Uid().String()
-	fdef.Location = key
+	fname := strings.TrimRight(fdef.Location, "/") + "/" + fdef.Id
+	ext, _ := mime.ExtensionsByType(fdef.MimeType)
+	if len(ext) > 0 {
+		fname += ext[len(ext)-1]
+	}
 
-	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, key, file, fdef.Size, minio.PutObjectOptions{
+	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, fname, file, fdef.Size, minio.PutObjectOptions{
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		return "", 0, errors.Wrapf(err, "error uploading file %s", key)
-	}
-
-	fname := fdef.Id
-	ext, _ := mime.ExtensionsByType(fdef.MimeType)
-	if len(ext) > 0 {
-		fname += ext[0]
+		return "", 0, errors.Wrapf(err, "error uploading file %s", fname)
 	}
 
 	return ah.conf.ServeURL + fname, info.Size, nil

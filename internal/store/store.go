@@ -44,6 +44,9 @@ func RegisterAdapter(a Adapter) {
 	availableAdapters[adapterName] = a
 }
 
+// FS Media handler
+var FS media.Handler
+
 // Registered media/file handlers.
 var fileHandlers map[string]media.Handler
 
@@ -68,6 +71,7 @@ func UseMediaHandler(name, config string) error {
 	if mediaHandler == nil {
 		panic("UseMediaHandler: unknown handler '" + name + "'")
 	}
+	FS = mediaHandler
 	return mediaHandler.Init(config)
 }
 
