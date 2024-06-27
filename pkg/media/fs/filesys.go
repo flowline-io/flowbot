@@ -5,16 +5,19 @@ package fs
 
 import (
 	"encoding/json"
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/pkg/errors"
 	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"fmt"
+
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/protocol"
+	appConfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/pkg/errors"
 
 	"github.com/flowline-io/flowbot/pkg/media"
 )
@@ -73,6 +76,10 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 	// Generate a unique file name and attach it to path. Using base32 instead of base64 to avoid possible
 	// file name collisions on Windows due to case-insensitive file names there.
 	fdef.Location = filepath.Join(fh.fileUploadLocation, fdef.Uid().String())
+
+	if fdef.Size > appConfig.App.Media.MaxFileUploadSize {
+		return "", 0, fmt.Errorf("error max file upload size, %d > %d", fdef.Size, appConfig.App.Media.MaxFileUploadSize)
+	}
 
 	outfile, err := os.Create(fdef.Location)
 	if err != nil {

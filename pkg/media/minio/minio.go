@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/flowline-io/flowbot/internal/store"
+	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/media"
@@ -15,6 +16,7 @@ import (
 	"mime"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
 const (
@@ -92,6 +94,10 @@ func (ah *handler) Headers(req *http.Request, serve bool) (http.Header, int, err
 // Upload processes request for a file upload. The file is given as io.Reader.
 func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int64, error) {
 	var err error
+
+	if fdef.Size > appConfig.App.Media.MaxFileUploadSize {
+		return "", 0, fmt.Errorf("error max file upload size, %d > %d", fdef.Size, appConfig.App.Media.MaxFileUploadSize)
+	}
 
 	fname := strings.TrimRight(fdef.Location, "/") + "/" + fdef.Id
 	ext, _ := mime.ExtensionsByType(fdef.MimeType)

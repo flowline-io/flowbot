@@ -34,9 +34,7 @@ func upload(ctx *fiber.Ctx) error {
 				mimeType := part.Header.Get("Content-Type")
 				if !utils.ValidImageContentType(mimeType) {
 					continue
-				}
-
-				// TODO: check file size
+				}				
 
 				f, err := part.Open()
 				if err != nil {
