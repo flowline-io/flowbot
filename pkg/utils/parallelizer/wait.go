@@ -2,11 +2,12 @@ package parallelizer
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/pkg/utils/clock"
-	"golang.org/x/xerrors"
 	"math"
 	"sync"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
+	"golang.org/x/xerrors"
 )
 
 // Backoff holds parameters applied to a Backoff function.
@@ -215,7 +216,7 @@ func (cf ConditionFunc) WithContext() ConditionWithContextFunc {
 }
 
 // PollImmediateUntilWithContext tries a condition func until it returns true,
-// an error or the specified context is cancelled or expired.
+// an error or the specified context is canceled or expired.
 //
 // PollImmediateUntilWithContext runs the 'condition' before waiting for the interval.
 // 'condition' will always be invoked at least once.
@@ -226,7 +227,7 @@ func PollImmediateUntilWithContext(ctx context.Context, interval time.Duration, 
 // Internally used, each of the the public 'Poll*' function defined in this
 // package should invoke this internal function with appropriate parameters.
 // ctx: the context specified by the caller, for infinite polling pass
-// a context that never gets cancelled or expired.
+// a context that never gets canceled or expired.
 // immediate: if true, the 'condition' will be invoked before waiting for the interval,
 // in this case 'condition' will always be invoked at least once.
 // wait: user specified WaitFunc function that controls at what interval the condition
@@ -356,6 +357,6 @@ func poller(interval, timeout time.Duration) WaitWithContextFunc {
 // WaitWithContextFunc creates a channel that receives an item every time a test
 // should be executed and is closed when the last test should be invoked.
 //
-// When the specified context gets cancelled or expires the function
+// When the specified context gets canceled or expires the function
 // stops sending item and returns immediately.
 type WaitWithContextFunc func(ctx context.Context) <-chan struct{}

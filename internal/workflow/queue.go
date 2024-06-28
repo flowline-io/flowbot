@@ -3,9 +3,10 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"runtime"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -88,7 +89,7 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		flog.Debug("Start processing %q", t.Type())
 		err := h.ProcessTask(ctx, t)
 		if err != nil {
-			flog.Error(fmt.Errorf("failed processing %q: Elapsed Time = %v, Payload = %s, Error = %v",
+			flog.Error(fmt.Errorf("failed processing %q: Elapsed Time = %v, Payload = %s, Error = %w",
 				t.Type(), time.Since(start), string(t.Payload()), err))
 			return errors.Wrapf(err, "failed processing %q", t.Type())
 		}

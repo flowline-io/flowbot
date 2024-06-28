@@ -3,6 +3,7 @@ package heap
 import (
 	"container/heap"
 	"fmt"
+
 	"golang.org/x/xerrors"
 )
 

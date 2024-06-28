@@ -1,9 +1,11 @@
 package queue
 
 import (
+	"errors"
+	"sync"
+
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
-	"sync"
 )
 
 // PopProcessFunc is passed to Pop() method of Queue interface.
@@ -282,7 +284,8 @@ func (f *FIFO) Pop(process PopProcessFunc) (any, error) {
 		}
 		delete(f.items, id)
 		err := process(item)
-		if e, ok := err.(ErrRequeue); ok {
+		var e ErrRequeue
+		if errors.As(err, &e) {
 			f.addIfNotPresent(id, item)
 			err = e.Err
 		}

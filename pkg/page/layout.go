@@ -2,6 +2,9 @@ package page
 
 import (
 	"fmt"
+	"html"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -9,8 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"html"
-	"strings"
 )
 
 const Layout = `

@@ -1,9 +1,10 @@
 package types
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/lithammer/shortuuid/v3"
-	"time"
 )
 
 type MsgPayload interface {

@@ -3,10 +3,11 @@ package notion
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (

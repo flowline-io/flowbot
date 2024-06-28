@@ -4,9 +4,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/urfave/cli/v2"
-	"os"
 )
 
 //go:embed tmpl/vendor.tmpl

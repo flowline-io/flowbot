@@ -2,11 +2,12 @@ package markdown
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"time"
 )
 
 var commandRules = []command.Rule{

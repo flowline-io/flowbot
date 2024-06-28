@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"context"
 	"flag"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/reexec"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"strings"
 
 	"fmt"
 	"os"
@@ -189,7 +190,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		return errors.Wrapf(err, "error executing command")
 	case <-ctx.Done():
 		if err := cmd.Process.Kill(); err != nil {
-			return errors.Wrapf(err, "error cancelling command")
+			return errors.Wrapf(err, "error canceling command")
 		}
 		return ctx.Err()
 	case <-doneChan:

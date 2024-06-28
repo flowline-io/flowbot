@@ -2,12 +2,13 @@ package shell
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/stretchr/testify/assert"
 	"os/exec"
 	"testing"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShellRuntimeRunResult(t *testing.T) {

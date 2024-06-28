@@ -3,6 +3,7 @@ package docker // import "https://github.com/cpuguy83/dockercfg"
 import (
 	"encoding/base64"
 	"encoding/json"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"fmt"

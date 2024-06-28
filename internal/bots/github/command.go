@@ -3,6 +3,9 @@ package github
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -12,8 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
 var commandRules = []command.Rule{

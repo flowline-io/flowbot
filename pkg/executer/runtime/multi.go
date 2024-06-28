@@ -2,8 +2,9 @@ package runtime
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/internal/types"
 	"sync"
+
+	"github.com/flowline-io/flowbot/internal/types"
 
 	"github.com/pkg/errors"
 )

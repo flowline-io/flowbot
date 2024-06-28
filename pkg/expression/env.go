@@ -2,6 +2,7 @@ package expression
 
 import (
 	"context"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 

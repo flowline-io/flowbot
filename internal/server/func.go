@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
@@ -21,9 +25,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"net/http"
-	"strings"
-	"time"
 )
 
 func newProvider(category string) providers.OAuthProvider {
@@ -235,12 +236,10 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	var payload types.MsgPayload
 
 	for name, handle := range bots.List() {
-
 		if !handle.IsReady() {
 			flog.Info("bot %s unavailable", name)
 			continue
 		}
-
 	}
 
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
@@ -398,7 +397,6 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			return map[string]interface{}{}, nil
 		}
 	case types.Ack:
-
 	}
 	return nil, nil
 }

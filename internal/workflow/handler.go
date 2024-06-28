@@ -16,7 +16,7 @@ import (
 func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	var trigger model.WorkflowTrigger
 	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
-		return fmt.Errorf("failed to unmarshal trigger: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("failed to unmarshal trigger: %w: %w", err, asynq.SkipRetry)
 	}
 	flog.Debug("trigger %+v, %s task has been received", trigger, t.Type())
 
@@ -82,7 +82,7 @@ func NewJobTask(job *model.Job) (*Task, error) {
 func HandleJobTask(ctx context.Context, t *asynq.Task) error {
 	var job *model.Job
 	if err := json.Unmarshal(t.Payload(), &job); err != nil {
-		return fmt.Errorf("failed to unmarshal job: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("failed to unmarshal job: %w: %w", err, asynq.SkipRetry)
 	}
 	flog.Debug("job: %+v", job)
 	flog.Debug("%s task has been received", t.Type())

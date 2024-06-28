@@ -1,9 +1,10 @@
 package dag
 
 import (
+	"testing"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"testing"
 )
 
 func TestTopologySort(t *testing.T) {

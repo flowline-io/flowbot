@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/agent"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
@@ -27,10 +32,6 @@ import (
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
-	"io/fs"
-	"net/http"
-	"strings"
-	"time"
 )
 
 var handlers map[string]Handler

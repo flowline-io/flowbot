@@ -8,6 +8,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"math/big"
+	"os"
+	"time"
+	"unicode"
+
 	cliopts "github.com/docker/cli/opts"
 	dockerTypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -23,11 +29,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 	"github.com/pkg/errors"
-	"io"
-	"math/big"
-	"os"
-	"time"
-	"unicode"
 )
 
 type Runtime struct {

@@ -3,12 +3,13 @@ package discord
 import (
 	"errors"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 var (

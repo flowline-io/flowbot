@@ -1,10 +1,11 @@
 package workqueue
 
 import (
-	"golang.org/x/time/rate"
 	"math"
 	"sync"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 type RateLimiter interface {

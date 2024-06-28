@@ -2,11 +2,12 @@ package tailchat
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/go-resty/resty/v2"
-	"net/http"
-	"time"
 )
 
 type Payload struct {

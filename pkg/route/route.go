@@ -1,6 +1,10 @@
 package route
 
 import (
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -8,9 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 const prefix = "service"

@@ -2,9 +2,10 @@ package page
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/page"
-	"net/http"
 )
 
 type Rule struct {

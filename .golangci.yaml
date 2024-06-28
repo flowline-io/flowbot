@@ -46,11 +46,62 @@ output:
   path-prefix: ""
 
 linters:
-  disable:
-    - prealloc
-    - gosec
+  disable-all: true
+  enable:
+    - bodyclose
+    # - depguard
+    - dogsled
+    # - dupl
+    - errcheck
+    - errorlint
+    - exportloopref
+    # - funlen
+    - gocheckcompilerdirectives
+    # - gochecknoinits
+    # - goconst
+    # - gocyclo
+    # - godox
+    - gofmt
+    - goimports
+    # - mnd
+    - goprintffuncname
+    # - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    # - nakedret
     - noctx
-  fast: false
+    - nolintlint
+    # - revive
+    - staticcheck
+    # - stylecheck
+    # - testifylint
+    - unconvert
+    # - unparam
+    - unused
+    - whitespace
+
+linters-settings:
+  gocyclo:
+    min-complexity: 10
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  misspell:
+    locale: US
+  lll:
+    line-length: 140
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+      - commentFormatting # https://github.com/go-critic/go-critic/issues/755
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.

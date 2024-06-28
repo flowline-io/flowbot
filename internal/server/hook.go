@@ -1,6 +1,8 @@
 package server
 
 import (
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -9,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	json "github.com/json-iterator/go"
-	"strings"
 )
 
 // hook

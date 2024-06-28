@@ -1,6 +1,8 @@
 package slack
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -10,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
-	"time"
 )
 
 type Driver struct {

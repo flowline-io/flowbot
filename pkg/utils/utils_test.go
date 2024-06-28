@@ -55,6 +55,5 @@ func TestStringSliceDelta(t *testing.T) {
 		expectSlicesEqual(t, "added", tc[2], added)
 		expectSlicesEqual(t, "removed", tc[3], removed)
 		expectSlicesEqual(t, "both", tc[4], both)
-
 	}
 }

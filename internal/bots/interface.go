@@ -2,12 +2,13 @@ package bots
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 type Handler interface {

@@ -2,8 +2,9 @@ package dev
 
 import (
 	"embed"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"net/http"
+
+	"github.com/flowline-io/flowbot/internal/bots"
 )
 
 //go:embed webapp/build

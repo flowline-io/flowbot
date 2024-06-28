@@ -1,9 +1,10 @@
 package template
 
 import (
+	"testing"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestParse(t *testing.T) {

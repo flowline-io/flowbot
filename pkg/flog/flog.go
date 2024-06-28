@@ -2,12 +2,13 @@ package flog
 
 import (
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/pkgerrors"
 	"io"
 	"os"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 var l zerolog.Logger

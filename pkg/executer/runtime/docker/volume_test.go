@@ -2,10 +2,11 @@ package docker
 
 import (
 	"context"
+	"testing"
+
 	"github.com/docker/docker/api/types/volume"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestCreateVolume(t *testing.T) {

@@ -8,13 +8,14 @@ package stats
 import (
 	"encoding/json"
 	"expvar"
+	"runtime"
+	"sort"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"runtime"
-	"sort"
-	"time"
 )
 
 // StatsUpdate Runtime statistics communication channel.

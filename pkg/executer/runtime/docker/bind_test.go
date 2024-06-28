@@ -2,13 +2,14 @@ package docker
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path"
 	"sync"
 	"testing"
+
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMountBindNotAllowed(t *testing.T) {

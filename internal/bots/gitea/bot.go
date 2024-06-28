@@ -3,6 +3,7 @@ package gitea
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -27,7 +28,6 @@ type configType struct {
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {
-
 	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")

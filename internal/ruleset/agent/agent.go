@@ -2,6 +2,7 @@ package agent
 
 import (
 	"errors"
+
 	"github.com/flowline-io/flowbot/internal/types"
 )
 

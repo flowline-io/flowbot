@@ -1,13 +1,16 @@
 package crawler
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/mmcdole/gofeed"
-	"github.com/tidwall/gjson"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/mmcdole/gofeed"
+	"github.com/tidwall/gjson"
 )
 
 type Rule struct {
@@ -180,10 +183,20 @@ type Result struct {
 }
 
 func document(url string) (*goquery.Document, error) {
-	res, err := http.Get(url) // #nosec
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	client := http.DefaultClient
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
 		return nil, err

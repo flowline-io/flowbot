@@ -3,6 +3,7 @@ package okr
 import (
 	_ "embed"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/page"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -36,7 +37,7 @@ var pageRules = []page.Rule{
 				return nil, err
 			}
 
-			keyResult, err := store.Database.ListKeyResultsByObjectiveId(int64(objective.ID))
+			keyResult, err := store.Database.ListKeyResultsByObjectiveId(objective.ID)
 			if err != nil {
 				return nil, err
 			}

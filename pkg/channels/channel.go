@@ -2,12 +2,13 @@ package channels
 
 import (
 	"errors"
-	"github.com/flowline-io/flowbot/pkg/channels/crawler"
-	"github.com/flowline-io/flowbot/pkg/config"
-	"gopkg.in/yaml.v2"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/flowline-io/flowbot/pkg/channels/crawler"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"gopkg.in/yaml.v2"
 )
 
 const ChannelNameSuffix = "_channel"

@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"encoding/json"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"

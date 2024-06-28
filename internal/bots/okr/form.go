@@ -2,6 +2,7 @@ package okr
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -129,7 +130,7 @@ var formRules = []form.Rule{
 			}
 
 			// aggregate
-			err = store.Database.AggregateObjectiveValue(int64(objective.ID))
+			err = store.Database.AggregateObjectiveValue(objective.ID)
 			if err != nil {
 				return nil
 			}
@@ -179,7 +180,7 @@ var formRules = []form.Rule{
 			if err != nil {
 				return nil
 			}
-			err = store.Database.AggregateKeyResultValue(int64(reply.ID))
+			err = store.Database.AggregateKeyResultValue(reply.ID)
 			if err != nil {
 				return nil
 			}
@@ -201,11 +202,11 @@ var formRules = []form.Rule{
 			if err != nil {
 				return nil
 			}
-			err = store.Database.AggregateKeyResultValue(int64(keyResult.ID))
+			err = store.Database.AggregateKeyResultValue(keyResult.ID)
 			if err != nil {
 				return nil
 			}
-			err = store.Database.AggregateObjectiveValue(int64(keyResult.ObjectiveID))
+			err = store.Database.AggregateObjectiveValue(keyResult.ObjectiveID)
 			if err != nil {
 				return nil
 			}

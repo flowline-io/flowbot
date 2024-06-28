@@ -28,7 +28,6 @@ type configType struct {
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {
-
 	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")

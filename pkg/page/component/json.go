@@ -2,6 +2,7 @@ package component
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"

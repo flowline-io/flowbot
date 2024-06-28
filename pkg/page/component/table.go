@@ -2,11 +2,12 @@ package component
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"math"
 )
 
 type Table struct {

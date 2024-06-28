@@ -3,10 +3,11 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"sort"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 type FormFieldType string

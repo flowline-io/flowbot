@@ -2,8 +2,9 @@ package uikit
 
 import (
 	"fmt"
-	"github.com/maxence-charriere/go-app/v9/pkg/app"
 	"time"
+
+	"github.com/maxence-charriere/go-app/v9/pkg/app"
 )
 
 func Countdown(datetime time.Time) app.HTMLDiv {

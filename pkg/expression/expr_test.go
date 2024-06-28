@@ -3,12 +3,12 @@ package expression
 import (
 	"context"
 	"fmt"
-	"github.com/expr-lang/expr/vm"
 	"testing"
+
+	"github.com/expr-lang/expr/vm"
 )
 
 func TestRun(t *testing.T) {
-
 	LoadLib("dev", Lib)
 
 	//code := `Debug(input.val1 + input.val2 + max(input.val1, input.val2) + lib.toInt(input.val1))`

@@ -1,8 +1,9 @@
 package model
 
 import (
-	json "github.com/json-iterator/go"
 	"time"
+
+	json "github.com/json-iterator/go"
 )
 
 // IsExpired check expired

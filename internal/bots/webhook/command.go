@@ -3,6 +3,7 @@ package webhook
 import (
 	"errors"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"

@@ -3,9 +3,10 @@ package template
 import (
 	"bytes"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/types"
 	"strings"
 	"text/template"
+
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 func Parse(_ types.Context, text string, variable ...interface{}) (string, error) {

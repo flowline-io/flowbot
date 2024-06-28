@@ -2,12 +2,13 @@
 package media
 
 import (
-	"github.com/flowline-io/flowbot/internal/types"
 	"io"
 	"net/http"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 // ReadSeekCloser must be implemented by the media being downloaded.

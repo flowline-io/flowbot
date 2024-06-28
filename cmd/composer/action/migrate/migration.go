@@ -3,11 +3,12 @@ package migrate
 import (
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
+
+	"github.com/urfave/cli/v2"
 )
 
 const path = "./internal/store/migrate/migrations"

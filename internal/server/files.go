@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"math/rand"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // largeFileRunGarbageCollection runs every 'period' and deletes up to 'blockSize' unused files.

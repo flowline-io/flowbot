@@ -6,13 +6,14 @@ package pprofs
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"net/http"
 	"path"
 	"runtime/pprof"
 	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
 
 var pprofHttpRoot string

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/tidwall/gjson"

@@ -1,9 +1,10 @@
 package queue
 
 import (
+	"sync"
+
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
-	"sync"
 )
 
 // ThreadSafeStore is an interface that allows concurrent indexed

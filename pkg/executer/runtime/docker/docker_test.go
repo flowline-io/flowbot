@@ -3,12 +3,6 @@ package docker
 import (
 	"bytes"
 	"context"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/image"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"os"
 	"path"
@@ -16,6 +10,13 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseCPUs(t *testing.T) {

@@ -2,14 +2,16 @@ package parallelizer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
 )
 
 type DoWorkPieceFunc func(piece int)
@@ -89,7 +91,8 @@ var PanicHandlers = []func(interface{}){logPanic}
 var ReallyCrash = true
 
 func logPanic(r interface{}) {
-	if r == http.ErrAbortHandler {
+	err, _ := r.(error)
+	if errors.Is(err, http.ErrAbortHandler) {
 		// honor the http.ErrAbortHandler sentinel panic value:
 		//   ErrAbortHandler is a sentinel panic value to abort a handler.
 		//   While any panic from ServeHTTP aborts the response to the client,

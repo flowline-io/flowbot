@@ -3,6 +3,9 @@ package okr
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -11,8 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"gorm.io/gorm"
-	"strconv"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -389,7 +390,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			items, err := store.Database.GetKeyResultValues(int64(keyResult.ID))
+			items, err := store.Database.GetKeyResultValues(keyResult.ID)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -604,7 +605,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			err = store.Database.IncreaseCounter(int64(item.ID), 1)
+			err = store.Database.IncreaseCounter(item.ID, 1)
 			if err != nil {
 				return nil
 			}
@@ -623,7 +624,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			err = store.Database.DecreaseCounter(int64(item.ID), 1)
+			err = store.Database.DecreaseCounter(item.ID, 1)
 			if err != nil {
 				return nil
 			}
@@ -642,7 +643,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			err = store.Database.IncreaseCounter(int64(item.ID), 1-item.Digit)
+			err = store.Database.IncreaseCounter(item.ID, 1-item.Digit)
 			if err != nil {
 				return nil
 			}

@@ -2,9 +2,10 @@ package executer
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 	"sync"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"

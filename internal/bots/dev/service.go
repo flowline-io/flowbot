@@ -30,11 +30,10 @@ func upload(ctx *fiber.Ctx) error {
 	if form, err := ctx.MultipartForm(); err == nil {
 		for _, file := range form.File {
 			for _, part := range file {
-
 				mimeType := part.Header.Get("Content-Type")
 				if !utils.ValidImageContentType(mimeType) {
 					continue
-				}				
+				}
 
 				f, err := part.Open()
 				if err != nil {

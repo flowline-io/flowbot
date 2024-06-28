@@ -3,6 +3,9 @@ package migrate
 import (
 	"database/sql"
 	"fmt"
+	"io"
+	"os"
+
 	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
@@ -10,8 +13,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
-	"io"
-	"os"
 )
 
 func ImportAction(c *cli.Context) error {

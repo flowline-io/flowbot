@@ -2,10 +2,11 @@ package docker
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"os"
 	"sync"
+
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/pkg/errors"
 )

@@ -193,7 +193,6 @@ func parseParams(s string) (map[string]string, int) {
 					if !unicode.IsSpace(rune(s[j])) {
 						o++
 					}
-
 				}
 				return rune(s[j])
 			} else if o > 0 {

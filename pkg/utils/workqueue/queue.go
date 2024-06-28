@@ -1,9 +1,10 @@
 package workqueue
 
 import (
-	"github.com/flowline-io/flowbot/pkg/utils/clock"
 	"sync"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
 )
 
 type Interface interface {

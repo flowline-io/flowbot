@@ -28,7 +28,7 @@ func randomPoints(n int) plotter.XYs {
 	return pts
 }
 
-func qrEncode(text string) (types.MsgPayload) {
+func qrEncode(text string) types.MsgPayload {
 	qrc, err := qrcode.New(text)
 	if err != nil {
 		flog.Error(err)

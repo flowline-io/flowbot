@@ -2,6 +2,7 @@ package genshin
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"

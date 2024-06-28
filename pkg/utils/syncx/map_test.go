@@ -1,13 +1,14 @@
 package syncx_test
 
 import (
-	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slices"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/utils/syncx"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/slices"
 )
 
 func TestGetNonExistent(t *testing.T) {

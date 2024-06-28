@@ -5,12 +5,12 @@ package fs
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
-	"fmt"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -139,7 +139,9 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 // Delete deletes files from storage by provided slice of locations.
 func (fh *fshandler) Delete(locations []string) error {
 	for _, loc := range locations {
-		if err, _ := os.Remove(loc).(*os.PathError); err != nil {
+		err := os.Remove(loc)
+		var e *os.PathError
+		if errors.As(err, &e) {
 			if !errors.Is(err, os.ErrNotExist) {
 				flog.Warn("fs: error deleting file %v %v", loc, err)
 			}

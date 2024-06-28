@@ -1,11 +1,13 @@
 package queue
 
 import (
+	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
-	"sync"
 )
 
 // DeltaFIFOOptions is the configuration parameters for DeltaFIFO. All are
@@ -522,7 +524,8 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (any, error) {
 			flog.Warn("DeltaFIFO depth %d", depth)
 		}
 		err := process(item)
-		if e, ok := err.(ErrRequeue); ok {
+		var e ErrRequeue
+		if errors.As(err, &e) {
 			f.addIfNotPresent(id, item)
 			err = e.Err
 		}
@@ -606,7 +609,7 @@ func (f *DeltaFIFO) Replace(list []any, _ string) error {
 		deletedObj, exists, err := f.knownObjects.GetByKey(k)
 		if err != nil {
 			deletedObj = nil
-			flog.Error(fmt.Errorf("unexpected error %v during lookup of key %v, placing DeleteFinalStateUnknown marker without object", err, k))
+			flog.Error(fmt.Errorf("unexpected error %w during lookup of key %v, placing DeleteFinalStateUnknown marker without object", err, k))
 		} else if !exists {
 			deletedObj = nil
 			flog.Info("Key %v does not exist in known objects store, placing DeleteFinalStateUnknown marker without object", k)
@@ -648,7 +651,7 @@ func (f *DeltaFIFO) Resync() error {
 func (f *DeltaFIFO) syncKeyLocked(key string) error {
 	obj, exists, err := f.knownObjects.GetByKey(key)
 	if err != nil {
-		flog.Error(fmt.Errorf("unexpected error %v during lookup of key %v, unable to queue object for sync", err, key))
+		flog.Error(fmt.Errorf("unexpected error %w during lookup of key %v, unable to queue object for sync", err, key))
 		return nil
 	} else if !exists {
 		flog.Info("Key %v does not exist in known objects store, unable to queue object for sync", key)

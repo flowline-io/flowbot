@@ -1,9 +1,10 @@
 package types // import "https://github.com/runabol/tork"
 
 import (
-	"golang.org/x/exp/maps"
 	"slices"
 	"time"
+
+	"golang.org/x/exp/maps"
 )
 
 // TaskState State defines the list of states that a
@@ -13,7 +14,7 @@ type TaskState string
 const (
 	TaskStatePending   TaskState = "PENDING"
 	TaskStateRunning   TaskState = "RUNNING"
-	TaskStateCancelled TaskState = "CANCELLED"
+	TaskStateCancelled TaskState = "CANCELED"
 	TaskStateStopped   TaskState = "STOPPED"
 	TaskStateCompleted TaskState = "COMPLETED"
 	TaskStateFailed    TaskState = "FAILED"

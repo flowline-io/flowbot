@@ -1,6 +1,8 @@
 package slack
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
@@ -8,7 +10,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
-	"time"
 )
 
 type Adapter struct{}

@@ -4,7 +4,6 @@ package utils
 
 import (
 	"crypto/tls"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -46,12 +47,10 @@ func stringSliceDelta(rold, rnew []string) (added, removed, intersection []strin
 			// Present in new, missing in old: added
 			added = append(added, rnew[n])
 			n++
-
 		} else if n == lnew || rold[o] < rnew[n] {
 			// Present in old, missing in new: removed
 			removed = append(removed, rold[o])
 			o++
-
 		} else {
 			// present in both
 			intersection = append(intersection, rold[o])
@@ -149,7 +148,6 @@ func ToAbsolutePath(base, path string) string {
 }
 
 func ParseTLSConfig(tlsEnabled bool, conf config.TLSConfig) (*tls.Config, error) {
-
 	if !tlsEnabled && !conf.Enabled {
 		return nil, nil
 	}

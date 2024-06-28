@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"context"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -11,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/looplab/fsm"
 	"github.com/pkg/errors"
-	"time"
 )
 
 func NewJobFSM(state model.JobState) *fsm.FSM {

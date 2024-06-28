@@ -2,9 +2,10 @@ package locker
 
 import (
 	"context"
+	"time"
+
 	"github.com/bsm/redislock"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"time"
 )
 
 type Locker struct {

@@ -5,11 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
-	"github.com/google/uuid"
 	"math/big"
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 func HasHan(txt string) bool {

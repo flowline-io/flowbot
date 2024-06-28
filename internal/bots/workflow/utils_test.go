@@ -1,10 +1,11 @@
 package workflow
 
 import (
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
 	"reflect"
 	"testing"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const okYaml = `---

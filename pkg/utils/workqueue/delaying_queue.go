@@ -2,10 +2,11 @@ package workqueue
 
 import (
 	"container/heap"
-	"github.com/flowline-io/flowbot/pkg/utils/clock"
-	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"sync"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/utils/clock"
+	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 )
 
 // DelayingInterface is an Interface that can Add an item at a later time. This makes it easier to
@@ -40,7 +41,7 @@ func NewDelayingQueueWithCustomClock(clock clock.WithTicker, name string) Delayi
 	return newDelayingQueue(clock, NewNamed(name), name)
 }
 
-func newDelayingQueue(clock clock.WithTicker, q Interface, name string) *delayingType {
+func newDelayingQueue(clock clock.WithTicker, q Interface, _ string) *delayingType {
 	ret := &delayingType{
 		Interface:       q,
 		clock:           clock,

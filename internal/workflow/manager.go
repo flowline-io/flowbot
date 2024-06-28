@@ -2,13 +2,14 @@ package workflow
 
 import (
 	"context"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"github.com/hibiken/asynq"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type Manager struct {
@@ -61,7 +62,6 @@ func (m *Manager) pushReadyJob() {
 		}
 		err = PushTask(t)
 		if err != nil {
-
 			// duplicate task
 			if errors.Is(err, asynq.ErrDuplicateTask) {
 				flog.Warn("duplicate task: %s, skip", t.ID)

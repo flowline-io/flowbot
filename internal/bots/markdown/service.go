@@ -3,6 +3,8 @@ package markdown
 import (
 	"bytes"
 	_ "embed"
+	"text/template"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -12,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	"text/template"
 )
 
 //go:embed markdown.html

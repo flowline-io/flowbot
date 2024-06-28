@@ -2,10 +2,11 @@ package gitea
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -224,5 +225,4 @@ func (v *Gitea) GetRepositories() ([]string, error) {
 	} else {
 		return nil, fmt.Errorf("%d", resp.StatusCode())
 	}
-
 }

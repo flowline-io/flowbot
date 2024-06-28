@@ -5,9 +5,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"os"
 	"text/template"
+
+	"github.com/urfave/cli/v2"
 )
 
 //go:embed tmpl/main.tmpl

@@ -3,6 +3,7 @@ package component
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/page/library"

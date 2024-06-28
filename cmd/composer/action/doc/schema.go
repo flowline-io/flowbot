@@ -3,14 +3,15 @@ package doc
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
-	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Column struct {
