@@ -38,7 +38,7 @@ require (
 	github.com/montanaflynn/stats v0.7.1
 	github.com/nikolaydubina/calendarheatmap v1.7.2
 	github.com/pkg/errors v0.9.1
-	github.com/redis/go-redis/v9 v9.5.3
+	github.com/redis/go-redis/v9 v9.5.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/zerolog v1.33.0
