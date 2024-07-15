@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -75,7 +76,7 @@ func SchemaAction(c *cli.Context) error {
 	conffile := c.String("config")
 	database := c.String("database")
 
-	file, err := os.Open(conffile)
+	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
 		panic(err)
 	}
