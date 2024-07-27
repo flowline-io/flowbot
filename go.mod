@@ -24,7 +24,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/heimdalr/dag v1.4.0
+	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
