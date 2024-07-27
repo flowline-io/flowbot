@@ -8,7 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const ChannelNameSuffix = "_channel"
