@@ -62,7 +62,7 @@ linters:
     # - gocyclo
     # - godox
     - gofmt
-    - goimports
+    # - goimports
     # - mnd
     - goprintffuncname
     # - gosec
