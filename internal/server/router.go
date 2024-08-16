@@ -61,10 +61,12 @@ func newRouter(app *fiber.App) *mux.Router {
 
 	// common
 	app.All("/oauth/:provider/:flag", storeOAuth)
-	app.Get("/page/:id", getPage)
+	app.Get("/p/:id", getPage)
+	// form
 	app.Post("/form", adaptor.HTTPHandlerFunc(postForm))
-	app.Get("/p/:id/:flag", renderPage)
-	// bot
+	// page
+	app.Get("/page/:id/:flag", renderPage)
+	// flowkit
 	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
 	// webhook
 	app.All("/webhook/:flag", doWebhook)
