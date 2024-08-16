@@ -67,7 +67,7 @@ func newRouter(app *fiber.App) *mux.Router {
 	// page
 	app.Get("/page/:id/:flag", renderPage)
 	// flowkit
-	app.Get("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
+	app.Post("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
 	// webhook
 	app.All("/webhook/:flag", doWebhook)
 
@@ -417,13 +417,13 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 		errorResponse(rw, "error")
 		return
 	}
-	fmt.Println(result)
-	//res, _ := json.Marshal(types.ServerComMessage{
-	//	Code: http.StatusOK,
-	//	Data: result,
-	//})
-	//rw.Header().Set("Content-Type", "application/json")
-	//_, _ = rw.Write(res)
+
+	res, _ := json.Marshal(protocol.Response{
+		Status: protocol.Success,
+		Data:   result,
+	})
+	rw.Header().Set("Content-Type", "application/json")
+	_, _ = rw.Write(res)
 }
 
 func platformCallback(ctx *fiber.Ctx) error {
