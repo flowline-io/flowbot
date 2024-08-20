@@ -1,6 +1,6 @@
 package uikit
 
-import "github.com/maxence-charriere/go-app/v9/pkg/app"
+import "github.com/maxence-charriere/go-app/v10/pkg/app"
 
 func Article(title string, meta string, body ...app.UI) app.HTMLArticle {
 	var elems []app.UI

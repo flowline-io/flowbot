@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/maxence-charriere/go-app/v9/pkg/app"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
 const Layout = `

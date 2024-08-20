@@ -33,7 +33,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gorilla/mux"
 	json "github.com/json-iterator/go"
-	"github.com/maxence-charriere/go-app/v9/pkg/app"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"gorm.io/gorm"
 )
 
