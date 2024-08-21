@@ -45,7 +45,7 @@ func NewCronTaskManager() *CronTaskManager {
 		},
 	})
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Fatal("error %v", err)
 	}
 	return &CronTaskManager{mgr: mgr}
 }
@@ -75,7 +75,7 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 		}
 		_, err = store.Database.GetWorkflow(trigger.WorkflowID)
 		if err != nil {
-			flog.Warn(err.Error())
+			flog.Warn("error %v", err)
 			continue
 		}
 		payload, err := json.Marshal(trigger)

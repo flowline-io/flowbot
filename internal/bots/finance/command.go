@@ -27,7 +27,7 @@ var commandRules = []command.Rule{
 			if reply.Name != "" {
 				var xAxis []string
 				var series []float64
-				if reply.NetWorthDataDate == nil || len(reply.NetWorthDataDate) == 0 {
+				if len(reply.NetWorthDataDate) == 0 {
 					xAxis = reply.MillionCopiesIncomeDataDate
 					series = reply.MillionCopiesIncomeDataIncome
 				} else {

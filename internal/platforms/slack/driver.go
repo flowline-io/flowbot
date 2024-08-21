@@ -34,7 +34,7 @@ func NewDriver() *Driver {
 		Adapter: &Adapter{},
 	})
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Fatal("error %v", err)
 	}
 
 	return &Driver{
