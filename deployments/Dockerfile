@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot -ldflags "-X githu
 
 FROM alpine:latest
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash curl
 
 WORKDIR /opt/app
 
