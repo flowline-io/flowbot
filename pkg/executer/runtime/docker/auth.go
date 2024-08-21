@@ -3,9 +3,7 @@ package docker // import "https://github.com/cpuguy83/dockercfg"
 import (
 	"encoding/base64"
 	"encoding/json"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
-
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // Errors from credential helpers
@@ -215,10 +213,10 @@ func fromFile(configPath string, cfg *config) error {
 		return err
 	}
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
-		return errors.Wrapf(err, "error decoding docker config")
+		return fmt.Errorf("error decoding docker config, %w", err)
 	}
 	if err := f.Close(); err != nil {
-		return errors.Wrapf(err, "error closing docker config file")
+		return fmt.Errorf("error closing docker config file, %w", err)
 	}
 	return nil
 }

@@ -1,9 +1,10 @@
 package dag
 
 import (
+	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	dagLib "github.com/heimdalr/dag"
-	"github.com/pkg/errors"
 )
 
 type nodeId string
@@ -18,14 +19,14 @@ func TopologySort(item *model.Dag) ([]model.Step, error) {
 	for i, node := range item.Nodes {
 		_, err := d.AddVertex(nodeId(node.Id))
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to add vertex %s", node.Id)
+			return nil, fmt.Errorf("failed to add vertex %s, %w", node.Id, err)
 		}
 		nodeMap[node.Id] = item.Nodes[i]
 	}
 	for _, edge := range item.Edges {
 		err := d.AddEdge(edge.Source, edge.Target)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to add edge %s -> %s", edge.Source, edge.Target)
+			return nil, fmt.Errorf("failed to add edge %s -> %s, %w", edge.Source, edge.Target, err)
 		}
 	}
 
@@ -43,7 +44,7 @@ func TopologySort(item *model.Dag) ([]model.Step, error) {
 			}
 			parents, err := d.GetParents(id)
 			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get parents of %s", id)
+				return nil, fmt.Errorf("failed to get parents of %s, %w", id, err)
 			}
 			dependNodeId := make([]string, 0)
 			for pid := range parents {
@@ -74,7 +75,7 @@ func TopologySort(item *model.Dag) ([]model.Step, error) {
 		for id := range roots {
 			items, err := d.GetChildren(id)
 			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get children of %s", id)
+				return nil, fmt.Errorf("failed to get children of %s, %w", id, err)
 			}
 			for k, v := range items {
 				children[k] = v

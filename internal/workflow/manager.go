@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -9,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"github.com/hibiken/asynq"
-	"github.com/pkg/errors"
 )
 
 type Manager struct {
@@ -41,7 +42,7 @@ func (m *Manager) syncJob() {
 	for _, job := range list {
 		err = SyncJob(context.Background(), job)
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "failed to sync job %d", job.ID))
+			flog.Error(fmt.Errorf("failed to sync job %d, %w", job.ID, err))
 		}
 	}
 }
@@ -57,7 +58,7 @@ func (m *Manager) pushReadyJob() {
 		job.State = model.JobStart
 		t, err := NewJobTask(job)
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "failed to create task for job %d", job.ID))
+			flog.Error(fmt.Errorf("failed to create task for job %d, %w", job.ID, err))
 			continue
 		}
 		err = PushTask(t)
@@ -74,28 +75,28 @@ func (m *Manager) pushReadyJob() {
 
 				err = DeleteJob(context.Background(), job)
 				if err != nil {
-					flog.Error(errors.Wrapf(err, "failed to delete job %d", job.ID))
+					flog.Error(fmt.Errorf("failed to delete job %d, %w", job.ID, err))
 				}
 
 				err = store.Database.UpdateJobState(job.ID, model.JobFailed)
 				if err != nil {
-					flog.Error(errors.Wrapf(err, "failed to update job %d", job.ID))
+					flog.Error(fmt.Errorf("failed to update job %d, %w", job.ID, err))
 				}
 
 				continue
 			}
 
-			flog.Error(errors.Wrapf(err, "failed to push task %s", t.ID))
+			flog.Error(fmt.Errorf("failed to push task %s, %w", t.ID, err))
 			continue
 		}
 		err = store.Database.UpdateJobState(job.ID, model.JobStart)
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "failed to update job %d", job.ID))
+			flog.Error(fmt.Errorf("failed to update job %d, %w", job.ID, err))
 			continue
 		}
 		err = SyncJob(ctx, job)
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "failed to sync job %d", job.ID))
+			flog.Error(fmt.Errorf("failed to sync job %d, %w", job.ID, err))
 			continue
 		}
 	}

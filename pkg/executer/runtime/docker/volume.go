@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
@@ -9,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/pkg/errors"
 )
 
 type VolumeMounter struct {
@@ -41,7 +41,7 @@ func (m *VolumeMounter) Unmount(ctx context.Context, mn *types.Mount) error {
 		return err
 	}
 	if len(ls.Volumes) == 0 {
-		return errors.Errorf("unknown volume: %s", mn.Source)
+		return fmt.Errorf("unknown volume: %s", mn.Source)
 	}
 	if err := m.client.VolumeRemove(ctx, mn.Source, true); err != nil {
 		return err

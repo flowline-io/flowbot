@@ -4,6 +4,7 @@ package minio
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -17,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -46,7 +46,7 @@ type handler struct {
 func (ah *handler) Init(jsconf string) error {
 	var err error
 	if err = json.Unmarshal([]byte(jsconf), &ah.conf); err != nil {
-		return errors.Wrapf(err, "error parsing config: %s", jsconf)
+		return fmt.Errorf("error parsing config: %s", jsconf)
 	}
 
 	if ah.conf.AccessKeyId == "" {
@@ -68,19 +68,19 @@ func (ah *handler) Init(jsconf string) error {
 		Secure: !ah.conf.DisableSSL,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error connecting to minio")
+		return fmt.Errorf("error connecting to minio, %w", err)
 	}
 	ah.svc = minioClient
 
 	ctx := context.Background()
 	exist, err := ah.svc.BucketExists(ctx, ah.conf.BucketName)
 	if err != nil {
-		return errors.Wrapf(err, "error checking if bucket %s exists", ah.conf.BucketName)
+		return fmt.Errorf("error checking if bucket %s exists, %w", ah.conf.BucketName, err)
 	}
 	if !exist {
 		err = ah.svc.MakeBucket(ctx, ah.conf.BucketName, minio.MakeBucketOptions{Region: ah.conf.Region})
 		if err != nil {
-			return errors.Wrapf(err, "error creating bucket %s", ah.conf.BucketName)
+			return fmt.Errorf("error creating bucket %s, %w", ah.conf.BucketName, err)
 		}
 	}
 	return nil
@@ -110,7 +110,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		return "", 0, errors.Wrapf(err, "error uploading file %s", fname)
+		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
 	}
 
 	return ah.conf.ServeURL + fname, info.Size, nil

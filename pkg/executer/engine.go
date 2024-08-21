@@ -2,18 +2,16 @@ package executer
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/docker"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/shell"
-
-	"github.com/pkg/errors"
 )
 
 type Mode string
@@ -70,7 +68,7 @@ func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
 
 func (e *Engine) mustState(state string) {
 	if e.state != state {
-		panic(errors.Errorf("engine is not %s", state))
+		panic(fmt.Errorf("engine is not %s", state))
 	}
 }
 
@@ -124,7 +122,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		}
 		e.runtime = rt
 	default:
-		return nil, errors.Errorf("unknown runtime type: %s", e.runtimeType)
+		return nil, fmt.Errorf("unknown runtime type: %s", e.runtimeType)
 	}
 	return e.runtime, nil
 }
@@ -145,7 +143,7 @@ func (e *Engine) doRunTask(ctx context.Context, t *types.Task) error {
 	if t.Timeout != "" {
 		dur, err := time.ParseDuration(t.Timeout)
 		if err != nil {
-			return errors.Wrapf(err, "invalid timeout duration: %s", t.Timeout)
+			return fmt.Errorf("invalid timeout duration: %s, %w", t.Timeout, err)
 		}
 		tctx, cancel := context.WithTimeout(ctx, dur)
 		defer cancel()

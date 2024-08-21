@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
@@ -9,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
 )
@@ -88,7 +88,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 				// emit event
 				err := event.PublishMessage(protocolEvent.DetailType, protocolEvent)
 				if err != nil {
-					flog.Error(errors.Wrapf(err, "failed to emit event %s", protocolEvent.DetailType))
+					flog.Error(fmt.Errorf("failed to emit event %s, %w", protocolEvent.DetailType, err))
 				}
 				flog.Debug("end slack emit event %+v", protocolEvent)
 			}
@@ -98,7 +98,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 	go func() {
 		err := client.Run()
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "failed to run socket mode"))
+			flog.Error(fmt.Errorf("failed to run socket mode, %w", err))
 		}
 	}()
 }

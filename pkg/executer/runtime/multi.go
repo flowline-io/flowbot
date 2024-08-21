@@ -2,11 +2,10 @@ package runtime
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/flowline-io/flowbot/internal/types"
-
-	"github.com/pkg/errors"
 )
 
 type MultiMounter struct {
@@ -25,7 +24,7 @@ func (m *MultiMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 	defer m.mu.RUnlock()
 	mounter, ok := m.mounters[mnt.Type]
 	if !ok {
-		return errors.Errorf("unknown mount type: %s", mnt.Type)
+		return fmt.Errorf("unknown mount type: %s", mnt.Type)
 	}
 	return mounter.Mount(ctx, mnt)
 }
@@ -35,7 +34,7 @@ func (m *MultiMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
 	defer m.mu.RUnlock()
 	mounter, ok := m.mounters[mnt.Type]
 	if !ok {
-		return errors.Errorf("unknown mount type: %s", mnt.Type)
+		return fmt.Errorf("unknown mount type: %s", mnt.Type)
 	}
 	return mounter.Unmount(ctx, mnt)
 }

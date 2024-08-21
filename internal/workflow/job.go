@@ -2,13 +2,13 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -26,14 +26,14 @@ func DeleteJob(ctx context.Context, job *model.Job) error {
 func GetJobsByState(ctx context.Context, state model.JobState) ([]*model.Job, error) {
 	res, err := cache.DB.HGetAll(ctx, jobListKey).Result()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get jobs from cache key %s", jobListKey)
+		return nil, fmt.Errorf("failed to get jobs from cache key %s, %w", jobListKey, err)
 	}
 	var jobs []*model.Job
 	for _, v := range res {
 		job := &model.Job{}
 		err = json.Unmarshal(utils.StringToBytes(v), job)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to unmarshal job %s", v)
+			return nil, fmt.Errorf("failed to unmarshal job %s, %w", v, err)
 		}
 		jobs = append(jobs, job)
 	}

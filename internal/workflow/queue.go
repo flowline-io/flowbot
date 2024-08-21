@@ -6,8 +6,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
@@ -46,7 +44,7 @@ func PushTask(t *Task) error {
 		asynq.Retention(3*24*time.Hour),
 	)
 	if err != nil {
-		return errors.Wrapf(err, "failed to enqueue task %s", t.Task.Type())
+		return fmt.Errorf("failed to enqueue task %s, %w", t.Task.Type(), err)
 	}
 	flog.Info("Enqueued %s, ID:%s Payload: %s", t.Task.Type(), info.ID, string(t.Task.Payload()))
 	return nil
@@ -91,7 +89,7 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		if err != nil {
 			flog.Error(fmt.Errorf("failed processing %q: Elapsed Time = %v, Payload = %s, Error = %w",
 				t.Type(), time.Since(start), string(t.Payload()), err))
-			return errors.Wrapf(err, "failed processing %q", t.Type())
+			return fmt.Errorf("failed processing %q, %w", t.Type(), err)
 		}
 		flog.Debug("finished processing %q: Elapsed Time = %v, Payload = %s",
 			t.Type(), time.Since(start), string(t.Payload()))

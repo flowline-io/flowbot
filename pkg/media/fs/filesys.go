@@ -5,6 +5,7 @@ package fs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -17,8 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/pkg/errors"
-
 	"github.com/flowline-io/flowbot/pkg/media"
 )
 
@@ -45,7 +44,7 @@ func (fh *fshandler) Init(jsconf string) error {
 	var config configType
 
 	if err = json.Unmarshal([]byte(jsconf), &config); err != nil {
-		return errors.Wrapf(err, "error parsing config: %s", jsconf)
+		return fmt.Errorf("error parsing config: %s, %w", jsconf, err)
 	}
 
 	fh.fileUploadLocation = config.FileUploadDirectory
@@ -84,21 +83,21 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 	outfile, err := os.Create(fdef.Location)
 	if err != nil {
 		flog.Warn("Upload: failed to create file %v %v", fdef.Location, err)
-		return "", 0, errors.Wrapf(err, "failed to create file %v", fdef.Location)
+		return "", 0, fmt.Errorf("failed to create file %v, %w", fdef.Location, err)
 	}
 
 	if err = store.Database.FileStartUpload(fdef); err != nil {
 		_ = outfile.Close()
 		_ = os.Remove(fdef.Location)
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
-		return "", 0, errors.Wrapf(err, "failed to create file record %v", fdef.Id)
+		return "", 0, fmt.Errorf("failed to create file record %v, %w", fdef.Id, err)
 	}
 
 	size, err := io.Copy(outfile, file)
 	_ = outfile.Close()
 	if err != nil {
 		_ = os.Remove(fdef.Location)
-		return "", 0, errors.Wrapf(err, "failed to upload file %v", fdef.Location)
+		return "", 0, fmt.Errorf("failed to upload file %v, %w", fdef.Location, err)
 	}
 
 	fname := fdef.Id
@@ -121,7 +120,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 	fd, err := fh.getFileRecord(fid)
 	if err != nil {
 		flog.Warn("Download: file not found %v", fid)
-		return nil, nil, errors.Wrapf(err, "file not found %v", fid)
+		return nil, nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}
 
 	file, err := os.Open(fd.Location)
@@ -130,7 +129,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 			// If the file is not found, send 404 instead of the default 500
 			err = protocol.ErrNotFound
 		}
-		return nil, nil, errors.Wrapf(err, "failed to open file %v", fd.Location)
+		return nil, nil, fmt.Errorf("failed to open file %v, %w", fd.Location, err)
 	}
 
 	return fd, file, nil
@@ -159,7 +158,7 @@ func (fh *fshandler) GetIdFromUrl(url string) types.Uid {
 func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 	fd, err := store.Database.FileGet(fid.String())
 	if err != nil {
-		return nil, errors.Wrapf(err, "file not found %v", fid)
+		return nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}
 	if fd == nil {
 		return nil, protocol.ErrNotFound

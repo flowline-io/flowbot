@@ -37,7 +37,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
 
@@ -161,7 +160,7 @@ func initializeLog() error {
 func initializeTimezone() error {
 	_, err := time.LoadLocation("Local")
 	if err != nil {
-		return errors.Wrap(err, "load time location error")
+		return fmt.Errorf("load time location error, %w", err)
 	}
 	return nil
 }
@@ -303,7 +302,7 @@ func initializePprof() error {
 	if *appFlag.pprofFile != "" {
 		curwd, err := os.Getwd()
 		if err != nil {
-			return errors.Wrap(err, "failed to get current working directory")
+			return fmt.Errorf("failed to get current working directory, %w", err)
 		}
 		*appFlag.pprofFile = utils.ToAbsolutePath(curwd, *appFlag.pprofFile)
 
@@ -348,7 +347,7 @@ func initializeDatabase() error {
 	// Open database
 	err := store.Store.Open(config.App.Store)
 	if err != nil {
-		return errors.Wrap(err, "failed to open DB")
+		return fmt.Errorf("failed to open DB, %w", err)
 	}
 	go func() {
 		<-stopSignal
@@ -375,12 +374,12 @@ func initializeMedia() error {
 				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
 					data, err := json.Marshal(params)
 					if err != nil {
-						return errors.Wrap(err, "failed to marshal media handler")
+						return fmt.Errorf("failed to marshal media handler, %w", err)
 					}
 					conf = string(data)
 				}
 				if err := store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
-					return errors.Wrap(err, "failed to init media handler")
+					return fmt.Errorf("failed to init media handler, %w", err)
 				}
 			}
 			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
@@ -407,7 +406,7 @@ func initializeTLS() error {
 	// TLS
 	tlsConfig, err = utils.ParseTLSConfig(*appFlag.tlsEnabled, config.App.TLS)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse TLS config")
+		return fmt.Errorf("failed to parse TLS config, %w", err)
 	}
 	return nil
 }

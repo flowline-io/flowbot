@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -28,7 +29,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"github.com/pkg/errors"
 )
 
 type Runtime struct {
@@ -106,7 +106,7 @@ func (d *Runtime) Run(ctx context.Context, t *types.Task) error {
 			uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := d.mounter.Unmount(uctx, &m); err != nil {
-				flog.Error(errors.Wrapf(err, "error unmounting mount: %s", m))
+				flog.Error(fmt.Errorf("error unmounting mount: %s, %w", m, err))
 			}
 		}(mnt)
 		t.Mounts[i] = mnt
@@ -143,7 +143,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		return errors.New("task id is required")
 	}
 	if err := d.imagePull(ctx, t); err != nil {
-		return errors.Wrapf(err, "error pulling image: %s", t.Image)
+		return fmt.Errorf("error pulling image: %s, %w", t.Image, err)
 	}
 
 	var env []string
@@ -160,20 +160,20 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		case types.MountTypeVolume:
 			mt = mount.TypeVolume
 			if m.Target == "" {
-				return errors.Errorf("volume target is required")
+				return fmt.Errorf("volume target is required")
 			}
 		case types.MountTypeBind:
 			mt = mount.TypeBind
 			if m.Target == "" {
-				return errors.Errorf("bind target is required")
+				return fmt.Errorf("bind target is required")
 			}
 			if m.Source == "" {
-				return errors.Errorf("bind source is required")
+				return fmt.Errorf("bind source is required")
 			}
 		case types.MountTypeTmpfs:
 			mt = mount.TypeTmpfs
 		default:
-			return errors.Errorf("unknown mount type: %s", m.Type)
+			return fmt.Errorf("unknown mount type: %s", m.Type)
 		}
 		item := mount.Mount{
 			Type:   mt,
@@ -192,7 +192,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		if err := d.mounter.Unmount(uctx, workdir); err != nil {
-			flog.Error(errors.Wrap(err, "error unmounting workdir"))
+			flog.Error(fmt.Errorf("error unmounting workdir, %w", err))
 		}
 	}()
 	mounts = append(mounts, mount.Mount{
@@ -204,11 +204,11 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	// parse task limits
 	cpus, err := parseCPUs(t.Limits)
 	if err != nil {
-		return errors.Wrapf(err, "invalid CPUs value")
+		return fmt.Errorf("invalid CPUs value, %w", err)
 	}
 	mem, err := parseMemory(t.Limits)
 	if err != nil {
-		return errors.Wrapf(err, "invalid memory value")
+		return fmt.Errorf("invalid memory value, %w", err)
 	}
 
 	resources := container.Resources{
@@ -219,7 +219,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if t.GPUs != "" {
 		gpuOpts := cliopts.GpuOpts{}
 		if err := gpuOpts.Set(t.GPUs); err != nil {
-			return errors.Wrapf(err, "error setting GPUs")
+			return fmt.Errorf("error setting GPUs, %w", err)
 		}
 		resources.DeviceRequests = gpuOpts.Value()
 	}
@@ -262,7 +262,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	resp, err := d.client.ContainerCreate(
 		ctx, &cc, &hc, &nc, nil, "")
 	if err != nil {
-		flog.Error(errors.Wrapf(err, "Error creating container using image %s: %v\n", t.Image, err))
+		flog.Error(fmt.Errorf("Error creating container using image %s: %w", t.Image, err))
 		return err
 	}
 
@@ -276,13 +276,13 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		stopContext, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		if err := d.Stop(stopContext, t); err != nil {
-			flog.Error(errors.Wrapf(err, "container-id: %s, error removing container upon completion", resp.ID))
+			flog.Error(fmt.Errorf("container-id: %s, error removing container upon completion, %w", resp.ID, err))
 		}
 	}()
 
 	// initialize the work directory
 	if err := d.initWorkdir(ctx, resp.ID, t); err != nil {
-		return errors.Wrapf(err, "error initializing container")
+		return fmt.Errorf("error initializing container, %w", err)
 	}
 
 	// start the container
@@ -290,7 +290,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	err = d.client.ContainerStart(
 		ctx, resp.ID, container.StartOptions{})
 	if err != nil {
-		return errors.Wrapf(err, "error starting container %s: %v\n", resp.ID, err)
+		return fmt.Errorf("error starting container %s: %w", resp.ID, err)
 	}
 	// read the container's stdout
 	out, err := d.client.ContainerLogs(
@@ -303,16 +303,16 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		},
 	)
 	if err != nil {
-		return errors.Wrapf(err, "error getting logs for container %s: %v\n", resp.ID, err)
+		return fmt.Errorf("error getting logs for container %s: %w", resp.ID, err)
 	}
 	defer func() {
 		if err := out.Close(); err != nil {
-			flog.Error(errors.Wrapf(err, "error closing stdout on container %s", resp.ID))
+			flog.Error(fmt.Errorf("error closing stdout on container %s, %w", resp.ID, err))
 		}
 	}()
 	_, err = io.Copy(os.Stdout, out)
 	if err != nil {
-		return errors.Wrapf(err, "error reading the std out")
+		return fmt.Errorf("error reading the std out, %w", err)
 	}
 	statusCh, errCh := d.client.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	select {
@@ -332,14 +332,14 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 				},
 			)
 			if err != nil {
-				flog.Error(errors.Wrap(err, "error tailing the log"))
-				return errors.Errorf("exit code %d", status.StatusCode)
+				flog.Error(fmt.Errorf("error tailing the log, %w", err))
+				return fmt.Errorf("exit code %d, %w", status.StatusCode, err)
 			}
 			buf, err := io.ReadAll(printableReader{reader: out})
 			if err != nil {
-				flog.Error(errors.Wrap(err, "error copying the output"))
+				flog.Error(fmt.Errorf("error copying the output, %w", err))
 			}
-			return errors.Errorf("exit code %d: %s", status.StatusCode, string(buf))
+			return fmt.Errorf("exit code %d: %s", status.StatusCode, string(buf))
 		} else {
 			stdout, err := d.readOutput(ctx, resp.ID)
 			if err != nil {
@@ -360,7 +360,7 @@ func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, e
 	defer func() {
 		err := r.Close()
 		if err != nil {
-			flog.Error(errors.Wrap(err, "error closing /flowbot/stdout reader"))
+			flog.Error(fmt.Errorf("error closing /flowbot/stdout reader, %w", err))
 		}
 	}()
 	tr := tar.NewReader(r)
@@ -392,7 +392,7 @@ func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.
 	defer func() {
 		err := os.Remove(filename)
 		if err != nil {
-			flog.Error(errors.Wrapf(err, "error removing archive: %s", filename))
+			flog.Error(fmt.Errorf("error removing archive: %s, %w", filename, err))
 		}
 	}()
 	// open the archive for reading by the container
@@ -404,7 +404,7 @@ func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.
 	defer func() {
 		err := ar.Close()
 		if err != nil {
-			flog.Error(errors.Wrap(err, "error closing archive file"))
+			flog.Error(fmt.Errorf("error closing archive file, %w", err))
 		}
 	}()
 	r := bufio.NewReader(ar)
@@ -418,11 +418,11 @@ func createArchive(t *types.Task) (string, error) {
 	// create an archive file
 	ar, err := os.CreateTemp("", "archive-*.tar")
 	if err != nil {
-		return "", errors.Wrapf(err, "error creating tar file")
+		return "", fmt.Errorf("error creating tar file")
 	}
 	defer func() {
 		if err := ar.Close(); err != nil {
-			flog.Error(errors.Wrap(err, "error closing archive.tar file"))
+			flog.Error(fmt.Errorf("error closing archive.tar file, %w", err))
 		}
 	}()
 	// write the run script as an entrypoint

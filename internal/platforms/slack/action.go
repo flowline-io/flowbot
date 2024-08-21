@@ -1,10 +1,11 @@
 package slack
 
 import (
+	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 )
 
@@ -40,7 +41,7 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 		Content: content,
 	})
 	if err != nil {
-		flog.Error(errors.Wrapf(err, "failed to send message to %s", channel))
+		flog.Error(fmt.Errorf("failed to send message to %s, %w", channel, err))
 		return protocol.NewFailedResponse(protocol.ErrInternalHandler)
 	}
 
@@ -87,7 +88,7 @@ func (a *Action) makeRequest(in *request) error {
 		msgOptions...,
 	)
 	if err != nil {
-		return errors.Wrapf(err, "failed to send message to %s", in.Channel)
+		return fmt.Errorf("failed to send message to %s, %w", in.Channel, err)
 	}
 	return nil
 }

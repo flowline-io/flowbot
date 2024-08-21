@@ -3,6 +3,7 @@ package machine
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -122,7 +122,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		stopContext, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 		if err := r.Stop(stopContext, t); err != nil {
-			flog.Error(errors.Wrapf(err, "error stopping session for task %v", t.ID))
+			flog.Error(fmt.Errorf("error stopping session for task %v, %w", t.ID, err))
 		}
 	}()
 

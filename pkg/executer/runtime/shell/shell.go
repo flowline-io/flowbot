@@ -3,19 +3,17 @@ package shell
 import (
 	"bufio"
 	"context"
+	"errors"
 	"flag"
+	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/reexec"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-
-	"fmt"
-	"os"
-	"os/exec"
-
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -128,13 +126,13 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	log.Debug().Msgf("Created workdir %s", workdir)
 
 	if err := os.WriteFile(fmt.Sprintf("%s/stdout", workdir), []byte{}, 0606); err != nil {
-		return errors.Wrapf(err, "error writing the entrypoint")
+		return fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 
 	for filename, contents := range t.Files {
 		filename = fmt.Sprintf("%s/%s", workdir, filename)
 		if err := os.WriteFile(filename, []byte(contents), 0444); err != nil {
-			return errors.Wrapf(err, "error writing file: %s", filename)
+			return fmt.Errorf("error writing file: %s, %w", filename, err)
 		}
 	}
 
@@ -147,7 +145,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	env = append(env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
 
 	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
-		return errors.Wrapf(err, "error writing the entrypoint")
+		return fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 	args := append(r.shell, fmt.Sprintf("%s/entrypoint", workdir))
 	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)
@@ -187,10 +185,10 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	}()
 	select {
 	case err := <-errChan:
-		return errors.Wrapf(err, "error executing command")
+		return fmt.Errorf("error executing command, %w", err)
 	case <-ctx.Done():
 		if err := cmd.Process.Kill(); err != nil {
-			return errors.Wrapf(err, "error canceling command")
+			return fmt.Errorf("error canceling command, %w", err)
 		}
 		return ctx.Err()
 	case <-doneChan:
@@ -198,7 +196,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 
 	output, err := os.ReadFile(fmt.Sprintf("%s/stdout", workdir))
 	if err != nil {
-		return errors.Wrapf(err, "error reading the task output")
+		return fmt.Errorf("error reading the task output, %w", err)
 	}
 
 	t.Result = string(output)
@@ -252,7 +250,7 @@ func (r *Runtime) Stop(_ context.Context, t *types.Task) error {
 		return nil
 	}
 	if err := proc.Process.Kill(); err != nil {
-		return errors.Wrapf(err, "error stopping process for task: %s", t.ID)
+		return fmt.Errorf("error stopping process for task: %s, %w", t.ID, err)
 	}
 	return nil
 }
