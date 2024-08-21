@@ -14,7 +14,6 @@ import (
 	"unicode"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-
 	"golang.org/x/crypto/acme/autocert"
 )
 

@@ -1,9 +1,6 @@
 package version
 
 // Buildstamp version number defined by the compiler:
-//
-//	-ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=value_to_assign_to_buildstamp"
-//
 // Reported to clients in response to {hi} message.
 // For instance, to define the buildstamp as a timestamp of when the server was built add a
 // flag to compiler command line:
