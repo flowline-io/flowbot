@@ -16,7 +16,6 @@ import (
 	"unicode"
 
 	cliopts "github.com/docker/cli/opts"
-	dockerTypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
@@ -408,7 +407,7 @@ func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.
 		}
 	}()
 	r := bufio.NewReader(ar)
-	if err := d.client.CopyToContainer(ctx, containerID, "/flowbot", r, dockerTypes.CopyToContainerOptions{}); err != nil {
+	if err := d.client.CopyToContainer(ctx, containerID, "/flowbot", r, container.CopyToContainerOptions{}); err != nil {
 		return err
 	}
 	return nil
