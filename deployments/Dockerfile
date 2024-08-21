@@ -14,13 +14,10 @@ RUN apk add --no-cache bash curl
 
 WORKDIR /opt/app
 
-# Fetch build from Github.
 COPY --from=builder /opt/app/flowbot .
 COPY deployments/entrypoint.sh .
 
 RUN chmod +x flowbot && chmod +x entrypoint.sh && mkdir subscribe
 
 ENTRYPOINT ./entrypoint.sh
-
-# HTTP
 EXPOSE 6060
