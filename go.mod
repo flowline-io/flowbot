@@ -30,7 +30,7 @@ require (
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/json-iterator/go v1.1.12
-	github.com/lithammer/shortuuid/v3 v3.0.7
+	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.5
 	github.com/minio/minio-go/v7 v7.0.75
@@ -121,6 +121,7 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

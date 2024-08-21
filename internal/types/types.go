@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/lithammer/shortuuid/v3"
+	"github.com/lithammer/shortuuid/v4"
 )
 
 type MsgPayload interface {
