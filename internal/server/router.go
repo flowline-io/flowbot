@@ -267,7 +267,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	values := make(map[string]interface{})
+	values := make(types.KV)
 	d, err := json.Marshal(formData.Schema)
 	if err != nil {
 		return

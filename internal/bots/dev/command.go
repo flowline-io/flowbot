@@ -182,7 +182,7 @@ var commandRules = []command.Rule{
 		Define: "instruct list",
 		Help:   `all bot instruct`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			models := make(map[string]interface{})
+			models := make(types.KV)
 			for name, bot := range bots.List() {
 				ruleset, _ := bot.Instruct()
 				for _, rule := range ruleset {

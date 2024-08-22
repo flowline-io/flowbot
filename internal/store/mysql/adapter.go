@@ -111,7 +111,7 @@ func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
 	return err
 }
 
-func (a *adapter) UserUpdate(uid types.Uid, update map[string]interface{}) error {
+func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
 	q := dao.Q.User
 	_, err := q.
 		Where(q.Flag.Eq(uid.String())).
@@ -485,7 +485,7 @@ func (a *adapter) OAuthSet(oauth model.OAuth) error {
 		return a.db.
 			Model(&model.OAuth{}).
 			Where("`uid` = ? AND `topic` = ? AND `type` = ?", oauth.UID, oauth.Topic, oauth.Type).
-			UpdateColumns(map[string]interface{}{
+			UpdateColumns(types.KV{
 				"token": oauth.Token,
 				"extra": oauth.Extra,
 			}).Error
@@ -528,7 +528,7 @@ func (a *adapter) FormSet(formId string, form model.Form) error {
 		return a.db.
 			Model(&model.Form{}).
 			Where("`form_id` = ?", formId).
-			Updates(map[string]interface{}{
+			Updates(types.KV{
 				"values": form.Values,
 				"state":  form.State,
 			}).Error
@@ -639,7 +639,7 @@ func (a *adapter) PageSet(pageId string, page model.Page) error {
 		return a.db.
 			Model(&model.Page{}).
 			Where("`page_id` = ?", pageId).
-			Updates(map[string]interface{}{
+			Updates(types.KV{
 				"state": page.State,
 			}).Error
 	} else {
@@ -695,7 +695,7 @@ func (a *adapter) UpdateInstruct(instruct *model.Instruct) error {
 	return a.db.
 		Model(&model.Todo{}).
 		Where("`no` = ?", instruct.No).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(types.KV{
 			"state": instruct.State,
 		}).Error
 }
@@ -831,7 +831,7 @@ func (a *adapter) CreateObjective(objective *model.Objective) (int64, error) {
 func (a *adapter) UpdateObjective(objective *model.Objective) error {
 	return a.db.Model(&model.Objective{}).
 		Where("`uid` = ? AND `topic` = ? AND sequence = ?", objective.UID, objective.Topic, objective.Sequence).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(types.KV{
 			"title":       objective.Title,
 			"memo":        objective.Memo,
 			"motive":      objective.Motive,
@@ -961,7 +961,7 @@ func (a *adapter) CreateKeyResult(keyResult *model.KeyResult) (int64, error) {
 func (a *adapter) UpdateKeyResult(keyResult *model.KeyResult) error {
 	return a.db.Model(&model.KeyResult{}).
 		Where("`uid` = ? AND `topic` = ? AND sequence = ?", keyResult.UID, keyResult.Topic, keyResult.Sequence).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(types.KV{
 			"title":        keyResult.Title,
 			"memo":         keyResult.Memo,
 			"target_value": keyResult.TargetValue,
@@ -991,7 +991,7 @@ func (a *adapter) AggregateObjectiveValue(id int64) error {
 	if err != nil {
 		return err
 	}
-	return a.db.Model(&model.Objective{}).Where("id = ?", id).UpdateColumns(map[string]interface{}{
+	return a.db.Model(&model.Objective{}).Where("id = ?", id).UpdateColumns(types.KV{
 		"current_value": result.CurrentValue,
 		"total_value":   result.TargetValue,
 	}).Error
@@ -1037,7 +1037,7 @@ func (a *adapter) AggregateKeyResultValue(id int64) error {
 	return a.db.
 		Model(&model.KeyResult{}).
 		Where("id = ?", id).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(types.KV{
 			"current_value": value.Int64,
 		}).Error
 }
@@ -1173,7 +1173,7 @@ func (a *adapter) CompleteTodoBySequence(uid types.Uid, topic string, sequence i
 func (a *adapter) UpdateTodo(todo *model.Todo) error {
 	return a.db.Model(&model.Todo{}).
 		Where("`uid` = ? AND `topic` = ? AND sequence = ?", todo.UID, todo.Topic, todo.Sequence).
-		UpdateColumns(map[string]interface{}{
+		UpdateColumns(types.KV{
 			"content":  todo.Content,
 			"category": todo.Category,
 			"remark":   todo.Remark,

@@ -150,7 +150,7 @@ type Adapter interface {
 	// UserDelete deletes user record
 	UserDelete(uid types.Uid, hard bool) error
 	// UserUpdate updates user record
-	UserUpdate(uid types.Uid, update map[string]interface{}) error
+	UserUpdate(uid types.Uid, update types.KV) error
 
 	// File upload records. The files are stored outside the database.
 

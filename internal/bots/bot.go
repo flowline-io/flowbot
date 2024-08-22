@@ -291,7 +291,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	var values types.KV = make(map[string]interface{})
+	var values types.KV = make(types.KV)
 	if v, ok := payload.(types.FormMsg); ok {
 		for _, field := range v.Field {
 			values[field.Key] = nil
@@ -299,7 +299,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	// set extra
-	var extra types.KV = make(map[string]interface{})
+	var extra types.KV = make(types.KV)
 
 	// store form
 	err = store.Database.FormSet(formId, model.Form{

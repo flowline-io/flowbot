@@ -27,7 +27,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			m := make(map[string]interface{})
+			m := make(types.KV)
 			for _, item := range items {
 				m[item.Flag] = fmt.Sprintf("%s/webhook/%s?secret=%s [%s] (%d)",
 					types.AppUrl(), item.Flag, item.Secret, stateStr(item.State), item.TriggerCount)

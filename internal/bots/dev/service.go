@@ -60,7 +60,7 @@ func upload(ctx *fiber.Ctx) error {
 		}
 	}
 
-	return ctx.JSON(map[string]interface{}{
+	return ctx.JSON(types.KV{
 		"success": len(result) > 0,
 		"result":  result,
 	})

@@ -118,7 +118,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// help command
 	if strings.ToLower(msg.AltMessage) == "help" || strings.ToLower(msg.AltMessage) == "h" {
-		m := make(map[string]interface{})
+		m := make(types.KV)
 		for name, handle := range bots.List() {
 			for _, item := range handle.Rules() {
 				switch v := item.(type) {
@@ -324,10 +324,10 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		var instruct []map[string]interface{}
-		instruct = []map[string]interface{}{}
+		var instruct []types.KV
+		instruct = []types.KV{}
 		for _, item := range list {
-			instruct = append(instruct, map[string]interface{}{
+			instruct = append(instruct, types.KV{
 				"no":        item.No,
 				"bot":       item.Bot,
 				"flag":      item.Flag,
@@ -340,7 +340,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 		var user *model.User // fixme
 		return utils.Fn(user), nil
 	case types.Bots:
-		var list []map[string]interface{}
+		var list []types.KV
 		for name, bot := range bots.List() {
 			instruct, err := bot.Instruct()
 			if err != nil {
@@ -349,7 +349,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			if len(instruct) <= 0 {
 				continue
 			}
-			list = append(list, map[string]interface{}{
+			list = append(list, types.KV{
 				"id":   name,
 				"name": name,
 			})
@@ -360,7 +360,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			if bot, ok := bots.List()[id]; ok {
 				return bot.Help()
 			}
-			return map[string]interface{}{}, nil
+			return types.KV{}, nil
 		}
 	case types.Ack:
 	}

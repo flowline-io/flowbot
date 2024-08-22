@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/go-resty/resty/v2"
@@ -51,7 +52,7 @@ func newClient() *client {
 func (v *client) auth() error {
 	resp, err := v.c.R().
 		SetResult(&TokenResponse{}).
-		SetBody(map[string]interface{}{
+		SetBody(types.KV{
 			"appId": v.clientId,
 			"token": utils.MD5(v.clientId + v.clientSecret),
 		}).
