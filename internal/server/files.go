@@ -24,6 +24,7 @@ func largeFileRunGarbageCollection(period time.Duration, blockSize int) chan<- b
 				if _, err := store.Database.FileDeleteUnused(time.Now().Add(-time.Hour), blockSize); err != nil {
 					flog.Warn("media gc: %v", err)
 				}
+				// todo delete unused
 			case <-stop:
 				return
 			}
