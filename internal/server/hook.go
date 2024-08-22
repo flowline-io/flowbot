@@ -5,6 +5,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -56,17 +57,17 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	// stats register
-	stats.RegisterInt("BotTotal")
-	stats.RegisterInt("BotRunInputTotal")
-	stats.RegisterInt("BotRunGroupTotal")
-	stats.RegisterInt("BotRunAgentTotal")
-	stats.RegisterInt("BotRunCommandTotal")
-	stats.RegisterInt("BotRunConditionTotal")
-	stats.RegisterInt("BotRunCronTotal")
-	stats.RegisterInt("BotRunFormTotal")
-	stats.RegisterInt("BotTriggerPipelineTotal")
+	stats.RegisterInt(types.BotTotalStatsName)
+	stats.RegisterInt(types.BotRunInputTotalStatsName)
+	stats.RegisterInt(types.BotRunGroupTotalStatsName)
+	stats.RegisterInt(types.BotRunAgentTotalStatsName)
+	stats.RegisterInt(types.BotRunCommandTotalStatsName)
+	stats.RegisterInt(types.BotRunConditionTotalStatsName)
+	stats.RegisterInt(types.BotRunCronTotalStatsName)
+	stats.RegisterInt(types.BotRunFormTotalStatsName)
+	stats.RegisterInt(types.BotTriggerPipelineTotalStatsName)
 
-	stats.Set("BotTotal", int64(len(bots.List())))
+	stats.Set(types.BotTotalStatsName, int64(len(bots.List())))
 }
 
 func hookChannel() {

@@ -157,7 +157,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 			// stats
 			if payload != nil {
-				stats.Inc("BotRunCommandTotal", 1)
+				stats.Inc(types.BotRunCommandTotalStatsName, 1)
 			}
 		}
 		// input
@@ -171,7 +171,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 				if payload != nil {
 					// stats
-					stats.Inc("BotRunInputTotal", 1)
+					stats.Inc(types.BotRunInputTotalStatsName, 1)
 				}
 			*/
 		}
@@ -309,7 +309,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			}
 
 			// stats
-			stats.Inc("BotRunAgentTotal", 1)
+			stats.Inc(types.BotRunAgentTotalStatsName, 1)
 
 			// send message
 			if payload == nil {

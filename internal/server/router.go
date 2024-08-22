@@ -371,7 +371,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// stats
-		stats.Inc("BotRunFormTotal", 1)
+		stats.Inc(types.BotRunFormTotalStatsName, 1)
 
 		// send message
 		if payload == nil {
