@@ -254,20 +254,8 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 }
 
 func notifyAfterReboot() {
-	//botUid := types.Uid(0) // fixme
-	//
-	//creds, err := store.Chatbot.GetCredentials()
-	//if err != nil {
-	//	flog.Error(err)
-	//	return
-	//}
-
-	//for _, cred := range creds {
-	//	rcptTo := tstore.EncodeUid(cred.Userid).P2PName(botUid)
-	//	if rcptTo != "" {
-	//		botSend(rcptTo, botUid, types.TextMsg{Text: "reboot"})
-	//	}
-	//}
+	// todo bot send
+	// botSend(rcptTo, botUid, types.TextMsg{Text: "reboot"})
 }
 
 func onlineStatus(msg protocol.Event) {
@@ -296,63 +284,41 @@ func errorResponse(rw http.ResponseWriter, text string) {
 func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 	switch data.Action {
 	case types.Agent:
-		//userUid := uid
-		//
-		//id, ok := data.Content.String("id")
-		//if !ok {
-		//	return nil, errors.New("error agent id")
-		//}
-		//
-		//subs, err := tstore.Users.FindSubs(userUid, [][]string{{"bot"}}, nil, true)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//
-		//// user auth record
-		//
-		//for _, sub := range subs {
-		//	if !isBot(sub) {
-		//		continue
-		//	}
-		//
-		//	topic := sub.User
-		//	topicUid := types.ParseUid(topic)
-		//
-		//	// bot name
-		//	name := botName(sub)
-		//	handle, ok := bots.List()[name]
-		//	if !ok {
-		//		continue
-		//	}
-		//
-		//	if !handle.IsReady() {
-		//		flog.Info("bot %s unavailable", topic)
-		//		continue
-		//	}
-		//
-		//	ctx := types.Context{
-		//		Original:     topicUid.UserId(),
-		//		RcptTo:       topic,
-		//		AsUser:       userUid,
-		//		AgentId:      id,
-		//		AgentVersion: data.Version,
-		//	}
-		//	payload, err := handle.Agent(ctx, data.Content)
-		//	if err != nil {
-		//		flog.Warn("topic[%s]: failed to agent bot: %v", topic, err)
-		//		continue
-		//	}
-		//
-		//	// stats
-		//	stats.Inc("BotRunAgentTotal", 1)
-		//
-		//	// send message
-		//	if payload == nil {
-		//		continue
-		//	}
-		//
-		//	botSend(uid.P2PName(topicUid), topicUid, payload)
-		//}
+		id, ok := data.Content.String("id")
+		if !ok {
+			return nil, errors.New("error agent id")
+		}
+
+		for name, handle := range bots.List() {
+			if !handle.IsReady() {
+				flog.Info("bot %s unavailable", name)
+				continue
+			}
+
+			ctx := types.Context{
+				Original:     "",
+				RcptTo:       "",
+				AsUser:       uid,
+				AgentId:      id,
+				AgentVersion: data.Version,
+			}
+			payload, err := handle.Agent(ctx, data.Content)
+			if err != nil {
+				flog.Warn("bot[%s]: failed to agent bot: %v", name, err)
+				continue
+			}
+
+			// stats
+			stats.Inc("BotRunAgentTotal", 1)
+
+			// send message
+			if payload == nil {
+				continue
+			}
+
+			// todo bot send
+		}
+
 	case types.Pull:
 		list, err := store.Database.ListInstruct(uid, false)
 		if err != nil {
