@@ -1,7 +1,6 @@
 package dev
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	_ "embed"
@@ -11,14 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
-	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/adguard"
-	"github.com/flowline-io/flowbot/pkg/providers/crates"
-	"github.com/flowline-io/flowbot/pkg/providers/shiori"
-	"github.com/flowline-io/flowbot/pkg/providers/transmission"
-
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
@@ -26,17 +17,19 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/workflow"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/providers/crates"
+	"github.com/flowline-io/flowbot/pkg/providers/shiori"
+	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
 	"github.com/montanaflynn/stats"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
-	"gonum.org/v1/plot/vg/draw"
-	"gonum.org/v1/plot/vg/vgimg"
 )
 
 var commandRules = []command.Rule{
@@ -123,38 +116,6 @@ var commandRules = []command.Rule{
 		Help:   `[example] form`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.FormMsg(ctx, devFormID)
-		},
-	},
-	{
-		Define: "plot",
-		Help:   `[example] plot graph`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			p := plot.New()
-
-			p.Title.Text = "Plotutil example"
-			p.X.Label.Text = "X"
-			p.Y.Label.Text = "Y"
-
-			err := plotutil.AddLinePoints(p,
-				"First", randomPoints(15),
-				"Second", randomPoints(15),
-				"Third", randomPoints(15))
-			if err != nil {
-				panic(err)
-			}
-
-			w := bytes.NewBufferString("")
-
-			c := vgimg.New(vg.Points(500), vg.Points(500))
-			dc := draw.New(c)
-			p.Draw(dc)
-
-			png := vgimg.PngCanvas{Canvas: c}
-			if _, err := png.WriteTo(w); err != nil {
-				panic(err)
-			}
-
-			return types.ImageConvert(w.Bytes(), "Plot", 500, 500)
 		},
 	},
 	{
