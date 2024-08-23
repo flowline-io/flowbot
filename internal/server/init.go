@@ -186,7 +186,7 @@ func initializeConfig() error {
 		flog.Fatal("Couldn't get current working directory: %v", err)
 	}
 
-	flog.Info("Server %s:%s:%s; pid %d; %d process(es)",
+	flog.Info("version %s:%s:%s; pid %d; %d process(es)",
 		version.Buildtags, executable, version.Buildstamp,
 		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
 
