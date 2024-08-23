@@ -4,7 +4,6 @@
 package fs
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +18,7 @@ import (
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/media"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -43,7 +43,7 @@ func (fh *fshandler) Init(jsconf string) error {
 	var err error
 	var config configType
 
-	if err = json.Unmarshal([]byte(jsconf), &config); err != nil {
+	if err = jsoniter.Unmarshal([]byte(jsconf), &config); err != nil {
 		return fmt.Errorf("error parsing config: %s, %w", jsconf, err)
 	}
 

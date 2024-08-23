@@ -14,8 +14,7 @@ type KV map[string]interface{}
 func (j *KV) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make(map[string]interface{})
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		err := json.Unmarshal(bytes, &result)
+		err := jsoniter.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -33,8 +32,7 @@ func (j KV) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	return json.Marshal(j)
+	return jsoniter.Marshal(j)
 }
 
 func (j KV) String(key string) (string, bool) {

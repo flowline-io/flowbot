@@ -6,7 +6,6 @@
 package stats
 
 import (
-	"encoding/json"
 	"expvar"
 	"runtime"
 	"sort"
@@ -16,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // StatsUpdate Runtime statistics communication channel.
@@ -42,7 +42,7 @@ func (h *histogram) addSample(v float64) {
 }
 
 func (h *histogram) String() string {
-	if r, err := json.Marshal(h); err == nil {
+	if r, err := jsoniter.Marshal(h); err == nil {
 		return string(r)
 	}
 	return ""

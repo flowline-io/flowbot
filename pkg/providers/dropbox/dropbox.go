@@ -56,8 +56,7 @@ func (v *Dropbox) completeAuth(code string) (interface{}, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		var result TokenResponse
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		err = json.Unmarshal(resp.Body(), &result)
+		err = jsoniter.Unmarshal(resp.Body(), &result)
 		if err != nil {
 			return nil, err
 		}
@@ -85,8 +84,7 @@ func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
 		return nil, err
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	extra, err := json.Marshal(&tokenResp)
+	extra, err := jsoniter.Marshal(&tokenResp)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +97,7 @@ func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
 }
 
 func (v *Dropbox) Upload(path string, content io.Reader) error {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	apiArg, err := json.Marshal(map[string]interface{}{
+	apiArg, err := jsoniter.Marshal(map[string]interface{}{
 		"path":            path,
 		"mode":            "add",
 		"autorename":      true,

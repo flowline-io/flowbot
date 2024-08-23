@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const Name = "github"
@@ -34,7 +35,7 @@ func (bot) Init(jsonconf json.RawMessage) error {
 		return errors.New("already initialized")
 	}
 
-	if err := json.Unmarshal(jsonconf, &Config); err != nil {
+	if err := jsoniter.Unmarshal(jsonconf, &Config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 

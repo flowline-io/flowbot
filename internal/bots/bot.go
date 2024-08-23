@@ -609,14 +609,14 @@ type configType struct {
 func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
-	if err := json.Unmarshal(jsonconf, &config); err != nil {
+	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
 	configMap := make(map[string]json.RawMessage)
 	for _, cc := range config {
 		var item configType
-		if err := json.Unmarshal(cc, &item); err != nil {
+		if err := jsoniter.Unmarshal(cc, &item); err != nil {
 			return errors.New("failed to parse config: " + err.Error())
 		}
 

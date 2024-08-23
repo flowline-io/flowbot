@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	json "github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // send message
@@ -16,7 +16,7 @@ func onMessageSendEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe types.Message
-	err := json.Unmarshal(msg.Payload, &pe)
+	err := jsoniter.Unmarshal(msg.Payload, &pe)
 	if err != nil {
 		return err
 	}
@@ -59,17 +59,17 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe protocol.Event
-	err := json.Unmarshal(msg.Payload, &pe)
+	err := jsoniter.Unmarshal(msg.Payload, &pe)
 	if err != nil {
 		return err
 	}
 
-	data, err := json.Marshal(pe.Data)
+	data, err := jsoniter.Marshal(pe.Data)
 	if err != nil {
 		return err
 	}
 	var v protocol.MessageEventData
-	err = json.Unmarshal(data, &v)
+	err = jsoniter.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}

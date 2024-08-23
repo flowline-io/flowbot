@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +40,7 @@ func (bot) Init(jsonconf json.RawMessage) error {
 		return errors.New("already initialized")
 	}
 
-	if err := json.Unmarshal(jsonconf, &Config); err != nil {
+	if err := jsoniter.Unmarshal(jsonconf, &Config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 

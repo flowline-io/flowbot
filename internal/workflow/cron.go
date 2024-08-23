@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -11,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type CronTaskManager struct {
@@ -78,7 +78,7 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 			flog.Warn("error %v", err)
 			continue
 		}
-		payload, err := json.Marshal(trigger)
+		payload, err := jsoniter.Marshal(trigger)
 		if err != nil {
 			flog.Error(err)
 			continue

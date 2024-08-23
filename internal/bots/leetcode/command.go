@@ -2,13 +2,13 @@ package leetcode
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/parser"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var commandRules = []command.Rule{
@@ -23,7 +23,7 @@ var commandRules = []command.Rule{
 			}
 
 			var p Problem
-			err = json.Unmarshal(data, &p)
+			err = jsoniter.Unmarshal(data, &p)
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}

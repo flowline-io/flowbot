@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	json "github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -31,7 +31,7 @@ func GetJobsByState(ctx context.Context, state model.JobState) ([]*model.Job, er
 	var jobs []*model.Job
 	for _, v := range res {
 		job := &model.Job{}
-		err = json.Unmarshal(utils.StringToBytes(v), job)
+		err = jsoniter.Unmarshal(utils.StringToBytes(v), job)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal job %s, %w", v, err)
 		}

@@ -3,7 +3,6 @@ package minio
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/media"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -45,7 +45,7 @@ type handler struct {
 // Init initializes the media handler.
 func (ah *handler) Init(jsconf string) error {
 	var err error
-	if err = json.Unmarshal([]byte(jsconf), &ah.conf); err != nil {
+	if err = jsoniter.Unmarshal([]byte(jsconf), &ah.conf); err != nil {
 		return fmt.Errorf("error parsing config: %s", jsconf)
 	}
 

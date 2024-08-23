@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +27,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type Runtime struct {
@@ -601,7 +601,7 @@ func (d *Runtime) puller(ctx context.Context) {
 			}
 		}
 
-		encodedJSON, err := json.Marshal(authConfig)
+		encodedJSON, err := jsoniter.Marshal(authConfig)
 		if err != nil {
 			pr.done <- err
 			continue

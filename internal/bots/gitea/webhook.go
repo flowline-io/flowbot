@@ -1,12 +1,11 @@
 package gitea
 
 import (
-	"encoding/json"
-
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -24,7 +23,7 @@ var webhookRules = []webhook.Rule{
 			}
 
 			var issue gitea.Issue
-			err := json.Unmarshal(body.([]byte), &issue)
+			err := jsoniter.Unmarshal(body.([]byte), &issue)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error"}

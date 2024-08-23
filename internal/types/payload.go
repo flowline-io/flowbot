@@ -2,13 +2,14 @@ package types
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"unicode/utf8"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type FmtMessage struct {
@@ -100,13 +101,13 @@ func (c ChatMessage) Content() (map[string]interface{}, interface{}) {
 	if c.IsPlainText {
 		return nil, c.Text
 	}
-	d, err := json.Marshal(c)
+	d, err := jsoniter.Marshal(c)
 	if err != nil {
 		return nil, ""
 	}
 
 	var res map[string]interface{}
-	err = json.Unmarshal(d, &res)
+	err = jsoniter.Unmarshal(d, &res)
 	if err != nil {
 		return nil, ""
 	}
@@ -323,13 +324,13 @@ func (m *MsgBuilder) AppendAttachment(fileName string, opt AttachmentOption) {
 func (m *MsgBuilder) Parse(message ServerData) (ChatMessage, error) {
 	var chatMsg ChatMessage
 	if strings.Contains(message.Head, "mime") {
-		err := json.Unmarshal([]byte(message.Content), &chatMsg)
+		err := jsoniter.Unmarshal([]byte(message.Content), &chatMsg)
 		if err != nil {
 			return ChatMessage{}, err
 		}
 		chatMsg.IsPlainText = false
 	} else {
-		err := json.Unmarshal([]byte(message.Content), &chatMsg)
+		err := jsoniter.Unmarshal([]byte(message.Content), &chatMsg)
 		if err != nil {
 			return ChatMessage{}, err
 		}
@@ -571,75 +572,75 @@ func ToPayload(typ string, src []byte) MsgPayload {
 	switch typ {
 	case "TextMsg":
 		var r TextMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "ImageMsg":
 		var r ImageMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "FileMsg":
 		var r FileMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "VideoMsg":
 		var r VideoMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "AudioMsg":
 		var r AudioMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "ScriptMsg":
 		var r ScriptMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "ActionMsg":
 		var r ActionMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "LinkMsg":
 		var r LinkMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "LocationMsg":
 		var r LocationMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "TableMsg":
 		var r TableMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "DigitMsg":
 		var r DigitMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "OkrMsg":
 		var r OkrMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "InfoMsg":
 		var r InfoMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "TodoMsg":
 		var r TodoMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "ChartMsg":
 		var r ChartMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "RepoMsg":
 		var r RepoMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "CrateMsg":
 		var r CrateMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "QuestionMsg":
 		var r QuestionMsg
-		_ = json.Unmarshal(src, &r)
+		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	}
 	return nil

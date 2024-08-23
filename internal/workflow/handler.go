@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -10,11 +9,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/hibiken/asynq"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 	var trigger model.WorkflowTrigger
-	if err := json.Unmarshal(t.Payload(), &trigger); err != nil {
+	if err := jsoniter.Unmarshal(t.Payload(), &trigger); err != nil {
 		return fmt.Errorf("failed to unmarshal trigger: %w: %w", err, asynq.SkipRetry)
 	}
 	flog.Debug("trigger %+v, %s task has been received", trigger, t.Type())
@@ -64,7 +64,7 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 }
 
 func NewJobTask(job *model.Job) (*Task, error) {
-	payload, err := json.Marshal(job)
+	payload, err := jsoniter.Marshal(job)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal job %d, %w", job.ID, err)
 	}
@@ -80,7 +80,7 @@ func NewJobTask(job *model.Job) (*Task, error) {
 
 func HandleJobTask(ctx context.Context, t *asynq.Task) error {
 	var job *model.Job
-	if err := json.Unmarshal(t.Payload(), &job); err != nil {
+	if err := jsoniter.Unmarshal(t.Payload(), &job); err != nil {
 		return fmt.Errorf("failed to unmarshal job: %w: %w", err, asynq.SkipRetry)
 	}
 	flog.Debug("job: %+v", job)

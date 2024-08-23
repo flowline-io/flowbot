@@ -3,10 +3,10 @@ package leetcode
 import (
 	"context"
 	_ "embed"
-	"encoding/json"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	jsoniter "github.com/json-iterator/go"
 )
 
 //go:embed problems.json
@@ -50,12 +50,12 @@ type Problem struct {
 }
 
 func (i Problem) MarshalBinary() ([]byte, error) {
-	return json.Marshal(i)
+	return jsoniter.Marshal(i)
 }
 
 func importProblems() error {
 	var result ProblemResult
-	err := json.Unmarshal(problems, &result)
+	err := jsoniter.Unmarshal(problems, &result)
 	if err != nil {
 		return nil
 	}

@@ -1,13 +1,13 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type FormFieldType string
@@ -257,8 +257,8 @@ func (i InfoMsg) Convert() (KV, interface{}) {
 	case map[string]interface{}:
 		m = v
 	default:
-		d, _ := json.Marshal(i.Model)
-		_ = json.Unmarshal(d, &m)
+		d, _ := jsoniter.Marshal(i.Model)
+		_ = jsoniter.Unmarshal(d, &m)
 	}
 
 	// sort keys
@@ -347,8 +347,8 @@ func (i RepoMsg) Convert() (KV, interface{}) {
 	builder.AppendTextLine(*i.FullName, TextOption{IsBold: true})
 
 	var m map[string]interface{}
-	d, _ := json.Marshal(i)
-	_ = json.Unmarshal(d, &m)
+	d, _ := jsoniter.Marshal(i)
+	_ = jsoniter.Unmarshal(d, &m)
 
 	// sort keys
 	keys := make([]string, 0, len(m))
@@ -413,8 +413,8 @@ func (c CrateMsg) Convert() (KV, interface{}) {
 	builder.AppendTextLine(c.Name, TextOption{IsBold: true})
 
 	var m map[string]interface{}
-	d, _ := json.Marshal(c)
-	_ = json.Unmarshal(d, &m)
+	d, _ := jsoniter.Marshal(c)
+	_ = jsoniter.Unmarshal(d, &m)
 
 	// sort keys
 	keys := make([]string, 0, len(m))

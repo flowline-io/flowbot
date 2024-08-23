@@ -17,8 +17,7 @@ func (j JSON) GormDataType() string {
 func (j *JSON) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make(map[string]interface{})
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		err := json.Unmarshal(bytes, &result)
+		err := jsoniter.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -36,8 +35,7 @@ func (j JSON) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	return json.Marshal(j)
+	return jsoniter.Marshal(j)
 }
 
 type IDList []int64
@@ -49,8 +47,7 @@ func (j IDList) GormDataType() string {
 func (j *IDList) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make([]int64, 0)
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		err := json.Unmarshal(bytes, &result)
+		err := jsoniter.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -68,6 +65,5 @@ func (j IDList) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	return json.Marshal(j)
+	return jsoniter.Marshal(j)
 }

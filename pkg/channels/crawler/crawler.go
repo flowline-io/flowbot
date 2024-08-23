@@ -4,18 +4,17 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha1"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
-
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/influxdata/cron"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -153,7 +152,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	var old []map[string]string
 	for _, item := range oldArr {
 		var tmp map[string]string
-		_ = json.Unmarshal([]byte(item), &tmp)
+		_ = jsoniter.Unmarshal([]byte(item), &tmp)
 		if tmp != nil {
 			old = append(old, tmp)
 		}
@@ -167,7 +166,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	var todo []map[string]string
 	for _, item := range todoArr {
 		var tmp map[string]string
-		_ = json.Unmarshal([]byte(item), &tmp)
+		_ = jsoniter.Unmarshal([]byte(item), &tmp)
 		if tmp != nil {
 			todo = append(todo, tmp)
 		}
@@ -194,7 +193,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 		if time.Now().Unix()-oldSend < 24*60*60 {
 			for _, item := range diff {
-				d, _ := json.Marshal(item)
+				d, _ := jsoniter.Marshal(item)
 				_ = cache.DB.SAdd(ctx, todoKey, d)
 			}
 
@@ -210,7 +209,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 	// add data
 	for _, item := range diff {
-		d, _ := json.Marshal(item)
+		d, _ := jsoniter.Marshal(item)
 		_ = cache.DB.SAdd(ctx, sentKey, d)
 	}
 

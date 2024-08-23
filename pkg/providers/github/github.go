@@ -74,8 +74,7 @@ func (v *Github) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
 		return nil, err
 	}
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	extra, err := json.Marshal(&tokenResp)
+	extra, err := jsoniter.Marshal(&tokenResp)
 	if err != nil {
 		return nil, err
 	}

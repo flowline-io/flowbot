@@ -199,8 +199,7 @@ func (v *Notion) Search(query string) ([]*Page, error) {
 		list := resp.Result().(*ListResult)
 
 		var results []*Page
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		_ = json.Unmarshal(list.Results, &results)
+		_ = jsoniter.Unmarshal(list.Results, &results)
 		return results, nil
 	} else {
 		return nil, fmt.Errorf("%d", resp.StatusCode())

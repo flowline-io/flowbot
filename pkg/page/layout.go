@@ -34,13 +34,12 @@ const Layout = `
 `
 
 func RenderForm(page model.Page, form model.Form) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.FormMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -54,13 +53,12 @@ func RenderForm(page model.Page, form model.Form) app.UI {
 }
 
 func RenderTable(page model.Page) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.TableMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -73,13 +71,12 @@ func RenderTable(page model.Page) app.UI {
 }
 
 func RenderShare(page model.Page) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.TextMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -92,13 +89,12 @@ func RenderShare(page model.Page) app.UI {
 }
 
 func RenderJson(page model.Page) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.TextMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -111,13 +107,12 @@ func RenderJson(page model.Page) app.UI {
 }
 
 func RenderHtml(page model.Page) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.HtmlMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -130,13 +125,12 @@ func RenderHtml(page model.Page) app.UI {
 }
 
 func RenderMarkdown(page model.Page) app.UI {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := json.Marshal(page.Schema)
+	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
 		return nil
 	}
 	var msg types.MarkdownMsg
-	err = json.Unmarshal(d, &msg)
+	err = jsoniter.Unmarshal(d, &msg)
 	if err != nil {
 		return nil
 	}
@@ -166,8 +160,7 @@ func Render(comp *types.UI) string {
 			case float32, float64:
 				scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %f;`, key, v))
 			case map[string]interface{}:
-				var json = jsoniter.ConfigCompatibleWithStandardLibrary
-				j, err := json.Marshal(v)
+				j, err := jsoniter.Marshal(v)
 				if err != nil {
 					flog.Error(err)
 					continue

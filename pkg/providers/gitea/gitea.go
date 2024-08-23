@@ -219,8 +219,7 @@ func (v *Gitea) GetRepositories() ([]string, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		var results []string
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		_ = json.Unmarshal(resp.Body(), &results)
+		_ = jsoniter.Unmarshal(resp.Body(), &results)
 		return results, nil
 	} else {
 		return nil, fmt.Errorf("%d", resp.StatusCode())

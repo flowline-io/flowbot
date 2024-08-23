@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/locker"
 	ms "github.com/go-sql-driver/mysql"
+	jsoniter "github.com/json-iterator/go"
 	mysqlDriver "gorm.io/driver/mysql"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -213,11 +213,11 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	defaultCfg := ms.NewConfig()
 	conf := configType{Config: *defaultCfg}
 
-	data, err := json.Marshal(adaptersConfig.Adapters["mysql"])
+	data, err := jsoniter.Marshal(adaptersConfig.Adapters["mysql"])
 	if err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
-	if err = json.Unmarshal(data, &conf); err != nil {
+	if err = jsoniter.Unmarshal(data, &conf); err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
 

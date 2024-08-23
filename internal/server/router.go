@@ -32,7 +32,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gorilla/mux"
-	json "github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"gorm.io/gorm"
 )
@@ -150,12 +150,12 @@ func getPage(ctx *fiber.Ctx) error {
 	case model.PageMarkdown:
 		comp = page.RenderMarkdown(p)
 	case model.PageChart:
-		d, err := json.Marshal(p.Schema)
+		d, err := jsoniter.Marshal(p.Schema)
 		if err != nil {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
 		var msg types.ChartMsg
-		err = json.Unmarshal(d, &msg)
+		err = jsoniter.Unmarshal(d, &msg)
 		if err != nil {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
@@ -259,12 +259,12 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	values := make(types.KV)
-	d, err := json.Marshal(formData.Schema)
+	d, err := jsoniter.Marshal(formData.Schema)
 	if err != nil {
 		return
 	}
 	var formMsg types.FormMsg
-	err = json.Unmarshal(d, &formMsg)
+	err = jsoniter.Unmarshal(d, &formMsg)
 	if err != nil {
 		return
 	}
@@ -397,7 +397,7 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	var data types.FlowkitData
-	err = json.Unmarshal(body, &data)
+	err = jsoniter.Unmarshal(body, &data)
 	if err != nil {
 		errorResponse(rw, "error")
 		return
@@ -409,7 +409,7 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res, _ := json.Marshal(protocol.Response{
+	res, _ := jsoniter.Marshal(protocol.Response{
 		Status: protocol.Success,
 		Data:   result,
 	})

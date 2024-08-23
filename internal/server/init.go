@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -372,7 +371,7 @@ func initializeMedia() error {
 			if config.App.Media.Handlers != nil {
 				var conf string
 				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
-					data, err := json.Marshal(params)
+					data, err := jsoniter.Marshal(params)
 					if err != nil {
 						return fmt.Errorf("failed to marshal media handler, %w", err)
 					}

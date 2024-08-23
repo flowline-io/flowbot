@@ -11,7 +11,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	json "github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var logger = flog.WatermillLogger
@@ -66,7 +66,7 @@ func NewRouter() (*message.Router, error) {
 }
 
 func NewMessage(payload any) (*message.Message, error) {
-	data, err := json.Marshal(payload)
+	data, err := jsoniter.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}

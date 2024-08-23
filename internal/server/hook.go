@@ -11,17 +11,17 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	json "github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // hook
 
 func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
-	b, err := json.Marshal(botsConfig)
+	b, err := jsoniter.Marshal(botsConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal bots: %v", err)
 	}
-	v, err := json.Marshal(vendorsConfig)
+	v, err := jsoniter.Marshal(vendorsConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal vendors: %v", err)
 	}
