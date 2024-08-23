@@ -32,7 +32,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/looplab/fsm v1.0.2
-	github.com/maxence-charriere/go-app/v10 v10.0.5
+	github.com/maxence-charriere/go-app/v10 v10.0.6
 	github.com/minio/minio-go/v7 v7.0.75
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
