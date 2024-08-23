@@ -6,19 +6,15 @@ import (
 
 	// bots
 	_ "github.com/flowline-io/flowbot/internal/bots/anki"
-	_ "github.com/flowline-io/flowbot/internal/bots/attendance"
 	_ "github.com/flowline-io/flowbot/internal/bots/clipboard"
 	_ "github.com/flowline-io/flowbot/internal/bots/cloudflare"
 	_ "github.com/flowline-io/flowbot/internal/bots/dev"
 	_ "github.com/flowline-io/flowbot/internal/bots/finance"
 	_ "github.com/flowline-io/flowbot/internal/bots/flowkit"
-	_ "github.com/flowline-io/flowbot/internal/bots/genshin"
 	_ "github.com/flowline-io/flowbot/internal/bots/gitea"
 	_ "github.com/flowline-io/flowbot/internal/bots/github"
 	_ "github.com/flowline-io/flowbot/internal/bots/leetcode"
 	_ "github.com/flowline-io/flowbot/internal/bots/markdown"
-	_ "github.com/flowline-io/flowbot/internal/bots/mtg"
-	_ "github.com/flowline-io/flowbot/internal/bots/notion"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
 	_ "github.com/flowline-io/flowbot/internal/bots/pocket"
@@ -26,7 +22,6 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/share"
 	_ "github.com/flowline-io/flowbot/internal/bots/subscribe"
 	_ "github.com/flowline-io/flowbot/internal/bots/user"
-	_ "github.com/flowline-io/flowbot/internal/bots/web"
 	_ "github.com/flowline-io/flowbot/internal/bots/webhook"
 	_ "github.com/flowline-io/flowbot/internal/bots/workflow"
 

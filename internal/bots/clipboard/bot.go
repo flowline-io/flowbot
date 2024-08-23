@@ -57,16 +57,11 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		instructRules,
-		agentRules,
 	}
 }
 
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	return bots.RunCommand(commandRules, ctx, content)
-}
-
-func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return bots.RunAgent(AgentVersion, agentRules, ctx, content)
 }
 
 func (b bot) Instruct() (instruct.Ruleset, error) {
