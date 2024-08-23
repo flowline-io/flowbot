@@ -43,7 +43,7 @@ func setupMux(app *fiber.App) {
 		bot.Webservice(app)
 	}
 
-	newRouter(app)
+	// common
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString(fmt.Sprintf("flowbot %s (%s)", version.Buildtags, version.Buildstamp))
 	})
@@ -51,15 +51,6 @@ func setupMux(app *fiber.App) {
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
 	})
-
-	app.All("/chatbot/:platform", platformCallback)
-}
-
-func newRouter(app *fiber.App) *mux.Router {
-	r := mux.NewRouter()
-	s := r.PathPrefix("/").Subrouter()
-
-	// common
 	app.All("/oauth/:provider/:flag", storeOAuth)
 	app.Get("/p/:id", getPage)
 	// form
@@ -70,8 +61,8 @@ func newRouter(app *fiber.App) *mux.Router {
 	app.Post("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
 	// webhook
 	app.All("/webhook/:flag", doWebhook)
-
-	return s
+	// platform
+	app.All("/chatbot/:platform", platformCallback)
 }
 
 func newWebappRouter() *mux.Router {
