@@ -122,7 +122,7 @@ var commandRules = []command.Rule{
 		Define: "queue",
 		Help:   `[example] publish mq and task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			err := event.SendMessage(ctx.RcptTo, ctx.Original, types.TextMsg{Text: time.Now().String()})
+			err := event.SendMessage(ctx.AsUser.String(), ctx.Topic, types.TextMsg{Text: time.Now().String()})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

@@ -89,7 +89,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 	title := utils.MarkdownTitle(markdown)
 	topic := "" // fixme
 	payload := bots.StorePage(
-		types.Context{AsUser: userUid, Original: Name},
+		types.Context{AsUser: userUid, Topic: Name},
 		model.PageMarkdown, title,
 		types.MarkdownMsg{Title: title, Raw: markdown})
 	message := ""

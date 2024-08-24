@@ -30,7 +30,7 @@ var commandRules = []command.Rule{
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -40,7 +40,7 @@ var commandRules = []command.Rule{
 
 			flag, err := bots.StoreParameter(types.KV{
 				"uid":   ctx.AsUser.String(),
-				"topic": ctx.Original,
+				"topic": ctx.Topic,
 			}, time.Now().Add(time.Hour))
 			if err != nil {
 				flog.Error(err)
@@ -58,7 +58,7 @@ var commandRules = []command.Rule{
 		Help:   `Get current user info`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -93,7 +93,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -143,7 +143,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -200,7 +200,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			str, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
 			if err != nil {
 				return nil
 			}
@@ -252,7 +252,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			username, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
 			if err != nil {
 				return nil
 			}

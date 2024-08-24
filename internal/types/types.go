@@ -19,10 +19,10 @@ type EventPayload struct {
 type Context struct {
 	// Message ID denormalized
 	Id string
-	// Un-routable (original) topic name denormalized from XXX.Topic. FIXME
-	Original string
-	// Routable (expanded) topic name. FIXME
-	RcptTo string
+	// chat platform
+	Platform string
+	// channel or group
+	Topic string
 	// Sender's UserId as string.
 	AsUser Uid
 	// OAuth token
@@ -55,7 +55,7 @@ type DataFilter struct {
 	CreatedEnd   *time.Time
 }
 
-type SendFunc func(rcptTo string, uid Uid, out MsgPayload, option ...interface{})
+type SendFunc func(topic string, uid Uid, out MsgPayload, option ...interface{})
 
 // TimeNow returns current wall time in UTC rounded to milliseconds.
 func TimeNow() time.Time {

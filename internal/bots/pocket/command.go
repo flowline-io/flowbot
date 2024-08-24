@@ -22,7 +22,7 @@ var commandRules = []command.Rule{
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}
@@ -32,7 +32,7 @@ var commandRules = []command.Rule{
 
 			flag, err := bots.StoreParameter(types.KV{
 				"uid":   ctx.AsUser.String(),
-				"topic": ctx.Original,
+				"topic": ctx.Topic,
 			}, time.Now().Add(time.Hour))
 			if err != nil {
 				flog.Error(err)
@@ -52,7 +52,7 @@ var commandRules = []command.Rule{
 		Define: "list",
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
 			}

@@ -75,7 +75,7 @@ func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.Ms
 
 	if utils.IsUrl(text) {
 		url := text
-		oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Original, Name)
+		oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			flog.Error(err)
 		}

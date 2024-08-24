@@ -217,14 +217,9 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	}
 
 	ctx := types.Context{
-		Id:       e.Id,
-		Original: topic,
-		AsUser:   uid,
-		//Original:  msg.Original,
-		//RcptTo:    msg.RcptTo,
-		//AuthLvl:   msg.AuthLvl,
-		//MetaWhat:  msg.MetaWhat,
-		//Timestamp: msg.Timestamp,
+		Id:     e.Id,
+		Topic:  topic,
+		AsUser: uid,
 	}
 	fmt.Println(ctx)
 
@@ -296,8 +291,8 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			}
 
 			ctx := types.Context{
-				Original:     "",
-				RcptTo:       "",
+				Platform:     "", // todo
+				Topic:        "",
 				AsUser:       uid,
 				AgentId:      id,
 				AgentVersion: data.Version,

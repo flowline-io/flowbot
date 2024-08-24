@@ -119,10 +119,9 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 
 					// ctx
 					ctx := types.Context{
-						Original: topic,
-						AsUser:   uid,
-						Token:    oauth.Token,
-						RcptTo:   topic,
+						Topic:  topic,
+						AsUser: uid,
+						Token:  oauth.Token,
 					}
 
 					// run action
@@ -190,7 +189,7 @@ func (r *Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}
-	r.Send(res.ctx.RcptTo, types.Uid(res.ctx.Original), res.payload)
+	r.Send(res.ctx.Topic, res.ctx.AsUser, res.payload)
 }
 
 func un(payload types.MsgPayload) []byte {

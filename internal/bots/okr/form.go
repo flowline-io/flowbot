@@ -39,7 +39,7 @@ var formRules = []form.Rule{
 			}
 
 			objective.UID = ctx.AsUser.String()
-			objective.Topic = ctx.Original
+			objective.Topic = ctx.Topic
 			_, err := store.Database.CreateObjective(&objective)
 			if err != nil {
 				flog.Error(err)
@@ -69,7 +69,7 @@ var formRules = []form.Rule{
 			}
 
 			objective.UID = ctx.AsUser.String()
-			objective.Topic = ctx.Original
+			objective.Topic = ctx.Topic
 			err := store.Database.UpdateObjective(&objective)
 			if err != nil {
 				flog.Error(err)
@@ -101,7 +101,7 @@ var formRules = []form.Rule{
 				}
 			}
 
-			objective, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Original, objectiveSequence)
+			objective, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Topic, objectiveSequence)
 			if err != nil {
 				return nil
 			}
@@ -123,7 +123,7 @@ var formRules = []form.Rule{
 			}
 			keyResult.ObjectiveID = objective.ID
 			keyResult.UID = ctx.AsUser.String()
-			keyResult.Topic = ctx.Original
+			keyResult.Topic = ctx.Topic
 			_, err = store.Database.CreateKeyResult(&keyResult)
 			if err != nil {
 				return nil
@@ -169,14 +169,14 @@ var formRules = []form.Rule{
 			}
 
 			keyResult.UID = ctx.AsUser.String()
-			keyResult.Topic = ctx.Original
+			keyResult.Topic = ctx.Topic
 			err := store.Database.UpdateKeyResult(&keyResult)
 			if err != nil {
 				return nil
 			}
 
 			// update value
-			reply, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Original, int64(keyResult.Sequence))
+			reply, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Topic, int64(keyResult.Sequence))
 			if err != nil {
 				return nil
 			}
@@ -194,7 +194,7 @@ var formRules = []form.Rule{
 			keyResultSequence := values["key_result_sequence"].(int64)
 			value := int32(values["value"].(int64))
 
-			keyResult, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Original, keyResultSequence)
+			keyResult, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Topic, keyResultSequence)
 			if err != nil {
 				return nil
 			}
@@ -232,7 +232,7 @@ var formRules = []form.Rule{
 			}
 
 			todo.UID = ctx.AsUser.String()
-			todo.Topic = ctx.Original
+			todo.Topic = ctx.Topic
 			_, err := store.Database.CreateTodo(&todo)
 			if err != nil {
 				flog.Error(err)
@@ -261,7 +261,7 @@ var formRules = []form.Rule{
 				}
 			}
 			todo.UID = ctx.AsUser.String()
-			todo.Topic = ctx.Original
+			todo.Topic = ctx.Topic
 			err := store.Database.UpdateTodo(&todo)
 			if err != nil {
 				flog.Error(err)

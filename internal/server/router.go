@@ -198,13 +198,13 @@ func renderPage(ctx *fiber.Ctx) error {
 	}
 
 	kv := types.KV(p.Params)
-	original, _ := kv.String("original")
+	platform, _ := kv.String("platform")
 	topic, _ := kv.String("topic")
 	uid, _ := kv.String("uid")
 
 	typesCtx := types.Context{
-		Original:   original,
-		RcptTo:     topic,
+		Platform:   platform,
+		Topic:      topic,
 		AsUser:     types.Uid(uid),
 		PageRuleId: pageRuleId,
 	}
@@ -320,8 +320,7 @@ func postForm(ctx *fiber.Ctx) error {
 	}
 
 	botCtx := types.Context{
-		//Original:   topicUid.UserId(),
-		RcptTo:     topic,
+		Topic:      topic,
 		AsUser:     types.Uid(uid),
 		FormId:     formData.FormID,
 		FormRuleId: formMsg.ID,
@@ -497,7 +496,7 @@ func doWebhook(ctx *fiber.Ctx) error {
 		}
 
 		typesCtx.AsUser = types.Uid(find.UID)
-		typesCtx.RcptTo = find.Topic
+		typesCtx.Topic = find.Topic
 	}
 
 	data := types.KV{}

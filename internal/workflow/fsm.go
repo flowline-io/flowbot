@@ -369,8 +369,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					return
 				}
 				ctx := types.Context{
-					Original:       step.UID,
-					RcptTo:         step.Topic,
+					AsUser:         types.Uid(step.UID),
+					Topic:          step.Topic,
 					WorkflowRuleId: ruleId,
 				}
 				output, err := botHandler.Workflow(ctx, types.KV(step.Input))

@@ -14,7 +14,7 @@ var commandRules = []command.Rule{
 		Define: "stats",
 		Help:   `Anki collection statistics`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			j, err := store.Database.DataGet(ctx.AsUser, ctx.Original, "getCollectionStatsHTML")
+			j, err := store.Database.DataGet(ctx.AsUser, ctx.Topic, "getCollectionStatsHTML")
 			if err != nil {
 				return types.TextMsg{Text: "Empty"}
 			}

@@ -166,8 +166,8 @@ func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDurati
 	if param == nil {
 		param = types.KV{}
 	}
-	param["original"] = ctx.Original
-	param["topic"] = ctx.RcptTo
+	param["platform"] = ctx.Platform
+	param["topic"] = ctx.Topic
 	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(expiredDuration))
 	if err != nil {
@@ -181,8 +181,8 @@ func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
 	if param == nil {
 		param = types.KV{}
 	}
-	param["original"] = ctx.Original
-	param["topic"] = ctx.RcptTo
+	param["platform"] = ctx.Platform
+	param["topic"] = ctx.Topic
 	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(time.Hour))
 	if err != nil {
@@ -196,8 +196,8 @@ func AppURL(ctx types.Context, name string, param types.KV) string {
 	if param == nil {
 		param = types.KV{}
 	}
-	param["original"] = ctx.Original
-	param["topic"] = ctx.RcptTo
+	param["platform"] = ctx.Platform
+	param["topic"] = ctx.Topic
 	param["uid"] = ctx.AsUser.String()
 	flag, err := StoreParameter(param, time.Now().Add(time.Hour))
 	if err != nil {
@@ -305,7 +305,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	err = store.Database.FormSet(formId, model.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Original,
+		Topic:  ctx.Topic,
 		Schema: model.JSON(schema),
 		Values: model.JSON(values),
 		Extra:  model.JSON(extra),
@@ -320,7 +320,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	err = store.Database.PageSet(formId, model.Page{
 		PageID: formId,
 		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Original,
+		Topic:  ctx.Topic,
 		Type:   model.PageForm,
 		Schema: model.JSON(schema),
 		State:  model.PageStateCreated,
@@ -360,7 +360,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 	err = store.Database.PageSet(pageId, model.Page{
 		PageID: pageId,
 		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Original,
+		Topic:  ctx.Topic,
 		Type:   category,
 		Schema: model.JSON(schema),
 		State:  model.PageStateCreated,
@@ -464,7 +464,7 @@ func SettingCovertForm(id string, rule setting.Rule) form.Rule {
 
 	result.Handler = func(ctx types.Context, values types.KV) types.MsgPayload {
 		for key, value := range values {
-			err := store.Database.ConfigSet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key), types.KV{
+			err := store.Database.ConfigSet(ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key), types.KV{
 				"value": value,
 			})
 			if err != nil {
@@ -478,7 +478,7 @@ func SettingCovertForm(id string, rule setting.Rule) form.Rule {
 }
 
 func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {
-	return store.Database.ConfigGet(ctx.AsUser, ctx.Original, fmt.Sprintf("%s_%s", id, key))
+	return store.Database.ConfigGet(ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
 }
 
 func SettingMsg(ctx types.Context, id string) types.MsgPayload {

@@ -87,7 +87,7 @@ var commandRules = []command.Rule{
 
 			_, err = store.Database.CreateWebhook(&model.Webhook{
 				UID:          ctx.AsUser.String(),
-				Topic:        ctx.RcptTo,
+				Topic:        ctx.Topic,
 				Flag:         flag,
 				Secret:       secret,
 				TriggerCount: 0,

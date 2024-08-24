@@ -32,7 +32,7 @@ var pageRules = []page.Rule{
 			}
 
 			sequence, _ := types.KV(p.Params).Int64("sequence")
-			objective, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Original, sequence)
+			objective, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				return nil, err
 			}

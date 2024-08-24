@@ -28,7 +28,7 @@ var commandRules = []command.Rule{
 		Define: `obj list`,
 		Help:   `List objectives`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			items, err := store.Database.ListObjectives(ctx.AsUser, ctx.Original)
+			items, err := store.Database.ListObjectives(ctx.AsUser, ctx.Topic)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -71,7 +71,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			err := store.Database.DeleteObjectiveBySequence(ctx.AsUser, ctx.Original, sequence)
+			err := store.Database.DeleteObjectiveBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed"}
@@ -86,7 +86,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			item, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Original, sequence)
+			item, err := store.Database.GetObjectiveBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -194,7 +194,7 @@ var commandRules = []command.Rule{
 		Define: `kr list`,
 		Help:   `List KeyResult`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			items, err := store.Database.ListKeyResults(ctx.AsUser, ctx.Original)
+			items, err := store.Database.ListKeyResults(ctx.AsUser, ctx.Topic)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -271,7 +271,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[1].Value.Int64()
 
-			item, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Original, sequence)
+			item, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -289,7 +289,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			err := store.Database.DeleteKeyResultBySequence(ctx.AsUser, ctx.Original, sequence)
+			err := store.Database.DeleteKeyResultBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed"}
@@ -304,7 +304,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			item, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Original, sequence)
+			item, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -384,7 +384,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			keyResult, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Original, sequence)
+			keyResult, err := store.Database.GetKeyResultBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -417,7 +417,7 @@ var commandRules = []command.Rule{
 		Define: `todo list`,
 		Help:   `List todo`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			items, err := store.Database.ListTodos(ctx.AsUser, ctx.Original)
+			items, err := store.Database.ListTodos(ctx.AsUser, ctx.Topic)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -471,7 +471,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
 
-			item, err := store.Database.GetTodoBySequence(ctx.AsUser, ctx.Original, sequence)
+			item, err := store.Database.GetTodoBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -525,7 +525,7 @@ var commandRules = []command.Rule{
 		Help:   "Complete Todo",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			sequence, _ := tokens[2].Value.Int64()
-			err := store.Database.CompleteTodoBySequence(ctx.AsUser, ctx.Original, sequence)
+			err := store.Database.CompleteTodoBySequence(ctx.AsUser, ctx.Topic, sequence)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed"}
@@ -538,7 +538,7 @@ var commandRules = []command.Rule{
 		Define: `counters`,
 		Help:   `List Counter`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			items, err := store.Database.ListCounter(ctx.AsUser, ctx.Original)
+			items, err := store.Database.ListCounter(ctx.AsUser, ctx.Topic)
 			if err != nil {
 				return nil
 			}
@@ -565,7 +565,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()
 
-			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Original, flag)
+			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Topic, flag)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -579,7 +579,7 @@ var commandRules = []command.Rule{
 
 			_, err = store.Database.CreateCounter(&model.Counter{
 				UID:    ctx.AsUser.String(),
-				Topic:  ctx.Original,
+				Topic:  ctx.Topic,
 				Flag:   flag,
 				Digit:  1,
 				Status: 0,
@@ -600,7 +600,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()
 
-			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Original, flag)
+			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Topic, flag)
 			if err != nil {
 				return nil
 			}
@@ -619,7 +619,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()
 
-			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Original, flag)
+			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Topic, flag)
 			if err != nil {
 				return nil
 			}
@@ -638,7 +638,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flag, _ := tokens[1].Value.String()
 
-			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Original, flag)
+			item, err := store.Database.GetCounterByFlag(ctx.AsUser, ctx.Topic, flag)
 			if err != nil {
 				return nil
 			}
