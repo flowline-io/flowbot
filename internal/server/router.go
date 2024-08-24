@@ -54,7 +54,7 @@ func setupMux(app *fiber.App) {
 	app.All("/oauth/:provider/:flag", storeOAuth)
 	app.Get("/p/:id", getPage)
 	// form
-	app.Post("/form", adaptor.HTTPHandlerFunc(postForm))
+	app.Post("/form", postForm)
 	// page
 	app.Get("/page/:id/:flag", renderPage)
 	// flowkit
@@ -238,12 +238,9 @@ func renderPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(html)
 }
 
-func postForm(rw http.ResponseWriter, req *http.Request) {
-	_ = req.ParseForm()
-	pf := req.PostForm
-
-	formId := pf.Get("x-form_id")
-	uid := pf.Get("x-uid")
+func postForm(ctx *fiber.Ctx) error {
+	formId := ctx.FormValue("x-form_id")
+	uid := ctx.FormValue("x-uid")
 	//uid2 := pf.Get("x-topic")
 
 	//userUid := types.ParseUserId(uid)
@@ -252,22 +249,27 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 
 	formData, err := store.Database.FormGet(formId)
 	if err != nil {
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 	if formData.State == model.FormStateSubmitSuccess || formData.State == model.FormStateSubmitFailed {
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, errors.New("error form state")))
 	}
 
 	values := make(types.KV)
 	d, err := jsoniter.Marshal(formData.Schema)
 	if err != nil {
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 	var formMsg types.FormMsg
 	err = jsoniter.Unmarshal(d, &formMsg)
 	if err != nil {
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
+	f, err := ctx.MultipartForm()
+	if err != nil {
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+	}
+	pf := f.Value
 	for _, field := range formMsg.Field {
 		switch field.Type {
 		case types.FormFieldCheckbox:
@@ -291,7 +293,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 				values[field.Key] = tmp
 			}
 		default:
-			value := pf.Get(field.Key)
+			value := ctx.FormValue(field.Key)
 			switch field.ValueType {
 			case types.FormFieldValueString:
 				values[field.Key] = value
@@ -314,11 +316,10 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	formBuilder.Data = values
 	err = formBuilder.Validate()
 	if err != nil {
-		_, _ = rw.Write([]byte(err.Error()))
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 
-	ctx := types.Context{
+	botCtx := types.Context{
 		//Original:   topicUid.UserId(),
 		RcptTo:     topic,
 		AsUser:     types.Uid(uid),
@@ -331,8 +332,7 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 	// get bot handler
 	formRuleId, ok := types.KV(formData.Schema).String("id")
 	if !ok {
-		flog.Error(fmt.Errorf("form %s %s", formId, "error form rule id"))
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, fmt.Errorf("form %s %s", formId, "error form rule id")))
 	}
 	var botHandler bots.Handler
 	for _, handler := range bots.List() {
@@ -350,15 +350,13 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
-			flog.Info("bot %s unavailable", topic)
-			return
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, fmt.Errorf("bot %s unavailable", topic)))
 		}
 
 		// form message
-		payload, err := botHandler.Form(ctx, values)
+		payload, err := botHandler.Form(botCtx, values)
 		if err != nil {
-			flog.Warn("topic[%s]: failed to form bot: %v", topic, err)
-			return
+			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
 
 		// stats
@@ -366,14 +364,16 @@ func postForm(rw http.ResponseWriter, req *http.Request) {
 
 		// send message
 		if payload == nil {
-			return
+			return ctx.SendString("")
 		}
 
 		//topicUid := types.Uid("")
-		//botSend(topic, topicUid, payload)
+		//botSend(topic, topicUid, payload) todo
+
+		return ctx.JSON(protocol.NewSuccessResponse(payload))
 	}
 
-	_, _ = rw.Write([]byte("ok"))
+	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
 func flowkitData(rw http.ResponseWriter, req *http.Request) {

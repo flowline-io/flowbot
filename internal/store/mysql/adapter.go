@@ -528,9 +528,10 @@ func (a *adapter) FormSet(formId string, form model.Form) error {
 		return a.db.
 			Model(&model.Form{}).
 			Where("`form_id` = ?", formId).
-			Updates(types.KV{
-				"values": form.Values,
-				"state":  form.State,
+			UpdateColumns(map[string]interface{}{
+				"values":     form.Values,
+				"state":      form.State,
+				"updated_at": time.Now(),
 			}).Error
 	} else {
 		return a.db.Create(&model.Form{

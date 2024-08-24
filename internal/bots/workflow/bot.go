@@ -56,6 +56,7 @@ func (bot) IsReady() bool {
 func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
+		formRules,
 	}
 }
 
@@ -65,4 +66,8 @@ func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, 
 
 func (bot) Webservice(app *fiber.App) {
 	bots.Webservice(app, Name, webserviceRules)
+}
+
+func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
+	return bots.RunForm(formRules, ctx, values)
 }

@@ -2,8 +2,6 @@ package component
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/page/form"
@@ -38,8 +36,6 @@ func (c *Form) Render() app.UI {
 
 	// fields
 	builder := form.NewBuilder(c.Schema.Field)
-	builder.Method = http.MethodPost
-	builder.Action = "/form"
 	// button
 	if c.Page.State == model.PageStateCreated {
 		builder.Button = []app.UI{
@@ -64,8 +60,14 @@ func (c *Form) Render() app.UI {
 
 	return app.Div().Body(
 		alert,
-		app.H1().Class(".uk-heading-small").Text(c.Schema.Title),
-		app.Form().Class("uk-form-stacked").Method("POST").Action("/form").
+		app.H1().
+			Class(".uk-heading-small").
+			Text(c.Schema.Title),
+		app.Form().
+			Class("uk-form-stacked").
+			Method("POST").
+			EncType("multipart/form-data").
+			Action("/form").
 			Body(fields...),
 	)
 }

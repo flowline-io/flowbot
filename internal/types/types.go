@@ -19,9 +19,9 @@ type EventPayload struct {
 type Context struct {
 	// Message ID denormalized
 	Id string
-	// Un-routable (original) topic name denormalized from XXX.Topic.
+	// Un-routable (original) topic name denormalized from XXX.Topic. FIXME
 	Original string
-	// Routable (expanded) topic name.
+	// Routable (expanded) topic name. FIXME
 	RcptTo string
 	// Sender's UserId as string.
 	AsUser Uid

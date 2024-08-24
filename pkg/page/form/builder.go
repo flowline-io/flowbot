@@ -14,8 +14,6 @@ import (
 type Builder struct {
 	Field  []types.FormField
 	Button []app.UI
-	Method string
-	Action string
 	Data   types.KV
 }
 
@@ -102,8 +100,7 @@ func (b Builder) UI() (app.UI, error) {
 	// button
 	elems = append(elems, b.Button...)
 
-	return uikit.Form().Method(b.Method).Action(b.Action).
-		Body(elems...), nil
+	return uikit.Div(elems...), nil
 }
 
 func (b Builder) Validate() error {
