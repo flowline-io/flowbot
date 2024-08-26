@@ -21,11 +21,9 @@ func onMessageSendEventHandler(msg *message.Message) error {
 		return err
 	}
 
-	if pe.Platform == "" {
-		return errors.New("error param platform")
-	}
-	if pe.Topic == "" {
-		return errors.New("error param topic")
+	// ignore send
+	if pe.Platform == "" || pe.Topic == "" {
+		return nil
 	}
 
 	msgPayload := types.ToPayload(pe.Payload.Typ, pe.Payload.Src)

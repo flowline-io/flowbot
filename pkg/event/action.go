@@ -48,6 +48,10 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 			return err
 		}
 
+		if platform.Name == "" {
+			return fmt.Errorf("empty platform user %s topic %s", uid, topic)
+		}
+
 		return PublishMessage(types.MessageSendEvent, types.Message{
 			Platform: platform.Name,
 			Topic:    topic,
@@ -73,6 +77,9 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 		return err
 	}
 	for _, item := range platformChannels {
+		if platformName[item.PlatformID] == "" {
+			continue
+		}
 		err = PublishMessage(types.MessageSendEvent, types.Message{
 			Platform: platformName[item.PlatformID],
 			Topic:    item.Flag,
