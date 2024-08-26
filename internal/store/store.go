@@ -167,14 +167,34 @@ type Adapter interface {
 
 	GetUsers() ([]*model.User, error)
 	GetUserById(id int64) (*model.User, error)
+	GetUserByFlag(flag string) (*model.User, error)
 	CreatePlatformUser(item *model.PlatformUser) (int64, error)
+	GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser, error)
 	GetPlatformUserByFlag(flag string) (*model.PlatformUser, error)
 	UpdatePlatformUser(item *model.PlatformUser) error
 	GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error)
+	GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*model.PlatformChannel, error)
 	CreatePlatformChannel(item *model.PlatformChannel) (int64, error)
 	GetMessage(flag string) (*model.Message, error)
 	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
 	CreateMessage(message model.Message) error
+
+	GetBot(id int64) (*model.Bot, error)
+	GetBotByName(name string) (*model.Bot, error)
+	CreateBot(bot *model.Bot) (int64, error)
+	UpdateBot(bot *model.Bot) error
+	DeleteBot(name string) error
+	GetBots() ([]*model.Bot, error)
+	GetPlatform(id int64) (*model.Platform, error)
+	GetPlatformByName(name string) (*model.Platform, error)
+	GetPlatforms() ([]*model.Platform, error)
+	CreatePlatform(platform *model.Platform) (int64, error)
+	GetChannel(id int64) (*model.Channel, error)
+	GetChannelByName(name string) (*model.Channel, error)
+	CreateChannel(channel *model.Channel) (int64, error)
+	UpdateChannel(channel *model.Channel) error
+	DeleteChannel(name string) error
+	GetChannels() ([]*model.Channel, error)
 
 	DataSet(uid types.Uid, topic, key string, value types.KV) error
 	DataGet(uid types.Uid, topic, key string) (types.KV, error)
@@ -293,23 +313,6 @@ type Adapter interface {
 	GetStepsByState(state model.StepState) ([]*model.Step, error)
 	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
 	GetStepsByJobId(jobId int64) ([]*model.Step, error)
-
-	GetBot(id int64) (*model.Bot, error)
-	GetBotByName(name string) (*model.Bot, error)
-	CreateBot(bot *model.Bot) (int64, error)
-	UpdateBot(bot *model.Bot) error
-	DeleteBot(name string) error
-	GetBots() ([]*model.Bot, error)
-	GetPlatform(id int64) (*model.Platform, error)
-	GetPlatformByName(name string) (*model.Platform, error)
-	GetPlatforms() ([]*model.Platform, error)
-	CreatePlatform(platform *model.Platform) (int64, error)
-	GetChannel(id int64) (*model.Channel, error)
-	GetChannelByName(name string) (*model.Channel, error)
-	CreateChannel(channel *model.Channel) (int64, error)
-	UpdateChannel(channel *model.Channel) error
-	DeleteChannel(name string) error
-	GetChannels() ([]*model.Channel, error)
 }
 
 var Database Adapter

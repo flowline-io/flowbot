@@ -319,6 +319,13 @@ func (a *adapter) GetUserById(id int64) (*model.User, error) {
 		First()
 }
 
+func (a *adapter) GetUserByFlag(flag string) (*model.User, error) {
+	q := dao.Q.User
+	return q.
+		Where(q.Flag.Eq(flag)).
+		First()
+}
+
 func (a *adapter) CreatePlatformUser(item *model.PlatformUser) (int64, error) {
 	q := dao.Q.PlatformUser
 	err := q.
@@ -336,6 +343,13 @@ func (a *adapter) GetPlatformUserByFlag(flag string) (*model.PlatformUser, error
 		First()
 }
 
+func (a *adapter) GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser, error) {
+	q := dao.Q.PlatformUser
+	return q.
+		Where(q.UserID.Eq(userId)).
+		Find()
+}
+
 func (a *adapter) UpdatePlatformUser(item *model.PlatformUser) error {
 	q := dao.Q.PlatformUser
 	_, err := q.Updates(item)
@@ -347,6 +361,13 @@ func (a *adapter) GetPlatformChannelByFlag(flag string) (*model.PlatformChannel,
 	return q.
 		Where(q.Flag.Eq(flag)).
 		First()
+}
+
+func (a *adapter) GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*model.PlatformChannel, error) {
+	q := dao.Q.PlatformChannel
+	return q.
+		Where(q.PlatformID.In(platformIds...)).
+		Find()
 }
 
 func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, error) {

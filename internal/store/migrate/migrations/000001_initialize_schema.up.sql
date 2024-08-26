@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `cycles`
 
 
 
-CREATE TABLE `dag`
+CREATE TABLE IF NOT EXISTS `dag`
 (
     `id`             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `workflow_id`    BIGINT(19)          NOT NULL DEFAULT '0',
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS `instruct`
   COLLATE = utf8mb4_unicode_ci;
 
 
-CREATE TABLE `jobs`
+CREATE TABLE IF NOT EXISTS `jobs`
 (
     `id`             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid`            CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS `oauth`
 
 
 
-CREATE TABLE `objectives`
+CREATE TABLE IF NOT EXISTS `objectives`
 (
     `id`            bigint unsigned                                                NOT NULL AUTO_INCREMENT,
     `uid`           char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci      NOT NULL,
@@ -375,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `platforms`
 
 
 
-CREATE TABLE `platform_users`
+CREATE TABLE IF NOT EXISTS `platform_users`
 (
     `id`          bigint                                                        NOT NULL AUTO_INCREMENT,
     `platform_id` bigint                                                        NOT NULL DEFAULT '0',
@@ -446,7 +446,7 @@ CREATE TABLE IF NOT EXISTS `schema_migrations`
 
 
 
-CREATE TABLE `steps`
+CREATE TABLE IF NOT EXISTS `steps`
 (
     `id`         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid`        CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
@@ -563,7 +563,7 @@ CREATE TABLE IF NOT EXISTS `users`
 
 
 
-CREATE TABLE `workflow`
+CREATE TABLE IF NOT EXISTS `workflow`
 (
     `id`               BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid`              CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',
@@ -587,7 +587,7 @@ CREATE TABLE `workflow`
 
 
 
-CREATE TABLE `workflow_trigger`
+CREATE TABLE IF NOT EXISTS `workflow_trigger`
 (
     `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `workflow_id` BIGINT(19)          NOT NULL DEFAULT '0',
@@ -604,7 +604,7 @@ CREATE TABLE `workflow_trigger`
     ENGINE = InnoDB;
 
 
-CREATE TABLE `workflow_script`
+CREATE TABLE IF NOT EXISTS `workflow_script`
 (
     `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `workflow_id` BIGINT(20) UNSIGNED NOT NULL,
@@ -619,7 +619,7 @@ CREATE TABLE `workflow_script`
     ENGINE = InnoDB;
 
 
-CREATE TABLE `platform_bots`
+CREATE TABLE IF NOT EXISTS `platform_bots`
 (
     `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
     `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
@@ -634,7 +634,7 @@ CREATE TABLE `platform_bots`
     COLLATE = 'utf8mb4_unicode_ci'
     ENGINE = InnoDB;
 
-CREATE TABLE `channels`
+CREATE TABLE IF NOT EXISTS `channels`
 (
     `id`         bigint                                                       NOT NULL AUTO_INCREMENT,
     `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -648,7 +648,7 @@ CREATE TABLE `channels`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE `platform_channels`
+CREATE TABLE IF NOT EXISTS `platform_channels`
 (
     `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
     `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
@@ -664,7 +664,7 @@ CREATE TABLE `platform_channels`
     ENGINE = InnoDB;
 
 
-CREATE TABLE `webhook`
+CREATE TABLE IF NOT EXISTS `webhook`
 (
     `id`            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `uid`           CHAR(36)            NOT NULL COLLATE 'utf8mb4_unicode_ci',

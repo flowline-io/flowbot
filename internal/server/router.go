@@ -357,13 +357,9 @@ func postForm(ctx *fiber.Ctx) error {
 		// stats
 		stats.Inc(types.BotRunFormTotalStatsName, 1)
 
-		// send message
 		if payload == nil {
-			return ctx.SendString("")
+			return ctx.JSON(protocol.NewSuccessResponse("empty message"))
 		}
-
-		//topicUid := types.Uid("")
-		//botSend(topic, topicUid, payload) todo
 
 		return ctx.JSON(protocol.NewSuccessResponse(payload))
 	}

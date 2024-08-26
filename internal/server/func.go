@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
@@ -249,8 +250,19 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 }
 
 func notifyAfterReboot() {
-	// todo bot send
-	// botSend(rcptTo, botUid, types.TextMsg{Text: "reboot"})
+	// send message
+	users, err := store.Database.GetUsers()
+	if err != nil {
+		flog.Error(fmt.Errorf("notify reboot error %w", err))
+		return
+	}
+	for _, item := range users {
+		err = event.SendMessage(item.Flag, "", types.TextMsg{Text: "reboot"})
+		if err != nil {
+			flog.Error(fmt.Errorf("notify reboot error %w", err))
+			continue
+		}
+	}
 }
 
 func onlineStatus(msg protocol.Event) {
@@ -291,7 +303,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			}
 
 			ctx := types.Context{
-				Platform:     "", // todo
+				Platform:     "",
 				Topic:        "",
 				AsUser:       uid,
 				AgentId:      id,
@@ -311,7 +323,11 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 				continue
 			}
 
-			// todo bot send
+			err = event.SendMessage(uid.String(), "", payload)
+			if err != nil {
+				flog.Error(fmt.Errorf("send message error %w", err))
+				continue
+			}
 		}
 
 	case types.Pull:
