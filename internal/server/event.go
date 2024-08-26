@@ -28,6 +28,8 @@ func onMessageSendEventHandler(msg *message.Message) error {
 		return errors.New("error param topic")
 	}
 
+	msgPayload := types.ToPayload(pe.Payload.Typ, pe.Payload.Src)
+
 	caller, err := platforms.GetCaller(pe.Platform)
 	if err != nil {
 		return err
@@ -37,7 +39,7 @@ func onMessageSendEventHandler(msg *message.Message) error {
 		Action: protocol.SendMessageAction,
 		Params: types.KV{
 			"topic":   pe.Topic,
-			"message": caller.Adapter.MessageConvert(pe.Payload),
+			"message": caller.Adapter.MessageConvert(msgPayload),
 		},
 	})
 

@@ -8,5 +8,5 @@ const (
 type Message struct {
 	Platform string
 	Topic    string
-	Payload  MsgPayload
+	Payload  EventPayload
 }

@@ -46,6 +46,7 @@ func NewRouter() (*message.Router, error) {
 
 	router.AddMiddleware(
 		middleware.CorrelationID,
+		middleware.Timeout(30*time.Second),
 		middleware.Retry{
 			MaxRetries:      3,
 			InitialInterval: 100 * time.Millisecond,

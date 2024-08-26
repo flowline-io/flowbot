@@ -12,8 +12,8 @@ type MsgPayload interface {
 }
 
 type EventPayload struct {
-	Type   string
-	Params KV
+	Typ string
+	Src []byte
 }
 
 type Context struct {

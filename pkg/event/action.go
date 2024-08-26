@@ -6,9 +6,20 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func SendMessage(uid, topic string, msg types.MsgPayload) error {
+	// payload
+	src, err := jsoniter.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	payload := types.EventPayload{
+		Typ: types.Tye(msg),
+		Src: src,
+	}
+
 	// get user
 	user, err := store.Database.GetUserByFlag(uid)
 	if err != nil {
@@ -40,7 +51,7 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 		return PublishMessage(types.MessageSendEvent, types.Message{
 			Platform: platform.Name,
 			Topic:    topic,
-			Payload:  msg,
+			Payload:  payload,
 		})
 	}
 
@@ -65,7 +76,7 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 		err = PublishMessage(types.MessageSendEvent, types.Message{
 			Platform: platformName[item.PlatformID],
 			Topic:    item.Flag,
-			Payload:  msg,
+			Payload:  payload,
 		})
 		if err != nil {
 			return err

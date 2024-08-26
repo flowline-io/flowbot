@@ -1,6 +1,8 @@
 package flog
 
 import (
+	"fmt"
+
 	"github.com/ThreeDotsLabs/watermill"
 )
 
@@ -13,7 +15,7 @@ func (w *watermillLogger) Error(msg string, err error, fields watermill.LogField
 	for k, v := range fields {
 		t = t.Any(k, v)
 	}
-	t.Msg(msg)
+	t.Msg(fmt.Sprintf("%s error: %v", msg, err))
 }
 
 func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
