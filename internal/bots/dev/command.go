@@ -166,21 +166,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "event",
-		Help:   `fire example event`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			//err := event.PublishMessage(event.SendEvent, types.KV{"topic": ctx.RcptTo, "bot": Name, "message": "fire send event"})
-			//if err != nil {
-			//	return types.TextMsg{Text: "error"}
-			//}
-			//err = event.PublishMessage(event.ExampleEvent, types.KV{"now": time.Now().Unix()})
-			//if err != nil {
-			//	return types.TextMsg{Text: "error"}
-			//}
-			return types.TextMsg{Text: "ok"}
-		},
-	},
-	{
 		Define: "page",
 		Help:   `[example] dev page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
@@ -206,7 +191,7 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "docker",
-		Help:   `run docker image`,
+		Help:   `[example] run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Debug("start docker command")
 			engine := executer.New(runtime.Docker)
@@ -336,7 +321,7 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "torrent demo",
-		Help:   `torrent download demo`,
+		Help:   `[example] torrent download demo`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
 			client, err := transmission.NewTransmission(endpoint.String())
@@ -411,7 +396,7 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "test",
-		Help:   `test`,
+		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Debug("start machine command")
 			engine := executer.New(runtime.Machine)
@@ -480,7 +465,7 @@ var commandRules = []command.Rule{
 	},
 	{
 		Define: "slash",
-		Help:   `Slash example`,
+		Help:   `[example] Slash example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 
 			url, err := bots.Shortcut("test", "https://example.com")

@@ -9,13 +9,6 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "webapp",
-		Help:   `webapp`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.LinkMsg{Url: bots.AppURL(ctx, Name, nil), Title: "webapp"}
-		},
-	},
-	{
 		Define: "task run",
 		Help:   `Run one task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
