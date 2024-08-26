@@ -6,14 +6,16 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
-	inWorkflowActionID    = "in_workflow_action"
-	addWorkflowActionID   = "add_workflow_action"
-	outWorkflowActionID   = "out_workflow_action"
-	errorWorkflowActionID = "error_workflow_action"
+	inWorkflowActionID      = "in"
+	addWorkflowActionID     = "add"
+	outWorkflowActionID     = "out"
+	errorWorkflowActionID   = "error"
+	messageWorkflowActionID = "message"
 )
 
 var workflowRules = []workflow.Rule{
@@ -58,6 +60,20 @@ var workflowRules = []workflow.Rule{
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			return nil, fmt.Errorf("workflow run error %s", time.Now().Format(time.DateTime))
+		},
+	},
+	{
+		Id:           messageWorkflowActionID,
+		Title:        "message",
+		Desc:         "",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			text, _ := input.String("text")
+			if text == "" {
+				return nil, fmt.Errorf("%s step, empty text", messageWorkflowActionID)
+			}
+			return nil, event.SendMessage(ctx.AsUser.String(), ctx.Topic, types.TextMsg{Text: text})
 		},
 	},
 }

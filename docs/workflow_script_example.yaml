@@ -7,7 +7,7 @@ triggers:
   - type: cron
     rule:
       spec: '* * * * *' # if cron
-
+  - type: webhook
 
 pipeline:
   - input -> add_two_number -> out1
@@ -16,7 +16,7 @@ pipeline:
 
 tasks:
   - id: input
-    action: in_workflow_action@dev
+    action: in@dev
     describe: do something... # optional
     params: # optional
       param1: val1
@@ -29,11 +29,11 @@ tasks:
       - conn2
 
   - id: add_two_number
-    action: add_workflow_action@dev
+    action: add@dev
 
   - id: out1
-    action: out_workflow_action@dev
+    action: out@dev
 
   - id: out2
-    action: out_workflow_action@dev
+    action: out@dev
 
