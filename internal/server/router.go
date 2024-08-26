@@ -241,11 +241,7 @@ func renderPage(ctx *fiber.Ctx) error {
 func postForm(ctx *fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
 	uid := ctx.FormValue("x-uid")
-	//uid2 := pf.Get("x-topic")
-
-	//userUid := types.ParseUserId(uid)
-	//topicUid := types.ParseUserId(uid2)
-	topic := "" // fixme
+	topic := ctx.FormValue("x-topic")
 
 	formData, err := store.Database.FormGet(formId)
 	if err != nil {

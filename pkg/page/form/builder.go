@@ -28,12 +28,6 @@ func (b Builder) Save() error {
 func (b Builder) UI() (app.UI, error) {
 	var elems []app.UI
 
-	// default field
-	//fields = append(fields, app.Input().Hidden(true).Type("text").Name("x-csrf-token").Value(types.Id()))
-	//fields = append(fields, app.Input().Hidden(true).Type("text").Name("x-form_id").Value(c.Page.PageID))
-	//fields = append(fields, app.Input().Hidden(true).Type("text").Name("x-uid").Value(c.Page.UID))
-	//fields = append(fields, app.Input().Hidden(true).Type("text").Name("x-topic").Value(c.Page.Topic))
-
 	// Fields
 	for _, field := range b.Field {
 		field.Value = fixInt64Value(field.ValueType, field.Value)
