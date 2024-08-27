@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/ThreeDotsLabs/watermill v1.3.7
-	github.com/ThreeDotsLabs/watermill-redisstream v1.3.0
+	github.com/ThreeDotsLabs/watermill-redisstream v1.4.0
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/docker/cli v27.1.2+incompatible
