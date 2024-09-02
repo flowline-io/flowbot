@@ -34,6 +34,9 @@ import (
 	// File upload handlers
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
 	_ "github.com/flowline-io/flowbot/pkg/media/minio"
+
+	// Notify
+	_ "github.com/flowline-io/flowbot/pkg/notify/tify"
 )
 
 const (
