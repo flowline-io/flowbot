@@ -5,6 +5,8 @@ type Notifyer interface {
 	Protocol() string
 	// Define object templates
 	Templates() []string
+	// Parse and load config template
+	ParseTokens(line string) error
 	// Send notify
 	Send(message Message) error
 }
