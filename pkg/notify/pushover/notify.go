@@ -9,9 +9,7 @@ const ID = "ntfy"
 
 var handler plugin
 
-type plugin struct {
-	tokens types.KV
-}
+type plugin struct{}
 
 func init() {
 	notify.Register(ID, &handler)
@@ -28,15 +26,6 @@ func (n *plugin) Templates() []string {
 	}
 }
 
-func (n *plugin) ParseTokens(line string) error {
-	kv, err := notify.ParseTemplate(line, n.Templates())
-	if err != nil {
-		return err
-	}
-	n.tokens = kv
-	return nil
-}
-
-func (n *plugin) Send(message notify.Message) error {
+func (n *plugin) Send(tokens types.KV, message notify.Message) error {
 	return nil
 }

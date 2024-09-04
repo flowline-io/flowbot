@@ -1,14 +1,14 @@
 package notify
 
+import "github.com/flowline-io/flowbot/internal/types"
+
 type Notifyer interface {
 	// Define protocol
 	Protocol() string
 	// Define object templates
 	Templates() []string
-	// Parse and load config template
-	ParseTokens(line string) error
 	// Send notify
-	Send(message Message) error
+	Send(tokens types.KV, message Message) error
 }
 
 type Priority int32
