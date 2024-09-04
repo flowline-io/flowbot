@@ -36,7 +36,7 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/media/minio"
 
 	// Notify
-	_ "github.com/flowline-io/flowbot/pkg/notify/tify"
+	_ "github.com/flowline-io/flowbot/pkg/notify/ntfy"
 )
 
 const (
