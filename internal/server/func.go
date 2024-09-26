@@ -21,10 +21,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
+	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/redis/go-redis/v9"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/prompts"
 	"gorm.io/gorm"
 )
 
@@ -182,10 +186,39 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		}
 	}
 
-	// send message
+	// llm chat
 	if payload == nil {
-		// empty
-		payload = types.TextMsg{Text: "empty"}
+		token, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
+		baseUrl, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
+
+		llm, err := openai.New(openai.WithToken(token.String()), openai.WithBaseURL(baseUrl.String()))
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+
+		prompt := prompts.NewPromptTemplate(
+			"Human: {{.content}}\nAssistant:",
+			[]string{"content"},
+		)
+
+		result, err := prompt.Format(map[string]any{
+			"content": msg.AltMessage,
+		})
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+
+		completion, err := llms.GenerateFromSinglePrompt(context.Background(), llm, result,
+			llms.WithTemperature(0.8),
+		)
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+
+		payload = types.TextMsg{Text: completion}
 	}
 
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)

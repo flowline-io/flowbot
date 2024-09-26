@@ -25,11 +25,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/crates"
+	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
 	"github.com/montanaflynn/stats"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
 )
 
 var commandRules = []command.Rule{
@@ -474,6 +477,28 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: url}
+		},
+	},
+	{
+		Define: "llm",
+		Help:   `[example] LLM example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			token, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
+			baseUrl, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
+
+			llm, err := openai.New(openai.WithToken(token.String()), openai.WithBaseURL(baseUrl.String()))
+			if err != nil {
+				flog.Error(err)
+			}
+			prompt := "Human: Who was the first man to walk on the moon?\nAssistant:"
+			completion, err := llms.GenerateFromSinglePrompt(context.Background(), llm, prompt,
+				llms.WithTemperature(0.8),
+			)
+			if err != nil {
+				flog.Error(err)
+			}
+
+			return types.TextMsg{Text: completion}
 		},
 	},
 }
