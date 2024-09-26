@@ -19,14 +19,14 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "setting",
+		Define: "github setting",
 		Help:   `Bot setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.SettingMsg(ctx, Name)
 		},
 	},
 	{
-		Define: "oauth",
+		Define: "github oauth",
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
@@ -54,7 +54,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "user",
+		Define: "github user",
 		Help:   `Get current user info`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
@@ -88,7 +88,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "issue [string]",
+		Define: "github issue [string]",
 		Help:   `create issue`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
@@ -138,7 +138,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "card [string]",
+		Define: "github card [string]",
 		Help:   `create project card`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
@@ -195,7 +195,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "repo [string]",
+		Define: "github repo [string]",
 		Help:   "get repo info",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			str, _ := tokens[1].Value.String()
@@ -247,7 +247,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "user [string]",
+		Define: "github user [string]",
 		Help:   "get user info",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			username, _ := tokens[1].Value.String()
