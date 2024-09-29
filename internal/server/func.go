@@ -165,21 +165,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 				stats.Inc(types.BotRunCommandTotalStatsName, 1)
 			}
 		}
-		// input
-		if payload == nil {
-			/*
-				payload, err = handle.Input(ctx, nil, msg.AltMessage)
-				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-					return
-				}
-
-				if payload != nil {
-					// stats
-					stats.Inc(types.BotRunInputTotalStatsName, 1)
-				}
-			*/
-		}
 
 		if payload != nil {
 			break

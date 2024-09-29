@@ -30,10 +30,10 @@ go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name file_
 
 ```shell
 # install
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install github.com/mgechev/revive@latest
 
 # check
-golangci-lint run --timeout=10m --config=./.golangci.yaml ./...
+revive -formatter friendly ./...
 ```
 
 ## cloc

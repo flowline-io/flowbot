@@ -3,7 +3,6 @@ package dev
 import (
 	"context"
 	"crypto/rand"
-	_ "embed"
 	"fmt"
 	"math/big"
 	"strconv"

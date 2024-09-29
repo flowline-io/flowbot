@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/jmoiron/sqlx"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"

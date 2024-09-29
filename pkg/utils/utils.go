@@ -151,12 +151,6 @@ func ParseTLSConfig(tlsEnabled bool, conf config.TLSConfig) (*tls.Config, error)
 		return nil, nil
 	}
 
-	if conf.StrictMaxAge > 0 {
-		//globals.tlsStrictMaxAge = strconv.Itoa(config.StrictMaxAge)
-	}
-
-	//globals.tlsRedirectHTTP = config.RedirectHTTP
-
 	// If autocert is provided, use it.
 	if conf.Autocert != nil {
 		certManager := autocert.Manager{

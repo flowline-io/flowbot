@@ -25,7 +25,7 @@ func (l *Syntax) error() error {
 
 func (l *Syntax) Advance() {
 	if l.CurrentChar == '\n' {
-		l.LineNo += 1
+		l.LineNo++
 		l.Column = 0
 	}
 	l.Pos++
@@ -33,7 +33,7 @@ func (l *Syntax) Advance() {
 		l.CurrentChar = 0
 	} else {
 		l.CurrentChar = l.Text[l.Pos]
-		l.Column += 1
+		l.Column++
 	}
 }
 

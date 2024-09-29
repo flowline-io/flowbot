@@ -7,7 +7,7 @@ import (
 	"os"
 
 	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"

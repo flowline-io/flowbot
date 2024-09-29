@@ -834,7 +834,7 @@ func (a *adapter) CreateObjective(objective *model.Objective) (int64, error) {
 	if maxObjective.Sequence > 0 {
 		sequence = maxObjective.Sequence
 	}
-	sequence += 1
+	sequence++
 
 	if objective.CreatedData.IsZero() {
 		objective.CreatedData = time.Now()
@@ -958,7 +958,7 @@ func (a *adapter) CreateKeyResult(keyResult *model.KeyResult) (int64, error) {
 	if maxKeyResult.Sequence > 0 {
 		sequence = maxKeyResult.Sequence
 	}
-	sequence += 1
+	sequence++
 
 	keyResult.Sequence = sequence
 	err = a.db.Create(&keyResult).Error
@@ -1121,7 +1121,7 @@ func (a *adapter) CreateTodo(todo *model.Todo) (int64, error) {
 	if maxTodo.Sequence > 0 {
 		sequence = maxTodo.Sequence
 	}
-	sequence += 1
+	sequence++
 
 	todo.Sequence = sequence
 	err = a.db.Create(&todo).Error
@@ -1450,7 +1450,7 @@ func (a *adapter) UpdateWorkflow(workflow *model.Workflow, script *model.Workflo
 
 		if script != nil {
 			version := script.Version
-			script.Version += 1
+			script.Version++
 			_, err = tx.WorkflowScript.
 				Where(tx.WorkflowScript.WorkflowID.Eq(workflow.ID), tx.WorkflowScript.Version.Eq(version)).
 				UpdateColumns(script)

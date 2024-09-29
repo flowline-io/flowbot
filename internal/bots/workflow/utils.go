@@ -83,7 +83,7 @@ func ParseYamlWorkflow(code string) (workflow *model.Workflow, triggers []*model
 				Source: edge[0],
 				Target: edge[1],
 			})
-			index += 1
+			index++
 		}
 	}
 
