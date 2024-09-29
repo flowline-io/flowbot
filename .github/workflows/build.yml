@@ -32,7 +32,7 @@ jobs:
           go env
           go mod download
           go install github.com/mgechev/revive@latest
-          revive -formatter friendly ./...
+          revive -config revive.toml -formatter friendly ./...
 
       - name: Build
         run: |
