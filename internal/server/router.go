@@ -91,7 +91,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 
 	uid, _ := types.KV(p.Params).String("uid")
 	topic, _ := types.KV(p.Params).String("topic")
-	if uid == "" || topic == "" {
+	if uid == "" {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
 	}
 

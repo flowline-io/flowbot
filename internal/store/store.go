@@ -174,7 +174,10 @@ type Adapter interface {
 	UpdatePlatformUser(item *model.PlatformUser) error
 	GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error)
 	GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*model.PlatformChannel, error)
+	GetPlatformChannelsByChannelId(channelId int64) (*model.PlatformChannel, error)
 	CreatePlatformChannel(item *model.PlatformChannel) (int64, error)
+	CreatePlatformChannelUser(item *model.PlatformChannelUser) (int64, error)
+	GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.PlatformChannelUser, error)
 	GetMessage(flag string) (*model.Message, error)
 	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
 	CreateMessage(message model.Message) error

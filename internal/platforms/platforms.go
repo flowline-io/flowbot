@@ -3,6 +3,9 @@ package platforms
 import (
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	json "github.com/json-iterator/go"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -54,8 +57,14 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Url(v.Url),
 		}
 	default:
+		s, err := json.Marshal(d)
+		if err != nil {
+			flog.Error(err)
+			return nil
+		}
+
 		return protocol.Message{
-			protocol.Text(fmt.Sprintf("error message type %+v", d)),
+			protocol.Text(utils.BytesToString(s)),
 		}
 	}
 }

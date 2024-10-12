@@ -480,6 +480,66 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
+		_, err = store.Database.CreatePlatformChannelUser(&model.PlatformChannelUser{
+			PlatformID:  platform.ID,
+			ChannelFlag: data.TopicId,
+			UserFlag:    data.UserId,
+		})
+		if err != nil {
+			return "", err
+		}
+
 		return channel.Flag, nil
+	}
+}
+
+func botSend(rcptTo string, uid types.Uid, out types.MsgPayload, option ...interface{}) {
+	// todo rcptTo
+
+	user, err := store.Database.GetUserByFlag(uid.String())
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+
+	platformUsers, err := store.Database.GetPlatformUsersByUserId(user.ID)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+
+	platformList, err := store.Database.GetPlatforms()
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+	platformMap := make(map[int64]string)
+	for _, item := range platformList {
+		platformMap[item.ID] = item.Name
+	}
+
+	for _, item := range platformUsers {
+		caller, err := platforms.GetCaller(platformMap[item.PlatformID])
+		if err != nil {
+			flog.Error(err)
+			continue
+		}
+
+		channelUsers, err := store.Database.GetPlatformChannelUsersByUserFlag(item.Flag)
+		if err != nil {
+			flog.Error(err)
+			continue
+		}
+
+		for _, channelUser := range channelUsers {
+			caller.Do(protocol.Request{
+				Action: protocol.SendMessageAction,
+				Params: types.KV{
+					"topic":   channelUser.ChannelFlag,
+					"message": caller.Adapter.MessageConvert(out),
+				},
+			})
+		}
 	}
 }

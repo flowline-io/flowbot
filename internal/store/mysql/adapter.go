@@ -370,6 +370,13 @@ func (a *adapter) GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*mode
 		Find()
 }
 
+func (a *adapter) GetPlatformChannelsByChannelId(channelId int64) (*model.PlatformChannel, error) {
+	q := dao.Q.PlatformChannel
+	return q.
+		Where(q.ChannelID.Eq(channelId)).
+		First()
+}
+
 func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, error) {
 	q := dao.Q.PlatformChannel
 	err := q.
@@ -378,6 +385,23 @@ func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, err
 		return 0, err
 	}
 	return item.ID, nil
+}
+
+func (a *adapter) CreatePlatformChannelUser(item *model.PlatformChannelUser) (int64, error) {
+	q := dao.Q.PlatformChannelUser
+	err := q.
+		Create(item)
+	if err != nil {
+		return 0, err
+	}
+	return item.ID, nil
+}
+
+func (a *adapter) GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.PlatformChannelUser, error) {
+	q := dao.Q.PlatformChannelUser
+	return q.
+		Where(q.UserFlag.Eq(userFlag)).
+		Find()
 }
 
 func (a *adapter) GetMessage(flag string) (*model.Message, error) {
