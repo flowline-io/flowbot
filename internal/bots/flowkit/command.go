@@ -17,7 +17,7 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "token",
+		Define: "flowkit token",
 		Help:   `get access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
@@ -54,7 +54,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "reset token",
+		Define: "flowkit reset token",
 		Help:   `reset access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get old token
