@@ -68,6 +68,8 @@ require (
 	gotest.tools/v3 v3.5.1
 )
 
+replace nhooyr.io/websocket v1.8.7 => github.com/coder/websocket v1.8.7
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect

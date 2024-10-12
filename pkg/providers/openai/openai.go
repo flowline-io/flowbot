@@ -5,4 +5,5 @@ const (
 
 	TokenKey   = "token"
 	BaseUrlKey = "base_url"
+	ModelKey   = "model"
 )

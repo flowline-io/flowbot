@@ -173,10 +173,15 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// llm chat
 	if payload == nil {
-		token, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
-		baseUrl, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
+		tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
+		baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
+		modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
 
-		llm, err := openai.New(openai.WithToken(token.String()), openai.WithBaseURL(baseUrl.String()))
+		llm, err := openai.New(
+			openai.WithToken(tokenVal.String()),
+			openai.WithBaseURL(baseUrlVal.String()),
+			openai.WithModel(modelVal.String()),
+		)
 		if err != nil {
 			flog.Error(err)
 			return
