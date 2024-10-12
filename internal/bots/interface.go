@@ -37,7 +37,7 @@ type Handler interface {
 	Form(ctx types.Context, values types.KV) (types.MsgPayload, error)
 
 	// Cron cron script daemon
-	Cron(send types.SendFunc) (*cron.Ruleset, error)
+	Cron() (*cron.Ruleset, error)
 
 	// Agent return group result
 	Agent(ctx types.Context, content types.KV) (types.MsgPayload, error)
@@ -91,7 +91,7 @@ func (Base) Form(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 	return nil, nil
 }
 
-func (Base) Cron(_ types.SendFunc) (*cron.Ruleset, error) {
+func (Base) Cron() (*cron.Ruleset, error) {
 	return nil, nil
 }
 

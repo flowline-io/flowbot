@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -27,8 +28,6 @@ type Ruleset struct {
 	Type      string
 	outCh     chan result
 	cronRules []Rule
-
-	Send types.SendFunc
 }
 
 type result struct {
@@ -189,7 +188,10 @@ func (r *Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}
-	r.Send(res.ctx.Topic, res.ctx.AsUser, res.payload)
+	err := event.SendMessage(res.ctx.AsUser.String(), res.ctx.Topic, res.payload)
+	if err != nil {
+		flog.Error(err)
+	}
 }
 
 func un(payload types.MsgPayload) []byte {

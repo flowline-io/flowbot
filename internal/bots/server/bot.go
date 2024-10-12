@@ -61,6 +61,6 @@ func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error
 	return bots.RunAgent(AgentVersion, agentRules, ctx, content)
 }
 
-func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {
-	return bots.RunCron(cronRules, Name, send)
+func (b bot) Cron() (*cron.Ruleset, error) {
+	return bots.RunCron(cronRules, Name)
 }

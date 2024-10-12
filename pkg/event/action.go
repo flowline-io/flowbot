@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
@@ -60,10 +61,6 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 	}
 
 	// send all
-	platformIds := make([]int64, 0, platformSet.Len())
-	for _, item := range platformUsers {
-		platformIds = append(platformIds, item.PlatformID)
-	}
 	platforms, err := store.Database.GetPlatforms()
 	if err != nil {
 		return err
@@ -72,21 +69,27 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 	for _, item := range platforms {
 		platformName[item.ID] = item.Name
 	}
-	platformChannels, err := store.Database.GetPlatformChannelsByPlatformIds(platformIds)
-	if err != nil {
-		return err
-	}
-	for _, item := range platformChannels {
+
+	for _, item := range platformUsers {
+		channelUsers, err := store.Database.GetPlatformChannelUsersByUserFlag(item.Flag)
+		if err != nil {
+			flog.Error(err)
+			continue
+		}
+
 		if platformName[item.PlatformID] == "" {
 			continue
 		}
-		err = PublishMessage(types.MessageSendEvent, types.Message{
-			Platform: platformName[item.PlatformID],
-			Topic:    item.Flag,
-			Payload:  payload,
-		})
-		if err != nil {
-			return err
+
+		for _, channelUser := range channelUsers {
+			err = PublishMessage(types.MessageSendEvent, types.Message{
+				Platform: platformName[item.PlatformID],
+				Topic:    channelUser.ChannelFlag,
+				Payload:  payload,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 

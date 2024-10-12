@@ -62,8 +62,8 @@ func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, 
 	return bots.RunCommand(commandRules, ctx, content)
 }
 
-func (b bot) Cron(send types.SendFunc) (*cron.Ruleset, error) {
-	return bots.RunCron(cronRules, Name, send)
+func (b bot) Cron() (*cron.Ruleset, error) {
+	return bots.RunCron(cronRules, Name)
 }
 
 func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.MsgPayload, error) {

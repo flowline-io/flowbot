@@ -45,7 +45,7 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	// bot cron
-	globals.cronRuleset, err = bots.Cron(botSend)
+	globals.cronRuleset, err = bots.Cron()
 	if err != nil {
 		flog.Fatal("Failed to bot cron: %v", err)
 	}

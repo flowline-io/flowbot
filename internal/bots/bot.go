@@ -207,9 +207,8 @@ func AppURL(ctx types.Context, name string, param types.KV) string {
 	return fmt.Sprintf("%s/app/%s/?p=%s", types.AppUrl(), name, flag)
 }
 
-func RunCron(cronRules []cron.Rule, name string, send types.SendFunc) (*cron.Ruleset, error) {
+func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 	ruleset := cron.NewCronRuleset(name, cronRules)
-	ruleset.Send = send
 	ruleset.Daemon()
 	return ruleset, nil
 }
@@ -651,10 +650,10 @@ func Bootstrap() error {
 }
 
 // Cron registered handlers
-func Cron(send func(rcptTo string, uid types.Uid, out types.MsgPayload, option ...interface{})) ([]*cron.Ruleset, error) {
+func Cron() ([]*cron.Ruleset, error) {
 	rss := make([]*cron.Ruleset, 0)
 	for _, bot := range handlers {
-		rs, err := bot.Cron(send)
+		rs, err := bot.Cron()
 		if err != nil {
 			return nil, err
 		}
