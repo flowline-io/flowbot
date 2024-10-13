@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/yaml.v3"
 	"strings"
@@ -13,7 +15,8 @@ import (
 )
 
 const (
-	runOneTaskFormID = "run_one_task"
+	runOneTaskFormID    = "run_one_task"
+	createOneTaskFormID = "create_one_task"
 )
 
 var formRules = []form.Rule{
@@ -97,6 +100,47 @@ var formRules = []form.Rule{
 			}
 
 			return types.TextMsg{Text: string(result)}
+		},
+	},
+	{
+		Id:         createOneTaskFormID,
+		Title:      "Create one task",
+		IsLongTerm: true,
+		Field: []types.FormField{
+			{
+				Key:         "script",
+				Type:        types.FormFieldTextarea,
+				ValueType:   types.FormFieldValueString,
+				Value:       "",
+				Label:       "Script",
+				Placeholder: "Input script",
+				Rule:        "required",
+			},
+		},
+		Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+			inputData, _ := values.String("script")
+			var input map[string]interface{}
+			err := yaml.Unmarshal([]byte(inputData), &input)
+			if err != nil {
+				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
+			}
+
+			wf, triggers, dag, err := ParseYamlWorkflow(inputData)
+			if err != nil {
+				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
+			}
+
+			wf.UID = ctx.AsUser.String()
+			wf.Topic = ctx.Topic
+			script := new(model.WorkflowScript)
+			script.Lang = model.WorkflowScriptYaml
+			script.Code = inputData
+			_, err = store.Database.CreateWorkflow(wf, script, dag, triggers)
+			if err != nil {
+				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
+			}
+
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }

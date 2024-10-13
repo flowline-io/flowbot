@@ -15,4 +15,11 @@ var commandRules = []command.Rule{
 			return bots.FormMsg(ctx, runOneTaskFormID)
 		},
 	},
+	{
+		Define: "task create",
+		Help:   `Create one task`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			return bots.FormMsg(ctx, createOneTaskFormID)
+		},
+	},
 }
