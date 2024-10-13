@@ -1,17 +1,20 @@
 # extra chatbot framework
 
-## Setup
-
-### install dev tools
-```shell
-./docs/install.sh
-```
-
 ## extra json config
 
 > See extra.conf
 
 ## Dev tools
+
+## task
+
+```shell
+# install
+go install github.com/go-task/task/v3/cmd/task@latest
+
+# scripts
+task -a
+```
 
 ```shell
 

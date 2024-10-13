@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `behavior`
 
 CREATE TABLE IF NOT EXISTS `bots`
 (
-    `id`         bigint                                                       NOT NULL AUTO_INCREMENT,
+    `id`         bigint unsigned                                              NOT NULL AUTO_INCREMENT,
     `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `state`      tinyint                                                      NOT NULL DEFAULT (0),
     `created_at` datetime                                                     NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `counter_records`
 
 CREATE TABLE IF NOT EXISTS `cycles`
 (
-    `id`         bigint                                                    NOT NULL AUTO_INCREMENT,
+    `id`         bigint unsigned                                           NOT NULL AUTO_INCREMENT,
     `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `objectives` json                                                      NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `data`
 
 CREATE TABLE IF NOT EXISTS `fileuploads`
 (
-    `id`         bigint                                                         NOT NULL,
+    `id`         bigint unsigned                                                NOT NULL,
     `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci      NOT NULL,
     `name`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
     `mimetype`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
@@ -377,7 +377,7 @@ CREATE TABLE IF NOT EXISTS `platforms`
 
 CREATE TABLE IF NOT EXISTS `platform_users`
 (
-    `id`          bigint                                                        NOT NULL AUTO_INCREMENT,
+    `id`          bigint unsigned                                               NOT NULL AUTO_INCREMENT,
     `platform_id` bigint                                                        NOT NULL DEFAULT '0',
     `user_id`     bigint                                                        NOT NULL DEFAULT '0',
     `flag`        varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
@@ -399,7 +399,7 @@ CREATE TABLE IF NOT EXISTS `platform_users`
 
 CREATE TABLE IF NOT EXISTS `reviews`
 (
-    `id`           bigint                                                    NOT NULL AUTO_INCREMENT,
+    `id`           bigint unsigned                                           NOT NULL AUTO_INCREMENT,
     `uid`          char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `topic`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `objective_id` bigint                                                    NOT NULL DEFAULT (0),
@@ -417,7 +417,7 @@ CREATE TABLE IF NOT EXISTS `reviews`
 
 CREATE TABLE IF NOT EXISTS `review_evaluations`
 (
-    `id`         bigint                                                        NOT NULL AUTO_INCREMENT,
+    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
     `uid`        char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
     `topic`      char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci     NOT NULL,
     `review_id`  bigint                                                        NOT NULL DEFAULT (0),
@@ -508,7 +508,7 @@ CREATE TABLE IF NOT EXISTS `todos`
 
 CREATE TABLE IF NOT EXISTS `topics`
 (
-    `id`         bigint                                                       NOT NULL AUTO_INCREMENT,
+    `id`         bigint unsigned                                              NOT NULL AUTO_INCREMENT,
     `flag`       char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci    NOT NULL DEFAULT '',
     `platform`   varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `owner`      bigint                                                       NOT NULL DEFAULT '0',
@@ -621,12 +621,12 @@ CREATE TABLE IF NOT EXISTS `workflow_script`
 
 CREATE TABLE IF NOT EXISTS `platform_bots`
 (
-    `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
-    `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
-    `bot_id`      BIGINT(19)  NOT NULL DEFAULT '0',
-    `flag`        VARCHAR(50) NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
-    `created_at`  DATETIME    NOT NULL,
-    `updated_at`  DATETIME    NOT NULL,
+    `id`          BIGINT(19) unsigned NOT NULL AUTO_INCREMENT,
+    `platform_id` BIGINT(19)          NOT NULL DEFAULT '0',
+    `bot_id`      BIGINT(19)          NOT NULL DEFAULT '0',
+    `flag`        VARCHAR(50)         NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
+    `created_at`  DATETIME            NOT NULL,
+    `updated_at`  DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
     INDEX `platform_id` (`platform_id`) USING BTREE,
     INDEX `bot_id` (`bot_id`) USING BTREE
@@ -650,12 +650,12 @@ CREATE TABLE IF NOT EXISTS `channels`
 
 CREATE TABLE IF NOT EXISTS `platform_channels`
 (
-    `id`          BIGINT(19)  NOT NULL AUTO_INCREMENT,
-    `platform_id` BIGINT(19)  NOT NULL DEFAULT '0',
-    `channel_id`  BIGINT(19)  NOT NULL DEFAULT '0',
-    `flag`        VARCHAR(50) NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
-    `created_at`  DATETIME    NOT NULL,
-    `updated_at`  DATETIME    NOT NULL,
+    `id`          BIGINT(19) unsigned NOT NULL AUTO_INCREMENT,
+    `platform_id` BIGINT(19)          NOT NULL DEFAULT '0',
+    `channel_id`  BIGINT(19)          NOT NULL DEFAULT '0',
+    `flag`        VARCHAR(50)         NOT NULL DEFAULT '0' COLLATE 'utf8mb4_unicode_ci',
+    `created_at`  DATETIME            NOT NULL,
+    `updated_at`  DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
     INDEX `platform_id` (`platform_id`) USING BTREE,
     INDEX `channel_id` (`channel_id`) USING BTREE
@@ -666,12 +666,12 @@ CREATE TABLE IF NOT EXISTS `platform_channels`
 
 CREATE TABLE `platform_channel_users`
 (
-    `id`           BIGINT(19)  NOT NULL AUTO_INCREMENT,
-    `platform_id`  BIGINT(19)  NOT NULL DEFAULT '0',
-    `channel_flag` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_unicode_ci',
-    `user_flag`    VARCHAR(50) NOT NULL COLLATE 'utf8mb4_unicode_ci',
-    `created_at`   DATETIME    NOT NULL,
-    `updated_at`   DATETIME    NOT NULL,
+    `id`           BIGINT(19) unsigned NOT NULL AUTO_INCREMENT,
+    `platform_id`  BIGINT(19)          NOT NULL DEFAULT '0',
+    `channel_flag` VARCHAR(50)         NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `user_flag`    VARCHAR(50)         NOT NULL COLLATE 'utf8mb4_unicode_ci',
+    `created_at`   DATETIME            NOT NULL,
+    `updated_at`   DATETIME            NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
     INDEX `platform_id` (`platform_id`) USING BTREE,
     INDEX `channel_flag` (`channel_flag`) USING BTREE,

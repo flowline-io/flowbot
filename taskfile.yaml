@@ -1,0 +1,46 @@
+version: '3'
+tasks:
+  default:
+    cmds:
+      - task: cloc
+      - task: lint
+      - task: swagger
+      - echo "Both done"
+
+  cloc:
+    cmds:
+      - cloc --exclude-dir=node_modules --exclude-ext=json --out=./cloc/{{ now.Format "2006-01-02" }}.txt .
+    generates:
+      - ./cloc/{{ now.Format "2006-01-02" }}.txt
+
+  lint:
+    cmds:
+      - revive -formatter friendly ./...
+
+  swagger:
+    cmds:
+      - swag init -g cmd/main.go
+      - swag fmt -g cmd/main.go
+
+  install:
+    cmds:
+      - go install github.com/mgechev/revive@latest
+      - go install github.com/swaggo/swag/cmd/swag@latest
+      - go install golang.org/x/vuln/cmd/govulncheck@latest
+      - go install github.com/go-task/task/v3/cmd/task@latest
+
+  secure:
+    cmds:
+      - govulncheck ./...
+
+  dao:
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer dao
+
+  migrate:
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer migrate import
+
+  migration:
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{ .CLI_ARGS }}
