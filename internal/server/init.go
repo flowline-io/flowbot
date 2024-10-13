@@ -358,6 +358,11 @@ func initializeDatabase() error {
 	}()
 	stats.RegisterDbStats()
 
+	// migrate
+	if err := store.Migrate(); err != nil {
+		return fmt.Errorf("failed to migrate DB, %w", err)
+	}
+
 	return nil
 }
 

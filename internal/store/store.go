@@ -2,6 +2,12 @@ package store
 
 import (
 	"errors"
+	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
+	_ "github.com/go-sql-driver/mysql" //revive:disable
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -43,6 +49,32 @@ func RegisterAdapter(a Adapter) {
 		panic("store: adapter '" + adapterName + "' is already registered")
 	}
 	availableAdapters[adapterName] = a
+}
+
+func Migrate() error {
+	if !adp.IsOpen() {
+		return errors.New("store: connection is not opened")
+	}
+	db, err := adp.GetDB().DB()
+	if err != nil {
+		return err
+	}
+	driver, _ := mysql.WithInstance(db, &mysql.Config{})
+
+	d, err := iofs.New(storeMigrate.Fs, "migrations")
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithInstance("iofs", d, "mysql", driver)
+	if err != nil {
+		return err
+	}
+	err = m.Up()
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }
 
 // FS Media handler
@@ -138,6 +170,8 @@ type Adapter interface {
 	GetName() string
 	// Stats returns the DB connection stats object.
 	Stats() interface{}
+	// GetDB returns the underlying DB connection
+	GetDB() *gorm.DB
 
 	// User management
 

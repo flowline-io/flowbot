@@ -307,6 +307,10 @@ func (a *adapter) Stats() interface{} {
 	return rawDB.Stats()
 }
 
+func (a *adapter) GetDB() *gorm.DB {
+	return a.db
+}
+
 func (a *adapter) GetUsers() ([]*model.User, error) {
 	q := dao.Q.User
 	return q.Find()
