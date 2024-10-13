@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	endWorkflowActionID     = "end"
 	inWorkflowActionID      = "in"
 	addWorkflowActionID     = "add"
 	outWorkflowActionID     = "out"
@@ -19,6 +20,16 @@ const (
 )
 
 var workflowRules = []workflow.Rule{
+	{
+		Id:           endWorkflowActionID,
+		Title:        "end",
+		Desc:         "end workflow",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			return nil, nil
+		},
+	},
 	{
 		Id:           inWorkflowActionID,
 		Title:        "in",

@@ -9,7 +9,7 @@ triggers:
 pipeline:
   - input -> add_two_number -> out1
   - add_two_number -> out2 -> echo
-
+  - echo -> end
 
 tasks:
   - id: input
@@ -38,3 +38,6 @@ tasks:
     params:
       text: demo
     action: message@dev
+
+  - id: end
+    action: end@dev
