@@ -34,18 +34,6 @@ func NewCommand() *cli.App {
 				Usage: "migrate tool",
 				Subcommands: []*cli.Command{
 					{
-						Name:  "import",
-						Usage: "import database",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "config",
-								Value: "./flowbot.yaml",
-								Usage: "config of the database connection",
-							},
-						},
-						Action: migrate.ImportAction,
-					},
-					{
 						Name:  "migration",
 						Usage: "generate migration files",
 						Flags: []cli.Flag{
