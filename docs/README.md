@@ -72,3 +72,13 @@ swag init -g cmd/main.go
 # format
 swag fmt -g cmd/main.go
 ```
+
+## migrate
+
+```shell
+# install
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+# migrate
+migrate -source file://./internal/store/migrate  -database mysql://user:password@tcp(127.0.0.1:3306)/db?parseTime=True&collation=utf8mb4_unicode_ci up
+```
