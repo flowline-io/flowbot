@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -119,12 +117,10 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 				// run step
 				for _, step := range steps {
 					// start
-					now := time.Now()
 					step.State = model.StepStart
 					err = store.Database.UpdateStep(step.ID, &model.Step{
-						StartedAt: &now,
-						EndedAt:   nil,
-						State:     model.StepStart,
+						EndedAt: nil,
+						State:   model.StepStart,
 					})
 					if err != nil {
 						e.Cancel(err)

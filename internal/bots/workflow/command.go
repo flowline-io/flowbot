@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
+	"time"
 )
 
 var commandRules = []command.Rule{
@@ -66,6 +67,7 @@ var commandRules = []command.Rule{
 				dagId = wf.Dag[0].ID
 				scriptVersion = wf.Dag[0].ScriptVersion
 			}
+			now := time.Now()
 			job := &model.Job{
 				UID:           wf.UID,
 				Topic:         wf.Topic,
@@ -74,6 +76,7 @@ var commandRules = []command.Rule{
 				TriggerID:     triggerId,
 				ScriptVersion: scriptVersion,
 				State:         model.JobReady,
+				StartedAt:     &now,
 			}
 			_, err = store.Database.CreateJob(job)
 			if err != nil {

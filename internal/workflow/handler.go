@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -43,6 +44,7 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 		dagId = workflow.Dag[0].ID
 		scriptVersion = workflow.Dag[0].ScriptVersion
 	}
+	now := time.Now()
 	job := &model.Job{
 		UID:           workflow.UID,
 		Topic:         workflow.Topic,
@@ -51,6 +53,7 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 		TriggerID:     trigger.ID,
 		ScriptVersion: scriptVersion,
 		State:         model.JobReady,
+		StartedAt:     &now,
 	}
 	_, err = store.Database.CreateJob(job)
 	if err != nil {
