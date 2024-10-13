@@ -38,16 +38,19 @@ func HandleCronTask(ctx context.Context, t *asynq.Task) error {
 
 	// create job
 	dagId := int64(0)
+	scriptVersion := int32(0)
 	if len(workflow.Dag) > 0 {
 		dagId = workflow.Dag[0].ID
+		scriptVersion = workflow.Dag[0].ScriptVersion
 	}
 	job := &model.Job{
-		UID:        workflow.UID,
-		Topic:      workflow.Topic,
-		WorkflowID: workflow.ID,
-		DagID:      dagId,
-		TriggerID:  trigger.ID,
-		State:      model.JobReady,
+		UID:           workflow.UID,
+		Topic:         workflow.Topic,
+		WorkflowID:    workflow.ID,
+		DagID:         dagId,
+		TriggerID:     trigger.ID,
+		ScriptVersion: scriptVersion,
+		State:         model.JobReady,
 	}
 	_, err = store.Database.CreateJob(job)
 	if err != nil {

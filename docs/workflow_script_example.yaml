@@ -1,17 +1,14 @@
 ---
-name: example
+name: example message
 describe: do something...
 
 triggers:
   - type: manual # cron, manual, webhook
-  - type: cron
-    rule:
-      spec: '* * * * *' # if cron
   - type: webhook
 
 pipeline:
   - input -> add_two_number -> out1
-  - add_two_number -> out2
+  - add_two_number -> out2 -> echo
 
 
 tasks:
@@ -37,3 +34,7 @@ tasks:
   - id: out2
     action: out@dev
 
+  - id: echo
+    params:
+      text: demo
+    action: message@dev

@@ -22,7 +22,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           inWorkflowActionID,
 		Title:        "in",
-		Desc:         "",
+		Desc:         "return {a, b}",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -32,7 +32,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           addWorkflowActionID,
 		Title:        "add",
-		Desc:         "",
+		Desc:         "a + b",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -44,7 +44,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           outWorkflowActionID,
 		Title:        "out",
-		Desc:         "",
+		Desc:         "print debug log",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -55,7 +55,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           errorWorkflowActionID,
 		Title:        "error",
-		Desc:         "",
+		Desc:         "return error",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -65,7 +65,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           messageWorkflowActionID,
 		Title:        "message",
-		Desc:         "",
+		Desc:         "send message",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {

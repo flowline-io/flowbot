@@ -373,6 +373,14 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 					Topic:          step.Topic,
 					WorkflowRuleId: ruleId,
 				}
+				parameters, _ := types.KV(step.Action).Any("parameters")
+				if p, ok := parameters.(map[string]interface{}); ok {
+					if step.Input == nil {
+						step.Input = p
+					} else {
+						step.Input = model.JSON(types.KV(step.Input).Merge(p))
+					}
+				}
 				output, err := botHandler.Workflow(ctx, types.KV(step.Input))
 				if err != nil {
 					e.Err = err
