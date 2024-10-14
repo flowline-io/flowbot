@@ -32,6 +32,7 @@ func defaultRedisClientOpt() asynq.RedisClientOpt {
 	return asynq.RedisClientOpt{
 		Addr:     fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port),
 		Password: config.App.Redis.Password,
+		DB:       config.App.Redis.DB,
 	}
 }
 
@@ -40,8 +41,8 @@ func PushTask(t *Task) error {
 	info, err := client.Enqueue(t.Task,
 		asynq.Queue(t.Queue),
 		asynq.TaskID(t.ID),
-		asynq.MaxRetry(3),
-		asynq.Retention(3*24*time.Hour),
+		asynq.MaxRetry(defaultMaxRetry),
+		asynq.Retention(defaultRetention),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to enqueue task %s, %w", t.Task.Type(), err)
