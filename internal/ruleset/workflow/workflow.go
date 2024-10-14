@@ -26,7 +26,7 @@ func (r Ruleset) ProcessRule(ctx types.Context, input types.KV) (types.KV, error
 
 			// run rule
 			go func() {
-				result, err := rule.Run(ctx, input)
+				result, err := rule.Run(ctx, input) // todo timeout context
 				if err != nil {
 					errChan <- err
 				} else {
