@@ -5,8 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"regexp"
+	"runtime"
 	"strings"
 	"unicode"
 
@@ -110,4 +112,13 @@ func NewUUID() string {
 
 func ValidImageContentType(ct string) bool {
 	return strings.HasPrefix(ct, "image/")
+}
+
+func FileAndLine() string {
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		return ""
+	}
+
+	return fmt.Sprintf("%s:%d", file, line)
 }

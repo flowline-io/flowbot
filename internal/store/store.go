@@ -2,7 +2,9 @@ package store
 
 import (
 	"errors"
+	"fmt"
 	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -44,11 +46,12 @@ func RegisterAdapter(a Adapter) {
 		panic("store: Register adapter is nil")
 	}
 
-	adapterName := a.GetName()
-	if _, ok := availableAdapters[adapterName]; ok {
-		panic("store: adapter '" + adapterName + "' is already registered")
+	name := a.GetName()
+	if _, ok := availableAdapters[name]; ok {
+		panic("store: adapter '" + name + "' is already registered")
 	}
-	availableAdapters[adapterName] = a
+	availableAdapters[name] = a
+	fmt.Printf("%s info %s store: adapter '%s' registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
 }
 
 func Migrate() error {
@@ -96,6 +99,7 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 		panic("RegisterMediaHandler: called twice for handler " + name)
 	}
 	fileHandlers[name] = mh
+	fmt.Printf("%s info %s media: handler '%s' registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
 }
 
 // UseMediaHandler sets specified media handler as default.
