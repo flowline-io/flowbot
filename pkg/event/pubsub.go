@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -78,7 +79,7 @@ func NewMessage(payload any) (*message.Message, error) {
 	return msg, nil
 }
 
-func PublishMessage(topic string, payload any) error {
+func PublishMessage(ctx context.Context, topic string, payload any) error {
 	msg, err := NewMessage(payload)
 	if err != nil {
 		return err

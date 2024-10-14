@@ -98,7 +98,7 @@ func saveMarkdown(ctx *fiber.Ctx) error {
 	}
 
 	// send
-	err = event.PublishMessage(protocol.MessageDirectEvent, types.KV{
+	err = event.PublishMessage(ctx.Context(), protocol.MessageDirectEvent, types.KV{
 		"topic":   topic,
 		"bot":     Name,
 		"message": message,

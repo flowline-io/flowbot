@@ -84,7 +84,7 @@ var workflowRules = []workflow.Rule{
 			if text == "" {
 				return nil, fmt.Errorf("%s step, empty text", messageWorkflowActionID)
 			}
-			return nil, event.SendMessage(ctx.AsUser.String(), ctx.Topic, types.TextMsg{Text: text})
+			return nil, event.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.TextMsg{Text: text})
 		},
 	},
 }

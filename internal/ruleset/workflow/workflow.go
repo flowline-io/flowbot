@@ -1,11 +1,11 @@
 package workflow
 
 import (
-	"errors"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/types"
+	"time"
 )
+
+const defaultRunTimeout = 10 * time.Minute
 
 type Rule struct {
 	Id           string
@@ -18,32 +18,44 @@ type Rule struct {
 
 type Ruleset []Rule
 
+// ProcessRule processes a specific rule within the Ruleset based on the provided context and input.
+// It returns the result of the rule execution or an error if the execution fails or times out.
 func (r Ruleset) ProcessRule(ctx types.Context, input types.KV) (types.KV, error) {
-	for _, rule := range r {
-		if rule.Id == ctx.WorkflowRuleId {
-			resultChan := make(chan types.KV, 1)
-			errChan := make(chan error, 1)
-
-			// run rule
-			go func() {
-				result, err := rule.Run(ctx, input) // todo timeout context
-				if err != nil {
-					errChan <- err
-				} else {
-					resultChan <- result
-				}
-			}()
-
-			// 10 minute timeout
-			select {
-			case result := <-resultChan:
-				return result, nil
-			case err := <-errChan:
-				return types.KV{}, err
-			case <-time.After(10 * time.Minute):
-				return types.KV{}, errors.New("run timeout")
-			}
+	var rule Rule
+	for _, item := range r {
+		if item.Id == ctx.WorkflowRuleId {
+			rule = item
+			break
 		}
 	}
-	return types.KV{}, nil
+	if rule.Id == "" {
+		return nil, nil
+	}
+
+	// Ensure the context has a deadline; if not, set a timeout of 10 minutes.
+	ctx.SetTimeout(defaultRunTimeout)
+	defer ctx.Cancel()
+
+	resultCh := make(chan types.KV, 1)
+	errorCh := make(chan error, 1)
+
+	// Start a goroutine to execute the rule.
+	go func() {
+		result, err := rule.Run(ctx, input)
+		if err != nil {
+			errorCh <- err
+		} else {
+			resultCh <- result
+		}
+	}()
+
+	// Wait for the result, error, or context timeout.
+	select {
+	case result := <-resultCh:
+		return result, nil
+	case err := <-errorCh:
+		return types.KV{}, err
+	case <-ctx.Context().Done():
+		return types.KV{}, ctx.Context().Err()
+	}
 }

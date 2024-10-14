@@ -188,7 +188,7 @@ func (r *Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}
-	err := event.SendMessage(res.ctx.AsUser.String(), res.ctx.Topic, res.payload)
+	err := event.SendMessage(context.Background(), res.ctx.AsUser.String(), res.ctx.Topic, res.payload)
 	if err != nil {
 		flog.Error(err)
 	}

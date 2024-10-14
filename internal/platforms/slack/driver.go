@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -86,7 +87,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 
 				flog.Debug("start slack emit event %+v", protocolEvent)
 				// emit event
-				err := event.PublishMessage(protocolEvent.DetailType, protocolEvent)
+				err := event.PublishMessage(context.Background(), protocolEvent.DetailType, protocolEvent)
 				if err != nil {
 					flog.Error(fmt.Errorf("failed to emit event %s, %w", protocolEvent.DetailType, err))
 				}

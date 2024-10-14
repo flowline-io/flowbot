@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/flog"
 
@@ -10,7 +11,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func SendMessage(uid, topic string, msg types.MsgPayload) error {
+func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) error {
 	// payload
 	src, err := jsoniter.Marshal(msg)
 	if err != nil {
@@ -53,7 +54,7 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 			return fmt.Errorf("empty platform user %s topic %s", uid, topic)
 		}
 
-		return PublishMessage(types.MessageSendEvent, types.Message{
+		return PublishMessage(ctx, types.MessageSendEvent, types.Message{
 			Platform: platform.Name,
 			Topic:    topic,
 			Payload:  payload,
@@ -82,7 +83,7 @@ func SendMessage(uid, topic string, msg types.MsgPayload) error {
 		}
 
 		for _, channelUser := range channelUsers {
-			err = PublishMessage(types.MessageSendEvent, types.Message{
+			err = PublishMessage(ctx, types.MessageSendEvent, types.Message{
 				Platform: platformName[item.PlatformID],
 				Topic:    channelUser.ChannelFlag,
 				Payload:  payload,

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -17,6 +18,10 @@ type EventPayload struct {
 }
 
 type Context struct {
+	// ctx is the context
+	ctx context.Context
+	// cancel function
+	cancel context.CancelFunc
 	// Message ID denormalized
 	Id string
 	// chat platform
@@ -39,6 +44,23 @@ type Context struct {
 	PageRuleId string
 	// workflow rule id
 	WorkflowRuleId string
+}
+
+func (c *Context) Context() context.Context {
+	return c.ctx
+}
+
+func (c *Context) SetTimeout(timeout time.Duration) {
+	if _, ok := c.ctx.Deadline(); !ok {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		c.ctx = ctx
+		c.cancel = cancel
+		return
+	}
+}
+
+func (c *Context) Cancel() context.CancelFunc {
+	return c.cancel
 }
 
 func Id() string {

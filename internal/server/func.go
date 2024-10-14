@@ -280,7 +280,7 @@ func notifyAfterReboot() {
 		return
 	}
 	for _, item := range users {
-		err = event.SendMessage(item.Flag, "", types.TextMsg{Text: "reboot"})
+		err = event.SendMessage(context.Background(), item.Flag, "", types.TextMsg{Text: "reboot"})
 		if err != nil {
 			flog.Error(fmt.Errorf("notify reboot error %w", err))
 			continue
@@ -346,7 +346,7 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 				continue
 			}
 
-			err = event.SendMessage(uid.String(), "", payload)
+			err = event.SendMessage(context.Background(), uid.String(), "", payload)
 			if err != nil {
 				flog.Error(fmt.Errorf("send message error %w", err))
 				continue
