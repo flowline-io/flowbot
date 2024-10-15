@@ -1,8 +1,10 @@
 package workflow
 
 import (
-	"github.com/flowline-io/flowbot/internal/types"
+	"fmt"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const defaultRunTimeout = 10 * time.Minute
@@ -41,6 +43,12 @@ func (r Ruleset) ProcessRule(ctx types.Context, input types.KV) (types.KV, error
 
 	// Start a goroutine to execute the rule.
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errorCh <- fmt.Errorf("recover: %v", r)
+			}
+		}()
+
 		result, err := rule.Run(ctx, input)
 		if err != nil {
 			errorCh <- err
