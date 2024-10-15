@@ -85,13 +85,13 @@ func FirstUpper(s string) string {
 
 func MD5(txt string) string {
 	h := md5.New()
-	h.Write(StringToBytes(txt))
+	_, _ = h.Write(StringToBytes(txt))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
 func SHA1(txt string) string {
 	h := sha1.New()
-	h.Write(StringToBytes(txt))
+	_, _ = h.Write(StringToBytes(txt))
 	return hex.EncodeToString(h.Sum(nil))
 }
 

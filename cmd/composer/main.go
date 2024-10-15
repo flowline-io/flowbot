@@ -21,7 +21,7 @@ func main() {
 
 func NewCommand() *cli.App {
 	cli.VersionPrinter = func(_ *cli.Context) {
-		fmt.Printf("version=%s\n", version.Buildtags)
+		_, _ = fmt.Printf("version=%s\n", version.Buildtags)
 	}
 	return &cli.App{
 		Name:                 "composer",

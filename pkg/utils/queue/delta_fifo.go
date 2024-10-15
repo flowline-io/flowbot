@@ -365,10 +365,7 @@ func dedupDeltas(deltas Deltas) Deltas {
 // If a & b represent the same event, returns the delta that ought to be kept.
 // Otherwise, returns nil.
 func isDup(a, b *Delta) *Delta {
-	if out := isDeletionDup(a, b); out != nil {
-		return out
-	}
-	return nil
+	return isDeletionDup(a, b)
 }
 
 // keep the one with the most information if both are deletions.

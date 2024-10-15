@@ -80,7 +80,7 @@ func (v *client) sendMessage(data SendMessageData) error {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		fmt.Println(string(resp.Body()))
+		_, _ = fmt.Println(string(resp.Body()))
 		return nil
 	} else {
 		return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))

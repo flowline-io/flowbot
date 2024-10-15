@@ -101,7 +101,7 @@ func (d *Runtime) Run(ctx context.Context, t *types.Task) error {
 		if err != nil {
 			return err
 		}
-		defer func(m types.Mount) {
+		defer func(m types.Mount) {//revive:disable
 			uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := d.mounter.Unmount(uctx, &m); err != nil {

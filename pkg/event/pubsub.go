@@ -89,9 +89,6 @@ func PublishMessage(ctx context.Context, topic string, payload any) error {
 	if err != nil {
 		return err
 	}
-	if err := publisher.Publish(topic, msg); err != nil {
-		return err
-	}
 
-	return nil
+	return publisher.Publish(topic, msg)
 }

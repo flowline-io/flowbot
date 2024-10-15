@@ -37,15 +37,15 @@ func NewNamedDelayingQueue(name string) DelayingInterface {
 
 // NewDelayingQueueWithCustomClock constructs a new named workqueue
 // with ability to inject real or fake clock for testing purposes
-func NewDelayingQueueWithCustomClock(clock clock.WithTicker, name string) DelayingInterface {
-	return newDelayingQueue(clock, NewNamed(name), name)
+func NewDelayingQueueWithCustomClock(clockWithTicker clock.WithTicker, name string) DelayingInterface {
+	return newDelayingQueue(clockWithTicker, NewNamed(name), name)
 }
 
-func newDelayingQueue(clock clock.WithTicker, q Interface, _ string) *delayingType {
+func newDelayingQueue(clockWithTicker clock.WithTicker, q Interface, _ string) *delayingType {
 	ret := &delayingType{
 		Interface:       q,
-		clock:           clock,
-		heartbeat:       clock.NewTicker(maxWait),
+		clock:           clockWithTicker,
+		heartbeat:       clockWithTicker.NewTicker(maxWait),
 		stopCh:          make(chan struct{}),
 		waitingForAddCh: make(chan *waitFor, 1000),
 	}

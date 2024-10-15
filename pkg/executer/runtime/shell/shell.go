@@ -169,7 +169,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		reader := bufio.NewReader(stdout)
 		line, err := reader.ReadString('\n')
 		for err == nil {
-			fmt.Println(line)
+			_, _ = fmt.Println(line)
 			line, err = reader.ReadString('\n')
 		}
 	}()

@@ -36,32 +36,32 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupMux(app *fiber.App) {
+func setupMux(a *fiber.App) {
 	// Webservice
 	for _, bot := range bots.List() {
-		bot.Webservice(app)
+		bot.Webservice(a)
 	}
 
 	// common
-	app.Get("/", func(c *fiber.Ctx) error {
+	a.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString(fmt.Sprintf("flowbot %s (%s)", version.Buildtags, version.Buildstamp))
 	})
-	app.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	app.Get("/health", func(c *fiber.Ctx) error {
+	a.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
+	a.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("ok")
 	})
-	app.All("/oauth/:provider/:flag", storeOAuth)
-	app.Get("/p/:id", getPage)
+	a.All("/oauth/:provider/:flag", storeOAuth)
+	a.Get("/p/:id", getPage)
 	// form
-	app.Post("/form", postForm)
+	a.Post("/form", postForm)
 	// page
-	app.Get("/page/:id/:flag", renderPage)
+	a.Get("/page/:id/:flag", renderPage)
 	// flowkit
-	app.Post("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
+	a.Post("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
 	// webhook
-	app.All("/webhook/:flag", doWebhook)
+	a.All("/webhook/:flag", doWebhook)
 	// platform
-	app.All("/chatbot/:platform", platformCallback)
+	a.All("/chatbot/:platform", platformCallback)
 }
 
 func newWebappRouter() *mux.Router {

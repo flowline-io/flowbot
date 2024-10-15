@@ -248,11 +248,11 @@ func mapHash(m map[string]string) string {
 
 	txt := bytes.Buffer{}
 	for _, key := range keys {
-		txt.WriteString(key)
-		txt.WriteString(":")
-		txt.WriteString(m[key])
+		_, _ = txt.WriteString(key)
+		_, _ = txt.WriteString(":")
+		_, _ = txt.WriteString(m[key])
 	}
 	h := sha1.New()
-	h.Write(txt.Bytes())
+	_, _ = h.Write(txt.Bytes())
 	return string(h.Sum(nil))
 }

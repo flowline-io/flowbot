@@ -49,12 +49,12 @@ func (v *Transmission) TorrentAddFile(ctx context.Context, filepath string) (tra
 // ctx - the context for the function.
 // url - the magnet link to add.
 // (transmissionrpc.Torrent, error) - returns the added torrent or an error.
-func (v *Transmission) TorrentAddUrl(ctx context.Context, url string) (transmissionrpc.Torrent, error) {
-	if !strings.HasPrefix(url, "magnet") {
+func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (transmissionrpc.Torrent, error) {
+	if !strings.HasPrefix(magnetUrl, "magnet") {
 		return transmissionrpc.Torrent{}, errors.New("only magnet links are supported")
 	}
 
 	return v.c.TorrentAdd(ctx, transmissionrpc.TorrentAddPayload{
-		Filename: &url,
+		Filename: &magnetUrl,
 	})
 }

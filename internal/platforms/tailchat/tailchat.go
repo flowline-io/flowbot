@@ -23,7 +23,7 @@ func HandleHttp(c *fiber.Ctx) error {
 		return nil
 	}
 
-	fmt.Println(payload.Payload.MessagePlainContent)
+	_, _ = fmt.Println(payload.Payload.MessagePlainContent)
 
 	cli := newClient()
 	err = cli.auth()

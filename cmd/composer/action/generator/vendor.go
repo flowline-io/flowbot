@@ -48,6 +48,6 @@ func VendorAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Println("done")
+	_, _ = fmt.Println("done")
 	return nil
 }

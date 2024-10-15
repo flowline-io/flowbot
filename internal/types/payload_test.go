@@ -30,6 +30,6 @@ func TestMsgBuilder(t *testing.T) {
 		ButtonDataRef: "https://demo.dev/test/action"})
 
 	head, content := builder.Content()
-	fmt.Println(head)
-	fmt.Printf("%s\n", content)
+	_, _ = fmt.Println(head)
+	_, _ = fmt.Printf("%s\n", content)
 }

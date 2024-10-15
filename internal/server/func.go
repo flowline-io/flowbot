@@ -245,7 +245,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Topic:  topic,
 		AsUser: uid,
 	}
-	fmt.Println(ctx)
+	_, _ = fmt.Println(ctx)
 
 	// behavior
 	bots.Behavior(uid, bots.MessageGroupIncomingBehavior, 1)

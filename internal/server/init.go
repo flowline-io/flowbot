@@ -488,7 +488,7 @@ func initializeCrawler() error {
 		}
 
 		// todo find topic
-		fmt.Println(id)
+		_, _ = fmt.Println(id)
 
 		keys := []string{"No"}
 		for k := range out[0] {
@@ -543,7 +543,7 @@ func initializeCrawler() error {
 		stats.Inc("ChannelPublishTotal", 1)
 
 		// todo send content
-		fmt.Println("channel publish", content)
+		_, _ = fmt.Println("channel publish", content)
 	}
 
 	var rules []crawler.Rule

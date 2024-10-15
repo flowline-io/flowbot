@@ -89,10 +89,7 @@ func (r *Runtime) Stop(_ context.Context, t *types.Task) error {
 	}
 	r.tasks.Delete(t.ID)
 	flog.Debug("Attempting to stop and remove session, task %v", t.ID)
-	if err := sess.Close(); err != nil {
-		return err
-	}
-	return nil
+	return sess.Close()
 }
 
 func (r *Runtime) HealthCheck(_ context.Context) error {

@@ -157,7 +157,7 @@ func BotAction(c *cli.Context) error {
 		}
 	}
 
-	fmt.Println("done")
+	_, _ = fmt.Println("done")
 	return nil
 }
 

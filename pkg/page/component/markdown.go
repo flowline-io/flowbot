@@ -36,7 +36,7 @@ func (c *Markdown) Render() app.UI {
 	)
 	err := md.Convert(source, &buf)
 	if err != nil {
-		buf.WriteString("error markdown")
+		_, _ = buf.WriteString("error markdown")
 	}
 
 	return app.Raw(fmt.Sprintf(`

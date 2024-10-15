@@ -256,7 +256,7 @@ var commandRules = []command.Rule{
 			maxVal, _ := stats.Max(jobElapsed)
 			avgVal, _ := stats.Mean(jobElapsed)
 			varVal, _ := stats.Variance(jobElapsed)
-			str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
+			_, _ = str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
 				len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
 
 			minVal, _ = stats.Min(stepElapsed)
@@ -264,7 +264,7 @@ var commandRules = []command.Rule{
 			maxVal, _ = stats.Max(stepElapsed)
 			avgVal, _ = stats.Mean(stepElapsed)
 			varVal, _ = stats.Variance(stepElapsed)
-			str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
+			_, _ = str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
 				len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
 
 			return types.TextMsg{Text: str.String()}
@@ -287,7 +287,7 @@ var commandRules = []command.Rule{
 					return types.TextMsg{Text: err.Error()}
 				}
 
-				str.WriteString(fmt.Sprintf("queue %s: size %d memory %v processed %d failed %d \n",
+				_, _ = str.WriteString(fmt.Sprintf("queue %s: size %d memory %v processed %d failed %d \n",
 					info.Queue, info.Size, humanize.Bytes(uint64(info.MemoryUsage)), info.Processed, info.Failed))
 			}
 
@@ -310,12 +310,12 @@ var commandRules = []command.Rule{
 				if err != nil {
 					return types.TextMsg{Text: err.Error()}
 				}
-				str.WriteString(fmt.Sprintf("queue %s:", queueName))
+				_, _ = str.WriteString(fmt.Sprintf("queue %s:", queueName))
 				for _, info := range stats {
-					str.WriteString(fmt.Sprintf("%s -> processed %d failed %d, ",
+					_, _ = str.WriteString(fmt.Sprintf("%s -> processed %d failed %d, ",
 						info.Date.Format(time.DateOnly), info.Processed, info.Failed))
 				}
-				str.WriteString("\n")
+				_, _ = str.WriteString("\n")
 			}
 
 			return types.TextMsg{Text: str.String()}
@@ -469,7 +469,6 @@ var commandRules = []command.Rule{
 		Define: "slash",
 		Help:   `[example] Slash example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-
 			url, err := bots.Shortcut("test", "https://example.com")
 			if err != nil {
 				return types.TextMsg{Text: "error"}

@@ -21,7 +21,6 @@ var commandRules = []command.Rule{
 		Define: `webhook list`,
 		Help:   `List webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-
 			items, err := store.Database.ListWebhook(ctx.AsUser)
 			if err != nil {
 				return nil

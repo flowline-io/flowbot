@@ -145,33 +145,33 @@ func RenderMarkdown(page model.Page) app.UI {
 func Render(comp *types.UI) string {
 	stylesStr := strings.Builder{}
 	for _, style := range comp.CSS {
-		stylesStr.WriteString(app.HTMLString(style))
+		_, _ = stylesStr.WriteString(app.HTMLString(style))
 	}
 	scriptsStr := strings.Builder{}
 	if len(comp.Global) > 0 {
-		scriptsStr.WriteString("<script>")
-		scriptsStr.WriteString("let Global = {};")
+		_, _ = scriptsStr.WriteString("<script>")
+		_, _ = scriptsStr.WriteString("let Global = {};")
 		for key, value := range comp.Global {
 			switch v := value.(type) {
 			case string:
-				scriptsStr.WriteString(fmt.Sprintf(`Global.%s = "%s";`, key, v))
+				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = "%s";`, key, v))
 			case int, uint, int32, uint32, int64, uint64:
-				scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %d;`, key, v))
+				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %d;`, key, v))
 			case float32, float64:
-				scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %f;`, key, v))
+				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %f;`, key, v))
 			case map[string]interface{}:
 				j, err := jsoniter.Marshal(v)
 				if err != nil {
 					flog.Error(err)
 					continue
 				}
-				scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %s;`, key, string(j)))
+				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %s;`, key, string(j)))
 			}
 		}
-		scriptsStr.WriteString("</script>")
+		_, _ = scriptsStr.WriteString("</script>")
 	}
 	for _, script := range comp.JS {
-		scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
+		_, _ = scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
 	}
 	return fmt.Sprintf(Layout,
 		comp.Title,

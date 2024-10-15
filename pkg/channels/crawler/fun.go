@@ -230,7 +230,7 @@ func parseParams(s string) (map[string]string, int) {
 		}
 
 		if inKey || inExp || inStd || inStr {
-			sb.WriteRune(c)
+			_, _ = sb.WriteRune(c)
 		}
 
 		if !inExp && !inStd && !inStr && !inKey && c == ')' {

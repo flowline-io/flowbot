@@ -55,12 +55,12 @@ func MigrationAction(c *cli.Context) error {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Created %s\n", upName)
+	_, _ = fmt.Printf("Created %s\n", upName)
 	_, err = os.Create(fmt.Sprintf("%s/%s", path, downName))
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Created %s\n", downName)
-	fmt.Println("done")
+	_, _ = fmt.Printf("Created %s\n", downName)
+	_, _ = fmt.Println("done")
 	return nil
 }
