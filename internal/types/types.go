@@ -51,6 +51,12 @@ func (c *Context) Context() context.Context {
 }
 
 func (c *Context) SetTimeout(timeout time.Duration) {
+	if c.ctx == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		c.ctx = ctx
+		c.cancel = cancel
+		return
+	}
 	if _, ok := c.ctx.Deadline(); !ok {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		c.ctx = ctx

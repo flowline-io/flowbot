@@ -28,7 +28,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
 	"gorm.io/gorm"
 )
 
@@ -82,6 +81,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		//MetaWhat:  msg.MetaWhat,
 		//Timestamp: msg.Timestamp,
 	}
+	ctx.SetTimeout(10 * time.Minute)
 
 	// platform
 	findPlatform, err := store.Database.GetPlatformByName(msg.Self.Platform)
@@ -188,29 +188,42 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			return
 		}
 
-		prompt := prompts.NewPromptTemplate(
-			"Please answer in {{.language}}. Human: {{.content}}\nAssistant:",
-			[]string{"language", "content"},
-		)
+		// Sending initial message to the model, with a list of available tools.
+		messageHistory := []llms.MessageContent{
+			llms.TextParts(llms.ChatMessageTypeHuman, msg.AltMessage),
+		}
 
-		result, err := prompt.Format(map[string]any{
-			"language": languageVal.String(),
-			"content":  msg.AltMessage,
-		})
+		resp, err := llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(availableTools))
 		if err != nil {
 			flog.Error(err)
 			return
 		}
 
-		completion, err := llms.GenerateFromSinglePrompt(context.Background(), llm, result,
-			llms.WithTemperature(0.8),
-		)
+		messageHistory = updateMessageHistory(messageHistory, resp)
+
+		// Execute tool calls requested by the model
+		messageHistory, err = executeToolCalls(ctx.Context(), llm, messageHistory, resp)
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+		messageHistory = append(messageHistory, llms.TextParts(llms.ChatMessageTypeHuman, fmt.Sprintf("Please answer in %s", languageVal.String())))
+
+		// Send query to the model again, this time with a history containing its
+		// request to invoke a tool and our response to the tool call.
+		resp, err = llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(availableTools))
 		if err != nil {
 			flog.Error(err)
 			return
 		}
 
-		payload = types.TextMsg{Text: completion}
+		if resp != nil && len(resp.Choices) > 0 {
+			payload = types.TextMsg{Text: resp.Choices[0].Content}
+		}
+	}
+
+	if payload == nil {
+		return
 	}
 
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
