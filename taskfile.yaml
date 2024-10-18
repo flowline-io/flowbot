@@ -29,6 +29,10 @@ tasks:
       - go install golang.org/x/vuln/cmd/govulncheck@latest
       - go install github.com/go-task/task/v3/cmd/task@latest
       - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - cmd: winget install AlDanial.Cloc
+        platforms: [windows]
+      - cmd: sudo apt install cloc
+        platforms: [linux]
 
   secure:
     cmds:
