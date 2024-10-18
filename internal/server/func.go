@@ -176,6 +176,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
 		baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
 		modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
+		languageVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.LanguageKey)
 
 		llm, err := openai.New(
 			openai.WithToken(tokenVal.String()),
@@ -188,12 +189,13 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		}
 
 		prompt := prompts.NewPromptTemplate(
-			"Human: {{.content}}\nAssistant:",
-			[]string{"content"},
+			"Please answer in {{.language}}. Human: {{.content}}\nAssistant:",
+			[]string{"language", "content"},
 		)
 
 		result, err := prompt.Format(map[string]any{
-			"content": msg.AltMessage,
+			"language": languageVal.String(),
+			"content":  msg.AltMessage,
 		})
 		if err != nil {
 			flog.Error(err)
