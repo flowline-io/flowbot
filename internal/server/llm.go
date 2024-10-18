@@ -15,6 +15,10 @@ import (
 func updateMessageHistory(messageHistory []llms.MessageContent, resp *llms.ContentResponse) []llms.MessageContent {
 	respchoice := resp.Choices[0]
 
+	if respchoice.StopReason != "tool_calls" {
+		return nil
+	}
+
 	assistantResponse := llms.TextParts(llms.ChatMessageTypeAI, respchoice.Content)
 	for _, tc := range respchoice.ToolCalls {
 		assistantResponse.Parts = append(assistantResponse.Parts, tc)
@@ -43,7 +47,7 @@ func executeToolCalls(ctx context.Context, llm llms.Model, messageHistory []llms
 				log.Fatal(err)
 			}
 
-			weatherCallResponse := llms.MessageContent{
+			callResponse := llms.MessageContent{
 				Role: llms.ChatMessageTypeTool,
 				Parts: []llms.ContentPart{
 					llms.ToolCallResponse{
@@ -53,7 +57,26 @@ func executeToolCalls(ctx context.Context, llm llms.Model, messageHistory []llms
 					},
 				},
 			}
-			messageHistory = append(messageHistory, weatherCallResponse)
+			messageHistory = append(messageHistory, callResponse)
+		case "getUrlContent":
+			var args struct {
+				Url string `json:"url"`
+			}
+			if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &args); err != nil {
+				return nil, fmt.Errorf("error unmarshalling arguments: %w", err)
+			}
+
+			callResponse := llms.MessageContent{
+				Role: llms.ChatMessageTypeTool,
+				Parts: []llms.ContentPart{
+					llms.ToolCallResponse{
+						ToolCallID: toolCall.ID,
+						Name:       toolCall.FunctionCall.Name,
+						Content:    "This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
+					},
+				},
+			}
+			messageHistory = append(messageHistory, callResponse)
 		default:
 			return nil, fmt.Errorf("unsupported tool: %s", toolCall.FunctionCall.Name)
 		}
@@ -102,6 +125,23 @@ var availableTools = []llms.Tool{
 					},
 				},
 				"required": []string{"location"},
+			},
+		},
+	},
+	{
+		Type: "function",
+		Function: &llms.FunctionDefinition{
+			Name:        "getUrlContent",
+			Description: "Get the content of a given URL",
+			Parameters: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"url": map[string]any{
+						"type":        "string",
+						"description": "The URL to fetch",
+					},
+				},
+				"required": []string{"url"},
 			},
 		},
 	},
