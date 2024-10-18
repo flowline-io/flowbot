@@ -31,8 +31,9 @@ jobs:
         run: |
           go env
           go mod download
+          go install github.com/go-task/task/v3/cmd/task@latest
           go install github.com/mgechev/revive@latest
-          revive -config revive.toml -formatter friendly ./...
+          task lint
 
       - name: Build
         run: |

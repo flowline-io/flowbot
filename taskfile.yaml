@@ -15,7 +15,7 @@ tasks:
 
   lint:
     cmds:
-      - revive -formatter friendly ./...
+      - revive -config revive.toml -formatter friendly ./...
 
   swagger:
     cmds:
@@ -24,6 +24,7 @@ tasks:
 
   tools:
     cmds:
+      - go install github.com/go-task/task/v3/cmd/task@latest
       - go install github.com/mgechev/revive@latest
       - go install github.com/swaggo/swag/cmd/swag@latest
       - go install golang.org/x/vuln/cmd/govulncheck@latest
