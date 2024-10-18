@@ -58,3 +58,7 @@ tasks:
   migration:
     cmds:
       - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{ .CLI_ARGS }}
+
+  tidy:
+    cmds:
+      - go mod tidy
