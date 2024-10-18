@@ -22,7 +22,7 @@ tasks:
       - swag init -g cmd/main.go
       - swag fmt -g cmd/main.go
 
-  install:
+  tools:
     cmds:
       - go install github.com/mgechev/revive@latest
       - go install github.com/swaggo/swag/cmd/swag@latest
