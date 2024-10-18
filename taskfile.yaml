@@ -7,6 +7,14 @@ tasks:
       - task: swagger
       - echo "Both done"
 
+  build:
+    cmds:
+      - go build -v -o tmp github.com/flowline-io/flowbot/cmd
+
+  run:
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd
+
   cloc:
     cmds:
       - cloc --exclude-dir=node_modules --exclude-ext=json --out=./cloc/{{ now.Format "2006-01-02" }}.txt .
