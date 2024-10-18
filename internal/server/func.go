@@ -211,7 +211,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		// Send query to the model again, this time with a history containing its
 		// request to invoke a tool and our response to the tool call.
-		resp, err = llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(availableTools))
+		resp, err = llm.GenerateContent(ctx.Context(), messageHistory)
 		if err != nil {
 			flog.Error(err)
 			return

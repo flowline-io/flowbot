@@ -6,7 +6,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	json "github.com/json-iterator/go"
 	"github.com/tmc/langchaingo/llms"
-	"log"
 	"strings"
 )
 
@@ -44,7 +43,7 @@ func executeToolCalls(ctx context.Context, llm llms.Model, messageHistory []llms
 
 			response, err := getCurrentWeather(args.Location, args.Unit)
 			if err != nil {
-				log.Fatal(err)
+				return nil, fmt.Errorf("error getting weather: %w", err)
 			}
 
 			callResponse := llms.MessageContent{
