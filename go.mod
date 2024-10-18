@@ -38,7 +38,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.78
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
-	github.com/redis/go-redis/v9 v9.6.2
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/zerolog v1.33.0
