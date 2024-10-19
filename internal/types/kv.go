@@ -114,8 +114,34 @@ func (j KV) Float64Value() (float64, bool) {
 func (j KV) Merge(kvs ...KV) KV {
 	for _, kv := range kvs {
 		for k, v := range kv {
+			if list, ok := v.([]any); ok {
+				var list1 []any
+				if j[k] != nil {
+					list1, ok = j[k].([]any)
+					if !ok {
+						continue
+					}
+				}
+				j[k] = append(list1, list...)
+				continue
+			}
+			if m, ok := v.(map[string]any); ok {
+				var kv1 = make(KV)
+				if j[k] != nil {
+					kv1, ok = j[k].(map[string]any)
+					if !ok {
+						continue
+					}
+				}
+				j[k] = mergeKvs(kv1, m)
+				continue
+			}
 			j[k] = v
 		}
 	}
 	return j
+}
+
+func mergeKvs(kv1, kv2 KV) KV {
+	return kv1.Merge(kv2)
 }

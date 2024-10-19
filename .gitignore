@@ -7,6 +7,7 @@
 /app
 /download
 /cloc
+/script
 
 flowbot.json
 flowbot.yaml

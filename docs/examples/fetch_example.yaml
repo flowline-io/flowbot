@@ -1,0 +1,38 @@
+---
+name: fetch message
+describe: do something...
+
+triggers:
+  - type: manual
+  - type: webhook
+
+pipeline:
+  - website_fetch -> grep_title -> unique_list -> torrent_download -> echo
+
+tasks:
+  - id: website_fetch
+    action: fetch@dev
+    params:
+      url: https://mikanani.me/Home/Search?searchstr=%5BANi%5D&subgroupid=583&page=1
+      list: ".js-search-results-row"
+      item:
+        title: $(".magnet-link-wrap").text
+        url: $(".magnet-link").attr("data-clipboard-text")
+
+  - id: grep_title
+    action: grep@dev
+    params:
+      pattern: "03"
+
+  - id: unique_list
+    action: unique@dev
+    params:
+      id: demo_filter_list
+
+  - id: torrent_download
+    action: torrent@dev
+
+  - id: echo
+    params:
+      text: demo
+    action: message@dev

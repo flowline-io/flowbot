@@ -1,8 +1,11 @@
 package crawler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -42,6 +45,7 @@ func (r Rule) Run() []map[string]string {
 	if r.Page != nil {
 		doc, err := document(r.Page.URL)
 		if err != nil {
+			flog.Error(err)
 			return result
 		}
 
@@ -202,5 +206,11 @@ func document(url string) (*goquery.Document, error) {
 		return nil, err
 	}
 
-	return goquery.NewDocumentFromReader(res.Body)
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	flog.Info("[crawler] Get %s content length: %d", url, len(b))
+
+	return goquery.NewDocumentFromReader(bytes.NewReader(b))
 }
