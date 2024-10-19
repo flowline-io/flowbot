@@ -193,7 +193,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			llms.TextParts(llms.ChatMessageTypeHuman, msg.AltMessage),
 		}
 
-		resp, err := llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(availableTools))
+		resp, err := llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(bots.AvailableTools()))
 		if err != nil {
 			flog.Error(err)
 			return
@@ -202,7 +202,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		messageHistory = updateMessageHistory(messageHistory, resp)
 
 		// Execute tool calls requested by the model
-		messageHistory, err = executeToolCalls(ctx.Context(), llm, messageHistory, resp)
+		messageHistory, err = executeToolCalls(ctx, llm, messageHistory, resp)
 		if err != nil {
 			flog.Error(err)
 			return
@@ -367,7 +367,6 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 				continue
 			}
 		}
-
 	case types.Pull:
 		list, err := store.Database.ListInstruct(uid, false)
 		if err != nil {

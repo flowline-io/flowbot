@@ -156,9 +156,9 @@ func NewJobFSM(state model.JobState) *fsm.FSM {
 					}
 					if len(dependSteps) > 0 && allFinished {
 						for _, dependStep := range dependSteps {
-							flog.Debug("step %d depend steps: %+v", step.ID, dependStep)
+							flog.Debug("step %d depend steps: %v", step.ID, dependStep)
 						}
-						flog.Debug("all depend step finished for step %d output: %+v", step.ID, mergeOutput)
+						flog.Debug("all depend step finished for step %d output: %v", step.ID, mergeOutput)
 						step.Input = model.JSON(mergeOutput)
 						err = store.Database.UpdateStep(step.ID, &model.Step{
 							Input: model.JSON(mergeOutput),

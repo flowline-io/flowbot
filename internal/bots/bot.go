@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/ruleset/langchain"
+	"github.com/tmc/langchaingo/llms"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -226,7 +228,12 @@ func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.K
 
 func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	rs := webhook.Ruleset(webhookRules)
-	return rs.Process(ctx, content)
+	return rs.ProcessRule(ctx, content)
+}
+
+func RunLangChain(langchainRules []langchain.Rule, ctx types.Context, args types.KV) (string, error) {
+	rs := langchain.Ruleset(langchainRules)
+	return rs.ProcessRule(ctx, args)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {
@@ -599,6 +606,22 @@ func Shortcut(title, link string) (string, error) {
 	}
 
 	return fmt.Sprintf("%s/s/%s", endpoint, name), nil
+}
+
+// AvailableTools  the tools/functions we're making available for the model.
+func AvailableTools() []llms.Tool {
+	var tools []llms.Tool
+	for _, handler := range handlers {
+		for _, item := range handler.Rules() {
+			switch v := item.(type) {
+			case []langchain.Rule:
+				for _, rule := range v {
+					tools = append(tools, rule.Tool)
+				}
+			}
+		}
+	}
+	return tools
 }
 
 type configType struct {

@@ -10,7 +10,7 @@ type Rule struct {
 
 type Ruleset []Rule
 
-func (r Ruleset) Process(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+func (r Ruleset) ProcessRule(ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	for _, rule := range r {
 		result := rule.Handler(ctx, content)
 		if result != nil {

@@ -59,6 +59,9 @@ type Handler interface {
 
 	// Webhook return webhook result
 	Webhook(ctx types.Context, content types.KV) (types.MsgPayload, error)
+
+	// LangChain return langchain result
+	LangChain(ctx types.Context, args types.KV) (string, error)
 }
 
 type Base struct{}
@@ -120,4 +123,8 @@ func (Base) Workflow(_ types.Context, _ types.KV) (types.KV, error) {
 
 func (Base) Webhook(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 	return nil, nil
+}
+
+func (Base) LangChain(_ types.Context, _ types.KV) (string, error) {
+	return "", nil
 }

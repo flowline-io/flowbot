@@ -81,6 +81,7 @@ func (b bot) Rules() []interface{} {
 		webserviceRules,
 		workflowRules,
 		webhookRules,
+		langchainRules,
 	}
 }
 
@@ -118,4 +119,8 @@ func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
 
 func (b bot) Webhook(ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	return bots.RunWebhook(webhookRules, ctx, content)
+}
+
+func (b bot) LangChain(ctx types.Context, args types.KV) (string, error) {
+	return bots.RunLangChain(langchainRules, ctx, args)
 }

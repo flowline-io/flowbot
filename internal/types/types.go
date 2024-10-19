@@ -44,6 +44,8 @@ type Context struct {
 	PageRuleId string
 	// workflow rule id
 	WorkflowRuleId string
+	// llm tool rule id
+	ToolRuleId string
 }
 
 func (c *Context) Context() context.Context {

@@ -1,12 +1,12 @@
 package server
 
 import (
-	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	json "github.com/json-iterator/go"
 	"github.com/tmc/langchaingo/llms"
-	"strings"
 )
 
 // updateMessageHistory updates the message history with the assistant's
@@ -27,121 +27,44 @@ func updateMessageHistory(messageHistory []llms.MessageContent, resp *llms.Conte
 
 // executeToolCalls executes the tool calls in the response and returns the
 // updated message history.
-func executeToolCalls(ctx context.Context, llm llms.Model, messageHistory []llms.MessageContent, resp *llms.ContentResponse) ([]llms.MessageContent, error) {
+func executeToolCalls(ctx types.Context, llm llms.Model, messageHistory []llms.MessageContent, resp *llms.ContentResponse) ([]llms.MessageContent, error) {
 	flog.Info("[LLM] Executing %d tool calls", len(resp.Choices[0].ToolCalls))
 	for _, toolCall := range resp.Choices[0].ToolCalls {
 		flog.Info("[LLM] Executing tool call: %s with arguments: %s", toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
-		switch toolCall.FunctionCall.Name {
-		case "getCurrentWeather":
-			var args struct {
-				Location string `json:"location"`
-				Unit     string `json:"unit"`
-			}
-			if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &args); err != nil {
-				return nil, fmt.Errorf("error unmarshalling arguments: %w", err)
-			}
 
-			response, err := getCurrentWeather(args.Location, args.Unit)
+		var args types.KV
+		if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &args); err != nil {
+			return nil, fmt.Errorf("error unmarshalling arguments: %w", err)
+		}
+
+		var err error
+		var response string
+		ctx.ToolRuleId = toolCall.FunctionCall.Name
+		for _, handler := range bots.List() {
+			response, err = handler.LangChain(ctx, args)
 			if err != nil {
-				return nil, fmt.Errorf("error getting weather: %w", err)
+				return nil, fmt.Errorf("error executing tool call: %w", err)
 			}
-
-			callResponse := llms.MessageContent{
-				Role: llms.ChatMessageTypeTool,
-				Parts: []llms.ContentPart{
-					llms.ToolCallResponse{
-						ToolCallID: toolCall.ID,
-						Name:       toolCall.FunctionCall.Name,
-						Content:    response,
-					},
-				},
+			if response != "" {
+				break
 			}
-			messageHistory = append(messageHistory, callResponse)
-		case "getUrlContent":
-			var args struct {
-				Url string `json:"url"`
-			}
-			if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &args); err != nil {
-				return nil, fmt.Errorf("error unmarshalling arguments: %w", err)
-			}
-
-			callResponse := llms.MessageContent{
-				Role: llms.ChatMessageTypeTool,
-				Parts: []llms.ContentPart{
-					llms.ToolCallResponse{
-						ToolCallID: toolCall.ID,
-						Name:       toolCall.FunctionCall.Name,
-						Content:    "This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.",
-					},
-				},
-			}
-			messageHistory = append(messageHistory, callResponse)
-		default:
+		}
+		if response == "" {
 			return nil, fmt.Errorf("unsupported tool: %s", toolCall.FunctionCall.Name)
 		}
+
+		callResponse := llms.MessageContent{
+			Role: llms.ChatMessageTypeTool,
+			Parts: []llms.ContentPart{
+				llms.ToolCallResponse{
+					ToolCallID: toolCall.ID,
+					Name:       toolCall.FunctionCall.Name,
+					Content:    response,
+				},
+			},
+		}
+		messageHistory = append(messageHistory, callResponse)
 	}
 
 	return messageHistory, nil
-}
-
-func getCurrentWeather(location string, unit string) (string, error) {
-	weatherResponses := map[string]string{
-		"boston":  "72 and sunny",
-		"chicago": "65 and windy",
-	}
-
-	weatherInfo, ok := weatherResponses[strings.ToLower(location)]
-	if !ok {
-		return "", fmt.Errorf("no weather info for %q", location)
-	}
-
-	b, err := json.Marshal(weatherInfo)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling weather info: %w", err)
-	}
-
-	return string(b), nil
-}
-
-// availableTools simulates the tools/functions we're making available for
-// the model.
-var availableTools = []llms.Tool{
-	{
-		Type: "function",
-		Function: &llms.FunctionDefinition{
-			Name:        "getCurrentWeather",
-			Description: "Get the current weather in a given location",
-			Parameters: map[string]any{
-				"type": "object",
-				"properties": map[string]any{
-					"location": map[string]any{
-						"type":        "string",
-						"description": "The city and state, e.g. San Francisco, CA",
-					},
-					"unit": map[string]any{
-						"type": "string",
-						"enum": []string{"fahrenheit", "celsius"},
-					},
-				},
-				"required": []string{"location"},
-			},
-		},
-	},
-	{
-		Type: "function",
-		Function: &llms.FunctionDefinition{
-			Name:        "getUrlContent",
-			Description: "Get the content of a given URL",
-			Parameters: map[string]any{
-				"type": "object",
-				"properties": map[string]any{
-					"url": map[string]any{
-						"type":        "string",
-						"description": "The URL to fetch",
-					},
-				},
-				"required": []string{"url"},
-			},
-		},
-	},
 }
