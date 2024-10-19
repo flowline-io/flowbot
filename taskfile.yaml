@@ -2,6 +2,7 @@ version: '3'
 tasks:
   default:
     cmds:
+      - task: tidy
       - task: cloc
       - task: lint
       - task: swagger
