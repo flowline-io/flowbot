@@ -23,7 +23,7 @@ var langchainRules = []langchain.Rule{
 			},
 		},
 		Execute: func(ctx types.Context, args types.KV) (string, error) {
-			return time.Now().Format(time.DateTime), nil
+			return time.Now().Format(time.RFC1123Z), nil
 		},
 	},
 	{
