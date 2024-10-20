@@ -21,15 +21,10 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/server"
 	_ "github.com/flowline-io/flowbot/internal/bots/share"
 	_ "github.com/flowline-io/flowbot/internal/bots/subscribe"
+	_ "github.com/flowline-io/flowbot/internal/bots/torrent"
 	_ "github.com/flowline-io/flowbot/internal/bots/user"
 	_ "github.com/flowline-io/flowbot/internal/bots/webhook"
 	_ "github.com/flowline-io/flowbot/internal/bots/workflow"
-
-	// cache
-	_ "github.com/flowline-io/flowbot/pkg/cache"
-
-	// Store
-	_ "github.com/flowline-io/flowbot/internal/store/mysql"
 
 	// File upload handlers
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
@@ -37,6 +32,7 @@ import (
 
 	// Notify
 	_ "github.com/flowline-io/flowbot/pkg/notify/ntfy"
+	_ "github.com/flowline-io/flowbot/pkg/notify/pushover"
 )
 
 const (

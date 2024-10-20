@@ -5,7 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/notify"
 )
 
-const ID = "ntfy"
+const ID = "pushover"
 
 var handler plugin
 
