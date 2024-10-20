@@ -58,3 +58,19 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 		Filename: &magnetUrl,
 	})
 }
+
+// TorrentGetAll returns all the known fields for all the torrents.
+func (v *Transmission) TorrentGetAll(ctx context.Context) ([]transmissionrpc.Torrent, error) {
+	return v.c.TorrentGetAll(ctx)
+}
+
+// TorrentStopIDs stops torrent(s) which id is in the provided slice.
+// Can be one, can be several, can be all (if slice is empty or nil).
+func (v *Transmission) TorrentStopIDs(ctx context.Context, ids []int64) error {
+	return v.c.TorrentStopIDs(ctx, ids)
+}
+
+// TorrentRemove allows to delete one or more torrents only.
+func (v *Transmission) TorrentRemove(ctx context.Context, ids []int64) error {
+	return v.c.TorrentRemove(ctx, transmissionrpc.TorrentRemovePayload{IDs: ids})
+}

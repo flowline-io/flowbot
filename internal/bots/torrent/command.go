@@ -8,10 +8,15 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "example",
-		Help:   `Example command`,
+		Define: "torrent clear",
+		Help:   `clear torrents`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return nil
+			err := torrentClear(ctx.Context())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }
