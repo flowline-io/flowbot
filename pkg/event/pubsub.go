@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -58,7 +57,7 @@ func NewRouter() (*message.Router, error) {
 
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(message *message.Message) ([]*message.Message, error) {
-			log.Println("executing handler specific middleware for ", message.UUID)
+			flog.Debug("executing handler specific middleware for %s", message.UUID)
 
 			return h(message)
 		}

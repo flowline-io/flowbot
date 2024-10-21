@@ -122,6 +122,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 						AsUser: uid,
 						Token:  oauth.Token,
 					}
+					ctx.SetTimeout(10 * time.Minute)
 
 					// run action
 					ra := rule.Action(ctx)

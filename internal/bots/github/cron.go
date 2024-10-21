@@ -10,7 +10,7 @@ import (
 var cronRules = []cron.Rule{
 	{
 		Name: "github_starred",
-		When: "* * * * *",
+		When: "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// data
 			client := github.NewGithub("", "", "", ctx.Token)
