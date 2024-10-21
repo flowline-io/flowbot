@@ -256,6 +256,9 @@ func initializeHttp() error {
 	logger := flog.GetLogger()
 	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
+		SkipURIs: []string{
+			"/health",
+		},
 	}))
 	// swagger
 	if swagHandler != nil {
