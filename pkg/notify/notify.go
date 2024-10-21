@@ -1,10 +1,10 @@
 package notify
 
 import (
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"regexp"
 	"strings"
-
-	"github.com/flowline-io/flowbot/internal/types"
 )
 
 var handlers map[string]Notifyer
@@ -28,7 +28,7 @@ func List() map[string]Notifyer {
 }
 
 func ParseTemplate(testString string, templates []string) (types.KV, error) {
-	patterns := []string{}
+	var patterns []string
 
 	regex, err := regexp.Compile(`{(\w+)}`)
 	if err != nil {
@@ -67,4 +67,34 @@ func ParseSchema(testString string) (string, error) {
 	s := regex.FindString(testString)
 	s = strings.TrimSuffix(s, "://")
 	return s, nil
+}
+
+func Send(text string, message Message) error {
+	lines := strings.Split(text, "\n")
+	for _, v := range lines {
+		v = strings.TrimSpace(v)
+		if v == "" {
+			continue
+		}
+		scheme, err := ParseSchema(v)
+		if err != nil {
+			flog.Info("[notify] %s parse schema error: %s", scheme, err)
+			continue
+		}
+		if _, ok := handlers[scheme]; !ok {
+			continue
+		}
+
+		tokens, err := ParseTemplate(v, handlers[scheme].Templates())
+		if err != nil {
+			flog.Info("[notify] %s parse template error: %s", scheme, err)
+			continue
+		}
+		if err := handlers[scheme].Send(tokens, message); err != nil {
+			flog.Info("[notify] %s send message error: %s", scheme, err)
+		}
+		flog.Info("[notify] %s send message", scheme)
+	}
+
+	return nil
 }

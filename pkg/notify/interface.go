@@ -3,9 +3,9 @@ package notify
 import "github.com/flowline-io/flowbot/internal/types"
 
 type Notifyer interface {
-	// Define protocol
+	// Protocol Define protocol
 	Protocol() string
-	// Define object templates
+	// Templates Define object templates
 	Templates() []string
 	// Send notify
 	Send(tokens types.KV, message Message) error
