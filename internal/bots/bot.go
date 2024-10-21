@@ -50,7 +50,7 @@ func Register(name string, bot Handler) {
 		panic("Register: called twice for bot " + name)
 	}
 	handlers[name] = bot
-	_, _ = fmt.Printf("%s info %s bot: %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
+	_, _ = fmt.Printf("%s info %s [bot] %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
 }
 
 func Help(rules []interface{}) (map[string][]string, error) {

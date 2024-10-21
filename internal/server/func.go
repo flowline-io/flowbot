@@ -234,7 +234,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			"message": caller.Adapter.MessageConvert(payload),
 		},
 	})
-	flog.Info("event: %+v  response: %+v", msg, resp)
+	flog.Info("[event] %+v  response: %+v", msg, resp)
 }
 
 func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {

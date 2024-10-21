@@ -5,12 +5,12 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/influxdata/cron"
 	"gorm.io/gorm"
@@ -49,7 +49,7 @@ func NewCronRuleset(name string, rules []Rule) *Ruleset {
 func (r *Ruleset) Daemon() {
 	// process cron
 	for rule := range r.cronRules {
-		flog.Info("cron %s start", r.cronRules[rule].Name)
+		flog.Info("[cron] %s start", r.cronRules[rule].Name)
 		go r.ruleWorker(r.cronRules[rule])
 	}
 

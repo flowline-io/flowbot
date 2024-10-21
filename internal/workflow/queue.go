@@ -47,7 +47,7 @@ func PushTask(t *Task) error {
 	if err != nil {
 		return fmt.Errorf("failed to enqueue task %s, %w", t.Task.Type(), err)
 	}
-	flog.Info("Enqueued %s, ID:%s Payload: %s", t.Task.Type(), info.ID, string(t.Task.Payload()))
+	flog.Info("[workflow] Enqueued %s, ID:%s Payload: %s", t.Task.Type(), info.ID, string(t.Task.Payload()))
 	return nil
 }
 
