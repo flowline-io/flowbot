@@ -5,6 +5,9 @@ describe: do something...
 triggers:
   - type: manual # cron, manual, webhook
   - type: webhook
+  - type: cron
+    rule:
+      spec: '* * * * *' # if cron
 
 pipeline:
   - input -> add_two_number -> out1
