@@ -90,6 +90,15 @@ func (j KV) Any(key string) (any, bool) {
 	return nil, false
 }
 
+func (j KV) List(key string) ([]any, bool) {
+	if v, ok := j.get(key); ok {
+		if t, ok := v.([]any); ok {
+			return t, ok
+		}
+	}
+	return nil, false
+}
+
 func (j KV) get(key string) (interface{}, bool) {
 	v, ok := j[key]
 	return v, ok
