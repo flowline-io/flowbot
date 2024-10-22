@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"context"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -32,12 +31,7 @@ func NewCronTaskManager() *CronTaskManager {
 				if info == nil {
 					return
 				}
-				flog.Debug("[workflow] Enqueued task %s with payload %s with error %v",
-					info.ID, string(info.Payload), err)
-				err = HandleCronTask(context.Background(), asynq.NewTask(info.Type, info.Payload))
-				if err != nil {
-					flog.Error(err)
-				}
+				flog.Info("[workflow] Enqueued cron task %s type %s", info.ID, info.Type)
 			},
 			Location: time.Local,
 			Logger:   flog.AsynqLogger,
