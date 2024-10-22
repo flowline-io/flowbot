@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultMaxRetry  = 0
+	defaultMaxRetry  = 3
 	defaultRetention = 3 * 24 * time.Hour
 
 	TypeCron = "cron"
