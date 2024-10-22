@@ -1,9 +1,8 @@
 package flog
 
 import (
-	"fmt"
-
 	"github.com/ThreeDotsLabs/watermill"
+	"github.com/rs/zerolog"
 )
 
 var WatermillLogger = &watermillLogger{}
@@ -11,37 +10,51 @@ var WatermillLogger = &watermillLogger{}
 type watermillLogger struct{}
 
 func (w *watermillLogger) Error(msg string, err error, fields watermill.LogFields) {
-	t := l.Error().Caller(1)
-	for k, v := range fields {
-		t = t.Any(k, v)
+	t := l.Error().Caller(1).Err(err)
+	if fields != nil {
+		addWatermillFieldsData(t, fields)
 	}
-	t.Msg(fmt.Sprintf("%s error: %v", msg, err))
+	t.Msg(msg)
 }
 
 func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
 	t := l.Info().Caller(1)
-	for k, v := range fields {
-		t = t.Any(k, v)
+	if fields != nil {
+		addWatermillFieldsData(t, fields)
 	}
 	t.Msg(msg)
 }
 
 func (w *watermillLogger) Debug(msg string, fields watermill.LogFields) {
 	t := l.Debug().Caller(1)
-	for k, v := range fields {
-		t = t.Any(k, v)
+	if fields != nil {
+		addWatermillFieldsData(t, fields)
 	}
 	t.Msg(msg)
 }
 
 func (w *watermillLogger) Trace(msg string, fields watermill.LogFields) {
 	t := l.Trace().Caller(1)
-	for k, v := range fields {
-		t = t.Any(k, v)
+	if fields != nil {
+		addWatermillFieldsData(t, fields)
 	}
 	t.Msg(msg)
 }
 
 func (w *watermillLogger) With(fields watermill.LogFields) watermill.LoggerAdapter {
+	if fields == nil {
+		return w
+	}
+	subLog := l.With()
+	for i, v := range fields {
+		subLog = subLog.Any(i, v)
+	}
+
 	return w
+}
+
+func addWatermillFieldsData(event *zerolog.Event, fields watermill.LogFields) {
+	for i, v := range fields {
+		event.Any(i, v)
+	}
 }
