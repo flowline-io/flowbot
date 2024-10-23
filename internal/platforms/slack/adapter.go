@@ -15,7 +15,6 @@ import (
 type Adapter struct{}
 
 func (a *Adapter) MessageConvert(data any) protocol.Message {
-	// todo slack message -> protocol message
 	return platforms.MessageConvert(data)
 }
 
