@@ -82,3 +82,13 @@ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@lat
 # migrate
 migrate -source file://./internal/store/migrate  -database mysql://user:password@tcp(127.0.0.1:3306)/db?parseTime=True&collation=utf8mb4_unicode_ci up
 ```
+
+## gitleaks
+
+```shell
+# install
+go install github.com/zricethezav/gitleaks/v8@v8.21.1
+
+# check
+gitleaks git -v
+```
