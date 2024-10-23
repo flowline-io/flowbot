@@ -500,3 +500,9 @@ type InstructMsg struct {
 func (t InstructMsg) Convert() (KV, interface{}) {
 	return nil, nil
 }
+
+type KVMsg map[string]any
+
+func (t KVMsg) Convert() (KV, interface{}) {
+	return nil, nil
+}

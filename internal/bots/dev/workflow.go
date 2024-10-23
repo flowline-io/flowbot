@@ -2,15 +2,15 @@ package dev
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/channels/crawler"
-	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 )
 
 const (
@@ -87,11 +87,10 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			text, _ := input.String("text")
-			if text == "" {
-				return nil, fmt.Errorf("%s step, empty text", messageWorkflowActionID)
+			if input == nil {
+				return nil, fmt.Errorf("%s step, empty input", messageWorkflowActionID)
 			}
-			return nil, event.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.TextMsg{Text: text})
+			return nil, event.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.KVMsg(input))
 		},
 	},
 	{

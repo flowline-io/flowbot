@@ -473,7 +473,7 @@ func (m *MsgBuilder) BuildAttachmentMessage(fileName string, text string, opt At
 
 func (m *MsgBuilder) Content() (map[string]interface{}, interface{}) {
 	if m.Payload != nil {
-		m.Message.Tye = Tye(m.Payload)
+		m.Message.Tye = TypeOf(m.Payload)
 		m.Message.Src = m.Payload
 	}
 	return m.Message.Content()
@@ -534,7 +534,7 @@ func substr(input string, start int, length int) string {
 	return string(asRunes[start : start+length])
 }
 
-func Tye(payload MsgPayload) string {
+func TypeOf(payload MsgPayload) string {
 	t := reflect.TypeOf(payload)
 	return t.Name()
 }
@@ -640,6 +640,10 @@ func ToPayload(typ string, src []byte) MsgPayload {
 		return r
 	case "QuestionMsg":
 		var r QuestionMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "KVMsg":
+		var r KVMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	}

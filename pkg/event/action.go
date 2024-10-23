@@ -3,10 +3,10 @@ package event
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -18,7 +18,7 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 		return err
 	}
 	payload := types.EventPayload{
-		Typ: types.Tye(msg),
+		Typ: types.TypeOf(msg),
 		Src: src,
 	}
 
