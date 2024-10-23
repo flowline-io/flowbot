@@ -41,16 +41,6 @@ func MessageConvert(data any) protocol.Message {
 		return protocol.Message{
 			protocol.Text(v.Text),
 		}
-	case types.InfoMsg:
-		_, info := v.Convert()
-		txt := ""
-		if kv, ok := info.(map[string]any); ok {
-			txt, _ = types.KV(kv).String("txt")
-		}
-		return protocol.Message{
-			protocol.Text(v.Title),
-			protocol.Text(txt),
-		}
 	case types.LinkMsg:
 		return protocol.Message{
 			protocol.Text(v.Title),
