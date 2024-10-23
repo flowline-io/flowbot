@@ -40,6 +40,7 @@ tasks:
       - go install github.com/go-task/task/v3/cmd/task@latest
       - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - go install github.com/hibiken/asynq/tools/asynq@latest
+      - go install github.com/zricethezav/gitleaks/v8@v8.21.1
       - cmd: winget install AlDanial.Cloc
         platforms: [windows]
       - cmd: sudo apt install cloc
@@ -64,3 +65,7 @@ tasks:
   tidy:
     cmds:
       - go mod tidy
+
+  leak:
+    cmds:
+      - gitleaks git -v
