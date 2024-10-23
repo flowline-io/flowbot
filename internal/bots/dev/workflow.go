@@ -10,7 +10,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
+	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/prompts"
 )
 
 const (
@@ -24,6 +29,8 @@ const (
 	grepWorkflowActionID    = "grep"
 	uniqueWorkflowActionID  = "unique"
 	torrentWorkflowActionID = "torrent"
+	websiteWorkflowActionID = "website"
+	llmWorkflowActionID     = "llm"
 )
 
 var workflowRules = []workflow.Rule{
@@ -237,6 +244,81 @@ var workflowRules = []workflow.Rule{
 			}
 
 			return nil, nil
+		},
+	},
+	{
+		Id:           websiteWorkflowActionID,
+		Title:        "website content",
+		Desc:         "get website content",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			url, _ := input.String("url")
+			if url == "" {
+				return nil, fmt.Errorf("%s step, empty url", websiteWorkflowActionID)
+			}
+
+			resp, err := lobehub.NewLobehub().WebCrawler(url)
+			if err != nil {
+				return nil, fmt.Errorf("%s step, get website content failed, %w", torrentWorkflowActionID, err)
+			}
+
+			return types.KV{
+				"content": resp.Content,
+				"title":   resp.Title,
+				"url":     resp.Url,
+				"website": resp.Website,
+			}, nil
+		},
+	},
+	{
+		Id:           llmWorkflowActionID,
+		Title:        "llm",
+		Desc:         "llm chat",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			promptVal, _ := input.String("prompt")
+			if promptVal == "" {
+				return nil, fmt.Errorf("%s step, empty prompt", llmWorkflowActionID)
+			}
+			content, _ := input.String("content")
+			if content == "" {
+				return nil, fmt.Errorf("%s step, empty content", llmWorkflowActionID)
+			}
+
+			tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
+			baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
+			modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
+
+			llm, err := openai.New(
+				openai.WithToken(tokenVal.String()),
+				openai.WithBaseURL(baseUrlVal.String()),
+				openai.WithModel(modelVal.String()),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("%s step, openai new failed, %w", llmWorkflowActionID, err)
+			}
+
+			prompt := prompts.NewPromptTemplate(
+				promptVal, []string{"content"},
+			)
+			result, err := prompt.Format(map[string]any{
+				"content": content,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("%s step, prompt format failed, %w", llmWorkflowActionID, err)
+			}
+
+			ctx.SetTimeout(10 * time.Minute)
+			text, err := llms.GenerateFromSinglePrompt(ctx.Context(), llm, result, llms.WithTemperature(0.8))
+			if err != nil {
+				return nil, fmt.Errorf("%s step, llm generate failed, %w", llmWorkflowActionID, err)
+			}
+
+			return types.KV{
+				"text": text,
+			}, nil
 		},
 	},
 }
