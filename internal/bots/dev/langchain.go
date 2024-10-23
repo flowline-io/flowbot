@@ -1,15 +1,18 @@
 package dev
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/ruleset/langchain"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/tmc/langchaingo/llms"
-	"time"
 )
 
 const (
-	getCurrentTimeToolId = "getCurrentTime"
-	getUrlContentToolId  = "getUrlContent"
+	getCurrentTimeToolId    = "getCurrentTime"
+	getWebsiteContentToolId = "getWebsiteContent"
 )
 
 var langchainRules = []langchain.Rule{
@@ -27,12 +30,12 @@ var langchainRules = []langchain.Rule{
 		},
 	},
 	{
-		Id: getUrlContentToolId,
+		Id: getWebsiteContentToolId,
 		Tool: llms.Tool{
 			Type: "function",
 			Function: &llms.FunctionDefinition{
-				Name:        getUrlContentToolId,
-				Description: "Get the website content of url",
+				Name:        getWebsiteContentToolId,
+				Description: "Extract web content",
 				Parameters: map[string]any{
 					"type": "object",
 					"properties": map[string]any{
@@ -46,7 +49,17 @@ var langchainRules = []langchain.Rule{
 			},
 		},
 		Execute: func(ctx types.Context, args types.KV) (string, error) {
-			return "<html><title>test</title></html>", nil
+			url, _ := args.String("url")
+			if url == "" {
+				return "", fmt.Errorf("empty url")
+			}
+
+			resp, err := lobehub.NewLobehub().WebCrawler(url)
+			if err != nil {
+				return "", fmt.Errorf("get website content failed, %w", err)
+			}
+
+			return resp.Content, nil
 		},
 	},
 }
