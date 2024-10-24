@@ -215,8 +215,8 @@ var workflowRules = []workflow.Rule{
 
 			list, _ := input.Any("list")
 			if list != nil {
-				result := make([]types.KV, 0)
 				if v, ok := list.([]any); ok {
+					result := make([]types.KV, 0)
 					for _, item := range v {
 						val, ok := item.(map[string]any)
 						if !ok {
@@ -239,8 +239,10 @@ var workflowRules = []workflow.Rule{
 							"error":  t.Error,
 						})
 					}
+					if len(result) > 0 {
+						return types.KV{"list": result}, nil
+					}
 				}
-				return types.KV{"list": result}, nil
 			}
 
 			return nil, nil
