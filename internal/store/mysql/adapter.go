@@ -1658,9 +1658,40 @@ func (a *adapter) DeleteJob(id int64) error {
 	return err
 }
 
+func (a *adapter) DeleteJobByIds(ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	q := dao.Q.Job
+	_, err := q.
+		Where(q.ID.In(ids...)).
+		Delete()
+	return err
+}
+
+func (a *adapter) DeleteStepByJobIds(jobIds []int64) error {
+	if len(jobIds) == 0 {
+		return nil
+	}
+	q := dao.Q.Step
+	_, err := q.
+		Where(q.JobID.In(jobIds...)).
+		Delete()
+	return err
+}
+
 func (a *adapter) ListJobs(workflowID int64) ([]*model.Job, error) {
 	q := dao.Q.Job
 	return q.Where(q.WorkflowID.Eq(workflowID)).Find()
+}
+
+func (a *adapter) ListJobsByFilter(filter types.JobFilter) ([]*model.Job, error) {
+	q := dao.Q.Job
+	builder := q.ReadDB()
+	if !filter.EndedAt.IsZero() {
+		builder.Where(q.EndedAt.Lt(filter.EndedAt))
+	}
+	return builder.Find()
 }
 
 func (a *adapter) GetJobsByState(state model.JobState) ([]*model.Job, error) {

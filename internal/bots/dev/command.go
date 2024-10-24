@@ -400,19 +400,7 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			flog.Debug("start machine command")
-			engine := executer.New(runtime.Machine)
-			task := &types.Task{
-				ID:  utils.NewUUID(),
-				Run: "hostnamectl",
-			}
-			err := engine.Run(context.Background(), task)
-			if err != nil {
-				flog.Error(err)
-				return types.TextMsg{Text: err.Error()}
-			}
-			flog.Debug("machine command result %v", task.Result)
-			return types.TextMsg{Text: task.Result}
+			return types.TextMsg{Text: "test"}
 		},
 	},
 	{

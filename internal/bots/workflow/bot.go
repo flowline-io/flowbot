@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
@@ -57,6 +58,7 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		formRules,
+		cronRules,
 	}
 }
 
@@ -70,4 +72,8 @@ func (bot) Webservice(app *fiber.App) {
 
 func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return bots.RunForm(formRules, ctx, values)
+}
+
+func (b bot) Cron() (*cron.Ruleset, error) {
+	return bots.RunCron(cronRules, Name)
 }

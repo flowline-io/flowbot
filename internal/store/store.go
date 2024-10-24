@@ -3,19 +3,19 @@ package store
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"gorm.io/gorm"
-	"time"
-
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/media"
 )
 
 var adp Adapter
@@ -340,7 +340,10 @@ type Adapter interface {
 	GetJob(id int64) (*model.Job, error)
 	CreateJob(item *model.Job) (int64, error)
 	DeleteJob(id int64) error
+	DeleteJobByIds(ids []int64) error
+	DeleteStepByJobIds(jobIds []int64) error
 	ListJobs(workflowID int64) ([]*model.Job, error)
+	ListJobsByFilter(filter types.JobFilter) ([]*model.Job, error)
 	GetJobsByState(state model.JobState) ([]*model.Job, error)
 	GetJobsByStates(states []model.JobState) ([]*model.Job, error)
 	GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error)
