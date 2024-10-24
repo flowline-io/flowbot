@@ -16,7 +16,7 @@ var cronRules = []cron.Rule{
 		Help: "clear workflow jobs",
 		When: "0 0 * * *",
 		Action: func(types.Context) []types.MsgPayload {
-			list, err := store.Database.ListJobsByFilter(types.JobFilter{EndedAt: time.Now().Add(-2 * 24 * time.Hour)})
+			list, err := store.Database.ListJobsByFilter(types.JobFilter{EndedAt: time.Now().Add(-7 * 24 * time.Hour)})
 			if err != nil {
 				flog.Error(err)
 				return nil
