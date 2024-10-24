@@ -94,8 +94,8 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			if input == nil {
-				return nil, fmt.Errorf("%s step, empty input", messageWorkflowActionID)
+			if len(input) == 0 {
+				return nil, nil
 			}
 			return nil, event.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.KVMsg(input))
 		},
