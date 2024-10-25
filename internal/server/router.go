@@ -478,7 +478,7 @@ func doWebhook(ctx *fiber.Ctx) error {
 		}
 		val = ctx.Get("Authorization")
 		if val != "" {
-			val = strings.Replace(val, "Bearer ", "", 1)
+			val = strings.TrimPrefix(val, "Bearer ")
 			secret = val
 		}
 		if secret == "" {
