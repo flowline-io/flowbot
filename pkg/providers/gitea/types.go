@@ -3,7 +3,7 @@ package gitea
 import "time"
 
 type Issue struct {
-	Action string `json:"action"` // opened, closed, reopened, label_updated, assigned
+	Action string `json:"action"` // opened, closed, reopened, label_updated, assigned, unassigned, milestoned, demilestoned, deleted
 	Number int    `json:"number"`
 	Issue  struct {
 		Id      int    `json:"id"`

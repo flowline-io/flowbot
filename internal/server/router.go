@@ -478,8 +478,7 @@ func doWebhook(ctx *fiber.Ctx) error {
 		}
 		val = ctx.Get("Authorization")
 		if val != "" {
-			val = strings.TrimPrefix(val, "Bearer ")
-			secret = val
+			secret = strings.TrimPrefix(val, "Bearer ")
 		}
 		if secret == "" {
 			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
