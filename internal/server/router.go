@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
@@ -473,6 +474,11 @@ func doWebhook(ctx *fiber.Ctx) error {
 		}
 		val = ctx.Get("X-Secret")
 		if val != "" {
+			secret = val
+		}
+		val = ctx.Get("Authorization")
+		if val != "" {
+			val = strings.Replace(val, "Bearer ", "", 1)
 			secret = val
 		}
 		if secret == "" {
