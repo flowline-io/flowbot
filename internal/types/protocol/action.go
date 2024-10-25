@@ -164,13 +164,16 @@ var ErrSendMessageFailed = NewError(60002, "send message failed")
 var ErrFlagError = NewError(60003, "flag error")
 
 // ErrFlagExpired Flag expired
-var ErrFlagExpired = NewError(60003, "flag expired")
+var ErrFlagExpired = NewError(60004, "flag expired")
 
 // ErrNotAuthorized Not authorized
-var ErrNotAuthorized = NewError(60004, "not authorized")
+var ErrNotAuthorized = NewError(60005, "not authorized")
 
 // ErrOAuthError OAuth error
-var ErrOAuthError = NewError(60004, "oauth error")
+var ErrOAuthError = NewError(60006, "oauth error")
+
+// ErrAccessDenied Access Denied
+var ErrAccessDenied = NewError(60007, "access denied")
 
 func NewSuccessResponse(data any) Response {
 	return Response{

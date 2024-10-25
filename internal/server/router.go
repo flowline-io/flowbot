@@ -482,14 +482,14 @@ func doWebhook(ctx *fiber.Ctx) error {
 			secret = val
 		}
 		if secret == "" {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
 		}
 		find, err = store.Database.GetWebhookBySecret(secret)
 		if err != nil {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotAuthorized, err))
 		}
 		if find.State != model.WebhookActive {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrAccessDenied))
 		}
 
 		typesCtx.AsUser = types.Uid(find.UID)
