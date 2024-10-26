@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"fmt"
 	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/types"
 )
@@ -13,8 +14,8 @@ var webhookRules = []webhook.Rule{
 	{
 		Id:     ExampleWebhookID,
 		Secret: true,
-		Handler: func(ctx types.Context, content types.KV) types.MsgPayload {
-			return types.TextMsg{Text: "hello webhook"}
+		Handler: func(ctx types.Context, method string, data []byte) types.MsgPayload {
+			return types.TextMsg{Text: fmt.Sprintf("%s %s", method, string(data))}
 		},
 	},
 }

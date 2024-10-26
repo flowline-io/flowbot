@@ -495,11 +495,16 @@ func doWebhook(ctx *fiber.Ctx) error {
 		typesCtx.Topic = find.Topic
 	}
 
-	data := types.KV{}
-	data["method"] = ctx.Method()
-	data["body"] = ctx.Body()
+	var data []byte
+	method := ctx.Method()
+	switch method {
+	case http.MethodGet:
+		data = ctx.Request().URI().QueryArgs().QueryString()
+	case http.MethodPost:
+		data = ctx.Body()
+	}
 
-	payload, err := botHandler.Webhook(typesCtx, data)
+	payload, err := botHandler.Webhook(typesCtx, method, data)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}

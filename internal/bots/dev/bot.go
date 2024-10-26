@@ -117,8 +117,8 @@ func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
 	return bots.RunWorkflow(workflowRules, ctx, input)
 }
 
-func (b bot) Webhook(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return bots.RunWebhook(webhookRules, ctx, content)
+func (b bot) Webhook(ctx types.Context, method string, data []byte) (types.MsgPayload, error) {
+	return bots.RunWebhook(webhookRules, ctx, method, data)
 }
 
 func (b bot) LangChain(ctx types.Context, args types.KV) (string, error) {

@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"math/big"
 	"regexp"
 	"runtime"
@@ -121,4 +122,13 @@ func FileAndLine() string {
 	}
 
 	return fmt.Sprintf("%s:%d", file, line)
+}
+
+func PrettyPrint(data any) {
+	d, err := jsoniter.MarshalIndent(data, "", "  ")
+	if err != nil {
+		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
+		return
+	}
+	_, _ = fmt.Println(string(d))
 }
