@@ -30,8 +30,6 @@ type Context struct {
 	Topic string
 	// Sender's UserId as string.
 	AsUser Uid
-	// OAuth token
-	Token string
 	// form id
 	FormId string
 	// form Rule id

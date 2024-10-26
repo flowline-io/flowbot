@@ -3,7 +3,6 @@ package cron
 import (
 	"context"
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/influxdata/cron"
-	"gorm.io/gorm"
 )
 
 type Rule struct {
@@ -92,9 +90,6 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					}
 				}()
 
-				// bot user
-				// botUid, _, _, _, _ := serverStore.Users.GetAuthUniqueRecord("basic", fmt.Sprintf("%s_bot", r.Type))
-
 				// all normal users
 				users, err := store.Database.GetUsers()
 				if err != nil {
@@ -105,22 +100,12 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 				var res []result
 				for _, user := range users {
 					// check subscription
-					//uid := types.EncodeUid(int64(user.ID))
-					//topic := uid.P2PName(botUid)
 					uid := types.Uid(user.Flag)
-					topic := "" // fixme
-
-					// get oauth token
-					oauth, err := store.Database.OAuthGet(uid, topic, r.Type)
-					if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-						continue
-					}
 
 					// ctx
 					ctx := types.Context{
-						Topic:  topic,
+						Topic:  "",
 						AsUser: uid,
-						Token:  oauth.Token,
 					}
 					ctx.SetTimeout(10 * time.Minute)
 

@@ -1,10 +1,13 @@
 package github
 
 import (
+	"errors"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
+	"gorm.io/gorm"
 )
 
 var cronRules = []cron.Rule{
@@ -12,8 +15,15 @@ var cronRules = []cron.Rule{
 		Name: "github_starred",
 		When: "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			// get oauth token
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				flog.Error(err)
+				return []types.MsgPayload{}
+			}
+
 			// data
-			client := github.NewGithub("", "", "", ctx.Token)
+			client := github.NewGithub("", "", "", oauth.Token)
 			user, err := client.GetAuthenticatedUser()
 			if err != nil {
 				flog.Error(err)
