@@ -23,20 +23,21 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "error method"}
 			}
 
-			var issue gitea.IssuePayload
+			var issue *gitea.IssuePayload
 			err := jsoniter.Unmarshal(data, &issue)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error"}
 			}
 
+			flog.Info("[gitea] issue webhook, method: %s, action: %s", method, issue.Action)
 			utils.PrettyPrint(issue)
 
 			switch issue.Action {
 			case gitea.HookIssueCreated:
-				hookIssueCreated(ctx)
+				hookIssueCreated(ctx, issue)
 			case gitea.HookIssueOpened:
-				hookIssueOpened(ctx)
+				hookIssueOpened(ctx, issue)
 			case gitea.HookIssueClosed:
 			case gitea.HookIssueReOpened:
 			case gitea.HookIssueAssigned:
