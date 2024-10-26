@@ -32,6 +32,23 @@ var webhookRules = []webhook.Rule{
 
 			utils.PrettyPrint(issue)
 
+			switch issue.Action {
+			case gitea.HookIssueCreated:
+				hookIssueCreated(ctx)
+			case gitea.HookIssueOpened:
+				hookIssueOpened(ctx)
+			case gitea.HookIssueClosed:
+			case gitea.HookIssueReOpened:
+			case gitea.HookIssueAssigned:
+			case gitea.HookIssueUnassigned:
+			case gitea.HookIssueLabelUpdated:
+			case gitea.HookIssueLabelCleared:
+			case gitea.HookIssueMilestoned:
+			case gitea.HookIssueDemilestoned:
+			default:
+				return types.TextMsg{Text: "error action"}
+			}
+
 			return types.TextMsg{Text: "issue webhook"}
 		},
 	},
