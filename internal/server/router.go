@@ -431,8 +431,9 @@ func platformCallback(ctx *fiber.Ctx) error {
 
 func doWebhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
+	method := ctx.Method()
 
-	flog.Info("webhook flag: %s", flag)
+	flog.Info("[webhook] incoming %s flag: %s", method, flag)
 
 	var webhookRule webhook.Rule
 	var botHandler bots.Handler
@@ -496,7 +497,6 @@ func doWebhook(ctx *fiber.Ctx) error {
 	}
 
 	var data []byte
-	method := ctx.Method()
 	switch method {
 	case http.MethodGet:
 		data = ctx.Request().URI().QueryArgs().QueryString()
