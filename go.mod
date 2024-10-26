@@ -5,6 +5,7 @@ go 1.23
 toolchain go1.23.2
 
 require (
+	code.gitea.io/sdk/gitea v0.19.0
 	github.com/PuerkitoBio/goquery v1.10.0
 	github.com/ThreeDotsLabs/watermill v1.3.7
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
@@ -71,7 +72,6 @@ require (
 replace nhooyr.io/websocket v1.8.7 => github.com/coder/websocket v1.8.7
 
 require (
-	code.gitea.io/sdk/gitea v0.19.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
