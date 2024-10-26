@@ -17,9 +17,11 @@ var cronRules = []cron.Rule{
 		Name: "pocket_add",
 		When: "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			// get oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
+				return nil
 			}
 			if oauth.Token == "" {
 				return nil

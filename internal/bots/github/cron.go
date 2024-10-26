@@ -16,10 +16,13 @@ var cronRules = []cron.Rule{
 		When: "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				flog.Error(err)
-				return []types.MsgPayload{}
+				return nil
+			}
+			if oauth.Token == "" {
+				return nil
 			}
 
 			// data
@@ -68,13 +71,6 @@ var cronRules = []cron.Rule{
 				})
 			}
 			return r
-		},
-	},
-	{
-		Name: "github_stargazers",
-		When: "* * * * *",
-		Action: func(types.Context) []types.MsgPayload {
-			return nil
 		},
 	},
 }
