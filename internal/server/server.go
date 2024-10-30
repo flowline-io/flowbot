@@ -6,6 +6,7 @@ import (
 
 	// bots
 	_ "github.com/flowline-io/flowbot/internal/bots/anki"
+	_ "github.com/flowline-io/flowbot/internal/bots/bookmark"
 	_ "github.com/flowline-io/flowbot/internal/bots/clipboard"
 	_ "github.com/flowline-io/flowbot/internal/bots/cloudflare"
 	_ "github.com/flowline-io/flowbot/internal/bots/dev"
@@ -17,7 +18,6 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/markdown"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
-	_ "github.com/flowline-io/flowbot/internal/bots/pocket"
 	_ "github.com/flowline-io/flowbot/internal/bots/server"
 	_ "github.com/flowline-io/flowbot/internal/bots/share"
 	_ "github.com/flowline-io/flowbot/internal/bots/subscribe"

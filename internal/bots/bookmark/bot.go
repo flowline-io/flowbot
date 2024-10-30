@@ -1,4 +1,4 @@
-package pocket
+package bookmark
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const Name = "pocket"
+const Name = "bookmark"
 
 var handler bot
 var Config configType
