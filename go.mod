@@ -7,6 +7,7 @@ toolchain go1.23.2
 require (
 	code.gitea.io/sdk/gitea v0.19.0
 	github.com/PuerkitoBio/goquery v1.10.0
+	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.4.0
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
 	github.com/bsm/redislock v0.9.4
@@ -36,7 +37,7 @@ require (
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.8
-	github.com/minio/minio-go/v7 v7.0.79
+	github.com/minio/minio-go/v7 v7.0.80
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
 	github.com/redis/go-redis/v9 v9.7.0
@@ -78,7 +79,6 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/RealAlexandreAI/json-repair v0.0.14 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
