@@ -57,6 +57,3 @@ release:
   github:
     owner: flowline-io
     name: flowbot
-
-env_files:
-  github_token: ~/.github_token
