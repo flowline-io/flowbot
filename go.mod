@@ -10,6 +10,7 @@ require (
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.4.0
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
+	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/docker/cli v27.3.1+incompatible
@@ -38,6 +39,7 @@ require (
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.8
 	github.com/minio/minio-go/v7 v7.0.80
+	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
 	github.com/redis/go-redis/v9 v9.7.0
@@ -73,6 +75,7 @@ require (
 replace nhooyr.io/websocket v1.8.7 => github.com/coder/websocket v1.8.7
 
 require (
+	aead.dev/minisign v0.2.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect

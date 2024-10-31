@@ -35,6 +35,10 @@ jobs:
           go install github.com/mgechev/revive@latest
           task lint
 
-      - name: Build
+      - name: Build server
         run: |
           task build
+
+      - name: Build agent
+        run: |
+          task build:agent

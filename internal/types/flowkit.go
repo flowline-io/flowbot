@@ -16,3 +16,5 @@ type FlowkitData struct {
 	Version int    `json:"version"`
 	Content KV     `json:"content"`
 }
+
+const ApiVersion = 1

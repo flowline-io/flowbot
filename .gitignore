@@ -13,3 +13,5 @@ flowbot.json
 flowbot.yaml
 main
 flowbot
+
+dist/

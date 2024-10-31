@@ -12,9 +12,17 @@ tasks:
     cmds:
       - go build -v -o tmp github.com/flowline-io/flowbot/cmd
 
+  build:agent:
+    cmds:
+      - go build -v -o tmp github.com/flowline-io/flowbot/cmd/agent
+
   run:
     cmds:
       - go run github.com/flowline-io/flowbot/cmd
+
+  run:agent:
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/agent
 
   cloc:
     cmds:
@@ -41,6 +49,7 @@ tasks:
       - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - go install github.com/hibiken/asynq/tools/asynq@latest
       - go install github.com/zricethezav/gitleaks/v8@v8.21.1
+      - go install github.com/goreleaser/goreleaser/v2@latest
       - cmd: winget install AlDanial.Cloc
         platforms: [windows]
       - cmd: sudo apt install cloc
@@ -69,3 +78,7 @@ tasks:
   leak:
     cmds:
       - gitleaks git -v
+
+  snapshot:
+    cmds:
+      - goreleaser release --snapshot --clean

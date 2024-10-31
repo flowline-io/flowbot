@@ -8,7 +8,7 @@ package version
 //	-ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'`"
 var Buildstamp = "undef"
 
-// set it to git tag:
+// Buildtags set it to git tag:
 //
 //	-ldflags "-X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags`"
 var Buildtags = "v1.0"
