@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
-	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/robfig/cron/v3"
 )
@@ -18,7 +17,7 @@ func Cron() {
 		flog.Panic(err.Error())
 	}
 
-	job := &agentJob{cache: cache, client: client.NewFlowbot()}
+	job := &agentJob{cache: cache}
 	job.RunAnki(c)
 	job.RunDev(c)
 	c.Start()

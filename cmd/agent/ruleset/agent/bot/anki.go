@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"strconv"
+
 	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/go-resty/resty/v2"
-	"net/http"
-	"strconv"
 )
 
 const (
@@ -17,13 +18,13 @@ const (
 	ReviewAgentID = "review_agent"
 )
 
-func AnkiStats(c *client.Flowbot) {
+func AnkiStats() {
 	html, err := getCollectionStatsHTML()
 	if err != nil {
 		flog.Error(err)
 		return
 	}
-	_, err = c.Agent(types.FlowkitData{
+	_, err = client.Agent(types.FlowkitData{
 		//Id:      StatsAgentID,
 		Version: types.ApiVersion,
 		Content: map[string]any{
@@ -35,13 +36,13 @@ func AnkiStats(c *client.Flowbot) {
 	}
 }
 
-func AnkiReview(c *client.Flowbot) {
+func AnkiReview() {
 	num, err := getNumCardsReviewedToday()
 	if err != nil {
 		flog.Error(err)
 		return
 	}
-	_, err = c.Agent(types.FlowkitData{
+	_, err = client.Agent(types.FlowkitData{
 		//Id:      ReviewAgentID,
 		Version: types.ApiVersion,
 		Content: map[string]any{

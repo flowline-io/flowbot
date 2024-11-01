@@ -12,13 +12,13 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-type Flowbot struct {
+type flowbot struct {
 	c           *resty.Client
 	accessToken string
 }
 
-func NewFlowbot() *Flowbot {
-	v := &Flowbot{accessToken: config.App.ApiToken}
+func newFlowbot() *flowbot {
+	v := &flowbot{accessToken: config.App.ApiToken}
 
 	v.c = resty.New()
 	v.c.SetBaseURL(config.App.ApiUrl)
@@ -27,7 +27,7 @@ func NewFlowbot() *Flowbot {
 	return v
 }
 
-func (v *Flowbot) fetcher(action types.Action, content any) ([]byte, error) {
+func (v *flowbot) fetcher(action types.Action, content any) ([]byte, error) {
 	resp, err := v.c.R().
 		SetAuthToken(v.accessToken).
 		SetResult(&protocol.Response{}).
@@ -49,7 +49,8 @@ func (v *Flowbot) fetcher(action types.Action, content any) ([]byte, error) {
 	}
 }
 
-func (v *Flowbot) Bots() (*BotsResult, error) {
+func Bots() (*BotsResult, error) {
+	v := newFlowbot()
 	data, err := v.fetcher(types.Bots, nil)
 	if err != nil {
 		return nil, err
@@ -69,7 +70,8 @@ type BotsResult struct {
 	} `json:"bots"`
 }
 
-func (v *Flowbot) Help() (*HelpResult, error) {
+func Help() (*HelpResult, error) {
+	v := newFlowbot()
 	data, err := v.fetcher(types.Help, nil)
 	if err != nil {
 		return nil, err
@@ -89,7 +91,8 @@ type HelpResult struct {
 	} `json:"bots"`
 }
 
-func (v *Flowbot) Pull() (*InstructResult, error) {
+func Pull() (*InstructResult, error) {
+	v := newFlowbot()
 	data, err := v.fetcher(types.Pull, nil)
 	if err != nil {
 		return nil, err
@@ -114,7 +117,8 @@ type Instruct struct {
 	ExpireAt string `json:"expire_at"`
 }
 
-func (v *Flowbot) Agent(content types.FlowkitData) (string, error) {
+func Agent(content types.FlowkitData) (string, error) {
+	v := newFlowbot()
 	data, err := v.fetcher(types.Agent, content)
 	if err != nil {
 		return "", err

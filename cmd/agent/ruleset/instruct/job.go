@@ -2,23 +2,23 @@ package instruct
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/allegro/bigcache/v3"
 	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct/bot"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"time"
 )
 
 type instructJob struct {
 	app    any
 	window any
 	cache  *bigcache.BigCache
-	client *client.Flowbot
 }
 
 func (j *instructJob) Run() {
-	res, err := j.client.Pull()
+	res, err := client.Pull()
 	if err != nil {
 		flog.Error(err)
 		return

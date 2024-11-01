@@ -11,8 +11,8 @@ const (
 	ImportAgentId = "import_agent"
 )
 
-func DevImport(c *client.Flowbot) {
-	_, err := c.Agent(types.FlowkitData{
+func DevImport() {
+	_, err := client.Agent(types.FlowkitData{
 		//Id:      ImportAgentId,
 		Version: types.ApiVersion,
 		Content: types.KV{
