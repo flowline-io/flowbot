@@ -1,18 +1,19 @@
 package bot
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"time"
 )
 
 const (
-	ImportAgentId = "import_agent"
+	ImportCollectId = "import_collect"
 )
 
 func DevImport() {
-	_, err := client.Agent(types.FlowkitData{
+	_, err := client.Collect(types.FlowkitData{
 		//Id:      ImportAgentId,
 		Version: types.ApiVersion,
 		Content: types.KV{

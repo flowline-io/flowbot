@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	StatsAgentID  = "stats_agent"
-	ReviewAgentID = "review_agent"
+	StatsCollectID  = "stats_collect"
+	ReviewCollectID = "review_collect"
 )
 
 func AnkiStats() {
@@ -24,7 +24,7 @@ func AnkiStats() {
 		flog.Error(err)
 		return
 	}
-	_, err = client.Agent(types.FlowkitData{
+	_, err = client.Collect(types.FlowkitData{
 		//Id:      StatsAgentID,
 		Version: types.ApiVersion,
 		Content: map[string]any{
@@ -42,7 +42,7 @@ func AnkiReview() {
 		flog.Error(err)
 		return
 	}
-	_, err = client.Agent(types.FlowkitData{
+	_, err = client.Collect(types.FlowkitData{
 		//Id:      ReviewAgentID,
 		Version: types.ApiVersion,
 		Content: map[string]any{

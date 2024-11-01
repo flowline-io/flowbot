@@ -1,20 +1,19 @@
 package anki
 
 import (
-	"github.com/flowline-io/flowbot/internal/ruleset/agent"
+	"github.com/flowline-io/flowbot/internal/ruleset/collect"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const (
-	AgentVersion  = 1
-	StatsAgentID  = "stats_agent"
-	ReviewAgentID = "review_agent"
+	StatsCollectID  = "stats_collect"
+	ReviewCollectID = "review_collect"
 )
 
-var agentRules = []agent.Rule{
+var collectRules = []collect.Rule{
 	{
-		Id:   StatsAgentID,
+		Id:   StatsCollectID,
 		Help: "import anki stats",
 		Args: []string{"html"},
 		Handler: func(ctx types.Context, content types.KV) types.MsgPayload {
@@ -37,7 +36,7 @@ var agentRules = []agent.Rule{
 		},
 	},
 	{
-		Id:   ReviewAgentID,
+		Id:   ReviewCollectID,
 		Help: "import anki review count",
 		Args: []string{"num"},
 		Handler: func(ctx types.Context, content types.KV) types.MsgPayload {

@@ -1,4 +1,4 @@
-package agent
+package collect
 
 import (
 	"errors"
@@ -15,13 +15,13 @@ type Rule struct {
 
 type Ruleset []Rule
 
-func (r Ruleset) ProcessAgent(agentVersion int, ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	if agentVersion > ctx.AgentVersion {
+func (r Ruleset) ProcessAgent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	if types.ApiVersion > ctx.AgentVersion {
 		return nil, errors.New("agent version too low")
 	}
 	var result types.MsgPayload
 	for _, rule := range r {
-		if rule.Id == ctx.AgentId {
+		if rule.Id == ctx.CollectId {
 			result = rule.Handler(ctx, content)
 		}
 	}

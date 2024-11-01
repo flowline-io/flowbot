@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/flowline-io/flowbot/cmd/agent/ruleset/agent"
+	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
@@ -31,7 +31,7 @@ func main() {
 
 	// cron
 	instruct.Cron()
-	agent.Cron()
+	collect.Cron()
 
 	// notify
 	notify.Desktop{}.Notify("flowbot-agent", "started")

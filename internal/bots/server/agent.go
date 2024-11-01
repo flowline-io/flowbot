@@ -1,20 +1,19 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/ruleset/agent"
+	"github.com/flowline-io/flowbot/internal/ruleset/collect"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
-	AgentVersion = 1
-	StatsAgentID = "stats_agent"
+	StatsCollectID = "stats_collect"
 )
 
-var agentRules = []agent.Rule{
+var collectRules = []collect.Rule{
 	{
-		Id:   StatsAgentID,
+		Id:   StatsCollectID,
 		Help: "upload server status",
 		Args: []string{"cpu", "memory", "info"},
 		Handler: func(ctx types.Context, content types.KV) types.MsgPayload {

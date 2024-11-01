@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/ruleset/langchain"
-	"github.com/tmc/langchaingo/llms"
 	"io/fs"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/ruleset/agent"
+	"github.com/flowline-io/flowbot/internal/ruleset/langchain"
+	"github.com/tmc/langchaingo/llms"
+
+	"github.com/flowline-io/flowbot/internal/ruleset/collect"
 	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/form"
@@ -68,15 +69,15 @@ func Help(rules []interface{}) (map[string][]string, error) {
 			if len(rows) > 0 {
 				result["command"] = rows
 			}
-		case []agent.Rule:
-			// agent
-			rs := agent.Ruleset(v)
+		case []collect.Rule:
+			// collect
+			rs := collect.Ruleset(v)
 			var rows []string
 			for _, rule := range rs {
 				rows = append(rows, fmt.Sprintf("%s : %s", rule.Id, rule.Help))
 			}
 			if len(rows) > 0 {
-				result["agent"] = rows
+				result["collect"] = rows
 			}
 		case []cron.Rule:
 			// cron
@@ -216,9 +217,9 @@ func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 	return ruleset, nil
 }
 
-func RunAgent(agentVersion int, agentRules []agent.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	rs := agent.Ruleset(agentRules)
-	return rs.ProcessAgent(agentVersion, ctx, content)
+func RunCollect(collectRules []collect.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	rs := collect.Ruleset(collectRules)
+	return rs.ProcessAgent(ctx, content)
 }
 
 func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.KV) (types.KV, error) {

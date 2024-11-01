@@ -39,8 +39,8 @@ type Handler interface {
 	// Cron cron script daemon
 	Cron() (*cron.Ruleset, error)
 
-	// Agent return group result
-	Agent(ctx types.Context, content types.KV) (types.MsgPayload, error)
+	// Collect return collect result
+	Collect(ctx types.Context, content types.KV) (types.MsgPayload, error)
 
 	// Instruct return instruct list
 	Instruct() (instruct.Ruleset, error)
@@ -98,7 +98,7 @@ func (Base) Cron() (*cron.Ruleset, error) {
 	return nil, nil
 }
 
-func (Base) Agent(_ types.Context, _ types.KV) (types.MsgPayload, error) {
+func (Base) Collect(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 	return nil, nil
 }
 

@@ -35,7 +35,7 @@ type Context struct {
 	// form Rule id
 	FormRuleId string
 	// agent
-	AgentId string
+	CollectId string
 	// agent
 	AgentVersion int
 	// page rule id

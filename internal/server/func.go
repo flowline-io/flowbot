@@ -328,10 +328,10 @@ func errorResponse(rw http.ResponseWriter, text string) {
 
 func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 	switch data.Action {
-	case types.Agent:
+	case types.Collect:
 		id, ok := data.Content.String("id")
 		if !ok {
-			return nil, errors.New("error agent id")
+			return nil, errors.New("error collect id")
 		}
 
 		for name, handle := range bots.List() {
@@ -344,10 +344,10 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 				Platform:     "",
 				Topic:        "",
 				AsUser:       uid,
-				AgentId:      id,
+				CollectId:    id,
 				AgentVersion: data.Version,
 			}
-			payload, err := handle.Agent(ctx, data.Content)
+			payload, err := handle.Collect(ctx, data.Content)
 			if err != nil {
 				flog.Warn("bot[%s]: failed to agent bot: %v", name, err)
 				continue

@@ -77,7 +77,7 @@ func (b bot) Rules() []interface{} {
 		formRules,
 		instructRules,
 		pageRules,
-		agentRules,
+		collectRules,
 		webserviceRules,
 		workflowRules,
 		webhookRules,
@@ -101,8 +101,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 	return bots.RunCron(cronRules, Name)
 }
 
-func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return bots.RunAgent(AgentVersion, agentRules, ctx, content)
+func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	return bots.RunCollect(collectRules, ctx, content)
 }
 
 func (b bot) Instruct() (instruct.Ruleset, error) {

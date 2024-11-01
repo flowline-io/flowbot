@@ -1,14 +1,16 @@
 package types
 
+const ApiVersion = 1
+
 type Action string
 
 const (
-	Info  Action = "info"
-	Pull  Action = "pull"
-	Agent Action = "agent"
-	Bots  Action = "bots"
-	Help  Action = "help"
-	Ack   Action = "ack"
+	Info    Action = "info"
+	Pull    Action = "pull"
+	Collect Action = "collect"
+	Bots    Action = "bots"
+	Help    Action = "help"
+	Ack     Action = "ack"
 )
 
 type FlowkitData struct {
@@ -16,5 +18,3 @@ type FlowkitData struct {
 	Version int    `json:"version"`
 	Content KV     `json:"content"`
 }
-
-const ApiVersion = 1

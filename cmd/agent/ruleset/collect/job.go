@@ -1,17 +1,17 @@
-package agent
+package collect
 
 import (
 	"github.com/allegro/bigcache/v3"
-	"github.com/flowline-io/flowbot/cmd/agent/ruleset/agent/bot"
+	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect/bot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/robfig/cron/v3"
 )
 
-type agentJob struct {
+type collectJob struct {
 	cache *bigcache.BigCache
 }
 
-func (j *agentJob) RunAnki(c *cron.Cron) {
+func (j *collectJob) RunAnki(c *cron.Cron) {
 	MustAddFunc(c, "0 * * * * *", func() {
 		flog.Info("[anki] stats")
 		bot.AnkiStats()
@@ -22,7 +22,7 @@ func (j *agentJob) RunAnki(c *cron.Cron) {
 	})
 }
 
-func (j *agentJob) RunDev(c *cron.Cron) {
+func (j *collectJob) RunDev(c *cron.Cron) {
 	MustAddFunc(c, "0 * * * * *", func() {
 		flog.Info("[dev] import")
 		bot.DevImport()

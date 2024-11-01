@@ -117,9 +117,9 @@ type Instruct struct {
 	ExpireAt string `json:"expire_at"`
 }
 
-func Agent(content types.FlowkitData) (string, error) {
+func Collect(content types.FlowkitData) (string, error) {
 	v := newFlowbot()
-	data, err := v.fetcher(types.Agent, content)
+	data, err := v.fetcher(types.Collect, content)
 	if err != nil {
 		return "", err
 	}
