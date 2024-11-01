@@ -8,7 +8,7 @@ import (
 var url = []Executor{
 	{
 		Flag: "url_open",
-		Run: func(app any, window any, data types.KV) error {
+		Run: func(data types.KV) error {
 			txt, _ := data.String("url")
 			if txt != "" {
 				// u, err := netUrl.Parse(txt)

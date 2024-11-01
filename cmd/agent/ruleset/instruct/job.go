@@ -12,9 +12,7 @@ import (
 )
 
 type instructJob struct {
-	app    any
-	window any
-	cache  *bigcache.BigCache
+	cache *bigcache.BigCache
 }
 
 func (j *instructJob) Run() {
@@ -42,14 +40,14 @@ func (j *instructJob) Run() {
 		if time.Now().After(expiredAt) {
 			continue
 		}
-		err = RunInstruct(j.app, j.window, j.cache, item)
+		err = RunInstruct(j.cache, item)
 		if err != nil {
 			flog.Error(fmt.Errorf("instruct run job failed %s %s %s", item.Bot, item.No, err))
 		}
 	}
 }
 
-func RunInstruct(app any, window any, cache *bigcache.BigCache, item client.Instruct) error {
+func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
 	for id, dos := range bot.DoInstruct {
 		if item.Bot != id {
 			continue
@@ -64,7 +62,7 @@ func RunInstruct(app any, window any, cache *bigcache.BigCache, item client.Inst
 			if v, ok := item.Content.(map[string]any); ok {
 				data = v
 			}
-			err := do.Run(app, window, data)
+			err := do.Run(data)
 			if err != nil {
 				return err
 			}

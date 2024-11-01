@@ -100,7 +100,7 @@ func (j InstructState) Value() (driver.Value, error) {
 type InstructObject string
 
 const (
-	InstructObjectFlowkit InstructObject = "flowkit"
+	InstructObjectAgent InstructObject = "agent"
 )
 
 func (j InstructObject) Value() (driver.Value, error) {
