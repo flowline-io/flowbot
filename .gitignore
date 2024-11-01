@@ -13,5 +13,6 @@
 flowbot.json
 flowbot.yaml
 flowbot.log
+flowbot-agent.yaml
 main
 flowbot

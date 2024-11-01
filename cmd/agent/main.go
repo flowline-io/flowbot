@@ -12,7 +12,10 @@ import (
 func main() {
 	// log
 	flog.Init(true)
-	flog.Info("[agent] version %s %s", version.Buildtags, version.Buildstamp)
+	flog.Info("version %s %s", version.Buildtags, version.Buildstamp)
+
+	// config
+	loadConfig()
 
 	// info
 	hostinfo()

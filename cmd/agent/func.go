@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/cmd/agent/updater"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
@@ -40,4 +41,18 @@ func hostinfo() {
 	} else {
 		flog.Info("hostname %s %s", infoStat.Hostname, infoStat.HostID)
 	}
+}
+
+func loadConfig() {
+	curwd, err := os.Getwd()
+	if err != nil {
+		flog.Fatal("Couldn't get current working directory: %v", err)
+	}
+	// Load config
+	config.Load(".", curwd)
+
+	flog.Info("server api url: %s", config.App.ApiUrl)
+
+	// log level
+	flog.SetLevel(config.App.LogLevel)
 }
