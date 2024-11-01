@@ -9,8 +9,12 @@ import (
 )
 
 func main() {
+	// log
 	flog.Init(true)
 	flog.Info("[agent] version %s %s", version.Buildtags, version.Buildstamp)
+
+	// info
+	hostinfo()
 
 	// check singleton
 	utils.CheckSingleton()

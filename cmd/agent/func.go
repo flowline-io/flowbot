@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/agent/updater"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
 func checkUpdate() {
@@ -29,5 +30,14 @@ func checkUpdate() {
 		}
 	} else {
 		flog.Info("You are using the latest version")
+	}
+}
+
+func hostinfo() {
+	infoStat, err := host.Info()
+	if err != nil {
+		flog.Error(err)
+	} else {
+		flog.Info("hostname %s %s", infoStat.Hostname, infoStat.HostID)
 	}
 }
