@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -318,11 +317,6 @@ func onlineStatus(msg protocol.Event) {
 	} else {
 		cache.DB.Expire(ctx, key, 30*time.Minute)
 	}
-}
-
-func errorResponse(rw http.ResponseWriter, text string) {
-	rw.WriteHeader(http.StatusBadRequest)
-	_, _ = rw.Write([]byte(text))
 }
 
 func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {

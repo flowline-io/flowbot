@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -34,6 +33,7 @@ import (
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
 )
 
@@ -58,7 +58,7 @@ func setupMux(a *fiber.App) {
 	// page
 	a.Get("/page/:id/:flag", renderPage)
 	// agent
-	a.Post("/agent", adaptor.HTTPHandlerFunc(agentData))
+	a.Post("/agent", agentData)
 	// webhook
 	a.All("/webhook/:flag", doWebhook)
 	// platform
@@ -367,45 +367,29 @@ func postForm(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
-func agentData(rw http.ResponseWriter, req *http.Request) {
-	rw.Header().Set("Access-Control-Allow-Origin", "*")
-	rw.Header().Set("Access-Control-Allow-Headers", "*")
-	if req.Method == http.MethodOptions {
-		return
+func agentData(ctx *fiber.Ctx) error {
+	var r http.Request
+	if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 	}
-
 	// authorization
-	uid, isValid := route.CheckAccessToken(route.GetAccessToken(req))
+	uid, isValid := route.CheckAccessToken(route.GetAccessToken(&r))
 	if !isValid {
-		errorResponse(rw, "401")
-		return
-	}
-
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		errorResponse(rw, "error")
-		return
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
 	}
 
 	var data types.AgentData
-	err = jsoniter.Unmarshal(body, &data)
+	err := jsoniter.Unmarshal(ctx.Body(), &data)
 	if err != nil {
-		errorResponse(rw, "error")
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 
 	result, err := agentAction(uid, data)
 	if err != nil {
-		errorResponse(rw, "error")
-		return
+		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 
-	res, _ := jsoniter.Marshal(protocol.Response{
-		Status: protocol.Success,
-		Data:   result,
-	})
-	rw.Header().Set("Content-Type", "application/json")
-	_, _ = rw.Write(res)
+	return ctx.JSON(protocol.NewSuccessResponse(result))
 }
 
 func platformCallback(ctx *fiber.Ctx) error {

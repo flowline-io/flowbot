@@ -55,6 +55,9 @@ func Pull() (*InstructResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	if data == nil {
+		return nil, nil
+	}
 	var r InstructResult
 	err = jsoniter.Unmarshal(data, &r.Instruct)
 	if err != nil {
