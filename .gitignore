@@ -8,10 +8,10 @@
 /download
 /cloc
 /script
+/dist
 
 flowbot.json
 flowbot.yaml
+flowbot.log
 main
 flowbot
-
-dist/

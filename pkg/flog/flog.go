@@ -13,7 +13,7 @@ import (
 
 var l zerolog.Logger
 
-func Init() {
+func Init(fileLogEnabled bool) {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	// json marshaling
@@ -31,6 +31,20 @@ func Init() {
 		},
 	}
 	writer = append(writer, console)
+
+	// file
+	if fileLogEnabled {
+		runLogFile, err := os.OpenFile(
+			"flowbot.log", // todo file path
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0664,
+		)
+		if err != nil {
+			Error(err)
+		} else {
+			writer = append(writer, runLogFile)
+		}
+	}
 
 	multi := zerolog.MultiLevelWriter(writer...)
 	l = zerolog.New(multi).With().Timestamp().Logger()

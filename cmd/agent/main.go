@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	flog.Init()
+	flog.Init(true)
 	flog.Info("[agent] version %s %s", version.Buildtags, version.Buildstamp)
 
 	// check singleton
@@ -33,7 +33,7 @@ func main() {
 		flog.Info("Updating to the latest version...")
 		updated, err := updater.UpdateSelf()
 		if !updated {
-			flog.Info("Failed to update, error %s", err)
+			flog.Info("Failed to update, error %v", err)
 		} else {
 			flog.Info("Updated successfully.")
 			_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')

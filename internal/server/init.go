@@ -152,7 +152,7 @@ func initialize() error {
 }
 
 func initializeLog() error {
-	flog.Init()
+	flog.Init(false)
 	return nil
 }
 
