@@ -100,3 +100,25 @@ func Ack(no string) error {
 	}
 	return err
 }
+
+func Online(hostid string) error {
+	v := newFlowbot()
+	_, err := v.fetcher(types.Online, types.KV{
+		"hostid": hostid,
+	})
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func Offline(hostid string) error {
+	v := newFlowbot()
+	_, err := v.fetcher(types.Offline, types.KV{
+		"hostid": hostid,
+	})
+	if err != nil {
+		return err
+	}
+	return err
+}

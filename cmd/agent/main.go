@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 )
@@ -17,9 +17,6 @@ func main() {
 	// config
 	loadConfig()
 
-	// info
-	hostinfo()
-
 	// check singleton
 	utils.CheckSingleton()
 
@@ -29,13 +26,23 @@ func main() {
 	// check update
 	checkUpdate()
 
+	// info
+	hostid := hostinfo()
+	err := client.Online(hostid)
+	if err != nil {
+		flog.Error(err)
+	}
+
 	// cron
 	instruct.Cron()
 	collect.Cron()
 
-	// notify
-	notify.Desktop{}.Notify("flowbot-agent", "started")
-
 	stopSignal := utils.SignalHandler()
 	<-stopSignal
+
+	// offline
+	err = client.Offline(hostid)
+	if err != nil {
+		flog.Error(err)
+	}
 }

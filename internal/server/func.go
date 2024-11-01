@@ -391,6 +391,26 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+	case types.Online:
+		hostid, ok := data.Content.String("hostid")
+		if !ok {
+			return nil, errors.New("error hostid")
+		}
+
+		err := event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
+		if err != nil {
+			flog.Error(fmt.Errorf("send message error %w", err))
+		}
+	case types.Offline:
+		hostid, ok := data.Content.String("hostid")
+		if !ok {
+			return nil, errors.New("error hostid")
+		}
+
+		err := event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
+		if err != nil {
+			flog.Error(fmt.Errorf("send message error %w", err))
+		}
 	}
 	return nil, nil
 }

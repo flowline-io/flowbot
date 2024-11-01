@@ -8,6 +8,8 @@ const (
 	Pull    Action = "pull"
 	Collect Action = "collect"
 	Ack     Action = "ack"
+	Online  Action = "online"
+	Offline Action = "offline"
 )
 
 type AgentData struct {

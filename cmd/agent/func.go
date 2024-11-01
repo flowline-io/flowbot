@@ -34,13 +34,14 @@ func checkUpdate() {
 	}
 }
 
-func hostinfo() {
+func hostinfo() string {
 	infoStat, err := host.Info()
 	if err != nil {
 		flog.Error(err)
-	} else {
-		flog.Info("hostname %s %s", infoStat.Hostname, infoStat.HostID)
+		return ""
 	}
+	flog.Info("hostname %s %s", infoStat.Hostname, infoStat.HostID)
+	return infoStat.HostID
 }
 
 func loadConfig() {
