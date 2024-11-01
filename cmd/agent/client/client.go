@@ -2,12 +2,14 @@ package client
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/go-resty/resty/v2"
 	jsoniter "github.com/json-iterator/go"
-	"net/http"
-	"time"
 )
 
 type Flowbot struct {
@@ -15,11 +17,11 @@ type Flowbot struct {
 	accessToken string
 }
 
-func NewFlowbot(accessToken string) *Flowbot {
-	v := &Flowbot{accessToken: accessToken}
+func NewFlowbot() *Flowbot {
+	v := &Flowbot{accessToken: config.App.ApiToken}
 
 	v.c = resty.New()
-	//v.c.SetBaseURL(preferences.AppConfig().ServerHost)
+	v.c.SetBaseURL(config.App.ApiUrl)
 	v.c.SetTimeout(time.Minute)
 
 	return v
