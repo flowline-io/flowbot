@@ -404,7 +404,7 @@ func initializeMedia() error {
 }
 
 func initializeSignal() error {
-	stopSignal = signalHandler()
+	stopSignal = utils.SignalHandler()
 	return nil
 }
 
