@@ -13,8 +13,8 @@ const (
 )
 
 func DevImport() {
-	_, err := client.Collect(types.CollectData{
-		Id:      ImportCollectId,
+	err := client.Collect(types.CollectData{
+		Id: ImportCollectId,
 		Content: types.KV{
 			"time": time.Now().String(),
 		},

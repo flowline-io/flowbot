@@ -720,7 +720,7 @@ func (a *adapter) CreateInstruct(instruct *model.Instruct) (int64, error) {
 	return instruct.ID, nil
 }
 
-func (a *adapter) ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct, error) {
+func (a *adapter) ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error) {
 	var items []*model.Instruct
 	builder := a.db.
 		Where("`uid` = ?", uid).
@@ -734,6 +734,7 @@ func (a *adapter) ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct,
 	err := builder.
 		Order("priority DESC").
 		Order("updated_at DESC").
+		Limit(limit).
 		Find(&items).Error
 	if err != nil {
 		return nil, err
@@ -743,11 +744,10 @@ func (a *adapter) ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct,
 
 func (a *adapter) UpdateInstruct(instruct *model.Instruct) error {
 	return a.db.
-		Model(&model.Todo{}).
+		Model(&model.Instruct{}).
 		Where("`no` = ?", instruct.No).
-		UpdateColumns(types.KV{
-			"state": instruct.State,
-		}).Error
+		Update("state", instruct.State).
+		Error
 }
 
 func (a *adapter) ListWebhook(uid types.Uid) ([]*model.Webhook, error) {

@@ -386,6 +386,7 @@ func agentData(ctx *fiber.Ctx) error {
 
 	result, err := agentAction(uid, data)
 	if err != nil {
+		flog.Error(err)
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 

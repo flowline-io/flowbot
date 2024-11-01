@@ -362,7 +362,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			}
 		}
 	case types.Pull:
-		list, err := store.Database.ListInstruct(uid, false)
+		list, err := store.Database.ListInstruct(uid, false, 10)
 		if err != nil {
 			return nil, err
 		}
@@ -379,6 +379,18 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		}
 		return instruct, nil
 	case types.Ack:
+		no, ok := data.Content.String("no")
+		if !ok {
+			return nil, errors.New("error instruct no")
+		}
+
+		err := store.Database.UpdateInstruct(&model.Instruct{
+			No:    no,
+			State: model.InstructDone,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return nil, nil
 }

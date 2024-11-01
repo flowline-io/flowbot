@@ -57,7 +57,6 @@ func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
 				continue
 			}
 			// run instruct
-			flog.Info("[instruct] %s %s", item.Bot, item.No)
 			data := types.KV{}
 			if v, ok := item.Content.(map[string]any); ok {
 				data = v
@@ -66,6 +65,11 @@ func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
 			if err != nil {
 				return err
 			}
+			err = client.Ack(item.No)
+			if err != nil {
+				return err
+			}
+			flog.Info("[instruct] %s %s ack", item.Bot, item.No)
 			err = cache.Set(item.No, []byte("1"))
 			if err != nil {
 				return err

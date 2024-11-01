@@ -258,7 +258,7 @@ type Adapter interface {
 	ParameterGet(flag string) (model.Parameter, error)
 	ParameterDelete(flag string) error
 	CreateInstruct(instruct *model.Instruct) (int64, error)
-	ListInstruct(uid types.Uid, isExpire bool) ([]*model.Instruct, error)
+	ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error)
 	UpdateInstruct(instruct *model.Instruct) error
 	ListWebhook(uid types.Uid) ([]*model.Webhook, error)
 	CreateWebhook(webhook *model.Webhook) (int64, error)
