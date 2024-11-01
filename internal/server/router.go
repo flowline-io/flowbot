@@ -57,8 +57,8 @@ func setupMux(a *fiber.App) {
 	a.Post("/form", postForm)
 	// page
 	a.Get("/page/:id/:flag", renderPage)
-	// flowkit
-	a.Post("/flowkit", adaptor.HTTPHandlerFunc(flowkitData))
+	// agent
+	a.Post("/agent", adaptor.HTTPHandlerFunc(agentData))
 	// webhook
 	a.All("/webhook/:flag", doWebhook)
 	// platform
@@ -367,7 +367,7 @@ func postForm(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
-func flowkitData(rw http.ResponseWriter, req *http.Request) {
+func agentData(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 	rw.Header().Set("Access-Control-Allow-Headers", "*")
 	if req.Method == http.MethodOptions {
@@ -387,14 +387,14 @@ func flowkitData(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var data types.FlowkitData
+	var data types.AgentData
 	err = jsoniter.Unmarshal(body, &data)
 	if err != nil {
 		errorResponse(rw, "error")
 		return
 	}
 
-	result, err := flowkitAction(uid, data)
+	result, err := agentAction(uid, data)
 	if err != nil {
 		errorResponse(rw, "error")
 		return

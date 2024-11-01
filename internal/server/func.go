@@ -24,7 +24,6 @@ import (
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -326,7 +325,7 @@ func errorResponse(rw http.ResponseWriter, text string) {
 	_, _ = rw.Write([]byte(text))
 }
 
-func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
+func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 	switch data.Action {
 	case types.Collect:
 		id, ok := data.Content.String("id")
@@ -347,7 +346,8 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 				CollectId:    id,
 				AgentVersion: data.Version,
 			}
-			payload, err := handle.Collect(ctx, data.Content)
+			content, _ := data.Content.Map("content")
+			payload, err := handle.Collect(ctx, content)
 			if err != nil {
 				flog.Warn("bot[%s]: failed to agent bot: %v", name, err)
 				continue
@@ -384,32 +384,6 @@ func flowkitAction(uid types.Uid, data types.FlowkitData) (interface{}, error) {
 			})
 		}
 		return instruct, nil
-	case types.Info:
-		var user *model.User // fixme
-		return utils.Fn(user), nil
-	case types.Bots:
-		var list []types.KV
-		for name, bot := range bots.List() {
-			instruct, err := bot.Instruct()
-			if err != nil {
-				continue
-			}
-			if len(instruct) <= 0 {
-				continue
-			}
-			list = append(list, types.KV{
-				"id":   name,
-				"name": name,
-			})
-		}
-		return list, nil
-	case types.Help:
-		if id, ok := data.Content.String("id"); ok {
-			if bot, ok := bots.List()[id]; ok {
-				return bot.Help()
-			}
-			return types.KV{}, nil
-		}
 	case types.Ack:
 	}
 	return nil, nil

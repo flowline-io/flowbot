@@ -27,16 +27,16 @@ func newFlowbot() *flowbot {
 	return v
 }
 
-func (v *flowbot) fetcher(action types.Action, content any) ([]byte, error) {
+func (v *flowbot) fetcher(action types.Action, content types.KV) ([]byte, error) {
 	resp, err := v.c.R().
 		SetAuthToken(v.accessToken).
 		SetResult(&protocol.Response{}).
-		SetBody(map[string]any{
-			"action":  action,
-			"version": types.ApiVersion,
-			"content": content,
+		SetBody(types.AgentData{
+			Action:  action,
+			Version: types.ApiVersion,
+			Content: content,
 		}).
-		Post("/flowkit")
+		Post("/agent")
 	if err != nil {
 		return nil, err
 	}
@@ -47,48 +47,6 @@ func (v *flowbot) fetcher(action types.Action, content any) ([]byte, error) {
 	} else {
 		return nil, fmt.Errorf("%d", resp.StatusCode())
 	}
-}
-
-func Bots() (*BotsResult, error) {
-	v := newFlowbot()
-	data, err := v.fetcher(types.Bots, nil)
-	if err != nil {
-		return nil, err
-	}
-	var r BotsResult
-	err = jsoniter.Unmarshal(data, &r.Bots)
-	if err != nil {
-		return nil, err
-	}
-	return &r, err
-}
-
-type BotsResult struct {
-	Bots []struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
-	} `json:"bots"`
-}
-
-func Help() (*HelpResult, error) {
-	v := newFlowbot()
-	data, err := v.fetcher(types.Help, nil)
-	if err != nil {
-		return nil, err
-	}
-	var r HelpResult
-	err = jsoniter.Unmarshal(data, &r.Bots)
-	if err != nil {
-		return nil, err
-	}
-	return &r, err
-}
-
-type HelpResult struct {
-	Bots []struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
-	} `json:"bots"`
 }
 
 func Pull() (*InstructResult, error) {
@@ -117,9 +75,12 @@ type Instruct struct {
 	ExpireAt string `json:"expire_at"`
 }
 
-func Collect(content types.FlowkitData) (string, error) {
+func Collect(content types.CollectData) (string, error) {
 	v := newFlowbot()
-	data, err := v.fetcher(types.Collect, content)
+	data, err := v.fetcher(types.Collect, types.KV{
+		"id":      content.Id,
+		"content": content.Content,
+	})
 	if err != nil {
 		return "", err
 	}

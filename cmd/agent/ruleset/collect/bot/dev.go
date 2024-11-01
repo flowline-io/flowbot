@@ -13,9 +13,8 @@ const (
 )
 
 func DevImport() {
-	_, err := client.Collect(types.FlowkitData{
-		//Id:      ImportAgentId,
-		Version: types.ApiVersion,
+	_, err := client.Collect(types.CollectData{
+		Id:      ImportCollectId,
 		Content: types.KV{
 			"time": time.Now().String(),
 		},

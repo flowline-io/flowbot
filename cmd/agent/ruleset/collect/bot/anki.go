@@ -24,9 +24,8 @@ func AnkiStats() {
 		flog.Error(err)
 		return
 	}
-	_, err = client.Collect(types.FlowkitData{
-		//Id:      StatsAgentID,
-		Version: types.ApiVersion,
+	_, err = client.Collect(types.CollectData{
+		Id: StatsCollectID,
 		Content: map[string]any{
 			"html": html,
 		},
@@ -42,9 +41,8 @@ func AnkiReview() {
 		flog.Error(err)
 		return
 	}
-	_, err = client.Collect(types.FlowkitData{
-		//Id:      ReviewAgentID,
-		Version: types.ApiVersion,
+	_, err = client.Collect(types.CollectData{
+		Id: ReviewCollectID,
 		Content: map[string]any{
 			"num": num,
 		},
