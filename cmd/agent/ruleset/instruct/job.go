@@ -26,15 +26,9 @@ func (j *instructJob) Run() {
 	if res == nil {
 		return
 	}
-	// get preference
-	//switcher := preferences.AppConfig().InstructSwitch
+
 	// instruct loop
 	for _, item := range res.Instruct {
-		// check switch
-		//s, ok := switcher.String(item.Bot)
-		//if !ok || s == "" || s == "Off" {
-		//	continue
-		//}
 		// check has been run
 		has, _ := j.cache.Get(item.No)
 		if len(has) > 0 {

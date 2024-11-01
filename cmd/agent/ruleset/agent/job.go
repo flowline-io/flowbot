@@ -13,18 +13,18 @@ type agentJob struct {
 
 func (j *agentJob) RunAnki(c *cron.Cron) {
 	MustAddFunc(c, "0 * * * * *", func() {
-		flog.Info("[agent] anki stats")
+		flog.Info("[anki] stats")
 		bot.AnkiStats()
 	})
 	MustAddFunc(c, "0 * * * * *", func() {
-		flog.Info("[agent] anki review")
+		flog.Info("[anki] review")
 		bot.AnkiReview()
 	})
 }
 
 func (j *agentJob) RunDev(c *cron.Cron) {
 	MustAddFunc(c, "0 * * * * *", func() {
-		flog.Info("[agent] dev import")
+		flog.Info("[dev] import")
 		bot.DevImport()
 	})
 }
