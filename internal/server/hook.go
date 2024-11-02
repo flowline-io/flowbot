@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+	"github.com/flowline-io/flowbot/version"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -105,7 +107,7 @@ func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {
 	}
 }
 
-func hookMounted() {
-	// notify after reboot
-	go notifyAfterReboot()
+func hookStarted() {
+	// notify after online
+	go notifyAll(fmt.Sprintf("flowbot (%s) online", version.Buildtags))
 }

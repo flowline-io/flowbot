@@ -3,8 +3,6 @@ package dev
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
@@ -61,10 +59,6 @@ func (bot) Bootstrap() error {
 	formRules = append(formRules, bots.SettingCovertForm(Name, settingRules))
 
 	return nil
-}
-
-func (bot) Webapp() func(rw http.ResponseWriter, req *http.Request) {
-	return webapp
 }
 
 func (bot) Webservice(app *fiber.App) {

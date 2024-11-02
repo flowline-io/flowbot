@@ -285,17 +285,17 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
-func notifyAfterReboot() {
+func notifyAll(message string) {
 	// send message
 	users, err := store.Database.GetUsers()
 	if err != nil {
-		flog.Error(fmt.Errorf("notify reboot error %w", err))
+		flog.Error(fmt.Errorf("notify error %w", err))
 		return
 	}
 	for _, item := range users {
-		err = event.SendMessage(context.Background(), item.Flag, "", types.TextMsg{Text: "reboot"})
+		err = event.SendMessage(context.Background(), item.Flag, "", types.TextMsg{Text: message})
 		if err != nil {
-			flog.Error(fmt.Errorf("notify reboot error %w", err))
+			flog.Error(fmt.Errorf("notify error %w", err))
 			continue
 		}
 	}

@@ -1,4 +1,4 @@
-package flowkit
+package agent
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-const Name = "flowkit"
+const Name = "agent"
 
 var handler bot
 

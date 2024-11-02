@@ -25,12 +25,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/version"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
@@ -44,13 +41,8 @@ func setupMux(a *fiber.App) {
 	}
 
 	// common
-	a.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString(fmt.Sprintf("flowbot %s (%s)", version.Buildtags, version.Buildstamp))
-	})
-	a.Group("/app", adaptor.HTTPHandler(newWebappRouter()))
-	a.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("ok")
-	})
+	a.Get("/", func(c *fiber.Ctx) error { return nil })
+	a.Get("/health", func(c *fiber.Ctx) error { return c.SendString("ok") })
 	a.All("/oauth/:provider/:flag", storeOAuth)
 	a.Get("/p/:id", getPage)
 	// form
@@ -63,17 +55,6 @@ func setupMux(a *fiber.App) {
 	a.All("/webhook/:flag", doWebhook)
 	// platform
 	a.All("/chatbot/:platform", platformCallback)
-}
-
-func newWebappRouter() *mux.Router {
-	r := mux.NewRouter()
-	s := r.PathPrefix("/app").Subrouter()
-	for name, bot := range bots.List() {
-		if f := bot.Webapp(); f != nil {
-			s.HandleFunc(fmt.Sprintf("/%s/{subpath:.*}", name), f)
-		}
-	}
-	return s
 }
 
 // handler
@@ -141,8 +122,6 @@ func getPage(ctx *fiber.Ctx) error {
 		comp = page.RenderForm(p, f)
 	case model.PageTable:
 		comp = page.RenderTable(p)
-	case model.PageShare:
-		comp = page.RenderShare(p)
 	case model.PageJson:
 		comp = page.RenderJson(p)
 	case model.PageHtml:

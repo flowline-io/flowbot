@@ -10,7 +10,7 @@ import (
 var commandRules = []command.Rule{
 	{
 		Define: "share [string]",
-		Help:   `share clipboard to flowkit`,
+		Help:   `share clipboard to agent`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			txt, _ := tokens[1].Value.String()
 			data := types.KV{}

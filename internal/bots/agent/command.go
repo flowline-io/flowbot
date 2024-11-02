@@ -1,4 +1,4 @@
-package flowkit
+package agent
 
 import (
 	"errors"
@@ -17,11 +17,11 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "flowkit token",
+		Define: "agent token",
 		Help:   `get access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
-			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
+			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("agent:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -34,7 +34,7 @@ var commandRules = []command.Rule{
 				idValue = strings.ToLower(idValue)
 				// set token
 				err = store.Database.ConfigSet(ctx.AsUser, "",
-					fmt.Sprintf("flowkit:%s:token", ctx.AsUser), types.KV{
+					fmt.Sprintf("agent:%s:token", ctx.AsUser), types.KV{
 						"value": idValue,
 					})
 				if err != nil {
@@ -54,11 +54,11 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "flowkit reset token",
+		Define: "agent reset token",
 		Help:   `reset access token`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get old token
-			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("flowkit:%s:token", ctx.AsUser))
+			value, err := store.Database.ConfigGet(ctx.AsUser, "", fmt.Sprintf("agent:%s:token", ctx.AsUser))
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil
 			}
@@ -80,7 +80,7 @@ var commandRules = []command.Rule{
 			idValue = strings.ToLower(idValue)
 			// set token
 			err = store.Database.ConfigSet(ctx.AsUser, "",
-				fmt.Sprintf("flowkit:%s:token", ctx.AsUser), types.KV{
+				fmt.Sprintf("agent:%s:token", ctx.AsUser), types.KV{
 					"value": idValue,
 				})
 			if err != nil {

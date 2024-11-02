@@ -49,7 +49,6 @@ const (
 	PageForm     PageType = "form"
 	PageChart    PageType = "chart"
 	PageTable    PageType = "table"
-	PageShare    PageType = "share"
 	PageJson     PageType = "json"
 	PageHtml     PageType = "html"
 	PageMarkdown PageType = "markdown"

@@ -2,8 +2,6 @@ package bots
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"github.com/emicklei/go-restful/v3"
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/ruleset/instruct"
@@ -50,9 +48,6 @@ type Handler interface {
 
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
-
-	// Webapp return webapp
-	Webapp() func(rw http.ResponseWriter, req *http.Request)
 
 	// Workflow return workflow result
 	Workflow(ctx types.Context, input types.KV) (types.KV, error)
@@ -111,10 +106,6 @@ func (Base) Page(_ types.Context, _ string) (string, error) {
 }
 
 func (Base) Webservice(_ *fiber.App) {
-}
-
-func (Base) Webapp() func(rw http.ResponseWriter, req *http.Request) {
-	return nil
 }
 
 func (Base) Workflow(_ types.Context, _ types.KV) (types.KV, error) {

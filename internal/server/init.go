@@ -31,7 +31,6 @@ import (
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -291,7 +290,7 @@ func initializeStats() error {
 	}
 	if sspath != "" && sspath != "-" {
 		flog.Debug("Server status is available at '%s'", sspath)
-		httpApp.Get(sspath, adaptor.HTTPHandlerFunc(serveStatus))
+		httpApp.Get(sspath, serveStatus)
 	}
 
 	return nil
@@ -425,8 +424,8 @@ func initializeChatbot(signal <-chan bool) error {
 	// Initialize channels
 	hookChannel()
 
-	// Mounted
-	hookMounted()
+	// hook
+	hookStarted()
 
 	// Platform
 	hookPlatform(signal)

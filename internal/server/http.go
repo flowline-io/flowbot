@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"net/http"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/types"
@@ -12,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
-	json "github.com/json-iterator/go"
 )
 
 func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-chan bool) error {
@@ -79,14 +77,10 @@ type debugDump struct {
 	Timestamp time.Time `json:"ts,omitempty"`
 }
 
-func serveStatus(wrt http.ResponseWriter, _ *http.Request) {
-	wrt.Header().Set("Content-Type", "application/json")
-
-	result := &debugDump{
+func serveStatus(ctx *fiber.Ctx) error {
+	return ctx.JSON(&debugDump{
 		Version:   version.Buildtags,
 		Build:     version.Buildstamp,
 		Timestamp: types.TimeNow(),
-	}
-
-	_ = json.NewEncoder(wrt).Encode(result)
+	})
 }
