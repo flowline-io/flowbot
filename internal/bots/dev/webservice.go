@@ -7,12 +7,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 var webserviceRules = []webservice.Rule{
-	webservice.Get("/example", example),
+	webservice.Get("/example", example, route.WithNotAuth()),
 	webservice.Post("/upload", upload),
 }
 
@@ -27,6 +28,9 @@ var webserviceRules = []webservice.Rule{
 func example(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		"title": "example",
+		"cpu":   "20%",
+		"mem":   "50%",
+		"disk":  "70%",
 	}))
 }
 

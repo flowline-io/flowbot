@@ -1,6 +1,7 @@
 package route
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,7 +20,6 @@ const prefix = "service"
 func WebService(app *fiber.App, group string, rs ...*Router) {
 	path := "/" + prefix + "/" + group
 	for _, router := range rs {
-		funcName := utils.GetFunctionName(router.Function)
 		// method
 		switch router.Method {
 		case "GET":
@@ -35,6 +35,7 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 		default:
 			continue
 		}
+		funcName := utils.GetFunctionName(router.Function)
 		flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
 	}
 }
@@ -92,6 +93,9 @@ func Authorize(notAuth bool, handler fiber.Handler) fiber.Handler {
 			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 		}
 		accessToken := GetAccessToken(&r)
+		if accessToken == "" {
+			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrParamVerificationFailed, errors.New("no token")))
+		}
 		p, err := store.Database.ParameterGet(accessToken)
 		if err != nil {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
