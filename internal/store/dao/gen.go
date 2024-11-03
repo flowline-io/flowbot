@@ -17,6 +17,7 @@ import (
 
 var (
 	Q                   = new(Query)
+	Agent               *agent
 	Behavior            *behavior
 	Bot                 *bot
 	Channel             *channel
@@ -57,6 +58,7 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	Agent = &Q.Agent
 	Behavior = &Q.Behavior
 	Bot = &Q.Bot
 	Channel = &Q.Channel
@@ -98,6 +100,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                  db,
+		Agent:               newAgent(db, opts...),
 		Behavior:            newBehavior(db, opts...),
 		Bot:                 newBot(db, opts...),
 		Channel:             newChannel(db, opts...),
@@ -140,6 +143,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	Agent               agent
 	Behavior            behavior
 	Bot                 bot
 	Channel             channel
@@ -183,6 +187,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:                  db,
+		Agent:               q.Agent.clone(db),
 		Behavior:            q.Behavior.clone(db),
 		Bot:                 q.Bot.clone(db),
 		Channel:             q.Channel.clone(db),
@@ -233,6 +238,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:                  db,
+		Agent:               q.Agent.replaceDB(db),
 		Behavior:            q.Behavior.replaceDB(db),
 		Bot:                 q.Bot.replaceDB(db),
 		Channel:             q.Channel.replaceDB(db),
@@ -273,6 +279,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	Agent               *agentDo
 	Behavior            *behaviorDo
 	Bot                 *botDo
 	Channel             *channelDo
@@ -313,6 +320,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		Agent:               q.Agent.WithContext(ctx),
 		Behavior:            q.Behavior.WithContext(ctx),
 		Bot:                 q.Bot.WithContext(ctx),
 		Channel:             q.Channel.WithContext(ctx),

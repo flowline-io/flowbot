@@ -235,6 +235,7 @@ func GenerationAction(c *cli.Context) error {
 		gen.FieldType("state", "ChannelState")))
 	g.ApplyBasic(g.GenerateModel("platform_channels"))
 	g.ApplyBasic(g.GenerateModel("platform_channel_users"))
+	g.ApplyBasic(g.GenerateModel("agents"))
 
 	g.ApplyBasic(g.GenerateModel("schema_migrations"))
 

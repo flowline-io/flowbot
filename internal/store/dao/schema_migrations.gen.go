@@ -27,8 +27,8 @@ func newSchemaMigration(db *gorm.DB, opts ...gen.DOOption) schemaMigration {
 
 	tableName := _schemaMigration.schemaMigrationDo.TableName()
 	_schemaMigration.ALL = field.NewAsterisk(tableName)
-	_schemaMigration.Version = field.NewInt32(tableName, "version")
-	_schemaMigration.Dirty = field.NewInt32(tableName, "dirty")
+	_schemaMigration.Version = field.NewInt64(tableName, "version")
+	_schemaMigration.Dirty = field.NewBool(tableName, "dirty")
 
 	_schemaMigration.fillFieldMap()
 
@@ -39,8 +39,8 @@ type schemaMigration struct {
 	schemaMigrationDo
 
 	ALL     field.Asterisk
-	Version field.Int32
-	Dirty   field.Int32
+	Version field.Int64
+	Dirty   field.Bool
 
 	fieldMap map[string]field.Expr
 }
@@ -57,8 +57,8 @@ func (s schemaMigration) As(alias string) *schemaMigration {
 
 func (s *schemaMigration) updateTableName(table string) *schemaMigration {
 	s.ALL = field.NewAsterisk(table)
-	s.Version = field.NewInt32(table, "version")
-	s.Dirty = field.NewInt32(table, "dirty")
+	s.Version = field.NewInt64(table, "version")
+	s.Dirty = field.NewBool(table, "dirty")
 
 	s.fillFieldMap()
 
