@@ -1,13 +1,9 @@
 package bots
 
 import (
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/ruleset/langchain"
@@ -32,7 +28,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 )
@@ -299,7 +294,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	var values types.KV = make(types.KV)
+	var values = make(types.KV)
 	if v, ok := payload.(types.FormMsg); ok {
 		for _, field := range v.Field {
 			values[field.Key] = nil
@@ -307,7 +302,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	// set extra
-	var extra types.KV = make(types.KV)
+	var extra = make(types.KV)
 
 	// store form
 	err = store.Database.FormSet(formId, model.Form{
@@ -512,67 +507,6 @@ func Behavior(uid types.Uid, flag string, number int) {
 			Count_: int32(number),
 		})
 	}
-}
-
-func ServeFile(rw http.ResponseWriter, req *http.Request, dist embed.FS, dir string) {
-	s := fs.FS(dist)
-	h, err := fs.Sub(s, dir)
-	if err != nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	vars := mux.Vars(req)
-	subpath := vars["subpath"]
-	if subpath == "" {
-		subpath = "index.html"
-	}
-
-	if strings.HasSuffix(subpath, "html") {
-		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	}
-	if strings.HasSuffix(subpath, "css") {
-		rw.Header().Set("Content-Type", "text/css; charset=utf-8")
-	}
-	if strings.HasSuffix(subpath, "js") {
-		rw.Header().Set("Content-Type", "text/javascript; charset=utf-8")
-	}
-	if strings.HasSuffix(subpath, "svg") {
-		rw.Header().Set("Content-Type", "image/svg+xml")
-	}
-
-	content, err := fs.ReadFile(h, subpath)
-	if err != nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	if subpath == "index.html" {
-		flag := req.URL.Query().Get("p")
-		if flag == "" {
-			rw.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		param, err := store.Database.ParameterGet(flag)
-		if err != nil {
-			rw.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		original, _ := types.KV(param.Params).String("original")
-		topic, _ := types.KV(param.Params).String("topic")
-		uid, _ := types.KV(param.Params).String("uid")
-
-		jsScript := fmt.Sprintf(`
-<body><script>let Global = {};Global.original = '%s';Global.topic = '%s';Global.uid = '%s';Global.flag = '%s';Global.base = '%s';</script>
-`, original, topic, uid, flag, types.AppUrl())
-
-		html := strings.ReplaceAll(utils.BytesToString(content), "<body>", jsScript)
-		content = utils.StringToBytes(html)
-	}
-
-	_, _ = rw.Write(content)
 }
 
 func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
