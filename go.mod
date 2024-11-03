@@ -15,7 +15,7 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.1.0
+	github.com/charmbracelet/bubbletea v1.1.2
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/docker v27.3.1+incompatible
@@ -34,7 +34,6 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/go-github/v66 v66.0.0
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/mux v1.8.1
 	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/hibiken/asynq v0.25.0
