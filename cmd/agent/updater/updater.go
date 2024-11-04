@@ -7,12 +7,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/google/go-github/v66/github"
 	"github.com/minio/selfupdate"
 )
@@ -26,7 +29,16 @@ func CheckUpdates() (bool, string, error) {
 	}
 	flog.Info("release latest version: %v", *release.TagName)
 
-	needsUpdate := semver.New(1, 0, 0, "", "").GreaterThan(&semver.Version{}) // todo
+	latestVersion, err := semver.NewVersion(*release.TagName)
+	if err != nil {
+		return false, "", err
+	}
+	currentVersion, err := semver.NewVersion(version.Buildtags)
+	if err != nil {
+		return false, "", err
+	}
+
+	needsUpdate := currentVersion.LessThan(latestVersion)
 
 	return needsUpdate, *release.TagName, nil
 }
@@ -38,14 +50,14 @@ func UpdateSelf() (bool, error) {
 	}
 
 	asset := utils.FindOne(release.Assets, func(asset **github.ReleaseAsset) bool {
-		return *(*asset).Name == "tpc.exe" // todo
+		return *(*asset).Name == execName()
 	})
 	if asset == nil {
 		return false, nil
 	}
 
 	flog.Info("Downloading latest version...")
-	filename := "tpc.exe.tmp" // todo
+	filename := execName() + ".tmp"
 	err = DownloadFile(*(*asset).BrowserDownloadURL, filename)
 	if err != nil {
 		return false, err
@@ -53,19 +65,18 @@ func UpdateSelf() (bool, error) {
 
 	flog.Info("Verifying checksum...")
 	checksumAsset := utils.FindOne(release.Assets, func(asset **github.ReleaseAsset) bool {
-		return *(*asset).Name == "tpc.exe.sha256" // todo
+		return *(*asset).Name == checksumsName()
 	})
 	if checksumAsset == nil {
 		return false, nil
 	}
 
-	checksumBytes := make([]byte, 64)
 	resp, err := http.Get(*(*checksumAsset).BrowserDownloadURL)
 	if err != nil {
 		return false, err
 	}
 	defer resp.Body.Close()
-	_, err = resp.Body.Read(checksumBytes)
+	checksumBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +89,7 @@ func UpdateSelf() (bool, error) {
 	if _, err := io.Copy(h, file); err != nil {
 		return false, err
 	}
-	if fmt.Sprintf("%x", h.Sum(nil)) != string(checksumBytes) {
+	if ok := findChecksum(string(checksumBytes), fmt.Sprintf("%x", h.Sum(nil))); !ok {
 		return false, fmt.Errorf("checksum mismatch. expected: %s, got: %x", checksumBytes, h.Sum(nil))
 	}
 	_ = file.Close()
@@ -175,4 +186,28 @@ func (pw *progressWriter) Write(p []byte) (int, error) {
 		pw.onProgress(float64(pw.downloaded) / float64(pw.total))
 	}
 	return len(p), nil
+}
+
+func execName() string {
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf("flowbot-agent_%s_%s.exe", runtime.GOOS, runtime.GOARCH)
+	}
+	return fmt.Sprintf("flowbot-agent_%s_%s", runtime.GOOS, runtime.GOARCH)
+}
+
+func checksumsName() string {
+	return "flowbot-agent_checksums.txt"
+}
+
+func findChecksum(text string, hash string) bool {
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		arr := strings.Split(line, "  ")
+		if len(arr) == 2 {
+			if arr[0] == hash {
+				return true
+			}
+		}
+	}
+	return false
 }
