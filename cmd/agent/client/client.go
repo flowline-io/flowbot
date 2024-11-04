@@ -101,10 +101,11 @@ func Ack(no string) error {
 	return err
 }
 
-func Online(hostid string) error {
+func Online(hostid, hostname string) error {
 	v := newFlowbot()
 	_, err := v.fetcher(types.Online, types.KV{
-		"hostid": hostid,
+		"hostid":   hostid,
+		"hostname": hostname,
 	})
 	if err != nil {
 		return err

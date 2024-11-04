@@ -357,6 +357,12 @@ type Adapter interface {
 	GetStepsByState(state model.StepState) ([]*model.Step, error)
 	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
 	GetStepsByJobId(jobId int64) ([]*model.Step, error)
+
+	GetAgents() ([]*model.Agent, error)
+	GetAgentByHostid(uid types.Uid, topic string, hostid string) (*model.Agent, error)
+	CreateAgent(agent *model.Agent) (int64, error)
+	UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid string, lastOnlineAt time.Time) error
+	UpdateAgentOnlineDuration(uid types.Uid, topic string, hostid string, offlineTime time.Time) error
 }
 
 var Database Adapter

@@ -58,6 +58,10 @@ type configType struct {
 	SqlTimeout int `json:"sql_timeout,omitempty"`
 }
 
+func Init() {
+	store.RegisterAdapter(&adapter{})
+}
+
 type adapter struct {
 	db *gorm.DB
 
@@ -1939,6 +1943,58 @@ func (a *adapter) GetChannels() ([]*model.Channel, error) {
 	return q.Find()
 }
 
-func Init() {
-	store.RegisterAdapter(&adapter{})
+func (a *adapter) GetAgents() ([]*model.Agent, error) {
+	q := dao.Q.Agent
+	return q.Find()
+}
+
+func (a *adapter) GetAgentByHostid(uid types.Uid, topic string, hostid string) (*model.Agent, error) {
+	q := dao.Q.Agent
+	return q.
+		Where(q.UID.Eq(uid.String())).
+		Where(q.Topic.Eq(topic)).
+		Where(q.Hostid.Eq(hostid)).
+		First()
+}
+
+func (a *adapter) CreateAgent(agent *model.Agent) (int64, error) {
+	q := dao.Q.Agent
+	err := q.Create(agent)
+	if err != nil {
+		return 0, err
+	}
+	return agent.ID, nil
+}
+
+func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid string, lastOnlineAt time.Time) error {
+	q := dao.Q.Agent
+	_, err := q.
+		Where(q.UID.Eq(uid.String())).
+		Where(q.Topic.Eq(topic)).
+		Where(q.Hostid.Eq(hostid)).
+		UpdateColumn(q.LastOnlineAt, lastOnlineAt)
+	return err
+}
+
+func (a *adapter) UpdateAgentOnlineDuration(uid types.Uid, topic string, hostid string, offlineTime time.Time) error {
+	agent, err := a.GetAgentByHostid(uid, topic, hostid)
+	if err != nil {
+		return err
+	}
+	if agent.LastOnlineAt.IsZero() {
+		return nil
+	}
+
+	duration := offlineTime.Sub(agent.LastOnlineAt)
+	if duration < 0 {
+		return nil
+	}
+
+	q := dao.Q.Agent
+	_, err = q.
+		Where(q.UID.Eq(uid.String())).
+		Where(q.Topic.Eq(topic)).
+		Where(q.Hostid.Eq(hostid)).
+		UpdateColumn(q.OnlineDuration, agent.OnlineDuration+int32(duration.Seconds()))
+	return err
 }

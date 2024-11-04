@@ -396,8 +396,15 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		if !ok {
 			return nil, errors.New("error hostid")
 		}
+		hostname, _ := data.Content.String("hostname")
 
-		err := event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
+		err := registerAgent(uid, "", hostid, hostname)
+		if err != nil {
+			flog.Error(err)
+			return nil, errors.New("register agent error")
+		}
+
+		err = event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
@@ -407,7 +414,12 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			return nil, errors.New("error hostid")
 		}
 
-		err := event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
+		err := store.Database.UpdateAgentOnlineDuration(uid, "", hostid, time.Now())
+		if err != nil {
+			flog.Error(fmt.Errorf("update online duration error %w", err))
+		}
+
+		err = event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
@@ -506,4 +518,33 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 
 		return channel.Flag, nil
 	}
+}
+
+func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
+	agent, err := store.Database.GetAgentByHostid(uid, topic, hostid)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if agent != nil && agent.ID > 0 {
+		err = store.Database.UpdateAgentLastOnlineAt(uid, topic, hostid, time.Now())
+		if err != nil {
+			return err
+		}
+	} else {
+		agent = &model.Agent{
+			UID:            uid.String(),
+			Topic:          topic,
+			Hostid:         hostid,
+			Hostname:       hostname,
+			OnlineDuration: 0,
+			LastOnlineAt:   time.Now(),
+		}
+		_, err := store.Database.CreateAgent(agent)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

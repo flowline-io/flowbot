@@ -27,8 +27,8 @@ func main() {
 	checkUpdate()
 
 	// info
-	hostid := hostinfo()
-	err := client.Online(hostid)
+	hostid, hostname := hostinfo()
+	err := client.Online(hostid, hostname)
 	if err != nil {
 		flog.Error(err)
 	}
