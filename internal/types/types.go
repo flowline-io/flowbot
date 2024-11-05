@@ -83,8 +83,6 @@ type DataFilter struct {
 	CreatedEnd   *time.Time
 }
 
-type SendFunc func(topic string, uid Uid, out MsgPayload, option ...interface{})
-
 // TimeNow returns current wall time in UTC rounded to milliseconds.
 func TimeNow() time.Time {
 	return time.Now().UTC().Round(time.Millisecond)
