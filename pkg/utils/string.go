@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/yaml.v3"
 	"math/big"
 	"regexp"
 	"runtime"
@@ -124,8 +125,17 @@ func FileAndLine() string {
 	return fmt.Sprintf("%s:%d", file, line)
 }
 
-func PrettyPrint(data any) {
+func PrettyPrintJsonStyle(data any) {
 	d, err := jsoniter.MarshalIndent(data, "", "  ")
+	if err != nil {
+		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
+		return
+	}
+	_, _ = fmt.Println(string(d))
+}
+
+func PrettyPrintYamlStyle(data any) {
+	d, err := yaml.Marshal(data)
 	if err != nil {
 		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
 		return

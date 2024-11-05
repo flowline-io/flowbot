@@ -3,6 +3,7 @@ package platforms
 import (
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -10,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	json "github.com/json-iterator/go"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +47,7 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Url(v.Url),
 		}
 	default:
-		s, err := json.MarshalIndent(data, "", "    ")
+		s, err := yaml.Marshal(data)
 		if err != nil {
 			flog.Error(err)
 			return nil

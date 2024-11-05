@@ -31,7 +31,7 @@ var webhookRules = []webhook.Rule{
 			}
 
 			flog.Info("[gitea] issue webhook, method: %s, action: %s", method, issue.Action)
-			utils.PrettyPrint(issue)
+			utils.PrettyPrintYamlStyle(issue)
 
 			switch issue.Action {
 			case gitea.HookIssueCreated:
