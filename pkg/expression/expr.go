@@ -5,8 +5,6 @@ import (
 	"github.com/expr-lang/expr/vm"
 )
 
-var globalEnv map[string]any
-
 func Compile(code string) (*vm.Program, error) {
 	program, err := expr.Compile(code, expr.Env(globalEnv), expr.WithContext("ctx"))
 	if err != nil {

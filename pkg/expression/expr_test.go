@@ -1,24 +1,25 @@
 package expression
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/expr-lang/expr/vm"
 )
 
+var lib = map[string]any{
+	"toInt": func(v any) int { return v.(int) + 1000 },
+}
+
 func TestRun(t *testing.T) {
-	LoadLib("dev", Lib)
+	LoadEnv("dev", lib)
 
 	//code := `Debug(input.val1 + input.val2 + max(input.val1, input.val2) + lib.toInt(input.val1))`
 	code := `dev.toInt(input.val2)`
 
-	globalEnv = NewEnv(context.Background(), map[string]any{
-		"input": map[string]any{
-			"val1": 1,
-			"val2": 2,
-		},
+	LoadEnv("input", map[string]any{
+		"val1": 1,
+		"val2": 2,
 	})
 
 	p, err := Compile(code)

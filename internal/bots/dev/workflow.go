@@ -2,7 +2,7 @@ package dev
 
 import (
 	"fmt"
-	"github.com/expr-lang/expr"
+	"github.com/flowline-io/flowbot/pkg/expression"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
@@ -337,14 +337,13 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, empty prompt", exprWorkflowActionID)
 			}
 
-			program, err := expr.Compile(script)
+			expression.LoadEnv("input", input)
+			program, err := expression.Compile(script)
 			if err != nil {
 				return nil, fmt.Errorf("%s step, expr compile failed, %w", exprWorkflowActionID, err)
 			}
 
-			result, err := expr.Run(program, map[string]any{
-				"input": input,
-			})
+			result, err := expression.Run(program)
 			if err != nil {
 				return nil, fmt.Errorf("%s step, expr run failed, %w", exprWorkflowActionID, err)
 			}
