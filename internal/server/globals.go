@@ -5,7 +5,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/workflow"
-	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 )
 
 var globals struct {
@@ -25,9 +24,6 @@ var globals struct {
 
 	// Prioritize X-Forwarded-For header as the source of IP address of the client.
 	useXForwardedFor bool
-
-	// Crawler
-	crawler *crawler.Crawler
 
 	// Cron
 	cronRuleset []*cron.Ruleset

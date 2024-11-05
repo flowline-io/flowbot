@@ -82,8 +82,6 @@ engine:
 
 flowbot:
   url: ''
-  channel_path: ''
-  download_path: ''
 
 platform:
   slack:

@@ -53,7 +53,6 @@ Loop:
 			cancel()
 
 			// Shutdown Extra
-			globals.crawler.Shutdown()
 			globals.taskQueue.Shutdown()
 			globals.manager.Shutdown()
 			globals.cronTaskManager.Shutdown()

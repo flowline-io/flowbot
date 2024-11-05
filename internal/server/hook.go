@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/channels"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -70,29 +69,6 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	stats.RegisterInt(types.BotTriggerPipelineTotalStatsName)
 
 	stats.Set(types.BotTotalStatsName, int64(len(bots.List())))
-}
-
-func hookChannel() {
-	err := channels.Init()
-	if err != nil {
-		flog.Fatal("Failed to initialize channel: %v", err)
-	}
-
-	err = initializeChannels()
-	if err != nil {
-		flog.Fatal("Failed to create or update channels: %v", err)
-	}
-
-	err = initializeCrawler()
-	if err != nil {
-		flog.Fatal("Failed to initialize crawler: %v", err)
-	}
-
-	// stats register
-	stats.RegisterInt("ChannelTotal")
-	stats.RegisterInt("ChannelPublishTotal")
-
-	stats.Set("ChannelTotal", int64(len(channels.List())))
 }
 
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {

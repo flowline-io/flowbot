@@ -7,7 +7,6 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"sort"
 	"strings"
 	"time"
 
@@ -19,8 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/channels"
-	"github.com/flowline-io/flowbot/pkg/channels/crawler"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -421,143 +418,12 @@ func initializeChatbot(signal <-chan bool) error {
 	// Initialize bots
 	hookBot(config.App.Bots, config.App.Vendors)
 
-	// Initialize channels
-	hookChannel()
-
 	// hook
 	hookStarted()
 
 	// Platform
 	hookPlatform(signal)
 
-	return nil
-}
-
-// init channels
-func initializeChannels() error {
-	// register channels
-	registerChannels := sets.NewString()
-	for name, handler := range channels.List() {
-		registerChannels.Insert(name)
-
-		state := model.ChannelInactive
-		if handler.Enable {
-			state = model.ChannelActive
-		}
-		channel, _ := store.Database.GetChannelByName(name)
-		if channel == nil {
-			channel = &model.Channel{
-				Name:  name,
-				Flag:  types.Id(),
-				State: state,
-			}
-			if _, err := store.Database.CreateChannel(channel); err != nil {
-				flog.Error(err)
-			}
-		} else {
-			channel.State = state
-			err := store.Database.UpdateChannel(channel)
-			if err != nil {
-				flog.Error(err)
-			}
-		}
-	}
-
-	// inactive channels
-	list, err := store.Database.GetChannels()
-	if err != nil {
-		flog.Error(err)
-	}
-	for _, channel := range list {
-		if !registerChannels.Has(channel.Name) {
-			channel.State = model.ChannelInactive
-			if err := store.Database.UpdateChannel(channel); err != nil {
-				flog.Error(err)
-			}
-		}
-	}
-
-	return nil
-}
-
-// init crawler
-func initializeCrawler() error {
-	c := crawler.New()
-	globals.crawler = c
-	c.Send = func(id, name string, out []map[string]string) {
-		if len(out) == 0 {
-			return
-		}
-
-		// todo find topic
-		_, _ = fmt.Println(id)
-
-		keys := []string{"No"}
-		for k := range out[0] {
-			keys = append(keys, k)
-		}
-
-		var content interface{}
-		if len(out) <= 10 {
-			sort.Strings(keys)
-			builder := types.MsgBuilder{}
-			for index, item := range out {
-				builder.AppendTextLine(fmt.Sprintf("--- %d ---", index+1), types.TextOption{})
-				for _, k := range keys {
-					if k == "No" {
-						continue
-					}
-					builder.AppendText(fmt.Sprintf("%s: ", k), types.TextOption{IsBold: true})
-					if utils.IsUrl(item[k]) {
-						builder.AppendTextLine(item[k], types.TextOption{IsLink: true})
-					} else {
-						builder.AppendTextLine(item[k], types.TextOption{})
-					}
-				}
-			}
-			_, content = builder.Content()
-		} else {
-			var row [][]interface{}
-			for index, item := range out {
-				var tmp []interface{}
-				for _, k := range keys {
-					if k == "No" {
-						tmp = append(tmp, index+1)
-						continue
-					}
-					tmp = append(tmp, item[k])
-				}
-				row = append(row, tmp)
-			}
-			title := fmt.Sprintf("Channel %s (%d)", name, len(out))
-			res := bots.StorePage(types.Context{}, model.PageTable, title, types.TableMsg{
-				Title:  title,
-				Header: keys,
-				Row:    row,
-			})
-			_, content = res.Convert()
-		}
-		if content == nil {
-			return
-		}
-
-		// stats inc
-		stats.Inc("ChannelPublishTotal", 1)
-
-		// todo send content
-		_, _ = fmt.Println("channel publish", content)
-	}
-
-	var rules []crawler.Rule
-	for _, publisher := range channels.List() {
-		rules = append(rules, *publisher)
-	}
-
-	err := c.Init(rules...)
-	if err != nil {
-		return err
-	}
-	c.Run()
 	return nil
 }
 
