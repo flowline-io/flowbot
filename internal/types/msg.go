@@ -1,12 +1,11 @@
 package types
 
 import (
-	"fmt"
-	"sort"
+	jsoniter "github.com/json-iterator/go"
+	"reflect"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type FormFieldType string
@@ -78,15 +77,7 @@ type LinkMsg struct {
 }
 
 func (a LinkMsg) Convert() (KV, interface{}) {
-	builder := MsgBuilder{Payload: a}
-	if a.Title != "" {
-		builder.AppendTextLine(a.Title, TextOption{IsBold: true})
-		builder.AppendText(a.Url, TextOption{IsLink: true})
-	} else {
-		builder.AppendText(a.Url, TextOption{IsLink: true})
-	}
-
-	return builder.Content()
+	return nil, a
 }
 
 type TableMsg struct {
@@ -105,33 +96,7 @@ type InfoMsg struct {
 }
 
 func (i InfoMsg) Convert() (KV, interface{}) {
-	builder := MsgBuilder{Payload: i}
-	// title
-	builder.AppendTextLine(i.Title, TextOption{})
-	// model
-	var m map[string]interface{}
-	switch v := i.Model.(type) {
-	case map[string]interface{}:
-		m = v
-	default:
-		d, _ := jsoniter.Marshal(i.Model)
-		_ = jsoniter.Unmarshal(d, &m)
-	}
-
-	// sort keys
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		builder.AppendText(fmt.Sprintf("%s: ", k), TextOption{IsBold: true})
-		builder.AppendText(toString(m[k]), TextOption{})
-		builder.AppendText("\n", TextOption{})
-	}
-
-	return builder.Content()
+	return nil, i
 }
 
 type ChartMsg struct {
@@ -181,4 +146,39 @@ type KVMsg map[string]any
 
 func (t KVMsg) Convert() (KV, interface{}) {
 	return nil, nil
+}
+
+func TypeOf(payload MsgPayload) string {
+	t := reflect.TypeOf(payload)
+	return t.Name()
+}
+
+func ToPayload(typ string, src []byte) MsgPayload {
+	switch typ {
+	case "TextMsg":
+		var r TextMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "LinkMsg":
+		var r LinkMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "TableMsg":
+		var r TableMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "InfoMsg":
+		var r InfoMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "ChartMsg":
+		var r ChartMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	case "KVMsg":
+		var r KVMsg
+		_ = jsoniter.Unmarshal(src, &r)
+		return r
+	}
+	return nil
 }
