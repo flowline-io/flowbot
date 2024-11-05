@@ -186,8 +186,6 @@ func un(payload types.MsgPayload) []byte {
 		return []byte(v.Text)
 	case types.InfoMsg:
 		return []byte(v.Title)
-	case types.RepoMsg:
-		return []byte(*v.FullName)
 	case types.LinkMsg:
 		return []byte(v.Url)
 	}

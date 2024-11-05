@@ -102,7 +102,9 @@ var commandRules = []command.Rule{
 				texts = append(texts, fmt.Sprintf("%s -> %s", key, time.Unix(sec, 0).Format(time.RFC3339)))
 			}
 
-			return types.TextListMsg{Texts: texts}
+			return types.KVMsg{
+				"list": texts,
+			}
 		},
 	},
 }

@@ -411,14 +411,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "qr [string]",
-		Help:   `gen QR code`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			text, _ := tokens[1].Value.String()
-			return qrEncode(text)
-		},
-	},
-	{
 		Define: "queue stats",
 		Help:   `Queue Stats page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
@@ -441,15 +433,15 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "empty create"}
 			}
 
-			return types.CrateMsg{
-				ID:            resp.Crate.ID,
-				Name:          resp.Crate.Name,
-				Description:   resp.Crate.Description,
-				Documentation: resp.Crate.Documentation,
-				Homepage:      resp.Crate.Homepage,
-				Repository:    resp.Crate.Repository,
-				NewestVersion: resp.Crate.NewestVersion,
-				Downloads:     resp.Crate.Downloads,
+			return types.KVMsg{
+				"ID":            resp.Crate.ID,
+				"Name":          resp.Crate.Name,
+				"Description":   resp.Crate.Description,
+				"Documentation": resp.Crate.Documentation,
+				"Homepage":      resp.Crate.Homepage,
+				"Repository":    resp.Crate.Repository,
+				"NewestVersion": resp.Crate.NewestVersion,
+				"Downloads":     resp.Crate.Downloads,
 			}
 		},
 	},

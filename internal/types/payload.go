@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/base64"
 	"fmt"
 	"math"
 	"reflect"
@@ -47,7 +46,7 @@ type ChatMessage struct {
 	Tye string     `json:"tye,omitempty"`
 }
 
-// GetFormattedText Get original text message, inlude original '\n'
+// GetFormattedText Get original text message, include original '\n'
 func (c ChatMessage) GetFormattedText() string {
 	if c.Text == "" {
 		return ""
@@ -302,7 +301,7 @@ func (m *MsgBuilder) AppendFile(fileName string, opt FileOption) {
 	})
 }
 
-// AppendAttachment append a attachment file to chat message
+// AppendAttachment append an attachment file to chat message
 func (m *MsgBuilder) AppendAttachment(fileName string, opt AttachmentOption) {
 	m.Message.Fmt = append(m.Message.Fmt, FmtMessage{
 		At:  utf8.RuneCountInString(m.Message.Text),
@@ -436,7 +435,7 @@ func (m *MsgBuilder) BuildFileMessage(fileName string, text string, opt FileOpti
 	return msg
 }
 
-// BuildAttachmentMessage build a attachment message
+// BuildAttachmentMessage build an attachment message
 func (m *MsgBuilder) BuildAttachmentMessage(fileName string, text string, opt AttachmentOption) ChatMessage {
 	msg := ChatMessage{}
 	msg.Text = text
@@ -574,72 +573,20 @@ func ToPayload(typ string, src []byte) MsgPayload {
 		var r TextMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
-	case "ImageMsg":
-		var r ImageMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "FileMsg":
-		var r FileMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "VideoMsg":
-		var r VideoMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "AudioMsg":
-		var r AudioMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "ScriptMsg":
-		var r ScriptMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "ActionMsg":
-		var r ActionMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
 	case "LinkMsg":
 		var r LinkMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "LocationMsg":
-		var r LocationMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "TableMsg":
 		var r TableMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
-	case "DigitMsg":
-		var r DigitMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "OkrMsg":
-		var r OkrMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
 	case "InfoMsg":
 		var r InfoMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
-	case "TodoMsg":
-		var r TodoMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
 	case "ChartMsg":
 		var r ChartMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "RepoMsg":
-		var r RepoMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "CrateMsg":
-		var r CrateMsg
-		_ = jsoniter.Unmarshal(src, &r)
-		return r
-	case "QuestionMsg":
-		var r QuestionMsg
 		_ = jsoniter.Unmarshal(src, &r)
 		return r
 	case "KVMsg":
@@ -648,30 +595,4 @@ func ToPayload(typ string, src []byte) MsgPayload {
 		return r
 	}
 	return nil
-}
-
-func ImageConvert(data []byte, name string, width, height int) ImageMsg {
-	raw := base64.StdEncoding.EncodeToString(data)
-	return ImageMsg{
-		Width:       width,
-		Height:      height,
-		Alt:         fmt.Sprintf("%s.jpg", name),
-		Mime:        "image/jpeg",
-		Size:        len(data),
-		ImageBase64: raw,
-	}
-}
-
-func ExtractText(content interface{}) string {
-	text := ""
-	if m, ok := content.(map[string]interface{}); ok {
-		if t, ok := m["txt"]; ok {
-			if s, ok := t.(string); ok {
-				text = s
-			}
-		}
-	} else if s, ok := content.(string); ok {
-		text = s
-	}
-	return text
 }

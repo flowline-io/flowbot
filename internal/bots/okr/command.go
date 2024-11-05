@@ -416,9 +416,9 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			return types.TodoMsg{
+			return types.InfoMsg{
 				Title: "Todo",
-				Todo:  items,
+				Model: items,
 			}
 		},
 	},
@@ -564,9 +564,9 @@ var commandRules = []command.Rule{
 			}
 
 			if item.ID > 0 {
-				return types.DigitMsg{
-					Title: item.Flag,
-					Digit: int(item.Digit),
+				return types.KVMsg{
+					"Title": item.Flag,
+					"Digit": int(item.Digit),
 				}
 			}
 
@@ -581,9 +581,9 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			return types.DigitMsg{
-				Title: flag,
-				Digit: 1,
+			return types.KVMsg{
+				"Title": flag,
+				"Digit": 1,
 			}
 		},
 	},
