@@ -24,7 +24,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.1
 	github.com/expr-lang/expr v1.16.9
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
-	github.com/go-echarts/go-echarts/v2 v2.4.3
+	github.com/go-echarts/go-echarts/v2 v2.4.4
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/go-resty/resty/v2 v2.15.3
 	github.com/go-sql-driver/mysql v1.8.1
