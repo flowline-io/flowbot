@@ -1813,6 +1813,14 @@ func (a *adapter) GetStepsByState(state model.StepState) ([]*model.Step, error) 
 		Find()
 }
 
+func (a *adapter) GetLastStepByState(state model.StepState) (*model.Step, error) {
+	q := dao.Q.Step
+	return q.
+		Where(q.State.Eq(state)).
+		Order(q.UpdatedAt.Desc()).
+		First()
+}
+
 func (a *adapter) GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error) {
 	q := dao.Q.Step
 	return q.

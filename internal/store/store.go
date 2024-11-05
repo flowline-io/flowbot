@@ -355,6 +355,7 @@ type Adapter interface {
 	CreateStep(step *model.Step) (int64, error)
 	CreateSteps(steps []*model.Step) error
 	GetStepsByState(state model.StepState) ([]*model.Step, error)
+	GetLastStepByState(state model.StepState) (*model.Step, error)
 	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
 	GetStepsByJobId(jobId int64) ([]*model.Step, error)
 

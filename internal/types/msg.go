@@ -244,7 +244,7 @@ func (o OkrMsg) Convert() (KV, interface{}) {
 
 type InfoMsg struct {
 	Title string      `json:"title"`
-	Model interface{} `json:"model"`
+	Model interface{} `json:"model,omitempty"`
 }
 
 func (i InfoMsg) Convert() (KV, interface{}) {

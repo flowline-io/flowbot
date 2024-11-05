@@ -90,4 +90,21 @@ var commandRules = []command.Rule{
 			return types.TextMsg{Text: "ok"}
 		},
 	},
+	{
+		Define: "task error",
+		Help:   `get workflow step's last error message`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			step, err := store.Database.GetLastStepByState(model.StepFailed)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.KVMsg{
+				"job_id":  step.JobID,
+				"node_id": step.NodeID,
+				"action":  step.Action,
+				"error":   step.Error,
+			}
+		},
+	},
 }
