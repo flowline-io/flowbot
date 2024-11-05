@@ -45,8 +45,8 @@ type TextMsg struct {
 	Text string `json:"text"`
 }
 
-func (t TextMsg) Convert() (KV, interface{}) {
-	return nil, t.Text
+func (t TextMsg) Convert() any {
+	return t
 }
 
 type FormMsg struct {
@@ -55,8 +55,8 @@ type FormMsg struct {
 	Field []FormField `json:"field"`
 }
 
-func (a FormMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (a FormMsg) Convert() any {
+	return a
 }
 
 type FormField struct {
@@ -76,8 +76,8 @@ type LinkMsg struct {
 	Url   string `json:"url"`
 }
 
-func (a LinkMsg) Convert() (KV, interface{}) {
-	return nil, a
+func (a LinkMsg) Convert() any {
+	return a
 }
 
 type TableMsg struct {
@@ -86,8 +86,8 @@ type TableMsg struct {
 	Row    [][]interface{} `json:"row"`
 }
 
-func (t TableMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (t TableMsg) Convert() any {
+	return t
 }
 
 type InfoMsg struct {
@@ -95,8 +95,8 @@ type InfoMsg struct {
 	Model interface{} `json:"model,omitempty"`
 }
 
-func (i InfoMsg) Convert() (KV, interface{}) {
-	return nil, i
+func (i InfoMsg) Convert() any {
+	return i
 }
 
 type ChartMsg struct {
@@ -106,16 +106,16 @@ type ChartMsg struct {
 	Series   []float64 `json:"series"`
 }
 
-func (t ChartMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (t ChartMsg) Convert() any {
+	return t
 }
 
 type HtmlMsg struct {
 	Raw string
 }
 
-func (m HtmlMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (m HtmlMsg) Convert() any {
+	return m
 }
 
 type MarkdownMsg struct {
@@ -123,8 +123,8 @@ type MarkdownMsg struct {
 	Raw   string `json:"raw"`
 }
 
-func (m MarkdownMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (m MarkdownMsg) Convert() any {
+	return m
 }
 
 type InstructMsg struct {
@@ -138,14 +138,14 @@ type InstructMsg struct {
 	ExpireAt time.Time
 }
 
-func (t InstructMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (t InstructMsg) Convert() any {
+	return t
 }
 
 type KVMsg map[string]any
 
-func (t KVMsg) Convert() (KV, interface{}) {
-	return nil, nil
+func (t KVMsg) Convert() any {
+	return t
 }
 
 func TypeOf(payload MsgPayload) string {

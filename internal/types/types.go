@@ -9,7 +9,7 @@ import (
 )
 
 type MsgPayload interface {
-	Convert() (KV, interface{})
+	Convert() any
 }
 
 type EventPayload struct {
