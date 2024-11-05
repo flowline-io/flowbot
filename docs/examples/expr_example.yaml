@@ -1,0 +1,28 @@
+---
+name: example message
+describe: do something...
+
+triggers:
+  - type: manual # cron, manual, webhook
+  - type: webhook
+
+pipeline:
+  - expr1 -> expr2 -> end
+
+tasks:
+  - id: expr1
+    action: expr@dev
+    params:
+      script: input.param1 + input.param2
+      param1: 1
+      param2: 1
+
+  - id: expr2
+    action: expr@dev
+    params:
+      script: input
+      param1: 1
+      param2: 1
+
+  - id: end
+    action: end@dev

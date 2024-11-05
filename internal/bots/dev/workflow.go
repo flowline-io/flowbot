@@ -2,6 +2,7 @@ package dev
 
 import (
 	"fmt"
+	"github.com/expr-lang/expr"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
@@ -31,6 +32,7 @@ const (
 	torrentWorkflowActionID = "torrent"
 	websiteWorkflowActionID = "website"
 	llmWorkflowActionID     = "llm"
+	exprWorkflowActionID    = "expr"
 )
 
 var workflowRules = []workflow.Rule{
@@ -321,6 +323,46 @@ var workflowRules = []workflow.Rule{
 			return types.KV{
 				"text": text,
 			}, nil
+		},
+	},
+	{
+		Id:           exprWorkflowActionID,
+		Title:        "expr",
+		Desc:         "expr-lang expression",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			script, _ := input.String("script")
+			if script == "" {
+				return nil, fmt.Errorf("%s step, empty prompt", exprWorkflowActionID)
+			}
+
+			program, err := expr.Compile(script)
+			if err != nil {
+				return nil, fmt.Errorf("%s step, expr compile failed, %w", exprWorkflowActionID, err)
+			}
+
+			result, err := expr.Run(program, map[string]any{
+				"input": input,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("%s step, expr run failed, %w", exprWorkflowActionID, err)
+			}
+
+			switch v := result.(type) {
+			case types.KV:
+				return v, nil
+			case map[string]any:
+				return v, nil
+			case []any, []types.KV, []map[string]any:
+				return types.KV{
+					"list": v,
+				}, nil
+			default:
+				return types.KV{
+					"data": v,
+				}, nil
+			}
 		},
 	},
 }
