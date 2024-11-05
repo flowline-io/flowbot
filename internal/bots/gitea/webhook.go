@@ -1,8 +1,8 @@
 package gitea
 
 import (
-	"github.com/flowline-io/flowbot/internal/ruleset/webhook"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/utils"

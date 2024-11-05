@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/redis/go-redis/v9"
 )

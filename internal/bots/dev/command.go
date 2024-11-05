@@ -11,10 +11,10 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/command"
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"

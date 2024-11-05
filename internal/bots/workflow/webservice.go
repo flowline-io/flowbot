@@ -2,11 +2,11 @@ package workflow
 
 import (
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/ruleset/webservice"
-	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/gofiber/fiber/v2"
 )

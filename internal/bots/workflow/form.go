@@ -3,15 +3,14 @@ package workflow
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/form"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/workflow"
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/yaml.v3"
 	"strings"
-
-	"github.com/flowline-io/flowbot/internal/ruleset/form"
-	"github.com/flowline-io/flowbot/internal/types"
 )
 
 const (

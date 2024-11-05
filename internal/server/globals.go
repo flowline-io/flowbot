@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/ruleset/cron"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/workflow"
 )
 

@@ -1,8 +1,8 @@
 package dev
 
 import (
-	"github.com/flowline-io/flowbot/internal/ruleset/collect"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/collect"
 )
 
 const (

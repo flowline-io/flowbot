@@ -2,13 +2,11 @@ package dev
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/expression"
-	"time"
-
-	"github.com/flowline-io/flowbot/internal/ruleset/workflow"
 	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/internal/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/expression"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
@@ -17,6 +15,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
+	"time"
 )
 
 const (
