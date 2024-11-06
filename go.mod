@@ -15,7 +15,7 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.1.2
+	github.com/charmbracelet/bubbletea v1.2.0
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/docker v27.3.1+incompatible
@@ -92,7 +92,7 @@ require (
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
-	github.com/charmbracelet/x/ansi v0.4.2 // indirect
+	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/charmbracelet/x/term v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
