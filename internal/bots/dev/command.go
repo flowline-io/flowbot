@@ -2,20 +2,14 @@ package dev
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"math/big"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/command"
-	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
@@ -23,14 +17,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
-	"github.com/flowline-io/flowbot/pkg/providers/crates"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
-	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/flowline-io/flowbot/pkg/providers/victoriametrics"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/google/uuid"
-	statsLib "github.com/montanaflynn/stats"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 )
@@ -44,74 +35,10 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "webapp",
-		Help:   `webapp`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.LinkMsg{Url: bots.AppURL(ctx, Name, nil), Title: "webapp"}
-		},
-	},
-	{
-		Define: "rand [number] [number]",
-		Help:   `Generate random numbers`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			minNum, _ := tokens[1].Value.Int64()
-			maxNum, _ := tokens[2].Value.Int64()
-
-			nBing, err := rand.Int(rand.Reader, big.NewInt(maxNum+1-minNum))
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			t := nBing.Int64() + minNum
-
-			return types.TextMsg{Text: strconv.FormatInt(t, 10)}
-		},
-	},
-	{
 		Define: "id",
 		Help:   `Generate random id`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return types.TextMsg{Text: types.Id()}
-		},
-	},
-	{
-		Define: "md5 [string]",
-		Help:   `md5 encode`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			txt, _ := tokens[1].Value.String()
-			return types.TextMsg{Text: utils.MD5(txt)}
-		},
-	},
-	{
-		Define: "sha1 [string]",
-		Help:   `sha1 encode`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			txt, _ := tokens[1].Value.String()
-			return types.TextMsg{Text: utils.SHA1(txt)}
-		},
-	},
-	{
-		Define: "uuid",
-		Help:   `UUID Generator`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.TextMsg{Text: uuid.New().String()}
-		},
-	},
-	{
-		Define: "ts [number]",
-		Help:   `timestamp format`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			num, _ := tokens[1].Value.Int64()
-			t := time.Unix(num, 0)
-			return types.TextMsg{Text: t.Format(time.RFC3339)}
-		},
-	},
-	{
-		Define: "echo [any]",
-		Help:   "print",
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			val := tokens[1].Value.Source
-			return types.TextMsg{Text: fmt.Sprintf("%v", val)}
 		},
 	},
 	{
@@ -212,116 +139,7 @@ var commandRules = []command.Rule{
 			return types.TextMsg{Text: task.Result}
 		},
 	},
-	{
-		Define: "workflow stat",
-		Help:   `workflow job statisticians`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			jobs, err := store.Database.GetJobsByState(model.JobSucceeded)
-			if err != nil {
-				flog.Error(err)
-				return types.TextMsg{Text: err.Error()}
-			}
-			steps, err := store.Database.GetStepsByState(model.StepSucceeded)
-			if err != nil {
-				flog.Error(err)
-				return types.TextMsg{Text: err.Error()}
-			}
 
-			jobElapsed := make([]float64, 0, len(jobs))
-			for _, job := range jobs {
-				if job.StartedAt == nil || job.EndedAt == nil {
-					continue
-				}
-				elapsed := job.EndedAt.Sub(*job.StartedAt).Seconds()
-				if elapsed < 0 {
-					continue
-				}
-				jobElapsed = append(jobElapsed, elapsed)
-			}
-
-			stepElapsed := make([]float64, 0, len(steps))
-			for _, step := range steps {
-				if step.StartedAt == nil || step.EndedAt == nil {
-					continue
-				}
-				elapsed := step.EndedAt.Sub(*step.StartedAt).Seconds()
-				if elapsed < 0 {
-					continue
-				}
-				stepElapsed = append(stepElapsed, elapsed)
-			}
-
-			str := strings.Builder{}
-			minVal, _ := statsLib.Min(jobElapsed)
-			medianVal, _ := statsLib.Median(jobElapsed)
-			maxVal, _ := statsLib.Max(jobElapsed)
-			avgVal, _ := statsLib.Mean(jobElapsed)
-			varVal, _ := statsLib.Variance(jobElapsed)
-			_, _ = str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
-				len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
-
-			minVal, _ = statsLib.Min(stepElapsed)
-			medianVal, _ = statsLib.Median(stepElapsed)
-			maxVal, _ = statsLib.Max(stepElapsed)
-			avgVal, _ = statsLib.Mean(stepElapsed)
-			varVal, _ = statsLib.Variance(stepElapsed)
-			_, _ = str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
-				len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
-
-			return types.TextMsg{Text: str.String()}
-		},
-	},
-	{
-		Define: "workflow queue",
-		Help:   `workflow queue statisticians`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			inspector := workflow.GetInspector()
-			queues, err := inspector.Queues()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			str := strings.Builder{}
-			for _, queueName := range queues {
-				info, err := inspector.GetQueueInfo(queueName)
-				if err != nil {
-					return types.TextMsg{Text: err.Error()}
-				}
-
-				_, _ = str.WriteString(fmt.Sprintf("queue %s: size %d memory %v processed %d failed %d \n",
-					info.Queue, info.Size, humanize.Bytes(uint64(info.MemoryUsage)), info.Processed, info.Failed))
-			}
-
-			return types.TextMsg{Text: str.String()}
-		},
-	},
-	{
-		Define: "workflow history",
-		Help:   `workflow task history`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			inspector := workflow.GetInspector()
-			queues, err := inspector.Queues()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			str := strings.Builder{}
-			for _, queueName := range queues {
-				stats, err := inspector.History(queueName, 7)
-				if err != nil {
-					return types.TextMsg{Text: err.Error()}
-				}
-				_, _ = str.WriteString(fmt.Sprintf("queue %s:", queueName))
-				for _, info := range stats {
-					_, _ = str.WriteString(fmt.Sprintf("%s -> processed %d failed %d, ",
-						info.Date.Format(time.DateOnly), info.Processed, info.Failed))
-				}
-				_, _ = str.WriteString("\n")
-			}
-
-			return types.TextMsg{Text: str.String()}
-		},
-	},
 	{
 		Define: "torrent demo",
 		Help:   `[example] torrent download demo`,
@@ -377,41 +195,16 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "bookmarks",
-		Help:   `get bookmarks`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(shiori.ID, shiori.EndpointKey)
-			username, _ := providers.GetConfig(shiori.ID, shiori.UsernameKey)
-			password, _ := providers.GetConfig(shiori.ID, shiori.PasswordKey)
-			client := shiori.NewShiori(endpoint.String())
-			_, err := client.Login(username.String(), password.String())
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			resp, err := client.GetBookmarks()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			return types.TextMsg{Text: fmt.Sprintf("bookmarks count %d, page size %d", len(resp.Bookmarks), resp.Page)}
-		},
-	},
-	{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			stats.BotTotalCounter().Add(10)
-			stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
+			resp, err := victoriametrics.NewVictoriaMetrics().Query(stats.BotTotalStatsName)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			utils.PrettyPrintJsonStyle(resp)
 
 			return types.TextMsg{Text: "test"}
-		},
-	},
-	{
-		Define: "url [string]",
-		Help:   `gen shortcut`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.TextMsg{Text: "empty"}
 		},
 	},
 	{
@@ -419,34 +212,6 @@ var commandRules = []command.Rule{
 		Help:   `Queue Stats page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
-		},
-	},
-	{
-		Define: "crate [string]",
-		Help:   `crate info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			name, _ := tokens[1].Value.String()
-
-			api := crates.NewCrates()
-			resp, err := api.Info(name)
-			if err != nil {
-				flog.Error(err)
-				return types.TextMsg{Text: "error create"}
-			}
-			if resp == nil || resp.Crate.ID == "" {
-				return types.TextMsg{Text: "empty create"}
-			}
-
-			return types.KVMsg{
-				"ID":            resp.Crate.ID,
-				"Name":          resp.Crate.Name,
-				"Description":   resp.Crate.Description,
-				"Documentation": resp.Crate.Documentation,
-				"Homepage":      resp.Crate.Homepage,
-				"Repository":    resp.Crate.Repository,
-				"NewestVersion": resp.Crate.NewestVersion,
-				"Downloads":     resp.Crate.Downloads,
-			}
 		},
 	},
 	{

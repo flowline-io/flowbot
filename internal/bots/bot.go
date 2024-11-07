@@ -190,21 +190,6 @@ func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
 	return fmt.Sprintf("%s/service/%s%s?p=%s", types.AppUrl(), group, path, flag)
 }
 
-func AppURL(ctx types.Context, name string, param types.KV) string {
-	if param == nil {
-		param = types.KV{}
-	}
-	param["platform"] = ctx.Platform
-	param["topic"] = ctx.Topic
-	param["uid"] = ctx.AsUser.String()
-	flag, err := StoreParameter(param, time.Now().Add(time.Hour))
-	if err != nil {
-		return ""
-	}
-
-	return fmt.Sprintf("%s/app/%s/?p=%s", types.AppUrl(), name, flag)
-}
-
 func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 	ruleset := cron.NewCronRuleset(name, cronRules)
 	ruleset.Daemon()

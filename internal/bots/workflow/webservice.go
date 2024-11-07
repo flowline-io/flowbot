@@ -150,9 +150,9 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Success	200		{object}	protocol.Response
 //	@Router		/workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
-	uid := route.GetUid(ctx)
-	topic := route.GetTopic(ctx)
-	id := route.GetIntParam(ctx, "id")
+	// uid := route.GetUid(ctx)
+	// topic := route.GetTopic(ctx)
+	// id := route.GetIntParam(ctx, "id")
 
 	script := new(model.WorkflowScript)
 	err := ctx.BodyParser(&script)
@@ -169,12 +169,12 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
 	}
 
-	item := new(model.Workflow)
-	item.UID = uid.String()
-	item.Topic = topic
-	item.ID = id
-	item.Name = wf.Name
-	item.Describe = wf.Describe
+	// item := new(model.Workflow)
+	// item.UID = uid.String()
+	// item.Topic = topic
+	// item.ID = id
+	// item.Name = wf.Name
+	// item.Describe = wf.Describe
 	err = store.Database.UpdateWorkflow(wf, script, dag, triggers)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))

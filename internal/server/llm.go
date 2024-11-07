@@ -27,7 +27,7 @@ func updateMessageHistory(messageHistory []llms.MessageContent, resp *llms.Conte
 
 // executeToolCalls executes the tool calls in the response and returns the
 // updated message history.
-func executeToolCalls(ctx types.Context, llm llms.Model, messageHistory []llms.MessageContent, resp *llms.ContentResponse) ([]llms.MessageContent, error) {
+func executeToolCalls(ctx types.Context, _ llms.Model, messageHistory []llms.MessageContent, resp *llms.ContentResponse) ([]llms.MessageContent, error) {
 	flog.Info("[LLM] Executing %d tool calls", len(resp.Choices[0].ToolCalls))
 	for _, toolCall := range resp.Choices[0].ToolCalls {
 		flog.Info("[LLM] Executing tool call: %s with arguments: %s", toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)

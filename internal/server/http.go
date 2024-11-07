@@ -5,10 +5,8 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -66,19 +64,4 @@ Loop:
 		}
 	}
 	return nil
-}
-
-// debugDump is server internal state dump for debugging.
-type debugDump struct {
-	Version   string    `json:"server_version,omitempty"`
-	Build     string    `json:"build_id,omitempty"`
-	Timestamp time.Time `json:"ts,omitempty"`
-}
-
-func serveStatus(ctx *fiber.Ctx) error {
-	return ctx.JSON(&debugDump{
-		Version:   version.Buildtags,
-		Build:     version.Buildstamp,
-		Timestamp: types.TimeNow(),
-	})
 }
