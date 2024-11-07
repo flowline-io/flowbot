@@ -154,3 +154,6 @@ vendors:
   slash:
     endpoint: ''
     token: ''
+  hoarder:
+    endpoint: ''
+    api_key: ''
