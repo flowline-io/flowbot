@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	BotTotalStatsName    = "bot_total"
-	BotRunTotalStatsName = "bot_run_total"
+	BotTotalStatsName      = "bot_total"
+	BotRunTotalStatsName   = "bot_run_total"
+	BookmarkTotalStatsName = "bookmark_total"
 )
 
 type RulesetLabel string
@@ -28,4 +29,8 @@ func BotTotalCounter() *metrics.Counter {
 
 func BotRunTotalCounter(rulesetLabel RulesetLabel) *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{ruleset="%s",version="%s"}`, BotRunTotalStatsName, rulesetLabel, version.Buildtags))
+}
+
+func BookmarkTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, BookmarkTotalStatsName, version.Buildtags))
 }
