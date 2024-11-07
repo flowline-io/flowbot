@@ -216,7 +216,7 @@ func initializeConfig() error {
 }
 
 func initializeHttp() error {
-	// Set up HTTP server. Must use non-default mux because of expvar.
+	// Set up HTTP server.
 	httpApp = fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 
@@ -501,7 +501,13 @@ func initializeEvent() error {
 }
 
 func initializeMetrics() error {
-	// todo InitPushWithOptions
-	return metrics.InitPush(fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),
-		10*time.Second, fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags), true)
+	return metrics.InitPushWithOptions(
+		context.Background(),
+		fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),
+		10*time.Second,
+		true,
+		&metrics.PushOptions{
+			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
+		},
+	)
 }

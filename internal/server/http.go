@@ -44,9 +44,6 @@ Loop:
 				flog.Error(err)
 			}
 
-			// Stop publishing statistics.
-			// todo metrics stop
-
 			cancel()
 
 			// Shutdown Extra
