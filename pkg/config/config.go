@@ -50,6 +50,9 @@ type configType struct {
 	// Engine
 	Engine Engine `json:"engine" yaml:"engine" mapstructure:"engine"`
 
+	// Metrics
+	Metrics Metrics `json:"metrics" yaml:"metrics" mapstructure:"metrics"`
+
 	// Project
 	Flowbot Flowbot `json:"flowbot" yaml:"flowbot" mapstructure:"flowbot"`
 }
@@ -176,6 +179,10 @@ type Engine struct {
 		Username string `json:"username" yaml:"username" mapstructure:"username"`
 		Password string `json:"password" yaml:"password" mapstructure:"password"`
 	} `json:"machine" yaml:"machine" mapstructure:"machine"`
+}
+
+type Metrics struct {
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 }
 
 type Flowbot struct {

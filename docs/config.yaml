@@ -80,6 +80,9 @@ engine:
     username: ''
     password: ''
 
+metrics:
+  endpoint: 'http://127.0.0.1:8428'
+
 flowbot:
   url: ''
 

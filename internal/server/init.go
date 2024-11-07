@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -143,6 +144,12 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Chatbot ok")
+
+	// init metrics
+	if err = initializeMetrics(); err != nil {
+		return err
+	}
+	flog.Info("initialize Metrics ok")
 
 	return nil
 }
@@ -530,4 +537,9 @@ func initializeEvent() error {
 	}()
 
 	return nil
+}
+
+func initializeMetrics() error {
+	return metrics.InitPush(fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),
+		10*time.Second, fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags), true)
 }

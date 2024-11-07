@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -400,6 +401,9 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			requestsTotal := metrics.GetOrCreateCounter("requests_total")
+			requestsTotal.Set(uint64(time.Now().Unix()))
+
 			return types.TextMsg{Text: "test"}
 		},
 	},
