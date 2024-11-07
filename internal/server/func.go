@@ -160,7 +160,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 			// stats
 			if payload != nil {
-				stats.Inc(types.BotRunCommandTotalStatsName, 1)
+				stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
 			}
 		}
 
@@ -348,7 +348,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			}
 
 			// stats
-			stats.Inc(types.BotRunAgentTotalStatsName, 1)
+			stats.BotRunTotalCounter(stats.AgentRuleset).Inc()
 
 			// send message
 			if payload == nil {

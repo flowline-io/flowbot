@@ -2,16 +2,15 @@ package server
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/version"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/version"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -57,18 +56,7 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 		flog.Fatal("Failed to initialize workflow: %v", err)
 	}
 
-	// stats register
-	stats.RegisterInt(types.BotTotalStatsName)
-	stats.RegisterInt(types.BotRunInputTotalStatsName)
-	stats.RegisterInt(types.BotRunGroupTotalStatsName)
-	stats.RegisterInt(types.BotRunAgentTotalStatsName)
-	stats.RegisterInt(types.BotRunCommandTotalStatsName)
-	stats.RegisterInt(types.BotRunConditionTotalStatsName)
-	stats.RegisterInt(types.BotRunCronTotalStatsName)
-	stats.RegisterInt(types.BotRunFormTotalStatsName)
-	stats.RegisterInt(types.BotTriggerPipelineTotalStatsName)
-
-	stats.Set(types.BotTotalStatsName, int64(len(bots.List())))
+	stats.BotTotalCounter().Set(uint64(len(bots.List())))
 }
 
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {

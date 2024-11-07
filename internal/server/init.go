@@ -23,7 +23,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
-	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
@@ -47,14 +46,12 @@ var (
 	httpApp *fiber.App
 	// flag variables
 	appFlag struct {
-		configFile       *string
-		listenOn         *string
-		apiPath          *string
-		tlsEnabled       *bool
-		expvarPath       *string
-		serverStatusPath *string
-		pprofFile        *string
-		pprofUrl         *string
+		configFile *string
+		listenOn   *string
+		apiPath    *string
+		tlsEnabled *bool
+		pprofFile  *string
+		pprofUrl   *string
 	}
 )
 
@@ -90,12 +87,6 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Http ok")
-
-	// init stats
-	if err = initializeStats(); err != nil {
-		return err
-	}
-	flog.Info("initialize Stats ok")
 
 	// init pprof
 	if err = initializePprof(); err != nil {
@@ -172,9 +163,6 @@ func initializeFlag() error {
 	appFlag.listenOn = pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
 	appFlag.apiPath = pflag.String("api_path", "", "Override the base URL path where API is served.")
 	appFlag.tlsEnabled = pflag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
-	appFlag.expvarPath = pflag.String("expvar", "", "Override the URL path where runtime stats are exposed. Use '-' to disable.")
-	appFlag.serverStatusPath = pflag.String("server_status", "",
-		"Override the URL path where the server's internal status is displayed. Use '-' to disable.")
 	appFlag.pprofFile = pflag.String("pprof", "", "File name to save profiling info to. Disabled if not set.")
 	appFlag.pprofUrl = pflag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
 	pflag.Parse()
@@ -274,32 +262,6 @@ func initializeHttp() error {
 	return nil
 }
 
-func initializeStats() error {
-	// Exposing values for statistics and monitoring.
-	evpath := *appFlag.expvarPath
-	if evpath == "" {
-		evpath = config.App.ExpvarPath
-	}
-	stats.Init(httpApp, evpath)
-	stats.RegisterInt("Version")
-	decVersion := utils.Base10Version(utils.ParseVersion(version.Buildstamp))
-	if decVersion <= 0 {
-		decVersion = utils.Base10Version(utils.ParseVersion(version.Buildtags))
-	}
-	stats.Set("Version", decVersion)
-
-	sspath := *appFlag.serverStatusPath
-	if sspath == "" || sspath == "-" {
-		sspath = config.App.ServerStatusPath
-	}
-	if sspath != "" && sspath != "-" {
-		flog.Debug("Server status is available at '%s'", sspath)
-		httpApp.Get(sspath, serveStatus)
-	}
-
-	return nil
-}
-
 func initializePprof() error {
 	// Initialize serving debug profiles (optional).
 	pprofs.ServePprof(httpApp, *appFlag.pprofUrl)
@@ -362,7 +324,6 @@ func initializeDatabase() error {
 		}
 		flog.Debug("Closed database connection(s)")
 	}()
-	stats.RegisterDbStats()
 
 	// migrate
 	if err := store.Migrate(); err != nil {
@@ -540,6 +501,7 @@ func initializeEvent() error {
 }
 
 func initializeMetrics() error {
+	// todo InitPushWithOptions
 	return metrics.InitPush(fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),
 		10*time.Second, fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags), true)
 }

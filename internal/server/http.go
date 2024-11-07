@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 )
@@ -48,7 +47,7 @@ Loop:
 			}
 
 			// Stop publishing statistics.
-			stats.Shutdown()
+			// todo metrics stop
 
 			cancel()
 

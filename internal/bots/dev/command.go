@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
 	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -28,9 +27,10 @@ import (
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/shiori"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/google/uuid"
-	"github.com/montanaflynn/stats"
+	statsLib "github.com/montanaflynn/stats"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 )
@@ -252,19 +252,19 @@ var commandRules = []command.Rule{
 			}
 
 			str := strings.Builder{}
-			minVal, _ := stats.Min(jobElapsed)
-			medianVal, _ := stats.Median(jobElapsed)
-			maxVal, _ := stats.Max(jobElapsed)
-			avgVal, _ := stats.Mean(jobElapsed)
-			varVal, _ := stats.Variance(jobElapsed)
+			minVal, _ := statsLib.Min(jobElapsed)
+			medianVal, _ := statsLib.Median(jobElapsed)
+			maxVal, _ := statsLib.Max(jobElapsed)
+			avgVal, _ := statsLib.Mean(jobElapsed)
+			varVal, _ := statsLib.Variance(jobElapsed)
 			_, _ = str.WriteString(fmt.Sprintf("Jobs total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
 				len(jobElapsed), minVal, medianVal, maxVal, avgVal, varVal))
 
-			minVal, _ = stats.Min(stepElapsed)
-			medianVal, _ = stats.Median(stepElapsed)
-			maxVal, _ = stats.Max(stepElapsed)
-			avgVal, _ = stats.Mean(stepElapsed)
-			varVal, _ = stats.Variance(stepElapsed)
+			minVal, _ = statsLib.Min(stepElapsed)
+			medianVal, _ = statsLib.Median(stepElapsed)
+			maxVal, _ = statsLib.Max(stepElapsed)
+			avgVal, _ = statsLib.Mean(stepElapsed)
+			varVal, _ = statsLib.Variance(stepElapsed)
 			_, _ = str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
 				len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
 
@@ -372,7 +372,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d，avg processing time %f ms",
+			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d, avg processing time %f ms",
 				resp.NumDnsQueries, resp.NumBlockedFiltering, resp.AvgProcessingTime*1000)}
 		},
 	},
@@ -401,8 +401,8 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			requestsTotal := metrics.GetOrCreateCounter("requests_total")
-			requestsTotal.Set(uint64(time.Now().Unix()))
+			stats.BotTotalCounter().Add(10)
+			stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
 
 			return types.TextMsg{Text: "test"}
 		},

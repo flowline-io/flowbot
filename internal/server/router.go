@@ -334,7 +334,7 @@ func postForm(ctx *fiber.Ctx) error {
 		}
 
 		// stats
-		stats.Inc(types.BotRunFormTotalStatsName, 1)
+		stats.BotRunTotalCounter(stats.FormRuleset).Inc()
 
 		if payload == nil {
 			return ctx.JSON(protocol.NewSuccessResponse("empty message"))
