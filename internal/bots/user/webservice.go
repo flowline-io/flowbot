@@ -4,11 +4,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v2"
 )
 
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/dashboard", dashboard),
+	webservice.Get("/metrics", metrics),
 }
 
 // dashboard show dashboard data
@@ -22,5 +24,20 @@ var webserviceRules = []webservice.Rule{
 func dashboard(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		"title": "example",
+	}))
+}
+
+// metrics show metrics data
+//
+//	@Summary	Show metrics
+//	@Tags		dev
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Router		/user/widget [get]
+func metrics(ctx *fiber.Ctx) error {
+	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
+		stats.BookmarkTotalStatsName: 10,
+		stats.BotRunTotalStatsName:   10,
 	}))
 }
