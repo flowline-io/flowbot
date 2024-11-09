@@ -29,7 +29,8 @@ func (c Client) AddDocument(data Document) error {
 
 	// add
 	taskInfo, err := c.manager.Index(indexName).AddDocuments(types.KV{
-		"id":          idKey(data.Source, data.Id),
+		"id":          idKey(data.Source, data.SourceId),
+		"source_id":   data.SourceId,
 		"source":      data.Source,
 		"title":       data.Title,
 		"description": data.Description,

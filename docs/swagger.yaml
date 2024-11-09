@@ -1026,6 +1026,44 @@ paths:
       summary: objective list
       tags:
       - okr
+  /search/autocomplete:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      summary: search autocomplete
+      tags:
+      - dev
+  /search/query:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      summary: search everything
+      tags:
+      - dev
   /user/dashboard:
     get:
       consumes:
@@ -1043,6 +1081,25 @@ paths:
                   $ref: '#/definitions/types.KV'
               type: object
       summary: Show dashboard
+      tags:
+      - dev
+  /user/widget:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      summary: Show metrics
       tags:
       - dev
   /workflow/actions:

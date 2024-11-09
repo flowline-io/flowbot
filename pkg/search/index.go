@@ -11,6 +11,7 @@ const indexName = "data"
 
 type Document struct {
 	Id          string `json:"id"`
+	SourceId    string `json:"source_id"`
 	Source      string `json:"source"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -26,6 +27,7 @@ func InitSearch() error {
 	taskInfo, err := NewClient().manager.Index(indexName).UpdateSettings(&meilisearch.Settings{
 		SortableAttributes:   []string{"created_at"},
 		FilterableAttributes: []string{"source"},
+		SearchableAttributes: []string{"source_id", "source", "title", "description"},
 	})
 	flog.Info("[search] index %s update settings status: %v", indexName, taskInfo.Status)
 

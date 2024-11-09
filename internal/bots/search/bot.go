@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -29,7 +30,6 @@ type configType struct {
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {
-
 	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
@@ -63,6 +63,7 @@ func (b bot) Rules() []interface{} {
 		commandRules,
 		cronRules,
 		collectRules,
+		webserviceRules,
 	}
 }
 
@@ -76,4 +77,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 
 func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	return bots.RunCollect(collectRules, ctx, content)
+}
+
+func (bot) Webservice(app *fiber.App) {
+	bots.Webservice(app, Name, webserviceRules)
 }

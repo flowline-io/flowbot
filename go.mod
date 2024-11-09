@@ -29,6 +29,7 @@ require (
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/go-resty/resty/v2 v2.15.3
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/goccy/go-json v0.10.3
 	github.com/gofiber/contrib/fiberzerolog v1.0.2
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/swagger v1.1.0
@@ -121,7 +122,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4 // indirect
-	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect

@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/search"
@@ -199,11 +200,11 @@ var commandRules = []command.Rule{
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			err := search.NewClient().AddDocument(search.Document{
-				Id:          types.Id(),
-				Source:      gitea.Name,
-				Title:       "title....",
-				Description: "desc....",
-				Url:         "/repo/test/test",
+				SourceId:    types.Id(),
+				Source:      hoarder.ID,
+				Title:       "test....",
+				Description: "the....",
+				Url:         "/url/test",
 				CreatedAt:   int32(time.Now().Unix()),
 			})
 			if err != nil {

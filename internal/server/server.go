@@ -17,6 +17,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/markdown"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
+	_ "github.com/flowline-io/flowbot/internal/bots/search"
 	_ "github.com/flowline-io/flowbot/internal/bots/server"
 	_ "github.com/flowline-io/flowbot/internal/bots/torrent"
 	_ "github.com/flowline-io/flowbot/internal/bots/user"
