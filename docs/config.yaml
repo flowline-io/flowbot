@@ -83,6 +83,10 @@ engine:
 metrics:
   endpoint: 'http://127.0.0.1:8428'
 
+search:
+  endpoint: 'http://127.0.0.1:7700'
+  master_key: ''
+
 flowbot:
   url: ''
 

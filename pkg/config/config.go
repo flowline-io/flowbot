@@ -53,6 +53,9 @@ type configType struct {
 	// Metrics
 	Metrics Metrics `json:"metrics" yaml:"metrics" mapstructure:"metrics"`
 
+	// Search
+	Search Search `json:"search" yaml:"search" mapstructure:"search"`
+
 	// Project
 	Flowbot Flowbot `json:"flowbot" yaml:"flowbot" mapstructure:"flowbot"`
 }
@@ -183,6 +186,11 @@ type Engine struct {
 
 type Metrics struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+}
+
+type Search struct {
+	Endpoint  string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	MasterKey string `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
 }
 
 type Flowbot struct {

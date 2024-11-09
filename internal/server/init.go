@@ -23,6 +23,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
@@ -141,6 +142,12 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Metrics ok")
+
+	// init search
+	if err = initializeSearch(); err != nil {
+		return err
+	}
+	flog.Info("initialize Search ok")
 
 	return nil
 }
@@ -510,4 +517,8 @@ func initializeMetrics() error {
 			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
 		},
 	)
+}
+
+func initializeSearch() error {
+	return search.InitSearch()
 }

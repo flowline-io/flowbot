@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/bots/gitea"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/command"
@@ -19,8 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
-	"github.com/flowline-io/flowbot/pkg/providers/victoriametrics"
-	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -198,13 +198,27 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			resp, err := victoriametrics.NewVictoriaMetrics().Query(stats.BotTotalStatsName)
+			err := search.NewClient().AddDocument(search.Document{
+				Id:          types.Id(),
+				Source:      gitea.Name,
+				Title:       "title....",
+				Description: "desc....",
+				Url:         "/repo/test/test",
+				CreatedAt:   int32(time.Now().Unix()),
+			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			utils.PrettyPrintJsonStyle(resp)
 
-			return types.TextMsg{Text: "test"}
+			list, total, err := search.NewClient().Search(gitea.Name, "title", 1, 10)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.InfoMsg{
+				Title: fmt.Sprintf("documents %v", total),
+				Model: list,
+			}
 		},
 	},
 	{
