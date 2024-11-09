@@ -14,11 +14,11 @@ import (
 //go:embed tmpl/main.tmpl
 var mainTemple string
 
-//go:embed tmpl/agent.tmpl
-var agentTemple string
+//go:embed tmpl/collect.tmpl
+var collectTemple string
 
-//go:embed tmpl/agent_func.tmpl
-var agentFuncTemple string
+//go:embed tmpl/collect_func.tmpl
+var collectFuncTemple string
 
 //go:embed tmpl/command.tmpl
 var commandTemple string
@@ -49,7 +49,7 @@ const BasePath = "./internal/bots"
 func BotAction(c *cli.Context) error {
 	// args
 	bot := c.String("name")
-	rule := c.StringSlice("rule") // input,group,agent,command,condition,cron,form
+	rule := c.StringSlice("rule") // input,group,collect,command,condition,cron,form
 	if bot == "" {
 		return errors.New("bot name args error")
 	}
@@ -77,8 +77,8 @@ func BotAction(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		if data.HasAgent {
-			err = os.WriteFile(filePath(data.BotName, "agent.go"), parseTemplate(agentTemple, data), os.ModePerm)
+		if data.HasCollect {
+			err = os.WriteFile(filePath(data.BotName, "collect.go"), parseTemplate(collectTemple, data), os.ModePerm)
 			if err != nil {
 				return err
 			}
@@ -115,14 +115,14 @@ func BotAction(c *cli.Context) error {
 			// append
 			appendFileContent(filePath(data.BotName, "bot.go"), parseTemplate(inputFuncTemple, data))
 		}
-		if !fileExist(data.BotName, "agent.go") {
-			if data.HasAgent {
-				err = os.WriteFile(filePath(data.BotName, "agent.go"), parseTemplate(agentTemple, data), os.ModePerm)
+		if !fileExist(data.BotName, "collect.go") {
+			if data.HasCollect {
+				err = os.WriteFile(filePath(data.BotName, "collect.go"), parseTemplate(collectTemple, data), os.ModePerm)
 				if err != nil {
 					return err
 				}
 				// append
-				appendFileContent(filePath(data.BotName, "bot.go"), parseTemplate(agentFuncTemple, data))
+				appendFileContent(filePath(data.BotName, "bot.go"), parseTemplate(collectFuncTemple, data))
 			}
 		}
 		if !fileExist(data.BotName, "cron.go") {
@@ -165,7 +165,7 @@ type schema struct {
 	BotName     string
 	HasInput    bool
 	HasCommand  bool
-	HasAgent    bool
+	HasCollect  bool
 	HasCron     bool
 	HasForm     bool
 	HasInstruct bool
@@ -199,8 +199,8 @@ func parseRule(rules []string, data *schema) {
 		switch item {
 		case "input":
 			data.HasInput = true
-		case "agent":
-			data.HasAgent = true
+		case "collect":
+			data.HasCollect = true
 		case "cron":
 			data.HasCron = true
 		case "form":

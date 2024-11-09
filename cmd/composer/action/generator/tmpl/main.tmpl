@@ -6,7 +6,7 @@ import (
     "github.com/flowline-io/flowbot/internal/bots"
     "github.com/flowline-io/flowbot/internal/types"
     "github.com/flowline-io/flowbot/pkg/flog"
-    {{if .HasCron}}"github.com/flowline-io/flowbot/internal/ruleset/cron"{{end}}
+    {{if .HasCron}}"github.com/flowline-io/flowbot/internal/types/ruleset/cron"{{end}}
     jsoniter "github.com/json-iterator/go"
 )
 
@@ -61,8 +61,9 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		{{if .HasForm}}formRules,{{end}}
-		{{if .HasAgent}}agentRules,{{end}}
+		{{if .HasCollect}}collectRules,{{end}}
 		{{if .HasInstruct}}instructRules,{{end}}
+		{{if .HasCron}}cronRules,{{end}}
 	}
 }
 
@@ -86,8 +87,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
     return bots.RunCron(cronRules, Name)
 }
 {{end}}
-{{if .HasAgent}}
-func (b bot) Agent(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-    return bots.RunAgent(AgentVersion, agentRules, ctx, content)
+{{if .HasCollect}}
+func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+    return bots.RunCollect(collectRules, ctx, content)
 }
 {{end}}

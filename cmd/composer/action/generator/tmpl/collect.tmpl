@@ -1,18 +1,17 @@
 package {{ .BotName }}
 
 import (
-    "github.com/flowline-io/flowbot/internal/ruleset/agent"
+    "github.com/flowline-io/flowbot/internal/types/ruleset/collect"
     "github.com/flowline-io/flowbot/internal/types"
 )
 
 const (
-    AgentVersion  = 1
-    ExampleAgentID = "{{ .BotName }}_example_agent"
+    ExampleCollectID = "{{ .BotName }}_example_collect"
 )
 
-var agentRules = []agent.Rule{
+var collectRules = []collect.Rule{
     {
-        Id: ExampleAgentID,
+        Id: ExampleCollectID,
         Handler: func(ctx types.Context, content types.KV) types.MsgPayload {
             return nil
         },
