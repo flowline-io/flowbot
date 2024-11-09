@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -23,7 +24,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
-	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
@@ -520,5 +520,5 @@ func initializeMetrics() error {
 }
 
 func initializeSearch() error {
-	return search.InitSearchIndex()
+	return meilisearch.NewMeiliSearch().DefaultIndexSettings()
 }
