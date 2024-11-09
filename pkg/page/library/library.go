@@ -2,9 +2,9 @@ package library
 
 // UIKit
 
-const UIKitCss = "https://cdn.staticfile.org/uikit/3.21.5/css/uikit.min.css"
-const UIKitJs = "https://cdn.staticfile.org/uikit/3.21.5/js/uikit.min.js"
-const UIKitIconJs = "https://cdn.staticfile.org/uikit/3.21.5/js/uikit-icons.min.js"
+const UIKitCss = "https://cdn.jsdelivr.net/npm/uikit@3.21.13/dist/css/uikit.min.css"
+const UIKitJs = "https://cdn.jsdelivr.net/npm/uikit@3.21.13/dist/js/uikit.min.js"
+const UIKitIconJs = "https://cdn.jsdelivr.net/npm/uikit@3.21.13/dist/js/uikit-icons.min.js"
 
 // GitHub Markdown
 
