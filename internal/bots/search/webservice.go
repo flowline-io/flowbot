@@ -4,7 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/search"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -28,7 +28,7 @@ func query(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewSuccessResponse(nil))
 	}
 
-	list, _, err := search.NewClient().Search(source, q, 1, 10)
+	list, _, err := meilisearch.NewMeiliSearch().Search(source, q, 1, 10)
 	if err != nil {
 		flog.Error(err)
 		return ctx.JSON(protocol.NewSuccessResponse(nil))
@@ -52,7 +52,7 @@ func autocomplete(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewSuccessResponse(nil))
 	}
 
-	list, _, err := search.NewClient().Search(source, "title", 1, 10)
+	list, _, err := meilisearch.NewMeiliSearch().Search(source, "title", 1, 10)
 	if err != nil {
 		flog.Error(err)
 		return ctx.JSON(protocol.NewSuccessResponse(nil))

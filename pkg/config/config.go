@@ -191,6 +191,7 @@ type Metrics struct {
 type Search struct {
 	Endpoint  string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 	MasterKey string `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
+	DataIndex string `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
 }
 
 type Flowbot struct {

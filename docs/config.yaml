@@ -86,6 +86,7 @@ metrics:
 search:
   endpoint: 'http://127.0.0.1:7700'
   master_key: ''
+  data_index: 'data'
 
 flowbot:
   url: ''

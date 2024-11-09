@@ -520,5 +520,5 @@ func initializeMetrics() error {
 }
 
 func initializeSearch() error {
-	return search.InitSearch()
+	return search.InitSearchIndex()
 }

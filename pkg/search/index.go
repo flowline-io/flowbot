@@ -1,35 +1,9 @@
 package search
 
 import (
-	"fmt"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/meilisearch/meilisearch-go"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 )
 
-const indexName = "data"
-
-type Document struct {
-	Id          string `json:"id"`
-	SourceId    string `json:"source_id"`
-	Source      string `json:"source"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Url         string `json:"url"`
-	CreatedAt   int32  `json:"created_at"`
-}
-
-func idKey(source string, id any) string {
-	return fmt.Sprintf("%s-%v", source, id)
-}
-
-func InitSearch() error {
-	taskInfo, err := NewClient().manager.Index(indexName).UpdateSettings(&meilisearch.Settings{
-		SortableAttributes:   []string{"created_at"},
-		FilterableAttributes: []string{"source"},
-		SearchableAttributes: []string{"source_id", "source", "title", "description"},
-	})
-	flog.Info("[search] index %s update settings status: %v", indexName, taskInfo.Status)
-
-	return err
+func InitSearchIndex() error {
+	return meilisearch.NewMeiliSearch().DefaultIndexSettings()
 }

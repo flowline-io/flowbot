@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"strings"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
-	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -199,7 +199,7 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			err := search.NewClient().AddDocument(search.Document{
+			err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
 				SourceId:    types.Id(),
 				Source:      hoarder.ID,
 				Title:       "test....",
@@ -211,7 +211,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			list, total, err := search.NewClient().Search(gitea.Name, "title", 1, 10)
+			list, total, err := meilisearch.NewMeiliSearch().Search(gitea.Name, "title", 1, 10)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
