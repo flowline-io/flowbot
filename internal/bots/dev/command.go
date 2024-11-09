@@ -192,7 +192,7 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d, avg processing time %f ms",
-				resp.NumDnsQueries, resp.NumBlockedFiltering, resp.AvgProcessingTime*1000)}
+				resp.NumDnsQueries, resp.NumBlockedFiltering, int(*resp.AvgProcessingTime)*1000)}
 		},
 	},
 	{

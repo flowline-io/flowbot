@@ -1,9 +1,9 @@
 package adguard
 
 import (
-	"time"
-
-	"github.com/go-resty/resty/v2"
+	"context"
+	"fmt"
+	openapi "github.com/flowline-io/sdk-adguard-home-api"
 )
 
 const (
@@ -14,35 +14,37 @@ const (
 )
 
 type AdGuardHome struct {
-	c *resty.Client
+	ctx context.Context
+	c   *openapi.APIClient
 }
 
 func NewAdGuardHome(endpoint string, username string, password string) *AdGuardHome {
 	v := &AdGuardHome{}
-	v.c = resty.New()
-	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
-	v.c.SetBasicAuth(username, password)
+
+	cfg := openapi.NewConfiguration()
+	cfg.Servers = openapi.ServerConfigurations{{URL: endpoint}}
+	v.c = openapi.NewAPIClient(cfg)
+
+	ctx := context.WithValue(context.Background(), openapi.ContextServerIndex, 0)
+	ctx = context.WithValue(ctx, openapi.ContextBasicAuth, openapi.BasicAuth{UserName: username, Password: password})
+	v.ctx = ctx
 
 	return v
 }
 
-func (v *AdGuardHome) GetStatus() (*StatusResponse, error) {
-	resp, err := v.c.R().
-		SetResult(&StatusResponse{}).
-		Get("/status")
+func (v *AdGuardHome) GetStatus() (*openapi.ServerStatus, error) {
+	stats, _, err := v.c.GlobalAPI.Status(v.ctx).Execute()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get status, %w", err)
 	}
-	return resp.Result().(*StatusResponse), nil
+	return stats, nil
 }
 
-func (v *AdGuardHome) GetStats() (*StatisticsResponse, error) {
-	resp, err := v.c.R().
-		SetResult(&StatisticsResponse{}).
-		Get("/stats")
+func (v *AdGuardHome) GetStats() (*openapi.Stats, error) {
+	stats, _, err := v.c.StatsAPI.Stats(v.ctx).Execute()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get stats, %w", err)
 	}
-	return resp.Result().(*StatisticsResponse), nil
+
+	return stats, nil
 }
