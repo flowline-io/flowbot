@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/goccy/go-json"
 	jsoniter "github.com/json-iterator/go"
@@ -23,6 +24,10 @@ type Client struct {
 }
 
 func (c Client) AddDocument(data Document) error {
+	// metrics
+	stats.SearchAddDocumentTotalCounter(indexName).Inc()
+
+	// add
 	taskInfo, err := c.manager.Index(indexName).AddDocuments(types.KV{
 		"id":          idKey(data.Source, data.Id),
 		"source":      data.Source,
@@ -40,6 +45,10 @@ func (c Client) AddDocument(data Document) error {
 }
 
 func (c Client) Search(source, query string, page, pageSize int32) ([]*Document, int64, error) {
+	// metrics
+	stats.SearchTotalCounter(indexName).Inc()
+
+	// filter
 	filter := ""
 	if source != "" {
 		filter = fmt.Sprintf("source = %s", source)
