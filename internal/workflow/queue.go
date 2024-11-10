@@ -15,6 +15,7 @@ import (
 const (
 	defaultMaxRetry  = 3
 	defaultRetention = 3 * 24 * time.Hour
+	defaultTimeout   = 10 * time.Minute
 
 	TypeCron = "cron"
 	TypeJob  = "job"
@@ -44,6 +45,7 @@ func PushTask(t *Task) error {
 		asynq.TaskID(t.ID),
 		asynq.MaxRetry(defaultMaxRetry),
 		asynq.Retention(defaultRetention),
+		asynq.Timeout(defaultTimeout),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to enqueue task %s, %w", t.Task.Type(), err)
