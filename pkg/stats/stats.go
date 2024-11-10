@@ -16,6 +16,7 @@ const (
 	QueueProcessedTasksTotalStatsName = "queue_processed_tasks_total"
 	QueueFailedTasksTotalStatsName    = "queue_failed_tasks_total"
 	QueueInProgressTasksStatsName     = "queue_in_progress_tasks"
+	EventTotalStatsName               = "event_total"
 )
 
 type RulesetLabel string
@@ -58,4 +59,8 @@ func QueueFailedTasksTotalCounter(taskType string) *metrics.Counter {
 
 func QueueInProgressTasksCounter(taskType string) *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",task_type="%s"}`, QueueInProgressTasksStatsName, version.Buildtags, taskType))
+}
+
+func EventTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, EventTotalStatsName, version.Buildtags))
 }

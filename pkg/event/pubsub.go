@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -58,7 +59,9 @@ func NewRouter() (*message.Router, error) {
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(message *message.Message) ([]*message.Message, error) {
 			flog.Debug("executing handler specific middleware for %s", message.UUID)
-
+			// metrics
+			stats.EventTotalCounter().Inc()
+			// handle
 			return h(message)
 		}
 	})
