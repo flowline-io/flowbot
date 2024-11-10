@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -57,6 +58,7 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	stats.BotTotalCounter().Set(uint64(len(bots.List())))
+	cache.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
 }
 
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {

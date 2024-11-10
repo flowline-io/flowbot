@@ -3,6 +3,7 @@ package bookmark
 import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
@@ -64,6 +65,7 @@ var cronRules = []cron.Rule{
 				bookmarkTotal++
 			}
 			stats.BookmarkTotalCounter().Set(uint64(bookmarkTotal))
+			cache.SetInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
 
 			return nil
 		},

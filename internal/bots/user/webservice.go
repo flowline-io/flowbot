@@ -4,6 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/internal/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,7 +24,7 @@ var webserviceRules = []webservice.Rule{
 //	@Router		/user/dashboard [get]
 func dashboard(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
-		"title": "example",
+		"title": "dashboard",
 	}))
 }
 
@@ -37,7 +38,7 @@ func dashboard(ctx *fiber.Ctx) error {
 //	@Router		/user/widget [get]
 func metrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
-		stats.BookmarkTotalStatsName: 10,
-		stats.BotRunTotalStatsName:   10,
+		stats.BookmarkTotalStatsName: cache.GetInt64(stats.BookmarkTotalStatsName),
+		stats.BotTotalStatsName:      cache.GetInt64(stats.BotTotalStatsName),
 	}))
 }

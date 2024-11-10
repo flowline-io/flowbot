@@ -43,3 +43,15 @@ func Shutdown() {
 	}
 	flog.Info("cache stopped")
 }
+
+func SetInt64(key string, value int64) {
+	DB.Set(context.Background(), key, value, 0)
+}
+
+func GetInt64(key string) int64 {
+	r, err := DB.Get(context.Background(), key).Int64()
+	if err != nil {
+		flog.Error(err)
+	}
+	return r
+}
