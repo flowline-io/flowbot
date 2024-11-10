@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"runtime"
 	"time"
 
@@ -71,6 +72,7 @@ func NewQueue() *Queue {
 func (q *Queue) Run() {
 	mux := asynq.NewServeMux()
 	mux.Use(loggingMiddleware)
+	mux.Use(metricsMiddleware)
 	mux.HandleFunc(TypeCron, HandleCronTask)
 	mux.HandleFunc(TypeJob, HandleJobTask)
 
@@ -96,6 +98,19 @@ func loggingMiddleware(h asynq.Handler) asynq.Handler {
 		flog.Debug("finished processing %q: Elapsed Time = %v, Payload = %s",
 			t.Type(), time.Since(start), string(t.Payload()))
 		return nil
+	})
+}
+
+func metricsMiddleware(next asynq.Handler) asynq.Handler {
+	return asynq.HandlerFunc(func(ctx context.Context, t *asynq.Task) error {
+		stats.QueueInProgressTasksCounter(t.Type()).Inc()
+		err := next.ProcessTask(ctx, t)
+		stats.QueueInProgressTasksCounter(t.Type()).Dec()
+		if err != nil {
+			stats.QueueFailedTasksTotalCounter(t.Type()).Inc()
+		}
+		stats.QueueProcessedTasksTotalCounter(t.Type()).Inc()
+		return err
 	})
 }
 
