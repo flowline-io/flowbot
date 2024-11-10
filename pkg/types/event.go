@@ -10,3 +10,8 @@ type Message struct {
 	Topic    string
 	Payload  EventPayload
 }
+
+type EventPayload struct {
+	Typ string
+	Src []byte
+}

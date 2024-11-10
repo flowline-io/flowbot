@@ -8,6 +8,10 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
+type MsgPayload interface {
+	Convert() any
+}
+
 type FormFieldType string
 
 const (
