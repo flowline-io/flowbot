@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-resty/resty/v2"
 	jsoniter "github.com/json-iterator/go"
 )

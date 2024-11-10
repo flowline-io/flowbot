@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // ReadSeekCloser must be implemented by the media being downloaded.

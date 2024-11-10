@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 

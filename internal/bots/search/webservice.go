@@ -1,10 +1,10 @@
 package search
 
 import (
-	"github.com/flowline-io/flowbot/internal/types/protocol"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/gofiber/fiber/v2"
 )
 

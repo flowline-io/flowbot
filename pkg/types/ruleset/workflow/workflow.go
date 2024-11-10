@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 const defaultRunTimeout = 10 * time.Minute

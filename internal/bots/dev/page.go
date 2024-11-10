@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 

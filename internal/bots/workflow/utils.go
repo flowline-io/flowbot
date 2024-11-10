@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/robfig/cron/v3"
 	"gopkg.in/yaml.v3"

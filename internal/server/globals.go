@@ -3,8 +3,8 @@ package server
 import (
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/internal/workflow"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 var globals struct {

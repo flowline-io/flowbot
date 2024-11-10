@@ -3,7 +3,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/flowline-io/flowbot/internal/types"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type Mounter interface {

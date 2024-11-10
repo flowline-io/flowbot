@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/cloudflare"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
 var commandRules = []command.Rule{

@@ -22,9 +22,9 @@ import (
 	regtypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 	jsoniter "github.com/json-iterator/go"
@@ -101,7 +101,7 @@ func (d *Runtime) Run(ctx context.Context, t *types.Task) error {
 		if err != nil {
 			return err
 		}
-		defer func(m types.Mount) {//revive:disable
+		defer func(m types.Mount) { //revive:disable
 			uctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := d.mounter.Unmount(uctx, &m); err != nil {

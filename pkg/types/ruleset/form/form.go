@@ -1,6 +1,6 @@
 package form
 
-import "github.com/flowline-io/flowbot/internal/types"
+import "github.com/flowline-io/flowbot/pkg/types"
 
 type Rule struct {
 	Id         string

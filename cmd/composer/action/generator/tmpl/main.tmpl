@@ -4,9 +4,9 @@ import (
     "encoding/json"
     "errors"
     "github.com/flowline-io/flowbot/internal/bots"
-    "github.com/flowline-io/flowbot/internal/types"
+    "github.com/flowline-io/flowbot/pkg/types"
     "github.com/flowline-io/flowbot/pkg/flog"
-    {{if .HasCron}}"github.com/flowline-io/flowbot/internal/types/ruleset/cron"{{end}}
+    {{if .HasCron}}"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"{{end}}
     jsoniter "github.com/json-iterator/go"
 )
 

@@ -1,13 +1,13 @@
 package bookmark
 
 import (
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 var cronRules = []cron.Rule{

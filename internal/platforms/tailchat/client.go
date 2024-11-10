@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/go-resty/resty/v2"
 )

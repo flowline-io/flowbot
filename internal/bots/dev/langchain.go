@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/langchain"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/langchain"
 	"github.com/tmc/langchaingo/llms"
 )
 

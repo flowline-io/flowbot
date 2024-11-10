@@ -1,6 +1,6 @@
 package bot
 
-import "github.com/flowline-io/flowbot/internal/types"
+import "github.com/flowline-io/flowbot/pkg/types"
 
 type Executor struct {
 	Flag string

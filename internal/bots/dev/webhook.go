@@ -2,8 +2,8 @@ package dev
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/ruleset/webhook"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 )
 
 const (

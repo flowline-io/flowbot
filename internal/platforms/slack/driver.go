@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"

@@ -7,8 +7,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/flowline-io/flowbot/internal/types"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type BindMounter struct {

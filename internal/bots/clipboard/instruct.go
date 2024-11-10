@@ -1,6 +1,6 @@
 package clipboard
 
-import "github.com/flowline-io/flowbot/internal/types/ruleset/instruct"
+import "github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 
 const (
 	ShareInstruct = "clipboard_share"

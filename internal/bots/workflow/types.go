@@ -1,6 +1,6 @@
 package workflow
 
-import "github.com/flowline-io/flowbot/internal/types"
+import "github.com/flowline-io/flowbot/pkg/types"
 
 type rule struct {
 	Bot          string            `json:"bot"`

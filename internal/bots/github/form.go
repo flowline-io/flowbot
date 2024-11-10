@@ -1,7 +1,7 @@
 package github
 
 import (
-	"github.com/flowline-io/flowbot/internal/types/ruleset/form"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 )
 
 var formRules []form.Rule

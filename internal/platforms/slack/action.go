@@ -3,9 +3,9 @@ package slack
 import (
 	"fmt"
 
-	"github.com/flowline-io/flowbot/internal/types"
-	"github.com/flowline-io/flowbot/internal/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/slack-go/slack"
 )
 
