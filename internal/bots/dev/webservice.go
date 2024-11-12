@@ -2,6 +2,7 @@ package dev
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -35,6 +36,14 @@ func example(ctx *fiber.Ctx) error {
 }
 
 // upload PicGO upload api
+//
+//	@Summary	upload PicGO upload api
+//	@Tags		dev
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Security	ApiKeyAuth
+//	@Router		/dev/upload [post]
 func upload(ctx *fiber.Ctx) error {
 	result := make([]string, 0)
 	if form, err := ctx.MultipartForm(); err == nil {

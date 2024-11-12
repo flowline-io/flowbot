@@ -685,14 +685,11 @@ definitions:
     type: object
 host: localhost:6060
 info:
-  contact:
-    email: dev@tsundata.com
-    name: API Support
+  contact: {}
   description: Flowbot Chatbot API
   license:
     name: GPL 3.0
     url: https://github.com/flowline-io/flowbot/blob/master/LICENSE
-  termsOfService: http://swagger.io/terms/
   title: Flowbot API
   version: "1.0"
 paths:
@@ -715,6 +712,27 @@ paths:
       summary: Show example
       tags:
       - dev
+  /dev/upload:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: upload PicGO upload api
+      tags:
+      - dev
   /markdown/data:
     post:
       consumes:
@@ -735,6 +753,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: save markdown data
       tags:
       - markdown
@@ -749,6 +769,8 @@ paths:
       produces:
       - text/html
       responses: {}
+      security:
+      - ApiKeyAuth: []
       summary: markdown editor page
       tags:
       - markdown
@@ -770,6 +792,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult create
       tags:
       - okr
@@ -796,6 +820,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult value create
       tags:
       - okr
@@ -823,6 +849,8 @@ paths:
                     $ref: '#/definitions/model.KeyResultValue'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: key result value list
       tags:
       - okr
@@ -843,6 +871,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult delete
       tags:
       - okr
@@ -868,6 +898,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult update
       tags:
       - okr
@@ -888,6 +920,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult value delete
       tags:
       - okr
@@ -912,6 +946,8 @@ paths:
                 data:
                   $ref: '#/definitions/model.KeyResultValue'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: KeyResult value detail
       tags:
       - okr
@@ -933,6 +969,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: objective create
       tags:
       - okr
@@ -953,6 +991,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: objective delete
       tags:
       - okr
@@ -977,6 +1017,8 @@ paths:
                 data:
                   $ref: '#/definitions/model.Objective'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: objective detail
       tags:
       - okr
@@ -1002,6 +1044,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: objective update
       tags:
       - okr
@@ -1023,6 +1067,8 @@ paths:
                     $ref: '#/definitions/model.Objective'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: objective list
       tags:
       - okr
@@ -1042,9 +1088,11 @@ paths:
                 data:
                   $ref: '#/definitions/types.KV'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: search autocomplete
       tags:
-      - dev
+      - search
   /search/query:
     get:
       consumes:
@@ -1061,9 +1109,11 @@ paths:
                 data:
                   $ref: '#/definitions/types.KV'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: search everything
       tags:
-      - dev
+      - search
   /user/dashboard:
     get:
       consumes:
@@ -1080,10 +1130,12 @@ paths:
                 data:
                   $ref: '#/definitions/types.KV'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: Show dashboard
       tags:
-      - dev
-  /user/widget:
+      - user
+  /user/metrics:
     get:
       consumes:
       - application/json
@@ -1099,9 +1151,11 @@ paths:
                 data:
                   $ref: '#/definitions/types.KV'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: Show metrics
       tags:
-      - dev
+      - user
   /workflow/actions:
     get:
       consumes:
@@ -1122,6 +1176,8 @@ paths:
                     type: array
                   type: object
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: get chatbot actions
       tags:
       - workflow
@@ -1147,6 +1203,8 @@ paths:
                 data:
                   $ref: '#/definitions/model.Job'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow job detail
       tags:
       - workflow
@@ -1167,6 +1225,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: workflow job rerun
       tags:
       - workflow
@@ -1188,6 +1248,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: workflow create
       tags:
       - workflow
@@ -1208,6 +1270,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: workflow delete
       tags:
       - workflow
@@ -1232,6 +1296,8 @@ paths:
                 data:
                   $ref: '#/definitions/model.Workflow'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow detail
       tags:
       - workflow
@@ -1257,6 +1323,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/protocol.Response'
+      security:
+      - ApiKeyAuth: []
       summary: workflow update
       tags:
       - workflow
@@ -1284,6 +1352,8 @@ paths:
                     $ref: '#/definitions/model.Job'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow job list
       tags:
       - workflow
@@ -1309,6 +1379,8 @@ paths:
                 data:
                   $ref: '#/definitions/model.WorkflowScript'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow script detail
       tags:
       - workflow
@@ -1336,6 +1408,8 @@ paths:
                     $ref: '#/definitions/model.WorkflowTrigger'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow trigger list
       tags:
       - workflow
@@ -1357,7 +1431,17 @@ paths:
                     $ref: '#/definitions/model.Workflow'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: workflow list
       tags:
       - workflow
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    description: access token
+    in: header
+    name: X-AccessToken
+    type: apiKey
 swagger: "2.0"

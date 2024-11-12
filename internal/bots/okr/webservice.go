@@ -31,6 +31,7 @@ var webserviceRules = []webservice.Rule{
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=[]model.Objective}
+//	@Security	ApiKeyAuth
 //	@Router		/okr/objectives [get]
 func objectiveList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -51,6 +52,7 @@ func objectiveList(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		sequence	path		int	true	"Sequence"
 //	@Success	200			{object}	protocol.Response{data=model.Objective}
+//	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [get]
 func objectiveDetail(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -72,6 +74,7 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		objective	body		model.Objective	true	"objective data"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/objective [post]
 func objectiveCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -108,6 +111,7 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 //	@Param		sequence	path		int				true	"Sequence"
 //	@Param		objective	body		model.Objective	true	"objective data"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [put]
 func objectiveUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -137,6 +141,7 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		sequence	path		int	true	"Sequence"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [delete]
 func objectiveDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -158,6 +163,7 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		keyResult	body		model.KeyResult	true	"KeyResult data"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result [post]
 func keyResultCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -186,6 +192,7 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 //	@Param		sequence	path		int				true	"Sequence"
 //	@Param		objective	body		model.KeyResult	true	"KeyResult data"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{sequence} [put]
 func keyResultUpdate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -215,6 +222,7 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		sequence	path		int	true	"Sequence"
 //	@Success	200			{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{sequence} [delete]
 func keyResultDelete(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -236,6 +244,7 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"key result id"
 //	@Success	200	{object}	protocol.Response{data=[]model.KeyResultValue}
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{id}/values [get]
 func keyResultValueList(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
@@ -259,6 +268,7 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 //	@Param		id				path		int						true	"key result id"
 //	@Param		KeyResultValue	body		model.KeyResultValue	true	"KeyResultValue data"
 //	@Success	200				{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{id}/value [post]
 func keyResultValueCreate(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
@@ -287,6 +297,7 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"key result id"
 //	@Success	200	{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result_value/{id} [delete]
 func keyResultValueDelete(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
@@ -309,6 +320,7 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"key result id"
 //	@Success	200	{object}	protocol.Response{data=model.KeyResultValue}
+//	@Security	ApiKeyAuth
 //	@Router		/okr/key_result_value/{id} [get]
 func keyResultValue(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")

@@ -16,10 +16,11 @@ var webserviceRules = []webservice.Rule{
 // search everything
 //
 //	@Summary	search everything
-//	@Tags		dev
+//	@Tags		search
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Security	ApiKeyAuth
 //	@Router		/search/query [get]
 func query(ctx *fiber.Ctx) error {
 	q := ctx.Query("q")
@@ -40,10 +41,11 @@ func query(ctx *fiber.Ctx) error {
 // search autocomplete
 //
 //	@Summary	search autocomplete
-//	@Tags		dev
+//	@Tags		search
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Security	ApiKeyAuth
 //	@Router		/search/autocomplete [get]
 func autocomplete(ctx *fiber.Ctx) error {
 	q := ctx.Query("q")

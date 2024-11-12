@@ -1,13 +1,12 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "Flowbot Chatbot API",
         "title": "Flowbot API",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "email": "dev@tsundata.com"
-        },
+        "contact": {},
         "license": {
             "name": "GPL 3.0",
             "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
@@ -51,8 +50,52 @@
                 }
             }
         },
+        "/dev/upload": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "upload PicGO upload api",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/markdown/data": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -89,6 +132,11 @@
         },
         "/markdown/editor/{flag}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "text/html"
                 ],
@@ -110,6 +158,11 @@
         },
         "/okr/key_result": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -143,6 +196,11 @@
         },
         "/okr/key_result/{id}/value": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -183,6 +241,11 @@
         },
         "/okr/key_result/{id}/values": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -229,6 +292,11 @@
         },
         "/okr/key_result/{sequence}": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -267,6 +335,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -298,6 +371,11 @@
         },
         "/okr/key_result_value/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -339,6 +417,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -370,6 +453,11 @@
         },
         "/okr/objective": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -403,6 +491,11 @@
         },
         "/okr/objective/{sequence}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -444,6 +537,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -482,6 +580,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -513,6 +616,11 @@
         },
         "/okr/objectives": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -550,6 +658,11 @@
         },
         "/search/autocomplete": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -557,7 +670,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "search"
                 ],
                 "summary": "search autocomplete",
                 "responses": {
@@ -584,6 +697,11 @@
         },
         "/search/query": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -591,7 +709,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "search"
                 ],
                 "summary": "search everything",
                 "responses": {
@@ -618,6 +736,11 @@
         },
         "/user/dashboard": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -625,7 +748,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "user"
                 ],
                 "summary": "Show dashboard",
                 "responses": {
@@ -650,8 +773,13 @@
                 }
             }
         },
-        "/user/widget": {
+        "/user/metrics": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -659,7 +787,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "user"
                 ],
                 "summary": "Show metrics",
                 "responses": {
@@ -686,6 +814,11 @@
         },
         "/workflow/actions": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -726,6 +859,11 @@
         },
         "/workflow/job/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -769,6 +907,11 @@
         },
         "/workflow/job/{id}/rerun": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -800,6 +943,11 @@
         },
         "/workflow/workflow": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -833,6 +981,11 @@
         },
         "/workflow/workflow/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -874,6 +1027,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -912,6 +1070,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -943,6 +1106,11 @@
         },
         "/workflow/workflow/{id}/jobs": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -989,6 +1157,11 @@
         },
         "/workflow/workflow/{id}/script": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1032,6 +1205,11 @@
         },
         "/workflow/workflow/{id}/triggers": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1078,6 +1256,11 @@
         },
         "/workflow/workflows": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -2089,6 +2272,14 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "access token",
+            "type": "apiKey",
+            "name": "X-AccessToken",
+            "in": "header"
         }
     }
 }

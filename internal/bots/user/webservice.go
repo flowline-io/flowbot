@@ -17,10 +17,11 @@ var webserviceRules = []webservice.Rule{
 // dashboard show dashboard data
 //
 //	@Summary	Show dashboard
-//	@Tags		dev
+//	@Tags		user
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Security	ApiKeyAuth
 //	@Router		/user/dashboard [get]
 func dashboard(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
@@ -31,11 +32,12 @@ func dashboard(ctx *fiber.Ctx) error {
 // metrics show metrics data
 //
 //	@Summary	Show metrics
-//	@Tags		dev
+//	@Tags		user
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
-//	@Router		/user/widget [get]
+//	@Security	ApiKeyAuth
+//	@Router		/user/metrics [get]
 func metrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		stats.BookmarkTotalStatsName: cache.GetInt64(stats.BookmarkTotalStatsName),

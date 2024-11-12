@@ -18,7 +18,7 @@ tasks:
 
   run:
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd
+      - go run -tags swagger github.com/flowline-io/flowbot/cmd
 
   run:agent:
     cmds:

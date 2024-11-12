@@ -30,6 +30,7 @@ var editorTemplate string
 //	@Tags		markdown
 //	@Produce	html
 //	@Param		flag	path	string	true	"Flag"
+//	@Security	ApiKeyAuth
 //	@Router		/markdown/editor/{flag} [get]
 func editor(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
@@ -65,6 +66,7 @@ func editor(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		data	body		map[string]string	true	"Data"
 //	@Success	200		{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/markdown/data [post]
 func saveMarkdown(ctx *fiber.Ctx) error {
 	// data

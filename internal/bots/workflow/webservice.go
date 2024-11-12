@@ -36,6 +36,7 @@ var webserviceRules = []webservice.Rule{
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=map[string][]rule}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/actions [get]
 func actions(ctx *fiber.Ctx) error {
 	result := make(map[string][]rule, len(bots.List()))
@@ -71,6 +72,7 @@ func actions(ctx *fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=[]model.Workflow}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflows [get]
 func workflowList(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -91,6 +93,7 @@ func workflowList(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"ID"
 //	@Success	200	{object}	protocol.Response{data=model.Workflow}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [get]
 func workflowDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
@@ -110,6 +113,7 @@ func workflowDetail(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		script	body		model.WorkflowScript	true	"workflow script data"
 //	@Success	200		{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow [post]
 func workflowCreate(ctx *fiber.Ctx) error {
 	uid := route.GetUid(ctx)
@@ -148,6 +152,7 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Param		id		path		int						true	"ID"
 //	@Param		script	body		model.WorkflowScript	true	"workflow script data"
 //	@Success	200		{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [put]
 func workflowUpdate(ctx *fiber.Ctx) error {
 	// uid := route.GetUid(ctx)
@@ -191,6 +196,7 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"ID"
 //	@Success	200	{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [delete]
 func workflowDelete(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
@@ -210,6 +216,7 @@ func workflowDelete(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"Workflow ID"
 //	@Success	200	{object}	protocol.Response{data=[]model.WorkflowTrigger}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/triggers [get]
 func workflowTriggerList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
@@ -229,6 +236,7 @@ func workflowTriggerList(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"Workflow ID"
 //	@Success	200	{object}	protocol.Response{data=[]model.Job}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/jobs [get]
 func workflowJobList(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
@@ -248,6 +256,7 @@ func workflowJobList(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"Job ID"
 //	@Success	200	{object}	protocol.Response{data=model.Job}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/job/{id} [get]
 func workflowJobDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
@@ -267,6 +276,7 @@ func workflowJobDetail(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"Job ID"
 //	@Success	200	{object}	protocol.Response
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/job/{id}/rerun [post]
 func workflowJobRerun(ctx *fiber.Ctx) error {
 	return nil
@@ -280,6 +290,7 @@ func workflowJobRerun(ctx *fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id	path		int	true	"Workflow ID"
 //	@Success	200	{object}	protocol.Response{data=model.WorkflowScript}
+//	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/script [get]
 func workflowScriptDetail(ctx *fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")

@@ -9,11 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "email": "dev@tsundata.com"
-        },
+        "contact": {},
         "license": {
             "name": "GPL 3.0",
             "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
@@ -57,8 +53,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/dev/upload": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "upload PicGO upload api",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/markdown/data": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -95,6 +135,11 @@ const docTemplate = `{
         },
         "/markdown/editor/{flag}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "text/html"
                 ],
@@ -116,6 +161,11 @@ const docTemplate = `{
         },
         "/okr/key_result": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -149,6 +199,11 @@ const docTemplate = `{
         },
         "/okr/key_result/{id}/value": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -189,6 +244,11 @@ const docTemplate = `{
         },
         "/okr/key_result/{id}/values": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -235,6 +295,11 @@ const docTemplate = `{
         },
         "/okr/key_result/{sequence}": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -273,6 +338,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -304,6 +374,11 @@ const docTemplate = `{
         },
         "/okr/key_result_value/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -345,6 +420,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -376,6 +456,11 @@ const docTemplate = `{
         },
         "/okr/objective": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -409,6 +494,11 @@ const docTemplate = `{
         },
         "/okr/objective/{sequence}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -450,6 +540,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -488,6 +583,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -519,6 +619,11 @@ const docTemplate = `{
         },
         "/okr/objectives": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -556,6 +661,11 @@ const docTemplate = `{
         },
         "/search/autocomplete": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -563,7 +673,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "search"
                 ],
                 "summary": "search autocomplete",
                 "responses": {
@@ -590,6 +700,11 @@ const docTemplate = `{
         },
         "/search/query": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -597,7 +712,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "search"
                 ],
                 "summary": "search everything",
                 "responses": {
@@ -624,6 +739,11 @@ const docTemplate = `{
         },
         "/user/dashboard": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -631,7 +751,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "user"
                 ],
                 "summary": "Show dashboard",
                 "responses": {
@@ -656,8 +776,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/widget": {
+        "/user/metrics": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -665,7 +790,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "user"
                 ],
                 "summary": "Show metrics",
                 "responses": {
@@ -692,6 +817,11 @@ const docTemplate = `{
         },
         "/workflow/actions": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -732,6 +862,11 @@ const docTemplate = `{
         },
         "/workflow/job/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -775,6 +910,11 @@ const docTemplate = `{
         },
         "/workflow/job/{id}/rerun": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -806,6 +946,11 @@ const docTemplate = `{
         },
         "/workflow/workflow": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -839,6 +984,11 @@ const docTemplate = `{
         },
         "/workflow/workflow/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -880,6 +1030,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -918,6 +1073,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -949,6 +1109,11 @@ const docTemplate = `{
         },
         "/workflow/workflow/{id}/jobs": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -995,6 +1160,11 @@ const docTemplate = `{
         },
         "/workflow/workflow/{id}/script": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1038,6 +1208,11 @@ const docTemplate = `{
         },
         "/workflow/workflow/{id}/triggers": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1084,6 +1259,11 @@ const docTemplate = `{
         },
         "/workflow/workflows": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -2096,6 +2276,14 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "access token",
+            "type": "apiKey",
+            "name": "X-AccessToken",
+            "in": "header"
+        }
     }
 }`
 
@@ -2104,7 +2292,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:6060",
 	BasePath:         "/service",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "Flowbot API",
 	Description:      "Flowbot Chatbot API",
 	InfoInstanceName: "swagger",

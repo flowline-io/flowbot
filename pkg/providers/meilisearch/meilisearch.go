@@ -85,7 +85,7 @@ func (c MeiliSearch) DefaultIndexSettings() error {
 		FilterableAttributes: []string{"source"},
 		SearchableAttributes: []string{"source_id", "source", "title", "description"},
 	})
-	flog.Info("[search] index %s update settings status: %v", config.App.Search.DataIndex, taskInfo.Status)
+	flog.Info("[search] index %s update settings status: %+v", config.App.Search.DataIndex, taskInfo)
 	return err
 }
 

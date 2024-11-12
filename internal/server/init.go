@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -22,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pprofs"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -256,6 +256,7 @@ func initializeHttp() error {
 		Logger: &logger,
 		SkipURIs: []string{
 			"/health",
+			"/service/user/metrics",
 		},
 	}))
 	// swagger
@@ -520,5 +521,9 @@ func initializeMetrics() error {
 }
 
 func initializeSearch() error {
-	return meilisearch.NewMeiliSearch().DefaultIndexSettings()
+	err := meilisearch.NewMeiliSearch().DefaultIndexSettings()
+	if err != nil {
+		flog.Error(err)
+	}
+	return nil
 }
