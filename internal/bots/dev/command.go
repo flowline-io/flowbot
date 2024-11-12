@@ -3,7 +3,6 @@ package dev
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
+	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -191,7 +191,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d, avg processing time %f ms",
+			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d, avg processing time %v ms",
 				resp.NumDnsQueries, resp.NumBlockedFiltering, int(*resp.AvgProcessingTime)*1000)}
 		},
 	},

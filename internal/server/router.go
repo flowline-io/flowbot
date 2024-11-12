@@ -16,8 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page"
 	"github.com/flowline-io/flowbot/pkg/page/form"
-	"github.com/flowline-io/flowbot/pkg/page/library"
-	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -159,9 +157,7 @@ func getPage(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
 	}
 
-	return ctx.SendString(fmt.Sprintf(page.Layout, title,
-		library.UIKitCss, library.UIKitJs, library.UIKitIconJs,
-		"", app.HTMLString(uikit.Container(comp)), ""))
+	return ctx.SendString(page.RenderComponent(title, comp))
 }
 
 func renderPage(ctx *fiber.Ctx) error {

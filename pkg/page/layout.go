@@ -1,6 +1,7 @@
 package page
 
 import (
+	_ "embed"
 	"fmt"
 	"html"
 	"strings"
@@ -9,29 +10,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/library"
+	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/types"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
-const Layout = `
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>%s</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-     	<link rel="stylesheet" href="%s" />
-		<script src="%s"></script>
-		<script src="%s"></script>
-		%s
-    </head>
-    <body>
-        %s
-		%s
-    </body>
-</html>
-`
+//go:embed styles.css
+var stylesCss string
 
 func RenderForm(page model.Page, form model.Form) app.UI {
 	d, err := jsoniter.Marshal(page.Schema)
@@ -124,11 +110,7 @@ func RenderMarkdown(page model.Page) app.UI {
 	return comp
 }
 
-func Render(comp *types.UI) string {
-	stylesStr := strings.Builder{}
-	for _, style := range comp.CSS {
-		_, _ = stylesStr.WriteString(app.HTMLString(style))
-	}
+func scripts(comp *types.UI) string {
 	scriptsStr := strings.Builder{}
 	if len(comp.Global) > 0 {
 		_, _ = scriptsStr.WriteString("<script>")
@@ -155,8 +137,41 @@ func Render(comp *types.UI) string {
 	for _, script := range comp.JS {
 		_, _ = scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
 	}
-	return fmt.Sprintf(Layout,
-		comp.Title,
-		library.UIKitCss, library.UIKitJs, library.UIKitIconJs,
-		stylesStr.String(), app.HTMLString(comp.App), scriptsStr.String())
+
+	return scriptsStr.String()
+}
+
+func Render(comp *types.UI) string {
+	const layout = `
+<!DOCTYPE html>
+<html>
+    %s
+    <body>
+        %s
+		%s
+    </body>
+</html>
+`
+
+	headUIs := []app.UI{
+		app.Title().Text(comp.Title),
+		app.Meta().Charset("utf-8"),
+		app.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
+		app.Style().Text(stylesCss),
+		app.Link().Rel("stylesheet").Href(library.UIKitCss),
+		app.Script().Src(library.UIKitJs),
+		app.Script().Src(library.UIKitIconJs),
+	}
+	if len(comp.CSS) > 0 {
+		headUIs = append(headUIs, comp.CSS...)
+	}
+	head := app.Head().Body(headUIs...)
+	return fmt.Sprintf(layout, app.HTMLString(head), app.HTMLString(comp.App), scripts(comp))
+}
+
+func RenderComponent(title string, a app.UI) string {
+	return Render(&types.UI{
+		Title: title,
+		App:   uikit.Container(a),
+	})
 }
