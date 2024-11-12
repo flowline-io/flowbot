@@ -166,7 +166,16 @@ func Render(comp *types.UI) string {
 		headUIs = append(headUIs, comp.CSS...)
 	}
 	head := app.Head().Body(headUIs...)
-	return fmt.Sprintf(layout, app.HTMLString(head), app.HTMLString(comp.App), scripts(comp))
+
+	b := comp.App
+	if !comp.ExpiredAt.IsZero() {
+		b = app.Div().Body(
+			comp.App,
+			uikit.Countdown(comp.ExpiredAt),
+		)
+	}
+
+	return fmt.Sprintf(layout, app.HTMLString(head), app.HTMLString(b), scripts(comp))
 }
 
 func RenderComponent(title string, a app.UI) string {

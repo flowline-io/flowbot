@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -31,11 +30,6 @@ var pageRules = []page.Rule{
 	{
 		Id: devPageId,
 		UI: func(ctx types.Context, flag string) (*types.UI, error) {
-			p, err := store.Database.ParameterGet(flag)
-			if err != nil {
-				return nil, err
-			}
-
 			css := []app.UI{
 				uikit.Style(library.GithubMarkdownCss),
 				uikit.Css(exampleCss),
@@ -115,14 +109,13 @@ var pageRules = []page.Rule{
 				uikit.ModalToggle("example_modal", "modal"),
 				uikit.Modal("example_modal", "modal", uikit.Text("content......")),
 				uikit.Image("https://images.unsplash.com/photo-1490822180406-880c226c150b?fit=crop&w=650&h=433&q=80"),
-				uikit.Countdown(p.ExpiredAt),
+				// uikit.Countdown(p.ExpiredAt),
 			)
 
 			return &types.UI{
-				App:    app,
-				CSS:    css,
-				JS:     js,
-				Global: types.KV(p.Params),
+				App: app,
+				CSS: css,
+				JS:  js,
 			}, nil
 		},
 	},

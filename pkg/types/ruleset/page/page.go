@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/page"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -18,10 +19,16 @@ type Ruleset []Rule
 func (r Ruleset) ProcessPage(ctx types.Context, flag string) (string, error) {
 	for _, rule := range r {
 		if rule.Id == ctx.PageRuleId {
+			p, err := store.Database.ParameterGet(flag)
+			if err != nil {
+				return "", err
+			}
 			ui, err := rule.UI(ctx, flag)
 			if err != nil {
 				return "", err
 			}
+			ui.Global = types.KV(p.Params)
+			ui.ExpiredAt = p.ExpiredAt
 			return page.Render(ui), nil
 		}
 	}
