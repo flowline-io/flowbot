@@ -7,7 +7,4 @@ name = "go"
   import_root = "github.com/flowline-io/flowbot"
 
 [[analyzers]]
-name = "javascript"
-
-[[analyzers]]
 name = "shell"
