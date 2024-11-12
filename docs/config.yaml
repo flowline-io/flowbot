@@ -20,10 +20,10 @@ media:
       bucket: your_s3_bucket_name
       disable_ssl: true
       force_path_style: false
-      endpoint: '127.0.0.1:9000'
+      endpoint: "127.0.0.1:9000"
       cors_origins:
         - "*"
-      serve_url: 'http://127.0.0.1:9000'
+      serve_url: "http://127.0.0.1:9000"
 
 tls:
   enabled: false
@@ -59,62 +59,62 @@ log:
   level: info # debug, info, warn, error, fatal, panic
 
 engine:
-  type: 'docker'
+  type: "docker"
   limits:
-    cpus: ''
-    memory: ''
+    cpus: ""
+    memory: ""
   mounts:
     bind:
       allowed: true
   docker:
-    config: ''
+    config: ""
   shell:
     cmd:
-      - ''
-      - ''
-    uid: ''
-    gid: ''
+      - ""
+      - ""
+    uid: ""
+    gid: ""
   machine:
-    host: ''
+    host: ""
     port: 0
-    username: ''
-    password: ''
+    username: ""
+    password: ""
 
 metrics:
-  endpoint: 'http://127.0.0.1:8428'
+  endpoint: "http://127.0.0.1:8428"
 
 search:
-  endpoint: 'http://127.0.0.1:7700'
-  master_key: ''
-  data_index: 'data'
+  endpoint: "http://127.0.0.1:7700"
+  master_key: ""
+  data_index: "data"
 
 flowbot:
-  url: ''
+  url: ""
 
 platform:
   slack:
     enabled: true
-    app_id: ''
-    client_id: ''
-    client_secret: ''
-    signing_secret: ''
-    verification_token: ''
-    app_token: ''
-    bot_token: ''
+    app_id: ""
+    client_id: ""
+    client_secret: ""
+    signing_secret: ""
+    verification_token: ""
+    app_token: ""
+    bot_token: ""
 
   discord:
     enabled: true
-    app_id: ''
-    public_key: ''
-    client_id: ''
-    client_secret: ''
-    bot_token: ''
+    app_id: ""
+    public_key: ""
+    client_id: ""
+    client_secret: ""
+    bot_token: ""
 
   tailchat:
     enabled: true
-    api_url: ''
-    app_id: ''
-    app_secret: ''
+    api_url: ""
+    app_id: ""
+    app_secret: ""
 
   telegram:
     enabled: true
@@ -127,7 +127,7 @@ bots:
 
 vendors:
   oneai:
-    api_key: ''
+    api_key: ""
   rollbar:
     enable: false
     token:
@@ -137,28 +137,28 @@ vendors:
     id:
     secret:
   pocket:
-    consumer_key: ''
+    consumer_key: ""
   dropbox:
-    key: ''
-    secret: ''
+    key: ""
+    secret: ""
   transmission:
-    endpoint: ''
+    endpoint: ""
   gitea:
-    endpoint: ''
-    token: ''
+    endpoint: ""
+    token: ""
   adguard_home:
-    endpoint: ''
-    username: ''
-    password: ''
+    endpoint: ""
+    username: ""
+    password: ""
   shiori:
-    endpoint: ''
-    username: ''
-    password: ''
+    endpoint: ""
+    username: ""
+    password: ""
   archivebox:
-    endpoint: ''
+    endpoint: ""
   slash:
-    endpoint: ''
-    token: ''
+    endpoint: ""
+    token: ""
   hoarder:
-    endpoint: ''
-    api_key: ''
+    endpoint: ""
+    api_key: ""

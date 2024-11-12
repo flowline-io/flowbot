@@ -14,7 +14,7 @@ flowbot is a framework for chatbot
 
 ## Architecture
 
-<img src="https://github.com/tsundata/assistant/blob/main/docs/architecture.png" alt="Architecture" align="center" width="100%" /> 
+<img src="https://github.com/tsundata/assistant/blob/main/docs/architecture.png" alt="Architecture" align="center" width="100%" />
 
 ## Requirements
 

@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 tasks:
   default:
     cmds:
@@ -6,6 +6,7 @@ tasks:
       - task: cloc
       - task: lint
       - task: swagger
+      - task: format
       - echo "Both done"
 
   build:
@@ -54,6 +55,7 @@ tasks:
         platforms: [windows]
       - cmd: sudo apt install cloc
         platforms: [linux]
+      - npm install -g prettier
 
   secure:
     cmds:
@@ -82,3 +84,8 @@ tasks:
   snapshot:
     cmds:
       - goreleaser release --snapshot --clean
+
+  format:
+    cmds:
+      - go fmt ./...
+      - npx prettier --write .

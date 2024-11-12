@@ -113,7 +113,7 @@ func logPanic(r interface{}) {
 }
 
 func HandleCrash(additionalHandlers ...func(interface{})) {
-	if r := recover(); r != nil {//revive:disable
+	if r := recover(); r != nil { //revive:disable
 		for _, fn := range PanicHandlers {
 			fn(r)
 		}
