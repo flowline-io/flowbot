@@ -32,4 +32,4 @@ jobs:
           context: .
           push: true
           file: deployments/Dockerfile
-          tags: ghcr.io/flowline-io/flowbot:latest
+          tags: ghcr.io/flowline-io/flowbot:latest,ghcr.io/flowline-io/flowbot:${{ github.ref_name }}
