@@ -24,10 +24,10 @@ const (
 type Task struct {
 	ID          string            `json:"id,omitempty"`
 	State       TaskState         `json:"state,omitempty"`
-	CreatedAt   *time.Time        `json:"createdAt,omitempty"`
-	StartedAt   *time.Time        `json:"startedAt,omitempty"`
-	CompletedAt *time.Time        `json:"completedAt,omitempty"`
-	FailedAt    *time.Time        `json:"failedAt,omitempty"`
+	CreatedAt   *time.Time        `json:"created_at,omitempty"`
+	StartedAt   *time.Time        `json:"started_at,omitempty"`
+	CompletedAt *time.Time        `json:"completed_at,omitempty"`
+	FailedAt    *time.Time        `json:"failed_at,omitempty"`
 	CMD         []string          `json:"cmd,omitempty"`
 	Entrypoint  []string          `json:"entrypoint,omitempty"`
 	Run         string            `json:"run,omitempty"`

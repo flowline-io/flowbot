@@ -27,6 +27,9 @@ go run github.com/flowline-io/flowbot/cmd/composer migrate import
 
 # Migration file cli
 go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name file_name
+
+# workflow import yaml
+go run github.com/flowline-io/flowbot/cmd/composer workflow import -token xxx -path ./docs/examples/docker_example.yaml
 ```
 
 ## Lint

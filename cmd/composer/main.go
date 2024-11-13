@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
 	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
+	"github.com/flowline-io/flowbot/cmd/composer/action/workflow"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v2"
 )
@@ -110,6 +111,34 @@ func NewCommand() *cli.App {
 					},
 				},
 				Action: doc.SchemaAction,
+			},
+			{
+				Name:  "workflow",
+				Usage: "workflow",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "import",
+						Usage: "import workflow yaml",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:  "config",
+								Value: "./flowbot.yaml",
+								Usage: "config of the api",
+							},
+							&cli.StringFlag{
+								Name:  "token",
+								Value: "",
+								Usage: "api access token",
+							},
+							&cli.StringFlag{
+								Name:  "path",
+								Value: "",
+								Usage: "yaml path",
+							},
+						},
+						Action: workflow.ImportAction,
+					},
+				},
 			},
 		},
 	}

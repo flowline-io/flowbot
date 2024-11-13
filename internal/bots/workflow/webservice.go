@@ -5,6 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
@@ -140,7 +141,7 @@ func workflowCreate(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
 	}
-	return ctx.JSON(protocol.NewSuccessResponse(nil))
+	return ctx.JSON(protocol.NewSuccessResponse(types.KV{"id": wf.ID}))
 }
 
 // workflow update

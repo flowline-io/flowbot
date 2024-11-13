@@ -2,8 +2,12 @@ package dev
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/executer"
+	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/expression"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -12,10 +16,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
-	"time"
 )
 
 const (
@@ -32,6 +36,7 @@ const (
 	websiteWorkflowActionID = "website"
 	llmWorkflowActionID     = "llm"
 	exprWorkflowActionID    = "expr"
+	dockerWorkflowActionID  = "docker"
 )
 
 var workflowRules = []workflow.Rule{
@@ -252,7 +257,7 @@ var workflowRules = []workflow.Rule{
 	{
 		Id:           websiteWorkflowActionID,
 		Title:        "website content",
-		Desc:         "get website content",
+		Desc:         "Retrieve Website Content",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -276,8 +281,8 @@ var workflowRules = []workflow.Rule{
 	},
 	{
 		Id:           llmWorkflowActionID,
-		Title:        "llm",
-		Desc:         "llm chat",
+		Title:        "LLM",
+		Desc:         "LLM Chat",
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
@@ -361,6 +366,46 @@ var workflowRules = []workflow.Rule{
 					"data": v,
 				}, nil
 			}
+		},
+	},
+	{
+		Id:           dockerWorkflowActionID,
+		Title:        "Run Docker Container",
+		Desc:         "Executes a Docker container with specified parameters",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			image, _ := input.String("image")
+			if image == "" {
+				return nil, fmt.Errorf("%s step, empty image", dockerWorkflowActionID)
+			}
+			run, _ := input.String("run")
+			if run == "" {
+				return nil, fmt.Errorf("%s step, empty run", dockerWorkflowActionID)
+			}
+
+			engine := executer.New(runtime.Docker)
+			task := &types.Task{
+				ID:    utils.NewUUID(),
+				Image: image, // example: "ubuntu:mantic",
+				Run:   run,   // example: "echo -n hello > $OUTPUT",
+			}
+			ctx.SetTimeout(10 * time.Minute)
+			err := engine.Run(ctx.Context(), task)
+			if err != nil {
+				return nil, fmt.Errorf("%s step, %w", dockerWorkflowActionID, err)
+			}
+
+			return types.KV{
+				"id":           task.ID,
+				"state":        task.State,
+				"result":       task.Result,
+				"error":        task.Error,
+				"created_at":   task.CreatedAt,
+				"started_at":   task.StartedAt,
+				"completed_at": task.CompletedAt,
+				"failed_at":    task.FailedAt,
+			}, nil
 		},
 	},
 }

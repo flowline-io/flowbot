@@ -1,0 +1,20 @@
+---
+name: run docker example
+describe: do something...
+
+triggers:
+  - type: manual
+  - type: webhook
+
+pipeline:
+  - run_docker -> echo
+
+tasks:
+  - id: run_docker
+    action: docker@dev
+    params:
+      image: "ubuntu:mantic"
+      run: "echo -n hello > $OUTPUT"
+
+  - id: echo
+    action: message@dev
