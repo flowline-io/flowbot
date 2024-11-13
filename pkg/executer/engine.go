@@ -99,6 +99,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		rt, err := docker.NewRuntime(
 			docker.WithMounter(mounter),
 			docker.WithConfig(config.App.Engine.Docker.Config),
+			docker.WithVersion(config.App.Engine.Docker.Version),
 		)
 		if err != nil {
 			return nil, err

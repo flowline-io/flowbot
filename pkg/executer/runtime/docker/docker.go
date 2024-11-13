@@ -37,6 +37,7 @@ type Runtime struct {
 	pullq   chan *pullRequest
 	mounter runtime.Mounter
 	config  string
+	version string
 }
 
 type printableReader struct {
@@ -68,13 +69,14 @@ func WithConfig(config string) Option {
 	}
 }
 
-func NewRuntime(opts ...Option) (*Runtime, error) {
-	dc, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, err
+func WithVersion(version string) Option {
+	return func(rt *Runtime) {
+		rt.version = version
 	}
+}
+
+func NewRuntime(opts ...Option) (*Runtime, error) {
 	rt := &Runtime{
-		client: dc,
 		tasks:  new(syncx.Map[string, string]),
 		images: new(syncx.Map[string, bool]),
 		pullq:  make(chan *pullRequest, 1),
@@ -82,6 +84,13 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 	for _, o := range opts {
 		o(rt)
 	}
+
+	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion(rt.version))
+	if err != nil {
+		return nil, err
+	}
+	rt.client = dc
+
 	// setup a default mounter
 	if rt.mounter == nil {
 		vmounter, err := NewVolumeMounter()

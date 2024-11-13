@@ -169,7 +169,8 @@ type Engine struct {
 		} `json:"bind" yaml:"bind" mapstructure:"bind"`
 	} `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
 	Docker struct {
-		Config string `json:"config" yaml:"config" mapstructure:"config"`
+		Version string `json:"version" yaml:"version" mapstructure:"version"`
+		Config  string `json:"config" yaml:"config" mapstructure:"config"`
 	} `json:"docker" yaml:"docker" mapstructure:"docker"`
 	Shell struct {
 		CMD []string `json:"cmd" yaml:"cmd" mapstructure:"cmd"`
