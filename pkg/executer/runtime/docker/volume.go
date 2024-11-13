@@ -31,7 +31,7 @@ func (m *VolumeMounter) Mount(ctx context.Context, mn *types.Mount) error {
 	if err != nil {
 		return err
 	}
-	flog.Debug("mount-point: %s, created volume %s", v.Mountpoint, v.Name)
+	flog.Info("mount-point: %s, created volume %s", v.Mountpoint, v.Name)
 	return nil
 }
 
@@ -46,6 +46,6 @@ func (m *VolumeMounter) Unmount(ctx context.Context, mn *types.Mount) error {
 	if err := m.client.VolumeRemove(ctx, mn.Source, true); err != nil {
 		return err
 	}
-	flog.Debug("removed volume %s", mn.Source)
+	flog.Info("removed volume %s", mn.Source)
 	return nil
 }

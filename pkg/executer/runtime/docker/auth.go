@@ -207,7 +207,7 @@ func loadConfig(configFile string) (config, error) {
 
 // FromFile loads config from the specified path into cfg
 func fromFile(configPath string, cfg *config) error {
-	flog.Debug("Loading docker config: %s", configPath)
+	flog.Info("Loading docker config: %s", configPath)
 	f, err := os.Open(configPath)
 	if err != nil {
 		return err

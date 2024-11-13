@@ -180,7 +180,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 			Source: m.Source,
 			Target: m.Target,
 		}
-		flog.Debug("Mounting %s -> %s", item.Source, item.Target)
+		flog.Info("Mounting %s -> %s", item.Source, item.Target)
 		mounts = append(mounts, item)
 	}
 	// create the workdir mount
@@ -269,7 +269,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	// create a mapping between task id and container id
 	d.tasks.Set(t.ID, resp.ID)
 
-	flog.Debug("created container %s", resp.ID)
+	flog.Info("created container %s", resp.ID)
 
 	// remove the container
 	defer func() {
@@ -286,7 +286,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	}
 
 	// start the container
-	flog.Debug("Starting container %s", resp.ID)
+	flog.Info("Starting container %s", resp.ID)
 	err = d.client.ContainerStart(
 		ctx, resp.ID, container.StartOptions{})
 	if err != nil {
@@ -347,7 +347,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 			}
 			t.Result = stdout
 		}
-		flog.Debug("task-i: %s status-code: %d, task completed", t.ID, status.StatusCode)
+		flog.Info("task-i: %s status-code: %d, task completed", t.ID, status.StatusCode)
 	}
 	return nil
 }
@@ -382,7 +382,7 @@ func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, e
 }
 
 func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.Task) error {
-	flog.Debug("initialize the workdir for container %s", containerID)
+	flog.Info("initialize the workdir for container %s", containerID)
 	// create the archive
 	filename, err := createArchive(t)
 	if err != nil {
@@ -483,7 +483,7 @@ func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 		return nil
 	}
 	d.tasks.Delete(t.ID)
-	flog.Debug("Attempting to stop and remove container %v", containerID)
+	flog.Info("Attempting to stop and remove container %v", containerID)
 	return d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
 		RemoveVolumes: true,
 		RemoveLinks:   false,

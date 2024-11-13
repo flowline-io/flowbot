@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -10,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/yaml.v3"
-	"strings"
 )
 
 const (
@@ -139,7 +140,9 @@ var formRules = []form.Rule{
 				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
 			}
 
-			return types.TextMsg{Text: "ok"}
+			return types.KVMsg{
+				"id": wf.ID,
+			}
 		},
 	},
 }
