@@ -24,7 +24,7 @@ var cronRules = []cron.Rule{
 		Help: "Docker images prune",
 		When: "0 4 * * *",
 		Action: func(types.Context) []types.MsgPayload {
-			dc, err := client.NewClientWithOpts(client.FromEnv)
+			dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 			if err != nil {
 				flog.Error(err)
 				return nil
