@@ -67,7 +67,6 @@ engine:
     bind:
       allowed: true
   docker:
-    version: "1.45"
     config: ""
   shell:
     cmd:
