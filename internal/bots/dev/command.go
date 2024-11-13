@@ -125,12 +125,13 @@ var commandRules = []command.Rule{
 		Help:   `[example] run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Debug("start docker command")
-			engine := executer.New(runtime.Docker)
+
 			task := &types.Task{
 				ID:    utils.NewUUID(),
 				Image: "ubuntu:mantic",
 				Run:   "echo -n hello > $OUTPUT",
 			}
+			engine := executer.New(runtime.Docker)
 			err := engine.Run(context.Background(), task)
 			if err != nil {
 				flog.Error(err)

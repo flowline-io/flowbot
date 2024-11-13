@@ -384,13 +384,13 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, empty run", dockerWorkflowActionID)
 			}
 
-			engine := executer.New(runtime.Docker)
 			task := &types.Task{
 				ID:    utils.NewUUID(),
 				Image: image, // example: "ubuntu:mantic",
 				Run:   run,   // example: "echo -n hello > $OUTPUT",
 			}
 			ctx.SetTimeout(10 * time.Minute)
+			engine := executer.New(runtime.Docker)
 			err := engine.Run(ctx.Context(), task)
 			if err != nil {
 				return nil, fmt.Errorf("%s step, %w", dockerWorkflowActionID, err)
