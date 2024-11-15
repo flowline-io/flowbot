@@ -1,10 +1,9 @@
 package hoarder
 
 import (
+	"context"
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	"strconv"
-	"time"
+	openapi "github.com/flowline-io/sdk-hoarder-api"
 )
 
 const (
@@ -14,68 +13,55 @@ const (
 )
 
 type Hoarder struct {
-	c      *resty.Client
-	apiKey string
+	ctx context.Context
+	c   *openapi.APIClient
 }
 
 func NewHoarder(endpoint string, apiKey string) *Hoarder {
-	v := &Hoarder{apiKey: apiKey}
-	v.c = resty.New()
-	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
+	v := &Hoarder{}
+
+	cfg := openapi.NewConfiguration()
+	cfg.Servers = openapi.ServerConfigurations{{URL: endpoint}}
+	v.c = openapi.NewAPIClient(cfg)
+
+	ctx := context.WithValue(context.Background(), openapi.ContextServerIndex, 0)
+	ctx = context.WithValue(ctx, openapi.ContextAccessToken, apiKey)
+	v.ctx = ctx
 
 	return v
 }
 
-func (i *Hoarder) GetAllBookmarks(limit int) (*BookmarksResponse, error) {
-	resp, err := i.c.R().SetAuthToken(i.apiKey).
-		SetResult(&BookmarksResponse{}).
-		SetQueryParam("limit", strconv.Itoa(limit)).
-		Get("/api/v1/bookmarks")
+func (i *Hoarder) GetAllBookmarks(limit int) ([]openapi.Bookmark, error) {
+	resp, _, err := i.c.BookmarksAPI.BookmarksGet(i.ctx).Limit(float32(limit)).Execute()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all bookmarks: %w", err)
 	}
 
-	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get all bookmarks: %s", resp.String())
-	}
-
-	return resp.Result().(*BookmarksResponse), nil
+	return resp.Bookmarks, nil
 }
 
-func (i *Hoarder) GetAllTags() (*TagsResponse, error) {
-	resp, err := i.c.R().SetAuthToken(i.apiKey).
-		SetResult(&TagsResponse{}).
-		Get("/api/v1/tags")
+func (i *Hoarder) GetAllTags() ([]openapi.Tag, error) {
+	resp, _, err := i.c.TagsAPI.TagsGet(i.ctx).Execute()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all tags: %w", err)
 	}
 
-	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to get all tags: %s", resp.String())
-	}
-
-	return resp.Result().(*TagsResponse), nil
+	return resp.Tags, nil
 }
 
-func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) (*AttachedResponse, error) {
-	var list []map[string]any
-	for _, v := range tags {
-		list = append(list, map[string]any{"tagName": v})
+func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+	var list []openapi.BookmarksBookmarkIdTagsPostRequestTagsInner
+	for n := range tags {
+		list = append(list, openapi.BookmarksBookmarkIdTagsPostRequestTagsInner{
+			TagName: &tags[n],
+		})
 	}
-	resp, err := i.c.R().SetAuthToken(i.apiKey).
-		SetResult(&AttachedResponse{}).
-		SetBody(map[string]any{
-			"tags": list,
-		}).
-		Post(fmt.Sprintf("/api/v1/bookmarks/%s/tags", bookmarkId))
+	tagsReq := openapi.BookmarksBookmarkIdTagsPostRequest{}
+	tagsReq.SetTags(list)
+	resp, _, err := i.c.BookmarksAPI.BookmarksBookmarkIdTagsPost(i.ctx, bookmarkId).BookmarksBookmarkIdTagsPostRequest(tagsReq).Execute()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to attach tags to bookmark: %w", err)
 	}
 
-	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("failed to attach tags to bookmark %s tags %v: %s", bookmarkId, tags, resp.String())
-	}
-
-	return resp.Result().(*AttachedResponse), nil
+	return resp.Attached, nil
 }

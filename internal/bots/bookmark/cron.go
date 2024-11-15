@@ -18,16 +18,16 @@ var cronRules = []cron.Rule{
 			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
 			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
 			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
-			resp, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)
 			}
 
-			for _, bookmark := range resp.Bookmarks {
+			for _, bookmark := range bookmarks {
 				if len(bookmark.Tags) > 0 {
 					continue
 				}
-				tags, err := extractTags(ctx.Context(), bookmark.Title)
+				tags, err := extractTags(ctx.Context(), *bookmark.Title.Get())
 				if err != nil {
 					flog.Error(err)
 				}
@@ -39,7 +39,7 @@ var cronRules = []cron.Rule{
 				if err != nil {
 					flog.Error(err)
 				}
-				flog.Info("[bookmark] bookmark %s attach tags %v,esult %v", bookmark.Id, tags, resp.Attached)
+				flog.Info("[bookmark] bookmark %s attach tags %v, result %v", bookmark.Id, tags, resp)
 			}
 
 			return nil
@@ -52,13 +52,13 @@ var cronRules = []cron.Rule{
 			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
 			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
 			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
-			resp, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)
 			}
 
 			bookmarkTotal := 0
-			for _, bookmark := range resp.Bookmarks {
+			for _, bookmark := range bookmarks {
 				if bookmark.Archived {
 					continue
 				}

@@ -18,17 +18,17 @@ var commandRules = []command.Rule{
 			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
 			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
 			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
-			resp, err := client.GetAllBookmarks(10)
+			bookmarks, err := client.GetAllBookmarks(10)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
 
 			var header []string
 			var row [][]interface{}
-			if len(resp.Bookmarks) > 0 {
-				header = []string{"Id", "Url", "Title", "TaggingStatus"}
-				for _, v := range resp.Bookmarks {
-					row = append(row, []interface{}{v.Id, v.Content.Url, v.Title, v.TaggingStatus})
+			if len(bookmarks) > 0 {
+				header = []string{"Id", "Title", "TaggingStatus"}
+				for _, v := range bookmarks {
+					row = append(row, []interface{}{v.Id, v.Title, v.TaggingStatus})
 				}
 			}
 
