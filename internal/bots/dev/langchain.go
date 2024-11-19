@@ -23,6 +23,16 @@ var langchainRules = []langchain.Rule{
 			Function: &llms.FunctionDefinition{
 				Name:        getCurrentTimeToolId,
 				Description: "Get the current time",
+				Parameters: map[string]any{
+					"type": "format",
+					"properties": map[string]any{
+						"url": map[string]any{
+							"type":        "string",
+							"description": "time layout format, default: RFC1123Z",
+						},
+					},
+					"required": []string{},
+				},
 			},
 		},
 		Execute: func(ctx types.Context, args types.KV) (string, error) {
