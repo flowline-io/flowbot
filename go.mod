@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	code.gitea.io/sdk/gitea v0.19.0
-	github.com/Masterminds/semver/v3 v3.3.0
+	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/PuerkitoBio/goquery v1.10.0
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.4.1
