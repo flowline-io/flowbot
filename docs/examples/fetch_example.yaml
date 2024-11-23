@@ -19,6 +19,15 @@ tasks:
         title: $(".magnet-link-wrap").text
         url: $(".magnet-link").attr("data-clipboard-text")
 
+  - id: feed_fetch
+    action: feed@dev
+    describe: "TRILLION GAME"
+    params:
+      url: https://mikanani.me/RSS/Bangumi?bangumiId=3458&subgroupid=583
+      item:
+        title: guid
+        url: enclosure
+
   - id: grep_title
     action: grep@dev
     params:

@@ -30,6 +30,7 @@ const (
 	errorWorkflowActionID   = "error"
 	messageWorkflowActionID = "message"
 	fetchWorkflowActionID   = "fetch"
+	feedWorkflowActionID    = "feed"
 	grepWorkflowActionID    = "grep"
 	uniqueWorkflowActionID  = "unique"
 	torrentWorkflowActionID = "torrent"
@@ -142,6 +143,41 @@ var workflowRules = []workflow.Rule{
 					List string
 					Item map[string]string
 				}{URL: url, List: list, Item: itemMap},
+			}
+
+			return types.KV{"list": rule.Run()}, nil
+		},
+	},
+	{
+		Id:           feedWorkflowActionID,
+		Title:        "feed",
+		Desc:         "parse feed",
+		InputSchema:  nil,
+		OutputSchema: nil,
+		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			url, _ := input.String("url")
+			if url == "" {
+				return nil, fmt.Errorf("%s step, empty url", feedWorkflowActionID)
+			}
+
+			item, _ := input.Map("item")
+			if item == nil {
+				return nil, fmt.Errorf("%s step, empty item", feedWorkflowActionID)
+			}
+
+			itemMap := make(map[string]string)
+			for k, v := range item {
+				itemMap[k] = fmt.Sprintf("%v", v)
+			}
+
+			rule := crawler.Rule{
+				Name:   feedWorkflowActionID,
+				Enable: true,
+				Id:     types.Id(),
+				Feed: &struct {
+					URL  string
+					Item map[string]string
+				}{URL: url, Item: itemMap},
 			}
 
 			return types.KV{"list": rule.Run()}, nil

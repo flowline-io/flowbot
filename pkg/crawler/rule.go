@@ -151,6 +151,8 @@ func (r Rule) Run() []map[string]string {
 			for _, k := range keys {
 				v := ""
 				switch r.Feed.Item[k] {
+				case "guid":
+					v = item.GUID
 				case "title":
 					v = item.Title
 				case "description":
@@ -161,6 +163,12 @@ func (r Rule) Run() []map[string]string {
 					v = item.Link
 				case "updated":
 					v = item.Updated
+				case "published":
+					v = item.Published
+				case "enclosure":
+					if len(item.Enclosures) > 0 {
+						v = item.Enclosures[0].URL
+					}
 				}
 				if v != "" {
 					v = strings.TrimSpace(v)
