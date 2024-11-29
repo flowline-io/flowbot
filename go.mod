@@ -44,7 +44,7 @@ require (
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/json-iterator/go v1.1.12
-	github.com/lithammer/shortuuid/v4 v4.0.0
+	github.com/lithammer/shortuuid/v4 v4.1.0
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.8
 	github.com/meilisearch/meilisearch-go v0.29.0
