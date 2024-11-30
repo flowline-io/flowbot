@@ -12,9 +12,10 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "clear_workflow_jobs",
-		Help: "clear workflow jobs",
-		When: "0 0 * * *",
+		Name:  "clear_workflow_jobs",
+		Help:  "clear workflow jobs",
+		Scope: cron.CronScopeSystem,
+		When:  "0 0 * * *",
 		Action: func(types.Context) []types.MsgPayload {
 			list, err := store.Database.ListJobsByFilter(types.JobFilter{EndedAt: time.Now().Add(-7 * 24 * time.Hour)})
 			if err != nil {

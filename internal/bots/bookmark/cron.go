@@ -12,8 +12,9 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "bookmarks_tag",
-		When: "*/10 * * * *",
+		Name:  "bookmarks_tag",
+		Scope: cron.CronScopeSystem,
+		When:  "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
 			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)

@@ -2,7 +2,6 @@ package dev
 
 import (
 	"context"
-
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -12,17 +11,19 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "dev_demo",
-		Help: "cron example",
-		When: "0 */1 * * *",
+		Name:  "dev_demo",
+		Help:  "cron example",
+		Scope: cron.CronScopeSystem,
+		When:  "0 */10 * * *",
 		Action: func(types.Context) []types.MsgPayload {
 			return nil
 		},
 	},
 	{
-		Name: "docker_images_prune",
-		Help: "Docker images prune",
-		When: "0 4 * * *",
+		Name:  "docker_images_prune",
+		Help:  "Docker images prune",
+		Scope: cron.CronScopeSystem,
+		When:  "0 4 * * *",
 		Action: func(types.Context) []types.MsgPayload {
 			dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 			if err != nil {

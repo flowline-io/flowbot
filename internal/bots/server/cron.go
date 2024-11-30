@@ -12,8 +12,9 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "server_user_online_change",
-		When: "* * * * *",
+		Name:  "server_user_online_change",
+		Scope: cron.CronScopeUser,
+		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			ctx_ := context.Background()
 			keys, _ := cache.DB.Keys(ctx_, "online:*").Result()

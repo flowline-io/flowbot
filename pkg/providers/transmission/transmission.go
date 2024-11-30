@@ -2,11 +2,8 @@ package transmission
 
 import (
 	"context"
-	"errors"
-	"net/url"
-	"strings"
-
 	"github.com/hekmon/transmissionrpc/v3"
+	"net/url"
 )
 
 const (
@@ -50,10 +47,6 @@ func (v *Transmission) TorrentAddFile(ctx context.Context, filepath string) (tra
 // url - the magnet link to add.
 // (transmissionrpc.Torrent, error) - returns the added torrent or an error.
 func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (transmissionrpc.Torrent, error) {
-	if !strings.HasPrefix(magnetUrl, "magnet") {
-		return transmissionrpc.Torrent{}, errors.New("only magnet links are supported")
-	}
-
 	return v.c.TorrentAdd(ctx, transmissionrpc.TorrentAddPayload{
 		Filename: &magnetUrl,
 	})

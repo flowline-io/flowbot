@@ -12,8 +12,9 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "github_starred",
-		When: "*/10 * * * *",
+		Name:  "github_starred",
+		Scope: cron.CronScopeUser,
+		When:  "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)

@@ -8,8 +8,9 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "torrent_clear",
-		When: "*/10 * * * *",
+		Name:  "torrent_clear",
+		Scope: cron.CronScopeSystem,
+		When:  "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			err := torrentClear(ctx.Context())
 			if err != nil {

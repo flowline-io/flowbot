@@ -14,9 +14,17 @@ import (
 	"github.com/influxdata/cron"
 )
 
+type CronScope string
+
+const (
+	CronScopeSystem CronScope = "system"
+	CronScopeUser   CronScope = "user"
+)
+
 type Rule struct {
 	Name   string
 	Help   string
+	Scope  CronScope
 	When   string
 	Action func(types.Context) []types.MsgPayload
 }
@@ -90,23 +98,12 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					}
 				}()
 
-				// all normal users
-				users, err := store.Database.GetUsers()
-				if err != nil {
-					flog.Error(err)
-					return nil
-				}
-
 				var res []result
-				for _, user := range users {
-					// check subscription
-					uid := types.Uid(user.Flag)
 
+				switch rule.Scope {
+				case CronScopeSystem:
 					// ctx
-					ctx := types.Context{
-						Topic:  "",
-						AsUser: uid,
-					}
+					ctx := types.Context{}
 					ctx.SetTimeout(10 * time.Minute)
 
 					// run action
@@ -118,7 +115,37 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 							payload: ra[i],
 						})
 					}
+				case CronScopeUser:
+					// all normal users
+					users, err := store.Database.GetUsers()
+					if err != nil {
+						flog.Error(err)
+						return nil
+					}
+
+					for _, user := range users {
+						// check subscription
+						uid := types.Uid(user.Flag)
+
+						// ctx
+						ctx := types.Context{
+							Topic:  "",
+							AsUser: uid,
+						}
+						ctx.SetTimeout(10 * time.Minute)
+
+						// run action
+						ra := rule.Action(ctx)
+						for i := range ra {
+							res = append(res, result{
+								name:    rule.Name,
+								ctx:     ctx,
+								payload: ra[i],
+							})
+						}
+					}
 				}
+
 				return res
 			}()
 			if len(msgs) > 0 {

@@ -115,8 +115,6 @@ github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/flowline-io/sdk-adguard-home-api v0.0.0-20241109154248-701d39df54e9 h1:tTzsQrKrXWZ1WfCJwQ/JJJFFBd5PlYxbRDEqUKuiHPA=
 github.com/flowline-io/sdk-adguard-home-api v0.0.0-20241109154248-701d39df54e9/go.mod h1:a8A2xdJH+Cu8c/AH4XXogbAcl1eqjDu5sqRfyvEgnpw=
-github.com/flowline-io/sdk-hoarder-api v0.0.0-20241109094140-f61702b931dc h1:YLCd+WdemJOzNDTyz2m2L/muWbG02FCp2lg3JxGfJ9c=
-github.com/flowline-io/sdk-hoarder-api v0.0.0-20241109094140-f61702b931dc/go.mod h1:Qd9Kzcy0/onEWHatdaNwD3KD6lycg5hilx5BV9cBwmU=
 github.com/flowline-io/sdk-hoarder-api v0.0.0-20241130042103-7266590962e9 h1:ozuMyDdT0TFNZPceDbS2fe2Yjl5NryODwEf22qRjE2U=
 github.com/flowline-io/sdk-hoarder-api v0.0.0-20241130042103-7266590962e9/go.mod h1:Qd9Kzcy0/onEWHatdaNwD3KD6lycg5hilx5BV9cBwmU=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

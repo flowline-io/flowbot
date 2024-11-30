@@ -16,9 +16,10 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "anki_review_remind",
-		Help: "Regular reminders to review",
-		When: "* * * * *",
+		Name:  "anki_review_remind",
+		Help:  "Regular reminders to review",
+		Scope: cron.CronScopeUser,
+		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			j, err := store.Database.DataGet(ctx.AsUser, ctx.Topic, "getNumCardsReviewedToday")
 			if err != nil {

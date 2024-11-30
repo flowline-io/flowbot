@@ -7,8 +7,9 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name: "gitea_example",
-		When: "* * * * *",
+		Name:  "gitea_example",
+		Scope: cron.CronScopeSystem,
+		When:  "* * * * *",
 		Action: func(types.Context) []types.MsgPayload {
 			return nil
 		},
