@@ -25,7 +25,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.1
 	github.com/expr-lang/expr v1.16.9
 	github.com/flowline-io/sdk-adguard-home-api v0.0.0-20241109154248-701d39df54e9
-	github.com/flowline-io/sdk-hoarder-api v0.0.0-20241109094140-f61702b931dc
+	github.com/flowline-io/sdk-hoarder-api v0.0.0-20241130042103-7266590962e9
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
 	github.com/go-echarts/go-echarts/v2 v2.4.5
 	github.com/go-playground/validator/v10 v10.23.0

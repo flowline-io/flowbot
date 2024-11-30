@@ -3,9 +3,6 @@ package dev
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/bots/gitea"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -25,6 +22,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
+	"strings"
+	"time"
 )
 
 var commandRules = []command.Rule{
