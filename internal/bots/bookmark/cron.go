@@ -28,7 +28,7 @@ var cronRules = []cron.Rule{
 				if len(bookmark.Tags) > 0 {
 					continue
 				}
-				tags, err := extractTags(ctx.Context(), *bookmark.Title.Get())
+				tags, err := extractTags(ctx.Context(), bookmark)
 				if err != nil {
 					flog.Error(err)
 				}

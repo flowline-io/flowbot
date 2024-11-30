@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	openapi "github.com/flowline-io/sdk-hoarder-api"
 	json "github.com/json-iterator/go"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -32,7 +33,12 @@ CONTENT END HERE
 You must respond in JSON with the key "tags" and the value is an array of string tags, please answer in {{.language}}.
 `
 
-func extractTags(ctx context.Context, content string) ([]string, error) {
+func extractTags(ctx context.Context, bookmark openapi.Bookmark) ([]string, error) {
+	var content string
+	title := bookmark.Content.BookmarkContentOneOf.Title.Get()
+	if title != nil {
+		content = *title
+	}
 	if content == "" {
 		return nil, nil
 	}

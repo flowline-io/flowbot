@@ -3,12 +3,12 @@ package dev
 import (
 	"context"
 	"fmt"
-	"regexp"
-
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
+	"regexp"
 )
 
 func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
@@ -36,6 +36,7 @@ func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to set unique key: %w", err)
 		}
+		flog.Info("[unique] key: %s added: %s", id, val)
 	}
 
 	return diff, nil
