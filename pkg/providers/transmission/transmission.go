@@ -3,7 +3,11 @@ package transmission
 import (
 	"context"
 	"github.com/hekmon/transmissionrpc/v3"
+	"io"
+	"net/http"
 	"net/url"
+	"os"
+	"strings"
 )
 
 const (
@@ -47,9 +51,34 @@ func (v *Transmission) TorrentAddFile(ctx context.Context, filepath string) (tra
 // url - the magnet link to add.
 // (transmissionrpc.Torrent, error) - returns the added torrent or an error.
 func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (transmissionrpc.Torrent, error) {
-	return v.c.TorrentAdd(ctx, transmissionrpc.TorrentAddPayload{
-		Filename: &magnetUrl,
-	})
+	if strings.HasPrefix(magnetUrl, "magnet") {
+		return v.c.TorrentAdd(ctx, transmissionrpc.TorrentAddPayload{
+			Filename: &magnetUrl,
+		})
+	}
+
+	// download the torrent file from url
+	httpClient := &http.Client{}
+	resp, err := httpClient.Get(magnetUrl)
+	if err != nil {
+		return transmissionrpc.Torrent{}, err
+	}
+	defer resp.Body.Close()
+
+	// store the torrent file in a temporary file
+	tempFile, err := os.CreateTemp("", "torrent-*.torrent")
+	if err != nil {
+		return transmissionrpc.Torrent{}, err
+	}
+	defer tempFile.Close()
+
+	// copy the contents of the response body to the temporary file
+	_, err = io.Copy(tempFile, resp.Body)
+	if err != nil {
+		return transmissionrpc.Torrent{}, err
+	}
+
+	return v.c.TorrentAddFile(ctx, tempFile.Name())
 }
 
 // TorrentGetAll returns all the known fields for all the torrents.
