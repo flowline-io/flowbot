@@ -12,19 +12,10 @@ import (
 )
 
 func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
+	result := make([]types.KV, 0)
 	uniqueKey := fmt.Sprintf("unique:%s", id)
 
-	oldArr, err := cache.DB.SMembers(ctx, uniqueKey).Result()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get unique key: %w", err)
-	}
-
-	diff, err := kvDiff(latest, oldArr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to diff kv: %w", err)
-	}
-
-	for _, item := range diff {
+	for _, item := range latest {
 		val, err := kvHash(item)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash kv: %w", err)
@@ -32,44 +23,29 @@ func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
 		if len(val) == 0 {
 			continue
 		}
-		err = cache.DB.SAdd(ctx, uniqueKey, val).Err()
+		b, err := cache.DB.SAdd(ctx, uniqueKey, val).Result()
 		if err != nil {
 			return nil, fmt.Errorf("failed to set unique key: %w", err)
 		}
-		flog.Info("[unique] key: %s added: %s", id, val)
+		if b == 1 {
+			kv, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			result = append(result, kv)
+			flog.Info("[unique] key: %s added: %s", id, val)
+		}
 	}
 
-	return diff, nil
+	return result, nil
 }
 
-func kvHash(item types.KV) (string, error) {
+func kvHash(item any) (string, error) {
 	b, err := json.Marshal(item)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal kv: %w", err)
 	}
 	return utils.SHA1(utils.BytesToString(b)), nil
-}
-
-func kvDiff(latest []any, old []string) ([]types.KV, error) {
-	result := make([]types.KV, 0, len(latest))
-	for _, item := range latest {
-		kv, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		val, err := kvHash(kv)
-		if err != nil {
-			return nil, fmt.Errorf("failed to hash kv: %w", err)
-		}
-		if len(val) == 0 {
-			continue
-		}
-
-		if !utils.InStringSlice(old, val) {
-			result = append(result, kv)
-		}
-	}
-	return result, nil
 }
 
 func kvGrep(pattern string, input types.KV) (types.KV, error) {
