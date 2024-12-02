@@ -56,7 +56,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/zerolog v1.33.0
-	github.com/shirou/gopsutil/v4 v4.24.10
+	github.com/shirou/gopsutil/v4 v4.24.11
 	github.com/slack-go/slack v0.15.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
