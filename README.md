@@ -20,6 +20,20 @@ flowbot is a framework for chatbot
 
 This project requires Go 1.21 or newer
 
+## Run
+
+```shell
+# copy config and setting
+cp docs/config.yaml flowbot.yaml
+
+# build
+go build -v -o tmp github.com/flowline-io/flowbot/cmd
+
+# run
+chmod +x tmp
+./tmp
+```
+
 # License
 
 Assistant Bot is licensed under the https://github.com/flowline-io/flowbot#GPL-3.0-1-ov-file.
