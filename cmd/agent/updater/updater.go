@@ -11,16 +11,13 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/charmbracelet/bubbles/progress"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/google/go-github/v66/github"
 	"github.com/minio/selfupdate"
+	"github.com/schollz/progressbar/v3"
 )
-
-var p *tea.Program
 
 func CheckUpdates() (bool, string, error) {
 	release, err := GetLatestRelease()
@@ -110,41 +107,29 @@ func UpdateSelf() (bool, error) {
 }
 
 func DownloadFile(url, filename string) error {
-	res, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
-
-	file, err := os.Create(filename)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		_, _ = fmt.Println("could not create file:", err)
-		os.Exit(1)
+		return err
 	}
-	defer file.Close()
+	defer func() { _ = resp.Body.Close() }()
 
-	pw := &progressWriter{
-		total:  int(res.ContentLength),
-		file:   file,
-		reader: res.Body,
-		onProgress: func(ratio float64) {
-			p.Send(progressMsg(ratio))
-		},
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
 	}
+	defer func() { _ = f.Close() }()
 
-	m := model{
-		pw:       pw,
-		progress: progress.New(progress.WithDefaultGradient()),
-	}
-	// Start Bubble Tea
-	p = tea.NewProgram(m)
-
-	// Start the download
-	go pw.Start()
-
-	if _, err := p.Run(); err != nil {
-		_, _ = fmt.Println("error running program:", err)
-		os.Exit(1)
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"downloading",
+	)
+	_, err = io.Copy(io.MultiWriter(f, bar), resp.Body)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -162,30 +147,6 @@ func GetLatestRelease() (*github.RepositoryRelease, error) {
 	}
 
 	return releases[0], nil
-}
-
-type progressWriter struct {
-	total      int
-	downloaded int
-	file       *os.File
-	reader     io.Reader
-	onProgress func(float64)
-}
-
-func (pw *progressWriter) Start() {
-	// TeeReader calls pw.Write() each time a new response is received
-	_, err := io.Copy(pw.file, io.TeeReader(pw.reader, pw))
-	if err != nil {
-		p.Send(progressErrMsg{err})
-	}
-}
-
-func (pw *progressWriter) Write(p []byte) (int, error) {
-	pw.downloaded += len(p)
-	if pw.total > 0 && pw.onProgress != nil {
-		pw.onProgress(float64(pw.downloaded) / float64(pw.total))
-	}
-	return len(p), nil
 }
 
 func execName() string {
