@@ -16,3 +16,4 @@ flowbot.log
 flowbot-agent.yaml
 main
 flowbot
+*.tmp
