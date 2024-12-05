@@ -90,11 +90,8 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 			}
 			msgs := func() []result {
 				defer func() {
-					if rc := recover(); rc != nil {
-						flog.Warn("cron %s ruleWorker recover", rule.Name)
-						if v, ok := rc.(error); ok {
-							flog.Error(v)
-						}
+					if r := recover(); r != nil {
+						flog.Error(fmt.Errorf("cron %s ruleWorker recover, error %v", rule.Name, r))
 					}
 				}()
 
