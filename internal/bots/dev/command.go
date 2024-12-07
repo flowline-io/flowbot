@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/bots/gitea"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
@@ -13,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
@@ -211,7 +211,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			list, total, err := meilisearch.NewMeiliSearch().Search(gitea.Name, "title", 1, 10)
+			list, total, err := meilisearch.NewMeiliSearch().Search(gitea.ID, "title", 1, 10)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
