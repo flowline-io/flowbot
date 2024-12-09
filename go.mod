@@ -63,7 +63,7 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	github.com/tmc/langchaingo v0.1.12
 	github.com/urfave/cli/v2 v2.27.5
-	github.com/valyala/fasthttp v1.57.0
+	github.com/valyala/fasthttp v1.58.0
 	github.com/yuin/goldmark v1.7.8
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.30.0
@@ -202,7 +202,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/net v0.30.0 // indirect
+	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
