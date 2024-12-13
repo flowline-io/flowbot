@@ -66,7 +66,7 @@ require (
 	github.com/valyala/fasthttp v1.58.0
 	github.com/yuin/goldmark v1.7.8
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
 	golang.org/x/sys v0.28.0
 	golang.org/x/time v0.8.0
