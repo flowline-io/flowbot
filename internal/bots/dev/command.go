@@ -3,6 +3,9 @@ package dev
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -22,8 +25,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
-	"strings"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -261,6 +262,14 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: completion}
+		},
+	},
+	{
+		Define: "check",
+		Help:   `self inspection`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			// todo
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }

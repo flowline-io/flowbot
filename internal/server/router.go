@@ -40,7 +40,6 @@ func setupMux(a *fiber.App) {
 
 	// common
 	a.Get("/", func(c *fiber.Ctx) error { return nil })
-	a.Get("/health", func(c *fiber.Ctx) error { return c.SendString("ok") })
 	a.All("/oauth/:provider/:flag", storeOAuth)
 	a.Get("/p/:id", getPage)
 	// form
