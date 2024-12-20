@@ -2,17 +2,14 @@ package dev
 
 import (
 	"context"
-	"crypto/sha1"
 	"fmt"
-	"hash"
-	"reflect"
 	"regexp"
-	"sort"
-	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	json "github.com/json-iterator/go"
 )
 
 func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
@@ -45,105 +42,11 @@ func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
 }
 
 func kvHash(item any) (string, error) {
-	h := sha1.New()
-	if err := writeHash(h, reflect.ValueOf(item)); err != nil {
-		return "", fmt.Errorf("failed to hash: %w", err)
+	b, err := json.ConfigCompatibleWithStandardLibrary.Marshal(item)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal kv: %w", err)
 	}
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
-}
-
-func writeHash(h hash.Hash, v reflect.Value) error {
-	if !v.IsValid() {
-		_, _ = h.Write([]byte("null"))
-		return nil
-	}
-
-	switch v.Kind() {
-	case reflect.Bool:
-		if v.Bool() {
-			_, _ = h.Write([]byte("t"))
-		} else {
-			_, _ = h.Write([]byte("f"))
-		}
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		_, _ = h.Write([]byte(strconv.FormatInt(v.Int(), 10)))
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		_, _ = h.Write([]byte(strconv.FormatUint(v.Uint(), 10)))
-
-	case reflect.Float32, reflect.Float64:
-		_, _ = h.Write([]byte(strconv.FormatFloat(v.Float(), 'f', -1, 64)))
-
-	case reflect.String:
-		_, _ = h.Write([]byte(v.String()))
-
-	case reflect.Slice, reflect.Array:
-		_, _ = h.Write([]byte("["))
-		for i := 0; i < v.Len(); i++ {
-			if i > 0 {
-				_, _ = h.Write([]byte(","))
-			}
-			if err := writeHash(h, v.Index(i)); err != nil {
-				return err
-			}
-		}
-		_, _ = h.Write([]byte("]"))
-
-	case reflect.Map:
-		keys := v.MapKeys()
-		sortedKeys := make([]string, len(keys))
-		for i, k := range keys {
-			sortedKeys[i] = fmt.Sprint(k.Interface())
-		}
-		sort.Strings(sortedKeys)
-
-		_, _ = h.Write([]byte("{"))
-		for i, keyStr := range sortedKeys {
-			if i > 0 {
-				_, _ = h.Write([]byte(","))
-			}
-			_, _ = h.Write([]byte(keyStr))
-			_, _ = h.Write([]byte(":"))
-			for _, k := range keys {
-				if fmt.Sprint(k.Interface()) == keyStr {
-					if err := writeHash(h, v.MapIndex(k)); err != nil {
-						return err
-					}
-					break
-				}
-			}
-		}
-		_, _ = h.Write([]byte("}"))
-
-	case reflect.Struct:
-		t := v.Type()
-		_, _ = h.Write([]byte("{"))
-		for i := 0; i < v.NumField(); i++ {
-			if i > 0 {
-				_, _ = h.Write([]byte(","))
-			}
-			field := t.Field(i)
-			_, _ = h.Write([]byte(field.Name))
-			_, _ = h.Write([]byte(":"))
-			if err := writeHash(h, v.Field(i)); err != nil {
-				return err
-			}
-		}
-		_, _ = h.Write([]byte("}"))
-
-	case reflect.Ptr, reflect.Interface:
-		if v.IsNil() {
-			_, _ = h.Write([]byte("null"))
-			return nil
-		}
-		return writeHash(h, v.Elem())
-
-	default:
-		return fmt.Errorf("unsupported type: %v", v.Kind())
-	}
-
-	return nil
+	return utils.SHA1(utils.BytesToString(b)), nil
 }
 
 func kvGrep(pattern string, input types.KV) (types.KV, error) {
