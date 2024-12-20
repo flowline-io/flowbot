@@ -32,6 +32,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jsoniter "github.com/json-iterator/go"
@@ -246,17 +247,22 @@ func initializeHttp() error {
 			return nil
 		},
 	})
-	httpApp.Use(compress.New(compress.Config{
-		Level: compress.LevelBestSpeed,
-	}))
-	httpApp.Use(healthcheck.New())
 	httpApp.Use(recover.New())
+	httpApp.Use(requestid.New())
+	httpApp.Use(healthcheck.New())
 	httpApp.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
 	}))
-	httpApp.Use(requestid.New())
+	httpApp.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
+	httpApp.Use(limiter.New(limiter.Config{
+		Max:               20,
+		Expiration:        10 * time.Second,
+		LimiterMiddleware: limiter.SlidingWindow{},
+	}))
 	logger := flog.GetLogger()
 	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
