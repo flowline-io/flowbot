@@ -7,10 +7,8 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
@@ -35,8 +33,8 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 		default:
 			continue
 		}
-		funcName := utils.GetFunctionName(router.Function)
-		flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
+		// funcName := utils.GetFunctionName(router.Function)
+		// flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
 	}
 }
 

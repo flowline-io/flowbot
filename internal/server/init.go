@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -272,6 +273,16 @@ func initializeHttp() error {
 			"/service/user/metrics",
 		},
 	}))
+
+	// hook
+	httpApp.Hooks().OnRoute(func(r fiber.Route) error {
+		if r.Method == http.MethodHead {
+			return nil
+		}
+		flog.Info("[route] %+7s %s", r.Method, r.Path)
+		return nil
+	})
+
 	// swagger
 	if swagHandler != nil {
 		httpApp.Get("/swagger/*", swagHandler)
