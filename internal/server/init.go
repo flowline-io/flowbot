@@ -261,7 +261,8 @@ func initializeHttp() error {
 	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 		SkipURIs: []string{
-			"/health",
+			"/livez",
+			"/readyz",
 			"/service/user/metrics",
 		},
 	}))
