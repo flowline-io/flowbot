@@ -8,6 +8,7 @@ import (
 	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -51,7 +52,7 @@ func RegisterAdapter(a Adapter) {
 		panic("store: adapter '" + name + "' is already registered")
 	}
 	availableAdapters[name] = a
-	fmt.Printf("%s info %s store: adapter '%s' registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
+	flog.Info("store: adapter '%s' registered", name)
 }
 
 func Migrate() error {

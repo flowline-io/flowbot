@@ -260,7 +260,7 @@ func initializeHttp() error {
 		Level: compress.LevelBestSpeed,
 	}))
 	httpApp.Use(limiter.New(limiter.Config{
-		Max:               20,
+		Max:               50,
 		Expiration:        10 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
