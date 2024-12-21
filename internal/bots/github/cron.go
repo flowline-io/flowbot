@@ -2,6 +2,7 @@ package github
 
 import (
 	"errors"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
@@ -71,6 +72,43 @@ var cronRules = []cron.Rule{
 						"Topics":           repo.Topics,
 						"Archived":         repo.Archived,
 						"Disabled":         repo.Disabled,
+					},
+				})
+			}
+			return r
+		},
+	},
+	{
+		Name:  "github_notifications",
+		Scope: cron.CronScopeUser,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			// get oauth token
+			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				flog.Error(err)
+				return nil
+			}
+			if oauth.Token == "" {
+				return nil
+			}
+
+			// data
+			client := github.NewGithub("", "", "", oauth.Token)
+			notifications, err := client.GetNotifications()
+			if err != nil {
+				flog.Error(err)
+				return []types.MsgPayload{}
+			}
+
+			var r []types.MsgPayload
+			for _, item := range *notifications {
+				r = append(r, types.InfoMsg{
+					Title: *item.Subject.Title,
+					Model: types.KV{
+						"ID":   item.ID,
+						"Type": item.Subject.Type,
+						"URL":  item.Subject.URL,
 					},
 				})
 			}

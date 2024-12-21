@@ -278,3 +278,22 @@ type ProjectCard struct {
 	ColumnName         *string `json:"column_name,omitempty"`
 	PreviousColumnName *string `json:"previous_column_name,omitempty"` // Populated in "moved_columns_in_project" event deliveries.
 }
+
+type Notification struct {
+	ID             *string     `json:"id,omitempty"`
+	Repository     *Repository `json:"repository,omitempty"`
+	Subject        *Subject    `json:"subject,omitempty"`
+	Reason         *string     `json:"reason,omitempty"`
+	Unread         *bool       `json:"unread,omitempty"`
+	UpdatedAt      *time.Time  `json:"updated_at,omitempty"`
+	LastReadAt     *time.Time  `json:"last_read_at,omitempty"`
+	URL            *string     `json:"url,omitempty"`
+	SubsciptionURL *string     `json:"subscription_url,omitempty"`
+}
+
+type Subject struct {
+	Title            *string `json:"title,omitempty"`
+	URL              *string `json:"url,omitempty"`
+	LatestCommentURL *string `json:"latest_comment_url,omitempty"`
+	Type             *string `json:"type,omitempty"`
+}

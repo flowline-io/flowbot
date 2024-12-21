@@ -240,3 +240,21 @@ func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
 }
+
+// get user notifications
+func (v *Github) GetNotifications() (*[]Notification, error) {
+	resp, err := v.c.R().
+		SetResult(&[]Notification{}).
+		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		Get("/notifications")
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() == http.StatusOK {
+		return resp.Result().(*[]Notification), nil
+	} else {
+		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+	}
+}
