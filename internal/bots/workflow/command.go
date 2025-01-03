@@ -118,6 +118,42 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
+		Define: "task start [number]",
+		Help:   `Start task`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			workflowId, _ := tokens[2].Value.Int64()
+
+			err := store.Database.UpdateWorkflowState(workflowId, model.WorkflowEnable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = store.Database.UpdateWorkflowTriggerStateByWorkflowId(workflowId, model.WorkflowTriggerEnable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
+		Define: "task stop [number]",
+		Help:   `Stop task`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			workflowId, _ := tokens[2].Value.Int64()
+
+			err := store.Database.UpdateWorkflowState(workflowId, model.WorkflowDisable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = store.Database.UpdateWorkflowTriggerStateByWorkflowId(workflowId, model.WorkflowTriggerDisable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
 		Define: "workflow stat",
 		Help:   `workflow job statisticians`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

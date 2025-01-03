@@ -1610,6 +1610,14 @@ func (a *adapter) UpdateWorkflowTrigger(item *model.WorkflowTrigger) error {
 	return err
 }
 
+func (a *adapter) UpdateWorkflowTriggerStateByWorkflowId(workflowId int64, state model.WorkflowTriggerState) error {
+	q := dao.Q.WorkflowTrigger
+	_, err := q.
+		Where(q.WorkflowID.Eq(workflowId)).
+		UpdateSimple(q.State.Value(state))
+	return err
+}
+
 func (a *adapter) DeleteWorkflowTrigger(id int64) error {
 	q := dao.Q.WorkflowTrigger
 	_, err := q.Where(q.ID.Eq(id)).Delete()
