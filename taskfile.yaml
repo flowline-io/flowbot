@@ -9,6 +9,13 @@ tasks:
       - task: cloc
       - echo "Both done"
 
+  check:
+    cmds:
+      - task: lint
+      - task: secure
+      - task: leak
+      - echo "Both done"
+
   build:
     cmds:
       - go build -v -o tmp github.com/flowline-io/flowbot/cmd
@@ -51,6 +58,7 @@ tasks:
       - go install github.com/hibiken/asynq/tools/asynq@latest
       - go install github.com/zricethezav/gitleaks/v8@v8.21.1
       - go install github.com/goreleaser/goreleaser/v2@latest
+      - go install github.com/air-verse/air@latest
       - cmd: winget install AlDanial.Cloc
         platforms: [windows]
       - cmd: sudo apt install cloc
@@ -89,3 +97,7 @@ tasks:
     cmds:
       - go fmt ./...
       - npx prettier --write .
+
+  air:
+    cmds:
+      - air --build.cmd "go build -o flowbot cmd/main.go" --build.bin "./flowbot"
