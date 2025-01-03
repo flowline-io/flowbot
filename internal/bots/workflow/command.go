@@ -227,4 +227,29 @@ var commandRules = []command.Rule{
 			return types.TextMsg{Text: str.String()}
 		},
 	},
+	{
+		Define: "workflow list",
+		Help:   `print workflow list`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			list, err := store.Database.ListWorkflows(ctx.AsUser, ctx.Topic)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			total := len(list)
+
+			// filter state enabled
+			for i, item := range list {
+				if item.State != model.WorkflowEnable {
+					list = append(list[:i], list[i+1:]...)
+					total--
+				}
+			}
+
+			return types.InfoMsg{
+				Title: fmt.Sprintf("workflows %v", total),
+				Model: list,
+			}
+		},
+	},
 }
