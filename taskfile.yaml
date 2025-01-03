@@ -3,10 +3,10 @@ tasks:
   default:
     cmds:
       - task: tidy
-      - task: cloc
-      - task: lint
       - task: swagger
       - task: format
+      - task: lint
+      - task: cloc
       - echo "Both done"
 
   build:
