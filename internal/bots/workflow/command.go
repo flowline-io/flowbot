@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	statsLib "github.com/montanaflynn/stats"
+	"gorm.io/gorm"
 )
 
 var commandRules = []command.Rule{
@@ -101,7 +103,10 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			step, err := store.Database.GetLastStepByState(model.StepFailed)
 			if err != nil {
-				return types.TextMsg{Text: err.Error()}
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return types.TextMsg{Text: "no failed workflow step"}
+				}
+				return types.TextMsg{Text: fmt.Sprintf("failed to get last step: %s", err.Error())}
 			}
 
 			return types.KVMsg{
