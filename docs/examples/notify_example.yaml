@@ -1,0 +1,23 @@
+---
+name: example message
+describe: do something...
+
+triggers:
+  - type: manual # cron, manual, webhook
+  - type: webhook
+
+pipeline:
+  - notify -> end
+
+tasks:
+  - id: notify
+    action: send@notify
+    describe: do something... # optional
+    params: # optional
+      channel: example
+      title: "example title"
+      body: "example body"
+      url: https://example.com
+
+  - id: end
+    action: end@dev
