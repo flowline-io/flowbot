@@ -9,7 +9,9 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
@@ -137,7 +139,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 			return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 		}
 
-		return "", 0, fmt.Errorf("error uploading file %s, %v", fname, err)
+		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
 	}
 
 	if _, err = store.Database.FileFinishUpload(fdef, true, fdef.Size); err != nil {
@@ -145,7 +147,12 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
 
-	return ah.conf.ServeURL + fname, info.Size, nil
+	presignedURL, err := ah.presignedURL(fdef)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get presigned url, %w", err)
+	}
+
+	return presignedURL, info.Size, nil
 }
 
 // Download processes request for file download.
@@ -180,6 +187,18 @@ func (ah *handler) Delete(locations []string) error {
 // GetIdFromUrl converts an attahment URL to a file UID.
 func (ah *handler) GetIdFromUrl(url string) types.Uid {
 	return media.GetIdFromUrl(url, ah.conf.ServeURL)
+}
+
+func (ah *handler) presignedURL(fdef *types.FileDef) (string, error) {
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fdef.Name))
+
+	presignedURL, err := ah.svc.PresignedGetObject(context.Background(), ah.conf.BucketName, fdef.Location, time.Hour, reqParams)
+	if err != nil {
+		return "", fmt.Errorf("failed to get presigned url, %w", err)
+	}
+
+	return presignedURL.String(), nil
 }
 
 func init() {

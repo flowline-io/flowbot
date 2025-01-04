@@ -302,7 +302,7 @@ var commandRules = []command.Rule{
 				User:     ctx.AsUser.String(),
 				Size:     fileSize,
 				MimeType: "text/markdown",
-				Location: "/example",
+				Location: "example",
 			}, f)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
