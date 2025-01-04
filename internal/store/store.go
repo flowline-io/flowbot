@@ -244,6 +244,8 @@ type Adapter interface {
 	DataDelete(uid types.Uid, topic, key string) error
 	ConfigSet(uid types.Uid, topic, key string, value types.KV) error
 	ConfigGet(uid types.Uid, topic, key string) (types.KV, error)
+	ListConfigByPrefix(uid types.Uid, topic string, prefix string) ([]*model.Config, error)
+	ConfigDelete(uid types.Uid, topic string, key string) error
 	OAuthSet(oauth model.OAuth) error
 	OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error)
 	OAuthGetAvailable(t string) ([]model.OAuth, error)

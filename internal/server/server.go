@@ -15,6 +15,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/gitea"
 	_ "github.com/flowline-io/flowbot/internal/bots/github"
 	_ "github.com/flowline-io/flowbot/internal/bots/markdown"
+	_ "github.com/flowline-io/flowbot/internal/bots/notify"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
 	_ "github.com/flowline-io/flowbot/internal/bots/search"
@@ -29,8 +30,10 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/media/minio"
 
 	// Notify
+	_ "github.com/flowline-io/flowbot/pkg/notify/message-pusher"
 	_ "github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	_ "github.com/flowline-io/flowbot/pkg/notify/pushover"
+	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
 const (

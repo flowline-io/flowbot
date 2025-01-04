@@ -526,6 +526,19 @@ func (a *adapter) ConfigGet(uid types.Uid, topic, key string) (types.KV, error) 
 	return types.KV(find.Value), nil
 }
 
+func (a *adapter) ListConfigByPrefix(uid types.Uid, topic string, prefix string) ([]*model.Config, error) {
+	q := dao.Q.Config
+	return q.Where(q.UID.Eq(uid.String()), q.Topic.Eq(topic), q.Key.Like(fmt.Sprintf("%s%%", prefix))).
+		Find()
+}
+
+func (a *adapter) ConfigDelete(uid types.Uid, topic string, key string) error {
+	q := dao.Q.Config
+	_, err := q.Where(q.UID.Eq(uid.String()), q.Topic.Eq(topic), q.Key.Eq(key)).
+		Delete()
+	return err
+}
+
 func (a *adapter) OAuthSet(oauth model.OAuth) error {
 	var find model.OAuth
 	err := a.db.

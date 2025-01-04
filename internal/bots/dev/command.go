@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"strings"
 	"time"
 
@@ -262,6 +263,22 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: completion}
+		},
+	},
+	{
+		Define: "notify test",
+		Help:   `[example] Notify example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			err := notify.ChannelSend(ctx.AsUser, "example", notify.Message{
+				Title: "example title",
+				Body:  "example body",
+				Url:   "https://example.com",
+			})
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 	{

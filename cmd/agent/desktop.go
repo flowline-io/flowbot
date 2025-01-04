@@ -1,4 +1,4 @@
-package notify
+package main
 
 import (
 	"github.com/flowline-io/flowbot/pkg/flog"

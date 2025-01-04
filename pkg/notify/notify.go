@@ -1,6 +1,9 @@
 package notify
 
 import (
+	"errors"
+	"fmt"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"regexp"
@@ -60,7 +63,7 @@ func ParseTemplate(testString string, templates []string) (types.KV, error) {
 }
 
 func ParseSchema(testString string) (string, error) {
-	regex, err := regexp.Compile(`^(\w+)://`)
+	regex, err := regexp.Compile(`^([a-zA-Z0-9\-_]+)://`)
 	if err != nil {
 		return "", err
 	}
@@ -97,4 +100,17 @@ func Send(text string, message Message) error {
 	}
 
 	return nil
+}
+
+func ChannelSend(uid types.Uid, name string, message Message) error {
+	kv, err := store.Database.ConfigGet(uid, "", fmt.Sprintf("notify:%s", name))
+	if err != nil {
+		return err
+	}
+	template, ok := kv.String("value")
+	if !ok {
+		return errors.New("[notify] template not found")
+	}
+
+	return Send(template, message)
 }
