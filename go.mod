@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	code.gitea.io/sdk/gitea v0.19.0
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/PuerkitoBio/goquery v1.10.0
+	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.4.1
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
@@ -30,7 +30,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-json v0.10.4
 	github.com/gofiber/contrib/fiberzerolog v1.0.2
-	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/swagger v1.1.0
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/go-github/v66 v66.0.0
@@ -44,7 +44,7 @@ require (
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.9
-	github.com/meilisearch/meilisearch-go v0.29.0
+	github.com/meilisearch/meilisearch-go v0.30.0
 	github.com/minio/minio-go/v7 v7.0.82
 	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
@@ -54,7 +54,7 @@ require (
 	github.com/rollbar/rollbar-go v1.4.5
 	github.com/rs/zerolog v1.33.0
 	github.com/schollz/progressbar/v3 v3.17.1
-	github.com/shirou/gopsutil/v4 v4.24.11
+	github.com/shirou/gopsutil/v4 v4.24.12
 	github.com/slack-go/slack v0.15.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
@@ -91,7 +91,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
@@ -120,7 +120,7 @@ require (
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -163,7 +163,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/philhofer/fwd v1.1.2 // indirect
+	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkoukk/tiktoken-go v0.1.6 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -185,7 +185,7 @@ require (
 	github.com/tadvi/systray v0.0.0-20190226123456-11a2b8fa57af // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tinylib/msgp v1.1.8 // indirect
+	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -204,7 +204,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

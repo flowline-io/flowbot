@@ -29,6 +29,17 @@ import (
 	"gorm.io/gorm"
 )
 
+// newProvider returns a new OAuth provider based on the given category.
+//
+// The supported categories are:
+//
+// - pocket.ID
+// - github.ID
+// - dropbox.ID
+//
+// The OAuth provider will be created with the configuration values
+// stored in the database. If the category is not supported, nil is
+// returned.
 func newProvider(category string) providers.OAuthProvider {
 	var provider providers.OAuthProvider
 
@@ -49,6 +60,16 @@ func newProvider(category string) providers.OAuthProvider {
 	return provider
 }
 
+// directIncomingMessage handles incoming message events for direct channels.
+//
+// It will register the user and channel if they don't already exist, then
+// iterate over all available bots and run their command handlers if they
+// have any.
+//
+// If any bot returns a non-nil payload, it will be sent back to the direct
+// channel as a message.
+//
+// If no bot returns a payload, a default message will be sent.
 func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// check topic owner user
 
@@ -235,6 +256,16 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	flog.Info("[event] %+v  response: %+v", msg, resp)
 }
 
+// groupIncomingMessage processes incoming message events for group channels.
+//
+// It will register the user and channel if they don't already exist, then
+// iterate over all available bots and run their command handlers if they
+// have any.
+//
+// If any bot returns a non-nil payload, it will be sent back to the group
+// channel as a message.
+//
+// If no bot returns a payload, a default message will be sent.
 func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
@@ -285,6 +316,10 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	flog.Info("event: %+v  response: %+v", msg, resp)
 }
 
+// notifyAll send message to all users
+//
+// This function will send a message to all users in the database.
+// If an error occurs, it will be logged and the function will continue to the next user.
 func notifyAll(message string) {
 	// send message
 	users, err := store.Database.GetUsers()
@@ -301,6 +336,9 @@ func notifyAll(message string) {
 	}
 }
 
+// onlineStatus handles MessageEvent protocol event and updates user online status.
+// It will set user online status to 30 minutes if user is not online,
+// or reset user online status to 30 minutes if user is already online.
 func onlineStatus(msg protocol.Event) {
 	med, ok := msg.Data.(protocol.MessageEventData)
 	if !ok {
@@ -319,6 +357,13 @@ func onlineStatus(msg protocol.Event) {
 	}
 }
 
+// agentAction handle agent message
+//
+// when action is types.Collect, it will call bot.Collect
+// when action is types.Pull, it will return list of instruct
+// when action is types.Ack, it will update instruct state to done
+// when action is types.Online, it will register agent
+// when action is types.Offline, it will update agent online duration
 func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 	switch data.Action {
 	case types.Collect:
@@ -427,6 +472,11 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 	return nil, nil
 }
 
+// registerPlatformUser registers a platform user based on the provided message event data.
+// It checks if the platform user already exists by its flag, and if found, retrieves the existing user flag.
+// If the platform user does not exist, it creates a new user and platform user entry in the database.
+// It also associates the platform user with the platform.
+// Returns the user flag and an error if any operation fails.
 func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
 	if err != nil {
@@ -470,6 +520,11 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 	}
 }
 
+// registerPlatformChannel registers a platform channel based on the provided message event data.
+// It checks if the platform channel already exists by its topic ID, and if found, retrieves the existing channel flag.
+// If the platform channel does not exist, it creates a new channel and platform channel entry in the database.
+// It also associates the platform channel with the user who triggered the event.
+// Returns the channel flag and an error if any operation fails.
 func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
 	if err != nil {
@@ -520,6 +575,9 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 	}
 }
 
+// registerAgent Register agent by uid, topic, hostid and hostname
+//
+// if the agent already exists, update its last online time, otherwise create a new agent
 func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 	agent, err := store.Database.GetAgentByHostid(uid, topic, hostid)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

@@ -336,6 +336,7 @@ type Adapter interface {
 	GetWorkflowScriptByWorkflowId(workflowId int64) (any, error)
 	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
 	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error
+	UpdateWorkflowTriggerStateByWorkflowId(workflowId int64, state model.WorkflowTriggerState) error
 	DeleteWorkflowTrigger(id int64) error
 	ListWorkflowTriggerByType(t model.TriggerType) ([]*model.WorkflowTrigger, error)
 	UpdateDag(item *model.Dag) error

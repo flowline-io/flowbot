@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	statsLib "github.com/montanaflynn/stats"
+	"gorm.io/gorm"
 )
 
 var commandRules = []command.Rule{
@@ -101,7 +103,10 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			step, err := store.Database.GetLastStepByState(model.StepFailed)
 			if err != nil {
-				return types.TextMsg{Text: err.Error()}
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return types.TextMsg{Text: "no failed workflow step"}
+				}
+				return types.TextMsg{Text: fmt.Sprintf("failed to get last step: %s", err.Error())}
 			}
 
 			return types.KVMsg{
@@ -110,6 +115,42 @@ var commandRules = []command.Rule{
 				"action":  step.Action,
 				"error":   step.Error,
 			}
+		},
+	},
+	{
+		Define: "task start [number]",
+		Help:   `Start task`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			workflowId, _ := tokens[2].Value.Int64()
+
+			err := store.Database.UpdateWorkflowState(workflowId, model.WorkflowEnable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = store.Database.UpdateWorkflowTriggerStateByWorkflowId(workflowId, model.WorkflowTriggerEnable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
+		Define: "task stop [number]",
+		Help:   `Stop task`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			workflowId, _ := tokens[2].Value.Int64()
+
+			err := store.Database.UpdateWorkflowState(workflowId, model.WorkflowDisable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			err = store.Database.UpdateWorkflowTriggerStateByWorkflowId(workflowId, model.WorkflowTriggerDisable)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 	{
@@ -220,6 +261,31 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: str.String()}
+		},
+	},
+	{
+		Define: "workflow list",
+		Help:   `print workflow list`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			list, err := store.Database.ListWorkflows(ctx.AsUser, ctx.Topic)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			total := len(list)
+
+			// filter state enabled
+			for i, item := range list {
+				if item.State != model.WorkflowEnable {
+					list = append(list[:i], list[i+1:]...)
+					total--
+				}
+			}
+
+			return types.InfoMsg{
+				Title: fmt.Sprintf("workflows %v", total),
+				Model: list,
+			}
 		},
 	},
 }
