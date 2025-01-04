@@ -292,9 +292,16 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 			defer func() { _ = f.Close() }()
+			fileStat, err := f.Stat()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			fileSize := fileStat.Size()
+
 			url, size, err := store.FS.Upload(&types.FileDef{
 				User:     ctx.AsUser.String(),
-				MimeType: "application/octet-stream",
+				Size:     fileSize,
+				MimeType: "text/markdown",
 				Location: "/example",
 			}, f)
 			if err != nil {

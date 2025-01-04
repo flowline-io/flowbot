@@ -109,18 +109,11 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		fdef.MimeType = "application/octet-stream"
 	}
 
-	size := fdef.Size
-	if size == 0 {
-		size, err = file.Seek(0, io.SeekEnd)
-		if err != nil {
-			return "", 0, fmt.Errorf("error getting file size, %w", err)
-		}
-	}
-	if size == 0 {
+	if fdef.Size == 0 {
 		return "", 0, errors.New("empty file")
 	}
-	if size > appConfig.App.Media.MaxFileUploadSize {
-		return "", 0, fmt.Errorf("error max file upload size, %d > %d", size, appConfig.App.Media.MaxFileUploadSize)
+	if fdef.Size > appConfig.App.Media.MaxFileUploadSize {
+		return "", 0, fmt.Errorf("error max file upload size, %d > %d", fdef.Size, appConfig.App.Media.MaxFileUploadSize)
 	}
 
 	fname := strings.TrimRight(fdef.Location, "/") + "/" + fdef.Id
@@ -135,11 +128,11 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		return "", 0, fmt.Errorf("failed to create file record %v, %w", fdef.Id, err)
 	}
 
-	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, fname, file, size, minio.PutObjectOptions{
+	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, fname, file, fdef.Size, minio.PutObjectOptions{
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		if _, err = store.Database.FileFinishUpload(fdef, false, size); err != nil {
+		if _, err = store.Database.FileFinishUpload(fdef, false, fdef.Size); err != nil {
 			flog.Warn("failed to update file record %v %v", fdef.Id, err)
 			return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 		}
@@ -147,7 +140,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		return "", 0, fmt.Errorf("error uploading file %s, %v", fname, err)
 	}
 
-	if _, err = store.Database.FileFinishUpload(fdef, true, size); err != nil {
+	if _, err = store.Database.FileFinishUpload(fdef, true, fdef.Size); err != nil {
 		flog.Warn("failed to update file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
