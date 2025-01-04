@@ -3,7 +3,9 @@ package dev
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/notify"
+	"os"
 	"strings"
 	"time"
 
@@ -279,6 +281,27 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
+		Define: "fs test",
+		Help:   `[example] filesystem example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			f, err := os.Open("./README.md")
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			defer func() { _ = f.Close() }()
+			url, size, err := store.FS.Upload(&types.FileDef{
+				User:     ctx.AsUser.String(),
+				MimeType: "application/octet-stream",
+				Location: "/example",
+			}, f)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: fmt.Sprintf("url: %s, size: %d", url, size)}
 		},
 	},
 	{

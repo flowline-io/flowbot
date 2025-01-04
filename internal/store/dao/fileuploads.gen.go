@@ -29,6 +29,7 @@ func newFileupload(db *gorm.DB, opts ...gen.DOOption) fileupload {
 	_fileupload.ALL = field.NewAsterisk(tableName)
 	_fileupload.ID = field.NewInt64(tableName, "id")
 	_fileupload.UID = field.NewString(tableName, "uid")
+	_fileupload.Fid = field.NewString(tableName, "fid")
 	_fileupload.Name = field.NewString(tableName, "name")
 	_fileupload.Mimetype = field.NewString(tableName, "mimetype")
 	_fileupload.Size = field.NewInt64(tableName, "size")
@@ -48,6 +49,7 @@ type fileupload struct {
 	ALL       field.Asterisk
 	ID        field.Int64
 	UID       field.String
+	Fid       field.String
 	Name      field.String
 	Mimetype  field.String
 	Size      field.Int64
@@ -73,6 +75,7 @@ func (f *fileupload) updateTableName(table string) *fileupload {
 	f.ALL = field.NewAsterisk(table)
 	f.ID = field.NewInt64(table, "id")
 	f.UID = field.NewString(table, "uid")
+	f.Fid = field.NewString(table, "fid")
 	f.Name = field.NewString(table, "name")
 	f.Mimetype = field.NewString(table, "mimetype")
 	f.Size = field.NewInt64(table, "size")
@@ -96,9 +99,10 @@ func (f *fileupload) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (f *fileupload) fillFieldMap() {
-	f.fieldMap = make(map[string]field.Expr, 9)
+	f.fieldMap = make(map[string]field.Expr, 10)
 	f.fieldMap["id"] = f.ID
 	f.fieldMap["uid"] = f.UID
+	f.fieldMap["fid"] = f.Fid
 	f.fieldMap["name"] = f.Name
 	f.fieldMap["mimetype"] = f.Mimetype
 	f.fieldMap["size"] = f.Size

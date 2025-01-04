@@ -65,7 +65,7 @@ type mediaConfig struct {
 	// The name of the handler to use for file uploads.
 	UseHandler string `json:"use_handler" yaml:"use_handler" mapstructure:"use_handler"`
 	// Maximum allowed size of an uploaded file
-	MaxFileUploadSize int64 `json:"max_size" yaml:"max_file_upload_size" mapstructure:"max_file_upload_size"`
+	MaxFileUploadSize int64 `json:"max_size" yaml:"max_size" mapstructure:"max_size"`
 	// Garbage collection timeout
 	GcPeriod int `json:"gc_period" yaml:"gc_period" mapstructure:"gc_period"`
 	// Number of entries to delete in one pass

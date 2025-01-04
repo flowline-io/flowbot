@@ -14,6 +14,7 @@ const TableNameFileupload = "fileuploads"
 type Fileupload struct {
 	ID        int64     `gorm:"column:id;primaryKey" json:"id"`
 	UID       string    `gorm:"column:uid;not null" json:"uid"`
+	Fid       string    `gorm:"column:fid;not null" json:"fid"`
 	Name      string    `gorm:"column:name;not null" json:"name"`
 	Mimetype  string    `gorm:"column:mimetype;not null" json:"mimetype"`
 	Size      int64     `gorm:"column:size;not null" json:"size"`

@@ -15,6 +15,8 @@ type ObjHeader struct {
 // FileDef is a stored record of a file upload
 type FileDef struct {
 	ObjHeader `bson:",inline"`
+	// Name of the file
+	Name string
 	// Status of upload
 	Status int
 	// User who created the file

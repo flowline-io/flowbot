@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
 	"net/http"
@@ -96,8 +97,30 @@ func (ah *handler) Headers(req *http.Request, serve bool) (http.Header, int, err
 func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int64, error) {
 	var err error
 
-	if fdef.Size > appConfig.App.Media.MaxFileUploadSize {
-		return "", 0, fmt.Errorf("error max file upload size, %d > %d", fdef.Size, appConfig.App.Media.MaxFileUploadSize)
+	if fdef.Id == "" {
+		fdef.Id = types.Id()
+	}
+
+	if fdef.Location == "" {
+		fdef.Location = "/"
+	}
+
+	if fdef.MimeType == "" {
+		fdef.MimeType = "application/octet-stream"
+	}
+
+	size := fdef.Size
+	if size == 0 {
+		size, err = file.Seek(0, io.SeekEnd)
+		if err != nil {
+			return "", 0, fmt.Errorf("error getting file size, %w", err)
+		}
+	}
+	if size == 0 {
+		return "", 0, errors.New("empty file")
+	}
+	if size > appConfig.App.Media.MaxFileUploadSize {
+		return "", 0, fmt.Errorf("error max file upload size, %d > %d", size, appConfig.App.Media.MaxFileUploadSize)
 	}
 
 	fname := strings.TrimRight(fdef.Location, "/") + "/" + fdef.Id
@@ -105,12 +128,28 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 	if len(ext) > 0 {
 		fname += ext[len(ext)-1]
 	}
+	fdef.Location = fname
 
-	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, fname, file, fdef.Size, minio.PutObjectOptions{
+	if err = store.Database.FileStartUpload(fdef); err != nil {
+		flog.Warn("failed to create file record %v %v", fdef.Id, err)
+		return "", 0, fmt.Errorf("failed to create file record %v, %w", fdef.Id, err)
+	}
+
+	info, err := ah.svc.PutObject(context.Background(), ah.conf.BucketName, fname, file, size, minio.PutObjectOptions{
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
+		if _, err = store.Database.FileFinishUpload(fdef, false, size); err != nil {
+			flog.Warn("failed to update file record %v %v", fdef.Id, err)
+			return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
+		}
+
+		return "", 0, fmt.Errorf("error uploading file %s, %v", fname, err)
+	}
+
+	if _, err = store.Database.FileFinishUpload(fdef, true, size); err != nil {
+		flog.Warn("failed to update file record %v %v", fdef.Id, err)
+		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
 
 	return ah.conf.ServeURL + fname, info.Size, nil

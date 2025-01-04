@@ -7,7 +7,7 @@ use_x_forwarded_for: true
 
 media:
   use_handler: fs
-  max_size: 8388608
+  max_size: 104857600
   gc_period: 60
   gc_block_size: 100
   handlers:

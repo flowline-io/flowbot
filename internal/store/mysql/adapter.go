@@ -126,7 +126,9 @@ func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
 func (a *adapter) FileStartUpload(fd *types.FileDef) error {
 	q := dao.Q.Fileupload
 	return q.Create(&model.Fileupload{
-		UID:      fd.Id,
+		UID:      fd.User,
+		Fid:      fd.Id,
+		Name:     fd.Name,
 		Mimetype: fd.MimeType,
 		Location: fd.Location,
 		State:    model.FileStart,
@@ -135,7 +137,7 @@ func (a *adapter) FileStartUpload(fd *types.FileDef) error {
 
 func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
 	q := dao.Q.Fileupload
-	res, err := q.Where(q.UID.Eq(fd.Id)).First()
+	res, err := q.Where(q.Fid.Eq(fd.Id)).First()
 	if err != nil {
 		return nil, err
 	}
@@ -143,12 +145,12 @@ func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) 
 		res.State = model.FileFinish
 		res.Size = size
 		_, err = q.
-			Where(q.UID.Eq(fd.Id)).
+			Where(q.Fid.Eq(fd.Id)).
 			Updates(res)
 		return fd, err
 	} else {
 		_, err = q.
-			Where(q.UID.Eq(fd.Id)).
+			Where(q.Fid.Eq(fd.Id)).
 			Delete()
 		return nil, err
 	}
@@ -157,7 +159,7 @@ func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) 
 func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 	q := dao.Q.Fileupload
 	res, err := q.
-		Where(q.UID.Eq(fid)).
+		Where(q.Fid.Eq(fid)).
 		First()
 	if err != nil {
 		return nil, err
@@ -168,6 +170,8 @@ func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 			CreatedAt: res.CreatedAt,
 			UpdatedAt: res.UpdatedAt,
 		},
+		User:     res.UID,
+		Name:     res.Name,
 		Status:   int(res.State),
 		MimeType: res.Mimetype,
 		Size:     res.Size,
