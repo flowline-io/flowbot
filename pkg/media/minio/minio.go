@@ -5,13 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"io"
 	"mime"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
@@ -185,8 +186,8 @@ func (ah *handler) Delete(locations []string) error {
 }
 
 // GetIdFromUrl converts an attahment URL to a file UID.
-func (ah *handler) GetIdFromUrl(url string) types.Uid {
-	return media.GetIdFromUrl(url, ah.conf.ServeURL)
+func (ah *handler) GetIdFromUrl(fUrl string) types.Uid {
+	return media.GetIdFromUrl(fUrl, ah.conf.ServeURL)
 }
 
 func (ah *handler) presignedURL(fdef *types.FileDef) (string, error) {
