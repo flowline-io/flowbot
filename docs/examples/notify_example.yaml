@@ -13,7 +13,7 @@ tasks:
   - id: notify
     action: send@notify
     describe: do something... # optional
-    params: # optional
+    params:
       channel: example
       title: "example title"
       body: "example body"
