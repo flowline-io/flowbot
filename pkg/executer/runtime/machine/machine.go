@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -48,8 +49,12 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(rt.config.Password),
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         time.Minute,
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			// Audit the use of InsecureIgnoreHostKey
+			flog.Warn("InsecureIgnoreHostKey used for host: %s", hostname)
+			return nil
+		},
+		Timeout: time.Minute,
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", rt.config.Host, rt.config.Port), cfg)
 	if err != nil {

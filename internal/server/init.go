@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -43,8 +42,6 @@ import (
 var (
 	// stop signal
 	stopSignal <-chan bool
-	// tls config
-	tlsConfig *tls.Config
 	// swagger
 	swagHandler fiber.Handler
 	// fiber app
@@ -122,12 +119,6 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Signal ok")
-
-	// init tls
-	if err = initializeTLS(); err != nil {
-		return err
-	}
-	flog.Info("initialize TLS ok")
 
 	// init event
 	if err = initializeEvent(); err != nil {
@@ -401,16 +392,6 @@ func initializeMedia() error {
 
 func initializeSignal() error {
 	stopSignal = utils.SignalHandler()
-	return nil
-}
-
-func initializeTLS() error {
-	var err error
-	// TLS
-	tlsConfig, err = utils.ParseTLSConfig(*appFlag.tlsEnabled, config.App.TLS)
-	if err != nil {
-		return fmt.Errorf("failed to parse TLS config, %w", err)
-	}
 	return nil
 }
 

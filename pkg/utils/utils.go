@@ -3,7 +3,6 @@
 package utils
 
 import (
-	"crypto/tls"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -12,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/flowline-io/flowbot/pkg/config"
-	"golang.org/x/crypto/acme/autocert"
 )
 
 const nullValue = "\u2421"
@@ -144,31 +140,6 @@ func ToAbsolutePath(base, path string) string {
 		return path
 	}
 	return filepath.Clean(filepath.Join(base, path))
-}
-
-func ParseTLSConfig(tlsEnabled bool, conf config.TLSConfig) (*tls.Config, error) {
-	if !tlsEnabled && !conf.Enabled {
-		return nil, nil
-	}
-
-	// If autocert is provided, use it.
-	if conf.Autocert != nil {
-		certManager := autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(conf.Autocert.Domains...),
-			Cache:      autocert.DirCache(conf.Autocert.CertCache),
-			Email:      conf.Autocert.Email,
-		}
-		return certManager.TLSConfig(), nil
-	}
-
-	// Otherwise try to use static keys.
-	cert, err := tls.LoadX509KeyPair(conf.CertFile, conf.KeyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{Certificates: []tls.Certificate{cert}}, nil
 }
 
 // MergeMaps Deep copy maps.

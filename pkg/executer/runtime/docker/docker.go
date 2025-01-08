@@ -501,7 +501,7 @@ func parseCPUs(limits *types.TaskLimits) (int64, error) {
 	if limits == nil || limits.CPUs == "" {
 		return 0, nil
 	}
-	cpu, ok := new(big.Rat).SetString(limits.CPUs)
+	cpu, ok := big.NewRat(0, 1).SetString(limits.CPUs)
 	if !ok {
 		return 0, fmt.Errorf("failed to parse %v as a rational number", limits.CPUs)
 	}

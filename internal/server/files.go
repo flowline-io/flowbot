@@ -1,7 +1,8 @@
 package server
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -16,7 +17,8 @@ func largeFileRunGarbageCollection(period time.Duration, blockSize int) chan<- b
 	go func() {
 		// Add some randomness to the tick period to desynchronize runs on cluster nodes:
 		// 0.75 * period + rand(0, 0.5) * period.
-		period = (period >> 1) + (period >> 2) + time.Duration(rand.Intn(int(period>>1)))
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(period>>1)))
+		period = (period >> 1) + (period >> 2) + time.Duration(n.Int64())
 		gcTicker := time.NewTicker(period)
 		for {
 			select {

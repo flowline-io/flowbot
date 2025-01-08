@@ -2,9 +2,10 @@ package parallelizer
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"runtime"
 	"sync"
@@ -155,7 +156,8 @@ func Jitter(duration time.Duration, maxFactor float64) time.Duration {
 	if maxFactor <= 0.0 {
 		maxFactor = 1.0
 	}
-	wait := duration + time.Duration(rand.Float64()*maxFactor*float64(duration))
+	randomValue, _ := rand.Int(rand.Reader, big.NewInt(int64(maxFactor*float64(duration))))
+	wait := duration + time.Duration(randomValue.Int64())
 	return wait
 }
 

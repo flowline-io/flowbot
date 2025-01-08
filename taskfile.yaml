@@ -59,6 +59,7 @@ tasks:
       - go install github.com/zricethezav/gitleaks/v8@v8.21.1
       - go install github.com/goreleaser/goreleaser/v2@latest
       - go install github.com/air-verse/air@latest
+      - go install github.com/securego/gosec/v2/cmd/gosec@latest
       - cmd: winget install AlDanial.Cloc
         platforms: [windows]
       - cmd: sudo apt install cloc
@@ -101,3 +102,7 @@ tasks:
   air:
     cmds:
       - air --build.cmd "go build -o flowbot cmd/main.go" --build.bin "./flowbot"
+
+  gosec:
+    cmds:
+      - gosec ./...
