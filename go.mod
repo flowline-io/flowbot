@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/RealAlexandreAI/json-repair v0.0.14
-	github.com/ThreeDotsLabs/watermill v1.4.1
+	github.com/ThreeDotsLabs/watermill v1.4.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
 	github.com/VictoriaMetrics/metrics v1.35.1
 	github.com/allegro/bigcache/v3 v3.1.0
