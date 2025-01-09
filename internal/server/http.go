@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -10,22 +9,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func listenAndServe(app *fiber.App, addr string, tlfConf *tls.Config, stop <-chan bool) error {
+func listenAndServe(app *fiber.App, addr string, stop <-chan bool) error {
 	globals.shuttingDown = false
 
 	httpdone := make(chan bool)
 
 	go func() {
-		if tlfConf != nil {
-			err := app.ListenTLSWithCertificate(addr, tlfConf.Certificates[0])
-			if err != nil {
-				flog.Error(err)
-			}
-		} else {
-			err := app.Listen(addr)
-			if err != nil {
-				flog.Error(err)
-			}
+		err := app.Listen(addr)
+		if err != nil {
+			flog.Error(err)
 		}
 		httpdone <- true
 	}()

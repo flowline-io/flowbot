@@ -47,7 +47,7 @@ func Run() {
 		flog.Fatal("initialize %v", err)
 	}
 	// serve
-	if err := listenAndServe(httpApp, config.App.Listen, tlsConfig, stopSignal); err != nil {
+	if err := listenAndServe(httpApp, config.App.Listen, stopSignal); err != nil {
 		flog.Fatal("listenAndServe %v", err)
 	}
 }
