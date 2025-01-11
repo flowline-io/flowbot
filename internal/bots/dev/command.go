@@ -207,10 +207,10 @@ var commandRules = []command.Rule{
 			err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
 				SourceId:    types.Id(),
 				Source:      hoarder.ID,
-				Title:       "test....",
-				Description: "the....",
+				Title:       "the title....",
+				Description: "the description....",
 				Url:         "/url/test",
-				CreatedAt:   time.Now().Unix(),
+				Timestamp:   time.Now().Unix(),
 			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}

@@ -106,7 +106,7 @@ var cronRules = []cron.Rule{
 					Title:       title,
 					Description: summary,
 					Url:         fmt.Sprintf("/dashboard/preview/%s", bookmark.Id),
-					CreatedAt:   time.Now().Unix(),
+					Timestamp:   time.Now().Unix(),
 				})
 				if err != nil {
 					flog.Warn("[search] add document error %v", err)

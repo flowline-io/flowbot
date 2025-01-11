@@ -189,9 +189,10 @@ type Metrics struct {
 }
 
 type Search struct {
-	Endpoint  string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
-	MasterKey string `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
-	DataIndex string `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
+	Endpoint   string            `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	MasterKey  string            `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
+	DataIndex  string            `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
+	UrlBaseMap map[string]string `json:"url_base_map" yaml:"url_base_map" mapstructure:"url_base_map"`
 }
 
 type Flowbot struct {

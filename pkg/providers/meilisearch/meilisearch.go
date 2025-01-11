@@ -35,7 +35,7 @@ func (c MeiliSearch) AddDocument(data types.Document) error {
 		"title":       data.Title,
 		"description": data.Description,
 		"url":         data.Url,
-		"created_at":  data.CreatedAt,
+		"timestamp":   data.Timestamp,
 	}, "id")
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (c MeiliSearch) AddDocument(data types.Document) error {
 	return nil
 }
 
-func (c MeiliSearch) Search(source, query string, page, pageSize int32) ([]*types.Document, int64, error) {
+func (c MeiliSearch) Search(source, query string, page, pageSize int32) (types.DocumentList, int64, error) {
 	// metrics
 	stats.SearchTotalCounter(config.App.Search.DataIndex).Inc()
 
@@ -70,11 +70,12 @@ func (c MeiliSearch) Search(source, query string, page, pageSize int32) ([]*type
 		return nil, 0, err
 	}
 
-	var list []*types.Document
+	var list types.DocumentList
 	err = json.Unmarshal(data, &list)
 	if err != nil {
 		return nil, 0, err
 	}
+	list.FillUrlBase(config.App.Search.UrlBaseMap)
 
 	return list, resp.EstimatedTotalHits, nil
 }
