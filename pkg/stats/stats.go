@@ -17,6 +17,8 @@ const (
 	QueueFailedTasksTotalStatsName        = "queue_failed_tasks_total"
 	QueueInProgressTasksStatsName         = "queue_in_progress_tasks"
 	EventTotalStatsName                   = "event_total"
+	TorrentDownloadTotalStatsName         = "torrent_download_total"
+	TorrentStatusTotalStatsName           = "torrent_status_total"
 )
 
 type RulesetLabel string
@@ -63,4 +65,12 @@ func QueueInProgressTasksCounter(taskType string) *metrics.Counter {
 
 func EventTotalCounter() *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, EventTotalStatsName, version.Buildtags))
+}
+
+func TorrentDownloadTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, TorrentDownloadTotalStatsName, version.Buildtags))
+}
+
+func TorrentStatusTotalCounter(status string) *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",status="%s"}`, TorrentStatusTotalStatsName, version.Buildtags, status))
 }

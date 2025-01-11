@@ -40,7 +40,8 @@ func dashboard(ctx *fiber.Ctx) error {
 //	@Router		/user/metrics [get]
 func metrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
-		stats.BookmarkTotalStatsName: cache.GetInt64(stats.BookmarkTotalStatsName),
-		stats.BotTotalStatsName:      cache.GetInt64(stats.BotTotalStatsName),
+		stats.BotTotalStatsName:             cache.GetInt64(stats.BotTotalStatsName),
+		stats.BookmarkTotalStatsName:        cache.GetInt64(stats.BookmarkTotalStatsName),
+		stats.TorrentDownloadTotalStatsName: cache.GetInt64(stats.TorrentDownloadTotalStatsName),
 	}))
 }
