@@ -47,8 +47,9 @@ var cronRules = []cron.Rule{
 		},
 	},
 	{
-		Name: "bookmarks_metrics",
-		When: "*/5 * * * *",
+		Name:  "bookmarks_metrics",
+		Scope: cron.CronScopeSystem,
+		When:  "*/5 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
 			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
