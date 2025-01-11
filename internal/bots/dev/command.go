@@ -210,7 +210,7 @@ var commandRules = []command.Rule{
 				Title:       "test....",
 				Description: "the....",
 				Url:         "/url/test",
-				CreatedAt:   int32(time.Now().Unix()),
+				CreatedAt:   time.Now().Unix(),
 			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}

@@ -7,5 +7,5 @@ type Document struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Url         string `json:"url"`
-	CreatedAt   int32  `json:"created_at"`
+	CreatedAt   int64  `json:"created_at"`
 }
