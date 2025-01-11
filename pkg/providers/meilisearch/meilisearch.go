@@ -40,7 +40,7 @@ func (c MeiliSearch) AddDocument(data types.Document) error {
 	if err != nil {
 		return err
 	}
-	flog.Info("[search] index %s add document %s-%s status: %s", config.App.Search.DataIndex, data.Source, data.Id, taskInfo.Status)
+	flog.Debug("[search] index %s add document %s-%s status: %s", config.App.Search.DataIndex, data.Source, data.Id, taskInfo.Status)
 
 	return nil
 }
@@ -86,7 +86,7 @@ func (c MeiliSearch) DefaultIndexSettings() error {
 		FilterableAttributes: []string{"source"},
 		SearchableAttributes: []string{"source_id", "source", "title", "description"},
 	})
-	flog.Info("[search] index %s update settings status: %+v", config.App.Search.DataIndex, taskInfo)
+	flog.Debug("[search] index %s update settings status: %+v", config.App.Search.DataIndex, taskInfo)
 	return err
 }
 
