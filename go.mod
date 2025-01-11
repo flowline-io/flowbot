@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.2
 
 require (
-	code.gitea.io/sdk/gitea v0.19.0
+	code.gitea.io/sdk/gitea v0.20.0
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/RealAlexandreAI/json-repair v0.0.14
@@ -85,6 +85,7 @@ replace nhooyr.io/websocket v1.8.7 => github.com/coder/websocket v1.8.7
 require (
 	aead.dev/minisign v0.2.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/42wim/httpsig v1.2.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
