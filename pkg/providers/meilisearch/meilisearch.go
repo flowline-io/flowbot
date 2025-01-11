@@ -25,7 +25,7 @@ func NewMeiliSearch() MeiliSearch {
 
 func (c MeiliSearch) AddDocument(data types.Document) error {
 	// metrics
-	stats.SearchAddDocumentTotalCounter(config.App.Search.DataIndex).Inc()
+	stats.SearchProcessedDocumentTotalCounter(config.App.Search.DataIndex).Inc()
 
 	// add
 	taskInfo, err := c.manager.Index(config.App.Search.DataIndex).AddDocuments(types.KV{

@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	BotTotalStatsName                 = "bot_total"
-	BotRunTotalStatsName              = "bot_run_total"
-	BookmarkTotalStatsName            = "bookmark_total"
-	SearchTotalStatsName              = "search_total"
-	SearchAddDocumentTotalStatsName   = "search_add_document_total"
-	QueueProcessedTasksTotalStatsName = "queue_processed_tasks_total"
-	QueueFailedTasksTotalStatsName    = "queue_failed_tasks_total"
-	QueueInProgressTasksStatsName     = "queue_in_progress_tasks"
-	EventTotalStatsName               = "event_total"
+	BotTotalStatsName                     = "bot_total"
+	BotRunTotalStatsName                  = "bot_run_total"
+	BookmarkTotalStatsName                = "bookmark_total"
+	SearchTotalStatsName                  = "search_total"
+	SearchProcessedDocumentTotalStatsName = "search_processed_document_total"
+	QueueProcessedTasksTotalStatsName     = "queue_processed_tasks_total"
+	QueueFailedTasksTotalStatsName        = "queue_failed_tasks_total"
+	QueueInProgressTasksStatsName         = "queue_in_progress_tasks"
+	EventTotalStatsName                   = "event_total"
 )
 
 type RulesetLabel string
@@ -45,8 +45,8 @@ func SearchTotalCounter(index string) *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",index="%s"}`, SearchTotalStatsName, version.Buildtags, index))
 }
 
-func SearchAddDocumentTotalCounter(index string) *metrics.Counter {
-	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",index="%s"}`, SearchAddDocumentTotalStatsName, version.Buildtags, index))
+func SearchProcessedDocumentTotalCounter(index string) *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",index="%s"}`, SearchProcessedDocumentTotalStatsName, version.Buildtags, index))
 }
 
 func QueueProcessedTasksTotalCounter(taskType string) *metrics.Counter {
