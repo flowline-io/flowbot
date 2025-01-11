@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/notify"
+	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"os"
 	"strings"
 	"time"
@@ -317,6 +318,25 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// todo
 			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
+		Define: "safeline test",
+		Help:   `[example] safeline example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(safeline.ID, safeline.EndpointKey)
+			token, _ := providers.GetConfig(safeline.ID, safeline.TokenKey)
+
+			client := safeline.NewSafeLine(endpoint.String(), token.String())
+			resp, err := client.QPS(context.Background())
+
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			return types.InfoMsg{
+				Title: "safeline demo",
+				Model: resp,
+			}
 		},
 	},
 }
