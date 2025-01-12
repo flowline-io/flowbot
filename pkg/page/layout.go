@@ -3,9 +3,6 @@ package page
 import (
 	_ "embed"
 	"fmt"
-	"html"
-	"strings"
-
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
@@ -14,6 +11,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"html"
+	"strings"
 )
 
 //go:embed styles.css
@@ -135,7 +134,9 @@ func Render(comp *types.UI) string {
 	if !comp.ExpiredAt.IsZero() {
 		b = app.Div().Body(
 			comp.App,
-			uikit.Countdown(comp.ExpiredAt),
+			uikit.Margin(
+				uikit.Text(fmt.Sprintf("Expired at: %s", comp.ExpiredAt.Format("2006-01-02 15:04:05"))),
+			).Class(uikit.FlexClass, uikit.FlexCenterClass),
 		)
 	}
 

@@ -155,9 +155,9 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 	return payload, nil
 }
 
-func RunPage(pageRules []page.Rule, ctx types.Context, flag string) (string, error) {
+func RunPage(pageRules []page.Rule, ctx types.Context, flag string, args types.KV) (string, error) {
 	rs := page.Ruleset(pageRules)
-	return rs.ProcessPage(ctx, flag)
+	return rs.ProcessPage(ctx, flag, args)
 }
 
 func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDuration time.Duration) (string, error) {

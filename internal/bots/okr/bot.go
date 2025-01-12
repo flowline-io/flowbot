@@ -73,6 +73,6 @@ func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) 
 	return bots.RunForm(formRules, ctx, values)
 }
 
-func (b bot) Page(ctx types.Context, flag string) (string, error) {
-	return bots.RunPage(pageRules, ctx, flag)
+func (b bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
+	return bots.RunPage(pageRules, ctx, flag, args)
 }

@@ -103,8 +103,8 @@ func (b bot) Instruct() (instruct.Ruleset, error) {
 	return instructRules, nil
 }
 
-func (b bot) Page(ctx types.Context, flag string) (string, error) {
-	return bots.RunPage(pageRules, ctx, flag)
+func (b bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
+	return bots.RunPage(pageRules, ctx, flag, args)
 }
 
 func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {

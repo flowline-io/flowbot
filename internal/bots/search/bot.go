@@ -64,6 +64,7 @@ func (b bot) Rules() []interface{} {
 		cronRules,
 		collectRules,
 		webserviceRules,
+		pageRules,
 	}
 }
 
@@ -81,4 +82,8 @@ func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, err
 
 func (bot) Webservice(app *fiber.App) {
 	bots.Webservice(app, Name, webserviceRules)
+}
+
+func (b bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
+	return bots.RunPage(pageRules, ctx, flag, args)
 }

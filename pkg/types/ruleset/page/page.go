@@ -11,19 +11,19 @@ import (
 
 type Rule struct {
 	Id string
-	UI func(ctx types.Context, flag string) (*types.UI, error)
+	UI func(ctx types.Context, flag string, args types.KV) (*types.UI, error)
 }
 
 type Ruleset []Rule
 
-func (r Ruleset) ProcessPage(ctx types.Context, flag string) (string, error) {
+func (r Ruleset) ProcessPage(ctx types.Context, flag string, args types.KV) (string, error) {
 	for _, rule := range r {
 		if rule.Id == ctx.PageRuleId {
 			p, err := store.Database.ParameterGet(flag)
 			if err != nil {
 				return "", err
 			}
-			ui, err := rule.UI(ctx, flag)
+			ui, err := rule.UI(ctx, flag, args)
 			if err != nil {
 				return "", err
 			}

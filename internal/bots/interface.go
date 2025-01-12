@@ -44,7 +44,7 @@ type Handler interface {
 	Instruct() (instruct.Ruleset, error)
 
 	// Page return page
-	Page(ctx types.Context, flag string) (string, error)
+	Page(ctx types.Context, flag string, args types.KV) (string, error)
 
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
@@ -101,7 +101,7 @@ func (Base) Instruct() (instruct.Ruleset, error) {
 	return nil, nil
 }
 
-func (Base) Page(_ types.Context, _ string) (string, error) {
+func (Base) Page(_ types.Context, _ string, _ types.KV) (string, error) {
 	return "", nil
 }
 

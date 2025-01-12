@@ -25,7 +25,7 @@ var exampleJs string
 var pageRules = []page.Rule{
 	{
 		Id: okrPageId,
-		UI: func(ctx types.Context, flag string) (*types.UI, error) {
+		UI: func(ctx types.Context, flag string, args types.KV) (*types.UI, error) {
 			p, err := store.Database.ParameterGet(flag)
 			if err != nil {
 				return nil, err

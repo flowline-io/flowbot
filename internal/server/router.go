@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -30,6 +26,9 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 func setupMux(a *fiber.App) {
@@ -167,6 +166,15 @@ func renderPage(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 	}
 
+	args := types.KV{}
+	// add query params
+	queries := ctx.Queries()
+	if len(queries) > 0 {
+		for k, v := range queries {
+			args[k] = v
+		}
+	}
+
 	kv := types.KV(p.Params)
 	platform, _ := kv.String("platform")
 	topic, _ := kv.String("topic")
@@ -197,7 +205,7 @@ func renderPage(ctx *fiber.Ctx) error {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
 	}
 
-	html, err := botHandler.Page(typesCtx, flag)
+	html, err := botHandler.Page(typesCtx, flag, args)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
