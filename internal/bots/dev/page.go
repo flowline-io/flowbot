@@ -22,9 +22,6 @@ var exampleCss string
 //go:embed static/example.js
 var exampleJs string
 
-//go:embed static/json.js
-var jsonJs string
-
 var pageRules = []page.Rule{
 	{
 		Id: devPageId,
