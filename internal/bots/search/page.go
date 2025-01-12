@@ -35,10 +35,10 @@ var pageRules = []page.Rule{
 			var items []app.UI
 			for _, item := range list {
 				items = append(items, uikit.Tr(
+					uikit.Td(uikit.Label(item.Source)),
 					uikit.Td(
 						uikit.Link(item.Title, item.Url).Target("_blank"),
 					),
-					uikit.Td(uikit.Text(item.Source)),
 					uikit.Td(uikit.Text(item.Description)),
 				))
 			}
@@ -57,8 +57,8 @@ var pageRules = []page.Rule{
 				uikit.Table(
 					uikit.THead(
 						uikit.Tr(
-							uikit.Th(uikit.Text("title")),
 							uikit.Th(uikit.Text("source")),
+							uikit.Th(uikit.Text("title")),
 							uikit.Th(uikit.Text("description")),
 						)),
 					uikit.TBody(
