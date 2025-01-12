@@ -64,7 +64,6 @@ require (
 	github.com/tmc/langchaingo v0.1.12
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/valyala/fasthttp v1.58.0
-	github.com/yuin/goldmark v1.7.8
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8

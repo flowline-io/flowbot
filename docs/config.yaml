@@ -73,7 +73,7 @@ search:
   master_key: ""
   data_index: "data"
   url_base_map:
-    hoarder: 'http://127.0.0.1:8000'
+    hoarder: "http://127.0.0.1:8000"
 
 flowbot:
   url: ""

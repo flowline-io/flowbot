@@ -712,68 +712,6 @@ paths:
       summary: Show example
       tags:
       - dev
-  /dev/upload:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: upload PicGO upload api
-      tags:
-      - dev
-  /markdown/data:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Data
-        in: body
-        name: data
-        required: true
-        schema:
-          additionalProperties:
-            type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/protocol.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: save markdown data
-      tags:
-      - markdown
-  /markdown/editor/{flag}:
-    get:
-      parameters:
-      - description: Flag
-        in: path
-        name: flag
-        required: true
-        type: string
-      produces:
-      - text/html
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: markdown editor page
-      tags:
-      - markdown
   /okr/key_result:
     post:
       consumes:
@@ -1114,6 +1052,27 @@ paths:
       summary: search everything
       tags:
       - search
+  /server/upload:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: upload PicGO upload api
+      tags:
+      - dev
   /user/dashboard:
     get:
       consumes:
