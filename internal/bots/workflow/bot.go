@@ -59,6 +59,8 @@ func (b bot) Rules() []interface{} {
 		commandRules,
 		formRules,
 		cronRules,
+		webserviceRules,
+		workflowRules,
 	}
 }
 
@@ -76,4 +78,8 @@ func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) 
 
 func (b bot) Cron() (*cron.Ruleset, error) {
 	return bots.RunCron(cronRules, Name)
+}
+
+func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
+	return bots.RunWorkflow(workflowRules, ctx, input)
 }

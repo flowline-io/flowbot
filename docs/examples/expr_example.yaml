@@ -11,18 +11,18 @@ pipeline:
 
 tasks:
   - id: expr1
-    action: expr@dev
+    action: expr@workflow
     params:
       script: input.param1 + input.param2
       param1: 1
       param2: 1
 
   - id: expr2
-    action: expr@dev
+    action: expr@workflow
     params:
       script: input
       param1: 1
       param2: 1
 
   - id: end
-    action: end@dev
+    action: end@workflow

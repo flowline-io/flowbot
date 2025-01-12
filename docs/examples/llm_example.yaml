@@ -11,12 +11,12 @@ pipeline:
 
 tasks:
   - id: website_fetch
-    action: website@dev
+    action: website@workflow
     params:
       url: https://example.com/
 
   - id: llm_tags
-    action: llm@dev
+    action: llm@workflow
     params:
       prompt: |
         You are a bot in a read-it-later app and your responsibility is to help with automatic tagging.
@@ -35,4 +35,4 @@ tasks:
         You must respond in JSON with the key "tags" and the value is an array of string tags.
 
   - id: echo
-    action: message@dev
+    action: message@workflow

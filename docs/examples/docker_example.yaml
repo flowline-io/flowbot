@@ -11,10 +11,10 @@ pipeline:
 
 tasks:
   - id: run_docker
-    action: docker@dev
+    action: docker@workflow
     params:
       image: "ubuntu:mantic"
       run: "echo -n hello > $OUTPUT"
 
   - id: echo
-    action: message@dev
+    action: message@workflow

@@ -20,4 +20,4 @@ tasks:
       url: https://example.com
 
   - id: end
-    action: end@dev
+    action: end@workflow
