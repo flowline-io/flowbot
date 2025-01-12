@@ -1,7 +1,6 @@
 package search
 
 import (
-	_ "embed"
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
