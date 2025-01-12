@@ -1,9 +1,6 @@
 ---
 listen: ":6060"
 api_path: "/"
-expvar: "/debug/vars"
-server_status: "/debug/status"
-use_x_forwarded_for: true
 
 media:
   use_handler: fs
@@ -24,18 +21,6 @@ media:
       cors_origins:
         - "*"
       serve_url: "http://127.0.0.1:9000"
-
-tls:
-  enabled: false
-  http_redirect: ":80"
-  strict_max_age: 604800
-  autocert:
-    cache: "/etc/letsencrypt/live/your.domain.here"
-    email: noreply@example.com
-    domains:
-      - whatever.example.com
-  cert_file: "/etc/httpd/conf/your.domain.crt"
-  key_file: "/etc/httpd/conf/your.domain.key"
 
 store_config:
   uid_key: la6YsO+bNX/+XIkOqc5Svw==

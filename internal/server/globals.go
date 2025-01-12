@@ -22,9 +22,6 @@ var globals struct {
 	// Periodicity of a garbage collector for abandoned media uploads.
 	mediaGcPeriod time.Duration
 
-	// Prioritize X-Forwarded-For header as the source of IP address of the client.
-	useXForwardedFor bool
-
 	// Cron
 	cronRuleset []*cron.Ruleset
 

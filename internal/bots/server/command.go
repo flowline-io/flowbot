@@ -30,16 +30,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "vars",
-		Help:   `vars url`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.LinkMsg{
-				Title: "Vars Url",
-				Url:   fmt.Sprintf("%s/debug/vars", types.AppUrl()),
-			}
-		},
-	},
-	{
 		Define: "mem stats",
 		Help:   `App memory stats`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

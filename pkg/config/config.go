@@ -19,17 +19,9 @@ type configType struct {
 	// Base URL path where the streaming and large file API calls are served, default is '/'.
 	// Can be overridden from the command line, see option --api_path.
 	ApiPath string `json:"api_path" yaml:"api_path" mapstructure:"api_path"`
-	// URL path for exposing runtime stats. Disabled if the path is blank.
-	ExpvarPath string `json:"expvar" yaml:"expvar_path" mapstructure:"expvar_path"`
-	// URL path for internal server status. Disabled if the path is blank.
-	ServerStatusPath string `json:"server_status" yaml:"server_status" mapstructure:"server_status"`
-	// Take IP address of the client from HTTP header 'X-Forwarded-For'.
-	// Useful when tinode is behind a proxy. If missing, fallback to default RemoteAddr.
-	UseXForwardedFor bool `json:"use_x_forwarded_for" yaml:"use_x_forwarded_for" mapstructure:"use_x_forwarded_for"`
 
 	// Configs for subsystems
 	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`
-	TLS   TLSConfig    `json:"tls" yaml:"tls" mapstructure:"tls"`
 	Media *mediaConfig `json:"media" yaml:"media" mapstructure:"media"`
 
 	// Redis

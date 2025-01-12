@@ -193,8 +193,6 @@ func initializeConfig() error {
 		config.App.Listen = *appFlag.listenOn
 	}
 
-	globals.useXForwardedFor = config.App.UseXForwardedFor
-
 	// Configure root path for serving API calls.
 	if *appFlag.apiPath != "" {
 		config.App.ApiPath = *appFlag.apiPath
