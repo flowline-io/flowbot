@@ -31,8 +31,8 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "setting",
-		Help:   `Bot setting`,
+		Define: "dev setting",
+		Help:   `[example] setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.SettingMsg(ctx, Name)
 		},

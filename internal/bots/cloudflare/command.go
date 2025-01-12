@@ -13,8 +13,8 @@ import (
 
 var commandRules = []command.Rule{
 	{
-		Define: "setting",
-		Help:   `Bot setting`,
+		Define: "cloudflare setting",
+		Help:   `cloudflare setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.SettingMsg(ctx, Name)
 		},
