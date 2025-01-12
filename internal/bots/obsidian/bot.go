@@ -55,3 +55,7 @@ func (bot) IsReady() bool {
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	return bots.RunCommand(commandRules, ctx, content)
 }
+
+func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	return bots.RunCollect(collectRules, ctx, content)
+}
