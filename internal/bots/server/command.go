@@ -1,13 +1,16 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
@@ -163,8 +166,44 @@ var commandRules = []command.Rule{
 		Define: "check",
 		Help:   `self inspection`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			// todo
-			return types.TextMsg{Text: "ok"}
+			// workflow
+			inspector := workflow.GetInspector()
+			servers, err := inspector.Servers()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			for _, server := range servers {
+				if server.Status != "active" {
+					return types.TextMsg{Text: fmt.Sprintf("[workflow] server %s status %s", server.ID, server.Status)}
+				}
+			}
+
+			// notify
+			err = notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
+				Title: "notify check",
+				Body:  "notify check",
+				Url:   "https://example.com",
+			})
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			// filesystem
+			f := bytes.NewReader([]byte(time.Now().String()))
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			_, _, err = store.FS.Upload(&types.FileDef{
+				User:     ctx.AsUser.String(),
+				Size:     f.Size(),
+				MimeType: "text/plain",
+				Location: "check",
+			}, f)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "check done"}
 		},
 	},
 }
