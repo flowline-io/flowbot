@@ -112,18 +112,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "json",
-		Help:   `JSON Formatter page`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			url, err := bots.PageURL(ctx, jsonPageId, nil, 24*time.Hour)
-			if err != nil {
-				return types.TextMsg{Text: "error"}
-			}
-
-			return types.LinkMsg{Url: url}
-		},
-	},
-	{
 		Define: "docker",
 		Help:   `[example] run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

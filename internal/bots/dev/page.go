@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	devPageId  = "dev"
-	jsonPageId = "json"
+	devPageId = "dev"
 )
 
 //go:embed static/example.css
@@ -110,30 +109,6 @@ var pageRules = []page.Rule{
 				uikit.Modal("example_modal", "modal", uikit.Text("content......")),
 				uikit.Image("https://images.unsplash.com/photo-1490822180406-880c226c150b?fit=crop&w=650&h=433&q=80"),
 				// uikit.Countdown(p.ExpiredAt),
-			)
-
-			return &types.UI{
-				App: app,
-				CSS: css,
-				JS:  js,
-			}, nil
-		},
-	},
-	{
-		Id: jsonPageId,
-		UI: func(ctx types.Context, flag string) (*types.UI, error) {
-			css := []app.UI{
-				uikit.Style(library.JsonFormatterCss),
-			}
-			js := []app.HTMLScript{
-				uikit.Script(library.JsonFormatterJs),
-				uikit.Js(jsonJs),
-			}
-
-			app := uikit.App(
-				uikit.H1("JSON Formatter").Class(uikit.TextCenterClass),
-				uikit.Textarea().ID("data"),
-				uikit.Div().ID("view"),
 			)
 
 			return &types.UI{
