@@ -3,6 +3,8 @@ package gitea
 import (
 	"code.gitea.io/sdk/gitea"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
@@ -19,9 +21,16 @@ type Gitea struct {
 func NewGitea(endpoint, token string) (*Gitea, error) {
 	var err error
 	v := &Gitea{token: token}
-	v.c, err = gitea.NewClient(endpoint, gitea.SetToken(token), gitea.SetDebugMode())
-	if err != nil {
-		return nil, err
+	if config.App.Log.Level == flog.DebugLevel {
+		v.c, err = gitea.NewClient(endpoint, gitea.SetToken(token), gitea.SetDebugMode())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		v.c, err = gitea.NewClient(endpoint, gitea.SetToken(token))
+		if err != nil {
+			return nil, err
+		}
 	}
 	return v, nil
 }
