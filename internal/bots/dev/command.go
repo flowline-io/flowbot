@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
@@ -25,7 +24,6 @@ import (
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -247,73 +245,6 @@ var commandRules = []command.Rule{
 				Title: fmt.Sprintf("documents %v", total),
 				Model: list,
 			}
-		},
-	},
-	{
-		Define: "instruct list",
-		Help:   `all bot instruct`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			models := make(types.KV)
-			for name, bot := range bots.List() {
-				ruleset, _ := bot.Instruct()
-				for _, rule := range ruleset {
-					models[fmt.Sprintf("(%s) %s", name, rule.Id)] = fmt.Sprintf("[%s]", strings.Join(rule.Args, ","))
-				}
-			}
-			return types.InfoMsg{
-				Title: "Instruct",
-				Model: models,
-			}
-		},
-	},
-	{
-		Define: "adguard status",
-		Help:   `get adguard home status`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
-			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
-			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
-
-			resp, err := client.GetStatus()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			return types.TextMsg{Text: fmt.Sprintf("adguard home status %+v", resp)}
-		},
-	},
-	{
-		Define: "adguard stats",
-		Help:   `get adguard home statistics`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
-			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
-			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
-
-			resp, err := client.GetStats()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			return types.TextMsg{Text: fmt.Sprintf("adguard home dns queries %d, blocked filtering %d, avg processing time %v ms",
-				resp.NumDnsQueries, resp.NumBlockedFiltering, int(*resp.AvgProcessingTime)*1000)}
-		},
-	},
-	{
-		Define: "queue stats",
-		Help:   `Queue Stats page`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
-		},
-	},
-	{
-		Define: "check",
-		Help:   `self inspection`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			// todo
-			return types.TextMsg{Text: "ok"}
 		},
 	},
 }

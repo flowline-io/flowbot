@@ -39,7 +39,7 @@ tasks:
 
   - id: echo
     params:
-      text: demo
+      text: example
     action: message@workflow
 
   - id: end
