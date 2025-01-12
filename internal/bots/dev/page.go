@@ -27,7 +27,6 @@ var pageRules = []page.Rule{
 		Id: devPageId,
 		UI: func(ctx types.Context, flag string) (*types.UI, error) {
 			css := []app.UI{
-				uikit.Style(library.GithubMarkdownCss),
 				uikit.Css(exampleCss),
 			}
 			js := []app.HTMLScript{

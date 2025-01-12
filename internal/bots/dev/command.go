@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
@@ -88,15 +87,6 @@ var commandRules = []command.Rule{
 				Title: "Instruct",
 				Model: models,
 			}
-		},
-	},
-	{
-		Define: "markdown",
-		Help:   `[example] markdown page`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.StorePage(ctx, model.PageMarkdown, "", types.MarkdownMsg{
-				Raw: markdownText,
-			})
 		},
 	},
 	{

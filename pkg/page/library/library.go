@@ -6,10 +6,6 @@ const UIKitCss = "https://cdn.jsdelivr.net/npm/uikit@3.22.0/dist/css/uikit.min.c
 const UIKitJs = "https://cdn.jsdelivr.net/npm/uikit@3.22.0/dist/js/uikit.min.js"
 const UIKitIconJs = "https://cdn.jsdelivr.net/npm/uikit@3.22.0/dist/js/uikit-icons.min.js"
 
-// GitHub Markdown
-
-const GithubMarkdownCss = "https://cdn.staticfile.org/github-markdown-css/5.2.0/github-markdown.min.css"
-
 // Vue.js
 
 const VueJs = "https://cdn.staticfile.org/vue/3.3.4/vue.global.min.js"

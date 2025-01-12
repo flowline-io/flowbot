@@ -119,12 +119,8 @@ func getPage(ctx *fiber.Ctx) error {
 		comp = page.RenderForm(p, f)
 	case model.PageTable:
 		comp = page.RenderTable(p)
-	case model.PageJson:
-		comp = page.RenderJson(p)
 	case model.PageHtml:
 		comp = page.RenderHtml(p)
-	case model.PageMarkdown:
-		comp = page.RenderMarkdown(p)
 	case model.PageChart:
 		d, err := jsoniter.Marshal(p.Schema)
 		if err != nil {

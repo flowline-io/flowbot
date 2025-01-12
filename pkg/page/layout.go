@@ -56,24 +56,6 @@ func RenderTable(page model.Page) app.UI {
 	return comp
 }
 
-func RenderJson(page model.Page) app.UI {
-	d, err := jsoniter.Marshal(page.Schema)
-	if err != nil {
-		return nil
-	}
-	var msg types.TextMsg
-	err = jsoniter.Unmarshal(d, &msg)
-	if err != nil {
-		return nil
-	}
-
-	comp := &component.Json{
-		Page:   page,
-		Schema: msg,
-	}
-	return comp
-}
-
 func RenderHtml(page model.Page) app.UI {
 	d, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
@@ -86,24 +68,6 @@ func RenderHtml(page model.Page) app.UI {
 	}
 
 	comp := &component.Html{
-		Page:   page,
-		Schema: msg,
-	}
-	return comp
-}
-
-func RenderMarkdown(page model.Page) app.UI {
-	d, err := jsoniter.Marshal(page.Schema)
-	if err != nil {
-		return nil
-	}
-	var msg types.MarkdownMsg
-	err = jsoniter.Unmarshal(d, &msg)
-	if err != nil {
-		return nil
-	}
-
-	comp := &component.Markdown{
 		Page:   page,
 		Schema: msg,
 	}

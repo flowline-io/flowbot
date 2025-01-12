@@ -46,12 +46,10 @@ func (j SessionState) Value() (driver.Value, error) {
 type PageType string
 
 const (
-	PageForm     PageType = "form"
-	PageChart    PageType = "chart"
-	PageTable    PageType = "table"
-	PageJson     PageType = "json"
-	PageHtml     PageType = "html"
-	PageMarkdown PageType = "markdown"
+	PageForm  PageType = "form"
+	PageTable PageType = "table"
+	PageHtml  PageType = "html"
+	PageChart PageType = "chart"
 )
 
 func (j PageType) Value() (driver.Value, error) {
