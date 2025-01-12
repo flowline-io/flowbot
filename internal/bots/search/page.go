@@ -42,6 +42,12 @@ var pageRules = []page.Rule{
 				))
 			}
 
+			if len(items) == 0 {
+				items = append(items, uikit.Tr(
+					uikit.Td(uikit.Text("No result found.").Class(uikit.TextCenterClass)).ColSpan(3),
+				))
+			}
+
 			// UI
 			app := uikit.App(
 				uikit.H2("Search").Class(uikit.TextCenterClass),
