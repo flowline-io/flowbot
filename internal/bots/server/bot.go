@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -57,6 +58,7 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		collectRules,
+		webserviceRules,
 	}
 }
 
@@ -70,4 +72,8 @@ func (b bot) Collect(ctx types.Context, content types.KV) (types.MsgPayload, err
 
 func (b bot) Cron() (*cron.Ruleset, error) {
 	return bots.RunCron(cronRules, Name)
+}
+
+func (bot) Webservice(app *fiber.App) {
+	bots.Webservice(app, Name, webserviceRules)
 }
