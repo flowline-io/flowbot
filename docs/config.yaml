@@ -152,3 +152,7 @@ vendors:
   safeline:
     endpoint: https://127.0.0.1:9443/api
     token: ""
+  kanboard:
+    endpoint: ""
+    api_key: ""
+    webhook_token: ""

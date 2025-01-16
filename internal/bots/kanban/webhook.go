@@ -3,6 +3,8 @@ package kanban
 import (
 	"net/http"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -22,6 +24,9 @@ var webhookRules = []webhook.Rule{
 			if method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
+
+			token, _ := providers.GetConfig(kanboard.ID, kanboard.WebhookTokenKey)
+			flog.Debug("kanban token %s", token) // TODO check token
 
 			var resp kanboard.EventResponse
 			err := json.Unmarshal(data, &resp)
