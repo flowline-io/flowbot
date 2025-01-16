@@ -14,6 +14,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/finance"
 	_ "github.com/flowline-io/flowbot/internal/bots/gitea"
 	_ "github.com/flowline-io/flowbot/internal/bots/github"
+	_ "github.com/flowline-io/flowbot/internal/bots/kanban"
 	_ "github.com/flowline-io/flowbot/internal/bots/notify"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
