@@ -152,6 +152,12 @@ func (t KVMsg) Convert() any {
 	return t
 }
 
+type EmptyMsg struct{}
+
+func (t EmptyMsg) Convert() any {
+	return t
+}
+
 func TypeOf(payload MsgPayload) string {
 	t := reflect.TypeOf(payload)
 	return t.Name()

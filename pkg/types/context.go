@@ -32,6 +32,8 @@ type Context struct {
 	WorkflowRuleId string
 	// llm tool rule id
 	ToolRuleId string
+	// event rule id
+	EventId string
 }
 
 func (c *Context) Context() context.Context {

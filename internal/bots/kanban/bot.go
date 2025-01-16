@@ -62,6 +62,7 @@ func (b bot) Rules() []interface{} {
 		commandRules,
 		cronRules,
 		webhookRules,
+		eventRules,
 	}
 }
 
@@ -75,4 +76,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 
 func (b bot) Webhook(ctx types.Context, method string, data []byte) (types.MsgPayload, error) {
 	return bots.RunWebhook(webhookRules, ctx, method, data)
+}
+
+func (b bot) Event(ctx types.Context, param types.KV) error {
+	return bots.RunEvent(eventRules, ctx, param)
 }

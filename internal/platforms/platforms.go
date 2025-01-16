@@ -46,6 +46,8 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Text(v.Title),
 			protocol.Url(v.Url),
 		}
+	case types.EmptyMsg:
+		return nil
 	default:
 		s, err := yaml.Marshal(data)
 		if err != nil {

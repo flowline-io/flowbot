@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -199,6 +200,11 @@ func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 func RunCollect(collectRules []collect.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
 	rs := collect.Ruleset(collectRules)
 	return rs.ProcessAgent(ctx, content)
+}
+
+func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
+	rs := event.Ruleset(eventRules)
+	return rs.ProcessEvent(ctx, param)
 }
 
 func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.KV) (types.KV, error) {

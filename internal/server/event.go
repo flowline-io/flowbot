@@ -2,13 +2,15 @@ package server
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	jsoniter "github.com/json-iterator/go"
+	"time"
 )
 
 // send message
@@ -51,6 +53,33 @@ func onMessageSendEventHandler(msg *message.Message) error {
 // push instruct
 func onInstructPushEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
+
+	return nil
+}
+
+// run bot event
+func onBotRunEventHandler(msg *message.Message) error {
+	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
+
+	var be types.BotEvent
+	err := jsoniter.Unmarshal(msg.Payload, &be)
+	if err != nil {
+		return err
+	}
+
+	ctx := types.Context{
+		AsUser:  types.Uid(be.Uid),
+		Topic:   be.Topic,
+		EventId: be.EventName,
+	}
+	ctx.SetTimeout(10 * time.Minute)
+
+	for name, handle := range bots.List() {
+		err = handle.Event(ctx, be.Param)
+		if err != nil {
+			return fmt.Errorf("bot %s event %s error %w", name, be.EventName, err)
+		}
+	}
 
 	return nil
 }

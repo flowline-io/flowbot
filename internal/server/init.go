@@ -502,6 +502,12 @@ func initializeEvent() error {
 		subscriber,
 		onInstructPushEventHandler,
 	)
+	router.AddNoPublisherHandler(
+		"onBotRunEventHandler",
+		types.BotRunEvent,
+		subscriber,
+		onBotRunEventHandler,
+	)
 
 	go func() {
 		if err = router.Run(context.Background()); err != nil {

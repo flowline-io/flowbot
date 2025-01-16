@@ -3,6 +3,12 @@ package types
 const (
 	MessageSendEvent  = "message:send"
 	InstructPushEvent = "instruct:push"
+	BotRunEvent       = "bot:event"
+)
+
+const (
+	ExampleBotEventID    = "example"
+	TaskCreateBotEventID = "creteTask"
 )
 
 type Message struct {
@@ -14,4 +20,11 @@ type Message struct {
 type EventPayload struct {
 	Typ string
 	Src []byte
+}
+
+type BotEvent struct {
+	EventName string
+	Uid       string
+	Topic     string
+	Param     KV
 }

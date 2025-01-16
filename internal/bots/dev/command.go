@@ -221,6 +221,23 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
+		Define: "event test",
+		Help:   `[example] event example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			err := event.BotEventFire(ctx.Context(), types.ExampleBotEventID, types.BotEvent{
+				Uid:   ctx.AsUser.String(),
+				Topic: ctx.Topic,
+				Param: types.KV{
+					"k1": "v1",
+				},
+			})
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

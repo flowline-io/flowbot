@@ -36,6 +36,9 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 	if !ok {
 		return protocol.NewFailedResponse(protocol.ErrBadSegmentType)
 	}
+	if len(content) == 0 {
+		return protocol.NewSuccessResponse(nil)
+	}
 	err := a.makeRequest(&request{
 		Channel: channel,
 		Content: content,

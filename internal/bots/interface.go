@@ -57,6 +57,9 @@ type Handler interface {
 
 	// LangChain return langchain result
 	LangChain(ctx types.Context, args types.KV) (string, error)
+
+	// Event return event result
+	Event(ctx types.Context, param types.KV) error
 }
 
 type Base struct{}
@@ -118,4 +121,8 @@ func (Base) Webhook(_ types.Context, _ string, _ []byte) (types.MsgPayload, erro
 
 func (Base) LangChain(_ types.Context, _ types.KV) (string, error) {
 	return "", nil
+}
+
+func (Base) Event(_ types.Context, _ types.KV) error {
+	return nil
 }
