@@ -5,15 +5,10 @@ import (
 	"errors"
 
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	jsoniter "github.com/json-iterator/go"
-	"gorm.io/gorm"
 )
 
 const Name = "bookmark"
@@ -58,6 +53,14 @@ func (bot) IsReady() bool {
 	return handler.initialized
 }
 
+func (b bot) Rules() []interface{} {
+	return []interface{}{
+		commandRules,
+		cronRules,
+		eventRules,
+	}
+}
+
 func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
 	return bots.RunCommand(commandRules, ctx, content)
 }
@@ -66,33 +69,6 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 	return bots.RunCron(cronRules, Name)
 }
 
-func (b bot) Input(ctx types.Context, _ types.KV, content interface{}) (types.MsgPayload, error) {
-	//text, err := drafty.PlainText(content)
-	//if err != nil {
-	//	return nil, err
-	//}
-	text := content.(string) // fixme to plain text
-
-	if utils.IsUrl(text) {
-		url := text
-		oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			flog.Error(err)
-		}
-		if oauth.Token == "" {
-			return types.TextMsg{Text: "App is unauthorized"}, nil
-		}
-
-		key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
-		provider := pocket.NewPocket(key.String(), "", "", oauth.Token)
-		_, err = provider.Add(url)
-		if err != nil {
-			flog.Error(err)
-			return types.TextMsg{Text: "Add error"}, nil
-		}
-
-		return types.TextMsg{Text: "ok"}, nil
-	}
-
-	return nil, nil
+func (b bot) Event(ctx types.Context, param types.KV) error {
+	return bots.RunEvent(eventRules, ctx, param)
 }

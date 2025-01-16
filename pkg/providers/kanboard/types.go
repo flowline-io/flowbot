@@ -71,3 +71,8 @@ type Comment struct {
 	Email            any    `json:"email,omitempty"`
 	AvatarPath       string `json:"avatar_path,omitempty"`
 }
+
+type TaskClose struct {
+	TaskId int  `json:"task_id"`
+	Task   Task `json:"task"`
+}

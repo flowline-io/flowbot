@@ -1,7 +1,10 @@
 package kanban
 
 import (
+	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"net/http"
+	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -31,13 +34,48 @@ var webhookRules = []webhook.Rule{
 			var resp kanboard.EventResponse
 			err := json.Unmarshal(data, &resp)
 			if err != nil {
+				flog.Error(err)
 				return types.TextMsg{Text: "error event response"}
 			}
 
 			// metrics
 			stats.KanbanEventTotalCounter(resp.EventName).Inc()
 
-			return types.TextMsg{Text: "kanban webhook"}
+			switch resp.EventName {
+			case "task.close":
+				var result kanboard.TaskClose
+				err = unmarshal(resp.EventData, &result)
+				if err != nil {
+					flog.Error(err)
+					return types.TextMsg{Text: "error unmarshal"}
+				}
+
+				if result.Task.Reference == "" {
+					return nil
+				}
+
+				s := strings.Split(result.Task.Reference, ":")
+				if len(s) != 2 {
+					return nil
+				}
+
+				switch s[0] {
+				case hoarder.ID:
+					err = event.BotEventFire(ctx.Context(), types.BookmarkArchiveBotEventID, types.BotEvent{
+						Uid:   ctx.AsUser.String(),
+						Topic: ctx.Topic,
+						Param: types.KV{
+							"id": s[1],
+						},
+					})
+					if err != nil {
+						flog.Error(err)
+						return types.TextMsg{Text: "error bookmark archive"}
+					}
+				}
+			}
+
+			return nil
 		},
 	},
 }

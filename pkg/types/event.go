@@ -7,8 +7,9 @@ const (
 )
 
 const (
-	ExampleBotEventID    = "example"
-	TaskCreateBotEventID = "creteTask"
+	ExampleBotEventID         = "example"
+	TaskCreateBotEventID      = "creteTask"
+	BookmarkArchiveBotEventID = "archiveBookmark"
 )
 
 type Message struct {

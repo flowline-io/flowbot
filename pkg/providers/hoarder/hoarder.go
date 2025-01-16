@@ -65,3 +65,15 @@ func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]stri
 
 	return resp.Attached, nil
 }
+
+func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
+	archived := true
+	resp, _, err := i.c.BookmarksAPI.BookmarksBookmarkIdPatch(i.ctx, id).BookmarksBookmarkIdPatchRequest(openapi.BookmarksBookmarkIdPatchRequest{
+		Archived: &archived,
+	}).Execute()
+	if err != nil {
+		return false, fmt.Errorf("failed to get all bookmarks: %w", err)
+	}
+
+	return resp.Archived, nil
+}
