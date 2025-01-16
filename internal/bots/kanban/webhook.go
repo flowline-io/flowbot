@@ -2,17 +2,16 @@ package kanban
 
 import (
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
-	"net/http"
-	"strings"
-
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	json "github.com/json-iterator/go"
+	"net/http"
+	"strings"
 )
 
 const (
@@ -39,7 +38,9 @@ var webhookRules = []webhook.Rule{
 			}
 
 			// metrics
-			stats.KanbanEventTotalCounter(resp.EventName).Inc()
+			go func() {
+				stats.KanbanEventTotalCounter(resp.EventName).Inc()
+			}()
 
 			switch resp.EventName {
 			case "task.close":
