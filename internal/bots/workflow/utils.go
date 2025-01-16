@@ -1,12 +1,8 @@
 package workflow
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	json "github.com/json-iterator/go"
 	"regexp"
 	"strings"
 
@@ -276,43 +272,6 @@ func parsePipelineEdges(pipeline string) [][2]string {
 	}
 
 	return edges
-}
-
-func unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
-	result := make([]types.KV, 0)
-	uniqueKey := fmt.Sprintf("unique:%s", id)
-
-	for _, item := range latest {
-		val, err := kvHash(item)
-		if err != nil {
-			return nil, fmt.Errorf("failed to hash kv: %w", err)
-		}
-		if len(val) == 0 {
-			continue
-		}
-		b, err := cache.DB.SAdd(ctx, uniqueKey, val).Result()
-		if err != nil {
-			return nil, fmt.Errorf("failed to set unique key: %w", err)
-		}
-		if b == 1 {
-			kv, ok := item.(map[string]any)
-			if !ok {
-				continue
-			}
-			result = append(result, kv)
-			flog.Info("[unique] key: %s added: %s", id, val)
-		}
-	}
-
-	return result, nil
-}
-
-func kvHash(item any) (string, error) {
-	b, err := json.ConfigCompatibleWithStandardLibrary.Marshal(item)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal kv: %w", err)
-	}
-	return utils.SHA1(utils.BytesToString(b)), nil
 }
 
 func kvGrep(pattern string, input types.KV) (types.KV, error) {

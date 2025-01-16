@@ -3,6 +3,8 @@ package bookmark
 import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
@@ -110,6 +112,64 @@ var cronRules = []cron.Rule{
 				})
 				if err != nil {
 					flog.Warn("[search] add document error %v", err)
+				}
+			}
+
+			return nil
+		},
+	},
+	{
+		Name:  "bookmarks_task",
+		Scope: cron.CronScopeUser,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
+			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
+			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			if err != nil {
+				flog.Error(err)
+			}
+
+			for _, bookmark := range bookmarks {
+				if bookmark.Archived {
+					continue
+				}
+
+				// filter
+				ok, err := cache.UniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
+				if err != nil {
+					flog.Error(fmt.Errorf("cron bookmarks_task unique error %w", err))
+					continue
+				}
+				if !ok {
+					continue
+				}
+
+				// create task
+				title := ""
+				if bookmark.Content.BookmarkContentOneOf.Title.IsSet() &&
+					bookmark.Content.BookmarkContentOneOf.Title.Get() != nil {
+					title = *bookmark.Content.BookmarkContentOneOf.Title.Get()
+				}
+				err = event.BotEventFire(ctx.Context(), types.TaskCreateBotEventID, types.BotEvent{
+					Uid:   ctx.AsUser.String(),
+					Topic: ctx.Topic,
+					Param: types.KV{
+						"title":       title,
+						"project_id":  1,
+						"priority":    2,
+						"reference":   fmt.Sprintf("%s:%s", hoarder.ID, bookmark.Id),
+						"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap[hoarder.ID], bookmark.Id),
+						"tags": []string{
+							Name,
+							hoarder.ID,
+						},
+					},
+				})
+				if err != nil {
+					flog.Error(fmt.Errorf("cron bookmarks_task event fire error %w", err))
+					continue
 				}
 			}
 

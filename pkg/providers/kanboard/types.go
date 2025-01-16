@@ -54,6 +54,7 @@ type Task struct {
 	CreatorName         any    `json:"creator_name,omitempty"`
 	CategoryDescription any    `json:"category_description,omitempty"`
 	ColumnPosition      int    `json:"column_position,omitempty"`
+	Tags                []any  `json:"tags,omitempty"`
 }
 
 type Comment struct {

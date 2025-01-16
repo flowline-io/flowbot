@@ -24,12 +24,18 @@ var eventRules = []event.Rule{
 
 			title, _ := param.String("title")
 			projectId, _ := param.Int64("project_id")
+			priority, _ := param.Int64("priority")
 			reference, _ := param.String("reference")
+			description, _ := param.String("description")
+			tags, _ := param.List("tags")
 
 			taskId, err := client.CreateTask(ctx.Context(), &kanboard.Task{
-				Title:     title,
-				ProjectID: int(projectId),
-				Reference: reference,
+				Title:       title,
+				ProjectID:   int(projectId),
+				Priority:    int(priority),
+				Reference:   reference,
+				Description: description,
+				Tags:        tags,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create task %w", err)
