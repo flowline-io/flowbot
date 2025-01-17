@@ -1,25 +1,46 @@
 package kanboard
 
+const (
+	CommentCreateEvent                = "comment.create"
+	CommentUpdateEvent                = "comment.update"
+	CommentDeleteEvent                = "comment.delete"
+	FileCreateEvent                   = "file.create"
+	TaskMoveProjectEvent              = "task.move.project"
+	TaskMoveColumnEvent               = "task.move.column"
+	TaskMovePositionEvent             = "task.move.position"
+	TaskMoveSwimlaneEvent             = "task.move.swimlane"
+	TaskUpdateEvent                   = "task.update"
+	TaskCreateEvent                   = "task.create"
+	TaskCloseEvent                    = "task.close"
+	TaskOpenEvent                     = "task.open"
+	TaskAssigneeChangeEvent           = "task.assignee_change"
+	SubtaskUpdateEvent                = "subtask.update"
+	SubtaskCreateEvent                = "subtask.create"
+	SubtaskDeleteEvent                = "subtask.delete"
+	TaskInternalLinkCreateUpdateEvent = "task_internal_link.create_update"
+	TaskInternalLinkDeleteEvent       = "task_internal_link.delete"
+)
+
 type EventResponse struct {
 	EventName   string `json:"event_name,omitempty"`
 	EventData   any    `json:"event_data,omitempty"`
 	EventAuthor string `json:"event_author,omitempty"`
 }
 
-type Data struct {
-	Comment Comment `json:"comment,omitempty"`
-	Task    Task    `json:"task,omitempty"`
+type TaskClose struct {
+	TaskId int  `json:"task_id,omitempty"`
+	Task   Task `json:"task,omitempty"`
 }
 
 type Task struct {
 	ID                  int    `json:"id,omitempty"`
-	Title               string `json:"title"`
+	Title               string `json:"title,omitempty"`
 	Description         string `json:"description,omitempty"`
 	DateCreation        int    `json:"date_creation,omitempty"`
 	DateCompleted       any    `json:"date_completed,omitempty"`
 	DateDue             int    `json:"date_due,omitempty"`
 	ColorID             string `json:"color_id,omitempty"`
-	ProjectID           int    `json:"project_id"`
+	ProjectID           int    `json:"project_id,omitempty"`
 	ColumnID            int    `json:"column_id,omitempty"`
 	OwnerID             int    `json:"owner_id,omitempty"`
 	Position            int    `json:"position,omitempty"`
@@ -57,6 +78,31 @@ type Task struct {
 	Tags                []any  `json:"tags,omitempty"`
 }
 
+type Subtask struct {
+	ID             string `json:"id,omitempty"`
+	Title          string `json:"title,omitempty"`
+	Status         string `json:"status,omitempty"`
+	TimeEstimated  string `json:"time_estimated,omitempty"`
+	TimeSpent      string `json:"time_spent,omitempty"`
+	TaskID         string `json:"task_id,omitempty"`
+	UserID         string `json:"user_id,omitempty"`
+	Position       string `json:"position,omitempty"`
+	Username       string `json:"username,omitempty"`
+	Name           any    `json:"name,omitempty"`
+	TimerStartDate int    `json:"timer_start_date,omitempty"`
+	StatusName     string `json:"status_name,omitempty"`
+	IsTimerStarted bool   `json:"is_timer_started,omitempty"`
+}
+
+type TaskLink struct {
+	ID             string `json:"id,omitempty"`
+	OppositeTaskID string `json:"opposite_task_id,omitempty"`
+	TaskID         string `json:"task_id,omitempty"`
+	LinkID         string `json:"link_id,omitempty"`
+	Label          string `json:"label,omitempty"`
+	OppositeLinkID string `json:"opposite_link_id,omitempty"`
+}
+
 type Comment struct {
 	ID               int    `json:"id,omitempty"`
 	TaskID           int    `json:"task_id,omitempty"`
@@ -72,7 +118,13 @@ type Comment struct {
 	AvatarPath       string `json:"avatar_path,omitempty"`
 }
 
-type TaskClose struct {
-	TaskId int  `json:"task_id"`
-	Task   Task `json:"task"`
+type File struct {
+	ID      string `json:"id,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Path    string `json:"path,omitempty"`
+	IsImage string `json:"is_image,omitempty"`
+	TaskID  string `json:"task_id,omitempty"`
+	Date    string `json:"date,omitempty"`
+	UserID  string `json:"user_id,omitempty"`
+	Size    string `json:"size,omitempty"`
 }

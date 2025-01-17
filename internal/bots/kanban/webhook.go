@@ -1,6 +1,9 @@
 package kanban
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -10,8 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	json "github.com/json-iterator/go"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -43,7 +44,7 @@ var webhookRules = []webhook.Rule{
 			}()
 
 			switch resp.EventName {
-			case "task.close":
+			case kanboard.TaskCloseEvent:
 				var result kanboard.TaskClose
 				err = unmarshal(resp.EventData, &result)
 				if err != nil {
@@ -59,14 +60,16 @@ var webhookRules = []webhook.Rule{
 				if len(s) != 2 {
 					return nil
 				}
+				app := s[0]
+				id := s[1]
 
-				switch s[0] {
+				switch app {
 				case hoarder.ID:
 					err = event.BotEventFire(ctx.Context(), types.BookmarkArchiveBotEventID, types.BotEvent{
 						Uid:   ctx.AsUser.String(),
 						Topic: ctx.Topic,
 						Param: types.KV{
-							"id": s[1],
+							"id": id,
 						},
 					})
 					if err != nil {
