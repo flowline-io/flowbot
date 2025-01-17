@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
@@ -23,7 +24,7 @@ var eventRules = []event.Rule{
 				return fmt.Errorf("failed to archive bookmark %w", err)
 			}
 
-			err = pkgEvent.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.TextMsg{
+			err = pkgEvent.SendMessage(ctx, types.TextMsg{
 				Text: fmt.Sprintf("bookmark %s archive %v", id, ok),
 			})
 			if err != nil {

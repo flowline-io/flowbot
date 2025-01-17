@@ -1,7 +1,6 @@
 package event
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -11,7 +10,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) error {
+func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	// payload
 	src, err := jsoniter.Marshal(msg)
 	if err != nil {
@@ -23,7 +22,7 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 	}
 
 	// get user
-	user, err := store.Database.GetUserByFlag(uid)
+	user, err := store.Database.GetUserByFlag(ctx.AsUser.String())
 	if err != nil {
 		return err
 	}
@@ -37,13 +36,13 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 	}
 
 	// send topic
-	if topic != "" {
-		platformChannel, err := store.Database.GetPlatformChannelByFlag(topic)
+	if ctx.Topic != "" {
+		platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Topic)
 		if err != nil {
 			return err
 		}
 		if !platformSet.Has(int(platformChannel.PlatformID)) {
-			return fmt.Errorf("topic %s not platform %d", topic, platformChannel.PlatformID)
+			return fmt.Errorf("topic %s not platform %d", ctx.Topic, platformChannel.PlatformID)
 		}
 		platform, err := store.Database.GetPlatform(platformChannel.PlatformID)
 		if err != nil {
@@ -51,12 +50,12 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 		}
 
 		if platform.Name == "" {
-			return fmt.Errorf("empty platform user %s topic %s", uid, topic)
+			return fmt.Errorf("empty platform user %s topic %s", ctx.AsUser, ctx.Topic)
 		}
 
-		return PublishMessage(ctx, types.MessageSendEvent, types.Message{
+		return PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
 			Platform: platform.Name,
-			Topic:    topic,
+			Topic:    ctx.Topic,
 			Payload:  payload,
 		})
 	}
@@ -83,7 +82,7 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 		}
 
 		for _, channelUser := range channelUsers {
-			err = PublishMessage(ctx, types.MessageSendEvent, types.Message{
+			err = PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
 				Platform: platformName[item.PlatformID],
 				Topic:    channelUser.ChannelFlag,
 				Payload:  payload,

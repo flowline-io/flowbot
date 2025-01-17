@@ -327,8 +327,12 @@ func notifyAll(message string) {
 		flog.Error(fmt.Errorf("notify error %w", err))
 		return
 	}
+
 	for _, item := range users {
-		err = event.SendMessage(context.Background(), item.Flag, "", types.TextMsg{Text: message})
+		ctx := types.Context{
+			AsUser: types.Uid(item.Flag),
+		}
+		err = event.SendMessage(ctx, types.TextMsg{Text: message})
 		if err != nil {
 			flog.Error(fmt.Errorf("notify error %w", err))
 			continue
@@ -365,6 +369,9 @@ func onlineStatus(msg protocol.Event) {
 // when action is types.Online, it will register agent
 // when action is types.Offline, it will update agent online duration
 func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
+	ctx := types.Context{
+		AsUser: uid,
+	}
 	switch data.Action {
 	case types.Collect:
 		id, ok := data.Content.String("id")
@@ -400,7 +407,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 				continue
 			}
 
-			err = event.SendMessage(context.Background(), uid.String(), "", payload)
+			err = event.SendMessage(ctx, payload)
 			if err != nil {
 				flog.Error(fmt.Errorf("send message error %w", err))
 				continue
@@ -449,7 +456,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			return nil, errors.New("register agent error")
 		}
 
-		err = event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
+		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
@@ -464,7 +471,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			flog.Error(fmt.Errorf("update online duration error %w", err))
 		}
 
-		err = event.SendMessage(context.Background(), uid.String(), "", types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
+		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}

@@ -2,8 +2,9 @@ package workflow
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/cache"
 
 	"github.com/flowline-io/flowbot/pkg/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -58,7 +59,7 @@ var workflowRules = []workflow.Rule{
 			if len(input) == 0 {
 				return nil, nil
 			}
-			return nil, event.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.KVMsg(input))
+			return nil, event.SendMessage(ctx, types.KVMsg(input))
 		},
 	},
 	{

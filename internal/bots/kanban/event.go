@@ -2,6 +2,7 @@ package kanban
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -41,7 +42,7 @@ var eventRules = []event.Rule{
 				return fmt.Errorf("failed to create task %w", err)
 			}
 
-			err = pkgEvent.SendMessage(ctx.Context(), ctx.AsUser.String(), ctx.Topic, types.TextMsg{
+			err = pkgEvent.SendMessage(ctx, types.TextMsg{
 				Text: fmt.Sprintf("%s/task/%d", config.App.Search.UrlBaseMap[kanboard.ID], taskId),
 			})
 			if err != nil {
