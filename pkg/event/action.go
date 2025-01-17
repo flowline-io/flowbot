@@ -97,11 +97,11 @@ func SendMessage(ctx context.Context, uid, topic string, msg types.MsgPayload) e
 	return nil
 }
 
-func BotEventFire(ctx context.Context, eventName string, data types.BotEvent) error {
-	return PublishMessage(ctx, types.BotRunEvent, types.BotEvent{
+func BotEventFire(ctx types.Context, eventName string, param types.KV) error {
+	return PublishMessage(ctx.Context(), types.BotRunEvent, types.BotEvent{
 		EventName: eventName,
-		Uid:       data.Uid,
-		Topic:     data.Topic,
-		Param:     data.Param,
+		Uid:       ctx.AsUser.String(),
+		Topic:     ctx.Topic,
+		Param:     param,
 	})
 }

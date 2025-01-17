@@ -2,6 +2,8 @@ package bookmark
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -12,7 +14,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"time"
+)
+
+const (
+	defaultProjectId = 1
+	defaultPriority  = 2
 )
 
 var cronRules = []cron.Rule{
@@ -152,19 +158,15 @@ var cronRules = []cron.Rule{
 					bookmark.Content.BookmarkContentOneOf.Title.Get() != nil {
 					title = *bookmark.Content.BookmarkContentOneOf.Title.Get()
 				}
-				err = event.BotEventFire(ctx.Context(), types.TaskCreateBotEventID, types.BotEvent{
-					Uid:   ctx.AsUser.String(),
-					Topic: ctx.Topic,
-					Param: types.KV{
-						"title":       title,
-						"project_id":  1,
-						"priority":    2,
-						"reference":   fmt.Sprintf("%s:%s", hoarder.ID, bookmark.Id),
-						"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap[hoarder.ID], bookmark.Id),
-						"tags": []string{
-							Name,
-							hoarder.ID,
-						},
+				err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
+					"title":       title,
+					"project_id":  defaultProjectId,
+					"priority":    defaultPriority,
+					"reference":   fmt.Sprintf("%s:%s", hoarder.ID, bookmark.Id),
+					"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap[hoarder.ID], bookmark.Id),
+					"tags": []string{
+						Name,
+						hoarder.ID,
 					},
 				})
 				if err != nil {

@@ -65,12 +65,8 @@ var webhookRules = []webhook.Rule{
 
 				switch app {
 				case hoarder.ID:
-					err = event.BotEventFire(ctx.Context(), types.BookmarkArchiveBotEventID, types.BotEvent{
-						Uid:   ctx.AsUser.String(),
-						Topic: ctx.Topic,
-						Param: types.KV{
-							"id": id,
-						},
+					err = event.BotEventFire(ctx, types.BookmarkArchiveBotEventID, types.KV{
+						"id": id,
 					})
 					if err != nil {
 						flog.Error(err)
