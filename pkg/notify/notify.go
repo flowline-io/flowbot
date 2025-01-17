@@ -3,11 +3,12 @@ package notify
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"regexp"
-	"strings"
 )
 
 var handlers map[string]Notifyer
@@ -18,10 +19,10 @@ func Register(id string, notifyer Notifyer) {
 	}
 
 	if notifyer == nil {
-		panic("Register: notifyer is nil")
+		flog.Panic("Register: notifyer is nil")
 	}
 	if _, dup := handlers[id]; dup {
-		panic("Register: called twice for notifyer " + id)
+		flog.Panic("Register: called twice for notifyer %s", id)
 	}
 	handlers[id] = notifyer
 }

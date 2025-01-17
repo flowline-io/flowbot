@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
@@ -34,31 +35,31 @@ func GenerationAction(c *cli.Context) error {
 
 	file, err := os.Open(conffile)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		panic("error adapter")
+		flog.Panic("error adapter")
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		panic("error adapter dsn")
+		flog.Panic("error adapter dsn")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	g := gen.NewGenerator(gen.Config{

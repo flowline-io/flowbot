@@ -240,7 +240,7 @@ var (
 				},
 			})
 			if err != nil {
-				panic(err)
+				flog.Panic(err.Error())
 			}
 		},
 		"options": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -322,11 +322,11 @@ var (
 				})
 				return
 			} else if err != nil {
-				panic(err)
+				flog.Panic(err.Error())
 			}
 
 			if err != nil {
-				panic(err)
+				flog.Panic(err.Error())
 			}
 			format := "- %s %s\n"
 
@@ -566,7 +566,7 @@ func HandleWebsocket(stop <-chan bool) {
 	for i, v := range commands {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, "", v)
 		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+			flog.Panic("Cannot create '%v' command: %v", v.Name, err)
 		}
 		registeredCommands[i] = cmd
 	}

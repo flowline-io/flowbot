@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-resty/resty/v2"
 	"github.com/urfave/cli/v2"
@@ -20,18 +21,18 @@ func ImportAction(c *cli.Context) error {
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	// args
@@ -42,11 +43,11 @@ func ImportAction(c *cli.Context) error {
 	path := c.String("path")
 	yamlFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	yamlData, err := io.ReadAll(yamlFile)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	_, _ = fmt.Println(string(yamlData))
 
@@ -65,7 +66,7 @@ func ImportAction(c *cli.Context) error {
 		}).
 		Post("/service/workflow/workflow")
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	_, _ = fmt.Printf("%+v\n", resp)

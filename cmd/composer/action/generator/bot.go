@@ -8,6 +8,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -63,7 +64,7 @@ func BotAction(c *cli.Context) error {
 	// check dir
 	_, err := os.Stat(BasePath)
 	if os.IsNotExist(err) {
-		panic("bots NotExist")
+		flog.Panic("bots NotExist")
 	}
 	dir := fmt.Sprintf("%s/%s", BasePath, data.BotName)
 	_, err = os.Stat(dir)
@@ -109,7 +110,7 @@ func BotAction(c *cli.Context) error {
 		}
 	} else {
 		if !fileExist(data.BotName, "bot.go") {
-			panic("dir exist, but bot.go file not exist")
+			flog.Panic("dir exist, but bot.go file not exist")
 		}
 		if data.HasInput {
 			// append
@@ -184,11 +185,11 @@ func parseTemplate(text string, data interface{}) []byte {
 	buf := bytes.NewBufferString("")
 	t, err := template.New("tmpl").Parse(text)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	err = t.Execute(buf, data)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	return buf.Bytes()
 }
@@ -214,12 +215,12 @@ func parseRule(rules []string, data *schema) {
 func appendFileContent(filePath string, content []byte) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	_, err = file.Write(content)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	_ = file.Close()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -43,7 +44,7 @@ func (m *MultiMounter) RegisterMounter(mtype string, mr Mounter) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, ok := m.mounters[mtype]; ok {
-		panic("mount: Register called twice for mounter")
+		flog.Panic("mount: Register called twice for mounter")
 	}
 	m.mounters[mtype] = mr
 }

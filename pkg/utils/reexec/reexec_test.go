@@ -5,12 +5,13 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"gotest.tools/v3/assert"
 )
 
 func init() {
 	Register("reexec", func() {
-		panic("Return Error")
+		flog.Panic("Return Error")
 	})
 	Init()
 }

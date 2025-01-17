@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/jmoiron/sqlx"
 	"github.com/urfave/cli/v2"
@@ -78,33 +79,32 @@ func SchemaAction(c *cli.Context) error {
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		panic("error adapter")
+		flog.Panic("error adapter")
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		panic("error adapter dsn")
+		flog.Panic("error adapter dsn")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
 	// Conn
 	db, err := sqlx.Open("mysql", dsn)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	defer func() {
 		_ = db.Close()
@@ -114,8 +114,7 @@ func SchemaAction(c *cli.Context) error {
 	var tables []Table
 	err = db.Select(&tables, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	// Markdown
@@ -124,8 +123,7 @@ func SchemaAction(c *cli.Context) error {
 		var columns []Column
 		err = db.Select(&columns, "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?", database, table.TableName)
 		if err != nil {
-			fmt.Println(err)
-			panic(err)
+			flog.Panic(err.Error())
 		}
 
 		var comment strings.Builder
@@ -146,8 +144,7 @@ func SchemaAction(c *cli.Context) error {
 	// Write File
 	err = os.WriteFile("./docs/schema.md", []byte(markdown.String()), 0644)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		flog.Panic(err.Error())
 	}
 
 	fmt.Println("See schema.md")

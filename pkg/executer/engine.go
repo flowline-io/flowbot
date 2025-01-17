@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/docker"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime/shell"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -68,7 +69,7 @@ func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
 
 func (e *Engine) mustState(state string) {
 	if e.state != state {
-		panic(fmt.Errorf("engine is not %s", state))
+		flog.Panic("engine is not %s", state)
 	}
 }
 

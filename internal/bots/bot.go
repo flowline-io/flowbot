@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -40,10 +41,10 @@ func Register(name string, bot Handler) {
 	}
 
 	if bot == nil {
-		panic("Register: bot is nil")
+		flog.Panic("Register: bot is nil")
 	}
 	if _, dup := handlers[name]; dup {
-		panic("Register: called twice for bot " + name)
+		flog.Panic("Register: called twice for bot %s", name)
 	}
 	handlers[name] = bot
 	_, _ = fmt.Printf("%s info %s [bot] %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)

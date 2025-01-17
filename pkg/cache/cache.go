@@ -12,11 +12,11 @@ import (
 
 var DB *redis.Client
 
-func InitCache() {
+func InitCache() error {
 	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
 	password := config.App.Redis.Password
 	if addr == ":" || password == "" {
-		panic("redis config error")
+		return fmt.Errorf("redis config error")
 	}
 	DB = redis.NewClient(&redis.Options{
 		Addr:         addr,
@@ -28,8 +28,9 @@ func InitCache() {
 	s := DB.Ping(context.Background())
 	_, err := s.Result()
 	if err != nil {
-		panic("redis server error " + err.Error())
+		return fmt.Errorf("redis server error %w", err)
 	}
+	return nil
 }
 
 func Shutdown() {

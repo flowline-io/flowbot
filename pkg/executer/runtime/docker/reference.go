@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
@@ -134,7 +136,7 @@ func literal(s string) *regexp.Regexp {
 	re := match(regexp.QuoteMeta(s))
 
 	if _, complete := re.LiteralPrefix(); !complete {
-		panic("must be a literal")
+		flog.Panic("must be a literal")
 	}
 
 	return re

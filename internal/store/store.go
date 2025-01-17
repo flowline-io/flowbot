@@ -44,12 +44,12 @@ func openAdapter(jsonConfig config.StoreType) error {
 
 func RegisterAdapter(a Adapter) {
 	if a == nil {
-		panic("store: Register adapter is nil")
+		flog.Panic("store: Register adapter is nil")
 	}
 
 	name := a.GetName()
 	if _, ok := availableAdapters[name]; ok {
-		panic("store: adapter '" + name + "' is already registered")
+		flog.Panic("store: adapter %s is already registered", name)
 	}
 	availableAdapters[name] = a
 	flog.Info("store: adapter '%s' registered", name)
@@ -94,10 +94,10 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 	}
 
 	if mh == nil {
-		panic("RegisterMediaHandler: handler is nil")
+		flog.Panic("RegisterMediaHandler: handler is nil")
 	}
 	if _, dup := fileHandlers[name]; dup {
-		panic("RegisterMediaHandler: called twice for handler " + name)
+		flog.Panic("RegisterMediaHandler: called twice for handler %s", name)
 	}
 	fileHandlers[name] = mh
 	fmt.Printf("%s info %s media: handler '%s' registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
@@ -107,7 +107,7 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 func UseMediaHandler(name, config string) error {
 	mediaHandler := fileHandlers[name]
 	if mediaHandler == nil {
-		panic("UseMediaHandler: unknown handler '" + name + "'")
+		flog.Panic("UseMediaHandler: unknown handler %s", name)
 	}
 	FS = mediaHandler
 	return mediaHandler.Init(config)

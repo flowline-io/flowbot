@@ -123,7 +123,7 @@ func HandleCrash(additionalHandlers ...func(interface{})) {
 		}
 		if ReallyCrash {
 			// Actually proceed to panic.
-			panic(r)
+			flog.Panic("%v", r)
 		}
 	}
 }

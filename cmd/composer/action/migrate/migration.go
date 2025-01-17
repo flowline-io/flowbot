@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -22,7 +23,7 @@ func MigrationAction(c *cli.Context) error {
 	// find current version
 	entry, err := os.ReadDir(path)
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	maxNo := 0
 	for _, item := range entry {
@@ -36,7 +37,7 @@ func MigrationAction(c *cli.Context) error {
 		}
 		reg, err := regexp.Compile(`\d{6}`)
 		if err != nil {
-			panic(err)
+			flog.Panic(err.Error())
 		}
 		str := reg.FindString(info.Name())
 
@@ -53,12 +54,12 @@ func MigrationAction(c *cli.Context) error {
 
 	_, err = os.Create(fmt.Sprintf("%s/%s", path, upName))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	_, _ = fmt.Printf("Created %s\n", upName)
 	_, err = os.Create(fmt.Sprintf("%s/%s", path, downName))
 	if err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 	_, _ = fmt.Printf("Created %s\n", downName)
 	_, _ = fmt.Println("done")

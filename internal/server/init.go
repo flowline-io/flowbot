@@ -324,8 +324,7 @@ func initializePprof() error {
 
 func initializeCache() error {
 	// init cache
-	cache.InitCache()
-	return nil
+	return cache.InitCache()
 }
 
 func initializeDatabase() error {

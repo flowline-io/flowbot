@@ -3,6 +3,7 @@ package queue
 import (
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"golang.org/x/xerrors"
 )
@@ -246,7 +247,7 @@ func (c *threadSafeMap) updateIndices(oldObj any, newObj any, key string) {
 			oldIndexValues = oldIndexValues[:0]
 		}
 		if err != nil {
-			panic(xerrors.Errorf("unable to calculate an index entry for key %q on index %q: %v", key, name, err))
+			flog.Panic("unable to calculate an index entry for key %q on index %q: %v", key, name, err)
 		}
 
 		if newObj != nil {
@@ -255,7 +256,7 @@ func (c *threadSafeMap) updateIndices(oldObj any, newObj any, key string) {
 			indexValues = indexValues[:0]
 		}
 		if err != nil {
-			panic(xerrors.Errorf("unable to calculate an index entry for key %q on index %q: %v", key, name, err))
+			flog.Panic("unable to calculate an index entry for key %q on index %q: %v", key, name, err)
 		}
 
 		index := c.indices[name]

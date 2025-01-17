@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
 	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
 	"github.com/flowline-io/flowbot/cmd/composer/action/workflow"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v2"
 )
@@ -16,7 +17,7 @@ import (
 func main() {
 	command := NewCommand()
 	if err := command.Run(os.Args); err != nil {
-		panic(err)
+		flog.Panic(err.Error())
 	}
 }
 
