@@ -51,14 +51,14 @@ type Task struct {
 	DateModification    int    `json:"date_modification,omitempty"`
 	Reference           string `json:"reference,omitempty"`
 	DateStarted         int    `json:"date_started,omitempty"`
-	TimeSpent           int    `json:"time_spent,omitempty"`
-	TimeEstimated       int    `json:"time_estimated,omitempty"`
+	TimeSpent           any    `json:"time_spent,omitempty"`
+	TimeEstimated       any    `json:"time_estimated,omitempty"`
 	SwimlaneID          int    `json:"swimlane_id,omitempty"`
 	DateMoved           int    `json:"date_moved,omitempty"`
 	RecurrenceStatus    int    `json:"recurrence_status,omitempty"`
 	RecurrenceTrigger   int    `json:"recurrence_trigger,omitempty"`
 	RecurrenceFactor    int    `json:"recurrence_factor,omitempty"`
-	RecurrenceTimeframe int    `json:"recurrence_timeframe,omitempty"`
+	RecurrenceTimeframe any    `json:"recurrence_timeframe,omitempty"`
 	RecurrenceBasedate  int    `json:"recurrence_basedate,omitempty"`
 	RecurrenceParent    any    `json:"recurrence_parent,omitempty"`
 	RecurrenceChild     any    `json:"recurrence_child,omitempty"`
@@ -82,8 +82,8 @@ type Subtask struct {
 	ID             string `json:"id,omitempty"`
 	Title          string `json:"title,omitempty"`
 	Status         string `json:"status,omitempty"`
-	TimeEstimated  string `json:"time_estimated,omitempty"`
-	TimeSpent      string `json:"time_spent,omitempty"`
+	TimeEstimated  any    `json:"time_estimated,omitempty"`
+	TimeSpent      any    `json:"time_spent,omitempty"`
 	TaskID         string `json:"task_id,omitempty"`
 	UserID         string `json:"user_id,omitempty"`
 	Position       string `json:"position,omitempty"`
