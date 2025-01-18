@@ -158,3 +158,6 @@ vendors:
     username: ""
     password: ""
     webhook_token: ""
+  wallos:
+    endpoint: ""
+    api_key: ""

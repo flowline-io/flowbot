@@ -3,6 +3,8 @@ package finance
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/wallos"
 
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -61,6 +63,25 @@ var commandRules = []command.Rule{
 			return types.InfoMsg{
 				Title: fmt.Sprintf("Stock %s", code),
 				Model: reply,
+			}
+		},
+	},
+	{
+		Define: `wallos`,
+		Help:   `Get wallos subscriptions`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			endpoint, _ := providers.GetConfig(wallos.ID, wallos.EndpointKey)
+			apiKey, _ := providers.GetConfig(wallos.ID, wallos.ApikeyKey)
+
+			client := wallos.NewWallos(endpoint.String(), apiKey.String())
+			list, err := client.GetSubscriptions()
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.InfoMsg{
+				Title: "Wallos Subscriptions",
+				Model: list,
 			}
 		},
 	},

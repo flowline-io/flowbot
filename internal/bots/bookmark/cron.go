@@ -97,17 +97,8 @@ var cronRules = []cron.Rule{
 			}
 
 			for _, bookmark := range bookmarks {
-				title := ""
-				if bookmark.Content.BookmarkContentOneOf.Title.IsSet() &&
-					bookmark.Content.BookmarkContentOneOf.Title.Get() != nil {
-					title = *bookmark.Content.BookmarkContentOneOf.Title.Get()
-				}
-				summary := ""
-				if bookmark.Summary.IsSet() &&
-					bookmark.Summary.Get() != nil {
-					summary = *bookmark.Summary.Get()
-				}
-
+				title := bookmark.GetTitle()
+				summary := bookmark.GetSummary()
 				err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
 					SourceId:    bookmark.Id,
 					Source:      hoarder.ID,
@@ -153,11 +144,7 @@ var cronRules = []cron.Rule{
 				}
 
 				// create task
-				title := ""
-				if bookmark.Content.BookmarkContentOneOf.Title.IsSet() &&
-					bookmark.Content.BookmarkContentOneOf.Title.Get() != nil {
-					title = *bookmark.Content.BookmarkContentOneOf.Title.Get()
-				}
+				title := bookmark.GetContent().BookmarkContentOneOf.GetTitle()
 				err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
 					"title":       title,
 					"project_id":  defaultProjectId,

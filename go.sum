@@ -108,6 +108,8 @@ github.com/flowline-io/sdk-adguard-home-api v0.0.0-20241109154248-701d39df54e9 h
 github.com/flowline-io/sdk-adguard-home-api v0.0.0-20241109154248-701d39df54e9/go.mod h1:a8A2xdJH+Cu8c/AH4XXogbAcl1eqjDu5sqRfyvEgnpw=
 github.com/flowline-io/sdk-hoarder-api v0.0.0-20241130042103-7266590962e9 h1:ozuMyDdT0TFNZPceDbS2fe2Yjl5NryODwEf22qRjE2U=
 github.com/flowline-io/sdk-hoarder-api v0.0.0-20241130042103-7266590962e9/go.mod h1:Qd9Kzcy0/onEWHatdaNwD3KD6lycg5hilx5BV9cBwmU=
+github.com/flowline-io/sdk-wallos-api v0.0.0-20250117072530-2de61cfe8e1f h1:lISUB+ATEKGwwhtIvSQapBSWVt2dtSc1FK7p4EEKff8=
+github.com/flowline-io/sdk-wallos-api v0.0.0-20250117072530-2de61cfe8e1f/go.mod h1:KlPBXRtqA9OE2ylibmca726OY32zB+rMS4z3XDhshNs=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

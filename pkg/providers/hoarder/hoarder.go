@@ -37,7 +37,7 @@ func (i *Hoarder) GetAllBookmarks(limit int) ([]openapi.Bookmark, error) {
 		return nil, fmt.Errorf("failed to get all bookmarks: %w", err)
 	}
 
-	return resp.Bookmarks, nil
+	return resp.GetBookmarks(), nil
 }
 
 func (i *Hoarder) GetAllTags() ([]openapi.Tag, error) {
@@ -46,7 +46,7 @@ func (i *Hoarder) GetAllTags() ([]openapi.Tag, error) {
 		return nil, fmt.Errorf("failed to get all tags: %w", err)
 	}
 
-	return resp.Tags, nil
+	return resp.GetTags(), nil
 }
 
 func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
@@ -63,7 +63,7 @@ func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]stri
 		return nil, fmt.Errorf("failed to attach tags to bookmark: %w", err)
 	}
 
-	return resp.Attached, nil
+	return resp.GetAttached(), nil
 }
 
 func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
@@ -75,5 +75,5 @@ func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
 		return false, fmt.Errorf("failed to get all bookmarks: %w", err)
 	}
 
-	return resp.Archived, nil
+	return resp.GetArchived(), nil
 }
