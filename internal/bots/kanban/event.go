@@ -30,16 +30,17 @@ var eventRules = []event.Rule{
 			description, _ := param.String("description")
 			tags, _ := param.List("tags")
 
-			taskId, err := client.CreateTask(ctx.Context(), &kanboard.Task{
+			task := &kanboard.Task{
 				Title:       title,
 				ProjectID:   int(projectId),
 				Priority:    int(priority),
 				Reference:   reference,
 				Description: description,
 				Tags:        tags,
-			})
+			}
+			taskId, err := client.CreateTask(ctx.Context(), task)
 			if err != nil {
-				return fmt.Errorf("failed to create task %w", err)
+				return fmt.Errorf("failed to create task %#v, error %w", task, err)
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
