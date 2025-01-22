@@ -2,8 +2,9 @@ package event
 
 import (
 	"context"
-	"github.com/flowline-io/flowbot/pkg/stats"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/stats"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
@@ -49,9 +50,16 @@ func NewRouter() (*message.Router, error) {
 		middleware.CorrelationID,
 		middleware.Timeout(10*time.Minute),
 		middleware.Retry{
-			MaxRetries:      3,
-			InitialInterval: 100 * time.Millisecond,
-			Logger:          logger,
+			MaxRetries:          3,
+			InitialInterval:     1 * time.Second,
+			MaxInterval:         30 * time.Second,
+			Multiplier:          2.0,
+			MaxElapsedTime:      2 * time.Minute,
+			RandomizationFactor: 0.5,
+			OnRetryHook: func(retryNum int, delay time.Duration) {
+				flog.Info("Retry attempt #%d, waiting %v before next retry", retryNum, delay)
+			},
+			Logger: logger,
 		}.Middleware,
 		middleware.Recoverer,
 	)
