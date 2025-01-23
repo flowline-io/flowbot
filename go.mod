@@ -28,7 +28,7 @@ require (
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
 	github.com/go-echarts/go-echarts/v2 v2.4.6
 	github.com/go-playground/validator/v10 v10.24.0
-	github.com/go-resty/resty/v2 v2.16.4
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-json v0.10.4
 	github.com/gofiber/contrib/fiberzerolog v1.0.2
