@@ -133,6 +133,11 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
+				title := bookmark.GetContent().BookmarkContentOneOf.GetTitle()
+				if title == "" {
+					continue
+				}
+
 				// filter
 				ok, err := cache.UniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
 				if err != nil {
@@ -144,7 +149,6 @@ var cronRules = []cron.Rule{
 				}
 
 				// create task
-				title := bookmark.GetContent().BookmarkContentOneOf.GetTitle()
 				err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
 					"title":       title,
 					"project_id":  defaultProjectId,

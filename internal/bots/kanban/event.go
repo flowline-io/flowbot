@@ -30,6 +30,13 @@ var eventRules = []event.Rule{
 			description, _ := param.String("description")
 			tags, _ := param.List("tags")
 
+			if title == "" {
+				return fmt.Errorf("title is empty")
+			}
+			if projectId == 0 {
+				return fmt.Errorf("project_id is empty")
+			}
+
 			task := &kanboard.Task{
 				Title:       title,
 				ProjectID:   int(projectId),
