@@ -2,8 +2,9 @@ package wallos
 
 import (
 	"context"
-	"fmt"
-	openapi "github.com/flowline-io/sdk-wallos-api"
+	"github.com/go-resty/resty/v2"
+	"net/http"
+	"time"
 )
 
 const (
@@ -14,32 +15,55 @@ const (
 
 type Wallos struct {
 	ctx    context.Context
-	c      *openapi.APIClient
+	c      *resty.Client
 	apiKey string
 }
 
 func NewWallos(endpoint string, apiKey string) *Wallos {
-	v := &Wallos{}
-
-	cfg := openapi.NewConfiguration()
-	cfg.Servers = openapi.ServerConfigurations{{URL: endpoint}}
-	v.c = openapi.NewAPIClient(cfg)
-
-	ctx := context.WithValue(context.Background(), openapi.ContextServerIndex, 0)
-	v.ctx = ctx
-	v.apiKey = apiKey
+	v := &Wallos{apiKey: apiKey}
+	v.c = resty.New()
+	v.c.SetBaseURL(endpoint)
+	v.c.SetTimeout(time.Minute)
 
 	return v
 }
 
-func (i *Wallos) GetSubscriptions() ([]openapi.ApiSubscriptionsGetSubscriptionsPhpGet200ResponseSubscriptionsInner, error) {
-	resp, _, err := i.c.DefaultAPI.ApiSubscriptionsGetSubscriptionsPhpGet(i.ctx).ApiKey(i.apiKey).Execute()
+// GetSubscriptions Get wallos subscriptions
+// Document: https://github.com/ellite/Wallos/blob/main/api/subscriptions/get_subscriptions.php
+func (i *Wallos) GetSubscriptions(ctx context.Context) (*GetSubscriptionsResponse, error) {
+	resp, err := i.c.R().
+		SetContext(ctx).
+		SetQueryParam("api_key", i.apiKey).
+		SetResult(&GetSubscriptionsResponse{}).
+		Get("/api/subscriptions/get_subscriptions.php")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get subscriptions: %w", err)
-	}
-	if resp.GetSuccess() != true {
-		return nil, fmt.Errorf("failed to get subscriptions: %s", resp.GetTitle())
+		return nil, err
 	}
 
-	return resp.GetSubscriptions(), nil
+	if resp.StatusCode() == http.StatusOK {
+		result := resp.Result().(*GetSubscriptionsResponse)
+		return result, nil
+	}
+	return nil, nil
+}
+
+// GetMonthlyCost Get monthly cost
+// Document: https://github.com/ellite/Wallos/blob/main/api/subscriptions/get_monthly_cost.php
+func (i *Wallos) GetMonthlyCost(ctx context.Context, year, month int32) (*GetMonthlyCostResponse, error) {
+	resp, err := i.c.R().
+		SetContext(ctx).
+		SetQueryParam("api_key", i.apiKey).
+		SetQueryParam("year", string(year)).
+		SetQueryParam("month", string(month)).
+		SetResult(&GetMonthlyCostResponse{}).
+		Get("/api/subscriptions/get_monthly_cost.php")
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() == http.StatusOK {
+		result := resp.Result().(*GetMonthlyCostResponse)
+		return result, nil
+	}
+	return nil, nil
 }

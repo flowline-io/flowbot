@@ -3,13 +3,12 @@ package finance
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/wallos"
-
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/parser"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/doctorxiong"
+	"github.com/flowline-io/flowbot/pkg/providers/wallos"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
@@ -74,7 +73,7 @@ var commandRules = []command.Rule{
 			apiKey, _ := providers.GetConfig(wallos.ID, wallos.ApikeyKey)
 
 			client := wallos.NewWallos(endpoint.String(), apiKey.String())
-			list, err := client.GetSubscriptions()
+			list, err := client.GetSubscriptions(ctx.Context())
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
