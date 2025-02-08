@@ -161,3 +161,6 @@ vendors:
   wallos:
     endpoint: ""
     api_key: ""
+  freshrss:
+    endpoint: ''
+    api_key: ''
