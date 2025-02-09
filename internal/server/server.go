@@ -18,6 +18,7 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/notify"
 	_ "github.com/flowline-io/flowbot/internal/bots/obsidian"
 	_ "github.com/flowline-io/flowbot/internal/bots/okr"
+	_ "github.com/flowline-io/flowbot/internal/bots/reader"
 	_ "github.com/flowline-io/flowbot/internal/bots/search"
 	_ "github.com/flowline-io/flowbot/internal/bots/server"
 	_ "github.com/flowline-io/flowbot/internal/bots/torrent"
