@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -44,7 +45,8 @@ var eventRules = []event.Rule{
 			url, _ := param.String("url")
 			item, err := client.CreateBookmark(url)
 			if err != nil {
-				return fmt.Errorf("failed to create bookmark %w", err)
+				flog.Error(err)
+				return nil // FIXME json: unknown field "alreadyExists"
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
