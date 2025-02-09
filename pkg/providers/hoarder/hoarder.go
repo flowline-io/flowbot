@@ -77,3 +77,15 @@ func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
 
 	return resp.GetArchived(), nil
 }
+
+func (i *Hoarder) CreateBookmark(url string) (*openapi.Bookmark, error) {
+	resp, _, err := i.c.BookmarksAPI.BookmarksPost(i.ctx).BookmarksPostRequest(openapi.BookmarksPostRequest{
+		Type: "link",
+		Url:  url,
+	}).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create bookmarks: %w", err)
+	}
+
+	return resp, nil
+}

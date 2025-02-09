@@ -10,6 +10,7 @@ const (
 	ExampleBotEventID         = "example"
 	TaskCreateBotEventID      = "creteTask"
 	BookmarkArchiveBotEventID = "archiveBookmark"
+	BookmarkCreateBotEventID  = "createBookmark"
 )
 
 type Message struct {
