@@ -19,7 +19,7 @@ var commandRules = []command.Rule{
 			apiKey, _ := providers.GetConfig(miniflux.ID, miniflux.ApikeyKey)
 			client := miniflux.NewMiniflux(endpoint.String(), apiKey.String())
 
-			result, err := client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread})
+			result, err := client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread, Limit: 1})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

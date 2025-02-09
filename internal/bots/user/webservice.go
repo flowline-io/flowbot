@@ -44,5 +44,6 @@ func metrics(ctx *fiber.Ctx) error {
 		stats.BookmarkTotalStatsName:        cache.GetInt64(stats.BookmarkTotalStatsName),
 		stats.TorrentDownloadTotalStatsName: cache.GetInt64(stats.TorrentDownloadTotalStatsName),
 		stats.GiteaIssueTotalStatsName:      cache.GetInt64(stats.GiteaIssueTotalStatsName),
+		stats.ReaderUnreadTotalStatsName:    cache.GetInt64(stats.ReaderUnreadTotalStatsName),
 	}))
 }

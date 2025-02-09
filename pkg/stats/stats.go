@@ -21,6 +21,8 @@ const (
 	TorrentStatusTotalStatsName           = "torrent_status_total"
 	GiteaIssueTotalStatsName              = "gitea_issue_total"
 	KanbanEventTotalStatsName             = "kanban_event_total"
+	ReaderTotalStatsName                  = "reader_total"
+	ReaderUnreadTotalStatsName            = "reader_unread_total"
 )
 
 type RulesetLabel string
@@ -83,4 +85,12 @@ func GiteaIssueTotalCounter(status string) *metrics.Counter {
 
 func KanbanEventTotalCounter(name string) *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",event_name="%s"}`, KanbanEventTotalStatsName, version.Buildtags, name))
+}
+
+func ReaderTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, ReaderTotalStatsName, version.Buildtags))
+}
+
+func ReaderUnreadTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, ReaderUnreadTotalStatsName, version.Buildtags))
 }
