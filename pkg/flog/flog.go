@@ -2,6 +2,7 @@ package flog
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/alarm"
 	"io"
 	"os"
 	"time"
@@ -101,6 +102,9 @@ func Warn(format string, a ...any) {
 }
 
 func Error(err error) {
+	// alarm error
+	alarm.Alarm(err)
+	// print error
 	l.Error().Caller(1).Err(err).Stack().Msg(err.Error())
 }
 

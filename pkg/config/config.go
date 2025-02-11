@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"log"
 )
 
 var App configType
@@ -50,6 +50,9 @@ type configType struct {
 
 	// Project
 	Flowbot Flowbot `json:"flowbot" yaml:"flowbot" mapstructure:"flowbot"`
+
+	// Alarm
+	Alarm Alarm `json:"alarm" yaml:"alarm" mapstructure:"alarm"`
 }
 
 // Large file handler config.
@@ -192,10 +195,15 @@ type Flowbot struct {
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 }
 
+type Alarm struct {
+	Filter       string `json:"filter" yaml:"filter" mapstructure:"filter"`
+	SlackWebhook string `json:"slack_webhook" yaml:"slack_webhook" mapstructure:"slack_webhook"`
+}
+
 func Load(path ...string) {
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
-		flog.Fatal("Failed to bind flags: %v", err)
+		log.Fatalf("[config] Failed to bind flags: %v", err)
 	}
 	for _, p := range path {
 		viper.AddConfigPath(p)
@@ -204,10 +212,10 @@ func Load(path ...string) {
 	viper.SetConfigType("yaml")
 	err = viper.ReadInConfig()
 	if err != nil {
-		flog.Fatal("Failed to read config file: %v", err)
+		log.Fatalf("[config] Failed to read config file: %v", err)
 	}
 	err = viper.Unmarshal(&App)
 	if err != nil {
-		flog.Fatal("Failed to unmarshal config: %v", err)
+		log.Fatalf("[config] Failed to unmarshal config: %v", err)
 	}
 }

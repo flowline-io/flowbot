@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/alarm"
 	"net/http"
 	"os"
 	"runtime"
@@ -83,6 +84,12 @@ func initialize() error {
 		return err
 	}
 	flog.Info("initialize Config ok")
+
+	// init alarm
+	if err = initializeAlarm(); err != nil {
+		return err
+	}
+	flog.Info("initialize Alarm ok")
 
 	// init http
 	if err = initializeHttp(); err != nil {
@@ -535,4 +542,8 @@ func initializeSearch() error {
 		flog.Error(err)
 	}
 	return nil
+}
+
+func initializeAlarm() error {
+	return alarm.InitAlarm()
 }
