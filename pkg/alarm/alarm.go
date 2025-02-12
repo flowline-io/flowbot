@@ -7,12 +7,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/redis/go-redis/v9"
 )
 
 var db *redis.Client
@@ -31,20 +32,6 @@ func InitAlarm() error {
 		WriteTimeout: 60 * time.Second,
 	})
 	return nil
-}
-
-func filter(str string) bool {
-	if config.App.Alarm.Filter == "" {
-		return false
-	}
-	keywords := strings.Split(config.App.Alarm.Filter, "|")
-	for _, keyword := range keywords {
-		if strings.Contains(str, strings.TrimSpace(keyword)) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func Alarm(err error) {
@@ -73,6 +60,22 @@ func Alarm(err error) {
 	}
 }
 
+// filter checks if the given string contains any of the keywords in the alarm filter.
+func filter(str string) bool {
+	if config.App.Alarm.Filter == "" {
+		return false
+	}
+	keywords := strings.Split(config.App.Alarm.Filter, "|")
+	for _, keyword := range keywords {
+		if strings.Contains(str, strings.TrimSpace(keyword)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// nx checks if an alarm error has been seen before in the last 24 hours.
 func nx(text string) (bool, error) {
 	h := sha1.New()
 	_, _ = h.Write([]byte(text))
@@ -90,7 +93,7 @@ func nx(text string) (bool, error) {
 	return true, nil
 }
 
-// notify usage slack webhook
+// notify sends a Slack notification with the given title and content.
 func notify(title, content string) error {
 	// message template
 	templateString := `{
