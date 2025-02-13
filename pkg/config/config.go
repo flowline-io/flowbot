@@ -1,9 +1,10 @@
 package config
 
 import (
+	"log"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var App configType
@@ -53,6 +54,9 @@ type configType struct {
 
 	// Alarm
 	Alarm Alarm `json:"alarm" yaml:"alarm" mapstructure:"alarm"`
+
+	// Agent
+	Agent Agent `json:"agent" yaml:"agent" mapstructure:"agent"`
 }
 
 // Large file handler config.
@@ -198,6 +202,14 @@ type Flowbot struct {
 type Alarm struct {
 	Filter       string `json:"filter" yaml:"filter" mapstructure:"filter"`
 	SlackWebhook string `json:"slack_webhook" yaml:"slack_webhook" mapstructure:"slack_webhook"`
+}
+
+type Agent struct {
+	Token     string `json:"token" yaml:"token" mapstructure:"token"`
+	BaseUrl   string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
+	Model     string `json:"model" yaml:"model" mapstructure:"model"`
+	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
+	Language  string `json:"language" yaml:"language" mapstructure:"language"`
 }
 
 func Load(path ...string) {

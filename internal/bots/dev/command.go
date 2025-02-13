@@ -3,6 +3,10 @@ package dev
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -15,16 +19,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
-	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
-	"os"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -139,22 +138,24 @@ var commandRules = []command.Rule{
 		Define: "llm",
 		Help:   `[example] LLM example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			token, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
-			baseUrl, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
-
-			llm, err := openai.New(openai.WithToken(token.String()), openai.WithBaseURL(baseUrl.String()))
+			messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
+				"content": "Who was the first man to walk on the moon?",
+			})
 			if err != nil {
-				flog.Error(err)
-			}
-			prompt := "Human: Who was the first man to walk on the moon?\nAssistant:"
-			completion, err := llms.GenerateFromSinglePrompt(context.Background(), llm, prompt,
-				llms.WithTemperature(0.8),
-			)
-			if err != nil {
-				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
 			}
 
-			return types.TextMsg{Text: completion}
+			llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			resp, err := agents.Generate(ctx.Context(), llm, messages)
+			if err != nil {
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: resp.Content}
 		},
 	},
 	{
