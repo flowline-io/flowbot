@@ -42,14 +42,14 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "form",
+		Define: "form test",
 		Help:   `[example] form`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			return bots.FormMsg(ctx, devFormID)
 		},
 	},
 	{
-		Define: "queue",
+		Define: "queue test",
 		Help:   `[example] publish mq and task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			err := event.SendMessage(ctx, types.TextMsg{Text: time.Now().String()})
@@ -61,7 +61,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "instruct",
+		Define: "instruct test",
 		Help:   `[example] create instruct`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			data := types.KV{}
@@ -70,7 +70,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "page",
+		Define: "page test",
 		Help:   `[example] dev page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			url, err := bots.PageURL(ctx, devPageId, nil, 24*time.Hour)
@@ -82,7 +82,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "docker",
+		Define: "docker test",
 		Help:   `[example] run docker image`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Debug("start docker command")
@@ -104,7 +104,7 @@ var commandRules = []command.Rule{
 	},
 
 	{
-		Define: "torrent demo",
+		Define: "torrent test",
 		Help:   `[example] torrent download demo`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
@@ -123,7 +123,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "slash",
+		Define: "slash test",
 		Help:   `[example] Slash example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			url, err := bots.Shortcut("test", "https://example.com")
@@ -135,7 +135,7 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "llm",
+		Define: "llm test",
 		Help:   `[example] LLM example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
