@@ -133,8 +133,8 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
-				title := bookmark.GetContent().BookmarkContentOneOf.GetTitle()
-				if title == "" {
+				title := bookmark.Content.Title
+				if title == nil {
 					continue
 				}
 

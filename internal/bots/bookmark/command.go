@@ -28,7 +28,7 @@ var commandRules = []command.Rule{
 			if len(bookmarks) > 0 {
 				header = []string{"Id", "Title", "TaggingStatus"}
 				for _, v := range bookmarks {
-					row = append(row, []interface{}{v.Id, v.Title, v.TaggingStatus})
+					row = append(row, []interface{}{v.Id, v.Content.Title, v.TaggingStatus})
 				}
 			}
 

@@ -81,11 +81,11 @@ alarm:
   slack_webhook: ""
 
 agent:
-  token: ''
-  base_url: ''
-  model: ''
-  tool_model: ''
-  language: ''
+  token: ""
+  base_url: ""
+  model: ""
+  tool_model: ""
+  language: ""
 
 flowbot:
   url: ""
