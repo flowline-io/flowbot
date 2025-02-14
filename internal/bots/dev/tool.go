@@ -12,57 +12,51 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-const (
-	getCurrentTimeToolId    = "getCurrentTime"
-	getWebsiteContentToolId = "getWebsiteContent"
-)
-
 var toolRules = []tool.Rule{
-	{
-		Id: getCurrentTimeToolId,
-		Tool: func(ctx types.Context) (llmTool.InvokableTool, error) {
-			// params
-			type Params struct {
-				Format string `json:"format" jsonschema:"description=time layout format, default: RFC1123Z"`
-			}
+	// getCurrentTime
+	func(ctx types.Context) (llmTool.InvokableTool, error) {
+		// params
+		type Params struct {
+			Format string `json:"format" jsonschema:"description=time layout format, default: RFC1123Z"`
+		}
 
-			// func
-			Func := func(_ context.Context, params *Params) (string, error) {
-				return time.Now().Format(time.RFC1123Z), nil
+		// func
+		Func := func(_ context.Context, params *Params) (string, error) {
+			if params.Format == "" {
+				params.Format = time.RFC1123Z
 			}
+			return time.Now().Format(params.Format), nil
+		}
 
-			return utils.InferTool(
-				getCurrentTimeToolId,
-				"Get the current time",
-				Func)
-		},
+		return utils.InferTool(
+			"getCurrentTimeToolId",
+			"Get the current time",
+			Func)
 	},
-	{
-		Id: getWebsiteContentToolId,
-		Tool: func(ctx types.Context) (llmTool.InvokableTool, error) {
-			// params
-			type Params struct {
-				Url string `json:"url" jsonschema:"description=The URL to fetch"`
+	// getWebsiteContent
+	func(ctx types.Context) (llmTool.InvokableTool, error) {
+		// params
+		type Params struct {
+			Url string `json:"url" jsonschema:"description=The URL to fetch"`
+		}
+
+		// func
+		Func := func(_ context.Context, params *Params) (string, error) {
+			if params.Url == "" {
+				return "", fmt.Errorf("empty url")
 			}
 
-			// func
-			Func := func(_ context.Context, params *Params) (string, error) {
-				if params.Url == "" {
-					return "", fmt.Errorf("empty url")
-				}
-
-				resp, err := lobehub.NewLobehub().WebCrawler(params.Url)
-				if err != nil {
-					return "", fmt.Errorf("get website content failed, %w", err)
-				}
-
-				return resp.Content, nil
+			resp, err := lobehub.NewLobehub().WebCrawler(params.Url)
+			if err != nil {
+				return "", fmt.Errorf("get website content failed, %w", err)
 			}
 
-			return utils.InferTool(
-				getWebsiteContentToolId,
-				"Extract web content",
-				Func)
-		},
+			return resp.Content, nil
+		}
+
+		return utils.InferTool(
+			"getWebsiteContentToolId",
+			"Extract web content",
+			Func)
 	},
 }

@@ -542,7 +542,7 @@ func AvailableTools(ctx types.Context) ([]llmTool.BaseTool, error) {
 			switch v := item.(type) {
 			case []tool.Rule:
 				for _, rule := range v {
-					t, err := rule.Tool(ctx)
+					t, err := rule(ctx)
 					if err != nil {
 						return nil, fmt.Errorf("failed to create tool: %w", err)
 					}
