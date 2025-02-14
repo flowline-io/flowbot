@@ -47,7 +47,7 @@ require (
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.0.9
 	github.com/meilisearch/meilisearch-go v0.30.0
-	github.com/minio/minio-go/v7 v7.0.85
+	github.com/minio/minio-go/v7 v7.0.86
 	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
@@ -89,8 +89,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/42wim/httpsig v1.2.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
@@ -142,8 +140,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hekmon/cunits/v2 v2.1.0 // indirect
-	github.com/huandu/xstrings v1.3.3 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -158,11 +154,10 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/minio/crc64nvme v1.0.0 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/mmcdole/goxpp v1.1.1-0.20240225020742-a0c311522b23 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -187,7 +182,6 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sashabaranov/go-openai v1.32.5 // indirect
-	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/slongfield/pyfmt v0.0.0-20220222012616-ea85ff4c361f // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -221,7 +215,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
