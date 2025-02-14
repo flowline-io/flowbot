@@ -2,6 +2,9 @@ package workflow
 
 import (
 	"fmt"
+	"github.com/cloudwego/eino/components/prompt"
+	"github.com/cloudwego/eino/schema"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -14,14 +17,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
-	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
 )
 
 const (
@@ -277,6 +276,7 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			ctx.SetTimeout(10 * time.Minute)
 			promptVal, _ := input.String("prompt")
 			if promptVal == "" {
 				return nil, fmt.Errorf("%s step, empty prompt", llmWorkflowActionID)
@@ -286,37 +286,26 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, empty content", llmWorkflowActionID)
 			}
 
-			tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
-			baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
-			modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
-
-			llm, err := openai.New(
-				openai.WithToken(tokenVal.String()),
-				openai.WithBaseURL(baseUrlVal.String()),
-				openai.WithModel(modelVal.String()),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("%s step, openai new failed, %w", llmWorkflowActionID, err)
-			}
-
-			prompt := prompts.NewPromptTemplate(
-				promptVal, []string{"content"},
-			)
-			result, err := prompt.Format(map[string]any{
-				"content": content,
-			})
+			messages, err := prompt.FromMessages(schema.GoTemplate, schema.UserMessage(promptVal)).
+				Format(ctx.Context(), map[string]any{
+					"content": content,
+				})
 			if err != nil {
 				return nil, fmt.Errorf("%s step, prompt format failed, %w", llmWorkflowActionID, err)
 			}
 
-			ctx.SetTimeout(10 * time.Minute)
-			text, err := llms.GenerateFromSinglePrompt(ctx.Context(), llm, result, llms.WithTemperature(0.8))
+			llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+			if err != nil {
+				return nil, fmt.Errorf("%s step, llm create failed, %w", llmWorkflowActionID, err)
+			}
+
+			resp, err := agents.Generate(ctx.Context(), llm, messages)
 			if err != nil {
 				return nil, fmt.Errorf("%s step, llm generate failed, %w", llmWorkflowActionID, err)
 			}
 
 			return types.KV{
-				"text": text,
+				"text": resp.Content,
 			}, nil
 		},
 	},
