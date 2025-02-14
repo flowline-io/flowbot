@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
+	"github.com/cloudwego/eino/components/prompt"
+	"github.com/cloudwego/eino/schema"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
 )
 
 var tagsPrompt = `
@@ -42,24 +42,12 @@ func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, erro
 	if content == "" {
 		return nil, nil
 	}
-	tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
-	baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
-	modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
+
 	languageVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.LanguageKey)
 
-	llm, err := openai.New(
-		openai.WithToken(tokenVal.String()),
-		openai.WithBaseURL(baseUrlVal.String()),
-		openai.WithModel(modelVal.String()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%s bot, openai new failed, %w", Name, err)
-	}
-
-	prompt := prompts.NewPromptTemplate(
-		tagsPrompt, []string{"content", "language"},
-	)
-	result, err := prompt.Format(map[string]any{
+	messages, err := prompt.FromMessages(schema.GoTemplate,
+		schema.UserMessage(tagsPrompt),
+	).Format(ctx, map[string]any{
 		"content":  content,
 		"language": languageVal.String(),
 	})
@@ -67,14 +55,19 @@ func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, erro
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
-	text, err := llms.GenerateFromSinglePrompt(ctx, llm, result, llms.WithTemperature(0.8))
+	llm, err := agents.ChatModel(ctx, agents.Model())
+	if err != nil {
+		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
+	}
+
+	resp, err := agents.Generate(ctx, llm, messages)
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, llm generate failed, %w", Name, err)
 	}
 
-	flog.Info("[%s] extract bookmark, llm generate result %s", Name, text)
+	flog.Info("[%s] extract bookmark, llm generate result %s", Name, resp.Content)
 
-	jsonText, err := jsonrepair.RepairJSON(text)
+	jsonText, err := jsonrepair.RepairJSON(resp.Content)
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, json repair failed, %w", Name, err)
 	}
