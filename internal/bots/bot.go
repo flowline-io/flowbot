@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	llmTool "github.com/cloudwego/eino/components/tool"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
@@ -20,7 +22,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/langchain"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/setting"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
@@ -29,7 +30,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/tmc/langchaingo/llms"
 	"gorm.io/gorm"
 )
 
@@ -218,9 +218,9 @@ func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, method string, d
 	return rs.ProcessRule(ctx, method, data)
 }
 
-func RunLangChain(langchainRules []langchain.Rule, ctx types.Context, args types.KV) (string, error) {
-	rs := langchain.Ruleset(langchainRules)
-	return rs.ProcessRule(ctx, args)
+func RunTool(toolRules []tool.Rule, ctx types.Context, argumentsInJSON string) (string, error) {
+	rs := tool.Ruleset(toolRules)
+	return rs.ProcessRule(ctx, argumentsInJSON)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {
@@ -535,19 +535,23 @@ func Shortcut(title, link string) (string, error) {
 }
 
 // AvailableTools  the tools/functions we're making available for the model.
-func AvailableTools() []llms.Tool {
-	var tools []llms.Tool
+func AvailableTools(ctx types.Context) ([]llmTool.BaseTool, error) {
+	var tools []llmTool.BaseTool
 	for _, handler := range handlers {
 		for _, item := range handler.Rules() {
 			switch v := item.(type) {
-			case []langchain.Rule:
+			case []tool.Rule:
 				for _, rule := range v {
-					tools = append(tools, rule.Tool)
+					t, err := rule.Tool(ctx)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create tool: %w", err)
+					}
+					tools = append(tools, t)
 				}
 			}
 		}
 	}
-	return tools
+	return tools, nil
 }
 
 type configType struct {

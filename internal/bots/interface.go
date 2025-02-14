@@ -55,8 +55,8 @@ type Handler interface {
 	// Webhook return webhook result
 	Webhook(ctx types.Context, method string, data []byte) (types.MsgPayload, error)
 
-	// LangChain return langchain result
-	LangChain(ctx types.Context, args types.KV) (string, error)
+	// Tool return tool result
+	Tool(ctx types.Context, argumentsInJSON string) (string, error)
 
 	// Event return event result
 	Event(ctx types.Context, param types.KV) error
@@ -119,7 +119,7 @@ func (Base) Webhook(_ types.Context, _ string, _ []byte) (types.MsgPayload, erro
 	return nil, nil
 }
 
-func (Base) LangChain(_ types.Context, _ types.KV) (string, error) {
+func (Base) Tool(_ types.Context, _ string) (string, error) {
 	return "", nil
 }
 

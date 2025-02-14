@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"strings"
 	"time"
 
@@ -17,15 +18,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
-	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/redis/go-redis/v9"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
 	"gorm.io/gorm"
 )
 
@@ -192,52 +190,33 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// llm chat
 	if payload == nil {
-		tokenVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.TokenKey)
-		baseUrlVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.BaseUrlKey)
-		modelVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.ModelKey)
-		languageVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.LanguageKey)
-
-		llm, err := openai.New(
-			openai.WithToken(tokenVal.String()),
-			openai.WithBaseURL(baseUrlVal.String()),
-			openai.WithModel(modelVal.String()),
-		)
+		tools, err := bots.AvailableTools(ctx)
+		if err != nil {
+			flog.Error(err)
+			return
+		}
+		agent, err := agents.ReactAgent(ctx.Context(), tools)
 		if err != nil {
 			flog.Error(err)
 			return
 		}
 
-		// Sending initial message to the model, with a list of available tools.
-		messageHistory := []llms.MessageContent{
-			llms.TextParts(llms.ChatMessageTypeHuman, msg.AltMessage),
-		}
-
-		resp, err := llm.GenerateContent(ctx.Context(), messageHistory, llms.WithTools(bots.AvailableTools()))
+		messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
+			"content": msg.AltMessage,
+		})
 		if err != nil {
 			flog.Error(err)
 			return
 		}
 
-		messageHistory = updateMessageHistory(messageHistory, resp)
-
-		// Execute tool calls requested by the model
-		messageHistory, err = executeToolCalls(ctx, llm, messageHistory, resp)
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-		messageHistory = append(messageHistory, llms.TextParts(llms.ChatMessageTypeHuman, fmt.Sprintf("Please answer in %s", languageVal.String())))
-
-		// Send query to the model again, this time with a history containing its
-		// request to invoke a tool and our response to the tool call.
-		resp, err = llm.GenerateContent(ctx.Context(), messageHistory)
+		resp, err := agent.Generate(ctx.Context(), messages)
 		if err != nil {
 			flog.Error(err)
 			return
 		}
 
-		if resp != nil && len(resp.Choices) > 0 {
-			payload = types.TextMsg{Text: resp.Choices[0].Content}
+		if resp != nil && resp.Content != "" {
+			payload = types.TextMsg{Text: resp.Content}
 		}
 	}
 
