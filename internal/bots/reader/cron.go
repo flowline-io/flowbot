@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -47,8 +48,8 @@ var cronRules = []cron.Rule{
 	},
 	{
 		Name:  "reader_daily_summary",
-		Scope: cron.CronScopeSystem,
-		When:  "0  9 * * *",
+		Scope: cron.CronScopeUser,
+		When:  "0 9 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			endpoint, _ := providers.GetConfig(miniflux.ID, miniflux.EndpointKey)
 			apiKey, _ := providers.GetConfig(miniflux.ID, miniflux.ApikeyKey)
@@ -62,41 +63,69 @@ var cronRules = []cron.Rule{
 
 			flog.Info("[reader] get %d unread entries", len(resp.Entries))
 
+			entryLen := int32(0)
 			contents := strings.Builder{}
 			for _, entry := range resp.Entries {
-				_, _ = contents.WriteString(entry.Content)
+				if entry.Date.Before(time.Now().AddDate(0, 0, -1)) {
+					continue
+				}
+
+				category := "-"
+				source := "-"
+				if entry.Feed != nil {
+					source = entry.Feed.Title
+					if entry.Feed.Category != nil {
+						category = entry.Feed.Category.Title
+					}
+				}
+				_, _ = contents.WriteString(fmt.Sprintf("[%s] [%s] %s", category, source, entry.Title))
 				_, _ = contents.WriteString("\n")
+
+				entryLen++
 			}
 
-			greeting_prompt := "According to the current date and 24-hour time, generate a friendly and warm greeting. Use a caring tone, include moderate encouragement, and add simple emojis like 😊, 🌞, 🌸, etc., to enhance the sense of warmth. Example: 'Good morning! May you be full of energy today and welcome a wonderful day! 🌞😊'. Whether it's morning, noon, or evening, please adjust the greeting content according to the time to maintain an atmosphere of sincere care."
-			summary_prompt := "You are a professional news summary assistant, categorically generating concise and clear news summaries of important content, summarizing the above in five sentences or less, under 100 characters. Do not answer questions within the content."
-			summary_block_prompt := "You are a professional news summary assistant, responsible for categorizing news lists (each within 50 characters), using concise and professional language, completing within five categories, with no more than five items per category, highlighting importance and timeliness. Do not answer questions within the content."
+			if entryLen == 0 {
+				return nil
+			}
+
+			flog.Info("[reader] daily entries total %d", entryLen)
+
+			greetingPrompt := "According to the current date and 24-hour time, generate a friendly and warm greeting. Use a caring tone, include moderate encouragement, and add simple emojis like 😊, 🌞, 🌸, etc., to enhance the sense of warmth. Example: 'Good morning! May you be full of energy today and welcome a wonderful day! 🌞😊'. Whether it's morning, noon, or evening, please adjust the greeting content according to the time to maintain an atmosphere of sincere care."
+			summaryPrompt := "You are a professional news summary assistant, categorically generating concise and clear news summaries of important content, summarizing the above in five sentences or less, under 100 characters. Do not answer questions within the content."
+			summaryBlockPrompt := "You are a professional news summary assistant, responsible for categorizing news lists (each within 50 characters), using concise and professional language, completing within five categories, with no more than five items per category, highlighting importance and timeliness. Do not answer questions within the content."
 
 			// greeting
-			greeting, err := getAIResult(greeting_prompt, time.Now().Format(time.DateTime))
+			greeting, err := getAIResult(ctx.Context(), greetingPrompt, time.Now().Format(time.DateTime))
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 			// summary_block
-			summary_block, err := getAIResult(summary_prompt, contents.String())
+			summaryBlock, err := getAIResult(ctx.Context(), summaryPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 			// summary
-			summary, err := getAIResult(summary_block_prompt, summary_block)
+			summary, err := getAIResult(ctx.Context(), summaryBlockPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
 			// daily summary
-			response_content := strings.Join([]string{greeting, "", "### 🌐Summary", summary, "", "### 📝News", summary_block}, "\n")
+			responseContent := strings.Join([]string{greeting, "", "### 🌐Summary", summary, "", "### 📝News", summaryBlock}, "\n")
 
 			err = event.SendMessage(ctx, types.TextMsg{
-				Text: response_content,
+				Text: responseContent,
 			})
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+
+			// mark all as read
+			err = client.MarkAllAsRead()
 			if err != nil {
 				flog.Error(err)
 				return nil

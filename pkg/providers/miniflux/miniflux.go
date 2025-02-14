@@ -40,3 +40,19 @@ func (v *Miniflux) GetEntries(filter *rssClient.Filter) (*rssClient.EntryResultS
 
 	return list, nil
 }
+
+func (v *Miniflux) MarkAllAsRead() error {
+	feeds, err := v.c.Feeds()
+	if err != nil {
+		return fmt.Errorf("failed to get feeds, %w", err)
+	}
+
+	for _, feed := range feeds {
+		err = v.c.MarkFeedAsRead(feed.ID)
+		if err != nil {
+			return fmt.Errorf("failed to mark feed as read, %w", err)
+		}
+	}
+
+	return nil
+}
