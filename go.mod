@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	code.gitea.io/sdk/gitea v0.20.0
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/PuerkitoBio/goquery v1.10.1
+	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.4.4
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
