@@ -119,10 +119,9 @@ platform:
     enabled: true
 
 bots:
-  - name: github
+  - name: dev
     enabled: true
-  - name: pocket
-    enabled: true
+    environment: development
 
 vendors:
   oneai:

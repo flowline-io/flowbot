@@ -15,6 +15,7 @@ import (
 const Name = "dev"
 
 var handler bot
+var config configType
 
 func init() {
 	bots.Register(Name, &handler)
@@ -26,7 +27,8 @@ type bot struct {
 }
 
 type configType struct {
-	Enabled bool `json:"enabled"`
+	Enabled     bool   `json:"enabled"`
+	Environment string `json:"environment"`
 }
 
 func (bot) Init(jsonconf json.RawMessage) error {
@@ -35,7 +37,6 @@ func (bot) Init(jsonconf json.RawMessage) error {
 		return errors.New("already initialized")
 	}
 
-	var config configType
 	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}

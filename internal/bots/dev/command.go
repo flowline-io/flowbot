@@ -238,6 +238,8 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			flog.Info("dev bot environment config: %s", config.Environment)
+
 			err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
 				SourceId:    types.Id(),
 				Source:      hoarder.ID,
