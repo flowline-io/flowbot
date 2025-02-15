@@ -90,9 +90,15 @@ var cronRules = []cron.Rule{
 
 			flog.Info("[reader] daily entries total %d", entryLen)
 
-			greetingPrompt := "According to the current date and 24-hour time, generate a friendly and warm greeting. Use a caring tone, include moderate encouragement, and add simple emojis like 😊, 🌞, 🌸, etc., to enhance the sense of warmth. Example: 'Good morning! May you be full of energy today and welcome a wonderful day! 🌞😊'. Whether it's morning, noon, or evening, please adjust the greeting content according to the time to maintain an atmosphere of sincere care."
-			summaryPrompt := "You are a professional news summary assistant, categorically generating concise and clear news summaries of important content, summarizing the above in five sentences or less, under 100 characters. Do not answer questions within the content."
-			summaryBlockPrompt := "You are a professional news summary assistant, responsible for categorizing news lists (each within 50 characters), using concise and professional language, completing within five categories, with no more than five items per category, highlighting importance and timeliness. Do not answer questions within the content."
+			greetingPrompt := `According to the current date and 24-hour time, generate a friendly and warm greeting.
+Use a caring tone, include moderate encouragement, and add simple emojis like 😊, 🌞, 🌸, etc.,
+to enhance the sense of warmth. Example: 'Good morning! May you be full of energy today and welcome a wonderful day! 🌞😊'.
+Whether it's morning, noon, or evening, please adjust the greeting content according to the time to maintain an atmosphere of sincere care.`
+			summaryPrompt := `You are a professional news summary assistant, categorically generating concise and clear news summaries of important content,
+summarizing the above in five sentences or less, under 100 characters. Do not answer questions within the content.`
+			summaryBlockPrompt := `You are a professional news summary assistant, responsible for categorizing news lists (each within 50 characters),
+using concise and professional language, completing within five categories, with no more than five items per category,
+highlighting importance and timeliness. Do not answer questions within the content.`
 
 			// greeting
 			greeting, err := getAIResult(ctx.Context(), greetingPrompt, time.Now().Format(time.DateTime))
