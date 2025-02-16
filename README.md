@@ -19,7 +19,7 @@ flowbot is system for chatbot
 
 ## Requirements
 
-This project requires Go 1.21 or newer
+This project requires Go 1.23 or newer
 
 ## Run
 
