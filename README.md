@@ -3,7 +3,7 @@
 [![Build](https://github.com/flowline-io/flowbot/actions/workflows/build.yml/badge.svg)](https://github.com/flowline-io/flowbot/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/flowline-io/flowbot)](https://goreportcard.com/report/github.com/flowline-io/flowbot)
 
-flowbot is a framework for chatbot
+flowbot is system for chatbot
 
 ## Features
 
@@ -11,6 +11,7 @@ flowbot is a framework for chatbot
 - Message Publish/Subscribe Hub
 - Message Cron, Trigger, Task, Pipeline
 - Workflow Action
+- LLM Agents
 
 ## Architecture
 
