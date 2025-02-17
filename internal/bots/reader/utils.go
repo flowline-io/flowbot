@@ -3,16 +3,9 @@ package reader
 import (
 	"context"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/agents"
-
-	rssClient "miniflux.app/v2/client"
 )
-
-func entryFilter(entry *rssClient.Entry) bool {
-	// todo allow_list
-	// todo deny_list
-	return false
-}
 
 func getAIResult(ctx context.Context, prompt, request string) (string, error) {
 	messages, err := agents.DefaultTemplate().Format(ctx, map[string]any{

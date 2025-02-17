@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"text/template"
@@ -123,12 +124,16 @@ func notify(title, content string) error {
 	if err != nil {
 		return err
 	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send notification: %s", resp.Status)
+		return fmt.Errorf("failed to send notification: %s, body: %s", resp.Status, body)
 	}
 
 	return nil

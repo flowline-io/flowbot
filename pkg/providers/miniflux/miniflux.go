@@ -2,6 +2,8 @@ package miniflux
 
 import (
 	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 	rssClient "miniflux.app/v2/client"
 )
 
@@ -50,7 +52,7 @@ func (v *Miniflux) MarkAllAsRead() error {
 	for _, feed := range feeds {
 		err = v.c.MarkFeedAsRead(feed.ID)
 		if err != nil {
-			return fmt.Errorf("failed to mark feed as read, %w", err)
+			flog.Warn("failed to mark feed as read, %v", err)
 		}
 	}
 
