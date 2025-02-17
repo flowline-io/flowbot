@@ -14,7 +14,7 @@ func ChatModel(ctx context.Context, modelName string) (model.ChatModel, error) {
 		BaseURL: config.App.Agent.BaseUrl,
 		APIKey:  config.App.Agent.Token,
 		Model:   modelName,
-		Timeout: time.Minute,
+		Timeout: 10 * time.Minute,
 	})
 }
 
