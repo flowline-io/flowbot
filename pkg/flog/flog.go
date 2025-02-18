@@ -2,11 +2,11 @@ package flog
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/alarm"
 	"io"
 	"os"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/alarm"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
