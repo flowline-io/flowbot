@@ -1,15 +1,24 @@
 ---
+# Server listening address and port
 listen: ":6060"
+# API path prefix
 api_path: "/"
 
 media:
+  # Media storage handler type: fs(filesystem) or minio
   use_handler: fs
+  # Maximum upload file size in bytes, default 100MB
   max_size: 104857600
+  # Garbage collection period in seconds
   gc_period: 60
+  # Block size for each garbage collection cycle
   gc_block_size: 100
   handlers:
+    # File system storage configuration
     fs:
+      # Upload directory path
       upload_dir: uploads
+    # MinIO object storage configuration
     minio:
       access_key_id: your_s3_access_key_id
       secret_access_key: your_s3_secret_access_key
@@ -23,28 +32,40 @@ media:
       serve_url: "http://127.0.0.1:9000"
 
 store_config:
+  # User ID encryption key
   uid_key: la6YsO+bNX/+XIkOqc5Svw==
+  # Maximum number of query results
   max_results: 1024
+  # Data storage adapter type
   use_adapter: mysql
   adapters:
+    # MySQL database configuration
     mysql:
       dsn: root:password@tcp(localhost)/flowbot?parseTime=true&collation=utf8mb4_unicode_ci
       max_open_conns: 64
       max_idle_conns: 64
+      # Maximum connection lifetime in seconds
       conn_max_lifetime: 60
+      # SQL query timeout in seconds
       sql_timeout: 10
 
+# Redis configuration
 redis:
   host: 127.0.0.1
   port: 6379
   db: 0
   password:
 
+# Logging configuration
 log:
-  level: info # debug, info, warn, error, fatal, panic
+  # Log level: debug, info, warn, error, fatal, panic
+  level: info
 
+# Engine configuration
 engine:
+  # Engine type: docker
   type: "docker"
+  # Resource limits
   limits:
     cpus: ""
     memory: ""
@@ -65,9 +86,11 @@ engine:
     username: ""
     password: ""
 
+# Metrics configuration
 metrics:
   endpoint: "http://127.0.0.1:8428"
 
+# Search service configuration
 search:
   endpoint: "http://127.0.0.1:7700"
   master_key: ""
@@ -76,10 +99,14 @@ search:
     hoarder: "http://127.0.0.1:8000"
     kanboard: "http://127.0.0.1:8001"
 
+# Alarm configuration
 alarm:
+  # Alarm filter rules
   filter: ""
+  # Slack webhook URL
   slack_webhook: ""
 
+# AI agent configuration
 agent:
   token: ""
   base_url: ""
@@ -87,10 +114,13 @@ agent:
   tool_model: ""
   language: ""
 
+# Flowbot configuration
 flowbot:
   url: ""
 
+# Platform integration configuration
 platform:
+  # Slack platform configuration
   slack:
     enabled: true
     app_id: ""
@@ -101,6 +131,7 @@ platform:
     app_token: ""
     bot_token: ""
 
+  # Discord platform configuration
   discord:
     enabled: true
     app_id: ""
@@ -109,68 +140,88 @@ platform:
     client_secret: ""
     bot_token: ""
 
+  # Tailchat platform configuration
   tailchat:
     enabled: true
     api_url: ""
     app_id: ""
     app_secret: ""
 
+  # Telegram platform configuration
   telegram:
     enabled: true
 
+# Bot configuration list
 bots:
   - name: dev
     enabled: true
     environment: development
 
+# Third-party service configuration
 vendors:
+  # OneAI service configuration
   oneai:
     api_key: ""
+  # Rollbar error tracking configuration
   rollbar:
     enable: false
     token:
     environment: development
     server_root: github.com/flowline-io/flowbot
+  # GitHub OAuth configuration
   github:
     id:
     secret:
+  # Pocket configuration
   pocket:
     consumer_key: ""
+  # Dropbox configuration
   dropbox:
     key: ""
     secret: ""
+  # Transmission configuration
   transmission:
     endpoint: ""
+  # Gitea configuration
   gitea:
     endpoint: ""
     token: ""
+  # AdGuard Home configuration
   adguard_home:
     endpoint: ""
     username: ""
     password: ""
+  # Shiori bookmark manager configuration
   shiori:
     endpoint: ""
     username: ""
     password: ""
+  # ArchiveBox configuration
   archivebox:
     endpoint: ""
+  # Slash configuration
   slash:
     endpoint: ""
     token: ""
+  # Hoarder configuration
   hoarder:
     endpoint: "http://127.0.0.1:8000/api/v1"
     api_key: ""
+  # Safeline configuration
   safeline:
     endpoint: https://127.0.0.1:9443/api
     token: ""
+  # Kanboard configuration
   kanboard:
     endpoint: ""
     username: ""
     password: ""
     webhook_token: ""
+  # Wallos configuration
   wallos:
     endpoint: ""
     api_key: ""
+  # Miniflux RSS reader configuration
   miniflux:
     endpoint: ""
     api_key: ""
