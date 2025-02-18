@@ -98,18 +98,41 @@ func nx(text string) (bool, error) {
 func notify(title, content string) error {
 	// message template
 	templateString := `{
-    "text": "{{.Title}}",
-	"attachments": [
-		{
-			"text": "{{.Content}}"
-		}
-	]
+    "text": "*🚨 {{.Title}}*",
+    "attachments": [
+        {
+            "color": "#FF0000",
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*Error Details:*\n>>>{{.Content}}"
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "🕐 {{.Timestamp}}"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }`
 	temp := template.Must(template.New("notify").Parse(templateString))
 	data := struct {
-		Title   string
-		Content string
-	}{title, content}
+		Title     string
+		Content   string
+		Timestamp string
+	}{
+		Title:     title,
+		Content:   content,
+		Timestamp: time.Now().Format("2006-01-02 15:04:05"),
+	}
 	var payload bytes.Buffer
 	err := temp.Execute(&payload, data)
 	if err != nil {
@@ -122,18 +145,18 @@ func notify(title, content string) error {
 		bytes.NewBuffer(payload.Bytes()),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send notification: %w", err)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read notification body: %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send notification: %s, body: %s", resp.Status, body)
+		return fmt.Errorf("failed to send notification: %s, body: %s", resp.Status, string(body))
 	}
 
 	return nil
