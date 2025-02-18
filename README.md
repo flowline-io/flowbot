@@ -1,40 +1,56 @@
-# flowbot
+# Flowbot
 
 [![Build](https://github.com/flowline-io/flowbot/actions/workflows/build.yml/badge.svg)](https://github.com/flowline-io/flowbot/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/flowline-io/flowbot)](https://goreportcard.com/report/github.com/flowline-io/flowbot)
 
-flowbot is system for chatbot
+Flowbot is a powerful chatbot system that provides message processing, workflow automation, and LLM agent capabilities.
 
-## Features
+## Key Features
 
-- Chat bot
-- Message Publish/Subscribe Hub
-- Message Cron, Trigger, Task, Pipeline
-- Workflow Action
-- LLM Agents
+- 🤖 Intelligent Chatbot
+- 📨 Message Publish/Subscribe Hub
+- ⏰ Message Cron, Trigger, Task, Pipeline
+- 🔄 Configurable Workflow Actions
+- 🧠 LLM Agent System
 
 ## Architecture
 
 <img src="./docs/architecture.png" alt="Architecture" align="center" width="100%" />
 
-## Requirements
+## Getting Started
 
-This project requires Go 1.23 or newer
+### Requirements
 
-## Run
+- Go 1.23 or higher
+- OS: Linux/macOS/Windows
+
+### Installation & Running
 
 ```shell
-# copy config and setting
+# 1. Clone the repository
+git clone https://github.com/flowline-io/flowbot.git
+cd flowbot
+
+# 2. Configure
 cp docs/config.yaml flowbot.yaml
+# Modify flowbot.yaml as needed
 
-# build
-go build -v -o tmp github.com/flowline-io/flowbot/cmd
+# 3. Build
+go build -v -o flowbot github.com/flowline-io/flowbot/cmd
 
-# run
-chmod +x tmp
-./tmp
+# 4. Run
+chmod +x flowbot
+./flowbot
 ```
 
-# License
+## Documentation
 
-Assistant Bot is licensed under the https://github.com/flowline-io/flowbot#GPL-3.0-1-ov-file.
+For detailed documentation, please visit our [Wiki](https://github.com/flowline-io/flowbot/wiki)
+
+## Contributing
+
+Issues and Pull Requests are welcome to help improve the project.
+
+## License
+
+This project is licensed under the [GPL-3.0](LICENSE) License.
