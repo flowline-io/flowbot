@@ -103,7 +103,7 @@ func Warn(format string, a ...any) {
 
 func Error(err error) {
 	// alarm error
-	alarm.Alarm(err)
+	alarm.Alarm(err, 0)
 	// print error
 	l.Error().Caller(1).Err(err).Stack().Msg(err.Error())
 }
