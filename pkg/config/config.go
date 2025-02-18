@@ -73,29 +73,6 @@ type mediaConfig struct {
 	Handlers map[string]interface{} `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
 }
 
-type tlsAutocertConfig struct {
-	// Domains to support by autocert
-	Domains []string `json:"domains" yaml:"domains" mapstructure:"domains"`
-	// Name of directory where auto-certificates are cached, e.g. /etc/letsencrypt/live/your-domain-here
-	CertCache string `json:"cache" yaml:"cert_cache" mapstructure:"cert_cache"`
-	// Contact email for letsencrypt
-	Email string `json:"email" yaml:"email" mapstructure:"email"`
-}
-
-type TLSConfig struct {
-	// Flag enabling TLS
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Listen for connections on this address:port and redirect them to HTTPS port.
-	RedirectHTTP string `json:"http_redirect" yaml:"redirect_http" mapstructure:"redirect_http"`
-	// Enable Strict-Transport-Security by setting max_age > 0
-	StrictMaxAge int `json:"strict_max_age" yaml:"strict_max_age" mapstructure:"strict_max_age"`
-	// ACME autocert config, e.g. letsencrypt.org
-	Autocert *tlsAutocertConfig `json:"autocert" yaml:"autocert" mapstructure:"autocert"`
-	// If Autocert is not defined, provide file names of static certificate and key
-	CertFile string `json:"cert_file" yaml:"certFile" mapstructure:"cert_file"`
-	KeyFile  string `json:"key_file" yaml:"keyFile" mapstructure:"key_file"`
-}
-
 type StoreType struct {
 	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
 	UidKey string `json:"uid_key" yaml:"uid_key" mapstructure:"uid_key"`
