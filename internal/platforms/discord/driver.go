@@ -240,7 +240,7 @@ var (
 				},
 			})
 			if err != nil {
-				flog.Panic(err.Error())
+				flog.Panic("discord error: %v", err)
 			}
 		},
 		"options": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -322,11 +322,11 @@ var (
 				})
 				return
 			} else if err != nil {
-				flog.Panic(err.Error())
+				flog.Panic("discord error: %v", err)
 			}
 
 			if err != nil {
-				flog.Panic(err.Error())
+				flog.Panic("discord error: %v", err)
 			}
 			format := "- %s %s\n"
 
