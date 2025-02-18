@@ -179,7 +179,7 @@ func (ah *handler) Delete(locations []string) error {
 
 	// Print errors received from RemoveObjects API
 	for e := range errorCh {
-		return errors.New("Failed to remove " + e.ObjectName + ", error: " + e.Err.Error())
+		return fmt.Errorf("failed to remove %s, error: %w", e.ObjectName, e.Err)
 	}
 
 	return nil

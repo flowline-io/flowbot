@@ -2,9 +2,8 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/stats"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
@@ -13,6 +12,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -80,7 +80,7 @@ func NewRouter() (*message.Router, error) {
 func NewMessage(payload any) (*message.Message, error) {
 	data, err := jsoniter.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
 	msg := message.NewMessage(watermill.NewUUID(), data)
@@ -92,12 +92,12 @@ func NewMessage(payload any) (*message.Message, error) {
 func PublishMessage(ctx context.Context, topic string, payload any) error {
 	msg, err := NewMessage(payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to new message: %w", err)
 	}
 
 	publisher, err := NewPublisher()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to new publisher: %w", err)
 	}
 
 	return publisher.Publish(topic, msg)

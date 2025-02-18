@@ -2,12 +2,13 @@ package slack
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/go-resty/resty/v2"
-	"net/http"
-	"time"
 )
 
 const ID = "slack"
@@ -63,11 +64,11 @@ func (n *plugin) Send(tokens types.KV, message notify.Message) error {
 		},
 	}).Post(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send message: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("%d", resp.StatusCode())
+		return fmt.Errorf("failed to send message: %d", resp.StatusCode())
 	}
 
 	return nil

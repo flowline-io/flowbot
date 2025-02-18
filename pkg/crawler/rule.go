@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/flowline-io/flowbot/pkg/flog"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/mmcdole/gofeed"
 	"github.com/tidwall/gjson"
 )
@@ -200,23 +201,23 @@ func document(url string) (*goquery.Document, error) {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to new request: %w", err)
 	}
 
 	client := http.DefaultClient
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to do request: %w", err)
 	}
 
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
-		return nil, err
+		return nil, fmt.Errorf("failed to do request: %d", res.StatusCode)
 	}
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read body: %w", err)
 	}
 	flog.Info("[crawler] Get %s content length: %d", url, len(b))
 

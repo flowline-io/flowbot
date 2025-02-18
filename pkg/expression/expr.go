@@ -1,6 +1,8 @@
 package expression
 
 import (
+	"fmt"
+
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
 )
@@ -8,7 +10,7 @@ import (
 func Compile(code string) (*vm.Program, error) {
 	program, err := expr.Compile(code, expr.Env(globalEnv), expr.WithContext("ctx"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to compile expression: %w", err)
 	}
 	return program, nil
 }
@@ -16,7 +18,7 @@ func Compile(code string) (*vm.Program, error) {
 func Run(program *vm.Program) (interface{}, error) {
 	result, err := expr.Run(program, globalEnv)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to run expression: %w", err)
 	}
 	return result, nil
 }

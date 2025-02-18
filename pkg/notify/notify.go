@@ -36,7 +36,7 @@ func ParseTemplate(testString string, templates []string) (types.KV, error) {
 
 	regex, err := regexp.Compile(`{(\w+)}`)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to compile regex: %w", err)
 	}
 
 	for _, v := range templates {
@@ -66,7 +66,7 @@ func ParseTemplate(testString string, templates []string) (types.KV, error) {
 func ParseSchema(testString string) (string, error) {
 	regex, err := regexp.Compile(`^([a-zA-Z0-9\-_]+)://`)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to compile regex: %w", err)
 	}
 	s := regex.FindString(testString)
 	s = strings.TrimSuffix(s, "://")

@@ -19,7 +19,7 @@ func parseWorkflowMetadata(code string) (types.WorkflowMetadata, error) {
 	var meta types.WorkflowMetadata
 	err := yaml.Unmarshal(utils.StringToBytes(code), &meta)
 	if err != nil {
-		return types.WorkflowMetadata{}, err
+		return types.WorkflowMetadata{}, fmt.Errorf("failed to unmarshal workflow metadata: %w", err)
 	}
 	return meta, nil
 }
@@ -27,11 +27,11 @@ func parseWorkflowMetadata(code string) (types.WorkflowMetadata, error) {
 func ParseYamlWorkflow(code string) (workflow *model.Workflow, triggers []*model.WorkflowTrigger, dag *model.Dag, err error) {
 	meta, err := parseWorkflowMetadata(code)
 	if err != nil {
-		return
+		return nil, nil, nil, fmt.Errorf("failed to parse workflow metadata: %w", err)
 	}
 
 	if err = MetaDataValidate(meta); err != nil {
-		return
+		return nil, nil, nil, fmt.Errorf("failed to validate workflow metadata: %w", err)
 	}
 
 	// workflow
@@ -129,7 +129,7 @@ func MetaDataValidate(meta types.WorkflowMetadata) (err error) {
 			specParser := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
 			_, err = specParser.Parse(spec)
 			if err != nil {
-				return
+				return fmt.Errorf("failed to parse trigger cron: %w", err)
 			}
 		case model.TriggerWebhook:
 			// todo webhook params validate

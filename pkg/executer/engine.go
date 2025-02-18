@@ -92,7 +92,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		// register volume mounter
 		vm, err := docker.NewVolumeMounter()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to new volume mounter: %w", err)
 		}
 		mounter.RegisterMounter("volume", vm)
 		// register tmpfs mounter
@@ -102,7 +102,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			docker.WithConfig(config.App.Engine.Docker.Config),
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to new docker runtime: %w", err)
 		}
 		e.runtime = rt
 	case runtime.Shell:
@@ -119,7 +119,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			Password: config.App.Engine.Machine.Password,
 		}))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to new machine runtime: %w", err)
 		}
 		e.runtime = rt
 	default:
@@ -157,7 +157,7 @@ func (e *Engine) doRunTask(ctx context.Context, t *types.Task) error {
 		t.FailedAt = &finished
 		t.State = types.TaskStateFailed
 		t.Error = err.Error()
-		return err
+		return fmt.Errorf("failed to run task: %w", err)
 	}
 	finished := time.Now().UTC()
 	t.CompletedAt = &finished
