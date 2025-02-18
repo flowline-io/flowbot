@@ -108,108 +108,164 @@ type StoreType struct {
 }
 
 type Log struct {
+	// Log level: debug, info, warn, error, fatal, panic
 	Level string `json:"level" yaml:"level" mapstructure:"level"`
 }
 
 type Redis struct {
-	Host     string `json:"host" yaml:"host" mapstructure:"host"`
-	Port     int    `json:"port" yaml:"port" mapstructure:"port"`
-	DB       int    `json:"db" yaml:"db" mapstructure:"db"`
+	// Redis host
+	Host string `json:"host" yaml:"host" mapstructure:"host"`
+	// Redis port
+	Port int `json:"port" yaml:"port" mapstructure:"port"`
+	// Redis database
+	DB int `json:"db" yaml:"db" mapstructure:"db"`
+	// Redis password
 	Password string `json:"password" yaml:"pass" mapstructure:"password"`
 }
 
 type platform struct {
-	Slack    Slack    `json:"slack" yaml:"slack" mapstructure:"slack"`
-	Discord  Discord  `json:"discord" yaml:"discord" mapstructure:"discord"`
+	// Slack platform configuration
+	Slack Slack `json:"slack" yaml:"slack" mapstructure:"slack"`
+	// Discord platform configuration
+	Discord Discord `json:"discord" yaml:"discord" mapstructure:"discord"`
+	// Telegram platform configuration
 	Telegram Telegram `json:"telegram" yaml:"telegram" mapstructure:"telegram"`
+	// Tailchat platform configuration
 	Tailchat Tailchat `json:"tailchat" yaml:"tailchat" mapstructure:"tailchat"`
 }
 
 type Slack struct {
-	Enabled           bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	AppID             string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
-	ClientID          string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
-	ClientSecret      string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
-	SigningSecret     string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret"`
+	// Slack platform configuration
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Slack app ID
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	// Slack client ID
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	// Slack client secret
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	// Slack signing secret
+	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret"`
+	// Slack verification token
 	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
-	AppToken          string `json:"app_token" yaml:"app_token" mapstructure:"app_token"`
-	BotToken          string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
+	// Slack app token
+	AppToken string `json:"app_token" yaml:"app_token" mapstructure:"app_token"`
+	// Slack bot token
+	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
 }
 
 type Discord struct {
-	Enabled      bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	AppID        string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
-	PublicKey    string `json:"public_key" yaml:"public_key" mapstructure:"public_key"`
-	ClientID     string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	// Discord platform configuration
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Discord app ID
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	// Discord public key
+	PublicKey string `json:"public_key" yaml:"public_key" mapstructure:"public_key"`
+	// Discord client ID
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	// Discord client secret
 	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
-	BotToken     string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
+	// Discord bot token
+	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
 }
 
 type Telegram struct {
+	// Telegram platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 }
 
 type Tailchat struct {
-	Enabled   bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	ApiURL    string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
-	AppID     string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	// Tailchat platform configuration
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Tailchat API URL
+	ApiURL string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
+	// Tailchat app ID
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	// Tailchat app secret
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
 }
 
 type Engine struct {
-	Type   string `json:"type" yaml:"type" mapstructure:"type"`
+	// Engine type: docker
+	Type string `json:"type" yaml:"type" mapstructure:"type"`
+	// Resource limits
 	Limits struct {
-		Cpus   string `json:"cpus" yaml:"cpus" mapstructure:"cpus"`
+		// CPU limit
+		Cpus string `json:"cpus" yaml:"cpus" mapstructure:"cpus"`
+		// Memory limit
 		Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
 	} `json:"limits" yaml:"limits" mapstructure:"limits"`
 	Mounts struct {
+		// Bind mount
 		Bind struct {
+			// Allowed
 			Allowed bool `json:"allowed" yaml:"allowed" mapstructure:"allowed"`
 		} `json:"bind" yaml:"bind" mapstructure:"bind"`
 	} `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
 	Docker struct {
+		// Docker config
 		Config string `json:"config" yaml:"config" mapstructure:"config"`
 	} `json:"docker" yaml:"docker" mapstructure:"docker"`
 	Shell struct {
+		// Command
 		CMD []string `json:"cmd" yaml:"cmd" mapstructure:"cmd"`
-		UID string   `json:"uid" yaml:"uid" mapstructure:"uid"`
-		GID string   `json:"gid" yaml:"gid" mapstructure:"gid"`
+		// User ID
+		UID string `json:"uid" yaml:"uid" mapstructure:"uid"`
+		// Group ID
+		GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
 	} `json:"shell" yaml:"shell" mapstructure:"shell"`
 	Machine struct {
-		Host     string `json:"host" yaml:"host" mapstructure:"host"`
-		Port     int    `json:"post" yaml:"port" mapstructure:"port"`
+		// Host
+		Host string `json:"host" yaml:"host" mapstructure:"host"`
+		// Port
+		Port int `json:"post" yaml:"port" mapstructure:"port"`
+		// Username
 		Username string `json:"username" yaml:"username" mapstructure:"username"`
+		// Password
 		Password string `json:"password" yaml:"password" mapstructure:"password"`
 	} `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
 
 type Metrics struct {
+	// Metrics endpoint
 	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 }
 
 type Search struct {
-	Endpoint   string            `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
-	MasterKey  string            `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
-	DataIndex  string            `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
+	// Search endpoint
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	// Search master key
+	MasterKey string `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
+	// Search data index
+	DataIndex string `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
+	// Search URL base map
 	UrlBaseMap map[string]string `json:"url_base_map" yaml:"url_base_map" mapstructure:"url_base_map"`
 }
 
 type Flowbot struct {
-	URL         string `json:"url" yaml:"url" mapstructure:"url"`
+	// Flowbot URL
+	URL string `json:"url" yaml:"url" mapstructure:"url"`
+	// Flowbot channel path
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 }
 
 type Alarm struct {
-	Filter       string `json:"filter" yaml:"filter" mapstructure:"filter"`
+	// Alarm filter rules
+	Filter string `json:"filter" yaml:"filter" mapstructure:"filter"`
+	// Slack webhook URL
 	SlackWebhook string `json:"slack_webhook" yaml:"slack_webhook" mapstructure:"slack_webhook"`
 }
 
 type Agent struct {
-	Token     string `json:"token" yaml:"token" mapstructure:"token"`
-	BaseUrl   string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
-	Model     string `json:"model" yaml:"model" mapstructure:"model"`
+	// Agent token
+	Token string `json:"token" yaml:"token" mapstructure:"token"`
+	// Agent base URL
+	BaseUrl string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
+	// Agent model
+	Model string `json:"model" yaml:"model" mapstructure:"model"`
+	// Agent tool model
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
-	Language  string `json:"language" yaml:"language" mapstructure:"language"`
+	// Agent language
+	Language string `json:"language" yaml:"language" mapstructure:"language"`
 }
 
 func Load(path ...string) {
