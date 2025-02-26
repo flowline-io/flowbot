@@ -17,7 +17,7 @@ require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cloudwego/eino v0.3.13
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250221090944-e8ef7aabbe10
-	github.com/creachadair/jrpc2 v1.3.0
+	github.com/creachadair/jrpc2 v1.3.1
 	github.com/docker/cli v28.0.0+incompatible
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/docker/go-units v0.5.0
@@ -99,7 +99,7 @@ require (
 	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250221090944-e8ef7aabbe10 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
-	github.com/creachadair/mds v0.21.4 // indirect
+	github.com/creachadair/mds v0.23.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
