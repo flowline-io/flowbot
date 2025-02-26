@@ -65,7 +65,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/valyala/fasthttp v1.59.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	golang.org/x/sys v0.30.0
 	golang.org/x/time v0.10.0
@@ -97,7 +97,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250221090944-e8ef7aabbe10 // indirect
-	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creachadair/mds v0.21.4 // indirect
@@ -163,8 +162,6 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/nikolalohinski/gonja v1.5.3 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/oasdiff/yaml v0.0.0-20241214135536-5f7845c759c8 // indirect
-	github.com/oasdiff/yaml3 v0.0.0-20241214160948-977117996672 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
