@@ -15,7 +15,7 @@ require (
 	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
-	github.com/cloudwego/eino v0.3.13
+	github.com/cloudwego/eino v0.3.14
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250221090944-e8ef7aabbe10
 	github.com/creachadair/jrpc2 v1.3.1
 	github.com/docker/cli v28.0.0+incompatible
