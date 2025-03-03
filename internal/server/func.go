@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
 	"strings"
 	"time"
@@ -118,18 +119,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		flog.Info("message %s %s already exists", msg.Self.Platform, msg.MessageId)
 		return
 	}
-	err = store.Database.CreateMessage(model.Message{
-		Flag:          types.Id(),
-		PlatformID:    platformId,
-		PlatformMsgID: msg.MessageId,
-		Topic:         topic,
-		Content:       model.JSON{"text": msg.AltMessage},
-		State:         model.MessageCreated,
-	})
-	if err != nil {
-		flog.Error(err)
-		return
-	}
 
 	// behavior
 	bots.Behavior(uid, bots.MessageBotIncomingBehavior, 1)
@@ -137,6 +126,56 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// user auth record todo
 
 	var payload types.MsgPayload
+
+	// get chat key
+	chatKey := fmt.Sprintf("chat:%s", uid)
+	session, err := cache.DB.Get(ctx.Context(), chatKey).Result()
+	if err != nil {
+		if !errors.Is(err, redis.Nil) {
+			flog.Error(err)
+		}
+	}
+
+	// chat command
+	// start Multi-turn conversation
+	if strings.ToLower(msg.AltMessage) == "chat" {
+		if session == "" {
+			payload = types.TextMsg{Text: "Chat started"}
+			err = cache.DB.Set(ctx.Context(), chatKey, types.Id(), 7*24*time.Hour).Err()
+			if err != nil {
+				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
+			}
+		} else {
+			payload = types.TextMsg{Text: "Chat already started"}
+		}
+	}
+
+	// chat end command
+	// end Multi-turn conversation
+	if strings.ToLower(msg.AltMessage) == "end" {
+		err = cache.DB.Del(ctx.Context(), chatKey).Err()
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
+		}
+		payload = types.TextMsg{Text: "Chat ended"}
+		session = ""
+	}
+
+	// user message
+	err = store.Database.CreateMessage(model.Message{
+		Flag:          types.Id(),
+		PlatformID:    platformId,
+		PlatformMsgID: msg.MessageId,
+		Topic:         topic,
+		Role:          types.User,
+		Session:       session,
+		Content:       model.JSON{"text": msg.AltMessage},
+		State:         model.MessageCreated,
+	})
+	if err != nil {
+		flog.Error(err)
+		return
+	}
 
 	// help command
 	if strings.ToLower(msg.AltMessage) == "help" {
@@ -159,37 +198,40 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		}
 	}
 
-	for name, handle := range bots.List() {
-		if !handle.IsReady() {
-			flog.Info("bot %s unavailable", name)
-			continue
-		}
-
-		// command
-		if payload == nil {
-			in := msg.AltMessage
-			// check "/" prefix
-			if strings.HasPrefix(in, "/") {
-				in = strings.Replace(in, "/", "", 1)
-			}
-			payload, err = handle.Command(ctx, in)
-			if err != nil {
-				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+	// rule chat
+	if session == "" {
+		for name, handle := range bots.List() {
+			if !handle.IsReady() {
+				flog.Info("bot %s unavailable", name)
+				continue
 			}
 
-			// stats
+			// command
+			if payload == nil {
+				in := msg.AltMessage
+				// check "/" prefix
+				if strings.HasPrefix(in, "/") {
+					in = strings.Replace(in, "/", "", 1)
+				}
+				payload, err = handle.Command(ctx, in)
+				if err != nil {
+					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+				}
+
+				// stats
+				if payload != nil {
+					stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
+				}
+			}
+
 			if payload != nil {
-				stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
+				break
 			}
-		}
-
-		if payload != nil {
-			break
 		}
 	}
 
-	// llm chat
-	if payload == nil {
+	// tool chat
+	if payload == nil && session == "" {
 		tools, err := bots.AvailableTools(ctx)
 		if err != nil {
 			flog.Error(err)
@@ -217,6 +259,64 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 		if resp != nil && resp.Content != "" {
 			payload = types.TextMsg{Text: resp.Content}
+		}
+	}
+
+	// multi-turn conversation
+	if payload == nil && session != "" {
+		list, err := store.Database.GetMessagesBySession(session)
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to get history messages: %w", err))
+			return
+		}
+
+		chatHistory := make([]*schema.Message, 0, len(list))
+		for _, item := range list {
+			content, _ := types.KV(item.Content).String("text")
+			chatHistory = append(chatHistory, &schema.Message{
+				Role:    schema.RoleType(item.Role),
+				Content: content,
+			})
+		}
+
+		messages, err := agents.DefaultMultiChatTemplate().Format(ctx.Context(), map[string]any{
+			"chat_history": chatHistory,
+		})
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to format message: %w", err))
+			return
+		}
+
+		llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to get chat model: %w", err))
+			return
+		}
+
+		resp, err := agents.Generate(ctx.Context(), llm, messages)
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to generate response: %w", err))
+			return
+		}
+
+		if resp != nil && resp.Content != "" {
+			payload = types.TextMsg{Text: resp.Content}
+
+			// assistant message
+			err = store.Database.CreateMessage(model.Message{
+				Flag:          types.Id(),
+				PlatformID:    platformId,
+				PlatformMsgID: msg.MessageId,
+				Topic:         topic,
+				Role:          types.Assistant,
+				Session:       session,
+				Content:       model.JSON{"text": resp.Content},
+				State:         model.MessageCreated,
+			})
+			if err != nil {
+				flog.Error(err)
+				return
+			}
 		}
 	}
 

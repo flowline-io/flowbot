@@ -430,6 +430,14 @@ func (a *adapter) GetMessageByPlatform(platformId int64, platformMsgId string) (
 		First()
 }
 
+func (a *adapter) GetMessagesBySession(session string) ([]*model.Message, error) {
+	q := dao.Q.Message
+	return q.
+		Where(q.Session.Eq(session)).
+		Order(q.CreatedAt.Asc()).
+		Find()
+}
+
 func (a *adapter) CreateMessage(message model.Message) error {
 	q := dao.Q.Message
 	return q.

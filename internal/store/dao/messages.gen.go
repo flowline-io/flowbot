@@ -32,6 +32,8 @@ func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 	_message.PlatformID = field.NewInt64(tableName, "platform_id")
 	_message.PlatformMsgID = field.NewString(tableName, "platform_msg_id")
 	_message.Topic = field.NewString(tableName, "topic")
+	_message.Session = field.NewString(tableName, "session")
+	_message.Role = field.NewString(tableName, "role")
 	_message.Content = field.NewField(tableName, "content")
 	_message.State = field.NewField(tableName, "state")
 	_message.CreatedAt = field.NewTime(tableName, "created_at")
@@ -52,6 +54,8 @@ type message struct {
 	PlatformID    field.Int64
 	PlatformMsgID field.String
 	Topic         field.String
+	Session       field.String
+	Role          field.String
 	Content       field.Field
 	State         field.Field
 	CreatedAt     field.Time
@@ -78,6 +82,8 @@ func (m *message) updateTableName(table string) *message {
 	m.PlatformID = field.NewInt64(table, "platform_id")
 	m.PlatformMsgID = field.NewString(table, "platform_msg_id")
 	m.Topic = field.NewString(table, "topic")
+	m.Session = field.NewString(table, "session")
+	m.Role = field.NewString(table, "role")
 	m.Content = field.NewField(table, "content")
 	m.State = field.NewField(table, "state")
 	m.CreatedAt = field.NewTime(table, "created_at")
@@ -99,12 +105,14 @@ func (m *message) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *message) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 10)
+	m.fieldMap = make(map[string]field.Expr, 12)
 	m.fieldMap["id"] = m.ID
 	m.fieldMap["flag"] = m.Flag
 	m.fieldMap["platform_id"] = m.PlatformID
 	m.fieldMap["platform_msg_id"] = m.PlatformMsgID
 	m.fieldMap["topic"] = m.Topic
+	m.fieldMap["session"] = m.Session
+	m.fieldMap["role"] = m.Role
 	m.fieldMap["content"] = m.Content
 	m.fieldMap["state"] = m.State
 	m.fieldMap["created_at"] = m.CreatedAt

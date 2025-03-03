@@ -12,7 +12,7 @@ const TableNameFileupload = "fileuploads"
 
 // Fileupload mapped from table <fileuploads>
 type Fileupload struct {
-	ID        int64     `gorm:"column:id;primaryKey" json:"id"`
+	ID        int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	UID       string    `gorm:"column:uid;not null" json:"uid"`
 	Fid       string    `gorm:"column:fid;not null" json:"fid"`
 	Name      string    `gorm:"column:name;not null" json:"name"`

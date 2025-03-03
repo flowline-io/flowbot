@@ -219,6 +219,7 @@ type Adapter interface {
 	GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.PlatformChannelUser, error)
 	GetMessage(flag string) (*model.Message, error)
 	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
+	GetMessagesBySession(session string) ([]*model.Message, error)
 	CreateMessage(message model.Message) error
 
 	GetBot(id int64) (*model.Bot, error)
