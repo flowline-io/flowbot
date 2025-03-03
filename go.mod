@@ -2,8 +2,6 @@ module github.com/flowline-io/flowbot
 
 go 1.24
 
-toolchain go1.24
-
 require (
 	code.gitea.io/sdk/gitea v0.20.0
 	github.com/Masterminds/semver/v3 v3.3.1
