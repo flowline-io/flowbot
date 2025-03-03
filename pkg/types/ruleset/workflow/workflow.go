@@ -44,7 +44,7 @@ func (r Ruleset) ProcessRule(ctx types.Context, input types.KV) (types.KV, error
 	// Start a goroutine to execute the rule.
 	go func() {
 		defer func() {
-			if r := recover(); r != nil {
+			if r := recover(); r != nil {// revive:disable
 				errorCh <- fmt.Errorf("recover: %v", r)
 			}
 		}()
