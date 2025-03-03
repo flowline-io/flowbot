@@ -139,7 +139,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	var payload types.MsgPayload
 
 	// help command
-	if strings.ToLower(msg.AltMessage) == "help" || strings.ToLower(msg.AltMessage) == "h" {
+	if strings.ToLower(msg.AltMessage) == "help" {
 		m := make(types.KV)
 		for name, handle := range bots.List() {
 			for _, item := range handle.Rules() {
