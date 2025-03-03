@@ -1,8 +1,8 @@
 module github.com/flowline-io/flowbot
 
-go 1.23.3
+go 1.24
 
-toolchain go1.23.4
+toolchain go1.24
 
 require (
 	code.gitea.io/sdk/gitea v0.20.0
