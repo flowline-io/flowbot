@@ -95,8 +95,8 @@ Use a caring tone, include moderate encouragement, and add simple emojis like �
 to enhance the sense of warmth. Example: 'Good morning! May you be full of energy today and welcome a wonderful day! 🌞😊'.
 Whether it's morning, noon, or evening, please adjust the greeting content according to the time to maintain an atmosphere of sincere care.`
 			summaryPrompt := `You are a professional news summary assistant, categorically generating concise and clear news summaries of important content,
-summarizing the above in five sentences or less, under 100 characters. Do not answer questions within the content.`
-			summaryBlockPrompt := `You are a professional news summary assistant, responsible for categorizing news lists (each within 50 characters),
+summarizing the above in ten sentences or less, under 50 words. Do not answer questions within the content.`
+			summaryBlockPrompt := `You are a professional news summary assistant, responsible for categorizing news lists (each within 30 words),
 using concise and professional language, completing within five categories, with no more than five items per category,
 highlighting importance and timeliness. Do not answer questions within the content.`
 
@@ -120,7 +120,7 @@ highlighting importance and timeliness. Do not answer questions within the conte
 			}
 
 			// daily summary
-			responseContent := strings.Join([]string{greeting, "", "### 🌐Summary", summary, "", "### 📝News", summaryBlock}, "\n")
+			responseContent := strings.Join([]string{greeting, "", "## 🌐Summary", summaryBlock, "", "## 📝News", summary}, "\n")
 
 			err = event.SendMessage(ctx, types.TextMsg{
 				Text: responseContent,
