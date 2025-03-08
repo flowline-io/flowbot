@@ -55,14 +55,22 @@ func (c *Context) Context() context.Context {
 }
 
 func (c *Context) SetTimeout(timeout time.Duration) {
+	// If there is an existing cancel function, call it first to avoid resource leaks
+	if c.cancel != nil {
+		c.cancel()
+	}
+
+	// If the context is nil, create a new context with timeout
 	if c.ctx == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		c.ctx = ctx
 		c.cancel = cancel
 		return
 	}
+
+	// If the context already exists but has no deadline, create a new context with timeout based on the existing context
 	if _, ok := c.ctx.Deadline(); !ok {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		ctx, cancel := context.WithTimeout(c.ctx, timeout)
 		c.ctx = ctx
 		c.cancel = cancel
 		return
