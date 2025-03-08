@@ -131,11 +131,11 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 				filePath, _ := f["file_path"].(string)
 				fileType, _ := f["file_type"].(string)
 				codeContext, _ := f["context"].(string)
-				filesContextStr.WriteString(
+				_, _ = filesContextStr.WriteString(
 					"File: " + filePath + " (" + fileType + ")\n" + codeContext + "\n\n")
 			}
 		} else {
-			filesContextStr.WriteString("No file context")
+			_, _ = filesContextStr.WriteString("No file context")
 		}
 
 		// Validate required parameters
