@@ -467,7 +467,11 @@ func doWebhook(ctx *fiber.Ctx) error {
 		data = ctx.Body()
 	}
 
-	payload, err := botHandler.Webhook(typesCtx, method, data)
+	typesCtx.WebhookId = flag
+	typesCtx.Method = method
+	typesCtx.Headers = ctx.GetReqHeaders()
+
+	payload, err := botHandler.Webhook(typesCtx, data)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
 	}

@@ -1,25 +1,27 @@
 package gitea
 
 import (
+	"net/http"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	jsoniter "github.com/json-iterator/go"
-	"net/http"
 )
 
 const (
 	IssueWebhookID = "issue"
+	RepoWebhookID  = "repo"
 )
 
 var webhookRules = []webhook.Rule{
 	{
 		Id:     IssueWebhookID,
 		Secret: true,
-		Handler: func(ctx types.Context, method string, data []byte) types.MsgPayload {
-			if method != http.MethodPost {
+		Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+			if ctx.Method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
 
@@ -30,27 +32,70 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "error"}
 			}
 
-			flog.Info("[gitea] issue webhook, method: %s, action: %s", method, issue.Action)
+			flog.Info("[gitea] issue webhook, method: %s, action: %s", ctx.Method, issue.Action)
 			utils.PrettyPrintYamlStyle(issue)
 
 			switch issue.Action {
 			case gitea.HookIssueCreated:
-				hookIssueCreated(ctx, issue)
+				err = hookIssueCreated(ctx, issue)
 			case gitea.HookIssueOpened:
-				hookIssueOpened(ctx, issue)
+				err = hookIssueOpened(ctx, issue)
 			case gitea.HookIssueClosed:
-			case gitea.HookIssueReOpened:
-			case gitea.HookIssueAssigned:
-			case gitea.HookIssueUnassigned:
-			case gitea.HookIssueLabelUpdated:
-			case gitea.HookIssueLabelCleared:
-			case gitea.HookIssueMilestoned:
-			case gitea.HookIssueDemilestoned:
+				err = hookIssueClosed(ctx, issue)
 			default:
 				return types.TextMsg{Text: "error action"}
 			}
 
-			return types.TextMsg{Text: "issue webhook"}
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "done"}
+		},
+	},
+	{
+		Id:     RepoWebhookID,
+		Secret: true,
+		Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+			if ctx.Method != http.MethodPost {
+				return types.TextMsg{Text: "error method"}
+			}
+
+			eventTypeList, ok := ctx.Headers["X-Gitea-Event"]
+			if !ok {
+				flog.Warn("[gitea] repo webhook, error header %v", ctx.Headers)
+				return types.TextMsg{Text: "error header"}
+			}
+
+			if len(eventTypeList) == 0 {
+				flog.Warn("[gitea] repo webhook, error header %v", ctx.Headers)
+				return types.TextMsg{Text: "error header"}
+			}
+
+			eventType := eventTypeList[0]
+
+			var err error
+			switch eventType {
+			case "push":
+				var repoPayload *gitea.RepoPayload
+				err := jsoniter.Unmarshal(data, &repoPayload)
+				if err != nil {
+					flog.Error(err)
+					return types.TextMsg{Text: "error"}
+				}
+
+				err = hookPush(ctx, repoPayload)
+			default:
+				return types.TextMsg{Text: "error event type"}
+			}
+
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+
+			return types.TextMsg{Text: "done"}
 		},
 	},
 }

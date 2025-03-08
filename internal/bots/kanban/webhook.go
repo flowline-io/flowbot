@@ -1,6 +1,7 @@
 package kanban
 
 import (
+	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"net/http"
 	"strings"
 
@@ -23,8 +24,8 @@ var webhookRules = []webhook.Rule{
 	{
 		Id:     KanbanWebhookID,
 		Secret: true,
-		Handler: func(ctx types.Context, method string, data []byte) types.MsgPayload {
-			if method != http.MethodPost {
+		Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+			if ctx.Method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
 
@@ -57,11 +58,19 @@ var webhookRules = []webhook.Rule{
 				}
 
 				s := strings.Split(result.Task.Reference, ":")
-				if len(s) != 2 {
+				if len(s) != 2 || len(s) != 3 {
 					return nil
 				}
-				app := s[0]
-				id := s[1]
+				var app, category, id string
+				switch len(s) {
+				case 2:
+					app = s[0]
+					id = s[1]
+				case 3:
+					app = s[0]
+					category = s[1]
+					id = s[2]
+				}
 
 				switch app {
 				case hoarder.ID:
@@ -71,6 +80,10 @@ var webhookRules = []webhook.Rule{
 					if err != nil {
 						flog.Error(err)
 						return types.TextMsg{Text: "error bookmark archive"}
+					}
+				case gitea.ID:
+					if category == "commit" {
+						flog.Info("commit review done: commit id %s", id)
 					}
 				}
 			}

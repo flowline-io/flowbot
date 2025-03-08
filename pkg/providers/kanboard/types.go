@@ -1,6 +1,11 @@
 package kanboard
 
 const (
+	DefaultProjectId = 1
+	DefaultPriority  = 2
+)
+
+const (
 	CommentCreateEvent                = "comment.create"
 	CommentUpdateEvent                = "comment.update"
 	CommentDeleteEvent                = "comment.delete"

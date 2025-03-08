@@ -25,3 +25,21 @@ func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error
 
 	return agent, nil
 }
+
+func LLMGenerate(ctx context.Context, prompt string) (string, error) {
+	messages, err := DefaultTemplate().Format(ctx, map[string]any{
+		"content": prompt,
+	})
+
+	llm, err := ChatModel(ctx, Model())
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := Generate(ctx, llm, messages)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Content, nil
+}

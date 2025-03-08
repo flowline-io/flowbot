@@ -74,8 +74,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 	return bots.RunCron(cronRules, Name)
 }
 
-func (b bot) Webhook(ctx types.Context, method string, data []byte) (types.MsgPayload, error) {
-	return bots.RunWebhook(webhookRules, ctx, method, data)
+func (b bot) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
+	return bots.RunWebhook(webhookRules, ctx, data)
 }
 
 func (b bot) Event(ctx types.Context, param types.KV) error {

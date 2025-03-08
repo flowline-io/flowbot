@@ -10,6 +10,7 @@ type Context struct {
 	ctx context.Context
 	// cancel function
 	cancel context.CancelFunc
+
 	// Message ID denormalized
 	Id string
 	// chat platform
@@ -18,22 +19,35 @@ type Context struct {
 	Topic string
 	// Sender's UserId as string.
 	AsUser Uid
-	// form id
-	FormId string
+
 	// form Rule id
 	FormRuleId string
+	// form id
+	FormId string
+
 	// agent
 	CollectId string
 	// agent
 	AgentVersion int
+
 	// page rule id
 	PageRuleId string
+
 	// workflow rule id
 	WorkflowRuleId string
+
 	// llm tool rule id
 	ToolRuleId string
+
 	// event rule id
 	EventId string
+
+	// webhook rule id
+	WebhookId string
+	// HTTP method
+	Method string
+	// HTTP headers
+	Headers map[string][]string
 }
 
 func (c *Context) Context() context.Context {

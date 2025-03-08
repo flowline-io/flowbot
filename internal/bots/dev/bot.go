@@ -113,8 +113,8 @@ func (b bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
 	return bots.RunWorkflow(workflowRules, ctx, input)
 }
 
-func (b bot) Webhook(ctx types.Context, method string, data []byte) (types.MsgPayload, error) {
-	return bots.RunWebhook(webhookRules, ctx, method, data)
+func (b bot) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
+	return bots.RunWebhook(webhookRules, ctx, data)
 }
 
 func (b bot) Tool(ctx types.Context, argumentsInJSON string) (string, error) {

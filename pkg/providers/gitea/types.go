@@ -68,3 +68,36 @@ type ChangesPayload struct {
 	Body  *ChangesFromPayload `json:"body,omitempty"`
 	Ref   *ChangesFromPayload `json:"ref,omitempty"`
 }
+
+type Commit struct {
+	Id           string      `json:"id"`
+	Message      string      `json:"message"`
+	Url          string      `json:"url"`
+	Author       *gitea.User `json:"author"`
+	Committer    *gitea.User `json:"committer"`
+	Verification any         `json:"verification"`
+	Timestamp    string      `json:"timestamp"`
+	Added        []string    `json:"added"`
+	Removed      []string    `json:"removed"`
+	Modified     []string    `json:"modified"`
+}
+
+type CommitDiff struct {
+	CommitID      string   `json:"commit_id"`
+	CommitMessage string   `json:"commit_message"`
+	Files         []string `json:"files"`
+	DiffContent   string   `json:"diff_content"`
+}
+
+type RepoPayload struct {
+	Ref          string            `json:"ref"`
+	Before       string            `json:"before"`
+	After        string            `json:"after"`
+	CompareUrl   string            `json:"compare_url"`
+	Commits      []*Commit         `json:"commits"`
+	TotalCommits int               `json:"total_commits"`
+	HeadCommit   *Commit           `json:"head_commit"`
+	Pusher       *gitea.User       `json:"pusher"`
+	Repository   *gitea.Repository `json:"repository"`
+	Sender       *gitea.User       `json:"sender"`
+}

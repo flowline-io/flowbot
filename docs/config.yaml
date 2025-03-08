@@ -98,6 +98,7 @@ search:
   url_base_map:
     hoarder: "http://127.0.0.1:8000"
     kanboard: "http://127.0.0.1:8001"
+    gitea: "http://127.0.0.1:8002"
 
 # Alarm configuration
 alarm:

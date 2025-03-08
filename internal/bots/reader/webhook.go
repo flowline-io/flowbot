@@ -18,8 +18,8 @@ var webhookRules = []webhook.Rule{
 	{
 		Id:     MinifluxWebhookID,
 		Secret: true,
-		Handler: func(ctx types.Context, method string, data []byte) types.MsgPayload {
-			if method != http.MethodPost {
+		Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+			if ctx.Method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
 

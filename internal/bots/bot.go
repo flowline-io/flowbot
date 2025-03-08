@@ -213,9 +213,9 @@ func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.K
 	return rs.ProcessRule(ctx, input)
 }
 
-func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, method string, data []byte) (types.MsgPayload, error) {
+func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, data []byte) (types.MsgPayload, error) {
 	rs := webhook.Ruleset(webhookRules)
-	return rs.ProcessRule(ctx, method, data)
+	return rs.ProcessRule(ctx, data)
 }
 
 func RunTool(toolRules []tool.Rule, ctx types.Context, argumentsInJSON string) (string, error) {

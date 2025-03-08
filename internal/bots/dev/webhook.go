@@ -14,8 +14,8 @@ var webhookRules = []webhook.Rule{
 	{
 		Id:     ExampleWebhookID,
 		Secret: true,
-		Handler: func(ctx types.Context, method string, data []byte) types.MsgPayload {
-			return types.TextMsg{Text: fmt.Sprintf("%s %s", method, string(data))}
+		Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+			return types.TextMsg{Text: fmt.Sprintf("%s %s", ctx.Method, string(data))}
 		},
 	},
 }

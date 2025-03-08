@@ -23,7 +23,7 @@ var commandRules = []command.Rule{
 			resp, err := client.GetRepositories("demo", "example")
 			_, _ = fmt.Println(resp, err)
 
-			return nil
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }

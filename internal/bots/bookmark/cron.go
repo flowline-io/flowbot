@@ -10,15 +10,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
+	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-)
-
-const (
-	defaultProjectId = 1
-	defaultPriority  = 2
 )
 
 var cronRules = []cron.Rule{
@@ -151,8 +147,8 @@ var cronRules = []cron.Rule{
 				// create task
 				err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
 					"title":       title,
-					"project_id":  defaultProjectId,
-					"priority":    defaultPriority,
+					"project_id":  kanboard.DefaultProjectId,
+					"priority":    kanboard.DefaultPriority,
 					"reference":   fmt.Sprintf("%s:%s", hoarder.ID, bookmark.Id),
 					"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap[hoarder.ID], bookmark.Id),
 					"tags": []string{

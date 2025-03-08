@@ -1,8 +1,10 @@
 package gitea
 
 import (
-	"code.gitea.io/sdk/gitea"
+	"bytes"
 	"fmt"
+
+	"code.gitea.io/sdk/gitea"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -79,4 +81,69 @@ func (v *Gitea) ListIssues(owner string, page, pageSize int) ([]*gitea.Issue, er
 	}
 
 	return list, nil
+}
+
+func (v *Gitea) GetCommitDiff(owner, repo, commitID string) ([]byte, error) {
+	diff, resp, err := v.c.GetCommitDiff(owner, repo, commitID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit diff, %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to get commit diff, %s", resp.Status)
+	}
+
+	return diff, nil
+}
+
+func (v *Gitea) GetDiff(owner, repo, commitID string) (*CommitDiff, error) {
+	commit, resp, err := v.c.GetSingleCommit(owner, repo, commitID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit, %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to get commit, %s", resp.Status)
+	}
+
+	diff, err := v.GetCommitDiff(owner, repo, commitID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit diff, %w", err)
+	}
+
+	files := make([]string, 0)
+	for _, file := range commit.Files {
+		files = append(files, file.Filename)
+	}
+
+	commitDiff := &CommitDiff{
+		CommitID:      commitID,
+		CommitMessage: commit.RepoCommit.Message,
+		Files:         files,
+		DiffContent:   string(diff),
+	}
+
+	return commitDiff, nil
+}
+
+func (v *Gitea) GetFileContent(owner, repo, commitID, filePath string, lineStart, lineCount int) ([]byte, error) {
+	fileContent, resp, err := v.c.GetFile(owner, repo, commitID, filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file content, %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to get file content, %s", resp.Status)
+	}
+
+	lines := bytes.Split(fileContent, []byte("\n"))
+
+	start := max(0, lineStart-lineCount)
+	end := min(len(lines), lineStart+lineCount)
+
+	content := bytes.Join(lines[start:end], []byte("\n"))
+
+	flog.Info("get %d lines of content for %s (size: %d bytes)", len(bytes.Split(content, []byte("\n"))), filePath, len(content))
+
+	return content, nil
 }
