@@ -16,8 +16,8 @@ import (
 )
 
 func splitCodeChunk(codeContext CodeContext) []*CodeContext {
-	config := DefaultConfig()
-	maxTokens := config.MaxTokens - 1000
+	conf := DefaultConfig()
+	maxTokens := conf.MaxTokens - 1000
 
 	chunks := make([]*CodeContext, 0, 10)
 	currentChunk := &CodeContext{
@@ -365,9 +365,9 @@ func filterFiles(files []string, ignorePatterns []string) []string {
 }
 
 func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeContext, error) {
-	config := DefaultConfig()
+	conf := DefaultConfig()
 	// Filter files
-	filteredFiles := filterFiles(commitDiff.Files, config.IgnorePatterns)
+	filteredFiles := filterFiles(commitDiff.Files, conf.IgnorePatterns)
 	if len(filteredFiles) == 0 {
 		flog.Info("No files to review after filtering for commit %s (changed files: %d)",
 			commitDiff.CommitID[:8], len(commitDiff.Files))
@@ -376,7 +376,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 
 	// Collect context for all files
 	var filesContext []map[string]any
-	windowSize := config.ContextWindow
+	windowSize := conf.ContextWindow
 
 	endpoint, _ := providers.GetConfig(gitea.ID, gitea.EndpointKey)
 	token, _ := providers.GetConfig(gitea.ID, gitea.TokenKey)
@@ -446,12 +446,12 @@ func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, 
 		strings.Split(codeContext.Metadata["commit_message"], "\n")[0][:50],
 		len(codeContext.FilesContext))
 
-	config := DefaultConfig()
+	conf := DefaultConfig()
 
 	result, err := llmAnalyzeCode(ctx, *codeContext)
 	if err != nil {
-		flog.Error(fmt.Errorf("Error analyzing code for commit %s: %v\nFull error: %v",
-			codeContext.Metadata["commit_id"][:8], err, err))
+		flog.Error(fmt.Errorf("Error analyzing code for commit %+v: %v\nFull error: %v",
+			codeContext, err, err))
 		// Return a default review result
 		return &ReviewResult{
 			Score:          0,
@@ -465,21 +465,21 @@ func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, 
 				ReadabilityScore:  0,
 				BestPracticeScore: 0,
 			},
-		}, err
+		}, fmt.Errorf("error analyzing code for commit %+v: %v", codeContext, err)
 	}
 
 	// Record review results
 	flog.Info("Code analysis completed for commit %s with scores and %d files:",
 		codeContext.Metadata["commit_id"][:8], len(codeContext.FilesContext))
-	flog.Info("- Overall Score: %.1f/10 (weight: %f)", result.Score, config.QualityThreshold)
-	flog.Info("- Security: %.1f/10 (weight: %f)", result.QualityMetrics.SecurityScore, config.ScoringRules["security"])
-	flog.Info("- Performance: %.1f/10 (weight: %f)", result.QualityMetrics.PerformanceScore, config.ScoringRules["performance"])
-	flog.Info("- Readability: %.1f/10 (weight: %f)", result.QualityMetrics.ReadabilityScore, config.ScoringRules["readability"])
-	flog.Info("- Best Practices: %.1f/10 (weight: %f)", result.QualityMetrics.BestPracticeScore, config.ScoringRules["best_practice"])
+	flog.Info("- Overall Score: %.1f/10 (weight: %f)", result.Score, conf.QualityThreshold)
+	flog.Info("- Security: %.1f/10 (weight: %f)", result.QualityMetrics.SecurityScore, conf.ScoringRules["security"])
+	flog.Info("- Performance: %.1f/10 (weight: %f)", result.QualityMetrics.PerformanceScore, conf.ScoringRules["performance"])
+	flog.Info("- Readability: %.1f/10 (weight: %f)", result.QualityMetrics.ReadabilityScore, conf.ScoringRules["readability"])
+	flog.Info("- Best Practices: %.1f/10 (weight: %f)", result.QualityMetrics.BestPracticeScore, conf.ScoringRules["best_practice"])
 
 	if len(result.SecurityIssues) > 0 {
 		flog.Warn("Found %d security issues in commit %s (threshold: %d)",
-			len(result.SecurityIssues), codeContext.Metadata["commit_id"][:8], config.MaxSecurityIssues)
+			len(result.SecurityIssues), codeContext.Metadata["commit_id"][:8], conf.MaxSecurityIssues)
 	}
 
 	return result, nil
@@ -511,12 +511,12 @@ func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewCom
 		"|------------------|-------|--------|",
 	}
 
-	config := DefaultConfig()
+	conf := DefaultConfig()
 	overallComment = append(overallComment,
-		fmt.Sprintf("| 🛡️ Security | %.1f/10 | %.0f |", result.QualityMetrics.SecurityScore, config.ScoringRules["security"]*100),
-		fmt.Sprintf("| ⚡ Performance | %.1f/10 | %.0f |", result.QualityMetrics.PerformanceScore, config.ScoringRules["performance"]*100),
-		fmt.Sprintf("| 📖 Readability | %.1f/10 | %.0f |", result.QualityMetrics.ReadabilityScore, config.ScoringRules["readability"]*100),
-		fmt.Sprintf("| ✨ Best Practices | %.1f/10 | %.0f |", result.QualityMetrics.BestPracticeScore, config.ScoringRules["best_practice"]*100),
+		fmt.Sprintf("| 🛡️ Security | %.1f/10 | %.0f |", result.QualityMetrics.SecurityScore, conf.ScoringRules["security"]*100),
+		fmt.Sprintf("| ⚡ Performance | %.1f/10 | %.0f |", result.QualityMetrics.PerformanceScore, conf.ScoringRules["performance"]*100),
+		fmt.Sprintf("| 📖 Readability | %.1f/10 | %.0f |", result.QualityMetrics.ReadabilityScore, conf.ScoringRules["readability"]*100),
+		fmt.Sprintf("| ✨ Best Practices | %.1f/10 | %.0f |", result.QualityMetrics.BestPracticeScore, conf.ScoringRules["best_practice"]*100),
 		"")
 
 	// If there are issues
@@ -613,17 +613,17 @@ func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewCom
 	// Generate comments
 	comment := generateComments(result, codeContext)
 
-	config := DefaultConfig()
+	conf := DefaultConfig()
 	minScore := result.Score
 	flog.Info("Commit review completed with minimum score: %v (threshold: %v)",
-		minScore, config.QualityThreshold)
+		minScore, conf.QualityThreshold)
 
-	if minScore >= config.QualityThreshold {
+	if minScore >= conf.QualityThreshold {
 		flog.Info("Commit quality meets threshold (%v >= %v)",
-			minScore, config.QualityThreshold)
+			minScore, conf.QualityThreshold)
 	} else {
 		flog.Info("Commit quality below threshold (%v < %v)",
-			minScore, config.QualityThreshold)
+			minScore, conf.QualityThreshold)
 	}
 
 	return comment, nil
