@@ -2,6 +2,7 @@ package agents
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
@@ -9,6 +10,8 @@ import (
 )
 
 func DefaultTemplate() prompt.ChatTemplate {
+	flog.Info("debug default template")
+	flog.Info("DefaultTemplate language: %s", config.App.Agent.Language)
 	return prompt.FromMessages(schema.FString,
 		schema.SystemMessage(fmt.Sprintf("You are a helpful assistant. Please answer in %s.", config.App.Agent.Language)),
 		schema.MessagesPlaceholder("chat_history", true),

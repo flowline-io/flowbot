@@ -29,7 +29,8 @@ func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error
 }
 
 func LLMGenerate(ctx context.Context, prompt string) (string, error) {
-	flog.Info("debug prompt size: %d characters， %s", len(prompt), prompt)
+	flog.Info("debug prompt size: %d characters", len(prompt))
+	flog.Info("debug prompt value: %s", prompt)
 
 	messages, err := DefaultTemplate().Format(ctx, map[string]any{
 		"content": prompt,
