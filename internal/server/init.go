@@ -244,7 +244,7 @@ func initializeHttp() error {
 			return nil
 		},
 	})
-	httpApp.Use(recover.New())
+	httpApp.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	httpApp.Use(requestid.New())
 	httpApp.Use(healthcheck.New())
 	httpApp.Use(cors.New(cors.Config{
