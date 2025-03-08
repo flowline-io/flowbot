@@ -2,8 +2,10 @@ package hoarder
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -14,6 +16,13 @@ const (
 
 type Hoarder struct {
 	c *resty.Client
+}
+
+func GetClient() *Hoarder {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	apiKey, _ := providers.GetConfig(ID, ApikeyKey)
+
+	return NewHoarder(endpoint.String(), apiKey.String())
 }
 
 func NewHoarder(endpoint string, apiKey string) *Hoarder {

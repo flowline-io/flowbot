@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -22,9 +21,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(miniflux.ID, miniflux.EndpointKey)
-			apiKey, _ := providers.GetConfig(miniflux.ID, miniflux.ApikeyKey)
-			client := miniflux.NewMiniflux(endpoint.String(), apiKey.String())
+			client := miniflux.GetClient()
 
 			// total
 			result, err := client.GetEntries(&rssClient.Filter{Limit: 1})
@@ -51,9 +48,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeUser,
 		When:  "0 9 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(miniflux.ID, miniflux.EndpointKey)
-			apiKey, _ := providers.GetConfig(miniflux.ID, miniflux.ApikeyKey)
-			client := miniflux.NewMiniflux(endpoint.String(), apiKey.String())
+			client := miniflux.GetClient()
 
 			resp, err := client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread, Limit: 10000})
 			if err != nil {

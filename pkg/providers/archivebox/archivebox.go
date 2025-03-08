@@ -3,6 +3,7 @@ package archivebox
 import (
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -13,6 +14,12 @@ const (
 
 type ArchiveBox struct {
 	c *resty.Client
+}
+
+func GetClient() *ArchiveBox {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+
+	return NewArchiveBox(endpoint.String())
 }
 
 func NewArchiveBox(endpoint string) *ArchiveBox {

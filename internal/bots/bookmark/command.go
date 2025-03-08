@@ -4,7 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -15,9 +14,7 @@ var commandRules = []command.Rule{
 		Define: "bookmark list",
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 			bookmarks, err := client.GetAllBookmarks(10)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}

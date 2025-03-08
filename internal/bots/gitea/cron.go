@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -17,9 +16,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(gitea.ID, gitea.EndpointKey)
-			token, _ := providers.GetConfig(gitea.ID, gitea.TokenKey)
-			client, err := gitea.NewGitea(endpoint.String(), token.String())
+			client, err := gitea.GetClient()
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to create gitea client: %w", err))
 				return nil

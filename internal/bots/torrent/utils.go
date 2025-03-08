@@ -3,20 +3,19 @@ package torrent
 import (
 	"context"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/hekmon/transmissionrpc/v3"
 )
 
 func torrentClear(ctx context.Context) error {
-	endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
-	c, err := transmission.NewTransmission(endpoint.String())
+	client, err := transmission.GetClient()
 	if err != nil {
 		return fmt.Errorf("clear failed, %w", err)
 	}
 
-	list, err := c.TorrentGetAll(ctx)
+	list, err := client.TorrentGetAll(ctx)
 	if err != nil {
 		return fmt.Errorf("clear failed, %w", err)
 	}
@@ -29,7 +28,7 @@ func torrentClear(ctx context.Context) error {
 		}
 	}
 	if len(ids) > 0 {
-		err = c.TorrentRemove(ctx, ids)
+		err = client.TorrentRemove(ctx, ids)
 		if err != nil {
 			return fmt.Errorf("clear failed, %w", err)
 		}

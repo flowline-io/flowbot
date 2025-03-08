@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	llmTool "github.com/cloudwego/eino/components/tool"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 
@@ -513,14 +514,13 @@ func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
 
 func Shortcut(title, link string) (string, error) {
 	endpoint, _ := providers.GetConfig(slash.ID, slash.EndpointKey)
-	token, _ := providers.GetConfig(slash.ID, slash.TokenKey)
 
 	name, err := utils.GenerateRandomString(6)
 	if err != nil {
 		return "", err
 	}
 
-	client := slash.NewSlash(endpoint.String(), token.String())
+	client := slash.GetClient()
 	err = client.CreateShortcut(slash.Shortcut{
 		Name:  name,
 		Link:  link,

@@ -3,10 +3,10 @@ package finance
 import (
 	"context"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/doctorxiong"
 	"github.com/flowline-io/flowbot/pkg/providers/wallos"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -69,10 +69,7 @@ var commandRules = []command.Rule{
 		Define: `wallos`,
 		Help:   `Get wallos subscriptions`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(wallos.ID, wallos.EndpointKey)
-			apiKey, _ := providers.GetConfig(wallos.ID, wallos.ApikeyKey)
-
-			client := wallos.NewWallos(endpoint.String(), apiKey.String())
+			client := wallos.GetClient()
 			list, err := client.GetSubscriptions(ctx.Context())
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}

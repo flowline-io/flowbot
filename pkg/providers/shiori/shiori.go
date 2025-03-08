@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -17,6 +18,12 @@ const (
 type Shiori struct {
 	c         *resty.Client
 	sessionId string
+}
+
+func GetClient() *Shiori {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+
+	return NewShiori(endpoint.String())
 }
 
 func NewShiori(endpoint string) *Shiori {

@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/http"
+
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/jhttp"
-	"net/http"
+	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
 const (
@@ -42,6 +44,14 @@ func setAuthHeader(header http.Header, username string, password string) {
 	_ = encoder.Close()
 
 	header.Set("Authorization", fmt.Sprintf("Basic %s", buf.String()))
+}
+
+func GetClient() (*Kanboard, error) {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	username, _ := providers.GetConfig(ID, UsernameKey)
+	password, _ := providers.GetConfig(ID, PasswordKey)
+
+	return NewKanboard(endpoint.String(), username.String(), password.String())
 }
 
 func NewKanboard(endpoint string, username string, password string) (*Kanboard, error) {

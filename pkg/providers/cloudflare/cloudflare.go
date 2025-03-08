@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -19,6 +20,13 @@ type Cloudflare struct {
 	c      *resty.Client
 	token  string
 	zoneID string
+}
+
+func GetClient() *Cloudflare {
+	token, _ := providers.GetConfig(ID, Token)
+	zoneID, _ := providers.GetConfig(ID, ZoneID)
+
+	return NewCloudflare(token.String(), zoneID.String())
 }
 
 func NewCloudflare(token string, zoneID string) *Cloudflare {

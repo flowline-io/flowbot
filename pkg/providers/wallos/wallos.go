@@ -2,9 +2,11 @@ package wallos
 
 import (
 	"context"
-	"github.com/go-resty/resty/v2"
 	"net/http"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -17,6 +19,13 @@ type Wallos struct {
 	ctx    context.Context
 	c      *resty.Client
 	apiKey string
+}
+
+func GetClient() *Wallos {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	apiKey, _ := providers.GetConfig(ID, ApikeyKey)
+
+	return NewWallos(endpoint.String(), apiKey.String())
 }
 
 func NewWallos(endpoint string, apiKey string) *Wallos {

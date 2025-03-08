@@ -2,10 +2,9 @@ package bookmark
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
 
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
@@ -15,9 +14,7 @@ var eventRules = []event.Rule{
 	{
 		Id: types.BookmarkArchiveBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 
 			id, _ := param.String("id")
 			ok, err := client.ArchiveBookmark(id)
@@ -38,9 +35,7 @@ var eventRules = []event.Rule{
 	{
 		Id: types.BookmarkCreateBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 
 			url, _ := param.String("url")
 			item, err := client.CreateBookmark(url)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	rssClient "miniflux.app/v2/client"
 )
 
@@ -16,6 +17,13 @@ const (
 type Miniflux struct {
 	apiKey string
 	c      *rssClient.Client
+}
+
+func GetClient() *Miniflux {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	apiKey, _ := providers.GetConfig(ID, ApikeyKey)
+
+	return NewMiniflux(endpoint.String(), apiKey.String())
 }
 
 func NewMiniflux(endpoint, apiKey string) *Miniflux {

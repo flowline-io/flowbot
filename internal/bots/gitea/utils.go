@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/agents"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 )
 
@@ -374,9 +373,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 	var filesContext []map[string]any
 	windowSize := conf.ContextWindow
 
-	endpoint, _ := providers.GetConfig(gitea.ID, gitea.EndpointKey)
-	token, _ := providers.GetConfig(gitea.ID, gitea.TokenKey)
-	client, err := gitea.NewGitea(endpoint.String(), token.String())
+	client, err := gitea.GetClient()
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to create gitea client: %w", err))
 		return nil, fmt.Errorf("failed to create gitea client: %w", err)
@@ -576,9 +573,7 @@ func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewCom
 func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewComment, error) {
 	flog.Info("Starting Code review for %s/%s #%s", owner, repo, commitID)
 
-	endpoint, _ := providers.GetConfig(gitea.ID, gitea.EndpointKey)
-	token, _ := providers.GetConfig(gitea.ID, gitea.TokenKey)
-	client, err := gitea.NewGitea(endpoint.String(), token.String())
+	client, err := gitea.GetClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gitea client: %w", err)
 	}

@@ -2,10 +2,11 @@ package workflow
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
 	"github.com/flowline-io/flowbot/pkg/expression"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -188,15 +188,14 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
-			c, err := transmission.NewTransmission(endpoint.String())
+			client, err := transmission.GetClient()
 			if err != nil {
 				return nil, fmt.Errorf("%s step, transmission client failed, %w", torrentWorkflowActionID, err)
 			}
 
 			url, _ := input.String("url")
 			if url != "" {
-				t, err := c.TorrentAddUrl(ctx.Context(), url)
+				t, err := client.TorrentAddUrl(ctx.Context(), url)
 				if err != nil {
 					return nil, fmt.Errorf("%s step, torrent add url failed, %w", torrentWorkflowActionID, err)
 				}
@@ -223,7 +222,7 @@ var workflowRules = []workflow.Rule{
 
 						flog.Info("[%s] torrent add url: %s", transmission.ID, url)
 
-						t, err := c.TorrentAddUrl(ctx.Context(), url)
+						t, err := client.TorrentAddUrl(ctx.Context(), url)
 						if err != nil {
 							return nil, fmt.Errorf("%s step, torrent add url failed, %w", torrentWorkflowActionID, err)
 						}

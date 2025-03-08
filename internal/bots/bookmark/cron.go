@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
@@ -23,9 +22,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)
@@ -58,9 +55,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)
@@ -84,9 +79,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "*/5 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)
@@ -116,9 +109,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeUser,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(hoarder.ID, hoarder.EndpointKey)
-			apiKey, _ := providers.GetConfig(hoarder.ID, hoarder.ApikeyKey)
-			client := hoarder.NewHoarder(endpoint.String(), apiKey.String())
+			client := hoarder.GetClient()
 			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
 			if err != nil {
 				flog.Error(err)

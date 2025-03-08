@@ -2,12 +2,14 @@ package transmission
 
 import (
 	"context"
-	"github.com/hekmon/transmissionrpc/v3"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/hekmon/transmissionrpc/v3"
 )
 
 const (
@@ -17,6 +19,12 @@ const (
 
 type Transmission struct {
 	c *transmissionrpc.Client
+}
+
+func GetClient() (*Transmission, error) {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+
+	return NewTransmission(endpoint.String())
 }
 
 func NewTransmission(endpoint string) (*Transmission, error) {

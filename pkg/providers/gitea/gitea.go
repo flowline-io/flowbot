@@ -7,6 +7,7 @@ import (
 	"code.gitea.io/sdk/gitea"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
 const (
@@ -18,6 +19,13 @@ const (
 type Gitea struct {
 	token string
 	c     *gitea.Client
+}
+
+func GetClient() (*Gitea, error) {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	token, _ := providers.GetConfig(ID, TokenKey)
+
+	return NewGitea(endpoint.String(), token.String())
 }
 
 func NewGitea(endpoint, token string) (*Gitea, error) {

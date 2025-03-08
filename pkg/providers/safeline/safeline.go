@@ -2,9 +2,11 @@ package safeline
 
 import (
 	"context"
-	"github.com/go-resty/resty/v2"
 	"net/http"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -16,6 +18,13 @@ const (
 type SafeLine struct {
 	c     *resty.Client
 	token string
+}
+
+func GetClient() *SafeLine {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	token, _ := providers.GetConfig(ID, TokenKey)
+
+	return NewSafeLine(endpoint.String(), token.String())
 }
 
 func NewSafeLine(endpoint string, token string) *SafeLine {

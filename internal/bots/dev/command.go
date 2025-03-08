@@ -15,7 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
@@ -107,8 +106,7 @@ var commandRules = []command.Rule{
 		Define: "torrent test",
 		Help:   `[example] torrent download demo`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
-			client, err := transmission.NewTransmission(endpoint.String())
+			client, err := transmission.GetClient()
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
@@ -206,10 +204,7 @@ var commandRules = []command.Rule{
 		Define: "safeline test",
 		Help:   `[example] safeline example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(safeline.ID, safeline.EndpointKey)
-			token, _ := providers.GetConfig(safeline.ID, safeline.TokenKey)
-
-			client := safeline.NewSafeLine(endpoint.String(), token.String())
+			client := safeline.GetClient()
 			resp, err := client.QPS(context.Background())
 
 			if err != nil {

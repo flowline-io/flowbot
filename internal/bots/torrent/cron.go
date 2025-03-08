@@ -3,9 +3,9 @@ package torrent
 import (
 	"context"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -30,14 +30,13 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			endpoint, _ := providers.GetConfig(transmission.ID, transmission.EndpointKey)
-			c, err := transmission.NewTransmission(endpoint.String())
+			client, err := transmission.GetClient()
 			if err != nil {
 				flog.Error(fmt.Errorf("torrent metrics failed, %w", err))
 				return nil
 			}
 
-			list, err := c.TorrentGetAll(context.Background())
+			list, err := client.TorrentGetAll(context.Background())
 			if err != nil {
 				flog.Error(fmt.Errorf("torrent metrics get all failed, %w", err))
 				return nil

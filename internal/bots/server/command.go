@@ -5,6 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/workflow"
@@ -12,16 +17,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/redis/go-redis/v9"
-	"runtime"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -124,10 +124,7 @@ var commandRules = []command.Rule{
 		Define: "adguard status",
 		Help:   `get adguard home status`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
-			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
-			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
+			client := adguard.GetClient()
 
 			resp, err := client.GetStatus()
 			if err != nil {
@@ -141,10 +138,7 @@ var commandRules = []command.Rule{
 		Define: "adguard stats",
 		Help:   `get adguard home statistics`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			endpoint, _ := providers.GetConfig(adguard.ID, adguard.EndpointKey)
-			username, _ := providers.GetConfig(adguard.ID, adguard.UsernameKey)
-			password, _ := providers.GetConfig(adguard.ID, adguard.PasswordKey)
-			client := adguard.NewAdGuardHome(endpoint.String(), username.String(), password.String())
+			client := adguard.GetClient()
 
 			resp, err := client.GetStats()
 			if err != nil {

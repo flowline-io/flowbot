@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -16,6 +17,13 @@ const (
 type Slash struct {
 	c     *resty.Client
 	token string
+}
+
+func GetClient() *Slash {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	token, _ := providers.GetConfig(ID, TokenKey)
+
+	return NewSlash(endpoint.String(), token.String())
 }
 
 func NewSlash(endpoint string, token string) *Slash {

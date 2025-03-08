@@ -2,8 +2,10 @@ package adguard
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -15,6 +17,14 @@ const (
 
 type AdGuardHome struct {
 	c *resty.Client
+}
+
+func GetClient() *AdGuardHome {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	username, _ := providers.GetConfig(ID, UsernameKey)
+	password, _ := providers.GetConfig(ID, PasswordKey)
+
+	return NewAdGuardHome(endpoint.String(), username.String(), password.String())
 }
 
 func NewAdGuardHome(endpoint string, username string, password string) *AdGuardHome {
