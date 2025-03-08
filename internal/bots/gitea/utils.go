@@ -223,8 +223,6 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		// Clean and format JSON string
 		responseText = strings.ReplaceAll(strings.ReplaceAll(responseText, "\n", " "), "\r", "")
 
-		flog.Info("json string with size: %d characters, content: %s", len(responseText), responseText)
-
 		var result ReviewResult
 		if err := json.Unmarshal([]byte(responseText), &result); err != nil {
 			flog.Error(fmt.Errorf("JSON parsing error: %w", err))
@@ -576,7 +574,7 @@ func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewCom
 }
 
 func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewComment, error) {
-	flog.Info("Starting PR review for %s/%s #%s", owner, repo, commitID)
+	flog.Info("Starting Code review for %s/%s #%s", owner, repo, commitID)
 
 	endpoint, _ := providers.GetConfig(gitea.ID, gitea.EndpointKey)
 	token, _ := providers.GetConfig(gitea.ID, gitea.TokenKey)
