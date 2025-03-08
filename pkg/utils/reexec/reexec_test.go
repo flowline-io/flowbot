@@ -1,8 +1,10 @@
 package reexec // import "github.com/docker/docker/pkg/reexec"
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"runtime/debug"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -19,6 +21,7 @@ func init() {
 func TestRegister(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
+			_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
 			assert.Equal(t, `reexec func already registered under name "reexec"`, r)
 		}
 	}()

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"os"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -115,6 +117,7 @@ func logPanic(r interface{}) {
 
 func HandleCrash(additionalHandlers ...func(interface{})) {
 	if r := recover(); r != nil { //revive:disable
+		_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
 		for _, fn := range PanicHandlers {
 			fn(r)
 		}

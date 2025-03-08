@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"fmt"
+	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -45,6 +47,7 @@ func (r Ruleset) ProcessRule(ctx types.Context, input types.KV) (types.KV, error
 	go func() {
 		defer func() {
 			if r := recover(); r != nil { // revive:disable
+				_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
 				errorCh <- fmt.Errorf("recover: %v", r)
 			}
 		}()

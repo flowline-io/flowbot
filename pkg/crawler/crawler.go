@@ -6,6 +6,8 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"os"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"time"
@@ -99,7 +101,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 			result := func() []map[string]string {
 				defer func() {
 					if r := recover(); r != nil {
-						flog.Warn("crawler %s ruleWorker recover ", name)
+						_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
 						if v, ok := r.(error); ok {
 							flog.Error(v)
 						}

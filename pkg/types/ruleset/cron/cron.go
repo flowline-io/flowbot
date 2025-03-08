@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -91,6 +93,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 			msgs := func() []result {
 				defer func() {
 					if r := recover(); r != nil {
+						_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
 						flog.Error(fmt.Errorf("cron %s ruleWorker recover, error %v", rule.Name, r))
 					}
 				}()
