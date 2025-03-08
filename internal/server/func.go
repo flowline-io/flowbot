@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cloudwego/eino/schema"
-	"github.com/flowline-io/flowbot/internal/agents"
 	"strings"
 	"time"
 
+	"github.com/cloudwego/eino/schema"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"

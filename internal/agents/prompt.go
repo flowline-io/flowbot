@@ -2,11 +2,10 @@ package agents
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/flog"
-
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func DefaultTemplate() prompt.ChatTemplate {
