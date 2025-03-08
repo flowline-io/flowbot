@@ -30,15 +30,22 @@ func LLMGenerate(ctx context.Context, prompt string) (string, error) {
 	messages, err := DefaultTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
+	if err != nil {
+		return "", fmt.Errorf("prompt format failed, %w", err)
+	}
 
 	llm, err := ChatModel(ctx, Model())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("chat model failed, %w", err)
 	}
 
 	resp, err := Generate(ctx, llm, messages)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("llm generate failed, %w", err)
+	}
+
+	if resp == nil {
+		return "", nil
 	}
 
 	return resp.Content, nil
