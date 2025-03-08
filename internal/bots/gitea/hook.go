@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -23,6 +24,7 @@ func hookIssueClosed(ctx types.Context, issue *gitea.IssuePayload) error {
 }
 
 func hookPush(ctx types.Context, payload *gitea.RepoPayload) error {
+	ctx.SetTimeout(10 * time.Minute)
 	owner := payload.Repository.Owner.UserName
 	repo := payload.Repository.Name
 	for _, commit := range payload.Commits {

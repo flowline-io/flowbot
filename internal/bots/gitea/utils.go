@@ -180,8 +180,6 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 			return nil, fmt.Errorf("error getting LLM response: %w", err)
 		}
 
-		flog.Info("Received response with size: %d characters, content: %s", len(responseText), responseText)
-
 		responseText = strings.TrimSpace(responseText)
 
 		// Find the start and end positions of JSON content
