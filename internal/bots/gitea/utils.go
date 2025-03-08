@@ -182,6 +182,8 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 
 		responseText = strings.TrimSpace(responseText)
 
+		flog.Info("Received response with size: %d characters, content: %s", len(responseText), responseText)
+
 		// Find the start and end positions of JSON content
 		jsonStart := strings.Index(responseText, "{")
 		jsonEnd := strings.LastIndex(responseText, "}") + 1
@@ -204,7 +206,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 
 		responseText = responseText[jsonStart:jsonEnd]
 
-		// Process possible markdown code blocks
+		// Process possible Markdown code blocks
 		if strings.Contains(responseText, "```json") {
 			parts := strings.Split(responseText, "```json")
 			if len(parts) > 1 {
@@ -222,6 +224,8 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 
 		// Clean and format JSON string
 		responseText = strings.ReplaceAll(strings.ReplaceAll(responseText, "\n", " "), "\r", "")
+
+		flog.Info("json string with size: %d characters, content: %s", len(responseText), responseText)
 
 		var result ReviewResult
 		if err := json.Unmarshal([]byte(responseText), &result); err != nil {
@@ -308,6 +312,8 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 			minBestPracticeScore = r.QualityMetrics.BestPracticeScore
 		}
 	}
+
+	flog.Info("review results: %+v", results)
 
 	// Merge all issues
 	allIssues := make([]*CodeIssue, 0)
