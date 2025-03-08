@@ -15,7 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 )
 
-func splitCodeChunk(context CodeContext) []*CodeContext {
+func splitCodeChunk(codeContext CodeContext) []*CodeContext {
 	config := DefaultConfig()
 	maxTokens := config.MaxTokens - 1000
 
@@ -23,13 +23,13 @@ func splitCodeChunk(context CodeContext) []*CodeContext {
 	currentChunk := &CodeContext{
 		Diff:         "",
 		FilesContext: make([]map[string]any, 0, 10),
-		Metadata:     context.Metadata,
+		Metadata:     codeContext.Metadata,
 	}
 	currentTokens := 0
 	currentFiles := make([]string, 0)
 
 	// Split diff content by file
-	fileDiffs := strings.Split(context.Diff, "diff --git ")
+	fileDiffs := strings.Split(codeContext.Diff, "diff --git ")
 	if len(fileDiffs) > 0 && fileDiffs[0] == "" {
 		fileDiffs = fileDiffs[1:] // Remove the empty first element
 	}
@@ -52,14 +52,14 @@ func splitCodeChunk(context CodeContext) []*CodeContext {
 
 		if currentTokens+fileTokens > maxTokens && currentChunk.Diff != "" {
 			// Add relevant file context
-			currentChunk.FilesContext = filterFilesContext(context.FilesContext, currentFiles)
+			currentChunk.FilesContext = filterFilesContext(codeContext.FilesContext, currentFiles)
 			chunks = append(chunks, currentChunk)
 
 			// Reset current chunk
 			currentChunk = &CodeContext{
 				Diff:         "",
 				FilesContext: make([]map[string]any, 0, 10),
-				Metadata:     context.Metadata,
+				Metadata:     codeContext.Metadata,
 			}
 			currentTokens = 0
 			currentFiles = make([]string, 0)
@@ -73,7 +73,7 @@ func splitCodeChunk(context CodeContext) []*CodeContext {
 
 	// Process the last chunk
 	if currentChunk.Diff != "" {
-		currentChunk.FilesContext = filterFilesContext(context.FilesContext, currentFiles)
+		currentChunk.FilesContext = filterFilesContext(codeContext.FilesContext, currentFiles)
 		chunks = append(chunks, currentChunk)
 	}
 
@@ -115,8 +115,8 @@ func getTotalDiffSize(chunks []*CodeContext) int {
 	return totalSize
 }
 
-func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, error) {
-	chunks := splitCodeChunk(context)
+func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult, error) {
+	chunks := splitCodeChunk(codeContext)
 	results := make([]ReviewResult, 0, len(chunks))
 
 	for i, chunk := range chunks {
@@ -139,9 +139,9 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 		}
 
 		// Validate required parameters
-		if _, ok := context.Metadata["commit_message"]; !ok {
+		if _, ok := codeContext.Metadata["commit_message"]; !ok {
 			commitID := "unknown"
-			if id, ok := context.Metadata["commit_id"]; ok && len(id) >= 8 {
+			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 				commitID = id[:8]
 			}
 			flog.Error(fmt.Errorf("missing commit message in metadata for commit: %s", commitID))
@@ -150,7 +150,7 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 
 		if chunk.Diff == "" {
 			commitID := "unknown"
-			if id, ok := context.Metadata["commit_id"]; ok && len(id) >= 8 {
+			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 				commitID = id[:8]
 			}
 			flog.Error(fmt.Errorf("missing diff content for commit: %s", commitID))
@@ -161,7 +161,7 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 		prompt := strings.ReplaceAll(
 			strings.ReplaceAll(
 				strings.ReplaceAll(ReviewPrompt,
-					"{commit_message}", context.Metadata["commit_message"]),
+					"{commit_message}", codeContext.Metadata["commit_message"]),
 				"{diff}", chunk.Diff),
 			"{files_context}", filesContextStr.String())
 
@@ -256,7 +256,7 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 			}
 			results = append(results, result)
 			commitID := "unknown"
-			if id, ok := context.Metadata["commit_id"]; ok && len(id) >= 8 {
+			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 				commitID = id[:8]
 			}
 			flog.Info("Successfully analyzed chunk %d/%d for commit: %s",
@@ -267,7 +267,7 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 	// Merge all chunk results
 	if len(results) == 0 {
 		commitID := "unknown"
-		if id, ok := context.Metadata["commit_id"]; ok && len(id) >= 8 {
+		if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 			commitID = id[:8]
 		}
 		flog.Info("No valid results for commit: %s", commitID)
@@ -330,7 +330,7 @@ func llmAnalyzeCode(ctx context.Context, context CodeContext) (*ReviewResult, er
 	}
 
 	commitID := "unknown"
-	if id, ok := context.Metadata["commit_id"]; ok && len(id) >= 8 {
+	if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 		commitID = id[:8]
 	}
 	flog.Info("Analysis completed for commit %s with final score: %.2f",
@@ -434,18 +434,18 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 }
 
 // analyzeCode analyzes the code changes in the entire commit
-func analyzeCode(ctx context.Context, context *CodeContext) (*ReviewResult, error) {
+func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, error) {
 	flog.Debug("Analyzing commit: %s - %s (files: %d)",
-		context.Metadata["commit_id"][:8],
-		strings.Split(context.Metadata["commit_message"], "\n")[0][:50],
-		len(context.FilesContext))
+		codeContext.Metadata["commit_id"][:8],
+		strings.Split(codeContext.Metadata["commit_message"], "\n")[0][:50],
+		len(codeContext.FilesContext))
 
 	config := DefaultConfig()
 
-	result, err := llmAnalyzeCode(ctx, *context)
+	result, err := llmAnalyzeCode(ctx, *codeContext)
 	if err != nil {
 		flog.Error(fmt.Errorf("Error analyzing code for commit %s: %v\nFull error: %v",
-			context.Metadata["commit_id"][:8], err, err))
+			codeContext.Metadata["commit_id"][:8], err, err))
 		// Return a default review result
 		return &ReviewResult{
 			Score:          0,
@@ -464,7 +464,7 @@ func analyzeCode(ctx context.Context, context *CodeContext) (*ReviewResult, erro
 
 	// Record review results
 	flog.Info("Code analysis completed for commit %s with scores and %d files:",
-		context.Metadata["commit_id"][:8], len(context.FilesContext))
+		codeContext.Metadata["commit_id"][:8], len(codeContext.FilesContext))
 	flog.Info("- Overall Score: %.1f/10 (weight: %f)", result.Score, config.QualityThreshold)
 	flog.Info("- Security: %.1f/10 (weight: %f)", result.QualityMetrics.SecurityScore, config.ScoringRules["security"])
 	flog.Info("- Performance: %.1f/10 (weight: %f)", result.QualityMetrics.PerformanceScore, config.ScoringRules["performance"])
@@ -473,7 +473,7 @@ func analyzeCode(ctx context.Context, context *CodeContext) (*ReviewResult, erro
 
 	if len(result.SecurityIssues) > 0 {
 		flog.Warn("Found %d security issues in commit %s (threshold: %d)",
-			len(result.SecurityIssues), context.Metadata["commit_id"][:8], config.MaxSecurityIssues)
+			len(result.SecurityIssues), codeContext.Metadata["commit_id"][:8], config.MaxSecurityIssues)
 	}
 
 	return result, nil
@@ -487,13 +487,13 @@ type ReviewComment struct {
 }
 
 // generateComments generates review comments
-func generateComments(result *ReviewResult, context *CodeContext) *ReviewComment {
-	if result == nil || context == nil {
+func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewComment {
+	if result == nil || codeContext == nil {
 		return nil
 	}
 
 	flog.Debug("Generating comments for commit: %s with %d issues",
-		context.Metadata["commit_id"][:8], len(result.Issues))
+		codeContext.Metadata["commit_id"][:8], len(result.Issues))
 
 	// Add overall score comment
 	overallComment := []string{
@@ -560,13 +560,13 @@ func generateComments(result *ReviewResult, context *CodeContext) *ReviewComment
 	}
 
 	comment := &ReviewComment{
-		Path:     context.Metadata["commit_message"],
+		Path:     codeContext.Metadata["commit_message"],
 		Line:     1,
 		Body:     strings.Join(overallComment, "\n"),
-		CommitID: context.Metadata["commit_id"],
+		CommitID: codeContext.Metadata["commit_id"],
 	}
 
-	flog.Info("Generated 1 review comments for commit %s", context.Metadata["commit_id"][:8])
+	flog.Info("Generated 1 review comments for commit %s", codeContext.Metadata["commit_id"][:8])
 
 	return comment
 }
