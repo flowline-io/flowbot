@@ -76,7 +76,7 @@ func splitCodeChunk(codeContext CodeContext) []*CodeContext {
 		chunks = append(chunks, currentChunk)
 	}
 
-	flog.Info("Split code into %d chunks with total size: %d characters",
+	flog.Info("[gitea] Split code into %d chunks with total size: %d characters",
 		len(chunks),
 		getTotalDiffSize(chunks))
 
@@ -119,7 +119,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 	results := make([]ReviewResult, 0, len(chunks))
 
 	for i, chunk := range chunks {
-		flog.Info("Analyzing chunk %d/%d with size: %d characters",
+		flog.Info("[gitea] Analyzing chunk %d/%d with size: %d characters",
 			i+1, len(chunks),
 			len(chunk.Diff))
 
@@ -170,7 +170,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		}
 
 		// Call LLM model
-		flog.Info("Sending request to LLM model with prompt size: %d characters", len(prompt))
+		flog.Info("[gitea] Sending request to LLM model with prompt size: %d characters", len(prompt))
 
 		// Call LLM to get response
 		responseText, err := agents.LLMGenerate(ctx, prompt)
@@ -258,7 +258,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 				commitID = id[:8]
 			}
-			flog.Info("Successfully analyzed chunk %d/%d for commit: %s",
+			flog.Info("[gitea] Successfully analyzed chunk %d/%d for commit: %s",
 				i+1, len(chunks), commitID)
 		}
 	}
@@ -269,7 +269,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 			commitID = id[:8]
 		}
-		flog.Info("No valid results for commit: %s", commitID)
+		flog.Info("[gitea] No valid results for commit: %s", commitID)
 		return &ReviewResult{
 			Score:          0,
 			Issues:         []*CodeIssue{},
@@ -308,7 +308,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		}
 	}
 
-	flog.Info("review results: %+v", results)
+	flog.Info("[gitea] review results: %+v", results)
 
 	// Merge all issues
 	allIssues := make([]*CodeIssue, 0)
@@ -334,7 +334,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 	if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
 		commitID = id[:8]
 	}
-	flog.Info("Analysis completed for commit %s with final score: %.2f",
+	flog.Info("[gitea] Analysis completed for commit %s with final score: %.2f",
 		commitID, finalResult.Score)
 	return finalResult, nil
 }
@@ -364,7 +364,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 	// Filter files
 	filteredFiles := filterFiles(commitDiff.Files, conf.IgnorePatterns)
 	if len(filteredFiles) == 0 {
-		flog.Info("No files to review after filtering for commit %s (changed files: %d)",
+		flog.Info("[gitea] No files to review after filtering for commit %s (changed files: %d)",
 			commitDiff.CommitID[:8], len(commitDiff.Files))
 		return nil, nil
 	}
@@ -401,7 +401,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 		}
 
 		if len(codeContext) == 0 {
-			flog.Warn("No context returned for file: %s in commit: %s",
+			flog.Warn("[gitea] No context returned for file: %s in commit: %s",
 				filename, commitDiff.CommitID[:8])
 			continue
 		}
@@ -414,7 +414,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 	}
 
 	if len(filesContext) == 0 {
-		flog.Warn("No valid file contexts collected for commit %s (total files: %d)",
+		flog.Warn("[gitea] No valid file contexts collected for commit %s (total files: %d)",
 			commitDiff.CommitID[:8], len(commitDiff.Files))
 		return nil, nil
 	}
@@ -434,7 +434,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 
 // analyzeCode analyzes the code changes in the entire commit
 func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, error) {
-	flog.Debug("Analyzing commit: %s - %s (files: %d)",
+	flog.Debug("[gitea] Analyzing commit: %s - %s (files: %d)",
 		codeContext.Metadata["commit_id"][:8],
 		strings.Split(codeContext.Metadata["commit_message"], "\n")[0][:50],
 		len(codeContext.FilesContext))
@@ -462,7 +462,7 @@ func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, 
 	}
 
 	// Record review results
-	flog.Info("Code analysis completed for commit %s with scores and %d files:",
+	flog.Info("[gitea] Code analysis completed for commit %s with scores and %d files:",
 		codeContext.Metadata["commit_id"][:8], len(codeContext.FilesContext))
 	flog.Info("- Overall Score: %.1f/10 (weight: %f)", result.Score, conf.QualityThreshold)
 	flog.Info("- Security: %.1f/10 (weight: %f)", result.QualityMetrics.SecurityScore, conf.ScoringRules["security"])
@@ -471,7 +471,7 @@ func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, 
 	flog.Info("- Best Practices: %.1f/10 (weight: %f)", result.QualityMetrics.BestPracticeScore, conf.ScoringRules["best_practice"])
 
 	if len(result.SecurityIssues) > 0 {
-		flog.Warn("Found %d security issues in commit %s (threshold: %d)",
+		flog.Warn("[gitea] Found %d security issues in commit %s (threshold: %d)",
 			len(result.SecurityIssues), codeContext.Metadata["commit_id"][:8], conf.MaxSecurityIssues)
 	}
 
@@ -491,7 +491,7 @@ func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewCom
 		return nil
 	}
 
-	flog.Debug("Generating comments for commit: %s with %d issues",
+	flog.Debug("[gitea] Generating comments for commit: %s with %d issues",
 		codeContext.Metadata["commit_id"][:8], len(result.Issues))
 
 	// Add overall score comment
@@ -565,13 +565,13 @@ func generateComments(result *ReviewResult, codeContext *CodeContext) *ReviewCom
 		CommitID: codeContext.Metadata["commit_id"],
 	}
 
-	flog.Info("Generated 1 review comments for commit %s", codeContext.Metadata["commit_id"][:8])
+	flog.Info("[gitea] Generated 1 review comments for commit %s", codeContext.Metadata["commit_id"][:8])
 
 	return comment
 }
 
 func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewComment, error) {
-	flog.Info("Starting Code review for %s/%s #%s", owner, repo, commitID)
+	flog.Info("[gitea] Starting Code review for %s/%s #%s", owner, repo, commitID)
 
 	client, err := gitea.GetClient()
 	if err != nil {
@@ -582,7 +582,7 @@ func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewCom
 	if err != nil {
 		return nil, fmt.Errorf("failed to get commit diff: %w", err)
 	}
-	flog.Info("commit diffs: %v %s", commitDiffs.CommitID, commitDiffs.CommitMessage)
+	flog.Info("[gitea] commit diffs: %v %s", commitDiffs.CommitID, commitDiffs.CommitMessage)
 
 	// Collect context for the entire commit
 	codeContext, err := collectContext(owner, repo, commitDiffs)
@@ -590,7 +590,7 @@ func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewCom
 		return nil, fmt.Errorf("failed to collect context: %w", err)
 	}
 	if codeContext == nil {
-		flog.Warn("Skipping commit %s due to no reviewable files (total files: %d)",
+		flog.Warn("[gitea] Skipping commit %s due to no reviewable files (total files: %d)",
 			commitDiffs.CommitID[:8], len(commitDiffs.Files))
 		return nil, nil
 	}
@@ -606,14 +606,14 @@ func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewCom
 
 	conf := DefaultConfig()
 	minScore := result.Score
-	flog.Info("Commit review completed with minimum score: %v (threshold: %v)",
+	flog.Info("[gitea] Commit review completed with minimum score: %v (threshold: %v)",
 		minScore, conf.QualityThreshold)
 
 	if minScore >= conf.QualityThreshold {
-		flog.Info("Commit quality meets threshold (%v >= %v)",
+		flog.Info("[gitea] Commit quality meets threshold (%v >= %v)",
 			minScore, conf.QualityThreshold)
 	} else {
-		flog.Info("Commit quality below threshold (%v < %v)",
+		flog.Info("[gitea] Commit quality below threshold (%v < %v)",
 			minScore, conf.QualityThreshold)
 	}
 
