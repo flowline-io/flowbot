@@ -465,11 +465,11 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			}
 
 			ctx := types.Context{
-				Platform:     "",
-				Topic:        "",
-				AsUser:       uid,
-				CollectId:    id,
-				AgentVersion: data.Version,
+				Platform:      "",
+				Topic:         "",
+				AsUser:        uid,
+				CollectRuleId: id,
+				AgentVersion:  data.Version,
 			}
 			content, _ := data.Content.Map("content")
 			payload, err := handle.Collect(ctx, content)

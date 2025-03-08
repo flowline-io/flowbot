@@ -25,8 +25,8 @@ type Context struct {
 	// form id
 	FormId string
 
-	// agent
-	CollectId string
+	// agent rule id
+	CollectRuleId string
 	// agent
 	AgentVersion int
 
@@ -40,10 +40,10 @@ type Context struct {
 	ToolRuleId string
 
 	// event rule id
-	EventId string
+	EventRuleId string
 
 	// webhook rule id
-	WebhookId string
+	WebhookRuleId string
 	// HTTP method
 	Method string
 	// HTTP headers

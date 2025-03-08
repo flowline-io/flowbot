@@ -21,7 +21,7 @@ func (r Ruleset) ProcessAgent(ctx types.Context, content types.KV) (types.MsgPay
 	}
 	var result types.MsgPayload
 	for _, rule := range r {
-		if rule.Id == ctx.CollectId {
+		if rule.Id == ctx.CollectRuleId {
 			result = rule.Handler(ctx, content)
 		}
 	}

@@ -68,9 +68,9 @@ func onBotRunEventHandler(msg *message.Message) error {
 	}
 
 	ctx := types.Context{
-		AsUser:  types.Uid(be.Uid),
-		Topic:   be.Topic,
-		EventId: be.EventName,
+		AsUser:      types.Uid(be.Uid),
+		Topic:       be.Topic,
+		EventRuleId: be.EventName,
 	}
 	ctx.SetTimeout(10 * time.Minute)
 

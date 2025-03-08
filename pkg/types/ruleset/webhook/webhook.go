@@ -11,11 +11,11 @@ type Rule struct {
 type Ruleset []Rule
 
 func (r Ruleset) ProcessRule(ctx types.Context, data []byte) (types.MsgPayload, error) {
+	var result types.MsgPayload
 	for _, rule := range r {
-		result := rule.Handler(ctx, data)
-		if result != nil {
-			return result, nil
+		if rule.Id == ctx.WebhookRuleId {
+			result = rule.Handler(ctx, data)
 		}
 	}
-	return nil, nil
+	return result, nil
 }

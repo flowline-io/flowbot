@@ -467,7 +467,7 @@ func doWebhook(ctx *fiber.Ctx) error {
 		data = ctx.Body()
 	}
 
-	typesCtx.WebhookId = flag
+	typesCtx.WebhookRuleId = flag
 	typesCtx.Method = method
 	typesCtx.Headers = ctx.GetReqHeaders()
 
