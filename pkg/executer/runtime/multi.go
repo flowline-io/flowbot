@@ -44,7 +44,7 @@ func (m *MultiMounter) RegisterMounter(mtype string, mr Mounter) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, ok := m.mounters[mtype]; ok {
-		flog.Panic("mount: Register called twice for mounter")
+		flog.Fatal("mount: Register called twice for mounter")
 	}
 	m.mounters[mtype] = mr
 }

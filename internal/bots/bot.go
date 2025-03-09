@@ -42,10 +42,10 @@ func Register(name string, bot Handler) {
 	}
 
 	if bot == nil {
-		flog.Panic("Register: bot is nil")
+		flog.Fatal("Register: bot is nil")
 	}
 	if _, dup := handlers[name]; dup {
-		flog.Panic("Register: called twice for bot %s", name)
+		flog.Fatal("Register: called twice for bot %s", name)
 	}
 	handlers[name] = bot
 	_, _ = fmt.Printf("%s info %s [bot] %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)

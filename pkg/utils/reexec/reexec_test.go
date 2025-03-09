@@ -13,7 +13,7 @@ import (
 
 func init() {
 	Register("reexec", func() {
-		flog.Panic("Return Error")
+		flog.Fatal("Return Error")
 	})
 	Init()
 }

@@ -19,10 +19,10 @@ func Register(id string, notifyer Notifyer) {
 	}
 
 	if notifyer == nil {
-		flog.Panic("Register: notifyer is nil")
+		flog.Fatal("Register: notifyer is nil")
 	}
 	if _, dup := handlers[id]; dup {
-		flog.Panic("Register: called twice for notifyer %s", id)
+		flog.Fatal("Register: called twice for notifyer %s", id)
 	}
 	handlers[id] = notifyer
 }

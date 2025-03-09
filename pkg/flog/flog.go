@@ -105,13 +105,13 @@ func Error(err error) {
 	// alarm error
 	alarm.Alarm(err, 0)
 	// print error
-	l.Error().Caller(1).Err(err).Stack().Msg(err.Error())
+	l.Error().Caller(1).Stack().Err(err).Msg(err.Error())
 }
 
 func Fatal(format string, a ...any) {
-	l.Fatal().Caller(1).Stack().Msgf(format, a...)
+	l.Fatal().Caller(1).Msgf(format, a...)
 }
 
 func Panic(format string, a ...any) {
-	l.Panic().Caller(1).Stack().Msgf(format, a...)
+	l.Panic().Caller(1).Msgf(format, a...)
 }
