@@ -9,33 +9,43 @@ import (
 	"github.com/pkoukk/tiktoken-go"
 )
 
-func CountToken(text string) (int, error) {
+func CountToken(text string) int {
 	encoding := tiktoken.MODEL_CL100K_BASE
 
 	// if you don't want download dictionary at runtime, you can use offline loader
 	// tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get encoding: %w", err)
+		flog.Error(fmt.Errorf("get encoding failed: %w", err))
+		return 0
 	}
 
 	// encode
 	token := tke.Encode(text, nil, nil)
 
-	return len(token), nil
+	return len(token)
 }
 
 func CountMessageTokens(messages []*schema.Message) (int, error) {
 	start := time.Now()
-	totalToken := 0
+
+	var tokensPerMessage, tokensPerName int
+	tokensPerMessage = 3
+	tokensPerName = 1
+
+	numTokens := 0
 	for _, msg := range messages {
-		token, err := CountToken(msg.Content)
-		if err != nil {
-			return 0, fmt.Errorf("count token failed: %w", err)
+		numTokens += tokensPerMessage
+		numTokens += CountToken(msg.Content)
+		numTokens += CountToken(string(msg.Role))
+		numTokens += CountToken(msg.Name)
+		if msg.Name != "" {
+			numTokens += tokensPerName
 		}
-		totalToken += token
 	}
+	numTokens += 3 // every reply is primed with <|start|>assistant<|message|>
+
 	elapsed := time.Since(start)
-	flog.Info("token count: %d, time: %s", totalToken, elapsed)
-	return totalToken, nil
+	flog.Info("token count: %d, time: %s", numTokens, elapsed)
+	return numTokens, nil
 }
