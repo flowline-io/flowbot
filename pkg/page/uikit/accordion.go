@@ -1,9 +1,6 @@
 package uikit
 
-import (
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
-	"strconv"
-)
+import "github.com/maxence-charriere/go-app/v10/pkg/app"
 
 const (
 	AccordionClass        = "uk-accordion"
@@ -12,12 +9,12 @@ const (
 	AccordionOpenClass    = "uk-open"
 )
 
-// Accordion 创建手风琴组件
+// Accordion creates an accordion component
 func Accordion(elems ...app.UI) app.HTMLUl {
 	return app.Ul().Class(AccordionClass).Attr("uk-accordion", "").Body(elems...)
 }
 
-// AccordionWithOptions 创建带选项的手风琴组件
+// AccordionWithOptions creates an accordion component with options
 func AccordionWithOptions(multiple bool, collapsible bool, animation bool, duration int, elems ...app.UI) app.HTMLUl {
 	options := ""
 
@@ -34,13 +31,13 @@ func AccordionWithOptions(multiple bool, collapsible bool, animation bool, durat
 	}
 
 	if duration != 0 {
-		options += "duration: " + strconv.Itoa(duration) + "; "
+		options += "duration: " + string(duration) + "; "
 	}
 
 	return app.Ul().Class(AccordionClass).Attr("uk-accordion", options).Body(elems...)
 }
 
-// AccordionItem 创建手风琴项
+// AccordionItem creates an accordion item
 func AccordionItem(title string, content app.UI, open bool) app.HTMLLi {
 	li := app.Li()
 	if open {
@@ -53,7 +50,7 @@ func AccordionItem(title string, content app.UI, open bool) app.HTMLLi {
 	)
 }
 
-// AccordionItems 创建多个手风琴项
+// AccordionItems creates multiple accordion items
 func AccordionItems(items []struct {
 	Title   string
 	Content app.UI
