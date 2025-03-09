@@ -66,14 +66,12 @@ var cronRules = []cron.Rule{
 				}
 
 				category := "-"
-				source := "-"
 				if entry.Feed != nil {
-					source = entry.Feed.Title
 					if entry.Feed.Category != nil {
 						category = entry.Feed.Category.Title
 					}
 				}
-				_, _ = contents.WriteString(fmt.Sprintf("[%s] [%s] %s", category, source, entry.Title))
+				_, _ = contents.WriteString(fmt.Sprintf("%s:%s", category, entry.Title))
 				_, _ = contents.WriteString("\n")
 
 				entryLen++
