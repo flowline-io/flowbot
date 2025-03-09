@@ -97,7 +97,7 @@ func scripts(comp *types.UI) string {
 
 	// Handle global variables
 	if len(comp.Global) > 0 {
-		scriptsStr.WriteString("<script>\nlet Global = {};\n")
+		_, _ = scriptsStr.WriteString("<script>\nlet Global = {};\n")
 
 		for key, value := range comp.Global {
 			switch v := value.(type) {
@@ -117,12 +117,12 @@ func scripts(comp *types.UI) string {
 			}
 		}
 
-		scriptsStr.WriteString("</script>\n")
+		_, _ = scriptsStr.WriteString("</script>\n")
 	}
 
 	// Add custom scripts
 	for _, script := range comp.JS {
-		scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
+		_, _ = scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
 	}
 
 	return scriptsStr.String()
