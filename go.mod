@@ -49,6 +49,7 @@ require (
 	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
+	github.com/pkoukk/tiktoken-go v0.1.7
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rollbar/rollbar-go v1.4.5
@@ -101,6 +102,7 @@ require (
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
+	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
