@@ -80,41 +80,36 @@ const (
 
 func Authorize(notAuth bool, handler fiber.Handler) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		// check skip auth
+		// Check if authentication can be skipped
 		if notAuth {
 			return handler(ctx)
 		}
 
-		// check api flag
+		// Check API flag
 		var r http.Request
 		if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
 			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
 		}
+
 		accessToken := GetAccessToken(&r)
 		if accessToken == "" {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrParamVerificationFailed, errors.New("no token")))
+			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrParamVerificationFailed, errors.New("Missing token")))
 		}
+
 		p, err := store.Database.ParameterGet(accessToken)
-		if err != nil {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
-		}
-		if p.ID <= 0 || p.IsExpired() {
+		if err != nil || p.ID <= 0 || p.IsExpired() {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
 		}
 
 		topic, _ := types.KV(p.Params).String(topicKey)
 		u, _ := types.KV(p.Params).String(uidKey)
 		uid := types.Uid(u)
-		isValid := false
-		if !uid.IsZero() {
-			isValid = true
-		}
 
-		if !isValid {
+		if uid.IsZero() {
 			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
 		}
 
-		// set uid and topic
+		// Set uid and topic
 		ctx.Locals(uidKey, uid)
 		ctx.Locals(topicKey, topic)
 		ctx.Locals(paramKey, types.KV(p.Params))
