@@ -3,6 +3,9 @@ package page
 import (
 	_ "embed"
 	"fmt"
+	"html"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
@@ -11,21 +14,44 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
-	"html"
-	"strings"
 )
 
 //go:embed styles.css
 var stylesCss string
 
-func RenderForm(page model.Page, form model.Form) app.UI {
-	d, err := jsoniter.Marshal(page.Schema)
+// Define HTML layout template constant
+const htmlLayout = `
+<!DOCTYPE html>
+<html>
+    %s
+    <body>
+        %s
+        %s
+    </body>
+</html>
+`
+
+// unmarshalPageSchema parses specific types of messages from Page.Schema
+func unmarshalPageSchema(page model.Page, target interface{}) error {
+	data, err := jsoniter.Marshal(page.Schema)
 	if err != nil {
-		return nil
+		flog.Error(fmt.Errorf("failed to marshal page schema: %w", err))
+		return err
 	}
-	var msg types.FormMsg
-	err = jsoniter.Unmarshal(d, &msg)
+
+	err = jsoniter.Unmarshal(data, target)
 	if err != nil {
+		flog.Error(fmt.Errorf("failed to unmarshal page schema: %w", err))
+		return err
+	}
+
+	return nil
+}
+
+// RenderForm renders the form page
+func RenderForm(page model.Page, form model.Form) app.UI {
+	var msg types.FormMsg
+	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil
 	}
 
@@ -37,14 +63,10 @@ func RenderForm(page model.Page, form model.Form) app.UI {
 	return comp
 }
 
+// RenderTable renders the table page
 func RenderTable(page model.Page) app.UI {
-	d, err := jsoniter.Marshal(page.Schema)
-	if err != nil {
-		return nil
-	}
 	var msg types.TableMsg
-	err = jsoniter.Unmarshal(d, &msg)
-	if err != nil {
+	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil
 	}
 
@@ -55,14 +77,10 @@ func RenderTable(page model.Page) app.UI {
 	return comp
 }
 
+// RenderHtml renders the HTML page
 func RenderHtml(page model.Page) app.UI {
-	d, err := jsoniter.Marshal(page.Schema)
-	if err != nil {
-		return nil
-	}
 	var msg types.HtmlMsg
-	err = jsoniter.Unmarshal(d, &msg)
-	if err != nil {
+	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil
 	}
 
@@ -73,49 +91,46 @@ func RenderHtml(page model.Page) app.UI {
 	return comp
 }
 
+// scripts generates the JavaScript scripts required for the page
 func scripts(comp *types.UI) string {
-	scriptsStr := strings.Builder{}
+	var scriptsStr strings.Builder
+
+	// Handle global variables
 	if len(comp.Global) > 0 {
-		_, _ = scriptsStr.WriteString("<script>")
-		_, _ = scriptsStr.WriteString("let Global = {};")
+		scriptsStr.WriteString("<script>\nlet Global = {};\n")
+
 		for key, value := range comp.Global {
 			switch v := value.(type) {
 			case string:
-				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = "%s";`, key, v))
+				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = \"%s\";\n", key, v)
 			case int, uint, int32, uint32, int64, uint64:
-				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %d;`, key, v))
+				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %d;\n", key, v)
 			case float32, float64:
-				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %f;`, key, v))
+				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %f;\n", key, v)
 			case map[string]interface{}:
 				j, err := jsoniter.Marshal(v)
 				if err != nil {
-					flog.Error(err)
+					flog.Error(fmt.Errorf("failed to marshal global variable %s: %w", key, err))
 					continue
 				}
-				_, _ = scriptsStr.WriteString(fmt.Sprintf(`Global.%s = %s;`, key, string(j)))
+				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %s;\n", key, string(j))
 			}
 		}
-		_, _ = scriptsStr.WriteString("</script>")
+
+		scriptsStr.WriteString("</script>\n")
 	}
+
+	// Add custom scripts
 	for _, script := range comp.JS {
-		_, _ = scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
+		scriptsStr.WriteString(html.UnescapeString(app.HTMLString(script)))
 	}
 
 	return scriptsStr.String()
 }
 
+// Render renders the complete HTML page
 func Render(comp *types.UI) string {
-	const layout = `
-<!DOCTYPE html>
-<html>
-    %s
-    <body>
-        %s
-		%s
-    </body>
-</html>
-`
-
+	// Build head elements
 	headUIs := []app.UI{
 		app.Title().Text(comp.Title),
 		app.Meta().Charset("utf-8"),
@@ -125,14 +140,18 @@ func Render(comp *types.UI) string {
 		app.Script().Src(library.UIKitJs),
 		app.Script().Src(library.UIKitIconJs),
 	}
+
+	// Add custom CSS
 	if len(comp.CSS) > 0 {
 		headUIs = append(headUIs, comp.CSS...)
 	}
+
 	head := app.Head().Body(headUIs...)
 
-	b := comp.App
+	// Handle body content
+	body := comp.App
 	if !comp.ExpiredAt.IsZero() {
-		b = app.Div().Body(
+		body = app.Div().Body(
 			comp.App,
 			uikit.Margin(
 				uikit.Text(fmt.Sprintf("Expired at: %s", comp.ExpiredAt.Format("2006-01-02 15:04:05"))),
@@ -140,9 +159,16 @@ func Render(comp *types.UI) string {
 		)
 	}
 
-	return fmt.Sprintf(layout, app.HTMLString(head), app.HTMLString(b), scripts(comp))
+	// Assemble final HTML
+	return fmt.Sprintf(
+		htmlLayout,
+		app.HTMLString(head),
+		app.HTMLString(body),
+		scripts(comp),
+	)
 }
 
+// RenderComponent renders a simple component page
 func RenderComponent(title string, a app.UI) string {
 	return Render(&types.UI{
 		Title: title,
