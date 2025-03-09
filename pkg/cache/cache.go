@@ -34,15 +34,22 @@ func InitCache() error {
 }
 
 func Shutdown() {
+	if DB == nil {
+		flog.Warn("redis not initialized")
+		return
+	}
+
 	_, err := DB.Ping(context.Background()).Result()
 	if err == nil {
 		err = DB.Close()
 		if err != nil {
-			flog.Error(err)
+			flog.Error(fmt.Errorf("failed to close redis connection: %w", err))
 			return
 		}
+		flog.Info("redis stopped")
+	} else {
+		flog.Warn("redis connection already lost: %v", err)
 	}
-	flog.Info("cache stopped")
 }
 
 func SetInt64(key string, value int64) {
