@@ -1,6 +1,9 @@
 package uikit
 
-import "github.com/maxence-charriere/go-app/v10/pkg/app"
+import (
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"strconv"
+)
 
 const (
 	AccordionClass        = "uk-accordion"
@@ -31,7 +34,7 @@ func AccordionWithOptions(multiple bool, collapsible bool, animation bool, durat
 	}
 
 	if duration != 0 {
-		options += "duration: " + string(duration) + "; "
+		options += "duration: " + strconv.Itoa(duration) + "; "
 	}
 
 	return app.Ul().Class(AccordionClass).Attr("uk-accordion", options).Body(elems...)
