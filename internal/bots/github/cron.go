@@ -15,7 +15,7 @@ var cronRules = []cron.Rule{
 	{
 		Name:  "github_starred",
 		Scope: cron.CronScopeUser,
-		When:  "*/10 * * * *",
+		When:  "*/30 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
@@ -75,7 +75,10 @@ var cronRules = []cron.Rule{
 					},
 				})
 			}
-			return r
+
+			flog.Info("[github] got %d starred repos", len(r))
+
+			return nil
 		},
 	},
 	{
