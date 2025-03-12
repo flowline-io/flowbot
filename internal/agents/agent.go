@@ -28,7 +28,7 @@ func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error
 }
 
 func LLMGenerate(ctx context.Context, prompt string) (string, error) {
-	messages, err := DefaultTemplate().Format(ctx, map[string]any{
+	messages, err := BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
 

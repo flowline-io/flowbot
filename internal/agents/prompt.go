@@ -21,3 +21,10 @@ func DefaultMultiChatTemplate() prompt.ChatTemplate {
 		schema.MessagesPlaceholder("chat_history", true),
 	)
 }
+
+func BaseTemplate() prompt.ChatTemplate {
+	return prompt.FromMessages(schema.FString,
+		schema.SystemMessage("You are a helpful assistant."),
+		schema.UserMessage("{content}"),
+	)
+}

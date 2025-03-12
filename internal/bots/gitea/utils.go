@@ -10,6 +10,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/agents"
 
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 )
@@ -163,6 +164,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 					"{commit_message}", codeContext.Metadata["commit_message"]),
 				"{diff}", chunk.Diff),
 			"{files_context}", filesContextStr.String())
+		prompt = strings.ReplaceAll(prompt, "{language}", config.App.Agent.Language)
 
 		if prompt == "" {
 			flog.Error(fmt.Errorf("empty prompt after formatting"))
@@ -436,7 +438,7 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 func analyzeCode(ctx context.Context, codeContext *CodeContext) (*ReviewResult, error) {
 	flog.Debug("[gitea] Analyzing commit: %s - %s (files: %d)",
 		codeContext.Metadata["commit_id"][:8],
-		strings.Split(codeContext.Metadata["commit_message"], "\n")[0][:50],
+		strings.Split(codeContext.Metadata["commit_message"], "\n"),
 		len(codeContext.FilesContext))
 
 	conf := DefaultConfig()

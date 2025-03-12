@@ -130,6 +130,7 @@ Note:
 2. If an issue involves multiple lines of code, provide start_line and end_line
 3. If an issue only involves a single line of code, end_line can be null
 4. All line numbers must be actual code line numbers
+5. Please answer in {language}
 `
 
 type Config struct {

@@ -3,14 +3,14 @@ package bookmark
 import (
 	"context"
 	"fmt"
+
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
-	openaiProvider "github.com/flowline-io/flowbot/pkg/providers/openai"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
 )
@@ -43,13 +43,11 @@ func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, erro
 		return nil, nil
 	}
 
-	languageVal, _ := providers.GetConfig(openaiProvider.ID, openaiProvider.LanguageKey)
-
 	messages, err := prompt.FromMessages(schema.GoTemplate,
 		schema.UserMessage(tagsPrompt),
 	).Format(ctx, map[string]any{
 		"content":  content,
-		"language": languageVal.String(),
+		"language": config.App.Agent.Language,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
