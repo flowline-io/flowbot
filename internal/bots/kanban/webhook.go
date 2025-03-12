@@ -1,13 +1,12 @@
 package kanban
 
 import (
-	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"net/http"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -29,15 +28,14 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "error method"}
 			}
 
-			token, _ := providers.GetConfig(kanboard.ID, kanboard.WebhookTokenKey)
-			flog.Debug("kanban token %s", token) // TODO check token
-
 			var resp kanboard.EventResponse
 			err := json.Unmarshal(data, &resp)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error event response"}
 			}
+
+			flog.Info("[kanban] webhook event: %s", resp.EventName)
 
 			// metrics
 			go func() {
@@ -58,9 +56,6 @@ var webhookRules = []webhook.Rule{
 				}
 
 				s := strings.Split(result.Task.Reference, ":")
-				if len(s) != 2 || len(s) != 3 {
-					return nil
-				}
 				var app, category, id string
 				switch len(s) {
 				case 2:
@@ -70,6 +65,9 @@ var webhookRules = []webhook.Rule{
 					app = s[0]
 					category = s[1]
 					id = s[2]
+				default:
+					flog.Warn("invalid kanban take reference %s", result.Task.Reference)
+					return nil
 				}
 
 				switch app {
