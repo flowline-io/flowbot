@@ -397,8 +397,8 @@ func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeCont
 			windowSize*2,
 		)
 		if err != nil {
-			flog.Error(fmt.Errorf("error getting context for file %s in commit %s: %v",
-				filename, commitDiff.CommitID[:8], err))
+			flog.Warn("error getting context for file %s in commit %s: %v",
+				filename, commitDiff.CommitID[:8], err)
 			continue
 		}
 
