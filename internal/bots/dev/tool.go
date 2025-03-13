@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
+	"github.com/flowline-io/flowbot/version"
 )
 
 var toolRules = []tool.Rule{
@@ -52,6 +53,21 @@ var toolRules = []tool.Rule{
 		return utils.InferTool(
 			"getWebsiteContent",
 			"Extract web content",
+			Func)
+	},
+	// getCurrentVersion
+	func(ctx types.Context) (llmTool.InvokableTool, error) {
+		// params
+		type Params struct{}
+
+		// func
+		Func := func(_ context.Context, params *Params) (string, error) {
+			return version.Buildtags, nil
+		}
+
+		return utils.InferTool(
+			"getCurrentVersion",
+			"Get the current version",
 			Func)
 	},
 }
