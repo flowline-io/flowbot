@@ -53,6 +53,8 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "Forbidden"}
 			}
 
+			flog.Info("chat webhook, text: %s, ip: %s", param.Text, param.Ip)
+
 			// run agent
 			go func() {
 				tools, err := bots.AvailableTools(ctx)
