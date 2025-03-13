@@ -3,6 +3,7 @@ package dev
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/bots"
@@ -57,6 +58,7 @@ var webhookRules = []webhook.Rule{
 				flog.Error(err)
 				return nil
 			}
+			ctx.SetTimeout(10 * time.Minute)
 			agent, err := agents.ReactAgent(ctx.Context(), tools)
 			if err != nil {
 				flog.Error(err)
