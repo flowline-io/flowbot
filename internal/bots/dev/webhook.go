@@ -53,39 +53,42 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "Forbidden"}
 			}
 
-			tools, err := bots.AvailableTools(ctx)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			ctx.SetTimeout(10 * time.Minute)
-			agent, err := agents.ReactAgent(ctx.Context(), tools)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-
-			messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
-				"content": param.Text,
-			})
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-
-			resp, err := agent.Generate(ctx.Context(), messages)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-
-			if resp != nil && resp.Content != "" {
-				err = event.SendMessage(ctx, types.TextMsg{Text: resp.Content})
+			// run agent
+			go func() {
+				tools, err := bots.AvailableTools(ctx)
 				if err != nil {
 					flog.Error(err)
-					return nil
+					return
 				}
-			}
+				ctx.SetTimeout(10 * time.Minute)
+				agent, err := agents.ReactAgent(ctx.Context(), tools)
+				if err != nil {
+					flog.Error(err)
+					return
+				}
+
+				messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
+					"content": param.Text,
+				})
+				if err != nil {
+					flog.Error(err)
+					return
+				}
+
+				resp, err := agent.Generate(ctx.Context(), messages)
+				if err != nil {
+					flog.Error(err)
+					return
+				}
+
+				if resp != nil && resp.Content != "" {
+					err = event.SendMessage(ctx, types.TextMsg{Text: resp.Content})
+					if err != nil {
+						flog.Error(err)
+						return
+					}
+				}
+			}()
 
 			return types.TextMsg{Text: "ok"}
 		},
