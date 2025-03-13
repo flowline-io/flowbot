@@ -51,6 +51,9 @@ type Context struct {
 }
 
 func (c *Context) Context() context.Context {
+	if c.ctx == nil {
+		return context.Background()
+	}
 	return c.ctx
 }
 
