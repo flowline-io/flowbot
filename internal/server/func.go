@@ -141,7 +141,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	if strings.ToLower(msg.AltMessage) == "chat" {
 		if session == "" {
 			payload = types.TextMsg{Text: "Chat started"}
-			err = cache.DB.Set(ctx.Context(), chatKey, types.Id(), 7*24*time.Hour).Err()
+			err = cache.DB.Set(ctx.Context(), chatKey, types.Id(), 24*time.Hour).Err()
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
 			}

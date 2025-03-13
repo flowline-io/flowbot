@@ -3,33 +3,28 @@ package dev
 import (
 	"context"
 	"fmt"
-	llmTool "github.com/cloudwego/eino/components/tool"
-	"github.com/cloudwego/eino/components/tool/utils"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 	"time"
 
+	llmTool "github.com/cloudwego/eino/components/tool"
+	"github.com/cloudwego/eino/components/tool/utils"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 )
 
 var toolRules = []tool.Rule{
 	// getCurrentTime
 	func(ctx types.Context) (llmTool.InvokableTool, error) {
 		// params
-		type Params struct {
-			Format string `json:"format" jsonschema:"description=time layout format, default: RFC1123Z"`
-		}
+		type Params struct{}
 
 		// func
 		Func := func(_ context.Context, params *Params) (string, error) {
-			if params.Format == "" {
-				params.Format = time.RFC1123Z
-			}
-			return time.Now().Format(params.Format), nil
+			return time.Now().Format(time.DateTime), nil
 		}
 
 		return utils.InferTool(
-			"getCurrentTimeToolId",
+			"getCurrentTime",
 			"Get the current time",
 			Func)
 	},
@@ -55,7 +50,7 @@ var toolRules = []tool.Rule{
 		}
 
 		return utils.InferTool(
-			"getWebsiteContentToolId",
+			"getWebsiteContent",
 			"Extract web content",
 			Func)
 	},
