@@ -14,7 +14,7 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/cloudwego/eino v0.3.15
+	github.com/cloudwego/eino v0.3.16
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250221090944-e8ef7aabbe10
 	github.com/creachadair/jrpc2 v1.3.1
 	github.com/docker/cli v28.0.1+incompatible
