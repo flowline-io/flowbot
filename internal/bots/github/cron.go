@@ -76,7 +76,7 @@ var cronRules = []cron.Rule{
 				})
 			}
 
-			flog.Info("[github] got %d starred repos", len(r))
+			flog.Debug("[github] got %d starred repos", len(r))
 
 			return nil
 		},
