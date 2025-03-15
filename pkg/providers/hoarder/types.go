@@ -5,7 +5,8 @@ const (
 )
 
 type BookmarksResponse struct {
-	Bookmarks []Bookmark `json:"bookmarks"`
+	Bookmarks  []Bookmark `json:"bookmarks"`
+	NextCursor string     `json:"nextCursor"`
 }
 
 type TagsResponse struct {
@@ -14,6 +15,10 @@ type TagsResponse struct {
 
 type AttachTagsResponse struct {
 	Attached []string `json:"attached"`
+}
+
+type DetachTagsResponse struct {
+	Detached []string `json:"detached"`
 }
 
 type ArchiveResponse struct {
@@ -90,4 +95,11 @@ type Tag struct {
 type TagNumBookmarksByAttachedType struct {
 	Ai    *float32 `json:"ai,omitempty"`
 	Human *float32 `json:"human,omitempty"`
+}
+
+type BookmarksQuery struct {
+	Limit      int    `json:"limit"`
+	Archived   bool   `json:"archived"`
+	Favourited bool   `json:"favourited"`
+	Cursor     string `json:"cursor"`
 }

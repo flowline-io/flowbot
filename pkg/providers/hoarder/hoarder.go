@@ -36,17 +36,36 @@ func NewHoarder(endpoint string, apiKey string) *Hoarder {
 	return v
 }
 
-func (i *Hoarder) GetAllBookmarks(limit int) ([]Bookmark, error) {
-	resp, err := i.c.R().
-		SetResult(&BookmarksResponse{}).
-		SetQueryParam("limit", fmt.Sprintf("%d", limit)).
-		Get("/bookmarks")
+func (i *Hoarder) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, error) {
+	request := i.c.R().SetResult(&BookmarksResponse{})
+
+	if query == nil {
+		query = &BookmarksQuery{Limit: MaxPageSize}
+	}
+
+	if query.Limit > 0 {
+		request.SetQueryParam("limit", fmt.Sprintf("%d", query.Limit))
+	}
+	if query.Archived {
+		request.SetQueryParam("archived", fmt.Sprintf("%t", query.Archived))
+	}
+	if query.Favourited {
+		request.SetQueryParam("favourited", fmt.Sprintf("%t", query.Favourited))
+	}
+	if query.Cursor != "" {
+		request.SetQueryParam("cursor", query.Cursor)
+	}
+
+	resp, err := request.Get("/bookmarks")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all bookmarks: %w", err)
 	}
 
 	result := resp.Result().(*BookmarksResponse)
-	return result.Bookmarks, nil
+	if result == nil {
+		result = &BookmarksResponse{Bookmarks: make([]Bookmark, 0)}
+	}
+	return result, nil
 }
 
 func (i *Hoarder) GetAllTags() ([]Tag, error) {
@@ -79,6 +98,26 @@ func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]stri
 
 	result := resp.Result().(*AttachTagsResponse)
 	return result.Attached, nil
+}
+
+func (i *Hoarder) DetachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+	var list []BookmarkTagRequest
+	for _, tag := range tags {
+		list = append(list, BookmarkTagRequest{
+			TagName: tag,
+		})
+	}
+
+	resp, err := i.c.R().
+		SetResult(&DetachTagsResponse{}).
+		SetBody(list).
+		Delete(fmt.Sprintf("/bookmarks/%s/tags", bookmarkId))
+	if err != nil {
+		return nil, fmt.Errorf("failed to detach tags to bookmark: %w", err)
+	}
+
+	result := resp.Result().(*DetachTagsResponse)
+	return result.Detached, nil
 }
 
 func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {

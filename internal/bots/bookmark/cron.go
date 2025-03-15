@@ -23,12 +23,12 @@ var cronRules = []cron.Rule{
 		When:  "*/10 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client := hoarder.GetClient()
-			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
 			}
 
-			for _, bookmark := range bookmarks {
+			for _, bookmark := range resp.Bookmarks {
 				if len(bookmark.Tags) > 0 {
 					continue
 				}
@@ -56,13 +56,13 @@ var cronRules = []cron.Rule{
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client := hoarder.GetClient()
-			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
 			}
 
 			bookmarkTotal := 0
-			for _, bookmark := range bookmarks {
+			for _, bookmark := range resp.Bookmarks {
 				if bookmark.Archived {
 					continue
 				}
@@ -80,12 +80,12 @@ var cronRules = []cron.Rule{
 		When:  "*/5 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client := hoarder.GetClient()
-			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
 			}
 
-			for _, bookmark := range bookmarks {
+			for _, bookmark := range resp.Bookmarks {
 				title := bookmark.GetTitle()
 				summary := bookmark.GetSummary()
 				err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
@@ -110,12 +110,12 @@ var cronRules = []cron.Rule{
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client := hoarder.GetClient()
-			bookmarks, err := client.GetAllBookmarks(hoarder.MaxPageSize)
+			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
 			}
 
-			for _, bookmark := range bookmarks {
+			for _, bookmark := range resp.Bookmarks {
 				if bookmark.Archived {
 					continue
 				}
@@ -150,6 +150,69 @@ var cronRules = []cron.Rule{
 				if err != nil {
 					flog.Error(fmt.Errorf("cron bookmarks_task event fire error %w", err))
 					continue
+				}
+			}
+
+			return nil
+		},
+	},
+	{
+		Name:  "bookmarks_tag_merge",
+		Scope: cron.CronScopeSystem,
+		When:  "0 2 * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			// Get all tags
+			client := hoarder.GetClient()
+			tags, err := client.GetAllTags()
+			if err != nil {
+				flog.Error(fmt.Errorf("get all tags error: %w", err))
+				return nil
+			}
+
+			// Analyze similar tags using a large model
+			tagStrings := convertTagsToStrings(tags)
+			similarTags, err := analyzeSimilarTags(ctx.Context(), tagStrings)
+			if err != nil {
+				flog.Error(fmt.Errorf("analyze similar tags error: %w", err))
+				return nil
+			}
+
+			var nextCursor string
+			for {
+				// Get all bookmarks
+				resp, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize, Cursor: nextCursor})
+				if err != nil {
+					flog.Error(fmt.Errorf("get all bookmarks error: %w", err))
+					return nil
+				}
+
+				// Replace tags in bookmarks
+				for _, bookmark := range resp.Bookmarks {
+					oldTagStrings := convertBookmarkTagsToStrings(bookmark.Tags)
+					newTagStrings := replaceSimilarTags(oldTagStrings, similarTags)
+					if len(newTagStrings) == 0 || sliceEqual(oldTagStrings, newTagStrings) {
+						continue
+					}
+
+					flog.Info("[bookmark] %s update tags from %v to %v", bookmark.Id, oldTagStrings, newTagStrings)
+
+					// remove all old tags
+					_, err = client.DetachTagsToBookmark(bookmark.Id, oldTagStrings)
+					if err != nil {
+						flog.Error(fmt.Errorf("detach bookmark %s tags error: %w", bookmark.Id, err))
+						continue
+					}
+
+					// add new tags
+					_, err = client.AttachTagsToBookmark(bookmark.Id, newTagStrings)
+					if err != nil {
+						flog.Error(fmt.Errorf("attach bookmark %s tags error: %w", bookmark.Id, err))
+						continue
+					}
+				}
+				nextCursor = resp.NextCursor
+				if nextCursor == "" {
+					break
 				}
 			}
 

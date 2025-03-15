@@ -15,16 +15,16 @@ var commandRules = []command.Rule{
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			client := hoarder.GetClient()
-			bookmarks, err := client.GetAllBookmarks(10)
+			resp, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: 10})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
 
 			var header []string
 			var row [][]interface{}
-			if len(bookmarks) > 0 {
+			if resp != nil && len(resp.Bookmarks) > 0 {
 				header = []string{"Id", "Title", "TaggingStatus"}
-				for _, v := range bookmarks {
+				for _, v := range resp.Bookmarks {
 					row = append(row, []interface{}{v.Id, v.Content.Title, v.TaggingStatus})
 				}
 			}
