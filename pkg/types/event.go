@@ -11,6 +11,7 @@ const (
 	TaskCreateBotEventID      = "creteTask"
 	BookmarkArchiveBotEventID = "archiveBookmark"
 	BookmarkCreateBotEventID  = "createBookmark"
+	ArchiveBoxAddBotEventID   = "archiveBoxAdd"
 )
 
 type Message struct {

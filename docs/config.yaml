@@ -200,6 +200,7 @@ vendors:
   # ArchiveBox configuration
   archivebox:
     endpoint: ""
+    token: ""
   # Slash configuration
   slash:
     endpoint: ""
@@ -226,6 +227,7 @@ vendors:
   miniflux:
     endpoint: ""
     api_key: ""
+  # Firefly III configuration
   fireflyiii:
     endpoint: "http://127.0.0.1:8283/api"
     token: ""
