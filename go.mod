@@ -43,7 +43,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/looplab/fsm v1.0.2
-	github.com/maxence-charriere/go-app/v10 v10.1.1
+	github.com/maxence-charriere/go-app/v10 v10.1.2
 	github.com/meilisearch/meilisearch-go v0.31.0
 	github.com/minio/minio-go/v7 v7.0.88
 	github.com/minio/selfupdate v0.6.0
