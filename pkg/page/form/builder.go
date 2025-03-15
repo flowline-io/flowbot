@@ -72,6 +72,7 @@ func (b Builder) UI() (app.UI, error) {
 				uikit.FormControls(
 					uikit.Textarea().
 						Name(field.Key).
+						Rows(10).
 						Placeholder(field.Placeholder).
 						Text(field.Value),
 				),

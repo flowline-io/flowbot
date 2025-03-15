@@ -226,3 +226,6 @@ vendors:
   miniflux:
     endpoint: ""
     api_key: ""
+  fireflyiii:
+    endpoint: "http://127.0.0.1:8283/api"
+    token: ""

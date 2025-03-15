@@ -171,6 +171,7 @@ var cronRules = []cron.Rule{
 
 			// Analyze similar tags using a large model
 			tagStrings := convertTagsToStrings(tags)
+			ctx.SetTimeout(10 * time.Minute)
 			similarTags, err := analyzeSimilarTags(ctx.Context(), tagStrings)
 			if err != nil {
 				flog.Error(fmt.Errorf("analyze similar tags error: %w", err))

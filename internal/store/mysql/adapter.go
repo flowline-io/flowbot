@@ -718,9 +718,8 @@ func (a *adapter) PageSet(pageId string, page model.Page) error {
 		return a.db.
 			Model(&model.Page{}).
 			Where("`page_id` = ?", pageId).
-			Updates(types.KV{
-				"state": page.State,
-			}).Error
+			Update("state", int(page.State)).
+			Error
 	} else {
 		return a.db.Create(&page).Error
 	}
