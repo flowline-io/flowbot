@@ -21,15 +21,15 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 		// method
 		switch router.Method {
 		case "GET":
-			app.Get(path+router.Path, Authorize(router.NotAuth, router.Function))
+			app.Get(path+router.Path, Authorize(router.AuthLevel, router.Function))
 		case "POST":
-			app.Post(path+router.Path, Authorize(router.NotAuth, router.Function))
+			app.Post(path+router.Path, Authorize(router.AuthLevel, router.Function))
 		case "PUT":
-			app.Put(path+router.Path, Authorize(router.NotAuth, router.Function))
+			app.Put(path+router.Path, Authorize(router.AuthLevel, router.Function))
 		case "PATCH":
-			app.Patch(path+router.Path, Authorize(router.NotAuth, router.Function))
+			app.Patch(path+router.Path, Authorize(router.AuthLevel, router.Function))
 		case "DELETE":
-			app.Delete(path+router.Path, Authorize(router.NotAuth, router.Function))
+			app.Delete(path+router.Path, Authorize(router.AuthLevel, router.Function))
 		default:
 			continue
 		}
@@ -57,12 +57,18 @@ type Router struct {
 	Path          string
 	Function      fiber.Handler
 	Documentation string
-	NotAuth       bool
+	AuthLevel     AuthLevel
 }
+
+type AuthLevel int
+
+const (
+	NoAuth AuthLevel = 1
+)
 
 func WithNotAuth() Option {
 	return func(r *Router) {
-		r.NotAuth = true
+		r.AuthLevel = NoAuth
 	}
 }
 
@@ -78,10 +84,10 @@ const (
 	accessTokenKey = "accessToken"
 )
 
-func Authorize(notAuth bool, handler fiber.Handler) fiber.Handler {
+func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Check if authentication can be skipped
-		if notAuth {
+		if authLevel == NoAuth {
 			return handler(ctx)
 		}
 
