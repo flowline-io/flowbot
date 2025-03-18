@@ -22,9 +22,6 @@ var collectRules = []collect.Rule{
 			if err != nil {
 				return nil
 			}
-			if err != nil {
-				return nil
-			}
 			html, _ := j.String("html")
 			if html == "" {
 				return nil
@@ -42,9 +39,6 @@ var collectRules = []collect.Rule{
 		Handler: func(ctx types.Context, content types.KV) types.MsgPayload {
 			j := types.KV{}
 			err := j.Scan(content)
-			if err != nil {
-				return nil
-			}
 			if err != nil {
 				return nil
 			}

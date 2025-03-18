@@ -35,7 +35,7 @@ var cronRules = []cron.Rule{
 			}
 			key := fmt.Sprintf("anki:review_remind:%s", ctx.AsUser)
 
-			sendString, err := cache.DB.Get(context.Background(), key).Result()
+			sendString, err := cache.DB.Get(ctx.Context(), key).Result()
 			if err != nil && !errors.Is(err, redis.Nil) {
 				return nil
 			}
@@ -44,11 +44,12 @@ var cronRules = []cron.Rule{
 				oldSend, _ = strconv.ParseInt(sendString, 10, 64)
 			}
 
-			if time.Now().Unix()-oldSend > 24*60*60 {
-				_ = cache.DB.Set(context.Background(), key, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
+			now := time.Now().Unix()
+			if now-oldSend > 24*60*60 {
+				_ = cache.DB.Set(context.Background(), key, strconv.FormatInt(now, 10), redis.KeepTTL)
 
 				return []types.MsgPayload{
-					types.TextMsg{Text: fmt.Sprintf("Anki review %d (%d)", num, time.Now().Unix())},
+					types.TextMsg{Text: fmt.Sprintf("Anki review %d (%d)", num, now)},
 				}
 			}
 
