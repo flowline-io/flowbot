@@ -21,6 +21,7 @@ const (
 	TorrentStatusTotalStatsName           = "torrent_status_total"
 	GiteaIssueTotalStatsName              = "gitea_issue_total"
 	KanbanEventTotalStatsName             = "kanban_event_total"
+	KanbanTaskTotalStatsName              = "kanban_task_total"
 	ReaderTotalStatsName                  = "reader_total"
 	ReaderUnreadTotalStatsName            = "reader_unread_total"
 )
@@ -85,6 +86,10 @@ func GiteaIssueTotalCounter(status string) *metrics.Counter {
 
 func KanbanEventTotalCounter(name string) *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s",event_name="%s"}`, KanbanEventTotalStatsName, version.Buildtags, name))
+}
+
+func KanbanTaskTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, KanbanTaskTotalStatsName, version.Buildtags))
 }
 
 func ReaderTotalCounter() *metrics.Counter {

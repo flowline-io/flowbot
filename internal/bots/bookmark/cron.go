@@ -26,6 +26,7 @@ var cronRules = []cron.Rule{
 			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
+				return nil
 			}
 
 			for _, bookmark := range resp.Bookmarks {
@@ -43,6 +44,7 @@ var cronRules = []cron.Rule{
 				resp, err := client.AttachTagsToBookmark(bookmark.Id, tags)
 				if err != nil {
 					flog.Error(err)
+					continue
 				}
 				flog.Info("[bookmark] bookmark %s attach tags %v, result %v", bookmark.Id, tags, resp)
 			}
@@ -59,6 +61,7 @@ var cronRules = []cron.Rule{
 			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
+				return nil
 			}
 
 			bookmarkTotal := 0
@@ -83,6 +86,7 @@ var cronRules = []cron.Rule{
 			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
+				return nil
 			}
 
 			for _, bookmark := range resp.Bookmarks {
@@ -113,6 +117,7 @@ var cronRules = []cron.Rule{
 			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
 				flog.Error(err)
+				return nil
 			}
 
 			for _, bookmark := range resp.Bookmarks {
