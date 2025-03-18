@@ -1,7 +1,6 @@
 package agents
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cloudwego/eino/schema"
@@ -16,7 +15,7 @@ func CountToken(text string) int {
 	// tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
-		flog.Error(fmt.Errorf("get encoding failed: %w", err))
+		flog.Warn("get encoding failed: %w", err)
 		return 0
 	}
 
