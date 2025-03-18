@@ -100,9 +100,6 @@ func getBookmark(ctx *fiber.Ctx) error {
 		if item.Archived {
 			continue
 		}
-		if item.Title == nil {
-			continue
-		}
 		list = append(list, resp.Bookmarks[i])
 	}
 
