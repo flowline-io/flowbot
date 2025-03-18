@@ -89,10 +89,10 @@ func getKanban(ctx *fiber.Ctx) error {
 func getBookmark(ctx *fiber.Ctx) error {
 	client := hoarder.GetClient()
 
-	list, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize})
+	resp, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize})
 	if err != nil {
 		return fmt.Errorf("failed to get all bookmarks, %w", err)
 	}
 
-	return ctx.JSON(protocol.NewSuccessResponse(list))
+	return ctx.JSON(protocol.NewSuccessResponse(resp.Bookmarks))
 }
