@@ -133,3 +133,11 @@ type File struct {
 	UserID  string `json:"user_id,omitempty"`
 	Size    string `json:"size,omitempty"`
 }
+
+// The value 1 for active tasks and 0 for inactive
+type StatusId int
+
+const (
+	Active   StatusId = 1
+	Inactive StatusId = 0
+)

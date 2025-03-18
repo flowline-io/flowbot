@@ -10,6 +10,7 @@ import (
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/jhttp"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 const (
@@ -82,6 +83,15 @@ func (v *Kanboard) CreateTask(ctx context.Context, task *Task) (taskId int64, er
 	err = v.c.CallResult(ctx, "createTask", task, &taskId)
 	if err != nil {
 		err = fmt.Errorf("failed to create task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetAllTasks(ctx context.Context, projectId int, status StatusId) (tasks []*Task, err error) {
+	err = v.c.CallResult(ctx, "getAllTasks", types.KV{"project_id": projectId, "status_id": status}, &tasks)
+	if err != nil {
+		err = fmt.Errorf("failed to get all tasks, %w", err)
 		return
 	}
 	return
