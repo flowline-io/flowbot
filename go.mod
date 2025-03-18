@@ -54,7 +54,7 @@ require (
 	github.com/prometheus/common v0.63.0
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rollbar/rollbar-go v1.4.5
+	github.com/rollbar/rollbar-go v1.4.6
 	github.com/rs/zerolog v1.33.0
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shirou/gopsutil/v4 v4.25.2
