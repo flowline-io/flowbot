@@ -1073,6 +1073,27 @@ paths:
       summary: upload PicGO upload api
       tags:
       - dev
+  /user/bookmark:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: get user bookmark list
+      tags:
+      - user
   /user/dashboard:
     get:
       consumes:
@@ -1092,6 +1113,27 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Show dashboard
+      tags:
+      - user
+  /user/kanban:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: get user kanban list
       tags:
       - user
   /user/metrics:

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -16,6 +17,7 @@ var webserviceRules = []webservice.Rule{
 	webservice.Get("/dashboard", dashboard),
 	webservice.Get("/metrics", metrics),
 	webservice.Get("/kanban", getKanban),
+	webservice.Get("/bookmark", getBookmark),
 }
 
 // dashboard show dashboard data
@@ -67,10 +69,30 @@ func getKanban(ctx *fiber.Ctx) error {
 		return fmt.Errorf("failed to new client %w", err)
 	}
 
-	tasks, err := client.GetAllTasks(ctx.Context(), kanboard.DefaultProjectId, kanboard.Active)
+	list, err := client.GetAllTasks(ctx.Context(), kanboard.DefaultProjectId, kanboard.Active)
 	if err != nil {
 		return fmt.Errorf("failed to get all tasks, %w", err)
 	}
 
-	return ctx.JSON(protocol.NewSuccessResponse(tasks))
+	return ctx.JSON(protocol.NewSuccessResponse(list))
+}
+
+// get user bookmark list
+//
+//	@Summary	get user bookmark list
+//	@Tags		user
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Security	ApiKeyAuth
+//	@Router		/user/bookmark [get]
+func getBookmark(ctx *fiber.Ctx) error {
+	client := hoarder.GetClient()
+
+	list, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize})
+	if err != nil {
+		return fmt.Errorf("failed to get all bookmarks, %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
