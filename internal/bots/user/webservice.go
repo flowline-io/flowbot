@@ -95,5 +95,16 @@ func getBookmark(ctx *fiber.Ctx) error {
 		return fmt.Errorf("failed to get all bookmarks, %w", err)
 	}
 
-	return ctx.JSON(protocol.NewSuccessResponse(resp.Bookmarks))
+	list := make([]hoarder.Bookmark, 0, 10)
+	for i, item := range resp.Bookmarks {
+		if item.Archived {
+			continue
+		}
+		if item.Title == nil {
+			continue
+		}
+		list = append(list, resp.Bookmarks[i])
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
