@@ -24,6 +24,8 @@ const (
 	KanbanTaskTotalStatsName              = "kanban_task_total"
 	ReaderTotalStatsName                  = "reader_total"
 	ReaderUnreadTotalStatsName            = "reader_unread_total"
+	MonitorUpTotalStatsName               = "monitor_up_total"
+	MonitorDownTotalStatsName             = "monitor_down_total"
 )
 
 type RulesetLabel string

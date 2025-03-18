@@ -231,3 +231,7 @@ vendors:
   fireflyiii:
     endpoint: "http://127.0.0.1:8283/api"
     token: ""
+  # Uptime Kuma configuration
+  uptimekuma:
+    endpoint: "http://127.0.0.1:8002"
+    token: ""
