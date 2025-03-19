@@ -160,15 +160,6 @@ bots:
 
 # Third-party service configuration
 vendors:
-  # OneAI service configuration
-  oneai:
-    api_key: ""
-  # Rollbar error tracking configuration
-  rollbar:
-    enable: false
-    token:
-    environment: development
-    server_root: github.com/flowline-io/flowbot
   # GitHub OAuth configuration
   github:
     id:
