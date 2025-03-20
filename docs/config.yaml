@@ -183,11 +183,6 @@ vendors:
     endpoint: ""
     username: ""
     password: ""
-  # Shiori bookmark manager configuration
-  shiori:
-    endpoint: ""
-    username: ""
-    password: ""
   # ArchiveBox configuration
   archivebox:
     endpoint: ""
