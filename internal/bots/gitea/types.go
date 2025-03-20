@@ -134,12 +134,13 @@ Note:
 `
 
 type Config struct {
-	QualityThreshold  float64            `json:"quality_threshold" title:"Quality Threshold Score"`
-	MaxSecurityIssues int                `json:"max_security_issues" title:"Maximum Number of Security Issues"`
-	IgnorePatterns    []string           `json:"ignore_patterns" title:"Ignored File Patterns"`
-	ScoringRules      map[string]float64 `json:"scoring_rules" title:"Scoring Rule Weights"`
-	ContextWindow     int                `json:"context_window" title:"Code Context Window Size"`
-	MaxTokens         int                `json:"max_tokens" title:"Maximum Token Count"`
+	QualityThreshold    float64            `json:"quality_threshold" title:"Quality Threshold Score"`
+	MaxSecurityIssues   int                `json:"max_security_issues" title:"Maximum Number of Security Issues"`
+	IgnorePatterns      []string           `json:"ignore_patterns" title:"Ignored File Patterns"`
+	ScoringRules        map[string]float64 `json:"scoring_rules" title:"Scoring Rule Weights"`
+	ContextWindow       int                `json:"context_window" title:"Code Context Window Size"`
+	MaxTokens           int                `json:"max_tokens" title:"Maximum Token Count"`
+	IgnoreCommitStrings []string           `json:"ignore_commits" title:"Ignored Commit Messages"`
 }
 
 func DefaultConfig() *Config {
@@ -172,6 +173,9 @@ func DefaultConfig() *Config {
 			"performance":   0.2,
 			"readability":   0.2,
 			"best_practice": 0.3,
+		},
+		IgnoreCommitStrings: []string{
+			"build(deps):", "Merge pull request",
 		},
 	}
 }

@@ -32,6 +32,9 @@ func hookPush(ctx types.Context, payload *gitea.RepoPayload) error {
 		if err != nil {
 			return fmt.Errorf("failed to review commit: %w", err)
 		}
+		if comment == nil {
+			continue
+		}
 
 		err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
 			"title":       fmt.Sprintf("Code Review: %s", comment.Path),

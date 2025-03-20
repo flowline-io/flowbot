@@ -361,6 +361,16 @@ func filterFiles(files []string, ignorePatterns []string) []string {
 	return filtered
 }
 
+// filterCommitString filters commit messages
+func filterCommitString(commit string, ignorePatterns []string) bool {
+	for _, pattern := range ignorePatterns {
+		if strings.HasPrefix(commit, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
 func collectContext(owner, repo string, commitDiff *gitea.CommitDiff) (*CodeContext, error) {
 	conf := DefaultConfig()
 	// Filter files
@@ -585,6 +595,11 @@ func reviewCommit(ctx context.Context, owner, repo, commitID string) (*ReviewCom
 		return nil, fmt.Errorf("failed to get commit diff: %w", err)
 	}
 	flog.Info("[gitea] commit diffs: %v %s", commitDiffs.CommitID, commitDiffs.CommitMessage)
+
+	if filterCommitString(commitDiffs.CommitMessage, DefaultConfig().IgnoreCommitStrings) {
+		flog.Info("[gitea] Skipping commit %s due to ignore commit string", commitDiffs.CommitID)
+		return nil, nil
+	}
 
 	// Collect context for the entire commit
 	codeContext, err := collectContext(owner, repo, commitDiffs)
