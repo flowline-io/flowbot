@@ -99,6 +99,7 @@ search:
     hoarder: "http://127.0.0.1:8000"
     kanboard: "http://127.0.0.1:8001"
     gitea: "http://127.0.0.1:8002"
+    drone: "http://127.0.0.1:8035"
 
 # Alarm configuration
 alarm:
@@ -221,6 +222,7 @@ vendors:
   uptimekuma:
     endpoint: "http://127.0.0.1:8002"
     token: ""
+  # Drone configuration
   drone:
     endpoint: ""
     token: ""

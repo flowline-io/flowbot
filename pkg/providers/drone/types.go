@@ -1,5 +1,7 @@
 package drone
 
+const DefaultDeployRepoName = "deploy"
+
 type Build struct {
 	ID           int64   `json:"id"`
 	RepoID       int64   `json:"repo_id"`

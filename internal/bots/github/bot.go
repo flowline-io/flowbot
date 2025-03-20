@@ -64,6 +64,7 @@ func (b bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		formRules,
+		webhookRules,
 	}
 }
 
@@ -77,4 +78,8 @@ func (b bot) Cron() (*cron.Ruleset, error) {
 
 func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return bots.RunForm(formRules, ctx, values)
+}
+
+func (b bot) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
+	return bots.RunWebhook(webhookRules, ctx, data)
 }
