@@ -274,4 +274,17 @@ var commandRules = []command.Rule{
 			}
 		},
 	},
+	{
+		Define: "deploy",
+		Help:   `deploy server`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			err := deploy(ctx)
+			if err != nil {
+				flog.Error(err)
+				return types.TextMsg{Text: fmt.Sprintf("deploy failed, error: %v", err)}
+			}
+
+			return types.TextMsg{Text: "ok"}
+		},
+	},
 }
