@@ -34,6 +34,7 @@ func NewUptimeKuma(endpoint string, token string) *UptimeKuma {
 	v.c = resty.New()
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
 	v.c.SetBasicAuth("", token)
 
 	return v

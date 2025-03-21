@@ -33,6 +33,7 @@ func NewAdGuardHome(endpoint string, username string, password string) *AdGuardH
 	v.c = resty.New()
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
 	v.c.SetBasicAuth(username, password)
 
 	return v
