@@ -1,6 +1,7 @@
 package github
 
 import (
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"net/http"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,6 +21,9 @@ var webhookRules = []webhook.Rule{
 			if ctx.Method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
+
+			flog.Info("webhook Headers")
+			utils.PrettyPrintJsonStyle(ctx.Headers)
 
 			events, ok := ctx.Headers["X-GitHub-Event"]
 			if !ok {
@@ -41,7 +45,7 @@ var webhookRules = []webhook.Rule{
 
 				return types.TextMsg{Text: "deploy"}
 			default:
-				return types.TextMsg{Text: "upnot supported"}
+				return types.TextMsg{Text: "not supported"}
 			}
 		},
 	},
