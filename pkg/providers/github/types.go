@@ -297,3 +297,29 @@ type Subject struct {
 	LatestCommentURL *string `json:"latest_comment_url,omitempty"`
 	Type             *string `json:"type,omitempty"`
 }
+
+type PackageWebhook struct {
+	Action  string `json:"action"`
+	Package struct {
+		Id             int    `json:"id"`
+		Name           string `json:"name"`
+		Namespace      string `json:"namespace"`
+		Description    string `json:"description"`
+		Ecosystem      string `json:"ecosystem"`
+		PackageType    string `json:"package_type"`
+		HtmlUrl        string `json:"html_url"`
+		PackageVersion struct {
+			Id                int    `json:"id"`
+			Version           string `json:"version"`
+			Name              string `json:"name"`
+			Description       string `json:"description"`
+			Summary           string `json:"summary"`
+			ContainerMetadata struct {
+				Tag struct {
+					Name   string `json:"name"`
+					Digest string `json:"digest"`
+				} `json:"tag"`
+			} `json:"container_metadata"`
+		} `json:"package_version"`
+	} `json:"package"`
+}

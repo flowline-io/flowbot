@@ -1,12 +1,12 @@
 package github
 
 import (
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"net/http"
-
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
+	json "github.com/json-iterator/go"
+	"net/http"
 )
 
 const (
@@ -22,10 +22,7 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "error method"}
 			}
 
-			flog.Info("webhook Headers")
-			utils.PrettyPrintJsonStyle(ctx.Headers)
-
-			events, ok := ctx.Headers["X-GitHub-Event"]
+			events, ok := ctx.Headers["X-Github-Event"]
 			if !ok {
 				return types.TextMsg{Text: "error header"}
 			}
@@ -37,7 +34,18 @@ var webhookRules = []webhook.Rule{
 			case "ping":
 				return types.TextMsg{Text: "pong"}
 			case "package":
-				err := deploy(ctx)
+				var a github.PackageWebhook
+				err := json.Unmarshal(data, &a)
+				if err != nil {
+					flog.Error(err)
+					return types.TextMsg{Text: "error unmarshal"}
+				}
+				if a.Package.PackageVersion.ContainerMetadata.Tag.Name != "latest" {
+					flog.Info("ignore package tag %s digest %s", a.Package.PackageVersion.ContainerMetadata.Tag.Name, a.Package.PackageVersion.ContainerMetadata.Tag.Digest)
+					return types.TextMsg{Text: "not latest"}
+				}
+
+				err = deploy(ctx)
 				if err != nil {
 					flog.Error(err)
 					return types.TextMsg{Text: "error deploy"}
