@@ -30,7 +30,7 @@ func deploy(ctx types.Context) error {
 	}
 
 	// send message
-	err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("%s/%d", config.App.Search.UrlBaseMap[drone.ID], build.ID)})
+	err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("%s/%s/deploy/%d", config.App.Search.UrlBaseMap[drone.ID], user.LoginName, build.ID)})
 	if err != nil {
 		return err
 	}

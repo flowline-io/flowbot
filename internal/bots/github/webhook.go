@@ -41,8 +41,14 @@ var webhookRules = []webhook.Rule{
 					return types.TextMsg{Text: "error unmarshal"}
 				}
 				if a.Package.PackageVersion.ContainerMetadata.Tag.Name != "latest" {
-					flog.Info("ignore package tag %s digest %s", a.Package.PackageVersion.ContainerMetadata.Tag.Name, a.Package.PackageVersion.ContainerMetadata.Tag.Digest)
+					flog.Info("ignore package tag %s digest %s", a.Package.PackageVersion.ContainerMetadata.Tag.Name,
+						a.Package.PackageVersion.ContainerMetadata.Tag.Digest)
 					return types.TextMsg{Text: "not latest"}
+				}
+
+				if a.Action != "published" {
+					flog.Info("ignore package action %s", a.Action)
+					return types.TextMsg{Text: "not published"}
 				}
 
 				err = deploy(ctx)
