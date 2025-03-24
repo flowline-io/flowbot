@@ -24,13 +24,13 @@ func deploy(ctx types.Context) error {
 
 	// create build
 	dClient := drone.GetClient()
-	build, err := dClient.CreateBuild(user.LoginName, drone.DefaultDeployRepoName)
+	build, err := dClient.CreateBuild(user.UserName, drone.DefaultDeployRepoName)
 	if err != nil {
 		return err
 	}
 
 	// send message
-	err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("%s/%s/deploy/%d", config.App.Search.UrlBaseMap[drone.ID], user.LoginName, build.ID)})
+	err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("%s/%s/deploy/%d", config.App.Search.UrlBaseMap[drone.ID], user.UserName, build.Number)})
 	if err != nil {
 		return err
 	}

@@ -40,7 +40,7 @@ func (i *Drone) CreateBuild(namespace, name string) (*Build, error) {
 	resp, err := i.c.R().
 		SetResult(&Build{}).
 		SetPathParams(map[string]string{"namespace": namespace, "name": name}).
-		Get("/api/repos/{namespace}/{name}/builds")
+		Post("/api/repos/{namespace}/{name}/builds")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create build: %w", err)
 	}
