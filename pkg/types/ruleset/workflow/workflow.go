@@ -20,6 +20,14 @@ type Rule struct {
 	Run          func(ctx types.Context, input types.KV) (types.KV, error)
 }
 
+func (r Rule) ID() string {
+	return r.Id
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.WorkflowRule
+}
+
 type Ruleset []Rule
 
 // ProcessRule processes a specific rule within the Ruleset based on the provided context and input.

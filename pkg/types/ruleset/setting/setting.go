@@ -10,3 +10,11 @@ type Row struct {
 	Title  string
 	Detail string
 }
+
+func (r Row) ID() string {
+	return r.Key
+}
+
+func (r Row) TYPE() types.RulesetType {
+	return types.SettingRule
+}

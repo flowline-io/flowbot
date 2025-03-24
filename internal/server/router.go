@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -26,9 +30,6 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func setupMux(a *fiber.App) {
@@ -187,19 +188,7 @@ func renderPage(ctx *fiber.Ctx) error {
 		PageRuleId: pageRuleId,
 	}
 
-	var botHandler bots.Handler
-	for _, handler := range bots.List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []pageRule.Rule:
-				for _, rule := range v {
-					if rule.Id == pageRuleId {
-						botHandler = handler
-					}
-				}
-			}
-		}
-	}
+	_, botHandler := bots.FindRuleAndHandler[pageRule.Rule](pageRuleId, bots.List())
 
 	if botHandler == nil {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
@@ -307,19 +296,8 @@ func postForm(ctx *fiber.Ctx) error {
 	if !ok {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, fmt.Errorf("form %s %s", formId, "error form rule id")))
 	}
-	var botHandler bots.Handler
-	for _, handler := range bots.List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []formRule.Rule:
-				for _, rule := range v {
-					if rule.Id == formRuleId {
-						botHandler = handler
-					}
-				}
-			}
-		}
-	}
+
+	_, botHandler := bots.FindRuleAndHandler[formRule.Rule](formRuleId, bots.List())
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
@@ -398,21 +376,7 @@ func doWebhook(ctx *fiber.Ctx) error {
 
 	flog.Info("[webhook] incoming %s flag: %s", method, flag)
 
-	var webhookRule webhook.Rule
-	var botHandler bots.Handler
-	for _, handler := range bots.List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []webhook.Rule:
-				for _, rule := range v {
-					if rule.Id == flag {
-						botHandler = handler
-						webhookRule = rule
-					}
-				}
-			}
-		}
-	}
+	webhookRule, botHandler := bots.FindRuleAndHandler[webhook.Rule](flag, bots.List())
 
 	if botHandler == nil {
 		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))

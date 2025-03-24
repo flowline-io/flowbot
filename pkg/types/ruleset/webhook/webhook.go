@@ -8,6 +8,14 @@ type Rule struct {
 	Handler func(ctx types.Context, data []byte) types.MsgPayload
 }
 
+func (r Rule) ID() string {
+	return r.Id
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.WebhookRule
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) ProcessRule(ctx types.Context, data []byte) (types.MsgPayload, error) {

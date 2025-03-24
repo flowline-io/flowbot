@@ -13,6 +13,14 @@ type Rule struct {
 	Handler func(ctx types.Context, content types.KV) types.MsgPayload
 }
 
+func (r Rule) ID() string {
+	return r.Id
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.CollectRule
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) ProcessAgent(ctx types.Context, content types.KV) (types.MsgPayload, error) {

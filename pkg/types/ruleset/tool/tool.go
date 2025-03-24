@@ -2,11 +2,20 @@ package tool
 
 import (
 	"fmt"
+
 	llmTool "github.com/cloudwego/eino/components/tool"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type Rule func(ctx types.Context) (llmTool.InvokableTool, error)
+
+func (r Rule) ID() string {
+	return ""
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.ToolRule
+}
 
 type Ruleset []Rule
 

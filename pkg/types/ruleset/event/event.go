@@ -9,6 +9,14 @@ type Rule struct {
 	Handler func(ctx types.Context, param types.KV) error
 }
 
+func (r Rule) ID() string {
+	return r.Id
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.EventRule
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) ProcessEvent(ctx types.Context, param types.KV) (err error) {

@@ -14,6 +14,14 @@ type Rule struct {
 	Handler func(types.Context, []*parser.Token) types.MsgPayload
 }
 
+func (r Rule) ID() string {
+	return r.Define
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.CommandRule
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) Help(in string) (types.MsgPayload, error) {

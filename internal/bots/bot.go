@@ -554,6 +554,22 @@ func AvailableTools(ctx types.Context) ([]llmTool.BaseTool, error) {
 	return tools, nil
 }
 
+func FindRuleAndHandler[T types.Ruler](flag string, handlers map[string]Handler) (T, Handler) {
+	for _, handler := range handlers {
+		for _, item := range handler.Rules() {
+			if rules, ok := item.([]T); ok {
+				for _, rule := range rules {
+					if rule.ID() == flag {
+						return rule, handler
+					}
+				}
+			}
+		}
+	}
+	var zero T
+	return zero, nil
+}
+
 type configType struct {
 	Name string `json:"name"`
 }

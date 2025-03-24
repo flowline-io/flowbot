@@ -14,6 +14,14 @@ type Rule struct {
 	UI func(ctx types.Context, flag string, args types.KV) (*types.UI, error)
 }
 
+func (r Rule) ID() string {
+	return r.Id
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.PageRule
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) ProcessPage(ctx types.Context, flag string, args types.KV) (string, error) {

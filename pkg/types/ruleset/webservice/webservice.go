@@ -1,7 +1,10 @@
 package webservice
 
 import (
+	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -10,6 +13,14 @@ type Rule struct {
 	Path     string
 	Function fiber.Handler
 	Option   []route.Option
+}
+
+func (r Rule) ID() string {
+	return fmt.Sprintf("%s_%s", r.Method, r.Path)
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.WebserviceRule
 }
 
 type Ruleset []Rule

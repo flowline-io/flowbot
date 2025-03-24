@@ -31,6 +31,14 @@ type Rule struct {
 	Action func(types.Context) []types.MsgPayload
 }
 
+func (r Rule) ID() string {
+	return r.Name
+}
+
+func (r Rule) TYPE() types.RulesetType {
+	return types.CronRule
+}
+
 type Ruleset struct {
 	stop      chan struct{}
 	Type      string
