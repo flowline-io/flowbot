@@ -59,7 +59,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.2
 	github.com/slack-go/slack v0.16.0
 	github.com/spf13/pflag v1.0.6
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/swag v1.16.4
 	github.com/tidwall/gjson v1.18.0
