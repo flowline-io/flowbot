@@ -78,7 +78,7 @@ require (
 	gorm.io/plugin/dbresolver v1.5.3
 	gotest.tools/v3 v3.5.2
 	jaytaylor.com/html2text v0.0.0-20230321000545-74c2419ad056
-	miniflux.app/v2 v2.2.3
+	miniflux.app/v2 v2.2.7
 )
 
 require (
@@ -208,7 +208,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
