@@ -64,7 +64,7 @@ require (
 	github.com/swaggo/swag v1.16.4
 	github.com/tidwall/gjson v1.18.0
 	github.com/urfave/cli/v2 v2.27.6
-	github.com/valyala/fasthttp v1.59.0
+	github.com/valyala/fasthttp v1.60.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.36.0
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
@@ -208,7 +208,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
