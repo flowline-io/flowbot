@@ -26,6 +26,7 @@ const (
 	ReaderUnreadTotalStatsName            = "reader_unread_total"
 	MonitorUpTotalStatsName               = "monitor_up_total"
 	MonitorDownTotalStatsName             = "monitor_down_total"
+	DockerContainerTotalStatsName         = "docker_container_total"
 )
 
 type RulesetLabel string
@@ -100,4 +101,8 @@ func ReaderTotalCounter() *metrics.Counter {
 
 func ReaderUnreadTotalCounter() *metrics.Counter {
 	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, ReaderUnreadTotalStatsName, version.Buildtags))
+}
+
+func DockerContainerTotalCounter() *metrics.Counter {
+	return metrics.GetOrCreateCounter(fmt.Sprintf(`%s{version="%s"}`, DockerContainerTotalStatsName, version.Buildtags))
 }

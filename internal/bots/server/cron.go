@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -35,7 +37,6 @@ var cronRules = []cron.Rule{
 	},
 	{
 		Name:  "docker_images_prune",
-		Help:  "Docker images prune",
 		Scope: cron.CronScopeSystem,
 		When:  "0 4 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
@@ -50,6 +51,36 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 			flog.Info("docker prune report: %+v", report)
+
+			return nil
+		},
+	},
+	{
+		Name:  "docker_metrics",
+		Scope: cron.CronScopeSystem,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+			list, err := dc.ContainerList(ctx.Context(), container.ListOptions{All: true})
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+
+			total := int64(0)
+			for _, item := range list {
+				if _, ok := item.Labels["homepage.name"]; !ok {
+					continue
+				}
+				total++
+			}
+
+			cache.SetInt64(stats.DockerContainerTotalStatsName, total)
+			stats.DockerContainerTotalCounter().Set(uint64(total))
 
 			return nil
 		},
