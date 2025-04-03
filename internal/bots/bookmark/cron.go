@@ -20,7 +20,7 @@ var cronRules = []cron.Rule{
 	{
 		Name:  "bookmarks_tag",
 		Scope: cron.CronScopeSystem,
-		When:  "*/10 * * * *",
+		When:  "0 2 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client := hoarder.GetClient()
 			resp, err := client.GetAllBookmarks(nil)
