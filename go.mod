@@ -78,7 +78,7 @@ require (
 	gorm.io/plugin/dbresolver v1.5.3
 	gotest.tools/v3 v3.5.2
 	jaytaylor.com/html2text v0.0.0-20230321000545-74c2419ad056
-	miniflux.app/v2 v2.2.3
+	miniflux.app/v2 v2.2.7
 )
 
 require (
