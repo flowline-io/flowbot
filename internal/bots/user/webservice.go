@@ -54,6 +54,7 @@ func metrics(ctx *fiber.Ctx) error {
 		stats.KanbanTaskTotalStatsName:      cache.GetInt64(stats.KanbanTaskTotalStatsName),
 		stats.MonitorUpTotalStatsName:       cache.GetInt64(stats.MonitorUpTotalStatsName),
 		stats.MonitorDownTotalStatsName:     cache.GetInt64(stats.MonitorDownTotalStatsName),
+		stats.DockerContainerTotalStatsName: cache.GetInt64(stats.DockerContainerTotalStatsName),
 	}))
 }
 
