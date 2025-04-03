@@ -3,3 +3,13 @@
 f37aa0b8f104f9b285267c3d8162bdc6e7ce2953:internal/bots/okr/webapp/build/static/js/main.13e29969.js.map:generic-api-key:1
 365af1a76e59d88a6a41fd03db19dfd25e4c22aa:internal/bots/okr/webapp/build/static/js/main.1586f1ce.js.map:generic-api-key:1
 776be94dd5fd4aa952994fa197079b238c0977f5:internal/bots/okr/webapp/build/static/js/main.890b29bc.js.map:generic-api-key:1
+0cf71b566cc5488731db03420f7b0c0da3427cd7:deployments/docker/config.template:generic-api-key:6
+0cf71b566cc5488731db03420f7b0c0da3427cd7:deployments/docker/config.template:generic-api-key:56
+a746f452d81afa299e7c4a7d3ec723b9d0624080:docs/config.yaml:generic-api-key:6
+a746f452d81afa299e7c4a7d3ec723b9d0624080:docs/config.yaml:generic-api-key:56
+13703c9841f011ce4e57e5bd11fba4438d84c974:docs/config.json:generic-api-key:23
+13703c9841f011ce4e57e5bd11fba4438d84c974:docs/config.json:generic-api-key:161
+776be94dd5fd4aa952994fa197079b238c0977f5:internal/bots/okr/webapp/build/static/js/main.890b29bc.js:generic-api-key:2
+94ffbceed731d5585d7d172a0997f2cded717294:internal/bots/okr/webapp/build/static/js/main.dba6e897.js:generic-api-key:2
+365af1a76e59d88a6a41fd03db19dfd25e4c22aa:internal/bots/okr/webapp/build/static/js/main.1586f1ce.js:generic-api-key:2
+f37aa0b8f104f9b285267c3d8162bdc6e7ce2953:internal/bots/okr/webapp/build/static/js/main.13e29969.js:generic-api-key:2

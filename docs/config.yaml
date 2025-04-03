@@ -32,8 +32,6 @@ media:
       serve_url: "http://127.0.0.1:9000"
 
 store_config:
-  # User ID encryption key
-  uid_key: la6YsO+bNX/+XIkOqc5Svw==
   # Maximum number of query results
   max_results: 1024
   # Data storage adapter type

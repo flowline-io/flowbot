@@ -74,8 +74,6 @@ type mediaConfig struct {
 }
 
 type StoreType struct {
-	// 16-byte key for XTEA. Used to initialize types.UidGenerator.
-	UidKey string `json:"uid_key" yaml:"uid_key" mapstructure:"uid_key"`
 	// Maximum number of results to return from adapter.
 	MaxResults int `json:"max_results" yaml:"max_results" mapstructure:"max_results"`
 	// DB adapter name to use. Should be one of those specified in `Adapters`.
