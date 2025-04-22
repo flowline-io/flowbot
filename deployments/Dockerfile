@@ -5,7 +5,7 @@ WORKDIR /opt/app
 COPY . .
 
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags`" github.com/flowline-io/flowbot/cmd
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd
 
 
 FROM alpine:latest
