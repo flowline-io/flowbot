@@ -45,7 +45,7 @@ require (
 	github.com/looplab/fsm v1.0.2
 	github.com/maxence-charriere/go-app/v10 v10.1.3
 	github.com/meilisearch/meilisearch-go v0.31.0
-	github.com/minio/minio-go/v7 v7.0.90
+	github.com/minio/minio-go/v7 v7.0.91
 	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/montanaflynn/stats v0.7.1
