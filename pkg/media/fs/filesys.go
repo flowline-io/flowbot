@@ -166,6 +166,6 @@ func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 	return fd, nil
 }
 
-func init() {
+func Register() {
 	store.RegisterMediaHandler(handlerName, &fshandler{})
 }

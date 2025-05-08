@@ -202,6 +202,6 @@ func (ah *handler) presignedURL(fdef *types.FileDef) (string, error) {
 	return presignedURL.String(), nil
 }
 
-func init() {
+func Register() {
 	store.RegisterMediaHandler(handlerName, &handler{})
 }

@@ -14,16 +14,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
-
-	// File upload handlers
-	_ "github.com/flowline-io/flowbot/pkg/media/fs"
-	_ "github.com/flowline-io/flowbot/pkg/media/minio"
-
-	// Notify
-	_ "github.com/flowline-io/flowbot/pkg/notify/message-pusher"
-	_ "github.com/flowline-io/flowbot/pkg/notify/ntfy"
-	_ "github.com/flowline-io/flowbot/pkg/notify/pushover"
-	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
 func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher,

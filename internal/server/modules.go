@@ -12,6 +12,8 @@ import (
 
 var Modules = fx.Options(
 	BotsModules,
+	NotifyModules,
+	MediaModules,
 	fx.Provide(
 		config.NewConfig,
 		cache.NewCache,

@@ -16,7 +16,7 @@ var handler plugin
 
 type plugin struct{}
 
-func init() {
+func Register() {
 	notify.Register(ID, &handler)
 }
 
