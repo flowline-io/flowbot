@@ -14,11 +14,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/redis/go-redis/v9"
 )
 
 var logger = flog.WatermillLogger
 
-func NewSubscriber() (message.Subscriber, error) {
+func NewSubscriber(_ *redis.Client) (message.Subscriber, error) {
 	return redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
 			Client:       rdb.Client,
@@ -28,14 +29,18 @@ func NewSubscriber() (message.Subscriber, error) {
 	)
 }
 
-func NewPublisher() (message.Publisher, error) {
-	return redisstream.NewPublisher(
+var Publisher message.Publisher
+
+func NewPublisher(_ *redis.Client) (message.Publisher, error) {
+	var err error
+	Publisher, err = redisstream.NewPublisher(
 		redisstream.PublisherConfig{
 			Client:     rdb.Client,
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
 	)
+	return Publisher, err
 }
 
 func NewRouter() (*message.Router, error) {
@@ -95,10 +100,5 @@ func PublishMessage(ctx context.Context, topic string, payload any) error {
 		return fmt.Errorf("failed to new message: %w", err)
 	}
 
-	publisher, err := NewPublisher()
-	if err != nil {
-		return fmt.Errorf("failed to new publisher: %w", err)
-	}
-
-	return publisher.Publish(topic, msg)
+	return Publisher.Publish(topic, msg)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -45,7 +46,7 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client, _ *search.Client) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -73,12 +74,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client,
 				return err
 			}
 			flog.Info("initialize Media ok")
-
-			// init event
-			if err = initializeEvent(); err != nil {
-				return err
-			}
-			flog.Info("initialize Event ok")
 
 			// init chatbot
 			if err = initializeChatbot(stopSignal); err != nil {

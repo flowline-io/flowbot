@@ -12,10 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
@@ -176,58 +173,6 @@ func initializeBot() {
 			}
 		}
 	}
-}
-
-// init event
-func initializeEvent() error {
-	router, err := event.NewRouter()
-	if err != nil {
-		return err
-	}
-
-	subscriber, err := event.NewSubscriber()
-	if err != nil {
-		return err
-	}
-
-	router.AddNoPublisherHandler(
-		"onMessageChannelEvent",
-		protocol.MessageChannelEvent,
-		subscriber,
-		onPlatformMessageEventHandler,
-	)
-	router.AddNoPublisherHandler(
-		"onMessageDirectEvent",
-		protocol.MessageDirectEvent,
-		subscriber,
-		onPlatformMessageEventHandler,
-	)
-	router.AddNoPublisherHandler(
-		"onMessageSendEventHandler",
-		types.MessageSendEvent,
-		subscriber,
-		onMessageSendEventHandler,
-	)
-	router.AddNoPublisherHandler(
-		"onInstructPushEventHandler",
-		types.InstructPushEvent,
-		subscriber,
-		onInstructPushEventHandler,
-	)
-	router.AddNoPublisherHandler(
-		"onBotRunEventHandler",
-		types.BotRunEvent,
-		subscriber,
-		onBotRunEventHandler,
-	)
-
-	go func() {
-		if err = router.Run(context.Background()); err != nil {
-			flog.Error(err)
-		}
-	}()
-
-	return nil
 }
 
 func initializeMetrics() error {

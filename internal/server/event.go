@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,7 +12,59 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	jsoniter "github.com/json-iterator/go"
+	"go.uber.org/fx"
 )
+
+// init event
+func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Subscriber) error {
+	router.AddNoPublisherHandler(
+		"onMessageChannelEvent",
+		protocol.MessageChannelEvent,
+		subscriber,
+		onPlatformMessageEventHandler,
+	)
+	router.AddNoPublisherHandler(
+		"onMessageDirectEvent",
+		protocol.MessageDirectEvent,
+		subscriber,
+		onPlatformMessageEventHandler,
+	)
+	router.AddNoPublisherHandler(
+		"onMessageSendEventHandler",
+		types.MessageSendEvent,
+		subscriber,
+		onMessageSendEventHandler,
+	)
+	router.AddNoPublisherHandler(
+		"onInstructPushEventHandler",
+		types.InstructPushEvent,
+		subscriber,
+		onInstructPushEventHandler,
+	)
+	router.AddNoPublisherHandler(
+		"onBotRunEventHandler",
+		types.BotRunEvent,
+		subscriber,
+		onBotRunEventHandler,
+	)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			go func() {
+				if err := router.Run(context.Background()); err != nil {
+					flog.Error(err)
+				}
+			}()
+
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
+
+	return nil
+}
 
 // send message
 func onMessageSendEventHandler(msg *message.Message) error {
