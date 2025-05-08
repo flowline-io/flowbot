@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -28,14 +27,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gofiber/fiber/v2/middleware/requestid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/pflag"
 )
@@ -57,102 +49,6 @@ var (
 		pprofUrl   *string
 	}
 )
-
-func initialize() error {
-	var err error
-
-	// init log
-	if err = initializeLog(); err != nil {
-		return err
-	}
-	flog.Info("initialize Log ok")
-
-	// init timezone
-	if err = initializeTimezone(); err != nil {
-		return err
-	}
-	flog.Info("initialize Timezone ok")
-
-	// init flag
-	if err = initializeFlag(); err != nil {
-		return err
-	}
-	flog.Info("initialize Flag ok")
-
-	// init config
-	if err = initializeConfig(); err != nil {
-		return err
-	}
-	flog.Info("initialize Config ok")
-
-	// init alarm
-	if err = initializeAlarm(); err != nil {
-		return err
-	}
-	flog.Info("initialize Alarm ok")
-
-	// init http
-	if err = initializeHttp(); err != nil {
-		return err
-	}
-	flog.Info("initialize Http ok")
-
-	// init pprof
-	if err = initializePprof(); err != nil {
-		return err
-	}
-	flog.Info("initialize Pprof ok")
-
-	// init cache
-	if err = initializeCache(); err != nil {
-		return err
-	}
-	flog.Info("initialize Cache ok")
-
-	// init database
-	if err = initializeDatabase(); err != nil {
-		return err
-	}
-	flog.Info("initialize Database ok")
-
-	// init media
-	if err = initializeMedia(); err != nil {
-		return err
-	}
-	flog.Info("initialize Media ok")
-
-	// init signal
-	if err = initializeSignal(); err != nil {
-		return err
-	}
-	flog.Info("initialize Signal ok")
-
-	// init event
-	if err = initializeEvent(); err != nil {
-		return err
-	}
-	flog.Info("initialize Event ok")
-
-	// init chatbot
-	if err = initializeChatbot(stopSignal); err != nil {
-		return err
-	}
-	flog.Info("initialize Chatbot ok")
-
-	// init metrics
-	if err = initializeMetrics(); err != nil {
-		return err
-	}
-	flog.Info("initialize Metrics ok")
-
-	// init search
-	if err = initializeSearch(); err != nil {
-		return err
-	}
-	flog.Info("initialize Search ok")
-
-	return nil
-}
 
 func initializeLog() error {
 	flog.Init(false)
@@ -218,75 +114,6 @@ func initializeConfig() error {
 
 	// log level
 	flog.SetLevel(config.App.Log.Level)
-
-	return nil
-}
-
-func initializeHttp() error {
-	// Set up HTTP server.
-	httpApp = fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-
-		JSONDecoder:  jsoniter.Unmarshal,
-		JSONEncoder:  jsoniter.Marshal,
-		ReadTimeout:  10 * time.Second,
-		IdleTimeout:  30 * time.Second,
-		WriteTimeout: 90 * time.Second,
-
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			// Send custom error page
-			if err != nil {
-				return ctx.Status(fiber.StatusBadRequest).
-					JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
-			}
-
-			// Return from handler
-			return nil
-		},
-	})
-	httpApp.Use(recover.New(recover.Config{EnableStackTrace: true}))
-	httpApp.Use(requestid.New())
-	httpApp.Use(healthcheck.New())
-	httpApp.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool {
-			return true
-		},
-	}))
-	httpApp.Use(compress.New(compress.Config{
-		Level: compress.LevelBestSpeed,
-	}))
-	httpApp.Use(limiter.New(limiter.Config{
-		Max:               50,
-		Expiration:        10 * time.Second,
-		LimiterMiddleware: limiter.SlidingWindow{},
-	}))
-	logger := flog.GetLogger()
-	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
-		Logger: &logger,
-		SkipURIs: []string{
-			"/",
-			"/livez",
-			"/readyz",
-			"/service/user/metrics",
-		},
-	}))
-
-	// hook
-	httpApp.Hooks().OnRoute(func(r fiber.Route) error {
-		if r.Method == http.MethodHead {
-			return nil
-		}
-		flog.Info("[route] %+7s %s", r.Method, r.Path)
-		return nil
-	})
-
-	// swagger
-	if swagHandler != nil {
-		httpApp.Get("/swagger/*", swagHandler)
-	}
-
-	// Handle extra
-	setupMux(httpApp)
 
 	return nil
 }

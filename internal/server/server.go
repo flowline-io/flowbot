@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"time"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
@@ -46,26 +48,96 @@ const (
 	defaultApiPath = "/"
 )
 
-func Run() {
-	// initialize
-	if err := initialize(); err != nil {
-		flog.Fatal("initialize %v", err)
-	}
-	// serve
-	if err := listenAndServe(httpApp, config.App.Listen, stopSignal); err != nil {
-		flog.Fatal("listenAndServe %v", err)
-	}
-}
-
 func RunServer(lc fx.Lifecycle, app *fiber.App) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			var err error
 
-			// initialize
-			if err := initialize(); err != nil {
-				flog.Fatal("initialize %v", err)
+			// init log
+			if err = initializeLog(); err != nil {
+				return err
 			}
+			flog.Info("initialize Log ok")
 
+			// init timezone
+			if err = initializeTimezone(); err != nil {
+				return err
+			}
+			flog.Info("initialize Timezone ok")
+
+			// init flag
+			if err = initializeFlag(); err != nil {
+				return err
+			}
+			flog.Info("initialize Flag ok")
+
+			// init config
+			if err = initializeConfig(); err != nil {
+				return err
+			}
+			flog.Info("initialize Config ok")
+
+			// init alarm
+			if err = initializeAlarm(); err != nil {
+				return err
+			}
+			flog.Info("initialize Alarm ok")
+
+			// init pprof
+			if err = initializePprof(); err != nil {
+				return err
+			}
+			flog.Info("initialize Pprof ok")
+
+			// init cache
+			if err = initializeCache(); err != nil {
+				return err
+			}
+			flog.Info("initialize Cache ok")
+
+			// init database
+			if err = initializeDatabase(); err != nil {
+				return err
+			}
+			flog.Info("initialize Database ok")
+
+			// init media
+			if err = initializeMedia(); err != nil {
+				return err
+			}
+			flog.Info("initialize Media ok")
+
+			// init signal
+			if err = initializeSignal(); err != nil {
+				return err
+			}
+			flog.Info("initialize Signal ok")
+
+			// init event
+			if err = initializeEvent(); err != nil {
+				return err
+			}
+			flog.Info("initialize Event ok")
+
+			// init chatbot
+			if err = initializeChatbot(stopSignal); err != nil {
+				return err
+			}
+			flog.Info("initialize Chatbot ok")
+
+			// init metrics
+			if err = initializeMetrics(); err != nil {
+				return err
+			}
+			flog.Info("initialize Metrics ok")
+
+			// init search
+			if err = initializeSearch(); err != nil {
+				return err
+			}
+			flog.Info("initialize Search ok")
+
+			// http server
 			go func() {
 				err := app.Listen(config.App.Listen)
 				if err != nil {
@@ -76,7 +148,27 @@ func RunServer(lc fx.Lifecycle, app *fiber.App) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return app.Shutdown()
+			// Flip the flag that we are terminating and close the Accept-ing socket, so no new connections are possible.
+			globals.shuttingDown = true
+			// Give server 2 seconds to shut down.
+			ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+			if err := app.ShutdownWithContext(ctx); err != nil {
+				// failure/timeout shutting down the server gracefully
+				flog.Error(err)
+			}
+
+			cancel()
+
+			// Shutdown Extra
+			globals.taskQueue.Shutdown()
+			globals.manager.Shutdown()
+			globals.cronTaskManager.Shutdown()
+			for _, ruleset := range globals.cronRuleset {
+				ruleset.Shutdown()
+			}
+			cache.Shutdown()
+
+			return nil
 		},
 	})
 }
