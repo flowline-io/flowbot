@@ -15,8 +15,6 @@ import (
 )
 
 var (
-	// stop signal
-	stopSignal <-chan bool
 	// swagger
 	swagHandler fiber.Handler
 )
@@ -54,15 +52,6 @@ func initializeMedia() error {
 				if err := store.UseMediaHandler(config.App.Media.UseHandler, conf); err != nil {
 					return fmt.Errorf("failed to init media handler, %w", err)
 				}
-			}
-			if config.App.Media.GcPeriod > 0 && config.App.Media.GcBlockSize > 0 {
-				globals.mediaGcPeriod = time.Second * time.Duration(config.App.Media.GcPeriod)
-				stopFilesGc := largeFileRunGarbageCollection(globals.mediaGcPeriod, config.App.Media.GcBlockSize)
-				go func() {
-					<-stopSignal
-					stopFilesGc <- true
-					flog.Info("Stopped files garbage collector")
-				}()
 			}
 		}
 	}

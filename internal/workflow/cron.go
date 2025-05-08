@@ -61,12 +61,13 @@ func NewCronTaskManager(lc fx.Lifecycle, _ *redis.Client, _ store.Adapter) *Cron
 }
 
 func (c *CronTaskManager) Run() {
-	if err := c.mgr.Run(); err != nil {
+	if err := c.mgr.Start(); err != nil {
 		flog.Error(err)
 	}
 }
 
 func (c *CronTaskManager) Shutdown() {
+	c.mgr.Shutdown()
 	flog.Info("cron task shutdown")
 }
 
