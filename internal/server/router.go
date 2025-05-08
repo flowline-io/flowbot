@@ -32,7 +32,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func bindRoutes(a *fiber.App) {
+func bindRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
 	for _, bot := range bots.List() {
 		bot.Webservice(a)
@@ -40,23 +40,29 @@ func bindRoutes(a *fiber.App) {
 
 	// common
 	a.Get("/", func(c *fiber.Ctx) error { return nil })
-	a.All("/oauth/:provider/:flag", storeOAuth)
-	a.Get("/p/:id", getPage)
+	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
+	a.Get("/p/:id", ctl.getPage)
 	// form
-	a.Post("/form", postForm)
+	a.Post("/form", ctl.postForm)
 	// page
-	a.Get("/page/:id/:flag", renderPage)
+	a.Get("/page/:id/:flag", ctl.renderPage)
 	// agent
-	a.Post("/agent", agentData)
+	a.Post("/agent", ctl.agentData)
 	// webhook
-	a.All("/webhook/:flag", doWebhook)
+	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
-	a.All("/chatbot/:platform", platformCallback)
+	a.All("/chatbot/:platform", ctl.platformCallback)
 }
 
 // handler
 
-func storeOAuth(ctx *fiber.Ctx) error {
+type Controller struct {}
+
+func newController() *Controller {
+	return &Controller{}
+}
+
+func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
@@ -99,7 +105,7 @@ func storeOAuth(ctx *fiber.Ctx) error {
 	return ctx.SendString("ok")
 }
 
-func getPage(ctx *fiber.Ctx) error {
+func (c *Controller) getPage(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
 	p, err := store.Database.PageGet(id)
@@ -155,7 +161,7 @@ func getPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(page.RenderComponent(title, comp))
 }
 
-func renderPage(ctx *fiber.Ctx) error {
+func (c *Controller) renderPage(ctx *fiber.Ctx) error {
 	pageRuleId := ctx.Params("id")
 	flag := ctx.Params("flag")
 
@@ -205,7 +211,7 @@ func renderPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(html)
 }
 
-func postForm(ctx *fiber.Ctx) error {
+func (c *Controller) postForm(ctx *fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
 	uid := ctx.FormValue("x-uid")
 	topic := ctx.FormValue("x-topic")
@@ -323,7 +329,7 @@ func postForm(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
-func agentData(ctx *fiber.Ctx) error {
+func (c *Controller) agentData(ctx *fiber.Ctx) error {
 	var r http.Request
 	if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
@@ -349,7 +355,7 @@ func agentData(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(result))
 }
 
-func platformCallback(ctx *fiber.Ctx) error {
+func (c *Controller) platformCallback(ctx *fiber.Ctx) error {
 	platform := ctx.Params("platform")
 
 	var err error
@@ -370,7 +376,7 @@ func platformCallback(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
-func doWebhook(ctx *fiber.Ctx) error {
+func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
 	flag := ctx.Params("flag")
 	method := ctx.Method()
 

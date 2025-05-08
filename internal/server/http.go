@@ -17,7 +17,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func NewHTTPServer() *fiber.App {
+func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
 	httpApp = fiber.New(fiber.Config{
 		DisableStartupMessage: true,

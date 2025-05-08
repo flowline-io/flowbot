@@ -12,7 +12,8 @@ var Modules = fx.Options(
 	fx.Provide(
 		config.NewConfig,
 		rdb.NewClient,
-		NewHTTPServer,
+		newController,
+		newHTTPServer,
 	),
 	fx.Invoke(
 		bindRoutes,
