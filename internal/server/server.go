@@ -40,12 +40,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 			}
 			flog.Info("initialize Media ok")
 
-			// init chatbot
-			if err = initializeChatbot(stopSignal); err != nil {
-				return err
-			}
-			flog.Info("initialize Chatbot ok")
-
 			// init metrics
 			if err = initializeMetrics(); err != nil {
 				return err

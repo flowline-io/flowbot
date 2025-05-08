@@ -32,6 +32,7 @@ var Modules = fx.Options(
 	fx.Invoke(
 		bindRoutes,
 		handleEvents,
+		handleChatbot,
 		RunServer,
 	),
 )

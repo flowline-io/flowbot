@@ -15,19 +15,19 @@ func newDatabaseAdapter(lc fx.Lifecycle, _ config.Type) (store.Adapter, error) {
 	mysql.Init()
 	store.Init()
 
+	// Open database
+	err := store.Store.Open(config.App.Store)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open DB, %w", err)
+	}
+
+	// migrate
+	if err := store.Migrate(); err != nil {
+		return nil, fmt.Errorf("failed to migrate DB, %w", err)
+	}
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			// Open database
-			err := store.Store.Open(config.App.Store)
-			if err != nil {
-				return fmt.Errorf("failed to open DB, %w", err)
-			}
-
-			// migrate
-			if err := store.Migrate(); err != nil {
-				return fmt.Errorf("failed to migrate DB, %w", err)
-			}
-
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

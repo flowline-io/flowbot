@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -162,7 +163,15 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 		return fmt.Errorf("failed to get caller: %w", err)
 	}
 
-	hookIncomingMessage(caller, pe)
+	// update online status
+	onlineStatus(pe)
+	// check grp or p2p
+	if strings.HasSuffix(pe.DetailType, ".direct") {
+		directIncomingMessage(caller, pe)
+	}
+	if strings.HasSuffix(pe.DetailType, ".group") {
+		groupIncomingMessage(caller, pe)
+	}
 
 	return nil
 }

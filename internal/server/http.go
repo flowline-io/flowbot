@@ -19,7 +19,7 @@ import (
 
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
-	httpApp = fiber.New(fiber.Config{
+	httpApp := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 
 		JSONDecoder:  jsoniter.Unmarshal,

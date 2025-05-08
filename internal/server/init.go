@@ -6,12 +6,9 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
@@ -22,8 +19,6 @@ var (
 	stopSignal <-chan bool
 	// swagger
 	swagHandler fiber.Handler
-	// fiber app
-	httpApp *fiber.App
 )
 
 func initializeLog() error {
@@ -72,63 +67,6 @@ func initializeMedia() error {
 		}
 	}
 	return nil
-}
-
-func initializeChatbot(signal <-chan bool) error {
-	// Initialize bots
-	hookBot(config.App.Bots, config.App.Vendors)
-
-	// hook
-	hookStarted()
-
-	// Platform
-	hookPlatform(signal)
-
-	return nil
-}
-
-// init bots
-func initializeBot() {
-	// register bots
-	registerBots := sets.NewString()
-	for name, handler := range bots.List() {
-		registerBots.Insert(name)
-
-		state := model.BotInactive
-		if handler.IsReady() {
-			state = model.BotActive
-		}
-		bot, _ := store.Database.GetBotByName(name)
-		if bot == nil {
-			bot = &model.Bot{
-				Name:  name,
-				State: state,
-			}
-			if _, err := store.Database.CreateBot(bot); err != nil {
-				flog.Error(err)
-			}
-		} else {
-			bot.State = state
-			err := store.Database.UpdateBot(bot)
-			if err != nil {
-				flog.Error(err)
-			}
-		}
-	}
-
-	// inactive bot
-	list, err := store.Database.GetBots()
-	if err != nil {
-		flog.Error(err)
-	}
-	for _, bot := range list {
-		if !registerBots.Has(bot.Name) {
-			bot.State = model.BotInactive
-			if err := store.Database.UpdateBot(bot); err != nil {
-				flog.Error(err)
-			}
-		}
-	}
 }
 
 func initializeMetrics() error {
