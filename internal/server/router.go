@@ -32,7 +32,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func bindRoutes(a *fiber.App, ctl *Controller) {
+func handleRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
 	for _, bot := range bots.List() {
 		bot.Webservice(a)
@@ -56,10 +56,14 @@ func bindRoutes(a *fiber.App, ctl *Controller) {
 
 // handler
 
-type Controller struct{}
+type Controller struct {
+	driver protocol.Driver
+}
 
-func newController() *Controller {
-	return &Controller{}
+func newController(driver protocol.Driver) *Controller {
+	return &Controller{
+		driver: driver,
+	}
 }
 
 func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
@@ -363,7 +367,7 @@ func (c *Controller) platformCallback(ctx *fiber.Ctx) error {
 	case tailchat.ID:
 		err = tailchat.HandleHttp(ctx)
 	case slack.ID:
-		err = slack.NewDriver().HttpServer(ctx)
+		err = c.driver.HttpServer(ctx)
 	}
 	if err != nil {
 		var protocolError *protocol.Error

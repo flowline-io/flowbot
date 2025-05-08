@@ -3,9 +3,8 @@ package slack
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/platforms"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -13,15 +12,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
+	"time"
 )
 
 type Driver struct {
 	adapter *Adapter
 	action  *Action
 	api     *slack.Client
+	stop    chan bool
 }
 
-func NewDriver() *Driver {
+func NewDriver(_ config.Type, _ store.Adapter) protocol.Driver {
 	api := slack.New(
 		config.App.Platform.Slack.BotToken,
 		slack.OptionDebug(config.App.Log.Level == flog.DebugLevel),
@@ -42,6 +43,7 @@ func NewDriver() *Driver {
 		adapter: &Adapter{},
 		action:  &Action{api: api},
 		api:     api,
+		stop:    make(chan bool),
 	}
 }
 
@@ -53,7 +55,7 @@ func (d *Driver) HttpWebhookClient(_ protocol.Message) error {
 	return nil
 }
 
-func (d *Driver) WebSocketClient(stop <-chan bool) {
+func (d *Driver) WebSocketClient() {
 	if !config.App.Platform.Slack.Enabled {
 		flog.Info("Slack is disabled")
 		return
@@ -69,7 +71,7 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 	go func() {
 		for {
 			select {
-			case <-stop:
+			case <-d.stop:
 				flog.Info("Slack is shutting down.")
 				return
 			case evt := <-client.Events:
@@ -104,9 +106,14 @@ func (d *Driver) WebSocketClient(stop <-chan bool) {
 	}()
 }
 
-func (d *Driver) WebSocketServer(_ <-chan bool) {
+func (d *Driver) WebSocketServer() {
 	if !config.App.Platform.Slack.Enabled {
 		flog.Info("Slack is disabled")
 		return
 	}
+}
+
+func (d *Driver) Shoutdown() error {
+	d.stop <- true
+	return nil
 }

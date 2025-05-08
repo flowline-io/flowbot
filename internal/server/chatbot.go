@@ -73,9 +73,6 @@ func handleChatbot(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Cli
 			// notify after online
 			go notifyAll(fmt.Sprintf("flowbot (%s) online", version.Buildtags))
 
-			// Platform
-			hookPlatform(make(<-chan bool))
-
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

@@ -60,7 +60,7 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return nil
+			return router.Close()
 		},
 	})
 

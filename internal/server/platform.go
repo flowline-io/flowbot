@@ -1,13 +1,19 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/platforms/discord"
-	"github.com/flowline-io/flowbot/internal/platforms/slack"
+	"context"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"go.uber.org/fx"
 )
 
-func hookPlatform(stop <-chan bool) {
-	// slack
-	go slack.NewDriver().WebSocketClient(stop)
-	// discord
-	go discord.HandleWebsocket(stop)
+func handlePlatform(lc fx.Lifecycle, driver protocol.Driver) {
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			go driver.WebSocketClient()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return driver.Shoutdown()
+		},
+	})
 }

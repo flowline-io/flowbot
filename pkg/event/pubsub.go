@@ -3,35 +3,48 @@ package event
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
-	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
+	"time"
 )
 
 var logger = flog.WatermillLogger
 
-func NewSubscriber(_ *redis.Client) (message.Subscriber, error) {
-	return redisstream.NewSubscriber(
+func NewSubscriber(lc fx.Lifecycle, _ *redis.Client) (message.Subscriber, error) {
+	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
 			Client:       rdb.Client,
 			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create redis subscriber: %w", err)
+	}
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return subscriber.Close()
+		},
+	})
+
+	return subscriber, err
 }
 
 var Publisher message.Publisher
 
-func NewPublisher(_ *redis.Client) (message.Publisher, error) {
+func NewPublisher(lc fx.Lifecycle, _ *redis.Client) (message.Publisher, error) {
 	var err error
 	Publisher, err = redisstream.NewPublisher(
 		redisstream.PublisherConfig{
@@ -40,16 +53,24 @@ func NewPublisher(_ *redis.Client) (message.Publisher, error) {
 		},
 		logger,
 	)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return Publisher.Close()
+		},
+	})
+
 	return Publisher, err
 }
 
-func NewRouter() (*message.Router, error) {
+func NewRouter(_ *redis.Client) (*message.Router, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
 	}
-
-	router.AddPlugin(plugin.SignalsHandler)
 
 	router.AddMiddleware(
 		middleware.CorrelationID,

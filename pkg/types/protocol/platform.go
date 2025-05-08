@@ -12,9 +12,11 @@ type Driver interface {
 	// HttpWebhookClient Chatbot implements active access to applications
 	HttpWebhookClient(message Message) error
 	// WebSocketClient The application can actively access the Chatbot implementation.
-	WebSocketClient(stop <-chan bool)
+	WebSocketClient()
 	// WebSocketServer Chatbot implements active access to applications
-	WebSocketServer(stop <-chan bool)
+	WebSocketServer()
+	// Shoutdown Shut down the driver
+	Shoutdown() error
 }
 
 // Adapter Responsible for converting platform messages to chatbot event/message formats.

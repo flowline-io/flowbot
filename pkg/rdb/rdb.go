@@ -37,7 +37,8 @@ func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return Client.Close()
+			Shutdown()
+			return nil
 		},
 	})
 

@@ -4,21 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
+	"time"
 )
 
 type Manager struct {
 	stop chan struct{}
 }
 
-func NewManager(lc fx.Lifecycle, _ store.Adapter) *Manager {
+func NewManager(lc fx.Lifecycle, _ store.Adapter, _ *redis.Client) *Manager {
 	i := &Manager{
 		stop: make(chan struct{}),
 	}

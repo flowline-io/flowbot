@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -25,14 +26,16 @@ var Modules = fx.Options(
 		workflow.NewQueue,
 		workflow.NewManager,
 		workflow.NewCronTaskManager,
+		slack.NewDriver,
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,
 	),
 	fx.Invoke(
-		bindRoutes,
+		handleRoutes,
 		handleEvents,
 		handleChatbot,
+		handlePlatform,
 		RunServer,
 	),
 )
