@@ -23,6 +23,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/expr-lang/expr v1.17.2
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
 	github.com/go-echarts/go-echarts/v2 v2.5.3
 	github.com/go-playground/validator/v10 v10.26.0
@@ -109,7 +110,6 @@ require (
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/getkin/kin-openapi v0.118.0 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect

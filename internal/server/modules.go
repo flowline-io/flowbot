@@ -1,6 +1,10 @@
 package server
 
-import "go.uber.org/fx"
+import (
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"go.uber.org/fx"
+)
 
 var Modules = fx.Options(
 	// controller.Modules,
@@ -16,6 +20,8 @@ var Modules = fx.Options(
 		// NewCronScheduler,
 		// NewHTTPServer,
 		// NewEventSubscriber,
+		config.NewConfig,
+		cache.NewCache,
 		NewHTTPServer,
 	),
 	fx.Invoke(

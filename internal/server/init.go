@@ -3,10 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"os"
-	"runtime"
-	"runtime/pprof"
-	"strings"
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
@@ -16,20 +12,16 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/alarm"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/pprofs"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/spf13/pflag"
 )
 
 var (
@@ -39,19 +31,11 @@ var (
 	swagHandler fiber.Handler
 	// fiber app
 	httpApp *fiber.App
-	// flag variables
-	appFlag struct {
-		configFile *string
-		listenOn   *string
-		apiPath    *string
-		tlsEnabled *bool
-		pprofFile  *string
-		pprofUrl   *string
-	}
 )
 
 func initializeLog() error {
 	flog.Init(false)
+	flog.SetLevel(config.App.Log.Level)
 	return nil
 }
 
@@ -61,104 +45,6 @@ func initializeTimezone() error {
 		return fmt.Errorf("load time location error, %w", err)
 	}
 	return nil
-}
-
-func initializeFlag() error {
-	appFlag.configFile = pflag.String("config", "flowbot.yaml", "Path to config file.")
-	appFlag.listenOn = pflag.String("listen", "", "Override address and port to listen on for HTTP(S) clients.")
-	appFlag.apiPath = pflag.String("api_path", "", "Override the base URL path where API is served.")
-	appFlag.tlsEnabled = pflag.Bool("tls_enabled", false, "Override config value for enabling TLS.")
-	appFlag.pprofFile = pflag.String("pprof", "", "File name to save profiling info to. Disabled if not set.")
-	appFlag.pprofUrl = pflag.String("pprof_url", "", "Debugging only! URL path for exposing profiling info. Disabled if not set.")
-	pflag.Parse()
-	return nil
-}
-
-func initializeConfig() error {
-	executable, _ := os.Executable()
-
-	curwd, err := os.Getwd()
-	if err != nil {
-		flog.Fatal("Couldn't get current working directory: %v", err)
-	}
-
-	flog.Info("version %s:%s:%s; pid %d; %d process(es)",
-		version.Buildtags, executable, version.Buildstamp,
-		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
-
-	*appFlag.configFile = utils.ToAbsolutePath(curwd, *appFlag.configFile)
-	flog.Info("Using config from '%s'", *appFlag.configFile)
-
-	// Load config
-	config.Load(".", curwd)
-
-	if *appFlag.listenOn != "" {
-		config.App.Listen = *appFlag.listenOn
-	}
-
-	// Configure root path for serving API calls.
-	if *appFlag.apiPath != "" {
-		config.App.ApiPath = *appFlag.apiPath
-	}
-	if config.App.ApiPath == "" {
-		config.App.ApiPath = defaultApiPath
-	} else {
-		if !strings.HasPrefix(config.App.ApiPath, "/") {
-			config.App.ApiPath = "/" + config.App.ApiPath
-		}
-		if !strings.HasSuffix(config.App.ApiPath, "/") {
-			config.App.ApiPath += "/"
-		}
-	}
-	flog.Info("API served from root URL path '%s'", config.App.ApiPath)
-
-	// log level
-	flog.SetLevel(config.App.Log.Level)
-
-	return nil
-}
-
-func initializePprof() error {
-	// Initialize serving debug profiles (optional).
-	pprofs.ServePprof(httpApp, *appFlag.pprofUrl)
-
-	if *appFlag.pprofFile != "" {
-		curwd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory, %w", err)
-		}
-		*appFlag.pprofFile = utils.ToAbsolutePath(curwd, *appFlag.pprofFile)
-
-		cpuf, err := os.Create(*appFlag.pprofFile + ".cpu")
-		if err != nil {
-			flog.Fatal("Failed to create CPU pprof file: %v", err)
-		}
-		defer func() {
-			_ = cpuf.Close()
-		}()
-
-		memf, err := os.Create(*appFlag.pprofFile + ".mem")
-		if err != nil {
-			flog.Fatal("Failed to create Mem pprof file: %v", err)
-		}
-		defer func() {
-			_ = memf.Close()
-		}()
-
-		_ = pprof.StartCPUProfile(cpuf)
-		defer pprof.StopCPUProfile()
-		defer func() {
-			_ = pprof.WriteHeapProfile(memf)
-		}()
-
-		flog.Info("Profiling info saved to '%s.(cpu|mem)'", *appFlag.pprofFile)
-	}
-	return nil
-}
-
-func initializeCache() error {
-	// init cache
-	return cache.InitCache()
 }
 
 func initializeDatabase() error {
@@ -219,11 +105,6 @@ func initializeMedia() error {
 			}
 		}
 	}
-	return nil
-}
-
-func initializeSignal() error {
-	stopSignal = utils.SignalHandler()
 	return nil
 }
 

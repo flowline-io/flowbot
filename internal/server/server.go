@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 
 	// bots
@@ -48,7 +49,7 @@ const (
 	defaultApiPath = "/"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -65,35 +66,11 @@ func RunServer(lc fx.Lifecycle, app *fiber.App) {
 			}
 			flog.Info("initialize Timezone ok")
 
-			// init flag
-			if err = initializeFlag(); err != nil {
-				return err
-			}
-			flog.Info("initialize Flag ok")
-
-			// init config
-			if err = initializeConfig(); err != nil {
-				return err
-			}
-			flog.Info("initialize Config ok")
-
 			// init alarm
 			if err = initializeAlarm(); err != nil {
 				return err
 			}
 			flog.Info("initialize Alarm ok")
-
-			// init pprof
-			if err = initializePprof(); err != nil {
-				return err
-			}
-			flog.Info("initialize Pprof ok")
-
-			// init cache
-			if err = initializeCache(); err != nil {
-				return err
-			}
-			flog.Info("initialize Cache ok")
 
 			// init database
 			if err = initializeDatabase(); err != nil {
@@ -106,12 +83,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App) {
 				return err
 			}
 			flog.Info("initialize Media ok")
-
-			// init signal
-			if err = initializeSignal(); err != nil {
-				return err
-			}
-			flog.Info("initialize Signal ok")
 
 			// init event
 			if err = initializeEvent(); err != nil {

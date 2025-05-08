@@ -2,10 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -20,18 +20,18 @@ func CheckSingleton() {
 		resp, err := resty.New().SetTimeout(500 * time.Millisecond).R().
 			Get(fmt.Sprintf("http://127.0.0.1:%s/health", EmbedServerPort))
 		if err != nil {
-			flog.Error(err)
+			log.Print(err)
 			return
 		}
 		if resp.String() == "ok" {
-			flog.Fatal("app exists")
+			log.Fatal("app exists")
 		}
 	}
 }
 
 func EmbedServer() {
 	go func() {
-		flog.Info("embed server http://127.0.0.1:%v", EmbedServerPort)
+		log.Printf("embed server http://127.0.0.1:%v", EmbedServerPort)
 
 		app := fiber.New(fiber.Config{DisableStartupMessage: true})
 		app.Use(cors.New())
@@ -43,7 +43,7 @@ func EmbedServer() {
 
 		err := app.Listen(net.JoinHostPort("127.0.0.1", EmbedServerPort))
 		if err != nil {
-			flog.Fatal("embed server error")
+			log.Fatal("embed server error")
 		}
 	}()
 }

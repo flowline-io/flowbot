@@ -8,15 +8,16 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
 )
 
 var DB *redis.Client
 
-func InitCache() error {
+func NewCache(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
 	password := config.App.Redis.Password
 	if addr == ":" || password == "" {
-		return fmt.Errorf("redis config error")
+		return nil, fmt.Errorf("redis config error")
 	}
 	DB = redis.NewClient(&redis.Options{
 		Addr:         addr,
@@ -28,9 +29,19 @@ func InitCache() error {
 	s := DB.Ping(context.Background())
 	_, err := s.Result()
 	if err != nil {
-		return fmt.Errorf("redis server error %w", err)
+		return nil, fmt.Errorf("redis server error %w", err)
 	}
-	return nil
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return DB.Close()
+		},
+	})
+
+	return DB, nil
 }
 
 func Shutdown() {

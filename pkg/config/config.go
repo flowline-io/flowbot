@@ -1,16 +1,29 @@
 package config
 
 import (
+	"context"
 	"log"
+	"os"
+	"runtime"
+	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/version"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/fx"
 )
 
-var App configType
+const (
+	// Base URL path for serving the streaming API.
+	defaultApiPath = "/"
+)
+
+var App Type
 
 // Contentx of the configuration file
-type configType struct {
+type Type struct {
 	// HTTP(S) address:port to listen on for websocket and long polling clients. Either a
 	// numeric or a canonical name, e.g. ":80" or ":https". Could include a host name, e.g.
 	// "localhost:80".
@@ -261,4 +274,65 @@ func Load(path ...string) {
 	if err != nil {
 		log.Fatalf("[config] Failed to unmarshal config: %v", err)
 	}
+}
+
+func NewConfig(lc fx.Lifecycle) Type {
+	executable, _ := os.Executable()
+
+	curwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Couldn't get current working directory: %v", err)
+	}
+
+	log.Printf("version %s:%s:%s; pid %d; %d process(es)\n",
+		version.Buildtags, executable, version.Buildstamp,
+		os.Getpid(), runtime.GOMAXPROCS(runtime.NumCPU()))
+
+	configFile := utils.ToAbsolutePath(curwd, "flowbot.yaml")
+	log.Printf("Using config from '%s'\n", configFile)
+
+	// Load config
+	Load(".", curwd)
+
+	// Configure root path for serving API calls.
+	if App.ApiPath == "" {
+		App.ApiPath = defaultApiPath
+	} else {
+		if !strings.HasPrefix(App.ApiPath, "/") {
+			App.ApiPath = "/" + App.ApiPath
+		}
+		if !strings.HasSuffix(App.ApiPath, "/") {
+			App.ApiPath += "/"
+		}
+	}
+	log.Printf("API served from root URL path '%s'\n", App.ApiPath)
+
+	// // Debug
+	// if App.IsDevelopmentMode() {
+	// 	viper.Debug()
+	// }
+
+	// fx hooks
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			// Watch config
+			viper.OnConfigChange(func(e fsnotify.Event) {
+				log.Printf("Config file changed: %s\n", e.Name)
+
+				// Reload
+				err := viper.Unmarshal(&App)
+				if err != nil {
+					log.Fatalf("[config] Failed to unmarshal config: %v", err)
+				}
+			})
+			viper.WatchConfig()
+
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
+
+	return App
 }

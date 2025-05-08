@@ -1,11 +1,10 @@
 package utils
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func SignalHandler() <-chan bool {
@@ -17,7 +16,7 @@ func SignalHandler() <-chan bool {
 	go func() {
 		// Wait for a signal. Don't care which signal it is
 		sig := <-signchan
-		flog.Info("Signal received: '%s', shutting down", sig)
+		log.Printf("Signal received: '%s', shutting down", sig)
 		stop <- true
 	}()
 
