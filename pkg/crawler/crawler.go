@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/influxdata/cron"
 	jsoniter "github.com/json-iterator/go"
@@ -147,7 +147,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	sendTimeKey := fmt.Sprintf("crawler:%s:sendtime", name)
 
 	// sent
-	oldArr, err := cache.DB.SMembers(ctx, sentKey).Result()
+	oldArr, err := rdb.Client.SMembers(ctx, sentKey).Result()
 	if err != nil {
 		return nil
 	}
@@ -161,7 +161,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	}
 
 	// to do
-	todoArr, err := cache.DB.SMembers(ctx, todoKey).Result()
+	todoArr, err := rdb.Client.SMembers(ctx, todoKey).Result()
 	if err != nil {
 		return nil
 	}
@@ -182,9 +182,9 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 	switch mode {
 	case "instant":
-		_ = cache.DB.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
+		_ = rdb.Client.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
 	case "daily":
-		sendString, err := cache.DB.Get(ctx, sendTimeKey).Result()
+		sendString, err := rdb.Client.Get(ctx, sendTimeKey).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
 			flog.Error(err)
 		}
@@ -196,7 +196,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 		if time.Now().Unix()-oldSend < 24*60*60 {
 			for _, item := range diff {
 				d, _ := jsoniter.Marshal(item)
-				_ = cache.DB.SAdd(ctx, todoKey, d)
+				_ = rdb.Client.SAdd(ctx, todoKey, d)
 			}
 
 			return nil
@@ -204,7 +204,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 		diff = append(diff, todo...)
 
-		_ = cache.DB.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
+		_ = rdb.Client.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
 	default:
 		return nil
 	}
@@ -212,11 +212,11 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	// add data
 	for _, item := range diff {
 		d, _ := jsoniter.Marshal(item)
-		_ = cache.DB.SAdd(ctx, sentKey, d)
+		_ = rdb.Client.SAdd(ctx, sentKey, d)
 	}
 
 	// clear to do
-	_ = cache.DB.Del(ctx, todoKey)
+	_ = rdb.Client.Del(ctx, todoKey)
 
 	return diff
 }

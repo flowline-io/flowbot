@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
@@ -38,7 +38,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 			stats.ReaderUnreadTotalCounter().Set(uint64(result.Total))
-			cache.SetInt64(stats.ReaderUnreadTotalStatsName, int64(result.Total))
+			rdb.SetInt64(stats.ReaderUnreadTotalStatsName, int64(result.Total))
 
 			return nil
 		},

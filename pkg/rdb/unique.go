@@ -1,4 +1,4 @@
-package cache
+package rdb
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func Unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
 		if len(val) == 0 {
 			continue
 		}
-		b, err := DB.SAdd(ctx, uniqueKey, val).Result()
+		b, err := Client.SAdd(ctx, uniqueKey, val).Result()
 		if err != nil {
 			return nil, fmt.Errorf("failed to set unique key: %w", err)
 		}
@@ -48,7 +48,7 @@ func kvHash(item any) (string, error) {
 
 func UniqueString(ctx context.Context, id string, latest string) (bool, error) {
 	uniqueKey := fmt.Sprintf("unique:%s", id)
-	b, err := DB.SAdd(ctx, uniqueKey, latest).Result()
+	b, err := Client.SAdd(ctx, uniqueKey, latest).Result()
 	if err != nil {
 		return false, fmt.Errorf("failed to set unique key: %w", err)
 	}

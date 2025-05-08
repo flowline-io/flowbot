@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
@@ -137,7 +136,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}
-			cache.Shutdown()
 
 			return nil
 		},

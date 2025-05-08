@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
-	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 )
 
 type Locker struct {
@@ -13,7 +13,7 @@ type Locker struct {
 }
 
 func NewLocker() *Locker {
-	return &Locker{lock: redislock.New(cache.DB)}
+	return &Locker{lock: redislock.New(rdb.Client)}
 }
 
 func (l *Locker) Acquire(ctx context.Context, key string, ttl time.Duration) (*redislock.Lock, error) {

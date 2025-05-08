@@ -1,4 +1,4 @@
-package cache
+package rdb
 
 import (
 	"context"
@@ -11,22 +11,22 @@ import (
 	"go.uber.org/fx"
 )
 
-var DB *redis.Client
+var Client *redis.Client
 
-func NewCache(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
+func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
 	password := config.App.Redis.Password
 	if addr == ":" || password == "" {
 		return nil, fmt.Errorf("redis config error")
 	}
-	DB = redis.NewClient(&redis.Options{
+	Client = redis.NewClient(&redis.Options{
 		Addr:         addr,
 		Password:     password,
 		DB:           config.App.Redis.DB,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	})
-	s := DB.Ping(context.Background())
+	s := Client.Ping(context.Background())
 	_, err := s.Result()
 	if err != nil {
 		return nil, fmt.Errorf("redis server error %w", err)
@@ -37,22 +37,22 @@ func NewCache(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return DB.Close()
+			return Client.Close()
 		},
 	})
 
-	return DB, nil
+	return Client, nil
 }
 
 func Shutdown() {
-	if DB == nil {
+	if Client == nil {
 		flog.Warn("redis not initialized")
 		return
 	}
 
-	_, err := DB.Ping(context.Background()).Result()
+	_, err := Client.Ping(context.Background()).Result()
 	if err == nil {
-		err = DB.Close()
+		err = Client.Close()
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to close redis connection: %w", err))
 			return
@@ -64,11 +64,11 @@ func Shutdown() {
 }
 
 func SetInt64(key string, value int64) {
-	DB.Set(context.Background(), key, value, 0)
+	Client.Set(context.Background(), key, value, 0)
 }
 
 func GetInt64(key string) int64 {
-	r, err := DB.Get(context.Background(), key).Int64()
+	r, err := Client.Get(context.Background(), key).Int64()
 	if err != nil {
 		flog.Error(err)
 	}

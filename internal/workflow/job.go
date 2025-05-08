@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -16,15 +16,15 @@ const (
 )
 
 func SyncJob(ctx context.Context, job *model.Job) error {
-	return cache.DB.HSet(ctx, jobListKey, strconv.FormatInt(job.ID, 10), job).Err()
+	return rdb.Client.HSet(ctx, jobListKey, strconv.FormatInt(job.ID, 10), job).Err()
 }
 
 func DeleteJob(ctx context.Context, job *model.Job) error {
-	return cache.DB.HDel(ctx, jobListKey, strconv.FormatInt(job.ID, 10)).Err()
+	return rdb.Client.HDel(ctx, jobListKey, strconv.FormatInt(job.ID, 10)).Err()
 }
 
 func GetJobsByState(ctx context.Context, state model.JobState) ([]*model.Job, error) {
-	res, err := cache.DB.HGetAll(ctx, jobListKey).Result()
+	res, err := rdb.Client.HGetAll(ctx, jobListKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get jobs from cache key %s, %w", jobListKey, err)
 	}

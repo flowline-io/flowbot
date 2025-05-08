@@ -6,9 +6,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/uptimekuma"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
@@ -21,13 +21,13 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeUser,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			keys, _ := cache.DB.Keys(ctx.Context(), "online:*").Result()
+			keys, _ := rdb.Client.Keys(ctx.Context(), "online:*").Result()
 
 			currentCount := int64(len(keys))
 			lastKey := fmt.Sprintf("server:cron:online_count_last:%s", ctx.AsUser.String())
 
-			lastCount, _ := cache.DB.Get(ctx.Context(), lastKey).Int64()
-			cache.DB.Set(ctx.Context(), lastKey, currentCount, redis.KeepTTL)
+			lastCount, _ := rdb.Client.Get(ctx.Context(), lastKey).Int64()
+			rdb.Client.Set(ctx.Context(), lastKey, currentCount, redis.KeepTTL)
 
 			if lastCount != currentCount {
 				return nil
@@ -79,7 +79,7 @@ var cronRules = []cron.Rule{
 				total++
 			}
 
-			cache.SetInt64(stats.DockerContainerTotalStatsName, total)
+			rdb.SetInt64(stats.DockerContainerTotalStatsName, total)
 			stats.DockerContainerTotalCounter().Set(uint64(total))
 
 			return nil
@@ -110,8 +110,8 @@ var cronRules = []cron.Rule{
 					}
 				}
 			}
-			cache.SetInt64(stats.MonitorUpTotalStatsName, up)
-			cache.SetInt64(stats.MonitorDownTotalStatsName, down)
+			rdb.SetInt64(stats.MonitorUpTotalStatsName, up)
+			rdb.SetInt64(stats.MonitorDownTotalStatsName, down)
 
 			return nil
 		},

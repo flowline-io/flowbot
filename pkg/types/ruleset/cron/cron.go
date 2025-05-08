@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/influxdata/cron"
 )
@@ -196,12 +196,12 @@ func (r *Ruleset) filter(res result) result {
 	hash := s.Sum(nil)
 
 	ctx := context.Background()
-	state := cache.DB.SIsMember(ctx, filterKey, hash).Val()
+	state := rdb.Client.SIsMember(ctx, filterKey, hash).Val()
 	if state {
 		return result{}
 	}
 
-	_ = cache.DB.SAdd(ctx, filterKey, hash)
+	_ = rdb.Client.SAdd(ctx, filterKey, hash)
 	return res
 }
 

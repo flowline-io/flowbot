@@ -13,11 +13,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/workflow"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/adguard"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/version"
@@ -79,7 +79,7 @@ var commandRules = []command.Rule{
 		Help:   `Online stats`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			ctx_ := context.Background()
-			keys, err := cache.DB.Keys(ctx_, "online:*").Result()
+			keys, err := rdb.Client.Keys(ctx_, "online:*").Result()
 			if err != nil {
 				if !errors.Is(err, redis.Nil) {
 					flog.Error(err)
@@ -90,7 +90,7 @@ var commandRules = []command.Rule{
 			var texts []string
 			texts = append(texts, fmt.Sprintf("online %d", len(keys)))
 			for _, key := range keys {
-				t, err := cache.DB.Get(ctx_, key).Result()
+				t, err := rdb.Client.Get(ctx_, key).Result()
 				if err != nil {
 					continue
 				}

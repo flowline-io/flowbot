@@ -7,9 +7,6 @@ import (
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
-
-	"github.com/flowline-io/flowbot/pkg/cache"
-
 	"github.com/flowline-io/flowbot/pkg/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
@@ -18,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -168,7 +166,7 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, empty data", uniqueWorkflowActionID)
 			}
 			if v, ok := list.([]any); ok {
-				result, err := cache.Unique(ctx.Context(), id, v)
+				result, err := rdb.Unique(ctx.Context(), id, v)
 				if err != nil {
 					return nil, fmt.Errorf("%s step, unique failed, %w", uniqueWorkflowActionID, err)
 				}

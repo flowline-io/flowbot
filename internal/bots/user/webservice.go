@@ -3,9 +3,9 @@ package user
 import (
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -46,15 +46,15 @@ func dashboard(ctx *fiber.Ctx) error {
 //	@Router		/user/metrics [get]
 func metrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
-		stats.BotTotalStatsName:             cache.GetInt64(stats.BotTotalStatsName),
-		stats.BookmarkTotalStatsName:        cache.GetInt64(stats.BookmarkTotalStatsName),
-		stats.TorrentDownloadTotalStatsName: cache.GetInt64(stats.TorrentDownloadTotalStatsName),
-		stats.GiteaIssueTotalStatsName:      cache.GetInt64(stats.GiteaIssueTotalStatsName),
-		stats.ReaderUnreadTotalStatsName:    cache.GetInt64(stats.ReaderUnreadTotalStatsName),
-		stats.KanbanTaskTotalStatsName:      cache.GetInt64(stats.KanbanTaskTotalStatsName),
-		stats.MonitorUpTotalStatsName:       cache.GetInt64(stats.MonitorUpTotalStatsName),
-		stats.MonitorDownTotalStatsName:     cache.GetInt64(stats.MonitorDownTotalStatsName),
-		stats.DockerContainerTotalStatsName: cache.GetInt64(stats.DockerContainerTotalStatsName),
+		stats.BotTotalStatsName:             rdb.GetInt64(stats.BotTotalStatsName),
+		stats.BookmarkTotalStatsName:        rdb.GetInt64(stats.BookmarkTotalStatsName),
+		stats.TorrentDownloadTotalStatsName: rdb.GetInt64(stats.TorrentDownloadTotalStatsName),
+		stats.GiteaIssueTotalStatsName:      rdb.GetInt64(stats.GiteaIssueTotalStatsName),
+		stats.ReaderUnreadTotalStatsName:    rdb.GetInt64(stats.ReaderUnreadTotalStatsName),
+		stats.KanbanTaskTotalStatsName:      rdb.GetInt64(stats.KanbanTaskTotalStatsName),
+		stats.MonitorUpTotalStatsName:       rdb.GetInt64(stats.MonitorUpTotalStatsName),
+		stats.MonitorDownTotalStatsName:     rdb.GetInt64(stats.MonitorDownTotalStatsName),
+		stats.DockerContainerTotalStatsName: rdb.GetInt64(stats.DockerContainerTotalStatsName),
 	}))
 }
 

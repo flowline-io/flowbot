@@ -10,8 +10,8 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -21,7 +21,7 @@ var logger = flog.WatermillLogger
 func NewSubscriber() (message.Subscriber, error) {
 	return redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
-			Client:       cache.DB,
+			Client:       rdb.Client,
 			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
@@ -31,7 +31,7 @@ func NewSubscriber() (message.Subscriber, error) {
 func NewPublisher() (message.Publisher, error) {
 	return redisstream.NewPublisher(
 		redisstream.PublisherConfig{
-			Client:     cache.DB,
+			Client:     rdb.Client,
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,

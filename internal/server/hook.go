@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/version"
@@ -57,9 +57,11 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	stats.BotTotalCounter().Set(uint64(len(bots.List())))
-	cache.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
+	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
 }
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/*******  d1f3b9b1-a06b-4ef6-b535-3391cf4e6fbe  *******/
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {
 	// update online status
 	onlineStatus(msg)

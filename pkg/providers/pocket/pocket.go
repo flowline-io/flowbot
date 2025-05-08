@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
-
-	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -55,7 +54,7 @@ func (v *Pocket) GetCode(state string) (*CodeResponse, error) {
 		v.code = result.Code
 
 		ctx := context.Background()
-		_ = cache.DB.Set(ctx, "pocket:code", v.code, redis.KeepTTL) // todo code param
+		_ = rdb.Client.Set(ctx, "pocket:code", v.code, redis.KeepTTL) // todo code param
 
 		return result, nil
 	} else {
@@ -88,7 +87,7 @@ func (v *Pocket) completeAuth(code string) (interface{}, error) {
 
 func (v *Pocket) Redirect(_ *http.Request) (string, error) {
 	ctx := context.Background()
-	_ = cache.DB.Set(ctx, "pocket:code", v.code, redis.KeepTTL).Err() // fixme uid key
+	_ = rdb.Client.Set(ctx, "pocket:code", v.code, redis.KeepTTL).Err() // fixme uid key
 
 	appRedirectURI := v.GetAuthorizeURL()
 	return appRedirectURI, nil
@@ -96,7 +95,7 @@ func (v *Pocket) Redirect(_ *http.Request) (string, error) {
 
 func (v *Pocket) GetAccessToken(_ *fiber.Ctx) (types.KV, error) {
 	ctx := context.Background()
-	code, err := cache.DB.Get(ctx, "pocket:code").Result() // fixme uid key
+	code, err := rdb.Client.Get(ctx, "pocket:code").Result() // fixme uid key
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return nil, err
 	}

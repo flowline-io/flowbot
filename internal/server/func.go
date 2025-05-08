@@ -13,13 +13,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -129,7 +129,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// get chat key
 	chatKey := fmt.Sprintf("chat:%s", uid)
-	session, err := cache.DB.Get(ctx.Context(), chatKey).Result()
+	session, err := rdb.Client.Get(ctx.Context(), chatKey).Result()
 	if err != nil {
 		if !errors.Is(err, redis.Nil) {
 			flog.Error(err)
@@ -141,7 +141,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	if strings.ToLower(msg.AltMessage) == "chat" {
 		if session == "" {
 			payload = types.TextMsg{Text: "Chat started"}
-			err = cache.DB.Set(ctx.Context(), chatKey, types.Id(), 24*time.Hour).Err()
+			err = rdb.Client.Set(ctx.Context(), chatKey, types.Id(), 24*time.Hour).Err()
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
 			}
@@ -153,7 +153,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// chat end command
 	// end Multi-turn conversation
 	if strings.ToLower(msg.AltMessage) == "end" {
-		err = cache.DB.Del(ctx.Context(), chatKey).Err()
+		err = rdb.Client.Del(ctx.Context(), chatKey).Err()
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
 		}
@@ -430,13 +430,13 @@ func onlineStatus(msg protocol.Event) {
 
 	ctx := context.Background()
 	key := fmt.Sprintf("online:%s", med.UserId)
-	_, err := cache.DB.Get(ctx, key).Result()
+	_, err := rdb.Client.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
-		cache.DB.Set(ctx, key, time.Now().Unix(), 30*time.Minute)
+		rdb.Client.Set(ctx, key, time.Now().Unix(), 30*time.Minute)
 	} else if err != nil {
 		return
 	} else {
-		cache.DB.Expire(ctx, key, 30*time.Minute)
+		rdb.Client.Expire(ctx, key, 30*time.Minute)
 	}
 }
 

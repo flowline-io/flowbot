@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
@@ -72,7 +72,7 @@ var cronRules = []cron.Rule{
 				bookmarkTotal++
 			}
 			stats.BookmarkTotalCounter().Set(uint64(bookmarkTotal))
-			cache.SetInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
+			rdb.SetInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
 
 			return nil
 		},
@@ -131,7 +131,7 @@ var cronRules = []cron.Rule{
 				}
 
 				// filter
-				ok, err := cache.UniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
+				ok, err := rdb.UniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
 				if err != nil {
 					flog.Error(fmt.Errorf("cron bookmarks_task unique error %w", err))
 					continue
