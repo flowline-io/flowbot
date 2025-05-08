@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
@@ -44,7 +45,7 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client, _ *search.Client) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -90,12 +91,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client)
 				return err
 			}
 			flog.Info("initialize Metrics ok")
-
-			// init search
-			if err = initializeSearch(); err != nil {
-				return err
-			}
-			flog.Info("initialize Search ok")
 
 			// http server
 			go func() {

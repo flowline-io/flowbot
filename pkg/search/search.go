@@ -1,6 +1,7 @@
-package meilisearch
+package search
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -11,19 +12,37 @@ import (
 	"github.com/goccy/go-json"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/meilisearch/meilisearch-go"
+	"go.uber.org/fx"
 )
 
-type MeiliSearch struct {
+var Instance *Client
+
+type Client struct {
 	manager meilisearch.ServiceManager
 }
 
-func NewMeiliSearch() MeiliSearch {
-	return MeiliSearch{
+func NewClient(lc fx.Lifecycle, _ config.Type) *Client {
+	Instance = &Client{
 		manager: meilisearch.New(config.App.Search.Endpoint, meilisearch.WithAPIKey(config.App.Search.MasterKey)),
 	}
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			err := Instance.DefaultIndexSettings()
+			if err != nil {
+				flog.Error(err)
+			}
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return nil
+		},
+	})
+
+	return Instance
 }
 
-func (c MeiliSearch) AddDocument(data types.Document) error {
+func (c *Client) AddDocument(data types.Document) error {
 	// metrics
 	stats.SearchProcessedDocumentTotalCounter(config.App.Search.DataIndex).Inc()
 
@@ -45,7 +64,7 @@ func (c MeiliSearch) AddDocument(data types.Document) error {
 	return nil
 }
 
-func (c MeiliSearch) Search(source, query string, page, pageSize int32) (types.DocumentList, int64, error) {
+func (c *Client) Search(source, query string, page, pageSize int32) (types.DocumentList, int64, error) {
 	// metrics
 	stats.SearchTotalCounter(config.App.Search.DataIndex).Inc()
 
@@ -80,7 +99,7 @@ func (c MeiliSearch) Search(source, query string, page, pageSize int32) (types.D
 	return list, resp.EstimatedTotalHits, nil
 }
 
-func (c MeiliSearch) DefaultIndexSettings() error {
+func (c *Client) DefaultIndexSettings() error {
 	taskInfo, err := c.manager.Index(config.App.Search.DataIndex).UpdateSettings(&meilisearch.Settings{
 		SortableAttributes:   []string{"created_at"},
 		FilterableAttributes: []string{"source"},

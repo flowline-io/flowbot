@@ -17,9 +17,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -235,7 +235,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			flog.Info("dev bot environment config: %s", config.Environment)
 
-			err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
+			err := search.Instance.AddDocument(types.Document{
 				SourceId:    types.Id(),
 				Source:      hoarder.ID,
 				Title:       "the title....",
@@ -247,7 +247,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			list, total, err := meilisearch.NewMeiliSearch().Search(gitea.ID, "title", 1, 10)
+			list, total, err := search.Instance.Search(gitea.ID, "title", 1, 10)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

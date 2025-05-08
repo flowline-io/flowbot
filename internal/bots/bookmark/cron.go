@@ -9,8 +9,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/rdb"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
@@ -92,7 +92,7 @@ var cronRules = []cron.Rule{
 			for _, bookmark := range resp.Bookmarks {
 				title := bookmark.GetTitle()
 				summary := bookmark.GetSummary()
-				err := meilisearch.NewMeiliSearch().AddDocument(types.Document{
+				err := search.Instance.AddDocument(types.Document{
 					SourceId:    bookmark.Id,
 					Source:      hoarder.ID,
 					Title:       title,

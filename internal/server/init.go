@@ -14,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
@@ -241,12 +240,4 @@ func initializeMetrics() error {
 			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
 		},
 	)
-}
-
-func initializeSearch() error {
-	err := meilisearch.NewMeiliSearch().DefaultIndexSettings()
-	if err != nil {
-		flog.Error(err)
-	}
-	return nil
 }

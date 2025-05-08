@@ -2,12 +2,13 @@ package search
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
-	"github.com/flowline-io/flowbot/pkg/providers/meilisearch"
+	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
-	"net/http"
 )
 
 const (
@@ -26,7 +27,7 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("empty keyword")
 			}
 
-			list, _, err := meilisearch.NewMeiliSearch().Search(source, keyword, 1, 10)
+			list, _, err := search.Instance.Search(source, keyword, 1, 10)
 			if err != nil {
 				return nil, fmt.Errorf("search error: %s", err)
 			}
