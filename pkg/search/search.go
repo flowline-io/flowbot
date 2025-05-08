@@ -28,10 +28,12 @@ func NewClient(lc fx.Lifecycle, _ config.Type) *Client {
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			err := Instance.DefaultIndexSettings()
-			if err != nil {
-				flog.Error(err)
-			}
+			go func() {
+				err := Instance.DefaultIndexSettings()
+				if err != nil {
+					flog.Error(err)
+				}
+			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
