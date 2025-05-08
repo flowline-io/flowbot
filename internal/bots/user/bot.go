@@ -15,7 +15,7 @@ const Name = "user"
 
 var handler bot
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

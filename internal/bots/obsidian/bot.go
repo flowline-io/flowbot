@@ -14,7 +14,7 @@ const Name = "obsidian"
 
 var handler bot
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

@@ -16,7 +16,7 @@ const Name = "bookmark"
 var handler bot
 var Config configType
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

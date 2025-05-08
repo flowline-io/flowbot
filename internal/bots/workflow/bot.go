@@ -16,7 +16,7 @@ const Name = "workflow"
 
 var handler bot
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

@@ -17,7 +17,7 @@ const Name = "dev"
 var handler bot
 var config configType
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

@@ -16,7 +16,7 @@ const Name = "server"
 
 var handler bot
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 

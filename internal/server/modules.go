@@ -11,8 +11,7 @@ import (
 )
 
 var Modules = fx.Options(
-	// controller.Modules,
-	// repository.Modules,
+	BotsModules,
 	fx.Provide(
 		config.NewConfig,
 		cache.NewCache,

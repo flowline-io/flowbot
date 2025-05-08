@@ -16,7 +16,7 @@ const Name = "github"
 var handler bot
 var Config configType
 
-func init() {
+func Register() {
 	bots.Register(Name, &handler)
 }
 
