@@ -43,11 +43,6 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
-const (
-	// Base URL path for serving the streaming API.
-	defaultApiPath = "/"
-)
-
 func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -118,8 +113,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			// Flip the flag that we are terminating and close the Accept-ing socket, so no new connections are possible.
-			globals.shuttingDown = true
 			// Give server 2 seconds to shut down.
 			ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 			if err := app.ShutdownWithContext(ctx); err != nil {

@@ -8,9 +8,6 @@ import (
 )
 
 var globals struct {
-	// Indicator that shutdown is in progress
-	shuttingDown bool
-
 	// Add Strict-Transport-Security to headers, the value signifies age.
 	// Empty string "" turns it off
 	tlsStrictMaxAge string
