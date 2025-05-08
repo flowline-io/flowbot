@@ -32,7 +32,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupMux(a *fiber.App) {
+func bindRoutes(a *fiber.App) {
 	// Webservice
 	for _, bot := range bots.List() {
 		bot.Webservice(a)

@@ -80,8 +80,5 @@ func NewHTTPServer() *fiber.App {
 		httpApp.Get("/swagger/*", swagHandler)
 	}
 
-	// Handle extra
-	setupMux(httpApp)
-
 	return httpApp
 }
