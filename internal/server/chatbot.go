@@ -86,6 +86,45 @@ func handleChatbot(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Cli
 	return nil
 }
 
+// initialize bots
+func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
+	b, err := jsoniter.Marshal(botsConfig)
+	if err != nil {
+		flog.Fatal("Failed to marshal bots: %v", err)
+	}
+	v, err := jsoniter.Marshal(vendorsConfig)
+	if err != nil {
+		flog.Fatal("Failed to marshal vendors: %v", err)
+	}
+
+	// set vendors configs
+	providers.Configs = v
+
+	// init bots
+	err = bots.Init(b)
+	if err != nil {
+		flog.Fatal("Failed to initialize bot: %v", err)
+	}
+
+	// register bots
+	registerBot()
+
+	// bootstrap bots
+	err = bots.Bootstrap()
+	if err != nil {
+		flog.Fatal("Failed to bootstrap bot: %v", err)
+	}
+
+	// bot cron
+	globals.cronRuleset, err = bots.Cron()
+	if err != nil {
+		flog.Fatal("Failed to bot cron: %v", err)
+	}
+
+	stats.BotTotalCounter().Set(uint64(len(bots.List())))
+	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
+}
+
 // register bots
 func registerBot() {
 	// register bots
@@ -128,42 +167,4 @@ func registerBot() {
 			}
 		}
 	}
-}
-
-func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
-	b, err := jsoniter.Marshal(botsConfig)
-	if err != nil {
-		flog.Fatal("Failed to marshal bots: %v", err)
-	}
-	v, err := jsoniter.Marshal(vendorsConfig)
-	if err != nil {
-		flog.Fatal("Failed to marshal vendors: %v", err)
-	}
-
-	// set vendors configs
-	providers.Configs = v
-
-	// init bots
-	err = bots.Init(b)
-	if err != nil {
-		flog.Fatal("Failed to initialize bot: %v", err)
-	}
-
-	// register bots
-	registerBot()
-
-	// bootstrap bots
-	err = bots.Bootstrap()
-	if err != nil {
-		flog.Fatal("Failed to bootstrap bot: %v", err)
-	}
-
-	// bot cron
-	globals.cronRuleset, err = bots.Cron()
-	if err != nil {
-		flog.Fatal("Failed to bot cron: %v", err)
-	}
-
-	stats.BotTotalCounter().Set(uint64(len(bots.List())))
-	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
 }

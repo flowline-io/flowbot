@@ -19,7 +19,7 @@ import (
 
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
-	httpApp := fiber.New(fiber.Config{
+	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 
 		JSONDecoder:  jsoniter.Unmarshal,
@@ -39,24 +39,24 @@ func newHTTPServer() *fiber.App {
 			return nil
 		},
 	})
-	httpApp.Use(recover.New(recover.Config{EnableStackTrace: true}))
-	httpApp.Use(requestid.New())
-	httpApp.Use(healthcheck.New())
-	httpApp.Use(cors.New(cors.Config{
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
+	app.Use(requestid.New())
+	app.Use(healthcheck.New())
+	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
 	}))
-	httpApp.Use(compress.New(compress.Config{
+	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
-	httpApp.Use(limiter.New(limiter.Config{
+	app.Use(limiter.New(limiter.Config{
 		Max:               50,
 		Expiration:        10 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
 	logger := flog.GetLogger()
-	httpApp.Use(fiberzerolog.New(fiberzerolog.Config{
+	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 		SkipURIs: []string{
 			"/",
@@ -67,7 +67,7 @@ func newHTTPServer() *fiber.App {
 	}))
 
 	// hook
-	httpApp.Hooks().OnRoute(func(r fiber.Route) error {
+	app.Hooks().OnRoute(func(r fiber.Route) error {
 		if r.Method == http.MethodHead {
 			return nil
 		}
@@ -77,8 +77,8 @@ func newHTTPServer() *fiber.App {
 
 	// swagger
 	if swagHandler != nil {
-		httpApp.Get("/swagger/*", swagHandler)
+		app.Get("/swagger/*", swagHandler)
 	}
 
-	return httpApp
+	return app
 }
