@@ -60,8 +60,6 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
 }
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/*******  d1f3b9b1-a06b-4ef6-b535-3391cf4e6fbe  *******/
 func hookIncomingMessage(caller *platforms.Caller, msg protocol.Event) {
 	// update online status
 	onlineStatus(msg)

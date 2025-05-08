@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v2"
@@ -43,7 +44,7 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -59,12 +60,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *redis.Client) {
 				return err
 			}
 			flog.Info("initialize Timezone ok")
-
-			// init alarm
-			if err = initializeAlarm(); err != nil {
-				return err
-			}
-			flog.Info("initialize Alarm ok")
 
 			// init database
 			if err = initializeDatabase(); err != nil {

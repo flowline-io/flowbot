@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/internal/workflow"
-	"github.com/flowline-io/flowbot/pkg/alarm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -250,8 +249,4 @@ func initializeSearch() error {
 		flog.Error(err)
 	}
 	return nil
-}
-
-func initializeAlarm() error {
-	return alarm.InitAlarm()
 }

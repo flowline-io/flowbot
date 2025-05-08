@@ -56,7 +56,7 @@ func bindRoutes(a *fiber.App, ctl *Controller) {
 
 // handler
 
-type Controller struct {}
+type Controller struct{}
 
 func newController() *Controller {
 	return &Controller{}

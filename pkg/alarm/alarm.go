@@ -2,10 +2,8 @@ package alarm
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha1"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,28 +12,10 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 )
-
-var db *redis.Client
-
-func InitAlarm() error {
-	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
-	password := config.App.Redis.Password
-	if addr == ":" || password == "" {
-		return errors.New("redis config error")
-	}
-	db = redis.NewClient(&redis.Options{
-		Addr:         addr,
-		Password:     password,
-		DB:           config.App.Redis.DB,
-		ReadTimeout:  60 * time.Second,
-		WriteTimeout: 60 * time.Second,
-	})
-	return nil
-}
 
 func Alarm(err error, skip int) {
 	if err == nil {
@@ -93,10 +73,12 @@ func nx(text string) (bool, error) {
 	hash := hex.EncodeToString(h.Sum(nil))
 	key := fmt.Sprintf("alarm:%s", hash)
 
-	ok, err := db.SetNX(context.Background(), key, "1", 24*time.Hour).Result()
-	if err != nil {
-		return false, fmt.Errorf("failed to set alarm key: %w", err)
+	_, ok := cache.Instance.Get(key)
+	if ok {
+		return false, nil
 	}
+
+	ok = cache.Instance.SetWithTTL(key, "1", 0, 24*time.Hour)
 	if !ok {
 		return false, nil
 	}
