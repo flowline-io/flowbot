@@ -1,8 +1,12 @@
 package server
 
 import (
+	"context"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/fx"
 
 	// bots
 	_ "github.com/flowline-io/flowbot/internal/bots/agent"
@@ -51,4 +55,28 @@ func Run() {
 	if err := listenAndServe(httpApp, config.App.Listen, stopSignal); err != nil {
 		flog.Fatal("listenAndServe %v", err)
 	}
+}
+
+func RunServer(lc fx.Lifecycle, app *fiber.App) {
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+
+			// initialize
+			if err := initialize(); err != nil {
+				flog.Fatal("initialize %v", err)
+			}
+
+			go func() {
+				err := app.Listen(config.App.Listen)
+				if err != nil {
+					flog.Error(err)
+				}
+			}()
+
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return app.Shutdown()
+		},
+	})
 }

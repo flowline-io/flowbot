@@ -206,7 +206,10 @@ require (
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
+	go.uber.org/dig v1.18.0 // indirect
+	go.uber.org/fx v1.23.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.40.0 // indirect

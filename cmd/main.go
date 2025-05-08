@@ -4,6 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server"
 	// Importing automaxprocs automatically adjusts GOMAXPROCS.
 	_ "go.uber.org/automaxprocs"
+	"go.uber.org/fx"
 )
 
 // @title						Flowbot API
@@ -19,5 +20,11 @@ import (
 // @name						X-AccessToken
 // @description				access token
 func main() {
-	server.Run()
+	// server.Run()
+	fx.New(
+		server.Modules,
+		// fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
+		// 	return &fxevent.ZapLogger{Logger: log}
+		// }),
+	).Run()
 }
