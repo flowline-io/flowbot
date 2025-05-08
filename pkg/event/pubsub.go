@@ -8,7 +8,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
@@ -18,10 +17,14 @@ import (
 
 var logger = flog.WatermillLogger
 
-func NewSubscriber(lc fx.Lifecycle, _ *redis.Client) (message.Subscriber, error) {
+func NewSubscriber(lc fx.Lifecycle) (message.Subscriber, error) {
+	client, err := newRedisClient()
+	if err != nil {
+		return nil, err
+	}
 	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
-			Client:       rdb.Client,
+			Client:       client,
 			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
@@ -44,11 +47,15 @@ func NewSubscriber(lc fx.Lifecycle, _ *redis.Client) (message.Subscriber, error)
 
 var Publisher message.Publisher
 
-func NewPublisher(lc fx.Lifecycle, _ *redis.Client) (message.Publisher, error) {
+func NewPublisher(lc fx.Lifecycle) (message.Publisher, error) {
 	var err error
+	client, err := newRedisClient()
+	if err != nil {
+		return nil, err
+	}
 	Publisher, err = redisstream.NewPublisher(
 		redisstream.PublisherConfig{
-			Client:     rdb.Client,
+			Client:     client,
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
