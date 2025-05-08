@@ -8,7 +8,6 @@ import (
 	"go.uber.org/fx"
 )
 
-
 var NotifyModules = fx.Options(
 	fx.Invoke(
 		message_pusher.Register,
