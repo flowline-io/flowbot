@@ -50,12 +50,6 @@ func hookBot(botsConfig interface{}, vendorsConfig interface{}) {
 		flog.Fatal("Failed to bot cron: %v", err)
 	}
 
-	// bot workflow
-	err = initializeWorkflow()
-	if err != nil {
-		flog.Fatal("Failed to initialize workflow: %v", err)
-	}
-
 	stats.BotTotalCounter().Set(uint64(len(bots.List())))
 	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
 }

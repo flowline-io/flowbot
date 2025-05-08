@@ -3,13 +3,15 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/stats"
 	"runtime"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
 )
 
 const (
@@ -58,7 +60,7 @@ type Queue struct {
 	srv *asynq.Server
 }
 
-func NewQueue() *Queue {
+func NewQueue(lc fx.Lifecycle, _ config.Type, _ *redis.Client) *Queue {
 	srv := asynq.NewServer(defaultRedisClientOpt(), asynq.Config{
 		Logger:      flog.AsynqLogger,
 		LogLevel:    flog.AsynqLogLevel(config.App.Log.Level),
@@ -68,7 +70,20 @@ func NewQueue() *Queue {
 			cronQueueName: 10,
 		},
 	})
-	return &Queue{srv: srv}
+	i := &Queue{srv: srv}
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			go i.Run()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			i.Shutdown()
+			return nil
+		},
+	})
+
+	return i
 }
 
 func (q *Queue) Run() {

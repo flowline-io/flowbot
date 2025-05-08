@@ -9,8 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/store/mysql"
-	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
@@ -39,33 +37,6 @@ func initializeTimezone() error {
 	if err != nil {
 		return fmt.Errorf("load time location error, %w", err)
 	}
-	return nil
-}
-
-func initializeDatabase() error {
-	// init database
-	mysql.Init()
-	store.Init()
-
-	// Open database
-	err := store.Store.Open(config.App.Store)
-	if err != nil {
-		return fmt.Errorf("failed to open DB, %w", err)
-	}
-	go func() {
-		<-stopSignal
-		err = store.Store.Close()
-		if err != nil {
-			flog.Error(err)
-		}
-		flog.Debug("Closed database connection(s)")
-	}()
-
-	// migrate
-	if err := store.Migrate(); err != nil {
-		return fmt.Errorf("failed to migrate DB, %w", err)
-	}
-
 	return nil
 }
 
@@ -112,21 +83,6 @@ func initializeChatbot(signal <-chan bool) error {
 
 	// Platform
 	hookPlatform(signal)
-
-	return nil
-}
-
-// init workflow
-func initializeWorkflow() error {
-	// Task queue
-	globals.taskQueue = workflow.NewQueue()
-	go globals.taskQueue.Run()
-	// manager
-	globals.manager = workflow.NewManager()
-	go globals.manager.Run()
-	// cron task manager
-	globals.cronTaskManager = workflow.NewCronTaskManager()
-	go globals.cronTaskManager.Run()
 
 	return nil
 }

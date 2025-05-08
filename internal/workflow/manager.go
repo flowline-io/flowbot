@@ -11,16 +11,30 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils/parallelizer"
 	"github.com/hibiken/asynq"
+	"go.uber.org/fx"
 )
 
 type Manager struct {
 	stop chan struct{}
 }
 
-func NewManager() *Manager {
-	return &Manager{
+func NewManager(lc fx.Lifecycle, _ store.Adapter) *Manager {
+	i := &Manager{
 		stop: make(chan struct{}),
 	}
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			i.Run()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			i.Shutdown()
+			return nil
+		},
+	})
+
+	return i
 }
 
 func (m *Manager) Run() {

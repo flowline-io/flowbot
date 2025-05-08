@@ -34,6 +34,8 @@ import (
 	_ "github.com/flowline-io/flowbot/internal/bots/user"
 	_ "github.com/flowline-io/flowbot/internal/bots/webhook"
 	_ "github.com/flowline-io/flowbot/internal/bots/workflow"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/workflow"
 
 	// File upload handlers
 	_ "github.com/flowline-io/flowbot/pkg/media/fs"
@@ -46,7 +48,8 @@ import (
 	_ "github.com/flowline-io/flowbot/pkg/notify/slack"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher,
+	_ *workflow.Queue, _ *workflow.Manager, _ *workflow.CronTaskManager) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -62,12 +65,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client,
 				return err
 			}
 			flog.Info("initialize Timezone ok")
-
-			// init database
-			if err = initializeDatabase(); err != nil {
-				return err
-			}
-			flog.Info("initialize Database ok")
 
 			// init media
 			if err = initializeMedia(); err != nil {
@@ -108,9 +105,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ *cache.Cache, _ *redis.Client,
 			cancel()
 
 			// Shutdown Extra
-			globals.taskQueue.Shutdown()
-			globals.manager.Shutdown()
-			globals.cronTaskManager.Shutdown()
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}

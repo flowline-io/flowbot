@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -10,13 +11,15 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/hibiken/asynq"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
 )
 
 type CronTaskManager struct {
 	mgr *asynq.PeriodicTaskManager
 }
 
-func NewCronTaskManager() *CronTaskManager {
+func NewCronTaskManager(lc fx.Lifecycle, _ *redis.Client, _ store.Adapter) *CronTaskManager {
 	provider := &DatabaseProvider{}
 	mgr, err := asynq.NewPeriodicTaskManager(asynq.PeriodicTaskManagerOpts{
 		RedisConnOpt:               defaultRedisClientOpt(),
@@ -41,7 +44,20 @@ func NewCronTaskManager() *CronTaskManager {
 	if err != nil {
 		flog.Fatal("error %v", err)
 	}
-	return &CronTaskManager{mgr: mgr}
+	i := &CronTaskManager{mgr: mgr}
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			go i.Run()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			i.Shutdown()
+			return nil
+		},
+	})
+
+	return i
 }
 
 func (c *CronTaskManager) Run() {
