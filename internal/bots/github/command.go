@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -22,7 +22,7 @@ var commandRules = []command.Rule{
 		Define: "github setting",
 		Help:   `Bot setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.SettingMsg(ctx, Name)
+			return chatbot.SettingMsg(ctx, Name)
 		},
 	},
 	{
@@ -38,7 +38,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "App is authorized"}
 			}
 
-			flag, err := bots.StoreParameter(types.KV{
+			flag, err := chatbot.StoreParameter(types.KV{
 				"uid":   ctx.AsUser.String(),
 				"topic": ctx.Topic,
 			}, time.Now().Add(time.Hour))
@@ -112,7 +112,7 @@ var commandRules = []command.Rule{
 			}
 
 			// repo value
-			j, err := bots.SettingGet(ctx, Name, repoSettingKey)
+			j, err := chatbot.SettingGet(ctx, Name, repoSettingKey)
 			if err != nil {
 				return nil
 			}

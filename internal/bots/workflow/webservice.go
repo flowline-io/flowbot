@@ -1,9 +1,9 @@
 package workflow
 
 import (
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -40,8 +40,8 @@ var webserviceRules = []webservice.Rule{
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/actions [get]
 func actions(ctx *fiber.Ctx) error {
-	result := make(map[string][]rule, len(bots.List()))
-	for name, botHandler := range bots.List() {
+	result := make(map[string][]rule, len(chatbot.List()))
+	for name, botHandler := range chatbot.List() {
 		var list []rule
 		for _, item := range botHandler.Rules() {
 			switch v := item.(type) {

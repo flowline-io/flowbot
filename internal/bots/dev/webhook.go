@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/agents"
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -57,7 +57,7 @@ var webhookRules = []webhook.Rule{
 
 			// run agent
 			go func() {
-				tools, err := bots.AvailableTools(ctx)
+				tools, err := chatbot.AvailableTools(ctx)
 				if err != nil {
 					flog.Error(err)
 					return

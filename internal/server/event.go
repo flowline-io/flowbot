@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"strings"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -128,7 +128,7 @@ func onBotRunEventHandler(msg *message.Message) error {
 	}
 	ctx.SetTimeout(10 * time.Minute)
 
-	for name, handle := range bots.List() {
+	for name, handle := range chatbot.List() {
 		err = handle.Event(ctx, be.Param)
 		if err != nil {
 			return fmt.Errorf("bot %s event %s error %w", name, be.EventName, err)

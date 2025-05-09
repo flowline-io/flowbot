@@ -2,8 +2,8 @@ package notify
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -43,7 +43,7 @@ var commandRules = []command.Rule{
 		Define: "notify config",
 		Help:   `Create notify`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.FormMsg(ctx, createNotifyFormID)
+			return chatbot.FormMsg(ctx, createNotifyFormID)
 		},
 	},
 }

@@ -1,8 +1,8 @@
 package bookmark
 
 import (
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -29,7 +29,7 @@ var commandRules = []command.Rule{
 				}
 			}
 
-			return bots.StorePage(ctx, model.PageTable, "Newest Bookmark List", types.TableMsg{
+			return chatbot.StorePage(ctx, model.PageTable, "Newest Bookmark List", types.TableMsg{
 				Title:  "Newest Bookmark List",
 				Header: header,
 				Row:    row,

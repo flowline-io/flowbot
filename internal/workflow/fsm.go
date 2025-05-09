@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/dag"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -344,8 +344,8 @@ func NewStepFSM(state model.StepState) *fsm.FSM {
 				bot, _ := types.KV(step.Action).String("bot")
 				ruleId, _ := types.KV(step.Action).String("rule_id")
 
-				var botHandler bots.Handler
-				for name, handler := range bots.List() {
+				var botHandler chatbot.Handler
+				for name, handler := range chatbot.List() {
 					if bot != name {
 						continue
 					}

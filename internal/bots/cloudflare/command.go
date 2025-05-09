@@ -3,7 +3,7 @@ package cloudflare
 import (
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/cloudflare"
@@ -16,16 +16,16 @@ var commandRules = []command.Rule{
 		Define: "cloudflare setting",
 		Help:   `cloudflare setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.SettingMsg(ctx, Name)
+			return chatbot.SettingMsg(ctx, Name)
 		},
 	},
 	{
 		Define: "cloudflare test",
 		Help:   "Test",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			c1, _ := bots.SettingGet(ctx, Name, tokenSettingKey)
+			c1, _ := chatbot.SettingGet(ctx, Name, tokenSettingKey)
 			tokenValue, _ := c1.StringValue()
-			c2, _ := bots.SettingGet(ctx, Name, zoneIdSettingKey)
+			c2, _ := chatbot.SettingGet(ctx, Name, zoneIdSettingKey)
 			zoneIdValue, _ := c2.StringValue()
 
 			if tokenValue == "" || zoneIdValue == "" {

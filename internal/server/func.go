@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"strings"
 	"time"
 
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -121,7 +121,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	}
 
 	// behavior
-	bots.Behavior(uid, bots.MessageBotIncomingBehavior, 1)
+	chatbot.Behavior(uid, chatbot.MessageBotIncomingBehavior, 1)
 
 	// user auth record todo
 
@@ -180,7 +180,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// help command
 	if strings.ToLower(msg.AltMessage) == "help" {
 		m := make(types.KV)
-		for name, handle := range bots.List() {
+		for name, handle := range chatbot.List() {
 			for _, item := range handle.Rules() {
 				switch v := item.(type) {
 				case []command.Rule:
@@ -200,7 +200,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// rule chat
 	if session == "" {
-		for name, handle := range bots.List() {
+		for name, handle := range chatbot.List() {
 			if !handle.IsReady() {
 				flog.Info("bot %s unavailable", name)
 				continue
@@ -232,7 +232,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// tool chat
 	if payload == nil && session == "" {
-		tools, err := bots.AvailableTools(ctx)
+		tools, err := chatbot.AvailableTools(ctx)
 		if err != nil {
 			flog.Error(err)
 			return
@@ -371,13 +371,13 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	_, _ = fmt.Println(ctx)
 
 	// behavior
-	bots.Behavior(uid, bots.MessageGroupIncomingBehavior, 1)
+	chatbot.Behavior(uid, chatbot.MessageGroupIncomingBehavior, 1)
 
 	// user auth record todo
 
 	var payload types.MsgPayload
 
-	for name, handle := range bots.List() {
+	for name, handle := range chatbot.List() {
 		if !handle.IsReady() {
 			flog.Info("bot %s unavailable", name)
 			continue
@@ -458,7 +458,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			return nil, errors.New("error collect id")
 		}
 
-		for name, handle := range bots.List() {
+		for name, handle := range chatbot.List() {
 			if !handle.IsReady() {
 				flog.Info("bot %s unavailable", name)
 				continue

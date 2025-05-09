@@ -1,4 +1,4 @@
-package bots
+package chatbot
 
 import (
 	"encoding/json"

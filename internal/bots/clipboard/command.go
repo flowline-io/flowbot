@@ -1,7 +1,7 @@
 package clipboard
 
 import (
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -15,7 +15,7 @@ var commandRules = []command.Rule{
 			txt, _ := tokens[1].Value.String()
 			data := types.KV{}
 			data["txt"] = txt
-			return bots.InstructMsg(ctx, ShareInstruct, data)
+			return chatbot.InstructMsg(ctx, ShareInstruct, data)
 		},
 	},
 }

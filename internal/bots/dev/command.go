@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/agents"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
@@ -30,7 +30,7 @@ var commandRules = []command.Rule{
 		Define: "dev setting",
 		Help:   `[example] setting`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.SettingMsg(ctx, Name)
+			return chatbot.SettingMsg(ctx, Name)
 		},
 	},
 	{
@@ -44,7 +44,7 @@ var commandRules = []command.Rule{
 		Define: "form test",
 		Help:   `[example] form`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.FormMsg(ctx, devFormID)
+			return chatbot.FormMsg(ctx, devFormID)
 		},
 	},
 	{
@@ -65,14 +65,14 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			data := types.KV{}
 			data["txt"] = "example"
-			return bots.InstructMsg(ctx, ExampleInstructID, data)
+			return chatbot.InstructMsg(ctx, ExampleInstructID, data)
 		},
 	},
 	{
 		Define: "page test",
 		Help:   `[example] dev page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			url, err := bots.PageURL(ctx, devPageId, nil, 24*time.Hour)
+			url, err := chatbot.PageURL(ctx, devPageId, nil, 24*time.Hour)
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}
@@ -124,7 +124,7 @@ var commandRules = []command.Rule{
 		Define: "slash test",
 		Help:   `[example] Slash example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			url, err := bots.Shortcut("test", "https://example.com")
+			url, err := chatbot.Shortcut("test", "https://example.com")
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
@@ -69,8 +69,8 @@ var formRules = []form.Rule{
 			ruleId = action[0]
 			botName = action[1]
 
-			var botHandler bots.Handler
-			for name, handler := range bots.List() {
+			var botHandler chatbot.Handler
+			for name, handler := range chatbot.List() {
 				if botName != name {
 					continue
 				}

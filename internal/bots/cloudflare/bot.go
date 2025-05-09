@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -15,12 +15,12 @@ const Name = "cloudflare"
 var handler bot
 
 func Register() {
-	bots.Register(Name, &handler)
+	chatbot.Register(Name, &handler)
 }
 
 type bot struct {
 	initialized bool
-	bots.Base
+	chatbot.Base
 }
 
 type configType struct {
@@ -54,22 +54,22 @@ func (bot) IsReady() bool {
 
 func (bot) Bootstrap() error {
 	// load setting rule
-	formRules = append(formRules, bots.SettingCovertForm(Name, settingRules))
+	formRules = append(formRules, chatbot.SettingCovertForm(Name, settingRules))
 
 	return nil
 }
 
-func (b bot) Rules() []interface{} {
+func (bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		formRules,
 	}
 }
 
-func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
-	return bots.RunCommand(commandRules, ctx, content)
+func (bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+	return chatbot.RunCommand(commandRules, ctx, content)
 }
 
-func (b bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
-	return bots.RunForm(formRules, ctx, values)
+func (bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
+	return chatbot.RunForm(formRules, ctx, values)
 }

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/workflow"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -108,7 +108,7 @@ var commandRules = []command.Rule{
 		Help:   `all bot instruct`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			models := make(types.KV)
-			for name, bot := range bots.List() {
+			for name, bot := range chatbot.List() {
 				ruleset, _ := bot.Instruct()
 				for _, rule := range ruleset {
 					models[fmt.Sprintf("(%s) %s", name, rule.Id)] = fmt.Sprintf("[%s]", strings.Join(rule.Args, ","))

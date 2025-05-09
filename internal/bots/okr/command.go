@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -39,7 +39,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "Empty"}
 			}
 
-			return bots.StorePage(ctx, model.PageTable, "Objectives", types.TableMsg{Title: "Objectives", Header: header, Row: row})
+			return chatbot.StorePage(ctx, model.PageTable, "Objectives", types.TableMsg{Title: "Objectives", Header: header, Row: row})
 		},
 	},
 	{
@@ -50,7 +50,7 @@ var commandRules = []command.Rule{
 			sequence, _ := tokens[1].Value.Int64()
 			param["sequence"] = sequence
 
-			url, err := bots.PageURL(ctx, okrPageId, param, 24*time.Hour)
+			url, err := chatbot.PageURL(ctx, okrPageId, param, 24*time.Hour)
 			if err != nil {
 				return types.TextMsg{Text: "error"}
 			}
@@ -85,7 +85,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    UpdateObjectiveFormID,
 				Title: fmt.Sprintf("Update Objective #%d", sequence),
 				Field: []types.FormField{
@@ -132,7 +132,7 @@ var commandRules = []command.Rule{
 		Define: `obj create`,
 		Help:   `Create Objective`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    CreateObjectiveFormID,
 				Title: "Create Objective",
 				Field: []types.FormField{
@@ -202,7 +202,7 @@ var commandRules = []command.Rule{
 				}
 			}
 
-			return bots.StorePage(ctx, model.PageTable, "KeyResults", types.TableMsg{
+			return chatbot.StorePage(ctx, model.PageTable, "KeyResults", types.TableMsg{
 				Title:  "KeyResults",
 				Header: header,
 				Row:    row,
@@ -213,7 +213,7 @@ var commandRules = []command.Rule{
 		Define: `kr create`,
 		Help:   `Create KeyResult`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    CreateKeyResultFormID,
 				Title: "Create Key Result",
 				Field: []types.FormField{
@@ -303,7 +303,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    UpdateKeyResultFormID,
 				Title: fmt.Sprintf("Update KeyResult #%d", sequence),
 				Field: []types.FormField{
@@ -351,7 +351,7 @@ var commandRules = []command.Rule{
 		Define: `kr value`,
 		Help:   `Create KeyResult value`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    CreateKeyResultValueFormID,
 				Title: "Create Key Result value",
 				Field: []types.FormField{
@@ -399,7 +399,7 @@ var commandRules = []command.Rule{
 			}
 
 			title := fmt.Sprintf("KeyResult #%d Values", sequence)
-			return bots.StorePage(ctx, model.PageTable, title, types.TableMsg{
+			return chatbot.StorePage(ctx, model.PageTable, title, types.TableMsg{
 				Title:  title,
 				Header: header,
 				Row:    row,
@@ -426,7 +426,7 @@ var commandRules = []command.Rule{
 		Define: `todo create`,
 		Help:   "Create Todo something",
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    CreateTodoFormID,
 				Title: "Create todo",
 				Field: []types.FormField{
@@ -470,7 +470,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			return bots.StoreForm(ctx, types.FormMsg{
+			return chatbot.StoreForm(ctx, types.FormMsg{
 				ID:    UpdateTodoFormID,
 				Title: fmt.Sprintf("Update Todo #%d", sequence),
 				Field: []types.FormField{
@@ -545,7 +545,7 @@ var commandRules = []command.Rule{
 				}
 			}
 
-			return bots.StorePage(ctx, model.PageTable, "Counters", types.TableMsg{
+			return chatbot.StorePage(ctx, model.PageTable, "Counters", types.TableMsg{
 				Title:  "Counters",
 				Header: header,
 				Row:    row,

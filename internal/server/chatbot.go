@@ -3,31 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
-
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/bots/agent"
-	"github.com/flowline-io/flowbot/internal/bots/anki"
-	"github.com/flowline-io/flowbot/internal/bots/bookmark"
-	"github.com/flowline-io/flowbot/internal/bots/clipboard"
-	"github.com/flowline-io/flowbot/internal/bots/cloudflare"
-	"github.com/flowline-io/flowbot/internal/bots/dev"
-	"github.com/flowline-io/flowbot/internal/bots/finance"
-	"github.com/flowline-io/flowbot/internal/bots/gitea"
-	"github.com/flowline-io/flowbot/internal/bots/github"
-	"github.com/flowline-io/flowbot/internal/bots/kanban"
-	"github.com/flowline-io/flowbot/internal/bots/notify"
-	"github.com/flowline-io/flowbot/internal/bots/obsidian"
-	"github.com/flowline-io/flowbot/internal/bots/okr"
-	"github.com/flowline-io/flowbot/internal/bots/reader"
-	"github.com/flowline-io/flowbot/internal/bots/search"
-	"github.com/flowline-io/flowbot/internal/bots/server"
-	"github.com/flowline-io/flowbot/internal/bots/torrent"
-	"github.com/flowline-io/flowbot/internal/bots/user"
-	"github.com/flowline-io/flowbot/internal/bots/webhook"
-	"github.com/flowline-io/flowbot/internal/bots/workflow"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -37,31 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/version"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
-)
-
-var BotsModules = fx.Options(
-	fx.Invoke(
-		agent.Register,
-		anki.Register,
-		bookmark.Register,
-		clipboard.Register,
-		cloudflare.Register,
-		dev.Register,
-		finance.Register,
-		gitea.Register,
-		github.Register,
-		kanban.Register,
-		notify.Register,
-		obsidian.Register,
-		okr.Register,
-		reader.Register,
-		search.Register,
-		server.Register,
-		torrent.Register,
-		user.Register,
-		webhook.Register,
-		workflow.Register,
-	),
 )
 
 func handleChatbot(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Client) error {
@@ -98,7 +52,7 @@ func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
 	providers.Configs = v
 
 	// init bots
-	err = bots.Init(b)
+	err = chatbot.Init(b)
 	if err != nil {
 		flog.Fatal("Failed to initialize bot: %v", err)
 	}
@@ -107,26 +61,26 @@ func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
 	registerBot()
 
 	// bootstrap bots
-	err = bots.Bootstrap()
+	err = chatbot.Bootstrap()
 	if err != nil {
 		flog.Fatal("Failed to bootstrap bot: %v", err)
 	}
 
 	// bot cron
-	globals.cronRuleset, err = bots.Cron()
+	globals.cronRuleset, err = chatbot.Cron()
 	if err != nil {
 		flog.Fatal("Failed to bot cron: %v", err)
 	}
 
-	stats.BotTotalCounter().Set(uint64(len(bots.List())))
-	rdb.SetInt64(stats.BotTotalStatsName, int64(len(bots.List())))
+	stats.BotTotalCounter().Set(uint64(len(chatbot.List())))
+	rdb.SetInt64(stats.BotTotalStatsName, int64(len(chatbot.List())))
 }
 
 // register bots
 func registerBot() {
 	// register bots
 	registerBots := sets.NewString()
-	for name, handler := range bots.List() {
+	for name, handler := range chatbot.List() {
 		registerBots.Insert(name)
 
 		state := model.BotInactive

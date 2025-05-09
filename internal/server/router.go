@@ -3,12 +3,12 @@ package server
 import (
 	"bytes"
 	"errors"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -34,7 +34,7 @@ import (
 
 func handleRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
-	for _, bot := range bots.List() {
+	for _, bot := range chatbot.List() {
 		bot.Webservice(a)
 	}
 
@@ -198,7 +198,7 @@ func (c *Controller) renderPage(ctx *fiber.Ctx) error {
 		PageRuleId: pageRuleId,
 	}
 
-	_, botHandler := bots.FindRuleAndHandler[pageRule.Rule](pageRuleId, bots.List())
+	_, botHandler := chatbot.FindRuleAndHandler[pageRule.Rule](pageRuleId, chatbot.List())
 
 	if botHandler == nil {
 		return protocol.ErrNotFound.New("bot not found")
@@ -307,7 +307,7 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 		return protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")
 	}
 
-	_, botHandler := bots.FindRuleAndHandler[formRule.Rule](formRuleId, bots.List())
+	_, botHandler := chatbot.FindRuleAndHandler[formRule.Rule](formRuleId, chatbot.List())
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
@@ -386,7 +386,7 @@ func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
 
 	flog.Info("[webhook] incoming %s flag: %s", method, flag)
 
-	webhookRule, botHandler := bots.FindRuleAndHandler[webhook.Rule](flag, bots.List())
+	webhookRule, botHandler := chatbot.FindRuleAndHandler[webhook.Rule](flag, chatbot.List())
 
 	if botHandler == nil {
 		return protocol.ErrNotFound.New("bot not found")

@@ -1,7 +1,7 @@
 package finance
 
 import (
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/wallos"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -29,7 +29,7 @@ var commandRules = []command.Rule{
 		Define: "bill",
 		Help:   `Import bill`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.FormMsg(ctx, importBillFormID)
+			return chatbot.FormMsg(ctx, importBillFormID)
 		},
 	},
 }

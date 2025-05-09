@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/internal/workflow"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -25,14 +25,14 @@ var commandRules = []command.Rule{
 		Define: "task run",
 		Help:   `Run one task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.FormMsg(ctx, runOneTaskFormID)
+			return chatbot.FormMsg(ctx, runOneTaskFormID)
 		},
 	},
 	{
 		Define: "task create",
 		Help:   `Create one task`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			return bots.FormMsg(ctx, createOneTaskFormID)
+			return chatbot.FormMsg(ctx, createOneTaskFormID)
 		},
 	},
 	{

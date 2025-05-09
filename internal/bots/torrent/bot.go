@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
@@ -16,12 +16,12 @@ const Name = "torrent"
 var handler bot
 
 func Register() {
-	bots.Register(Name, &handler)
+	chatbot.Register(Name, &handler)
 }
 
 type bot struct {
 	initialized bool
-	bots.Base
+	chatbot.Base
 }
 
 type configType struct {
@@ -57,17 +57,17 @@ func (bot) Bootstrap() error {
 	return nil
 }
 
-func (b bot) Rules() []interface{} {
+func (bot) Rules() []interface{} {
 	return []interface{}{
 		commandRules,
 		cronRules,
 	}
 }
 
-func (b bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
-	return bots.RunCommand(commandRules, ctx, content)
+func (bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+	return chatbot.RunCommand(commandRules, ctx, content)
 }
 
-func (b bot) Cron() (*cron.Ruleset, error) {
-	return bots.RunCron(cronRules, Name)
+func (bot) Cron() (*cron.Ruleset, error) {
+	return chatbot.RunCron(cronRules, Name)
 }
