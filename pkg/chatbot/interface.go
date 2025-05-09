@@ -13,7 +13,7 @@ type Handler interface {
 	// Init initializes the bot.
 	Init(jsonconf json.RawMessage) error
 
-	// IsReady сhecks if the bot is initialized.
+	// IsReady checks if the bot is initialized.
 	IsReady() bool
 
 	// Bootstrap Lifecycle hook
