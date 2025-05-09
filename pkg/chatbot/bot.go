@@ -32,6 +32,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	MessageBotIncomingBehavior   = "message_bot_incoming"
+	MessageGroupIncomingBehavior = "message_group_incoming"
+)
+
 var handlers map[string]Handler
 
 func Register(name string, bot Handler) {
@@ -476,11 +481,6 @@ func SettingMsg(ctx types.Context, id string) types.MsgPayload {
 	return FormMsg(ctx, fmt.Sprintf("%s_setting", id))
 }
 
-const (
-	MessageBotIncomingBehavior   = "message_bot_incoming"
-	MessageGroupIncomingBehavior = "message_group_incoming"
-)
-
 func Behavior(uid types.Uid, flag string, number int) {
 	b, err := store.Database.BehaviorGet(uid, flag)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -603,6 +603,7 @@ func Init(jsonconf json.RawMessage) error {
 	return nil
 }
 
+// Bootstrap bots bootstrap
 func Bootstrap() error {
 	for _, bot := range handlers {
 		if !bot.IsReady() {
@@ -630,6 +631,7 @@ func Cron() ([]*cron.Ruleset, error) {
 	return rss, nil
 }
 
+// List registered handlers
 func List() map[string]Handler {
 	return handlers
 }
