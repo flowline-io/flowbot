@@ -3,7 +3,6 @@ package platforms
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -11,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +26,7 @@ func (c *Caller) Do(req protocol.Request) protocol.Response {
 	case protocol.SendMessageAction:
 		return c.Action.SendMessage(req)
 	}
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("error action"))
 }
 
 func MessageConvert(data any) protocol.Message {

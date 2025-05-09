@@ -39,7 +39,7 @@ func objectiveList(ctx *fiber.Ctx) error {
 
 	list, err := store.Database.ListObjectives(uid, topic)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -61,7 +61,7 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 
 	obj, err := store.Database.GetObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(obj))
 }
@@ -83,13 +83,13 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 
 	// check
 	if item.IsPlan > 0 {
 		if item.PlanStart.IsZero() || item.PlanEnd.IsZero() {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed.New("is plan emtpy")))
 		}
 	}
 
@@ -97,7 +97,7 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 	item.Topic = topic
 	_, err = store.Database.CreateObjective(item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -121,14 +121,14 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 	item := new(model.Objective)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	item.Sequence = int32(sequence)
 	err = store.Database.UpdateObjective(item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -150,7 +150,7 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 
 	err := store.Database.DeleteObjectiveBySequence(uid, topic, sequence)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -172,13 +172,13 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	_, err = store.Database.CreateKeyResult(item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -202,14 +202,14 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 	item := new(model.KeyResult)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	item.UID = uid.String()
 	item.Topic = topic
 	item.Sequence = int32(sequence)
 	err = store.Database.UpdateKeyResult(item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -231,7 +231,7 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 
 	err := store.Database.DeleteKeyResultBySequence(uid, topic, sequence)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -249,12 +249,12 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 func keyResultValueList(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("id empty")))
 	}
 
 	list, err := store.Database.GetKeyResultValues(keyResultId)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -273,18 +273,18 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 func keyResultValueCreate(ctx *fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("id empty")))
 	}
 
 	item := new(model.KeyResultValue)
 	err := ctx.BodyParser(&item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	item.KeyResultID = keyResultId
 	_, err = store.Database.CreateKeyResultValue(item)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -302,12 +302,12 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 func keyResultValueDelete(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("id emtpy")))
 	}
 
 	err := store.Database.DeleteKeyResultValue(keyResultValueId)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseWriteError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -325,12 +325,12 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 func keyResultValue(ctx *fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("id emtpy")))
 	}
 
 	item, err := store.Database.GetKeyResultValue(keyResultValueId)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrDatabaseReadError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item))
 }

@@ -159,7 +159,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 // Download processes request for file download.
 // The returned ReadSeekCloser must be closed after use.
 func (ah *handler) Download(_ string) (*types.FileDef, media.ReadSeekCloser, error) {
-	return nil, nil, protocol.ErrUnsupported
+	return nil, nil, protocol.ErrUnsupported.New("unsupport download")
 }
 
 // Delete deletes files from aws by provided slice of locations.

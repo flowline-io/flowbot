@@ -114,7 +114,7 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser, error) {
 	fid := fh.GetIdFromUrl(url)
 	if fid.IsZero() {
-		return nil, nil, protocol.ErrNotFound
+		return nil, nil, protocol.ErrNotFound.New("fid not found")
 	}
 
 	fd, err := fh.getFileRecord(fid)
@@ -127,7 +127,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 	if err != nil {
 		if os.IsNotExist(err) {
 			// If the file is not found, send 404 instead of the default 500
-			err = protocol.ErrNotFound
+			err = protocol.ErrNotFound.New("file not found")
 		}
 		return nil, nil, fmt.Errorf("failed to open file %v, %w", fd.Location, err)
 	}
@@ -161,7 +161,7 @@ func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 		return nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}
 	if fd == nil {
-		return nil, protocol.ErrNotFound
+		return nil, protocol.ErrNotFound.New("fid not found")
 	}
 	return fd, nil
 }

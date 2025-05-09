@@ -2141,7 +2141,7 @@ const docTemplate = `{
                 },
                 "retcode": {
                     "description": "The return code, which must conform to the return code rules defined later on this page",
-                    "type": "integer"
+                    "type": "string"
                 },
                 "status": {
                     "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",

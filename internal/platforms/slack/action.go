@@ -14,19 +14,19 @@ type Action struct {
 }
 
 func (a *Action) GetLatestEvents(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) GetSupportedActions(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) GetStatus(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) GetVersion(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) SendMessage(req protocol.Request) protocol.Response {
@@ -34,7 +34,7 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 	message, _ := types.KV(req.Params).Any("message")
 	content, ok := message.(protocol.Message)
 	if !ok {
-		return protocol.NewFailedResponse(protocol.ErrBadSegmentType)
+		return protocol.NewFailedResponse(protocol.ErrBadSegmentType.New("message type error"))
 	}
 	if len(content) == 0 {
 		return protocol.NewSuccessResponse(nil)
@@ -45,34 +45,34 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 	})
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to send message to %s, %w", channel, err))
-		return protocol.NewFailedResponse(protocol.ErrInternalHandler)
+		return protocol.NewFailedResponse(protocol.ErrInternalHandler.New("send message error"))
 	}
 
 	return protocol.NewSuccessResponse(nil)
 }
 
 func (a *Action) GetUserInfo(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) CreateChannel(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) GetChannelInfo(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) GetChannelList(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) RegisterChannels(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) RegisterSlashCommands(_ protocol.Request) protocol.Response {
-	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction)
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
 func (a *Action) makeRequest(in *request) error {

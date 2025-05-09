@@ -1,7 +1,11 @@
 package protocol
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
+
+	"github.com/samber/oops"
 )
 
 type ResponseStatus string
@@ -38,7 +42,7 @@ type Response struct {
 	// indicating successful and unsuccessful execution, respectively.
 	Status ResponseStatus `json:"status"`
 	// The return code, which must conform to the return code rules defined later on this page
-	RetCode int64 `json:"retcode,omitempty"`
+	RetCode string `json:"retcode,omitempty"`
 	// Response data
 	Data any `json:"data,omitempty"`
 	// Error message, it is recommended to fill in a human-readable error message when the action fails to execute,
@@ -46,25 +50,9 @@ type Response struct {
 	Message string `json:"message,omitempty"`
 }
 
-type Error struct {
-	Code    int64  `json:"code"`
-	Message string `json:"message"`
-}
-
-func NewError(code int64, message string) *Error {
-	return &Error{Code: code, Message: message}
-}
-
-func (e Error) Error() string {
-	return fmt.Sprintf("%d: %s", e.Code, e.Message)
-}
-
-func (e Error) GetCode() int64 {
-	return e.Code
-}
-
-func (e Error) GetMessage() string {
-	return e.Message
+func NewError(code int64, message string) oops.OopsErrorBuilder {
+	return oops.Code(strconv.FormatInt(code, 10)).
+		Public(message)
 }
 
 // Request Error (10xxx)
@@ -178,24 +166,35 @@ var ErrAccessDenied = NewError(60007, "access denied")
 func NewSuccessResponse(data any) Response {
 	return Response{
 		Status:  Success,
-		RetCode: SuccessCode,
+		RetCode: strconv.Itoa(int(SuccessCode)),
 		Data:    data,
 	}
 }
 
-func NewFailedResponse(e *Error) Response {
-	return Response{
-		Status:  Failed,
-		RetCode: e.GetCode(),
-		Message: e.GetMessage(),
+func NewFailedResponse(err error) Response {
+	if err == nil {
+		return Response{
+			Status:  Failed,
+			RetCode: "10000",
+			Message: "Unknown Error",
+		}
 	}
-}
+	var e oops.OopsError
+	if errors.As(err, &e) {
+		message := e.Public()
+		if e.Error() != "" {
+			message = fmt.Sprintf("%s (%s)", e.Public(), e.Error())
+		}
+		return Response{
+			Status:  Failed,
+			RetCode: e.Code(),
+			Message: message,
+		}
+	}
 
-func NewFailedResponseWithError(e *Error, err error) Response {
-	// return failed response
 	return Response{
 		Status:  Failed,
-		RetCode: e.GetCode(),
-		Message: fmt.Sprintf("%s (%s)", e.GetMessage(), err.Error()),
+		RetCode: "10000",
+		Message: e.Error(),
 	}
 }

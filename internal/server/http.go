@@ -32,7 +32,7 @@ func newHTTPServer() *fiber.App {
 			// Send custom error page
 			if err != nil {
 				return ctx.Status(fiber.StatusBadRequest).
-					JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+					JSON(protocol.NewFailedResponse(protocol.ErrBadRequest.Wrap(err)))
 			}
 
 			// Return from handler

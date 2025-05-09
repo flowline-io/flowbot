@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,6 +27,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
 )
@@ -72,23 +72,23 @@ func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
 
 	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError.Wrap(err)))
 	}
 	if p.IsExpired() {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired.New("oauth error")))
 	}
 
 	uid, _ := types.KV(p.Params).String("uid")
 	topic, _ := types.KV(p.Params).String("topic")
 	if uid == "" {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("uid empty")))
 	}
 
 	// code -> token
 	provider := newProvider(name)
 	tk, err := provider.GetAccessToken(ctx)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrOAuthError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError.Wrap(err)))
 	}
 
 	// store
@@ -103,7 +103,7 @@ func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
 		Extra: model.JSON(extra),
 	})
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrOAuthError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrOAuthError.Wrap(err)))
 	}
 
 	return ctx.SendString("ok")
@@ -114,7 +114,7 @@ func (c *Controller) getPage(ctx *fiber.Ctx) error {
 
 	p, err := store.Database.PageGet(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound.Wrap(err)))
 	}
 
 	title, _ := types.KV(p.Schema).String("title")
@@ -134,12 +134,12 @@ func (c *Controller) getPage(ctx *fiber.Ctx) error {
 	case model.PageChart:
 		d, err := sonic.Marshal(p.Schema)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 		}
 		var msg types.ChartMsg
 		err = sonic.Unmarshal(d, &msg)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 		}
 
 		line := charts.NewLine()
@@ -159,7 +159,7 @@ func (c *Controller) getPage(ctx *fiber.Ctx) error {
 		_ = line.Render(buf)
 		return ctx.Send(buf.Bytes())
 	default:
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadRequest.New("error type")))
 	}
 
 	return ctx.SendString(page.RenderComponent(title, comp))
@@ -171,10 +171,10 @@ func (c *Controller) renderPage(ctx *fiber.Ctx) error {
 
 	p, err := store.Database.ParameterGet(flag)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError.Wrap(err)))
 	}
 	if p.IsExpired() {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired.New("page error")))
 	}
 
 	args := types.KV{}
@@ -201,15 +201,15 @@ func (c *Controller) renderPage(ctx *fiber.Ctx) error {
 	_, botHandler := bots.FindRuleAndHandler[pageRule.Rule](pageRuleId, bots.List())
 
 	if botHandler == nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound.New("bot not found")))
 	}
 
 	html, err := botHandler.Page(typesCtx, flag, args)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotFound, err))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound.New("page not found")))
 		}
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	ctx.Set("Content-Type", "text/html")
 	return ctx.SendString(html)
@@ -222,25 +222,25 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 
 	formData, err := store.Database.FormGet(formId)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	if formData.State == model.FormStateSubmitSuccess || formData.State == model.FormStateSubmitFailed {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, errors.New("error form state")))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.New("error form state")))
 	}
 
 	values := make(types.KV)
 	d, err := sonic.Marshal(formData.Schema)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	var formMsg types.FormMsg
 	err = sonic.Unmarshal(d, &formMsg)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	f, err := ctx.MultipartForm()
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 	pf := f.Value
 	for _, field := range formMsg.Field {
@@ -289,7 +289,7 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 	formBuilder.Data = values
 	err = formBuilder.Validate()
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 
 	botCtx := types.Context{
@@ -304,20 +304,20 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 	// get bot handler
 	formRuleId, ok := types.KV(formData.Schema).String("id")
 	if !ok {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, fmt.Errorf("form %s %s", formId, "error form rule id")))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")))
 	}
 
 	_, botHandler := bots.FindRuleAndHandler[formRule.Rule](formRuleId, bots.List())
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadParam, fmt.Errorf("bot %s unavailable", topic)))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Errorf("bot %s unavailable", topic)))
 		}
 
 		// form message
 		payload, err := botHandler.Form(botCtx, values)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 		}
 
 		// stats
@@ -336,24 +336,24 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 func (c *Controller) agentData(ctx *fiber.Ctx) error {
 	var r http.Request
 	if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponseWithError(protocol.ErrInternalServerError, err))
+		return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError.Wrap(err)))
 	}
 	// authorization
 	uid, isValid := route.CheckAccessToken(route.GetAccessToken(&r))
 	if !isValid {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized.New("token not valided")))
 	}
 
 	var data types.AgentData
 	err := sonic.Unmarshal(ctx.Body(), &data)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 
 	result, err := agentAction(uid, data)
 	if err != nil {
 		flog.Error(err)
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(result))
@@ -370,9 +370,9 @@ func (c *Controller) platformCallback(ctx *fiber.Ctx) error {
 		err = c.driver.HttpServer(ctx)
 	}
 	if err != nil {
-		var protocolError *protocol.Error
-		if errors.As(err, protocolError) {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocolError, err))
+		var e oops.OopsError
+		if errors.As(err, &e) {
+			return ctx.JSON(protocol.NewFailedResponse(e))
 		}
 		return err
 	}
@@ -389,7 +389,7 @@ func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
 	webhookRule, botHandler := bots.FindRuleAndHandler[webhook.Rule](flag, bots.List())
 
 	if botHandler == nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotFound.New("bot not found")))
 	}
 
 	typesCtx := types.Context{}
@@ -419,14 +419,14 @@ func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
 			secret = strings.TrimPrefix(val, "Bearer ")
 		}
 		if secret == "" {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed.New("secret not verification")))
 		}
 		find, err = store.Database.GetWebhookBySecret(secret)
 		if err != nil {
-			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrNotAuthorized, err))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized.Wrap(err)))
 		}
 		if find.State != model.WebhookActive {
-			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrAccessDenied))
+			return ctx.JSON(protocol.NewFailedResponse(protocol.ErrAccessDenied.New("inactive")))
 		}
 
 		typesCtx.AsUser = types.Uid(find.UID)
@@ -447,7 +447,7 @@ func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
 
 	payload, err := botHandler.Webhook(typesCtx, data)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrFlagError, err))
+		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrFlagError.Wrap(err)))
 	}
 
 	if find != nil {
