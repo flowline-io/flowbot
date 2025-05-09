@@ -26,7 +26,7 @@ require (
 	github.com/expr-lang/expr v1.17.2
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
-	github.com/go-echarts/go-echarts/v2 v2.5.3
+	github.com/go-echarts/go-echarts/v2 v2.5.4
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-sql-driver/mysql v1.9.2
