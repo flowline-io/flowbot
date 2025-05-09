@@ -1,9 +1,7 @@
 package server
 
 import (
-	"net/http"
-	"time"
-
+	"errors"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -15,6 +13,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/samber/oops"
+	"net/http"
+	"time"
 )
 
 func newHTTPServer() *fiber.App {
@@ -29,7 +30,18 @@ func newHTTPServer() *fiber.App {
 		WriteTimeout: 90 * time.Second,
 
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			// Send custom error page
+			// custom error
+			var e oops.OopsError
+			if errors.As(err, &e) {
+				if e.Code() == oops.OopsError(protocol.ErrNotAuthorized).Code() {
+					return ctx.Status(fiber.StatusUnauthorized).
+						JSON(protocol.NewFailedResponse(e))
+				}
+				return ctx.Status(fiber.StatusBadRequest).
+					JSON(protocol.NewFailedResponse(e))
+			}
+
+			// other error
 			if err != nil {
 				return ctx.Status(fiber.StatusBadRequest).
 					JSON(protocol.NewFailedResponse(protocol.ErrBadRequest.Wrap(err)))

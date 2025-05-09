@@ -93,17 +93,17 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 		// Check API flag
 		var r http.Request
 		if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
-			return ctx.Status(http.StatusInternalServerError).JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError.Wrap(err)))
+			return protocol.ErrNotAuthorized.Wrap(err)
 		}
 
 		accessToken := GetAccessToken(&r)
 		if accessToken == "" {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrParamVerificationFailed.New("Missing token")))
+			return protocol.ErrNotAuthorized.New("Missing token")
 		}
 
 		p, err := store.Database.ParameterGet(accessToken)
 		if err != nil || p.ID <= 0 || p.IsExpired() {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrFlagExpired.New("parameter error")))
+			return protocol.ErrNotAuthorized.New("parameter error")
 		}
 
 		topic, _ := types.KV(p.Params).String(topicKey)
@@ -111,7 +111,7 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 		uid := types.Uid(u)
 
 		if uid.IsZero() {
-			return ctx.Status(http.StatusUnauthorized).JSON(protocol.NewFailedResponse(protocol.ErrNotAuthorized.New("uid zeror")))
+			return protocol.ErrNotAuthorized.New("uid empty")
 		}
 
 		// Set uid and topic

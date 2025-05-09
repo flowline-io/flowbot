@@ -13,8 +13,6 @@ type ResponseStatus string
 const (
 	Success ResponseStatus = "ok"
 	Failed  ResponseStatus = "failed"
-
-	SuccessCode = int64(0)
 )
 
 const (
@@ -165,9 +163,8 @@ var ErrAccessDenied = NewError(60007, "access denied")
 
 func NewSuccessResponse(data any) Response {
 	return Response{
-		Status:  Success,
-		RetCode: strconv.Itoa(int(SuccessCode)),
-		Data:    data,
+		Status: Success,
+		Data:   data,
 	}
 }
 

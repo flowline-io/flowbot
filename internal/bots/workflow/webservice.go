@@ -81,7 +81,7 @@ func workflowList(ctx *fiber.Ctx) error {
 
 	list, err := store.Database.ListWorkflows(uid, topic)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -101,7 +101,7 @@ func workflowDetail(ctx *fiber.Ctx) error {
 
 	item, err := store.Database.GetWorkflow(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item))
 }
@@ -123,23 +123,23 @@ func workflowCreate(ctx *fiber.Ctx) error {
 	script := new(model.WorkflowScript)
 	err := ctx.BodyParser(&script)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	if script.Lang != model.WorkflowScriptYaml {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported.New("script type error")))
+		return protocol.ErrUnsupported.New("script type error")
 	}
 
 	wf, triggers, dag, err := ParseYamlWorkflow(script.Code)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	wf.UID = uid.String()
 	wf.Topic = topic
 	_, err = store.Database.CreateWorkflow(wf, script, dag, triggers)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
+		return protocol.ErrDatabaseWriteError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{"id": wf.ID}))
 }
@@ -163,16 +163,16 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 	script := new(model.WorkflowScript)
 	err := ctx.BodyParser(&script)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	if script.Lang != model.WorkflowScriptYaml {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrUnsupported.New("script type error")))
+		return protocol.ErrUnsupported.New("script type error")
 	}
 
 	wf, triggers, dag, err := ParseYamlWorkflow(script.Code)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	// item := new(model.Workflow)
@@ -183,7 +183,7 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 	// item.Describe = wf.Describe
 	err = store.Database.UpdateWorkflow(wf, script, dag, triggers)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
+		return protocol.ErrDatabaseWriteError.Wrap(err)
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
@@ -204,7 +204,7 @@ func workflowDelete(ctx *fiber.Ctx) error {
 
 	err := store.Database.DeleteWorkflow(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseWriteError.Wrap(err)))
+		return protocol.ErrDatabaseWriteError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
@@ -224,7 +224,7 @@ func workflowTriggerList(ctx *fiber.Ctx) error {
 
 	item, err := store.Database.GetWorkflow(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item.Triggers))
 }
@@ -244,7 +244,7 @@ func workflowJobList(ctx *fiber.Ctx) error {
 
 	list, err := store.Database.GetJobsByWorkflowId(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(list))
 }
@@ -264,7 +264,7 @@ func workflowJobDetail(ctx *fiber.Ctx) error {
 
 	item, err := store.Database.GetJob(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item))
 }
@@ -298,7 +298,7 @@ func workflowScriptDetail(ctx *fiber.Ctx) error {
 
 	item, err := store.Database.GetWorkflowScriptByWorkflowId(id)
 	if err != nil {
-		return ctx.JSON(protocol.NewFailedResponse(protocol.ErrDatabaseReadError.Wrap(err)))
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(item))
 }
