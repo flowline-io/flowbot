@@ -15,7 +15,7 @@ func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error
 		return nil, fmt.Errorf("chat model failed, %w", err)
 	}
 	agent, err := react.NewAgent(ctx, &react.AgentConfig{
-		Model: llm,
+		ToolCallingModel: llm,
 		ToolsConfig: compose.ToolsNodeConfig{
 			Tools: tools,
 		},

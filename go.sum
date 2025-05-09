@@ -67,10 +67,10 @@ github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCy
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
 github.com/cloudwego/eino v0.3.29 h1:yPiV/bMjxvQzBZlmDFF71Sly59y3HSNpdfOPQWayrYM=
 github.com/cloudwego/eino v0.3.29/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
-github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250221090944-e8ef7aabbe10 h1:DJAInsXygJKCrkahR42QODKkq91nvQCTe60o3MnjsKs=
-github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250221090944-e8ef7aabbe10/go.mod h1:okkkchYXfoEkv5c0GlwhMdVjIshCzmN3DCcnbOWf7DQ=
-github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250221090944-e8ef7aabbe10 h1:M6Z2PeX+MxW7jgoZ0p6qDfVtMe1/4XqSQSAHUrI2HTM=
-github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250221090944-e8ef7aabbe10/go.mod h1:6CThw1XQx/ASXNt31yuvp0X4Yp4GprknQuIvP9VKDpw=
+github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528 h1:LWlv4+NUNKVG2ojRtEbMDhExS45DH1t+kXakBCB3+Cw=
+github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528/go.mod h1:uXIWTFbaAbZ1128EIXjFc4S+tDqmz1idMZd5qt5kkwU=
+github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250422092704-54e372e1fa3d h1:unNqPz9vuJmJCZAw5YKFcszRX9e3CdVEjh0lR6QArxk=
+github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250422092704-54e372e1fa3d/go.mod h1:Ye0YAqpESCxMlnALNrjeNJjhS9q2PIdxVdJbtFeni8o=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
 github.com/containerd/log v0.1.0 h1:TCJt7ioM2cr/tfR8GPbGf9/VRAX8D2B4PjzCpfX540I=
 github.com/containerd/log v0.1.0/go.mod h1:VRRf09a7mHDIRezVKTRCrOq78v577GXq3bSa3EhrzVo=
@@ -332,6 +332,8 @@ github.com/mattn/go-sqlite3 v1.14.28 h1:ThEiQrnbtumT+QMknw63Befp/ce/nUPgBPMlRFEu
 github.com/mattn/go-sqlite3 v1.14.28/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/maxence-charriere/go-app/v10 v10.1.3 h1:xj4E3Owbi5HLqF8DtAjRLI6IA5g0VREPatGDczcxtk4=
 github.com/maxence-charriere/go-app/v10 v10.1.3/go.mod h1:FqUW4on4nJewVfBnSkuxQd3fvtK2RdKS/z76OOUDAAY=
+github.com/meguminnnnnnnnn/go-openai v0.0.0-20250408071642-761325becfd6 h1:nmdXxiUX48DZ2ELC/jSYzyGUVgxVEF2QJRGhLJ933zA=
+github.com/meguminnnnnnnnn/go-openai v0.0.0-20250408071642-761325becfd6/go.mod h1:kyz7fcXqXtccmRAIARn1Q+cKLNXJHC3AoqqJGeCqNI0=
 github.com/meilisearch/meilisearch-go v0.32.0 h1:cWcycpONSH3VLTZ5npUl1O5aXPkNM0vUx6bywnYqGbE=
 github.com/meilisearch/meilisearch-go v0.32.0/go.mod h1:aNtyuwurDg/ggxQIcKqWH6G9g2ptc8GyY7PLY4zMn/g=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b h1:j7+1HpAFS1zy5+Q4qx1fWh90gTKwiN4QCGoY9TWyyO4=
@@ -430,8 +432,6 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagikazarmark/locafero v0.7.0 h1:5MqpDsTGNDhY8sGp0Aowyf0qKsPrhewaLSsFaodPcyo=
 github.com/sagikazarmark/locafero v0.7.0/go.mod h1:2za3Cg5rMaTMoG/2Ulr9AwtFaIppKXTRYnozin4aB5k=
-github.com/sashabaranov/go-openai v1.37.0 h1:hQQowgYm4OXJ1Z/wTrE+XZaO20BYsL0R3uRPSpfNZkY=
-github.com/sashabaranov/go-openai v1.37.0/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
 github.com/schollz/progressbar/v3 v3.18.0 h1:uXdoHABRFmNIjUfte/Ex7WtuyVslrw2wVPQmCN62HpA=
 github.com/schollz/progressbar/v3 v3.18.0/go.mod h1:IsO3lpbaGuzh8zIMzgY3+J8l4C8GjO0Y9S69eFvNsec=
 github.com/shirou/gopsutil/v4 v4.25.4 h1:cdtFO363VEOOFrUCjZRh4XVJkb548lyF0q0uTeMqYPw=

@@ -15,7 +15,7 @@ func CountToken(text string) int {
 	// tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
-		flog.Warn("get encoding failed: %w", err)
+		flog.Warn("get encoding failed: %v", err)
 		return 0
 	}
 

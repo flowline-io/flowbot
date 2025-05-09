@@ -8,7 +8,7 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func Generate(ctx context.Context, llm model.ChatModel, in []*schema.Message) (*schema.Message, error) {
+func Generate(ctx context.Context, llm model.ToolCallingChatModel, in []*schema.Message) (*schema.Message, error) {
 	_, err := CountMessageTokens(in)
 	if err != nil {
 		return nil, fmt.Errorf("count token failed: %w", err)
@@ -21,7 +21,7 @@ func Generate(ctx context.Context, llm model.ChatModel, in []*schema.Message) (*
 	return result, nil
 }
 
-func Stream(ctx context.Context, llm model.ChatModel, in []*schema.Message) (*schema.StreamReader[*schema.Message], error) {
+func Stream(ctx context.Context, llm model.ToolCallingChatModel, in []*schema.Message) (*schema.StreamReader[*schema.Message], error) {
 	_, err := CountMessageTokens(in)
 	if err != nil {
 		return nil, fmt.Errorf("count token failed: %w", err)

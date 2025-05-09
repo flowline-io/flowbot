@@ -9,7 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-func ChatModel(ctx context.Context, modelName string) (model.ChatModel, error) {
+func ChatModel(ctx context.Context, modelName string) (model.ToolCallingChatModel, error) {
 	return openai.NewChatModel(ctx, &openai.ChatModelConfig{
 		BaseURL: config.App.Agent.BaseUrl,
 		APIKey:  config.App.Agent.Token,
