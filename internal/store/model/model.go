@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/bytedance/sonic"
 )
 
 // IsExpired check expired
@@ -12,5 +12,5 @@ func (p *Parameter) IsExpired() bool {
 }
 
 func (j *Job) MarshalBinary() (data []byte, err error) {
-	return jsoniter.Marshal(j)
+	return sonic.Marshal(j)
 }

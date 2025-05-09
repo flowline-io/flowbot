@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
-	jsoniter "github.com/json-iterator/go"
 )
 
 const Name = "agent"
@@ -34,7 +34,7 @@ func (bot) Init(jsonconf json.RawMessage) error {
 	}
 
 	var config configType
-	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
+	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 

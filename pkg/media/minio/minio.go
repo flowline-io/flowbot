@@ -14,12 +14,12 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -49,7 +49,7 @@ type handler struct {
 // Init initializes the media handler.
 func (ah *handler) Init(jsconf string) error {
 	var err error
-	if err = jsoniter.Unmarshal([]byte(jsconf), &ah.conf); err != nil {
+	if err = sonic.Unmarshal([]byte(jsconf), &ah.conf); err != nil {
 		return fmt.Errorf("error parsing config: %s", jsconf)
 	}
 

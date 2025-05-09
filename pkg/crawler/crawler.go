@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/influxdata/cron"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -154,7 +154,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	var old []map[string]string
 	for _, item := range oldArr {
 		var tmp map[string]string
-		_ = jsoniter.Unmarshal([]byte(item), &tmp)
+		_ = sonic.Unmarshal([]byte(item), &tmp)
 		if tmp != nil {
 			old = append(old, tmp)
 		}
@@ -168,7 +168,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 	var todo []map[string]string
 	for _, item := range todoArr {
 		var tmp map[string]string
-		_ = jsoniter.Unmarshal([]byte(item), &tmp)
+		_ = sonic.Unmarshal([]byte(item), &tmp)
 		if tmp != nil {
 			todo = append(todo, tmp)
 		}
@@ -195,7 +195,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 		if time.Now().Unix()-oldSend < 24*60*60 {
 			for _, item := range diff {
-				d, _ := jsoniter.Marshal(item)
+				d, _ := sonic.Marshal(item)
 				_ = rdb.Client.SAdd(ctx, todoKey, d)
 			}
 
@@ -211,7 +211,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 	// add data
 	for _, item := range diff {
-		d, _ := jsoniter.Marshal(item)
+		d, _ := sonic.Marshal(item)
 		_ = rdb.Client.SAdd(ctx, sentKey, d)
 	}
 

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/goccy/go-json"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/meilisearch/meilisearch-go"
 	"go.uber.org/fx"
 )
@@ -86,7 +86,7 @@ func (c *Client) Search(source, query string, page, pageSize int32) (types.Docum
 	}
 	utils.PrettyPrintJsonStyle(resp)
 
-	data, err := jsoniter.Marshal(resp.Hits)
+	data, err := sonic.Marshal(resp.Hits)
 	if err != nil {
 		return nil, 0, err
 	}

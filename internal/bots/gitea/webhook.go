@@ -3,12 +3,12 @@ package gitea
 import (
 	"net/http"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -26,7 +26,7 @@ var webhookRules = []webhook.Rule{
 			}
 
 			var issue *gitea.IssuePayload
-			err := jsoniter.Unmarshal(data, &issue)
+			err := sonic.Unmarshal(data, &issue)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error"}
@@ -79,7 +79,7 @@ var webhookRules = []webhook.Rule{
 			switch eventType {
 			case "push":
 				var repoPayload *gitea.RepoPayload
-				err := jsoniter.Unmarshal(data, &repoPayload)
+				err := sonic.Unmarshal(data, &repoPayload)
 				if err != nil {
 					flog.Error(err)
 					return types.TextMsg{Text: "error"}

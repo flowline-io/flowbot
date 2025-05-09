@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -26,7 +27,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
@@ -132,12 +132,12 @@ func (c *Controller) getPage(ctx *fiber.Ctx) error {
 	case model.PageHtml:
 		comp = page.RenderHtml(p)
 	case model.PageChart:
-		d, err := jsoniter.Marshal(p.Schema)
+		d, err := sonic.Marshal(p.Schema)
 		if err != nil {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
 		var msg types.ChartMsg
-		err = jsoniter.Unmarshal(d, &msg)
+		err = sonic.Unmarshal(d, &msg)
 		if err != nil {
 			return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 		}
@@ -229,12 +229,12 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 	}
 
 	values := make(types.KV)
-	d, err := jsoniter.Marshal(formData.Schema)
+	d, err := sonic.Marshal(formData.Schema)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
 	var formMsg types.FormMsg
-	err = jsoniter.Unmarshal(d, &formMsg)
+	err = sonic.Unmarshal(d, &formMsg)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}
@@ -345,7 +345,7 @@ func (c *Controller) agentData(ctx *fiber.Ctx) error {
 	}
 
 	var data types.AgentData
-	err := jsoniter.Unmarshal(ctx.Body(), &data)
+	err := sonic.Unmarshal(ctx.Body(), &data)
 	if err != nil {
 		return ctx.JSON(protocol.NewFailedResponseWithError(protocol.ErrBadRequest, err))
 	}

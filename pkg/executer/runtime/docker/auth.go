@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	jsoniter "github.com/json-iterator/go"
 )
 
 // Errors from credential helpers
@@ -145,7 +145,7 @@ func getCredentialsFromHelper(helper, hostname string) (string, string, error) {
 		Secret   string
 	}
 
-	if err := jsoniter.Unmarshal(b, &creds); err != nil {
+	if err := sonic.Unmarshal(b, &creds); err != nil {
 		return "", "", err
 	}
 
@@ -187,7 +187,7 @@ func userHomeConfigPath() (string, error) {
 // ConfigPath returns the path to the docker cli config.
 //
 // It will either use the DOCKER_CONFIG env var if set, or the value from `UserHomeConfigPath`
-// DOCKER_CONFIG would be the dir path where `config.json` is stored, this returns the path to config.jsoniter.
+// DOCKER_CONFIG would be the dir path where `config.json` is stored, this returns the path to config.sonic.
 func configPath(configFile string) (string, error) {
 	if configFile != "" {
 		return configFile, nil
@@ -212,7 +212,7 @@ func fromFile(configPath string, cfg *config) error {
 	if err != nil {
 		return err
 	}
-	if err := jsoniter.NewDecoder(f).Decode(&cfg); err != nil {
+	if err := sonic.ConfigDefault.NewDecoder(f).Decode(&cfg); err != nil {
 		return fmt.Errorf("error decoding docker config, %w", err)
 	}
 	if err := f.Close(); err != nil {

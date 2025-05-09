@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -31,7 +31,7 @@ func GetJobsByState(ctx context.Context, state model.JobState) ([]*model.Job, er
 	var jobs []*model.Job
 	for _, v := range res {
 		job := &model.Job{}
-		err = jsoniter.Unmarshal(utils.StringToBytes(v), job)
+		err = sonic.Unmarshal(utils.StringToBytes(v), job)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal job %s, %w", v, err)
 		}

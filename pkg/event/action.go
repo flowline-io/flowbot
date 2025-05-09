@@ -3,16 +3,16 @@ package event
 import (
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	// payload
-	src, err := jsoniter.Marshal(msg)
+	src, err := sonic.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}

@@ -6,13 +6,14 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
-	"gopkg.in/yaml.v3"
 	"math/big"
 	"regexp"
 	"runtime"
 	"strings"
 	"unicode"
+
+	"github.com/bytedance/sonic"
+	"gopkg.in/yaml.v3"
 
 	"github.com/google/uuid"
 )
@@ -126,7 +127,7 @@ func FileAndLine() string {
 }
 
 func PrettyPrintJsonStyle(data any) {
-	d, err := jsoniter.MarshalIndent(data, "", "  ")
+	d, err := sonic.MarshalIndent(data, "", "  ")
 	if err != nil {
 		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
 		return

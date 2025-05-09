@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -56,7 +56,7 @@ func (v *Dropbox) completeAuth(code string) (interface{}, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		var result TokenResponse
-		err = jsoniter.Unmarshal(resp.Body(), &result)
+		err = sonic.Unmarshal(resp.Body(), &result)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
 		return nil, err
 	}
 
-	extra, err := jsoniter.Marshal(&tokenResp)
+	extra, err := sonic.Marshal(&tokenResp)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
 }
 
 func (v *Dropbox) Upload(path string, content io.Reader) error {
-	apiArg, err := jsoniter.Marshal(map[string]interface{}{
+	apiArg, err := sonic.Marshal(map[string]interface{}{
 		"path":            path,
 		"mode":            "add",
 		"autorename":      true,

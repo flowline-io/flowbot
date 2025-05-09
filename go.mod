@@ -13,6 +13,7 @@ require (
 	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.28.1
+	github.com/bytedance/sonic v1.13.2
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.3.29
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528
@@ -93,7 +94,6 @@ require (
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
-	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

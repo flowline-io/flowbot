@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/alarm"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 )
@@ -18,8 +18,7 @@ func Init(fileLogEnabled bool) {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	// json marshaling
-	json := jsoniter.ConfigCompatibleWithStandardLibrary
-	zerolog.InterfaceMarshalFunc = json.Marshal
+	zerolog.InterfaceMarshalFunc = sonic.Marshal
 
 	var writer []io.Writer
 	// console

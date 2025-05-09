@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/bots/agent"
 	"github.com/flowline-io/flowbot/internal/bots/anki"
@@ -34,7 +35,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 )
@@ -85,11 +85,11 @@ func handleChatbot(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Cli
 
 // initialize bots
 func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
-	b, err := jsoniter.Marshal(botsConfig)
+	b, err := sonic.Marshal(botsConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal bots: %v", err)
 	}
-	v, err := jsoniter.Marshal(vendorsConfig)
+	v, err := sonic.Marshal(vendorsConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal vendors: %v", err)
 	}

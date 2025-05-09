@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/bytedance/sonic"
 )
 
 type JSON map[string]interface{}
@@ -17,7 +17,7 @@ func (j JSON) GormDataType() string {
 func (j *JSON) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make(map[string]interface{})
-		err := jsoniter.Unmarshal(bytes, &result)
+		err := sonic.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (j JSON) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	return jsoniter.Marshal(j)
+	return sonic.Marshal(j)
 }
 
 type IDList []int64
@@ -47,7 +47,7 @@ func (j IDList) GormDataType() string {
 func (j *IDList) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make([]int64, 0)
-		err := jsoniter.Unmarshal(bytes, &result)
+		err := sonic.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -65,5 +65,5 @@ func (j IDList) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	return jsoniter.Marshal(j)
+	return sonic.Marshal(j)
 }

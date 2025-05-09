@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -106,7 +106,7 @@ func (v *Pocket) GetAccessToken(_ *fiber.Ctx) (types.KV, error) {
 			return nil, err
 		}
 
-		extra, err := jsoniter.Marshal(&tokenResp)
+		extra, err := sonic.Marshal(&tokenResp)
 		if err != nil {
 			return nil, err
 		}

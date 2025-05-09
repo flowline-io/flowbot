@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/contrib/fiberzerolog"
@@ -14,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	jsoniter "github.com/json-iterator/go"
 )
 
 func newHTTPServer() *fiber.App {
@@ -22,8 +22,8 @@ func newHTTPServer() *fiber.App {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 
-		JSONDecoder:  jsoniter.Unmarshal,
-		JSONEncoder:  jsoniter.Marshal,
+		JSONDecoder:  sonic.Unmarshal,
+		JSONEncoder:  sonic.Marshal,
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 90 * time.Second,

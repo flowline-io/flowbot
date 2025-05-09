@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
-	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/yaml.v3"
 )
 
@@ -94,7 +94,7 @@ var formRules = []form.Rule{
 				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
 			}
 
-			result, err := jsoniter.Marshal(output)
+			result, err := sonic.Marshal(output)
 			if err != nil {
 				return types.TextMsg{Text: fmt.Sprintf("error: %s", err)}
 			}

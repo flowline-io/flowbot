@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bytedance/sonic"
 	llmTool "github.com/cloudwego/eino/components/tool"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
-
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
-
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -21,16 +18,17 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/collect"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/setting"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 )
 
@@ -273,8 +271,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	formId := types.Id()
-	var j = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := j.Marshal(payload)
+	d, err := sonic.Marshal(payload)
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
@@ -338,8 +335,7 @@ func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
 	pageId := types.Id()
-	var j = jsoniter.ConfigCompatibleWithStandardLibrary
-	d, err := j.Marshal(payload)
+	d, err := sonic.Marshal(payload)
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
@@ -578,14 +574,14 @@ type configType struct {
 func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
-	if err := jsoniter.Unmarshal(jsonconf, &config); err != nil {
+	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
 	configMap := make(map[string]json.RawMessage)
 	for _, cc := range config {
 		var item configType
-		if err := jsoniter.Unmarshal(cc, &item); err != nil {
+		if err := sonic.Unmarshal(cc, &item); err != nil {
 			return errors.New("failed to parse config: " + err.Error())
 		}
 

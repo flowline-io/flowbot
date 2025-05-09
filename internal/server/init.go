@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 )
 
 var (
@@ -43,7 +43,7 @@ func initializeMedia() error {
 			if config.App.Media.Handlers != nil {
 				var conf string
 				if params := config.App.Media.Handlers[config.App.Media.UseHandler]; params != nil {
-					data, err := jsoniter.Marshal(params)
+					data, err := sonic.Marshal(params)
 					if err != nil {
 						return fmt.Errorf("failed to marshal media handler, %w", err)
 					}

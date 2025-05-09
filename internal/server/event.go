@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/fx"
 )
 
@@ -72,7 +72,7 @@ func onMessageSendEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe types.Message
-	err := jsoniter.Unmarshal(msg.Payload, &pe)
+	err := sonic.Unmarshal(msg.Payload, &pe)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
@@ -116,7 +116,7 @@ func onBotRunEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var be types.BotEvent
-	err := jsoniter.Unmarshal(msg.Payload, &be)
+	err := sonic.Unmarshal(msg.Payload, &be)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal bot event: %w", err)
 	}
@@ -142,17 +142,17 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var pe protocol.Event
-	err := jsoniter.Unmarshal(msg.Payload, &pe)
+	err := sonic.Unmarshal(msg.Payload, &pe)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal platform message event: %w", err)
 	}
 
-	data, err := jsoniter.Marshal(pe.Data)
+	data, err := sonic.Marshal(pe.Data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal platform message event: %w", err)
 	}
 	var v protocol.MessageEventData
-	err = jsoniter.Unmarshal(data, &v)
+	err = sonic.Unmarshal(data, &v)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal platform message event: %w", err)
 	}

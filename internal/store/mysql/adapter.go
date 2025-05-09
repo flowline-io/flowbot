@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/dao"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -16,7 +17,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/locker"
 	"github.com/flowline-io/flowbot/pkg/types"
 	ms "github.com/go-sql-driver/mysql"
-	jsoniter "github.com/json-iterator/go"
 	mysqlDriver "gorm.io/driver/mysql"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -221,11 +221,11 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	defaultCfg := ms.NewConfig()
 	conf := configType{Config: *defaultCfg}
 
-	data, err := jsoniter.Marshal(adaptersConfig.Adapters["mysql"])
+	data, err := sonic.Marshal(adaptersConfig.Adapters["mysql"])
 	if err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
-	if err = jsoniter.Unmarshal(data, &conf); err != nil {
+	if err = sonic.Unmarshal(data, &conf); err != nil {
 		return errors.New("mysql adapter failed to parse config: " + err.Error())
 	}
 

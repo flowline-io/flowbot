@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-resty/resty/v2"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type flowbot struct {
@@ -43,7 +43,7 @@ func (v *flowbot) fetcher(action types.Action, content types.KV) ([]byte, error)
 
 	if resp.StatusCode() == http.StatusOK {
 		r := resp.Result().(*protocol.Response)
-		return jsoniter.Marshal(r.Data)
+		return sonic.Marshal(r.Data)
 	} else {
 		return nil, fmt.Errorf("%d", resp.StatusCode())
 	}
@@ -59,7 +59,7 @@ func Pull() (*InstructResult, error) {
 		return nil, nil
 	}
 	var r InstructResult
-	err = jsoniter.Unmarshal(data, &r.Instruct)
+	err = sonic.Unmarshal(data, &r.Instruct)
 	if err != nil {
 		return nil, err
 	}

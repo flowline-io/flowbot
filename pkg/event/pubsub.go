@@ -3,16 +3,17 @@ package event
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
-	"time"
 )
 
 var logger = flog.WatermillLogger
@@ -111,7 +112,7 @@ func NewRouter(_ *redis.Client) (*message.Router, error) {
 }
 
 func NewMessage(payload any) (*message.Message, error) {
-	data, err := jsoniter.Marshal(payload)
+	data, err := sonic.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}

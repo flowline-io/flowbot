@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/bytedance/sonic"
 )
 
 type KV map[string]interface{}
@@ -14,7 +14,7 @@ type KV map[string]interface{}
 func (j *KV) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make(map[string]interface{})
-		err := jsoniter.Unmarshal(bytes, &result)
+		err := sonic.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func (j KV) Value() (driver.Value, error) {
 	if len(j) == 0 {
 		return nil, nil
 	}
-	return jsoniter.Marshal(j)
+	return sonic.Marshal(j)
 }
 
 func (j KV) String(key string) (string, bool) {

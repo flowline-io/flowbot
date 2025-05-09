@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/hibiken/asynq"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 )
@@ -89,7 +89,7 @@ func (d *DatabaseProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 			flog.Warn("error %v", err)
 			continue
 		}
-		payload, err := jsoniter.Marshal(trigger)
+		payload, err := sonic.Marshal(trigger)
 		if err != nil {
 			flog.Error(err)
 			continue

@@ -6,13 +6,13 @@ import (
 	"html"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/types"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
@@ -33,13 +33,13 @@ const htmlLayout = `
 
 // unmarshalPageSchema parses specific types of messages from Page.Schema
 func unmarshalPageSchema(page model.Page, target interface{}) error {
-	data, err := jsoniter.Marshal(page.Schema)
+	data, err := sonic.Marshal(page.Schema)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to marshal page schema: %w", err))
 		return err
 	}
 
-	err = jsoniter.Unmarshal(data, target)
+	err = sonic.Unmarshal(data, target)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to unmarshal page schema: %w", err))
 		return err
@@ -108,7 +108,7 @@ func scripts(comp *types.UI) string {
 			case float32, float64:
 				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %f;\n", key, v)
 			case map[string]interface{}:
-				j, err := jsoniter.Marshal(v)
+				j, err := sonic.Marshal(v)
 				if err != nil {
 					flog.Error(fmt.Errorf("failed to marshal global variable %s: %w", key, err))
 					continue
