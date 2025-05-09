@@ -18,7 +18,7 @@ type ReadSeekCloser interface {
 	io.Closer
 }
 
-// Handler is an interface which must be implemented by media handlers (uploaders-downloaders).
+// Handler is an interface which must be implemented by media handlers (uploader-downloader).
 type Handler interface {
 	// Init initializes the media upload handler.
 	Init(jsconf string) error
