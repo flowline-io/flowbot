@@ -131,7 +131,7 @@ var cronRules = []cron.Rule{
 				}
 
 				// filter
-				ok, err := rdb.UniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
+				ok, err := rdb.BloomUniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
 				if err != nil {
 					flog.Error(fmt.Errorf("cron bookmarks_task unique error %w", err))
 					continue

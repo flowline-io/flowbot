@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	json "github.com/json-iterator/go"
 )
 
-func Unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
-	result := make([]types.KV, 0)
-	uniqueKey := fmt.Sprintf("unique:%s", id)
+func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
+	result := make([]any, 0)
+	uniqueKey := fmt.Sprintf("bloom:unique:%s", id)
+	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
 
-	for _, item := range latest {
+	for i, item := range latest {
 		val, err := kvHash(item)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash kv: %w", err)
@@ -21,16 +21,12 @@ func Unique(ctx context.Context, id string, latest []any) ([]types.KV, error) {
 		if len(val) == 0 {
 			continue
 		}
-		b, err := Client.SAdd(ctx, uniqueKey, val).Result()
+		b, err := Client.BFAdd(ctx, uniqueKey, val).Result()
 		if err != nil {
 			return nil, fmt.Errorf("failed to set unique key: %w", err)
 		}
-		if b == 1 {
-			kv, ok := item.(map[string]any)
-			if !ok {
-				continue
-			}
-			result = append(result, kv)
+		if b {
+			result = append(result, latest[i])
 			flog.Info("[unique] key: %s added: %s", id, val)
 		}
 	}
@@ -46,13 +42,14 @@ func kvHash(item any) (string, error) {
 	return utils.SHA1(utils.BytesToString(b)), nil
 }
 
-func UniqueString(ctx context.Context, id string, latest string) (bool, error) {
-	uniqueKey := fmt.Sprintf("unique:%s", id)
-	b, err := Client.SAdd(ctx, uniqueKey, latest).Result()
+func BloomUniqueString(ctx context.Context, id string, latest string) (bool, error) {
+	uniqueKey := fmt.Sprintf("bloom:unique:%s", id)
+	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
+	b, err := Client.BFAdd(ctx, uniqueKey, latest).Result()
 	if err != nil {
 		return false, fmt.Errorf("failed to set unique key: %w", err)
 	}
-	if b == 1 {
+	if b {
 		return true, nil
 	}
 

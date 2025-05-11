@@ -166,7 +166,7 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, empty data", uniqueWorkflowActionID)
 			}
 			if v, ok := list.([]any); ok {
-				result, err := rdb.Unique(ctx.Context(), id, v)
+				result, err := rdb.BloomUnique(ctx.Context(), id, v)
 				if err != nil {
 					return nil, fmt.Errorf("%s step, unique failed, %w", uniqueWorkflowActionID, err)
 				}

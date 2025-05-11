@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"os"
 	"time"
 
@@ -15,11 +16,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers/gitea"
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
-	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -233,29 +231,23 @@ var commandRules = []command.Rule{
 		Define: "test",
 		Help:   `[example] test`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			flog.Info("dev bot environment config: %s", config.Environment)
+			key := "test:filter"
+			ok, err := rdb.BloomUniqueString(ctx.Context(), key, "1")
+			_, _ = fmt.Println(ok, err)
+			ok, err = rdb.BloomUniqueString(ctx.Context(), key, "2")
+			_, _ = fmt.Println(ok, err)
+			ok, err = rdb.BloomUniqueString(ctx.Context(), key, "1")
+			_, _ = fmt.Println(ok, err)
 
-			err := search.Instance.AddDocument(types.Document{
-				SourceId:    types.Id(),
-				Source:      hoarder.ID,
-				Title:       "the title....",
-				Description: "the description....",
-				Url:         "/url/test",
-				Timestamp:   time.Now().Unix(),
-			})
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
+			key = "test:list:filter"
+			result, err := rdb.BloomUnique(ctx.Context(), key, []any{"1", "2"})
+			_, _ = fmt.Println(result, err)
+			result, err = rdb.BloomUnique(ctx.Context(), key, []any{"2", "3"})
+			_, _ = fmt.Println(result, err)
+			result, err = rdb.BloomUnique(ctx.Context(), key, []any{"1", "3"})
+			_, _ = fmt.Println(result, err)
 
-			list, total, err := search.Instance.Search(gitea.ID, "title", 1, 10)
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			return types.InfoMsg{
-				Title: fmt.Sprintf("documents %v", total),
-				Model: list,
-			}
+			return types.TextMsg{Text: "ok"}
 		},
 	},
 }
