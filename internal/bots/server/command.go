@@ -187,7 +187,7 @@ var commandRules = []command.Rule{
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			_, _, err = store.FS.Upload(&types.FileDef{
+			_, _, err = store.FileSystem.Upload(&types.FileDef{
 				User:     ctx.AsUser.String(),
 				Size:     f.Size(),
 				MimeType: "text/plain",

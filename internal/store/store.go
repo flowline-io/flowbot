@@ -82,8 +82,8 @@ func Migrate() error {
 	return nil
 }
 
-// FS Media handler
-var FS media.Handler
+// FileSystem Media handler
+var FileSystem media.Handler
 
 // Registered media/file handlers.
 var fileHandlers map[string]media.Handler
@@ -111,7 +111,7 @@ func UseMediaHandler(name, config string) error {
 		flog.Fatal("UseMediaHandler: unknown handler %s", name)
 		return fmt.Errorf("unknown handler %s", name)
 	}
-	FS = mediaHandler
+	FileSystem = mediaHandler
 	return mediaHandler.Init(config)
 }
 

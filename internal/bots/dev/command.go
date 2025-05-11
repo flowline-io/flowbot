@@ -3,10 +3,6 @@ package dev
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/rdb"
-	"os"
-	"time"
-
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
@@ -18,9 +14,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"os"
+	"time"
 )
 
 var commandRules = []command.Rule{
@@ -185,7 +184,7 @@ var commandRules = []command.Rule{
 			}
 			fileSize := fileStat.Size()
 
-			url, size, err := store.FS.Upload(&types.FileDef{
+			url, size, err := store.FileSystem.Upload(&types.FileDef{
 				User:     ctx.AsUser.String(),
 				Size:     fileSize,
 				MimeType: "text/markdown",

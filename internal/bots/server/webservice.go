@@ -39,7 +39,7 @@ func upload(ctx *fiber.Ctx) error {
 					continue
 				}
 
-				url, _, err := store.FS.Upload(&types.FileDef{
+				url, _, err := store.FileSystem.Upload(&types.FileDef{
 					ObjHeader: types.ObjHeader{
 						Id: types.Id(),
 					},
