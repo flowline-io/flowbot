@@ -72,7 +72,7 @@ var cronRules = []cron.Rule{
 				bookmarkTotal++
 			}
 			stats.BookmarkTotalCounter().Set(uint64(bookmarkTotal))
-			rdb.SetInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
+			rdb.SetMetricsInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
 
 			return nil
 		},

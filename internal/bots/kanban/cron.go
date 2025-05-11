@@ -25,7 +25,7 @@ var cronRules = []cron.Rule{
 			taskTotal := len(list)
 
 			stats.KanbanTaskTotalCounter().Set(uint64(taskTotal))
-			rdb.SetInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))
+			rdb.SetMetricsInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))
 
 			return nil
 		},

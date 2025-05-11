@@ -34,7 +34,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 			stats.GiteaIssueTotalCounter("open").Set(uint64(len(issues)))
-			rdb.SetInt64(stats.GiteaIssueTotalStatsName, int64(len(issues)))
+			rdb.SetMetricsInt64(stats.GiteaIssueTotalStatsName, int64(len(issues)))
 
 			return nil
 		},

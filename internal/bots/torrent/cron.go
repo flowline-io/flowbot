@@ -53,7 +53,7 @@ var cronRules = []cron.Rule{
 				stats.TorrentStatusTotalCounter(status).Set(amount)
 			}
 			stats.TorrentDownloadTotalCounter().Set(uint64(len(list)))
-			rdb.SetInt64(stats.TorrentDownloadTotalStatsName, int64(len(list)))
+			rdb.SetMetricsInt64(stats.TorrentDownloadTotalStatsName, int64(len(list)))
 
 			return nil
 		},

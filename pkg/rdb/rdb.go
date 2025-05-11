@@ -63,15 +63,3 @@ func Shutdown() {
 		flog.Warn("redis connection already lost: %v", err)
 	}
 }
-
-func SetInt64(key string, value int64) {
-	Client.Set(context.Background(), key, value, 0)
-}
-
-func GetInt64(key string) int64 {
-	r, err := Client.Get(context.Background(), key).Int64()
-	if err != nil {
-		flog.Error(err)
-	}
-	return r
-}

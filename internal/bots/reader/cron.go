@@ -38,7 +38,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 			stats.ReaderUnreadTotalCounter().Set(uint64(result.Total))
-			rdb.SetInt64(stats.ReaderUnreadTotalStatsName, int64(result.Total))
+			rdb.SetMetricsInt64(stats.ReaderUnreadTotalStatsName, int64(result.Total))
 
 			return nil
 		},

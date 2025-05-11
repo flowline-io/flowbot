@@ -73,7 +73,7 @@ func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
 	}
 
 	stats.BotTotalCounter().Set(uint64(len(chatbot.List())))
-	rdb.SetInt64(stats.BotTotalStatsName, int64(len(chatbot.List())))
+	rdb.SetMetricsInt64(stats.BotTotalStatsName, int64(len(chatbot.List())))
 }
 
 // register bots

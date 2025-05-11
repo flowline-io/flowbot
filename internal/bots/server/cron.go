@@ -79,7 +79,7 @@ var cronRules = []cron.Rule{
 				total++
 			}
 
-			rdb.SetInt64(stats.DockerContainerTotalStatsName, total)
+			rdb.SetMetricsInt64(stats.DockerContainerTotalStatsName, total)
 			stats.DockerContainerTotalCounter().Set(uint64(total))
 
 			return nil
@@ -110,8 +110,8 @@ var cronRules = []cron.Rule{
 					}
 				}
 			}
-			rdb.SetInt64(stats.MonitorUpTotalStatsName, up)
-			rdb.SetInt64(stats.MonitorDownTotalStatsName, down)
+			rdb.SetMetricsInt64(stats.MonitorUpTotalStatsName, up)
+			rdb.SetMetricsInt64(stats.MonitorDownTotalStatsName, down)
 
 			return nil
 		},

@@ -46,15 +46,15 @@ func dashboard(ctx *fiber.Ctx) error {
 //	@Router		/user/metrics [get]
 func metrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
-		stats.BotTotalStatsName:             rdb.GetInt64(stats.BotTotalStatsName),
-		stats.BookmarkTotalStatsName:        rdb.GetInt64(stats.BookmarkTotalStatsName),
-		stats.TorrentDownloadTotalStatsName: rdb.GetInt64(stats.TorrentDownloadTotalStatsName),
-		stats.GiteaIssueTotalStatsName:      rdb.GetInt64(stats.GiteaIssueTotalStatsName),
-		stats.ReaderUnreadTotalStatsName:    rdb.GetInt64(stats.ReaderUnreadTotalStatsName),
-		stats.KanbanTaskTotalStatsName:      rdb.GetInt64(stats.KanbanTaskTotalStatsName),
-		stats.MonitorUpTotalStatsName:       rdb.GetInt64(stats.MonitorUpTotalStatsName),
-		stats.MonitorDownTotalStatsName:     rdb.GetInt64(stats.MonitorDownTotalStatsName),
-		stats.DockerContainerTotalStatsName: rdb.GetInt64(stats.DockerContainerTotalStatsName),
+		stats.BotTotalStatsName:             rdb.GetMetricsInt64(stats.BotTotalStatsName),
+		stats.BookmarkTotalStatsName:        rdb.GetMetricsInt64(stats.BookmarkTotalStatsName),
+		stats.TorrentDownloadTotalStatsName: rdb.GetMetricsInt64(stats.TorrentDownloadTotalStatsName),
+		stats.GiteaIssueTotalStatsName:      rdb.GetMetricsInt64(stats.GiteaIssueTotalStatsName),
+		stats.ReaderUnreadTotalStatsName:    rdb.GetMetricsInt64(stats.ReaderUnreadTotalStatsName),
+		stats.KanbanTaskTotalStatsName:      rdb.GetMetricsInt64(stats.KanbanTaskTotalStatsName),
+		stats.MonitorUpTotalStatsName:       rdb.GetMetricsInt64(stats.MonitorUpTotalStatsName),
+		stats.MonitorDownTotalStatsName:     rdb.GetMetricsInt64(stats.MonitorDownTotalStatsName),
+		stats.DockerContainerTotalStatsName: rdb.GetMetricsInt64(stats.DockerContainerTotalStatsName),
 	}))
 }
 
