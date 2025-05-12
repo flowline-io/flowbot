@@ -65,8 +65,8 @@ github.com/chengxilo/virtualterm v1.0.4 h1:Z6IpERbRVlfB8WkOmtbHiDbBANU7cimRIof7m
 github.com/chengxilo/virtualterm v1.0.4/go.mod h1:DyxxBZz/x1iqJjFxTFcr6/x+jSpqN0iwWCOK1q10rlY=
 github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCyP4=
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
-github.com/cloudwego/eino v0.3.30 h1:oQxEqkpu+nCl5hrzbEIMxX1Dogtbyed7gYAnTM6uUZY=
-github.com/cloudwego/eino v0.3.30/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
+github.com/cloudwego/eino v0.3.31 h1:CByfu37j7YjYp+T/aS2oCffPCOY986F3Jbb6a6BfO4Y=
+github.com/cloudwego/eino v0.3.31/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
 github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528 h1:LWlv4+NUNKVG2ojRtEbMDhExS45DH1t+kXakBCB3+Cw=
 github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528/go.mod h1:uXIWTFbaAbZ1128EIXjFc4S+tDqmz1idMZd5qt5kkwU=
 github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250422092704-54e372e1fa3d h1:unNqPz9vuJmJCZAw5YKFcszRX9e3CdVEjh0lR6QArxk=
