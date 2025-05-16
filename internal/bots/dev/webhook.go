@@ -34,6 +34,9 @@ var webhookRules = []webhook.Rule{
 			if ctx.Method != http.MethodPost {
 				return types.TextMsg{Text: "error method"}
 			}
+			if !agents.AgentEnabled(agents.AgentReact) {
+				return types.TextMsg{Text: "agent react disabled"}
+			}
 
 			var param struct {
 				Text string `json:"text"`

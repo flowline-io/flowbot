@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -24,6 +25,10 @@ func hookIssueClosed(ctx types.Context, issue *gitea.IssuePayload) error {
 }
 
 func hookPush(ctx types.Context, payload *gitea.RepoPayload) error {
+	if !agents.AgentEnabled(agents.AgentRepoReviewComment) {
+		return fmt.Errorf("agent repo review comment disabled")
+	}
+
 	ctx.SetTimeout(10 * time.Minute)
 	owner := payload.Repository.Owner.UserName
 	repo := payload.Repository.Name

@@ -273,6 +273,9 @@ var workflowRules = []workflow.Rule{
 		InputSchema:  nil,
 		OutputSchema: nil,
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
+			if !agents.AgentEnabled(agents.AgentChat) {
+				return nil, fmt.Errorf("%s step, agent chat disabled", llmWorkflowActionID)
+			}
 			ctx.SetTimeout(10 * time.Minute)
 			promptVal, _ := input.String("prompt")
 			if promptVal == "" {

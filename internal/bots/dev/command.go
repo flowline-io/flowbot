@@ -133,6 +133,9 @@ var commandRules = []command.Rule{
 		Define: "llm test",
 		Help:   `[example] LLM example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			if !agents.AgentEnabled(agents.AgentChat) {
+				return types.TextMsg{Text: "agent chat disabled"}
+			}
 			messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
 				"content": "Who was the first man to walk on the moon?",
 			})

@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -22,6 +23,11 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "0 2 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			if !agents.AgentEnabled(agents.AgentExtractTags) {
+				flog.Info("agent extract tags disabled")
+				return nil
+			}
+
 			client := hoarder.GetClient()
 			resp, err := client.GetAllBookmarks(nil)
 			if err != nil {
@@ -166,6 +172,11 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "0 2 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			if !agents.AgentEnabled(agents.AgentSimilarTags) {
+				flog.Info("agent similar tags disabled")
+				return nil
+			}
+
 			// Get all tags
 			client := hoarder.GetClient()
 			tags, err := client.GetAllTags()

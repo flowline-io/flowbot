@@ -49,6 +49,11 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeUser,
 		When:  "0 9 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			if !agents.AgentEnabled(agents.AgentNewsSummary) {
+				flog.Info("agent news summary disabled")
+				return nil
+			}
+
 			client := miniflux.GetClient()
 
 			resp, err := client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread, Limit: 10000})

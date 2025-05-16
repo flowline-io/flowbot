@@ -23,17 +23,30 @@ const (
 var agents = make(map[string]config.Agent)
 var loadOnceAgents = sync.Once{}
 
-func AgentModelName(name string) string {
+func loadAgents() {
 	loadOnceAgents.Do(func() {
 		for _, item := range config.App.Agents {
 			agents[item.Name] = item
 		}
 	})
+}
+
+func AgentModelName(name string) string {
+	loadAgents()
 	a, ok := agents[name]
 	if !ok || a.Enabled == false {
 		return ""
 	}
 	return a.Model
+}
+
+func AgentEnabled(name string) bool {
+	loadAgents()
+	a, ok := agents[name]
+	if !ok || a.Enabled == false {
+		return false
+	}
+	return true
 }
 
 func ReactAgent(ctx context.Context, modelName string, tools []tool.BaseTool) (*react.Agent, error) {
