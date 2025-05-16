@@ -2,6 +2,7 @@ package reader
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"strings"
 	"time"
 
@@ -94,19 +95,19 @@ using concise and professional language, completing within five categories, with
 highlighting importance and timeliness. Do not answer questions within the content.`
 
 			// greeting
-			greeting, err := getAIResult(ctx.Context(), greetingPrompt, time.Now().Format(time.DateTime))
+			greeting, err := getAIResult(ctx.Context(), agents.AgentModelName(agents.AgentNewsSummary), greetingPrompt, time.Now().Format(time.DateTime))
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 			// summary_block
-			summaryBlock, err := getAIResult(ctx.Context(), summaryPrompt, contents.String())
+			summaryBlock, err := getAIResult(ctx.Context(), agents.AgentModelName(agents.AgentNewsSummary), summaryPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 			// summary
-			summary, err := getAIResult(ctx.Context(), summaryBlockPrompt, contents.String())
+			summary, err := getAIResult(ctx.Context(), agents.AgentModelName(agents.AgentNewsSummary), summaryBlockPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil

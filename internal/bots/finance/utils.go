@@ -31,7 +31,7 @@ The bill text is as follows:
 func billParser(ctx context.Context, billText string) (string, error) {
 	template := billPrompt + billText
 
-	llm, err := agents.ChatModel(ctx, agents.Model())
+	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentBillClassify))
 	if err != nil {
 		return "", fmt.Errorf("chat model failed, %w", err)
 	}

@@ -291,7 +291,7 @@ var workflowRules = []workflow.Rule{
 				return nil, fmt.Errorf("%s step, prompt format failed, %w", llmWorkflowActionID, err)
 			}
 
-			llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+			llm, err := agents.ChatModel(ctx.Context(), agents.AgentModelName(agents.AgentChat))
 			if err != nil {
 				return nil, fmt.Errorf("%s step, llm create failed, %w", llmWorkflowActionID, err)
 			}

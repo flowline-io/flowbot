@@ -68,8 +68,11 @@ type Type struct {
 	// Alarm
 	Alarm Alarm `json:"alarm" yaml:"alarm" mapstructure:"alarm"`
 
-	// Agent
-	Agent Agent `json:"agent" yaml:"agent" mapstructure:"agent"`
+	// Models
+	Models []Model `json:"models" yaml:"models" mapstructure:"models"`
+
+	// Agents
+	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
 }
 
 // Large file handler config.
@@ -234,6 +237,8 @@ type Flowbot struct {
 	URL string `json:"url" yaml:"url" mapstructure:"url"`
 	// Flowbot channel path
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
+	// language
+	Language string `json:"language" yaml:"language" mapstructure:"language"`
 }
 
 type Alarm struct {
@@ -244,16 +249,23 @@ type Alarm struct {
 }
 
 type Agent struct {
-	// Agent token
-	Token string `json:"token" yaml:"token" mapstructure:"token"`
-	// Agent base URL
-	BaseUrl string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
-	// Agent model
+	// Agent Name
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Use model
 	Model string `json:"model" yaml:"model" mapstructure:"model"`
-	// Agent tool model
-	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
-	// Agent language
-	Language string `json:"language" yaml:"language" mapstructure:"language"`
+}
+
+type Model struct {
+	// Protocol
+	Protocol string `json:"protocol" yaml:"protocol" mapstructure:"protocol"`
+	// Base URL
+	BaseUrl string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
+	// API key
+	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
+	// Useful model names
+	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
 }
 
 func Load(path ...string) {

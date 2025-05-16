@@ -48,13 +48,13 @@ func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, erro
 		schema.UserMessage(tagsPrompt),
 	).Format(ctx, map[string]any{
 		"content":  content,
-		"language": config.App.Agent.Language,
+		"language": config.App.Flowbot.Language,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
-	llm, err := agents.ChatModel(ctx, agents.Model())
+	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentExtractTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
 	}
@@ -103,13 +103,13 @@ func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, 
 		schema.UserMessage(similarTagsPrompt),
 	).Format(ctx, map[string]any{
 		"tags":     strings.Join(tags, "\n"),
-		"language": config.App.Agent.Language,
+		"language": config.App.Flowbot.Language,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
-	llm, err := agents.ChatModel(ctx, agents.Model())
+	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentSimilarTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
 	}

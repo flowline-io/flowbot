@@ -3,14 +3,41 @@ package agents
 import (
 	"context"
 	"fmt"
-
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"sync"
 )
 
-func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error) {
-	llm, err := ChatModel(ctx, ToolcallModel())
+const (
+	AgentChat              = "chat"
+	AgentReact             = "react"
+	AgentRepoReviewComment = "repo-review-comment"
+	AgentNewsSummary       = "news-summary"
+	AgentBillClassify      = "bill-classify"
+	AgentExtractTags       = "extract-tags"
+	AgentSimilarTags       = "similar-tags"
+)
+
+var agents = make(map[string]config.Agent)
+var loadOnceAgents = sync.Once{}
+
+func AgentModelName(name string) string {
+	loadOnceAgents.Do(func() {
+		for _, item := range config.App.Agents {
+			agents[item.Name] = item
+		}
+	})
+	a, ok := agents[name]
+	if !ok || a.Enabled == false {
+		return ""
+	}
+	return a.Model
+}
+
+func ReactAgent(ctx context.Context, modelName string, tools []tool.BaseTool) (*react.Agent, error) {
+	llm, err := ChatModel(ctx, modelName)
 	if err != nil {
 		return nil, fmt.Errorf("chat model failed, %w", err)
 	}
@@ -27,7 +54,7 @@ func ReactAgent(ctx context.Context, tools []tool.BaseTool) (*react.Agent, error
 	return agent, nil
 }
 
-func LLMGenerate(ctx context.Context, prompt string) (string, error) {
+func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) {
 	messages, err := BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
@@ -36,7 +63,7 @@ func LLMGenerate(ctx context.Context, prompt string) (string, error) {
 		return "", fmt.Errorf("prompt format failed, %w", err)
 	}
 
-	llm, err := ChatModel(ctx, Model())
+	llm, err := ChatModel(ctx, modelName)
 	if err != nil {
 		return "", fmt.Errorf("chat model failed, %w", err)
 	}

@@ -63,7 +63,7 @@ var webhookRules = []webhook.Rule{
 					return
 				}
 				ctx.SetTimeout(10 * time.Minute)
-				agent, err := agents.ReactAgent(ctx.Context(), tools)
+				agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), tools)
 				if err != nil {
 					flog.Error(err)
 					return

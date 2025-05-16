@@ -164,7 +164,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 					"{commit_message}", codeContext.Metadata["commit_message"]),
 				"{diff}", chunk.Diff),
 			"{files_context}", filesContextStr.String())
-		prompt = strings.ReplaceAll(prompt, "{language}", config.App.Agent.Language)
+		prompt = strings.ReplaceAll(prompt, "{language}", config.App.Flowbot.Language)
 
 		if prompt == "" {
 			flog.Error(fmt.Errorf("empty prompt after formatting"))
@@ -175,7 +175,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		flog.Info("[gitea] Sending request to LLM model with prompt size: %d characters", len(prompt))
 
 		// Call LLM to get response
-		responseText, err := agents.LLMGenerate(ctx, prompt)
+		responseText, err := agents.LLMGenerate(ctx, agents.AgentModelName(agents.AgentRepoReviewComment), prompt)
 		if err != nil {
 			flog.Error(fmt.Errorf("error calling LLM model: %w", err))
 			return nil, fmt.Errorf("error getting LLM response: %w", err)

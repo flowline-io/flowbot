@@ -140,7 +140,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+			llm, err := agents.ChatModel(ctx.Context(), agents.AgentModelName(agents.AgentChat))
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

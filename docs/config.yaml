@@ -106,17 +106,43 @@ alarm:
   # Slack webhook URL
   slack_webhook: ""
 
-# AI agent configuration
-agent:
-  token: ""
-  base_url: ""
-  model: ""
-  tool_model: ""
-  language: ""
+# Model configuration
+models:
+  - protocol: "openai" # openai, openai-compatible, ollama
+    base_url: "https://api.openai.com/v1"
+    api_key: ""
+    model_names:
+      - "chatgpt-4"
+      - "chatgpt-3.5-turbo"
+
+# Agent configuration
+agents:
+  - name: "chat"
+    enabled: true
+    model: ""
+  - name: "react"
+    enabled: true
+    model: ""
+  - name: "repo-review-comment"
+    enabled: true
+    model: ""
+  - name: "news-summary"
+    enabled: true
+    model: ""
+  - name: "bill-classify"
+    enabled: true
+    model: ""
+  - name: "extract-tags"
+    enabled: true
+    model: ""
+  - name: "similar-tags"
+    enabled: true
+    model: ""
 
 # Flowbot configuration
 flowbot:
   url: ""
+  lang: "english"
 
 # Platform integration configuration
 platform:

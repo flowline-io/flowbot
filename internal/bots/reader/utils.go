@@ -7,12 +7,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/agents"
 )
 
-func getAIResult(ctx context.Context, prompt, request string) (string, error) {
+func getAIResult(ctx context.Context, modelName, prompt, request string) (string, error) {
 	messages, err := agents.DefaultTemplate().Format(ctx, map[string]any{
 		"content": fmt.Sprintf("%s\n---\n%s", request, prompt),
 	})
 
-	llm, err := agents.ChatModel(ctx, agents.Model())
+	llm, err := agents.ChatModel(ctx, modelName)
 	if err != nil {
 		return "", fmt.Errorf("%s bot, chat model failed, %w", Name, err)
 	}

@@ -237,7 +237,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			flog.Error(err)
 			return
 		}
-		agent, err := agents.ReactAgent(ctx.Context(), tools)
+		agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), tools)
 		if err != nil {
 			flog.Error(err)
 			return
@@ -287,7 +287,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			return
 		}
 
-		llm, err := agents.ChatModel(ctx.Context(), agents.Model())
+		llm, err := agents.ChatModel(ctx.Context(), agents.AgentModelName(agents.AgentChat))
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to get chat model: %w", err))
 			return

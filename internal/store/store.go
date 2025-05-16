@@ -115,7 +115,7 @@ func UseMediaHandler(name, config string) error {
 	return mediaHandler.Init(config)
 }
 
-// PersistentStorageInterface defines methods used for interation with persistent storage.
+// PersistentStorageInterface defines methods used for interaction with persistent storage.
 type PersistentStorageInterface interface {
 	Open(jsonConfig config.StoreType) error
 	Close() error
