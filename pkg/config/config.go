@@ -258,8 +258,8 @@ type Agent struct {
 }
 
 type Model struct {
-	// Protocol
-	Protocol string `json:"protocol" yaml:"protocol" mapstructure:"protocol"`
+	// Provider
+	Provider string `json:"provider" yaml:"provider" mapstructure:"provider"`
 	// Base URL
 	BaseUrl string `json:"base_url" yaml:"base_url" mapstructure:"base_url"`
 	// API key
