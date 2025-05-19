@@ -20,11 +20,7 @@ import (
 // @name						X-AccessToken
 // @description				access token
 func main() {
-	// server.Run()
 	fx.New(
 		server.Modules,
-		// fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
-		// 	return &fxevent.ZapLogger{Logger: log}
-		// }),
 	).Run()
 }
