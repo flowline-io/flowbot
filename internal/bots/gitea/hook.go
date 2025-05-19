@@ -2,11 +2,12 @@ package gitea
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/agents"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -26,7 +27,8 @@ func hookIssueClosed(ctx types.Context, issue *gitea.IssuePayload) error {
 
 func hookPush(ctx types.Context, payload *gitea.RepoPayload) error {
 	if !agents.AgentEnabled(agents.AgentRepoReviewComment) {
-		return fmt.Errorf("agent repo review comment disabled")
+		flog.Info("agent repo review comment disabled")
+		return nil
 	}
 
 	ctx.SetTimeout(10 * time.Minute)

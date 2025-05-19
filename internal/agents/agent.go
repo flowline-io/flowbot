@@ -34,7 +34,7 @@ func loadAgents() {
 func AgentModelName(name string) string {
 	loadAgents()
 	a, ok := agents[name]
-	if !ok || a.Enabled == false {
+	if !ok || !a.Enabled {
 		return ""
 	}
 	return a.Model
@@ -43,7 +43,10 @@ func AgentModelName(name string) string {
 func AgentEnabled(name string) bool {
 	loadAgents()
 	a, ok := agents[name]
-	if !ok || a.Enabled == false {
+	if !ok || !a.Enabled {
+		return false
+	}
+	if a.Model == "" {
 		return false
 	}
 	return true
