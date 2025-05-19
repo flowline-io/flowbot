@@ -6,7 +6,7 @@ tasks:
       - task: swagger
       - task: format
       - task: lint
-      - task: cloc
+      - task: scc
       - echo "Both done"
 
   check:
@@ -35,9 +35,11 @@ tasks:
 
   cloc:
     cmds:
-      - cloc --exclude-dir=node_modules --exclude-ext=json --out=./cloc/{{ now.Format "2006-01-02" }}.txt .
-    generates:
-      - ./cloc/{{ now.Format "2006-01-02" }}.txt
+      - cloc --exclude-dir=node_modules --exclude-ext=json .
+
+  scc:
+    cmds:
+      - scc > ./cloc/{{ now.Format "2006-01-02" }}.txt
 
   lint:
     cmds:
@@ -61,10 +63,7 @@ tasks:
       - go install github.com/goreleaser/goreleaser/v2@latest
       - go install github.com/air-verse/air@latest
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
-      - cmd: winget install AlDanial.Cloc
-        platforms: [windows]
-      - cmd: sudo apt install cloc
-        platforms: [linux]
+      - go install github.com/boyter/scc/v3@latest
       - npm install -g prettier
 
   secure:
