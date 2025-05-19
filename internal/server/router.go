@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"errors"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page"
 	"github.com/flowline-io/flowbot/pkg/page/form"
@@ -26,13 +26,15 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/mark3labs/mcp-go/server"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
 )
 
-func handleRoutes(a *fiber.App, ctl *Controller) {
+func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {
 	// Webservice
 	for _, bot := range chatbot.List() {
 		bot.Webservice(a)
@@ -52,6 +54,9 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
 	a.All("/chatbot/:platform", ctl.platformCallback)
+	// mcp
+	a.All("/mcp/sse", adaptor.HTTPHandler(mcpSSE.SSEHandler()))
+	a.All("/mcp/message", adaptor.HTTPHandler(mcpSSE.MessageHandler()))
 }
 
 // handler

@@ -47,6 +47,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/looplab/fsm v1.0.3
+	github.com/mark3labs/mcp-go v0.28.0
 	github.com/maxence-charriere/go-app/v10 v10.1.3
 	github.com/meilisearch/meilisearch-go v0.32.0
 	github.com/minio/minio-go/v7 v7.0.91
@@ -206,6 +207,7 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect

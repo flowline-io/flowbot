@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/flowline-io/flowbot/internal/agents/mcp"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/workflow"
@@ -28,6 +29,8 @@ var Modules = fx.Options(
 		workflow.NewManager,
 		workflow.NewCronTaskManager,
 		slack.NewDriver,
+		mcp.NewServer,
+		mcp.NewSSEServer,
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,

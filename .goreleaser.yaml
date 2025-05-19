@@ -32,7 +32,7 @@ builds:
       - -s -w -X github.com/flowline-io/flowbot/version.Buildstamp={{.Date}}
 
 archives:
-  - formats: [ 'binary' ]
+  - formats: ["binary"]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}
