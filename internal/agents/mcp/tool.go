@@ -26,7 +26,7 @@ func Tools(s *server.MCPServer) {
 	)
 
 	s.AddTool(calculatorTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		args := request.Params.Arguments
+		args := request.GetArguments()
 		op := args["operation"].(string)
 		x := args["x"].(float64)
 		y := args["y"].(float64)
