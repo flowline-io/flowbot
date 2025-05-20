@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/google/go-github/v66/github"
 	"github.com/minio/selfupdate"
@@ -46,10 +46,10 @@ func UpdateSelf() (bool, error) {
 		return false, err
 	}
 
-	asset := utils.FindOne(release.Assets, func(asset **github.ReleaseAsset) bool {
-		return *(*asset).Name == execName()
+	asset, ok := lo.Find(release.Assets, func(item *github.ReleaseAsset) bool {
+		return *item.Name == execName()
 	})
-	if asset == nil {
+	if !ok || asset == nil {
 		return false, nil
 	}
 
@@ -61,10 +61,10 @@ func UpdateSelf() (bool, error) {
 	}
 
 	flog.Info("Verifying checksum...")
-	checksumAsset := utils.FindOne(release.Assets, func(asset **github.ReleaseAsset) bool {
+	checksumAsset, ok := lo.Find(release.Assets, func(asset *github.ReleaseAsset) bool {
 		return *(*asset).Name == checksumsName()
 	})
-	if checksumAsset == nil {
+	if !ok || checksumAsset == nil {
 		return false, nil
 	}
 

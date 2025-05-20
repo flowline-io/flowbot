@@ -3,6 +3,7 @@ package workflow
 import (
 	"errors"
 	"fmt"
+	"github.com/samber/lo"
 	"regexp"
 	"strings"
 
@@ -105,7 +106,7 @@ func MetaDataValidate(meta types.WorkflowMetadata) (err error) {
 		return
 	}
 	for _, trigger := range meta.Triggers {
-		if !utils.InStringSlice([]string{
+		if !lo.Contains([]string{
 			string(model.TriggerManual),
 			string(model.TriggerCron),
 			string(model.TriggerWebhook),

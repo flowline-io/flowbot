@@ -78,7 +78,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: find.Secret}
 			}
 
-			secret, err := utils.GenerateRandomString(32)
+			secret, err := utils.RandomString(32)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "generate secret failed"}

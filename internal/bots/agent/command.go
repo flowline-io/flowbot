@@ -27,7 +27,7 @@ var commandRules = []command.Rule{
 			}
 			idValue, ok := value.String("value")
 			if !ok || idValue == "" {
-				idValue, err = utils.GenerateRandomString(25)
+				idValue, err = utils.RandomString(25)
 				if err != nil {
 					return types.TextMsg{Text: "generate error"}
 				}
@@ -73,7 +73,7 @@ var commandRules = []command.Rule{
 			}
 
 			// new token
-			idValue, err = utils.GenerateRandomString(25)
+			idValue, err = utils.RandomString(25)
 			if err != nil {
 				return types.TextMsg{Text: "generate error"}
 			}

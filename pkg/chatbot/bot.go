@@ -511,7 +511,7 @@ func Webservice(app *fiber.App, name string, ruleset webservice.Ruleset) {
 func Shortcut(title, link string) (string, error) {
 	endpoint, _ := providers.GetConfig(slash.ID, slash.EndpointKey)
 
-	name, err := utils.GenerateRandomString(6)
+	name, err := utils.RandomString(6)
 	if err != nil {
 		return "", err
 	}

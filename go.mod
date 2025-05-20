@@ -16,8 +16,8 @@ require (
 	github.com/bytedance/sonic v1.13.2
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.3.35
-	github.com/cloudwego/eino-ext/components/model/ollama v0.0.0-20250514085234-473e80da5261
-	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250507115047-b20720df8528
+	github.com/cloudwego/eino-ext/components/model/ollama v0.0.0-20250520101807-b2008771903a
+	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a
 	github.com/creachadair/jrpc2 v1.3.1
 	github.com/dgraph-io/ristretto/v2 v2.2.0
 	github.com/docker/cli v28.1.1+incompatible
@@ -60,6 +60,7 @@ require (
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.34.0
+	github.com/samber/lo v1.50.0
 	github.com/samber/oops v1.17.0
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shirou/gopsutil/v4 v4.25.4
@@ -101,7 +102,7 @@ require (
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250422092704-54e372e1fa3d // indirect
+	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250519084852-38fafa73d9ea // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creachadair/mds v0.23.0 // indirect
@@ -184,7 +185,6 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
-	github.com/samber/lo v1.49.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/slongfield/pyfmt v0.0.0-20220222012616-ea85ff4c361f // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
