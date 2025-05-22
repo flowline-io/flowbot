@@ -44,6 +44,7 @@ tasks:
   lint:
     cmds:
       - revive -config revive.toml -formatter friendly ./...
+      - task: lint:action
 
   swagger:
     cmds:
@@ -64,6 +65,7 @@ tasks:
       - go install github.com/air-verse/air@latest
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
       - go install github.com/boyter/scc/v3@latest
+      - go install github.com/rhysd/actionlint/cmd/actionlint@latest
       - npm install -g prettier
 
   secure:
@@ -106,3 +108,7 @@ tasks:
   gosec:
     cmds:
       - gosec ./...
+
+  lint:action:
+    cmds:
+      - actionlint
