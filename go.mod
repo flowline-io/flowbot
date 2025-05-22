@@ -61,7 +61,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.50.0
-	github.com/samber/oops v1.17.0
+	github.com/samber/oops v1.18.0
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shirou/gopsutil/v4 v4.25.4
 	github.com/slack-go/slack v0.16.0
