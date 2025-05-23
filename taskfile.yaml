@@ -100,7 +100,7 @@ tasks:
       - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{ .CLI_ARGS }}
 
   tidy:
-    desc: Cleans up your Go module dependencies 
+    desc: Cleans up your Go module dependencies
     cmds:
       - go mod tidy
 

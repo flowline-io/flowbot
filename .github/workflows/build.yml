@@ -33,6 +33,7 @@ jobs:
           go mod download
           go install github.com/go-task/task/v3/cmd/task@latest
           go install github.com/mgechev/revive@latest
+          go install github.com/rhysd/actionlint/cmd/actionlint@latest
           task lint
 
       - name: Build server
