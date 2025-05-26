@@ -82,7 +82,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gen v0.3.27
-	gorm.io/gorm v1.26.1
+	gorm.io/gorm v1.30.0
 	gorm.io/plugin/dbresolver v1.6.0
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.8
