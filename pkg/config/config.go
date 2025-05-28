@@ -319,11 +319,6 @@ func NewConfig(lc fx.Lifecycle) Type {
 	}
 	log.Printf("API served from root URL path '%s'\n", App.ApiPath)
 
-	// // Debug
-	// if App.IsDevelopmentMode() {
-	// 	viper.Debug()
-	// }
-
 	// fx hooks
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

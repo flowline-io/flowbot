@@ -37,7 +37,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.8
 	github.com/gofiber/swagger v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.18.3
-	github.com/google/go-github/v66 v66.0.0
+	github.com/google/go-github/v72 v72.0.0
 	github.com/google/uuid v1.6.0
 	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0

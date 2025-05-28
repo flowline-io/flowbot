@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
@@ -14,8 +13,9 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/google/go-github/v66/github"
+	"github.com/google/go-github/v72/github"
 	"github.com/minio/selfupdate"
+	"github.com/samber/lo"
 	"github.com/schollz/progressbar/v3"
 )
 
