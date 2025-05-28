@@ -46,7 +46,7 @@ var cronRules = []cron.Rule{
 	},
 	{
 		Name:  "reader_daily_summary",
-		Scope: cron.CronScopeUser,
+		Scope: cron.CronScopeSystem,
 		When:  "0 9 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			if !agents.AgentEnabled(agents.AgentNewsSummary) {
