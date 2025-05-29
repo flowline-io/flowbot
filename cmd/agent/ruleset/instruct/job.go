@@ -1,6 +1,7 @@
 package instruct
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -15,14 +16,14 @@ type instructJob struct {
 	cache *bigcache.BigCache
 }
 
-func (j *instructJob) Run() {
+func (j *instructJob) Run(ctx context.Context) error {
 	res, err := client.Pull()
 	if err != nil {
 		flog.Error(err)
-		return
+		return err
 	}
 	if res == nil {
-		return
+		return nil
 	}
 
 	// instruct loop
@@ -45,6 +46,8 @@ func (j *instructJob) Run() {
 			flog.Error(fmt.Errorf("instruct run job failed %s %s %s", item.Bot, item.No, err))
 		}
 	}
+
+	return nil
 }
 
 func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
