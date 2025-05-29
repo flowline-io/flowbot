@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 //go:embed tmpl/main.tmpl
@@ -47,7 +48,7 @@ var inputFuncTemple string
 
 const BasePath = "./internal/bots"
 
-func BotAction(c *cli.Context) error {
+func BotAction(ctx context.Context, c *cli.Command) error {
 	// args
 	bot := c.String("name")
 	rule := c.StringSlice("rule") // input,group,collect,command,condition,cron,form

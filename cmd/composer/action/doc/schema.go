@@ -1,6 +1,7 @@
 package doc
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -12,7 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/jmoiron/sqlx"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )
 
@@ -73,7 +74,7 @@ func NullString2String(s sql.NullString) string {
 	}
 }
 
-func SchemaAction(c *cli.Context) error {
+func SchemaAction(ctx context.Context, c *cli.Command) error {
 	conffile := c.String("config")
 	database := c.String("database")
 

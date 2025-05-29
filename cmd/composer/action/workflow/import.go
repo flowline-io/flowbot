@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,11 +12,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-resty/resty/v2"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 )
 
-func ImportAction(c *cli.Context) error {
+func ImportAction(ctx context.Context, c *cli.Command) error {
 	// api url
 	conffile := c.String("config")
 

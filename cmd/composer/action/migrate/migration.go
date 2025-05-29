@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -9,12 +10,12 @@ import (
 	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const path = "./internal/store/migrate/migrations"
 
-func MigrationAction(c *cli.Context) error {
+func MigrationAction(ctx context.Context, c *cli.Command) error {
 	name := c.String("name")
 	if name == "" {
 		return errors.New("error name")

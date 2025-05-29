@@ -1,13 +1,14 @@
 package generator
 
 import (
+	"context"
 	_ "embed"
 	"errors"
 	"fmt"
 	"os"
 
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 //go:embed tmpl/vendor.tmpl
@@ -15,7 +16,7 @@ var vendorTemple string
 
 const VendorsPath = "./pkg/providers"
 
-func VendorAction(c *cli.Context) error {
+func VendorAction(ctx context.Context, c *cli.Command) error {
 	vendor := c.String("name")
 	if vendor == "" {
 		return errors.New("vendor name args error")

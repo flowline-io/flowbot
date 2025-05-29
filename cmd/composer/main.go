@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -11,30 +12,30 @@ import (
 	"github.com/flowline-io/flowbot/cmd/composer/action/workflow"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
 	command := NewCommand()
-	if err := command.Run(os.Args); err != nil {
+	if err := command.Run(context.Background(), os.Args); err != nil {
 		flog.Panic(err.Error())
 	}
 }
 
-func NewCommand() *cli.App {
-	cli.VersionPrinter = func(_ *cli.Context) {
+func NewCommand() *cli.Command {
+	cli.VersionPrinter = func(_ *cli.Command) {
 		_, _ = fmt.Printf("version=%s\n", version.Buildtags)
 	}
-	return &cli.App{
-		Name:                 "composer",
-		Usage:                "chatbot tool cli",
-		EnableBashCompletion: true,
-		Version:              version.Buildtags,
+	return &cli.Command{
+		Name:                  "composer",
+		Usage:                 "chatbot tool cli",
+		EnableShellCompletion: true,
+		Version:               version.Buildtags,
 		Commands: []*cli.Command{
 			{
 				Name:  "migrate",
 				Usage: "migrate tool",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:  "migration",
 						Usage: "generate migration files",
@@ -52,7 +53,7 @@ func NewCommand() *cli.App {
 			{
 				Name:  "generator",
 				Usage: "code generator",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:  "bot",
 						Usage: "generate bot code files",
@@ -64,7 +65,7 @@ func NewCommand() *cli.App {
 							},
 							&cli.StringSliceFlag{
 								Name:  "rule",
-								Value: cli.NewStringSlice("command"),
+								Value: []string{"command"},
 								Usage: "rule type",
 							},
 						},
@@ -116,7 +117,7 @@ func NewCommand() *cli.App {
 			{
 				Name:  "workflow",
 				Usage: "workflow",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:  "import",
 						Usage: "import workflow yaml",

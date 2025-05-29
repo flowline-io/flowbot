@@ -1,11 +1,12 @@
 package dao
 
 import (
+	"context"
 	"io"
 	"os"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
@@ -30,7 +31,7 @@ type Querier interface {
 	FindByUidAndTopic(uid, topic string) ([]*gen.T, error)
 }
 
-func GenerationAction(c *cli.Context) error {
+func GenerationAction(ctx context.Context, c *cli.Command) error {
 	conffile := c.String("config")
 
 	file, err := os.Open(conffile)
