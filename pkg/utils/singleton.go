@@ -6,11 +6,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"resty.dev/v3"
 )
 
 const EmbedServerPort = "5678"

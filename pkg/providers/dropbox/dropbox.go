@@ -2,15 +2,15 @@ package dropbox
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"time"
-
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/go-resty/resty/v2"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v3"
+	"io"
+	"net/http"
+	"resty.dev/v3"
+	"time"
 )
 
 const (
@@ -56,14 +56,14 @@ func (v *Dropbox) completeAuth(code string) (interface{}, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		var result TokenResponse
-		err = sonic.Unmarshal(resp.Body(), &result)
+		err = sonic.Unmarshal(resp.Bytes(), &result)
 		if err != nil {
 			return nil, err
 		}
 		v.accessToken = result.AccessToken
 		return &result, nil
 	} else {
-		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), string(resp.Body()))
+		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 }
 
@@ -121,6 +121,6 @@ func (v *Dropbox) Upload(path string, content io.Reader) error {
 	if resp.StatusCode() == http.StatusOK {
 		return nil
 	} else {
-		return fmt.Errorf("%d, %s", resp.StatusCode(), string(resp.Body()))
+		return fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 }

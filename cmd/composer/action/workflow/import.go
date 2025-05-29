@@ -11,9 +11,9 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/go-resty/resty/v2"
 	"github.com/goccy/go-yaml"
 	"github.com/urfave/cli/v3"
+	"resty.dev/v3"
 )
 
 func ImportAction(ctx context.Context, c *cli.Command) error {

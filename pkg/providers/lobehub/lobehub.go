@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const (
@@ -40,6 +40,6 @@ func (i *Lobehub) WebCrawler(url string) (*WebCrawlerResponse, error) {
 		result := resp.Result().(*WebCrawlerResponse)
 		return result, nil
 	} else {
-		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Body()))
+		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 }

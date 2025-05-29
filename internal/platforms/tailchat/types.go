@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 type Payload struct {
@@ -80,7 +80,7 @@ func (v *client) sendMessage(data SendMessageData) error {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		_, _ = fmt.Println(string(resp.Body()))
+		_, _ = fmt.Println(utils.BytesToString(resp.Bytes()))
 		return nil
 	} else {
 		return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))

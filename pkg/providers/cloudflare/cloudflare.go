@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const (
@@ -54,7 +54,7 @@ query
       firewallEventsAdaptive(
           filter: {
             datetime_gt: "%s",
-            datetime_lt: "%s" 
+            datetime_lt: "%s"
           },
           limit: 2,
           orderBy: [datetime_DESC, rayName_DESC])

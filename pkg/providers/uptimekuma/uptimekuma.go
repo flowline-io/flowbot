@@ -1,14 +1,13 @@
 package uptimekuma
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/go-resty/resty/v2"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"resty.dev/v3"
 )
 
 const (
@@ -48,7 +47,7 @@ func (i *UptimeKuma) Metrics() (map[string]*dto.MetricFamily, error) {
 	}
 
 	parser := expfmt.TextParser{}
-	metricFamilies, err := parser.TextToMetricFamilies(bytes.NewBuffer(resp.Body()))
+	metricFamilies, err := parser.TextToMetricFamilies(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse metrics: %w", err)
 	}

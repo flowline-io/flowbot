@@ -7,8 +7,8 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v3"
+	"resty.dev/v3"
 )
 
 const (

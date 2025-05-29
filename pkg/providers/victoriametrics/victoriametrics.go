@@ -7,7 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const (
@@ -40,6 +40,6 @@ func (i *VictoriaMetrics) Query(expression string) (*MetricsResponse, error) {
 		result := resp.Result().(*MetricsResponse)
 		return result, nil
 	} else {
-		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Body()))
+		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 }

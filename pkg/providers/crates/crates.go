@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const (

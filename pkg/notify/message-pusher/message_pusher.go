@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/go-resty/resty/v2"
 	"net/http"
+	"resty.dev/v3"
 	"time"
 )
 

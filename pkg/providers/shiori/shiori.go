@@ -2,10 +2,11 @@ package shiori
 
 import (
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const (
@@ -51,7 +52,7 @@ func (v *Shiori) Login(username string, password string) (*LoginResponse, error)
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), string(resp.Body()))
+		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 
 	r := resp.Result().(*LoginResponse)
@@ -70,7 +71,7 @@ func (v *Shiori) Logout(sessionId string) error {
 	}
 
 	if resp.StatusCode() != 200 {
-		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), string(resp.Body()))
+		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 	return nil
 }
@@ -102,7 +103,7 @@ func (v *Shiori) AddBookmark(url, title string) (*BookmarkResponse, error) {
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), string(resp.Body()))
+		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
 
 	return resp.Result().(*BookmarkResponse), nil

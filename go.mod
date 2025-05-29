@@ -32,7 +32,6 @@ require (
 	github.com/gen2brain/beeep v0.0.0-20240516210008-9c006672e7f4
 	github.com/go-echarts/go-echarts/v2 v2.5.4
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
@@ -85,6 +84,7 @@ require (
 	gorm.io/plugin/dbresolver v1.6.0
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.8
+	resty.dev/v3 v3.0.0-beta.3
 )
 
 require (

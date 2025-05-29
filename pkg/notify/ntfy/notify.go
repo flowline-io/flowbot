@@ -7,7 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 const ID = "ntfy"
