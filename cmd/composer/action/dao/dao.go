@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/goccy/go-yaml"
 	"github.com/urfave/cli/v3"
-	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gen/field"

@@ -13,8 +13,7 @@ import (
 	"unicode"
 
 	"github.com/bytedance/sonic"
-	"gopkg.in/yaml.v3"
-
+	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
 )
 
