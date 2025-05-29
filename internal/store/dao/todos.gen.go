@@ -154,11 +154,14 @@ func (t *todo) fillFieldMap() {
 
 func (t todo) clone(db *gorm.DB) todo {
 	t.todoDo.ReplaceConnPool(db.Statement.ConnPool)
+	t.SubTodos.db = db.Session(&gorm.Session{Initialized: true})
+	t.SubTodos.db.Statement.ConnPool = db.Statement.ConnPool
 	return t
 }
 
 func (t todo) replaceDB(db *gorm.DB) todo {
 	t.todoDo.ReplaceDB(db)
+	t.SubTodos.db = db.Session(&gorm.Session{})
 	return t
 }
 
@@ -193,6 +196,11 @@ func (a todoHasManySubTodos) Session(session *gorm.Session) *todoHasManySubTodos
 
 func (a todoHasManySubTodos) Model(m *model.Todo) *todoHasManySubTodosTx {
 	return &todoHasManySubTodosTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a todoHasManySubTodos) Unscoped() *todoHasManySubTodos {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type todoHasManySubTodosTx struct{ tx *gorm.Association }
@@ -231,6 +239,11 @@ func (a todoHasManySubTodosTx) Clear() error {
 
 func (a todoHasManySubTodosTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a todoHasManySubTodosTx) Unscoped() *todoHasManySubTodosTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type todoDo struct{ gen.DO }

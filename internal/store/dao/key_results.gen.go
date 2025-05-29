@@ -151,11 +151,17 @@ func (k *keyResult) fillFieldMap() {
 
 func (k keyResult) clone(db *gorm.DB) keyResult {
 	k.keyResultDo.ReplaceConnPool(db.Statement.ConnPool)
+	k.KeyResultValues.db = db.Session(&gorm.Session{Initialized: true})
+	k.KeyResultValues.db.Statement.ConnPool = db.Statement.ConnPool
+	k.Todos.db = db.Session(&gorm.Session{Initialized: true})
+	k.Todos.db.Statement.ConnPool = db.Statement.ConnPool
 	return k
 }
 
 func (k keyResult) replaceDB(db *gorm.DB) keyResult {
 	k.keyResultDo.ReplaceDB(db)
+	k.KeyResultValues.db = db.Session(&gorm.Session{})
+	k.Todos.db = db.Session(&gorm.Session{})
 	return k
 }
 
@@ -190,6 +196,11 @@ func (a keyResultHasManyKeyResultValues) Session(session *gorm.Session) *keyResu
 
 func (a keyResultHasManyKeyResultValues) Model(m *model.KeyResult) *keyResultHasManyKeyResultValuesTx {
 	return &keyResultHasManyKeyResultValuesTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a keyResultHasManyKeyResultValues) Unscoped() *keyResultHasManyKeyResultValues {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type keyResultHasManyKeyResultValuesTx struct{ tx *gorm.Association }
@@ -230,6 +241,11 @@ func (a keyResultHasManyKeyResultValuesTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a keyResultHasManyKeyResultValuesTx) Unscoped() *keyResultHasManyKeyResultValuesTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type keyResultHasManyTodos struct {
 	db *gorm.DB
 
@@ -265,6 +281,11 @@ func (a keyResultHasManyTodos) Session(session *gorm.Session) *keyResultHasManyT
 
 func (a keyResultHasManyTodos) Model(m *model.KeyResult) *keyResultHasManyTodosTx {
 	return &keyResultHasManyTodosTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a keyResultHasManyTodos) Unscoped() *keyResultHasManyTodos {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type keyResultHasManyTodosTx struct{ tx *gorm.Association }
@@ -303,6 +324,11 @@ func (a keyResultHasManyTodosTx) Clear() error {
 
 func (a keyResultHasManyTodosTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a keyResultHasManyTodosTx) Unscoped() *keyResultHasManyTodosTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type keyResultDo struct{ gen.DO }

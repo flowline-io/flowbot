@@ -130,11 +130,14 @@ func (j *job) fillFieldMap() {
 
 func (j job) clone(db *gorm.DB) job {
 	j.jobDo.ReplaceConnPool(db.Statement.ConnPool)
+	j.Steps.db = db.Session(&gorm.Session{Initialized: true})
+	j.Steps.db.Statement.ConnPool = db.Statement.ConnPool
 	return j
 }
 
 func (j job) replaceDB(db *gorm.DB) job {
 	j.jobDo.ReplaceDB(db)
+	j.Steps.db = db.Session(&gorm.Session{})
 	return j
 }
 
@@ -169,6 +172,11 @@ func (a jobHasManySteps) Session(session *gorm.Session) *jobHasManySteps {
 
 func (a jobHasManySteps) Model(m *model.Job) *jobHasManyStepsTx {
 	return &jobHasManyStepsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a jobHasManySteps) Unscoped() *jobHasManySteps {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type jobHasManyStepsTx struct{ tx *gorm.Association }
@@ -207,6 +215,11 @@ func (a jobHasManyStepsTx) Clear() error {
 
 func (a jobHasManyStepsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a jobHasManyStepsTx) Unscoped() *jobHasManyStepsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type jobDo struct{ gen.DO }

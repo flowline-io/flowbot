@@ -142,11 +142,17 @@ func (w *workflow) fillFieldMap() {
 
 func (w workflow) clone(db *gorm.DB) workflow {
 	w.workflowDo.ReplaceConnPool(db.Statement.ConnPool)
+	w.Dag.db = db.Session(&gorm.Session{Initialized: true})
+	w.Dag.db.Statement.ConnPool = db.Statement.ConnPool
+	w.Triggers.db = db.Session(&gorm.Session{Initialized: true})
+	w.Triggers.db.Statement.ConnPool = db.Statement.ConnPool
 	return w
 }
 
 func (w workflow) replaceDB(db *gorm.DB) workflow {
 	w.workflowDo.ReplaceDB(db)
+	w.Dag.db = db.Session(&gorm.Session{})
+	w.Triggers.db = db.Session(&gorm.Session{})
 	return w
 }
 
@@ -181,6 +187,11 @@ func (a workflowHasOneDag) Session(session *gorm.Session) *workflowHasOneDag {
 
 func (a workflowHasOneDag) Model(m *model.Workflow) *workflowHasOneDagTx {
 	return &workflowHasOneDagTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a workflowHasOneDag) Unscoped() *workflowHasOneDag {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type workflowHasOneDagTx struct{ tx *gorm.Association }
@@ -221,6 +232,11 @@ func (a workflowHasOneDagTx) Count() int64 {
 	return a.tx.Count()
 }
 
+func (a workflowHasOneDagTx) Unscoped() *workflowHasOneDagTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
 type workflowHasManyTriggers struct {
 	db *gorm.DB
 
@@ -252,6 +268,11 @@ func (a workflowHasManyTriggers) Session(session *gorm.Session) *workflowHasMany
 
 func (a workflowHasManyTriggers) Model(m *model.Workflow) *workflowHasManyTriggersTx {
 	return &workflowHasManyTriggersTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a workflowHasManyTriggers) Unscoped() *workflowHasManyTriggers {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type workflowHasManyTriggersTx struct{ tx *gorm.Association }
@@ -290,6 +311,11 @@ func (a workflowHasManyTriggersTx) Clear() error {
 
 func (a workflowHasManyTriggersTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a workflowHasManyTriggersTx) Unscoped() *workflowHasManyTriggersTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type workflowDo struct{ gen.DO }

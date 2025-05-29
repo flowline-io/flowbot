@@ -181,11 +181,17 @@ func (o *objective) fillFieldMap() {
 
 func (o objective) clone(db *gorm.DB) objective {
 	o.objectiveDo.ReplaceConnPool(db.Statement.ConnPool)
+	o.KeyResults.db = db.Session(&gorm.Session{Initialized: true})
+	o.KeyResults.db.Statement.ConnPool = db.Statement.ConnPool
+	o.Reviews.db = db.Session(&gorm.Session{Initialized: true})
+	o.Reviews.db.Statement.ConnPool = db.Statement.ConnPool
 	return o
 }
 
 func (o objective) replaceDB(db *gorm.DB) objective {
 	o.objectiveDo.ReplaceDB(db)
+	o.KeyResults.db = db.Session(&gorm.Session{})
+	o.Reviews.db = db.Session(&gorm.Session{})
 	return o
 }
 
@@ -232,6 +238,11 @@ func (a objectiveHasManyKeyResults) Model(m *model.Objective) *objectiveHasManyK
 	return &objectiveHasManyKeyResultsTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a objectiveHasManyKeyResults) Unscoped() *objectiveHasManyKeyResults {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type objectiveHasManyKeyResultsTx struct{ tx *gorm.Association }
 
 func (a objectiveHasManyKeyResultsTx) Find() (result []*model.KeyResult, err error) {
@@ -268,6 +279,11 @@ func (a objectiveHasManyKeyResultsTx) Clear() error {
 
 func (a objectiveHasManyKeyResultsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a objectiveHasManyKeyResultsTx) Unscoped() *objectiveHasManyKeyResultsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type objectiveHasManyReviews struct {
@@ -307,6 +323,11 @@ func (a objectiveHasManyReviews) Model(m *model.Objective) *objectiveHasManyRevi
 	return &objectiveHasManyReviewsTx{a.db.Model(m).Association(a.Name())}
 }
 
+func (a objectiveHasManyReviews) Unscoped() *objectiveHasManyReviews {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
 type objectiveHasManyReviewsTx struct{ tx *gorm.Association }
 
 func (a objectiveHasManyReviewsTx) Find() (result []*model.Review, err error) {
@@ -343,6 +364,11 @@ func (a objectiveHasManyReviewsTx) Clear() error {
 
 func (a objectiveHasManyReviewsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a objectiveHasManyReviewsTx) Unscoped() *objectiveHasManyReviewsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type objectiveDo struct{ gen.DO }

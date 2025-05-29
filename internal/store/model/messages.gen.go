@@ -19,8 +19,8 @@ type Message struct {
 	PlatformID    int64          `gorm:"column:platform_id;not null" json:"platform_id"`
 	PlatformMsgID string         `gorm:"column:platform_msg_id;not null" json:"platform_msg_id"`
 	Topic         string         `gorm:"column:topic;not null" json:"topic"`
+	Role          string         `gorm:"column:role;not null;default:user" json:"role"`
 	Session       string         `gorm:"column:session;not null" json:"session"`
-	Role          string         `gorm:"column:role;not null" json:"role"`
 	Content       JSON           `gorm:"column:content" json:"content"`
 	State         MessageState   `gorm:"column:state;not null" json:"state"`
 	CreatedAt     time.Time      `gorm:"column:created_at;not null" json:"created_at"`

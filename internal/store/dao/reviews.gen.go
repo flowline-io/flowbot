@@ -114,11 +114,14 @@ func (r *review) fillFieldMap() {
 
 func (r review) clone(db *gorm.DB) review {
 	r.reviewDo.ReplaceConnPool(db.Statement.ConnPool)
+	r.Evaluations.db = db.Session(&gorm.Session{Initialized: true})
+	r.Evaluations.db.Statement.ConnPool = db.Statement.ConnPool
 	return r
 }
 
 func (r review) replaceDB(db *gorm.DB) review {
 	r.reviewDo.ReplaceDB(db)
+	r.Evaluations.db = db.Session(&gorm.Session{})
 	return r
 }
 
@@ -153,6 +156,11 @@ func (a reviewHasManyEvaluations) Session(session *gorm.Session) *reviewHasManyE
 
 func (a reviewHasManyEvaluations) Model(m *model.Review) *reviewHasManyEvaluationsTx {
 	return &reviewHasManyEvaluationsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a reviewHasManyEvaluations) Unscoped() *reviewHasManyEvaluations {
+	a.db = a.db.Unscoped()
+	return &a
 }
 
 type reviewHasManyEvaluationsTx struct{ tx *gorm.Association }
@@ -191,6 +199,11 @@ func (a reviewHasManyEvaluationsTx) Clear() error {
 
 func (a reviewHasManyEvaluationsTx) Count() int64 {
 	return a.tx.Count()
+}
+
+func (a reviewHasManyEvaluationsTx) Unscoped() *reviewHasManyEvaluationsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type reviewDo struct{ gen.DO }
