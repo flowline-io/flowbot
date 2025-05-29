@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -33,7 +33,7 @@ var webserviceRules = []webservice.Rule{
 //	@Success	200	{object}	protocol.Response{data=[]model.Objective}
 //	@Security	ApiKeyAuth
 //	@Router		/okr/objectives [get]
-func objectiveList(ctx *fiber.Ctx) error {
+func objectiveList(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
@@ -54,7 +54,7 @@ func objectiveList(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response{data=model.Objective}
 //	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [get]
-func objectiveDetail(ctx *fiber.Ctx) error {
+func objectiveDetail(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	sequence := route.GetIntParam(ctx, "sequence")
@@ -76,12 +76,12 @@ func objectiveDetail(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/objective [post]
-func objectiveCreate(ctx *fiber.Ctx) error {
+func objectiveCreate(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
 	item := new(model.Objective)
-	err := ctx.BodyParser(&item)
+	err := ctx.Bind().Body(&item)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -113,13 +113,13 @@ func objectiveCreate(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [put]
-func objectiveUpdate(ctx *fiber.Ctx) error {
+func objectiveUpdate(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	sequence := route.GetIntParam(ctx, "sequence")
 
 	item := new(model.Objective)
-	err := ctx.BodyParser(&item)
+	err := ctx.Bind().Body(&item)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -143,7 +143,7 @@ func objectiveUpdate(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/objective/{sequence} [delete]
-func objectiveDelete(ctx *fiber.Ctx) error {
+func objectiveDelete(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	sequence := route.GetIntParam(ctx, "sequence")
@@ -165,12 +165,12 @@ func objectiveDelete(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result [post]
-func keyResultCreate(ctx *fiber.Ctx) error {
+func keyResultCreate(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
 	item := new(model.KeyResult)
-	err := ctx.BodyParser(&item)
+	err := ctx.Bind().Body(&item)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -194,13 +194,13 @@ func keyResultCreate(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{sequence} [put]
-func keyResultUpdate(ctx *fiber.Ctx) error {
+func keyResultUpdate(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	sequence := route.GetIntParam(ctx, "sequence")
 
 	item := new(model.KeyResult)
-	err := ctx.BodyParser(&item)
+	err := ctx.Bind().Body(&item)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -224,7 +224,7 @@ func keyResultUpdate(ctx *fiber.Ctx) error {
 //	@Success	200			{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{sequence} [delete]
-func keyResultDelete(ctx *fiber.Ctx) error {
+func keyResultDelete(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	sequence := route.GetIntParam(ctx, "sequence")
@@ -246,7 +246,7 @@ func keyResultDelete(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=[]model.KeyResultValue}
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{id}/values [get]
-func keyResultValueList(ctx *fiber.Ctx) error {
+func keyResultValueList(ctx fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
 		return protocol.ErrBadParam.New("id empty")
@@ -270,14 +270,14 @@ func keyResultValueList(ctx *fiber.Ctx) error {
 //	@Success	200				{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result/{id}/value [post]
-func keyResultValueCreate(ctx *fiber.Ctx) error {
+func keyResultValueCreate(ctx fiber.Ctx) error {
 	keyResultId := route.GetIntParam(ctx, "id")
 	if keyResultId == 0 {
 		return protocol.ErrBadParam.New("id empty")
 	}
 
 	item := new(model.KeyResultValue)
-	err := ctx.BodyParser(&item)
+	err := ctx.Bind().Body(&item)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -299,7 +299,7 @@ func keyResultValueCreate(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result_value/{id} [delete]
-func keyResultValueDelete(ctx *fiber.Ctx) error {
+func keyResultValueDelete(ctx fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {
 		return protocol.ErrBadParam.New("id emtpy")
@@ -322,7 +322,7 @@ func keyResultValueDelete(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=model.KeyResultValue}
 //	@Security	ApiKeyAuth
 //	@Router		/okr/key_result_value/{id} [get]
-func keyResultValue(ctx *fiber.Ctx) error {
+func keyResultValue(ctx fiber.Ctx) error {
 	keyResultValueId := route.GetIntParam(ctx, "id")
 	if keyResultValueId == 0 {
 		return protocol.ErrBadParam.New("id emtpy")

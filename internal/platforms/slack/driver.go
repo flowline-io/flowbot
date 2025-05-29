@@ -9,7 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
 	"time"
@@ -47,7 +47,7 @@ func NewDriver(_ config.Type, _ store.Adapter) protocol.Driver {
 	}
 }
 
-func (d *Driver) HttpServer(_ *fiber.Ctx) error {
+func (d *Driver) HttpServer(_ fiber.Ctx) error {
 	return nil
 }
 

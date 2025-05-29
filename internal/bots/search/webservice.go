@@ -5,7 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -22,7 +22,7 @@ var webserviceRules = []webservice.Rule{
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/search/query [get]
-func query(ctx *fiber.Ctx) error {
+func query(ctx fiber.Ctx) error {
 	q := ctx.Query("q")
 	source := ctx.Query("source")
 	if q == "" {
@@ -47,7 +47,7 @@ func query(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/search/autocomplete [get]
-func autocomplete(ctx *fiber.Ctx) error {
+func autocomplete(ctx fiber.Ctx) error {
 	q := ctx.Query("q")
 	source := ctx.Query("source")
 	if q == "" {

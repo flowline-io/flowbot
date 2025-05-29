@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"errors"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,8 +26,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
@@ -41,7 +42,10 @@ func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {
 	}
 
 	// common
-	a.Get("/", func(c *fiber.Ctx) error { return nil })
+	a.Get("/", func(c fiber.Ctx) error { return nil })
+	a.Get(healthcheck.DefaultLivenessEndpoint, healthcheck.NewHealthChecker())
+	a.Get(healthcheck.DefaultReadinessEndpoint, healthcheck.NewHealthChecker())
+	a.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	a.Get("/p/:id", ctl.getPage)
 	// form
@@ -71,7 +75,7 @@ func newController(driver protocol.Driver) *Controller {
 	}
 }
 
-func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
+func (c *Controller) storeOAuth(ctx fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
@@ -114,7 +118,7 @@ func (c *Controller) storeOAuth(ctx *fiber.Ctx) error {
 	return ctx.SendString("ok")
 }
 
-func (c *Controller) getPage(ctx *fiber.Ctx) error {
+func (c *Controller) getPage(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 
 	p, err := store.Database.PageGet(id)
@@ -170,7 +174,7 @@ func (c *Controller) getPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(page.RenderComponent(title, comp))
 }
 
-func (c *Controller) renderPage(ctx *fiber.Ctx) error {
+func (c *Controller) renderPage(ctx fiber.Ctx) error {
 	pageRuleId := ctx.Params("id")
 	flag := ctx.Params("flag")
 
@@ -220,7 +224,7 @@ func (c *Controller) renderPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(html)
 }
 
-func (c *Controller) postForm(ctx *fiber.Ctx) error {
+func (c *Controller) postForm(ctx fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
 	uid := ctx.FormValue("x-uid")
 	topic := ctx.FormValue("x-topic")
@@ -338,9 +342,9 @@ func (c *Controller) postForm(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
-func (c *Controller) agentData(ctx *fiber.Ctx) error {
+func (c *Controller) agentData(ctx fiber.Ctx) error {
 	var r http.Request
-	if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
+	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
 		return protocol.ErrInternalServerError.Wrap(err)
 	}
 	// authorization
@@ -364,7 +368,7 @@ func (c *Controller) agentData(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(result))
 }
 
-func (c *Controller) platformCallback(ctx *fiber.Ctx) error {
+func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	platform := ctx.Params("platform")
 
 	var err error
@@ -385,7 +389,7 @@ func (c *Controller) platformCallback(ctx *fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
-func (c *Controller) doWebhook(ctx *fiber.Ctx) error {
+func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 	flag := ctx.Params("flag")
 	method := ctx.Method()
 

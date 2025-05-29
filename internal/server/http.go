@@ -3,33 +3,30 @@ package server
 import (
 	"errors"
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/contrib/fiberzerolog"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/contrib/fiberzerolog"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/compress"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/samber/oops"
-	"net/http"
 	"time"
 )
 
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
 	app := fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-
 		JSONDecoder:  sonic.Unmarshal,
 		JSONEncoder:  sonic.Marshal,
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 90 * time.Second,
 
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			// custom error
 			var e oops.OopsError
 			if errors.As(err, &e) {
@@ -53,7 +50,6 @@ func newHTTPServer() *fiber.App {
 	})
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(requestid.New())
-	app.Use(healthcheck.New())
 	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
 			return true
@@ -71,21 +67,13 @@ func newHTTPServer() *fiber.App {
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 		SkipURIs: []string{
+			healthcheck.DefaultLivenessEndpoint,
+			healthcheck.DefaultReadinessEndpoint,
+			healthcheck.DefaultStartupEndpoint,
 			"/",
-			"/livez",
-			"/readyz",
 			"/service/user/metrics",
 		},
 	}))
-
-	// hook
-	app.Hooks().OnRoute(func(r fiber.Route) error {
-		if r.Method == http.MethodHead {
-			return nil
-		}
-		flog.Info("[route] %+7s %s", r.Method, r.Path)
-		return nil
-	})
 
 	// swagger
 	if swagHandler != nil {

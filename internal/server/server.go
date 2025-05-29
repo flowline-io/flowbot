@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/search"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 )
@@ -48,7 +48,10 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 
 			// http server
 			go func() {
-				err := app.Listen(config.App.Listen)
+				err := app.Listen(config.App.Listen, fiber.ListenConfig{
+					DisableStartupMessage: true,
+					EnablePrintRoutes:     true,
+				})
 				if err != nil {
 					flog.Error(err)
 				}

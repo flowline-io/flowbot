@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/chatbot"

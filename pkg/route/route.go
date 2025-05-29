@@ -8,7 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
@@ -71,7 +71,7 @@ func WithNotAuth() Option {
 	}
 }
 
-func ErrorResponse(ctx *fiber.Ctx, text string) error {
+func ErrorResponse(ctx fiber.Ctx, text string) error {
 	ctx = ctx.Status(http.StatusBadRequest)
 	return ctx.SendString(text)
 }
@@ -84,7 +84,7 @@ const (
 )
 
 func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		// Check if authentication can be skipped
 		if authLevel == NoAuth {
 			return handler(ctx)
@@ -92,7 +92,7 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 
 		// Check API flag
 		var r http.Request
-		if err := fasthttpadaptor.ConvertRequest(ctx.Context(), &r, true); err != nil {
+		if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
 			return protocol.ErrNotAuthorized.Wrap(err)
 		}
 
@@ -176,17 +176,17 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	return
 }
 
-func GetUid(ctx *fiber.Ctx) types.Uid {
+func GetUid(ctx fiber.Ctx) types.Uid {
 	uid, _ := ctx.Locals(uidKey).(types.Uid)
 	return uid
 }
 
-func GetTopic(ctx *fiber.Ctx) string {
+func GetTopic(ctx fiber.Ctx) string {
 	topic, _ := ctx.Locals(topicKey).(string)
 	return topic
 }
 
-func GetIntParam(ctx *fiber.Ctx, name string) int64 {
+func GetIntParam(ctx fiber.Ctx, name string) int64 {
 	s := ctx.Params(name)
 	i, _ := strconv.ParseInt(s, 10, 64)
 	return i

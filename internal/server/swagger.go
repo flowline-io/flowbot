@@ -3,8 +3,8 @@
 package server
 
 import (
+	"github.com/flowline-io/fiberswagger"
 	_ "github.com/flowline-io/flowbot/docs"
-	"github.com/gofiber/swagger"
 )
 
 func init() {

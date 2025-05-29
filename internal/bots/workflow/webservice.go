@@ -9,7 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -39,7 +39,7 @@ var webserviceRules = []webservice.Rule{
 //	@Success	200	{object}	protocol.Response{data=map[string][]rule}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/actions [get]
-func actions(ctx *fiber.Ctx) error {
+func actions(ctx fiber.Ctx) error {
 	result := make(map[string][]rule, len(chatbot.List()))
 	for name, botHandler := range chatbot.List() {
 		var list []rule
@@ -75,7 +75,7 @@ func actions(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=[]model.Workflow}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflows [get]
-func workflowList(ctx *fiber.Ctx) error {
+func workflowList(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
@@ -96,7 +96,7 @@ func workflowList(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=model.Workflow}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [get]
-func workflowDetail(ctx *fiber.Ctx) error {
+func workflowDetail(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	item, err := store.Database.GetWorkflow(id)
@@ -116,12 +116,12 @@ func workflowDetail(ctx *fiber.Ctx) error {
 //	@Success	200		{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow [post]
-func workflowCreate(ctx *fiber.Ctx) error {
+func workflowCreate(ctx fiber.Ctx) error {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 
 	script := new(model.WorkflowScript)
-	err := ctx.BodyParser(&script)
+	err := ctx.Bind().Body(&script)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -155,13 +155,13 @@ func workflowCreate(ctx *fiber.Ctx) error {
 //	@Success	200		{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [put]
-func workflowUpdate(ctx *fiber.Ctx) error {
+func workflowUpdate(ctx fiber.Ctx) error {
 	// uid := route.GetUid(ctx)
 	// topic := route.GetTopic(ctx)
 	// id := route.GetIntParam(ctx, "id")
 
 	script := new(model.WorkflowScript)
-	err := ctx.BodyParser(&script)
+	err := ctx.Bind().Body(&script)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -199,7 +199,7 @@ func workflowUpdate(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id} [delete]
-func workflowDelete(ctx *fiber.Ctx) error {
+func workflowDelete(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	err := store.Database.DeleteWorkflow(id)
@@ -219,7 +219,7 @@ func workflowDelete(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=[]model.WorkflowTrigger}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/triggers [get]
-func workflowTriggerList(ctx *fiber.Ctx) error {
+func workflowTriggerList(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	item, err := store.Database.GetWorkflow(id)
@@ -239,7 +239,7 @@ func workflowTriggerList(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=[]model.Job}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/jobs [get]
-func workflowJobList(ctx *fiber.Ctx) error {
+func workflowJobList(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	list, err := store.Database.GetJobsByWorkflowId(id)
@@ -259,7 +259,7 @@ func workflowJobList(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=model.Job}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/job/{id} [get]
-func workflowJobDetail(ctx *fiber.Ctx) error {
+func workflowJobDetail(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	item, err := store.Database.GetJob(id)
@@ -279,7 +279,7 @@ func workflowJobDetail(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/job/{id}/rerun [post]
-func workflowJobRerun(ctx *fiber.Ctx) error {
+func workflowJobRerun(ctx fiber.Ctx) error {
 	return nil
 }
 
@@ -293,7 +293,7 @@ func workflowJobRerun(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=model.WorkflowScript}
 //	@Security	ApiKeyAuth
 //	@Router		/workflow/workflow/{id}/script [get]
-func workflowScriptDetail(ctx *fiber.Ctx) error {
+func workflowScriptDetail(ctx fiber.Ctx) error {
 	id := route.GetIntParam(ctx, "id")
 
 	item, err := store.Database.GetWorkflowScriptByWorkflowId(id)

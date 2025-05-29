@@ -10,7 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/go-resty/resty/v2"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 const (
@@ -72,7 +72,7 @@ func (v *Dropbox) Redirect(req *http.Request) (string, error) {
 	return appRedirectURI, nil
 }
 
-func (v *Dropbox) GetAccessToken(ctx *fiber.Ctx) (types.KV, error) {
+func (v *Dropbox) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
 	code := ctx.Query("code")
 	clientId, _ := providers.GetConfig(ID, ClientIdKey)
 	clientSecret, _ := providers.GetConfig(ID, ClientSecretKey)

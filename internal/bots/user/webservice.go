@@ -10,7 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -29,7 +29,7 @@ var webserviceRules = []webservice.Rule{
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/user/dashboard [get]
-func dashboard(ctx *fiber.Ctx) error {
+func dashboard(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		"title": "dashboard",
 	}))
@@ -44,7 +44,7 @@ func dashboard(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/user/metrics [get]
-func metrics(ctx *fiber.Ctx) error {
+func metrics(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		stats.BotTotalStatsName:             rdb.GetMetricsInt64(stats.BotTotalStatsName),
 		stats.BookmarkTotalStatsName:        rdb.GetMetricsInt64(stats.BookmarkTotalStatsName),
@@ -67,7 +67,7 @@ func metrics(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/user/kanban [get]
-func getKanban(ctx *fiber.Ctx) error {
+func getKanban(ctx fiber.Ctx) error {
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to new client %w", err)
@@ -90,7 +90,7 @@ func getKanban(ctx *fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/user/bookmark [get]
-func getBookmark(ctx *fiber.Ctx) error {
+func getBookmark(ctx fiber.Ctx) error {
 	client := hoarder.GetClient()
 
 	resp, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize})

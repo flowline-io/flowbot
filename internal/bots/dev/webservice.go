@@ -5,7 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -20,7 +20,7 @@ var webserviceRules = []webservice.Rule{
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Router		/dev/example [get]
-func example(ctx *fiber.Ctx) error {
+func example(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		"title": "example",
 		"cpu":   "20%",

@@ -7,7 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{
@@ -23,7 +23,7 @@ var webserviceRules = []webservice.Rule{
 //	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/server/upload [post]
-func upload(ctx *fiber.Ctx) error {
+func upload(ctx fiber.Ctx) error {
 	result := make([]string, 0)
 	if form, err := ctx.MultipartForm(); err == nil {
 		for _, file := range form.File {

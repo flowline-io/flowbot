@@ -2,8 +2,7 @@ package tailchat
 
 import (
 	"fmt"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 const ID = "tailchat"
@@ -11,9 +10,9 @@ const ID = "tailchat"
 func HandleWebsocket(stop <-chan bool) {
 }
 
-func HandleHttp(c *fiber.Ctx) error {
+func HandleHttp(c fiber.Ctx) error {
 	var payload Payload
-	err := c.BodyParser(&payload)
+	err := c.Bind().Body(&payload)
 	if err != nil {
 		return err
 	}

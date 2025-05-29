@@ -1,14 +1,14 @@
 package protocol
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // Driver Functional implementation of the client/server responsible for receiving
 // and sending messages (usually HTTP communication)
 type Driver interface {
 	// HttpServer The application can actively access the Chatbot implementation.
-	HttpServer(ctx *fiber.Ctx) error
+	HttpServer(ctx fiber.Ctx) error
 	// HttpWebhookClient Chatbot implements active access to applications
 	HttpWebhookClient(message Message) error
 	// WebSocketClient The application can actively access the Chatbot implementation.

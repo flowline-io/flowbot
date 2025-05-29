@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/go-resty/resty/v2"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -93,7 +93,7 @@ func (v *Pocket) Redirect(_ *http.Request) (string, error) {
 	return appRedirectURI, nil
 }
 
-func (v *Pocket) GetAccessToken(_ *fiber.Ctx) (types.KV, error) {
+func (v *Pocket) GetAccessToken(_ fiber.Ctx) (types.KV, error) {
 	ctx := context.Background()
 	code, err := rdb.Client.Get(ctx, "pocket:code").Result() // fixme uid key
 	if err != nil && !errors.Is(err, redis.Nil) {
