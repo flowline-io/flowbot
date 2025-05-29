@@ -2,18 +2,19 @@ package instruct
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/allegro/bigcache/v3"
 	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct/bot"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type instructJob struct {
-	cache *bigcache.BigCache
+	cache *cache.Cache
 }
 
 func (j *instructJob) Run(ctx context.Context) error {
@@ -29,8 +30,8 @@ func (j *instructJob) Run(ctx context.Context) error {
 	// instruct loop
 	for _, item := range res.Instruct {
 		// check has been run
-		has, _ := j.cache.Get(item.No)
-		if len(has) > 0 {
+		_, has := j.cache.Get(item.No)
+		if has {
 			continue
 		}
 		// check expired
@@ -50,7 +51,7 @@ func (j *instructJob) Run(ctx context.Context) error {
 	return nil
 }
 
-func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
+func RunInstruct(c *cache.Cache, item client.Instruct) error {
 	for id, dos := range bot.DoInstruct {
 		if item.Bot != id {
 			continue
@@ -73,9 +74,9 @@ func RunInstruct(cache *bigcache.BigCache, item client.Instruct) error {
 				return err
 			}
 			flog.Info("[instruct] %s %s ack", item.Bot, item.No)
-			err = cache.Set(item.No, []byte("1"))
-			if err != nil {
-				return err
+			ok := c.Set(item.No, "1", 1)
+			if !ok {
+				return errors.New("set cache failed")
 			}
 		}
 	}

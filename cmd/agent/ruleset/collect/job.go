@@ -3,15 +3,12 @@ package collect
 import (
 	"context"
 
-	"github.com/allegro/bigcache/v3"
 	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect/bot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
-type collectJob struct {
-	cache *bigcache.BigCache
-}
+type collectJob struct{}
 
 func (j *collectJob) RunAnki(c *cron.Cron) {
 	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
