@@ -5,6 +5,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/fsnotify/fsnotify"
 	"github.com/rulego/rulego"
 	"io/fs"
 	"os"
@@ -56,13 +57,10 @@ func InitEngine() error {
 
 		ext := strings.ToLower(filepath.Ext(path))
 
-		relPath, err := filepath.Rel(rulesPath, path)
+		ruleId, err := getRuleId(rulesPath, path, ext)
 		if err != nil {
-			return fmt.Errorf("an error occurred while getting the relative path: %v", err)
+			return fmt.Errorf("get rule id error: %w", err)
 		}
-
-		relPath = filepath.ToSlash(relPath)
-		ruleId := strings.TrimSuffix(relPath, ext)
 
 		if ext == ".yaml" || ext == ".yml" {
 			yamlFiles[ruleId] = path
@@ -90,5 +88,100 @@ func InitEngine() error {
 		}(ruleId, yamlFile)
 	}
 
+	// Watch the rules directory for changes
+	go func() {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to create watcher: %w", err))
+			return
+		}
+		defer func() {
+			_ = watcher.Close()
+		}()
+
+		// Watch the rules directory with subdirectories
+		// add new directory, need restart app to watch new directory
+		err = filepath.Walk(rulesPath, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				if filepath.Base(path) == "." {
+					return filepath.SkipDir
+				}
+				err = watcher.Add(path)
+				if err != nil {
+					return err
+				}
+				flog.Info("Watching directory: %s", path)
+			}
+			return nil
+		})
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to watch directory: %w", err))
+			return
+		}
+
+		for {
+			select {
+			case event := <-watcher.Events:
+				flog.Info("Rule File changed: %s", event.String())
+
+				ext := strings.ToLower(filepath.Ext(event.Name))
+				if ext != ".yaml" && ext != ".yml" {
+					continue
+				}
+
+				ruleId, err := getRuleId(rulesPath, event.Name, ext)
+				if err != nil {
+					flog.Error(fmt.Errorf("get rule id error: %w", err))
+					return
+				}
+
+				if event.Has(fsnotify.Remove) {
+					// Delete the rule
+					rulego.Del(ruleId)
+				}
+				if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) {
+					def, err := os.ReadFile(event.Name)
+					if err != nil {
+						flog.Error(fmt.Errorf("read rule file error: %w", err))
+						return
+					}
+					ruleEngine, ok := rulego.Get(ruleId)
+					if !ok {
+						// Load the rule
+						_, err = rulego.New(ruleId, def, rulego.WithConfig(conf))
+						if err != nil {
+							flog.Error(fmt.Errorf("load rule error: %w", err))
+						}
+						return
+					}
+					// Reload the rule
+					err = ruleEngine.ReloadSelf(def, rulego.WithConfig(conf))
+					if err != nil {
+						flog.Error(fmt.Errorf("reload rule error: %w", err))
+						return
+					}
+				}
+			case err := <-watcher.Errors:
+				flog.Error(fmt.Errorf("watcher error: %w", err))
+				return
+			}
+		}
+	}()
+
 	return nil
+}
+
+func getRuleId(rulesPath, path, ext string) (string, error) {
+	relPath, err := filepath.Rel(rulesPath, path)
+	if err != nil {
+		return "", fmt.Errorf("an error occurred while getting the relative path: %v", err)
+	}
+
+	relPath = filepath.ToSlash(relPath)
+	ruleId := strings.TrimSuffix(relPath, ext)
+
+	return ruleId, nil
 }

@@ -326,7 +326,7 @@ func NewConfig(lc fx.Lifecycle) Type {
 		OnStart: func(ctx context.Context) error {
 			// Watch config
 			viper.OnConfigChange(func(e fsnotify.Event) {
-				log.Printf("Config file changed: %s\n", e.Name)
+				log.Printf("Config file changed: %s\n", e.String())
 
 				// Reload
 				err := viper.Unmarshal(&App)
