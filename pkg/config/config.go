@@ -22,7 +22,7 @@ const (
 
 var App Type
 
-// Contentx of the configuration file
+// Type of the configuration file
 type Type struct {
 	// HTTP(S) address:port to listen on for websocket and long polling clients. Either a
 	// numeric or a canonical name, e.g. ":80" or ":https". Could include a host name, e.g.
@@ -239,6 +239,8 @@ type Flowbot struct {
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 	// language
 	Language string `json:"language" yaml:"language" mapstructure:"language"`
+	// rules directory path
+	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
 }
 
 type Alarm struct {

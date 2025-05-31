@@ -17,3 +17,4 @@ flowbot-agent.yaml
 main
 flowbot
 *.tmp
+/rules

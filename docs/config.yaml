@@ -143,6 +143,7 @@ agents:
 flowbot:
   url: ""
   lang: "english"
+  rules_path: "/opt/app/rules"
 
 # Platform integration configuration
 platform:
