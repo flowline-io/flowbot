@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+var sharedApp *fiber.App
+
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
 	app := fiber.New(fiber.Config{
@@ -79,6 +81,9 @@ func newHTTPServer() *fiber.App {
 	if swagHandler != nil {
 		app.Get("/swagger/*", swagHandler)
 	}
+
+	// use in registered endpoint
+	sharedApp = app
 
 	return app
 }

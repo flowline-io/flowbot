@@ -31,12 +31,14 @@ func NewSlash(endpoint string, token string) *Slash {
 	v.c = resty.New()
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
+	v.c.SetAuthToken(token)
 
 	return v
 }
 
 func (i *Slash) CreateShortcut(item Shortcut) error {
-	resp, err := i.c.R().SetAuthToken(i.token).
+	resp, err := i.c.R().
 		SetBody(item).
 		Post("/api/v1/shortcuts")
 	if err != nil {
@@ -50,7 +52,7 @@ func (i *Slash) CreateShortcut(item Shortcut) error {
 }
 
 func (i *Slash) UpdateShortcut(item Shortcut) error {
-	resp, err := i.c.R().SetAuthToken(i.token).
+	resp, err := i.c.R().
 		SetBody(item).
 		Put(fmt.Sprintf("/api/v1/shortcuts/%d", item.Id))
 	if err != nil {
@@ -64,7 +66,7 @@ func (i *Slash) UpdateShortcut(item Shortcut) error {
 }
 
 func (i *Slash) DeleteShortcut(id int32) error {
-	resp, err := i.c.R().SetAuthToken(i.token).
+	resp, err := i.c.R().
 		Delete(fmt.Sprintf("/api/v1/shortcuts/%d", id))
 	if err != nil {
 		return err
@@ -77,7 +79,7 @@ func (i *Slash) DeleteShortcut(id int32) error {
 }
 
 func (i *Slash) GetShortcut(id int32) (*Shortcut, error) {
-	resp, err := i.c.R().SetAuthToken(i.token).
+	resp, err := i.c.R().
 		SetResult(&Shortcut{}).
 		Get(fmt.Sprintf("/api/v1/shortcuts/%d", id))
 	if err != nil {
@@ -91,7 +93,7 @@ func (i *Slash) GetShortcut(id int32) (*Shortcut, error) {
 }
 
 func (i *Slash) ListShortcuts() ([]*Shortcut, error) {
-	resp, err := i.c.R().SetAuthToken(i.token).
+	resp, err := i.c.R().
 		SetResult([]*Shortcut{}).
 		Get("/api/v1/shortcuts")
 	if err != nil {

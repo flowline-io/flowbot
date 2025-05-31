@@ -32,6 +32,7 @@ func NewDrone(endpoint string, token string) *Drone {
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(token)
+	v.c.SetDisableWarn(true)
 
 	return v
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v3"
 	"github.com/rulego/rulego"
+	"github.com/rulego/rulego/endpoint"
 	"time"
 )
 
@@ -72,7 +73,7 @@ func initializeMetrics() error {
 	)
 }
 
-func initializeRuleEngine() error {
+func initializeRuleEngine(app *fiber.App) error {
 	err := rules.InitEngine()
 	if err != nil {
 		return err
@@ -90,6 +91,9 @@ func initializeRuleEngine() error {
 	if err != nil {
 		return err
 	}
+
+	// register endpoints
+	err = endpoint.Registry.Register(&RestEndpoint{})
 
 	return nil
 }

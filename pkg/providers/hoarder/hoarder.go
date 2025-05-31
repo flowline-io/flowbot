@@ -32,6 +32,7 @@ func NewHoarder(endpoint string, apiKey string) *Hoarder {
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(apiKey)
+	v.c.SetDisableWarn(true)
 
 	return v
 }

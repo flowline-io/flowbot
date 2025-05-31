@@ -30,6 +30,7 @@ func NewArchiveBox(endpoint string, token string) *ArchiveBox {
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(token)
+	v.c.SetDisableWarn(true)
 
 	return v
 }
