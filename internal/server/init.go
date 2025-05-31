@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/internal/rules"
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
@@ -68,4 +69,8 @@ func initializeMetrics() error {
 			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
 		},
 	)
+}
+
+func initializeRuleEngine() error {
+	return rules.InitEngine()
 }

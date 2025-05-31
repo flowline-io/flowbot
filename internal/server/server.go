@@ -46,6 +46,12 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 			}
 			flog.Info("initialize Metrics ok")
 
+			// init rule engine
+			if err = initializeRuleEngine(); err != nil {
+				return err
+			}
+			flog.Info("initialize Rule Engine ok")
+
 			// http server
 			go func() {
 				err := app.Listen(config.App.Listen, fiber.ListenConfig{
