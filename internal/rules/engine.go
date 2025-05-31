@@ -11,7 +11,7 @@ func InitEngine() error {
 		return err
 	}
 
-	_, err = rulego.New("test", utils.StringToBytes(testRuleFile), rulego.WithConfig(conf))
+	_, err = rulego.New("test", utils.StringToBytes(testCustomDslYamlRule), rulego.WithConfig(conf))
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ func NewConfig() (types.Config, error) {
 	}
 
 	// parser
-	conf.Parser = &JsonParser{}
+	conf.Parser = &DslParser{}
 
 	// logger
 	conf.Logger = flog.RulegoLogger
