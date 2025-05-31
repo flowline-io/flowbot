@@ -77,11 +77,15 @@ func initializeRuleEngine() error {
 	if err != nil {
 		return err
 	}
+	err = rules.InitEndpoint()
+	if err != nil {
+		return err
+	}
 
 	// register functions
 	rules.RegisterFunctions()
 
-	//register components
+	// register components
 	err = rulego.Registry.Register(&components.CommandNode{})
 	if err != nil {
 		return err

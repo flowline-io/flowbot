@@ -142,3 +142,17 @@ func PrettyPrintYamlStyle(data any) {
 	}
 	_, _ = fmt.Println(string(d))
 }
+
+func YamlToJson(data []byte) ([]byte, error) {
+	var def map[string]interface{}
+	if err := yaml.Unmarshal(data, &def); err != nil {
+		return nil, err
+	}
+
+	jsonData, err := sonic.Marshal(def)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}

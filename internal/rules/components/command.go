@@ -26,7 +26,7 @@ func (n *CommandNode) New() ruleTypes.Node {
 	return &CommandNode{}
 }
 
-func (n *CommandNode) Init(ruleConfig ruleTypes.Config, configuration ruleTypes.Configuration) error {
+func (n *CommandNode) Init(_ ruleTypes.Config, configuration ruleTypes.Configuration) error {
 	err := maps.Map2Struct(configuration, &n.Config)
 	if err != nil {
 		return err

@@ -39,7 +39,7 @@ func InitEngine() error {
 
 	// Make sure it's a directory, not a file
 	if !info.IsDir() {
-		panic(fmt.Sprintf("The path is not a directory: %s", rulesPath))
+		return fmt.Errorf("the path is not a directory: %s", rulesPath)
 	}
 
 	var yamlFiles = make(map[string]string)
@@ -56,9 +56,13 @@ func InitEngine() error {
 			return nil // Skip directories
 		}
 
+		if strings.Contains(path, EndpointDirName) {
+			return nil // Skip endpoint yaml
+		}
+
 		ext := strings.ToLower(filepath.Ext(path))
 
-		ruleId, err := getRuleId(rulesPath, path, ext)
+		ruleId, err := getFileId(rulesPath, path, ext)
 		if err != nil {
 			return fmt.Errorf("get rule id error: %w", err)
 		}
@@ -78,7 +82,7 @@ func InitEngine() error {
 		go func(ruleId string, yamlFile string) {
 			content, err := os.ReadFile(yamlFile)
 			if err != nil {
-				flog.Error(fmt.Errorf("load rule error: %w", err))
+				flog.Error(fmt.Errorf("read rule file error: %w", err))
 				return
 			}
 			_, err = rulego.New(ruleId, content, rulego.WithConfig(conf))
@@ -111,6 +115,9 @@ func InitEngine() error {
 				if filepath.Base(path) == "." {
 					return filepath.SkipDir
 				}
+				if strings.Contains(path, EndpointDirName) {
+					return filepath.SkipDir // Skip endpoints directory
+				}
 				err = watcher.Add(path)
 				if err != nil {
 					return err
@@ -134,7 +141,7 @@ func InitEngine() error {
 					continue
 				}
 
-				ruleId, err := getRuleId(rulesPath, event.Name, ext)
+				ruleId, err := getFileId(rulesPath, event.Name, ext)
 				if err != nil {
 					flog.Error(fmt.Errorf("get rule id error: %w", err))
 					return
@@ -176,7 +183,7 @@ func InitEngine() error {
 	return nil
 }
 
-func getRuleId(rulesPath, path, ext string) (string, error) {
+func getFileId(rulesPath, path, ext string) (string, error) {
 	relPath, err := filepath.Rel(rulesPath, path)
 	if err != nil {
 		return "", fmt.Errorf("an error occurred while getting the relative path: %v", err)
