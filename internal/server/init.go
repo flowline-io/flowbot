@@ -3,16 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/rules"
-	"time"
-
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/internal/rules"
+	"github.com/flowline-io/flowbot/internal/rules/components"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v3"
+	"github.com/rulego/rulego"
+	"time"
 )
 
 var (
@@ -72,5 +73,19 @@ func initializeMetrics() error {
 }
 
 func initializeRuleEngine() error {
-	return rules.InitEngine()
+	err := rules.InitEngine()
+	if err != nil {
+		return err
+	}
+
+	// register functions
+	rules.RegisterFunctions()
+
+	//register components
+	err = rulego.Registry.Register(&components.CommandNode{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

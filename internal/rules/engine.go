@@ -23,6 +23,7 @@ func InitEngine() error {
 	if err != nil {
 		return err
 	}
+	flog.Info("load test rule")
 
 	// load rules from directory
 
@@ -85,6 +86,7 @@ func InitEngine() error {
 				flog.Error(fmt.Errorf("load rule error: %w", err))
 				return
 			}
+			flog.Info("load %s rule", ruleId)
 		}(ruleId, yamlFile)
 	}
 

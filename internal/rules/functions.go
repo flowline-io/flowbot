@@ -5,10 +5,9 @@ import (
 	"github.com/rulego/rulego/components/action"
 )
 
-func a() {
+func RegisterFunctions() {
 	action.Functions.Register("sendMsg", func(ctx types.RuleContext, msg types.RuleMsg) {
 		ctx.TellSuccess(msg)
-		ctx.TellNext(msg, types.True)
 		return
 	})
 }
