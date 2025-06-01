@@ -48,12 +48,10 @@ func actions(ctx fiber.Ctx) error {
 			case []workflow.Rule:
 				for _, ruleItem := range v {
 					list = append(list, rule{
-						Bot:          name,
-						Id:           ruleItem.Id,
-						Title:        ruleItem.Title,
-						Desc:         ruleItem.Desc,
-						InputSchema:  ruleItem.InputSchema,
-						OutputSchema: ruleItem.OutputSchema,
+						Bot:   name,
+						Id:    ruleItem.Id,
+						Title: ruleItem.Title,
+						Desc:  ruleItem.Description,
 					})
 				}
 			}

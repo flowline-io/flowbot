@@ -41,11 +41,11 @@ func (n *CommandNode) OnMsg(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg) {
 	}
 	ctx.SetContext(ctx.GetContext())
 
-	for _, handle := range chatbot.List() {
-		if !handle.IsReady() {
+	for _, handler := range chatbot.List() {
+		if !handler.IsReady() {
 			continue
 		}
-		payload, err := handle.Command(botCtx, n.Config.Command)
+		payload, err := handler.Command(botCtx, n.Config.Command)
 		if err != nil {
 			ctx.TellFailure(msg, err)
 			return

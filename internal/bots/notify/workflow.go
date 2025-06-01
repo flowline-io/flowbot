@@ -13,11 +13,9 @@ const (
 
 var workflowRules = []workflow.Rule{
 	{
-		Id:           sendWorkflowActionID,
-		Title:        "Send",
-		Desc:         "Send notification",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          sendWorkflowActionID,
+		Title:       "Send",
+		Description: "Send notification",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			channel, _ := input.String("channel")
 			if channel == "" {

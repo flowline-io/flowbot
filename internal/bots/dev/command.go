@@ -242,7 +242,7 @@ var commandRules = []command.Rule{
 
 			msg1 := ruleTypes.NewMsg(0, "TEST_MSG_TYPE1", ruleTypes.JSON, metaData, "{\"deviceId\":\"aa\", \"temperature\":41}")
 
-			ruleEngine, ok := rulego.Get("flowbot")
+			ruleEngine, ok := rulego.Get("x/func")
 			if !ok {
 				return types.TextMsg{Text: "rule not found"}
 			}

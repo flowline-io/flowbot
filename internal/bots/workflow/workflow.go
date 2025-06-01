@@ -37,21 +37,17 @@ const (
 
 var workflowRules = []workflow.Rule{
 	{
-		Id:           endWorkflowActionID,
-		Title:        "end",
-		Desc:         "end workflow",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          endWorkflowActionID,
+		Title:       "end",
+		Description: "end workflow",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			return nil, nil
 		},
 	},
 	{
-		Id:           messageWorkflowActionID,
-		Title:        "message",
-		Desc:         "send message",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          messageWorkflowActionID,
+		Title:       "message",
+		Description: "send message",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			if len(input) == 0 {
 				return nil, nil
@@ -60,11 +56,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           fetchWorkflowActionID,
-		Title:        "fetch",
-		Desc:         "fetch url data",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          fetchWorkflowActionID,
+		Title:       "fetch",
+		Description: "fetch url data",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			url, _ := input.String("url")
 			if url == "" {
@@ -101,11 +95,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           feedWorkflowActionID,
-		Title:        "feed",
-		Desc:         "parse feed",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          feedWorkflowActionID,
+		Title:       "feed",
+		Description: "parse feed",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			url, _ := input.String("url")
 			if url == "" {
@@ -136,11 +128,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           grepWorkflowActionID,
-		Title:        "grep",
-		Desc:         "grep text",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          grepWorkflowActionID,
+		Title:       "grep",
+		Description: "grep text",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			pattern, _ := input.String("pattern")
 			if pattern == "" {
@@ -151,11 +141,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           uniqueWorkflowActionID,
-		Title:        "unique",
-		Desc:         "unique text",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          uniqueWorkflowActionID,
+		Title:       "unique",
+		Description: "unique text",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			id, _ := input.String("id")
 			if id == "" {
@@ -180,11 +168,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           torrentWorkflowActionID,
-		Title:        "torrent",
-		Desc:         "download torrent",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          torrentWorkflowActionID,
+		Title:       "torrent",
+		Description: "download torrent",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			client, err := transmission.GetClient()
 			if err != nil {
@@ -242,11 +228,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           websiteWorkflowActionID,
-		Title:        "website content",
-		Desc:         "Retrieve Website Content",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          websiteWorkflowActionID,
+		Title:       "website content",
+		Description: "Retrieve Website Content",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			url, _ := input.String("url")
 			if url == "" {
@@ -267,11 +251,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           llmWorkflowActionID,
-		Title:        "LLM",
-		Desc:         "LLM Chat",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          llmWorkflowActionID,
+		Title:       "LLM",
+		Description: "LLM Chat",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			if !agents.AgentEnabled(agents.AgentChat) {
 				return nil, fmt.Errorf("%s step, agent chat disabled", llmWorkflowActionID)
@@ -310,11 +292,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           exprWorkflowActionID,
-		Title:        "expr",
-		Desc:         "expr-lang expression",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          exprWorkflowActionID,
+		Title:       "expr",
+		Description: "expr-lang expression",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			script, _ := input.String("script")
 			if script == "" {
@@ -349,11 +329,9 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:           dockerWorkflowActionID,
-		Title:        "Run Docker Container",
-		Desc:         "Executes a Docker container with specified parameters",
-		InputSchema:  nil,
-		OutputSchema: nil,
+		Id:          dockerWorkflowActionID,
+		Title:       "Run Docker Container",
+		Description: "Executes a Docker container with specified parameters",
 		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
 			image, _ := input.String("image")
 			if image == "" {

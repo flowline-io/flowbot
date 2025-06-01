@@ -150,6 +150,7 @@ func InitEngine() error {
 				if event.Has(fsnotify.Remove) {
 					// Delete the rule
 					rulego.Del(ruleId)
+					flog.Info("Delete rule: %s", ruleId)
 				}
 				if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) {
 					def, err := os.ReadFile(event.Name)
@@ -164,6 +165,7 @@ func InitEngine() error {
 						if err != nil {
 							flog.Error(fmt.Errorf("load rule error: %w", err))
 						}
+						flog.Info("Load rule: %s", ruleId)
 						return
 					}
 					// Reload the rule
@@ -172,6 +174,7 @@ func InitEngine() error {
 						flog.Error(fmt.Errorf("reload rule error: %w", err))
 						return
 					}
+					flog.Info("Reload rule: %s", ruleId)
 				}
 			case err := <-watcher.Errors:
 				flog.Error(fmt.Errorf("watcher error: %w", err))
