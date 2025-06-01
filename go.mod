@@ -22,7 +22,6 @@ require (
 	github.com/docker/cli v28.2.2+incompatible
 	github.com/docker/docker v28.2.2+incompatible
 	github.com/docker/go-units v0.5.0
-	github.com/dustin/go-humanize v1.0.1
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/expr-lang/expr v1.17.4
 	github.com/flc1125/go-cron/v4 v4.5.5
@@ -41,12 +40,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
-	github.com/hibiken/asynq v0.25.1
 	github.com/influxdata/cron v0.0.0-20201006132531-4bb0a200dcbe
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v4 v4.2.0
-	github.com/looplab/fsm v1.0.3
 	github.com/mark3labs/mcp-go v0.31.0
 	github.com/maxence-charriere/go-app/v10 v10.1.3
 	github.com/meilisearch/meilisearch-go v0.32.0
@@ -77,8 +74,6 @@ require (
 	golang.org/x/crypto v0.38.0
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	golang.org/x/sys v0.33.0
-	golang.org/x/time v0.11.0
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gen v0.3.27
 	gorm.io/gorm v1.30.0
@@ -113,6 +108,7 @@ require (
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/dop251/goja v0.0.0-20231024180952-594410467bc6 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -224,6 +220,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
+	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
@@ -232,6 +229,7 @@ require (
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect

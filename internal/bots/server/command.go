@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
@@ -177,20 +176,8 @@ var commandRules = []command.Rule{
 				flog.Info("all rule node completed")
 			}))
 
-			// workflow
-			inspector := workflow.GetInspector()
-			servers, err := inspector.Servers()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-			for _, server := range servers {
-				if server.Status != "active" {
-					return types.TextMsg{Text: fmt.Sprintf("[workflow] server %s status %s", server.ID, server.Status)}
-				}
-			}
-
 			// notify
-			err = notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
+			err := notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
 				Title: "notify check",
 				Body:  "notify check",
 				Url:   "https://example.com",

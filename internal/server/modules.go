@@ -4,7 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/agents/mcp"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
-	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -25,9 +24,6 @@ var Modules = fx.Options(
 		event.NewRouter,
 		event.NewSubscriber,
 		event.NewPublisher,
-		workflow.NewQueue,
-		workflow.NewManager,
-		workflow.NewCronTaskManager,
 		slack.NewDriver,
 		mcp.NewServer,
 		mcp.NewSSEServer,

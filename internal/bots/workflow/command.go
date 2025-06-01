@@ -1,16 +1,13 @@
 package workflow
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/internal/workflow"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -89,10 +86,7 @@ var commandRules = []command.Rule{
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			err = workflow.SyncJob(context.Background(), job)
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
+			// run job
 
 			return types.TextMsg{Text: "ok"}
 		},
@@ -208,57 +202,6 @@ var commandRules = []command.Rule{
 			varVal, _ = statsLib.Variance(stepElapsed)
 			_, _ = str.WriteString(fmt.Sprintf("Steps total %d, min: %f, median: %f, max: %f, avg: %f, variance: %f \n",
 				len(stepElapsed), minVal, medianVal, maxVal, avgVal, varVal))
-
-			return types.TextMsg{Text: str.String()}
-		},
-	},
-	{
-		Define: "workflow queue",
-		Help:   `workflow queue statisticians`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			inspector := workflow.GetInspector()
-			queues, err := inspector.Queues()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			str := strings.Builder{}
-			for _, queueName := range queues {
-				info, err := inspector.GetQueueInfo(queueName)
-				if err != nil {
-					return types.TextMsg{Text: err.Error()}
-				}
-
-				_, _ = str.WriteString(fmt.Sprintf("queue %s: size %d memory %v processed %d failed %d \n",
-					info.Queue, info.Size, humanize.Bytes(uint64(info.MemoryUsage)), info.Processed, info.Failed))
-			}
-
-			return types.TextMsg{Text: str.String()}
-		},
-	},
-	{
-		Define: "workflow history",
-		Help:   `workflow task history`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			inspector := workflow.GetInspector()
-			queues, err := inspector.Queues()
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-
-			str := strings.Builder{}
-			for _, queueName := range queues {
-				stats, err := inspector.History(queueName, 7)
-				if err != nil {
-					return types.TextMsg{Text: err.Error()}
-				}
-				_, _ = str.WriteString(fmt.Sprintf("queue %s:", queueName))
-				for _, info := range stats {
-					_, _ = str.WriteString(fmt.Sprintf("%s -> processed %d failed %d, ",
-						info.Date.Format(time.DateOnly), info.Processed, info.Failed))
-				}
-				_, _ = str.WriteString("\n")
-			}
 
 			return types.TextMsg{Text: str.String()}
 		},
