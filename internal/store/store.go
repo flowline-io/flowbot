@@ -188,6 +188,8 @@ type Adapter interface {
 	UserGet(uid types.Uid) (*model.User, error)
 	// UserGetAll returns user records for a given list of user IDs
 	UserGetAll(ids ...types.Uid) ([]*model.User, error)
+	// FirstUser returns the first user
+	FirstUser() (*model.User, error)
 	// UserDelete deletes user record
 	UserDelete(uid types.Uid, hard bool) error
 	// UserUpdate updates user record

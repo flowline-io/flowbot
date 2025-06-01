@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/rulego/rulego"
+	ruleTypes "github.com/rulego/rulego/api/types"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -19,7 +20,10 @@ func InitEngine() error {
 		return err
 	}
 
-	_, err = rulego.New("test", utils.StringToBytes(testCustomDslYamlRule), rulego.WithConfig(conf))
+	_, err = rulego.New("test", utils.StringToBytes(testCustomDslYamlRule),
+		rulego.WithConfig(conf),
+		ruleTypes.WithAspects(&UserAspect{}),
+	)
 	if err != nil {
 		return err
 	}
@@ -85,7 +89,10 @@ func InitEngine() error {
 				flog.Error(fmt.Errorf("read rule file error: %w", err))
 				return
 			}
-			_, err = rulego.New(ruleId, content, rulego.WithConfig(conf))
+			_, err = rulego.New(ruleId, content,
+				rulego.WithConfig(conf),
+				ruleTypes.WithAspects(&UserAspect{}),
+			)
 			if err != nil {
 				flog.Error(fmt.Errorf("load rule error: %w", err))
 				return
@@ -161,7 +168,10 @@ func InitEngine() error {
 					ruleEngine, ok := rulego.Get(ruleId)
 					if !ok {
 						// Load the rule
-						_, err = rulego.New(ruleId, def, rulego.WithConfig(conf))
+						_, err = rulego.New(ruleId, def,
+							rulego.WithConfig(conf),
+							ruleTypes.WithAspects(&UserAspect{}),
+						)
 						if err != nil {
 							flog.Error(fmt.Errorf("load rule error: %w", err))
 						}
@@ -169,7 +179,10 @@ func InitEngine() error {
 						return
 					}
 					// Reload the rule
-					err = ruleEngine.ReloadSelf(def, rulego.WithConfig(conf))
+					err = ruleEngine.ReloadSelf(def,
+						rulego.WithConfig(conf),
+						ruleTypes.WithAspects(&UserAspect{}),
+					)
 					if err != nil {
 						flog.Error(fmt.Errorf("reload rule error: %w", err))
 						return

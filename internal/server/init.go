@@ -74,7 +74,27 @@ func initializeMetrics() error {
 }
 
 func initializeRuleEngine(app *fiber.App) error {
-	err := rules.InitEngine()
+	// register functions
+	rules.RegisterFunctions()
+
+	// register components
+	err := rulego.Registry.Register(&components.CommandNode{})
+	if err != nil {
+		return err
+	}
+	err = rulego.Registry.Register(&components.DataNode{})
+	if err != nil {
+		return err
+	}
+	err = rulego.Registry.Register(&components.FunctionsNode{})
+	if err != nil {
+		return err
+	}
+
+	// register endpoints
+	err = endpoint.Registry.Register(&RestEndpoint{})
+
+	err = rules.InitEngine()
 	if err != nil {
 		return err
 	}
@@ -82,18 +102,6 @@ func initializeRuleEngine(app *fiber.App) error {
 	if err != nil {
 		return err
 	}
-
-	// register functions
-	rules.RegisterFunctions()
-
-	// register components
-	err = rulego.Registry.Register(&components.CommandNode{})
-	if err != nil {
-		return err
-	}
-
-	// register endpoints
-	err = endpoint.Registry.Register(&RestEndpoint{})
 
 	return nil
 }

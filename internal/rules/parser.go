@@ -64,6 +64,9 @@ type DslParser struct{}
 func (p *DslParser) DecodeRuleChain(rootRuleChain []byte) (types.RuleChain, error) {
 	var dsl RuleChain
 	err := yaml.Unmarshal(rootRuleChain, &dsl)
+	if err != nil {
+		return types.RuleChain{}, fmt.Errorf("failed to unmarshal rule chain yaml: %w", err)
+	}
 
 	var connections []types.NodeConnection
 	if len(dsl.Pipelines) > 0 {
