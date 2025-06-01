@@ -11,9 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/executer"
 	"github.com/flowline-io/flowbot/pkg/executer/runtime"
-	"github.com/flowline-io/flowbot/pkg/expression"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/lobehub"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -22,28 +20,17 @@ import (
 )
 
 const (
-	endWorkflowActionID     = "end"
 	messageWorkflowActionID = "message"
 	fetchWorkflowActionID   = "fetch"
 	feedWorkflowActionID    = "feed"
 	grepWorkflowActionID    = "grep"
 	uniqueWorkflowActionID  = "unique"
 	torrentWorkflowActionID = "torrent"
-	websiteWorkflowActionID = "website"
 	llmWorkflowActionID     = "llm"
-	exprWorkflowActionID    = "expr"
 	dockerWorkflowActionID  = "docker"
 )
 
 var workflowRules = []workflow.Rule{
-	{
-		Id:          endWorkflowActionID,
-		Title:       "end",
-		Description: "end workflow",
-		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			return nil, nil
-		},
-	},
 	{
 		Id:          messageWorkflowActionID,
 		Title:       "message",
@@ -228,29 +215,6 @@ var workflowRules = []workflow.Rule{
 		},
 	},
 	{
-		Id:          websiteWorkflowActionID,
-		Title:       "website content",
-		Description: "Retrieve Website Content",
-		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			url, _ := input.String("url")
-			if url == "" {
-				return nil, fmt.Errorf("%s step, empty url", websiteWorkflowActionID)
-			}
-
-			resp, err := lobehub.NewLobehub().WebCrawler(url)
-			if err != nil {
-				return nil, fmt.Errorf("%s step, get website content failed, %w", torrentWorkflowActionID, err)
-			}
-
-			return types.KV{
-				"content": resp.Content,
-				"title":   resp.Title,
-				"url":     resp.Url,
-				"website": resp.Website,
-			}, nil
-		},
-	},
-	{
 		Id:          llmWorkflowActionID,
 		Title:       "LLM",
 		Description: "LLM Chat",
@@ -289,43 +253,6 @@ var workflowRules = []workflow.Rule{
 			return types.KV{
 				"text": resp.Content,
 			}, nil
-		},
-	},
-	{
-		Id:          exprWorkflowActionID,
-		Title:       "expr",
-		Description: "expr-lang expression",
-		Run: func(ctx types.Context, input types.KV) (types.KV, error) {
-			script, _ := input.String("script")
-			if script == "" {
-				return nil, fmt.Errorf("%s step, empty prompt", exprWorkflowActionID)
-			}
-
-			expression.LoadEnv("input", input)
-			program, err := expression.Compile(script)
-			if err != nil {
-				return nil, fmt.Errorf("%s step, expr compile failed, %w", exprWorkflowActionID, err)
-			}
-
-			result, err := expression.Run(program)
-			if err != nil {
-				return nil, fmt.Errorf("%s step, expr run failed, %w", exprWorkflowActionID, err)
-			}
-
-			switch v := result.(type) {
-			case types.KV:
-				return v, nil
-			case map[string]any:
-				return v, nil
-			case []any, []types.KV, []map[string]any:
-				return types.KV{
-					"list": v,
-				}, nil
-			default:
-				return types.KV{
-					"data": v,
-				}, nil
-			}
 		},
 	},
 	{
