@@ -16,12 +16,25 @@ import (
 
 const EndpointDirName = "endpoints"
 
-func InitEndpoint() error {
+func newEndpoint(id string, def []byte) (endpointTypes.DynamicEndpoint, error) {
+	conf, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return endpoint.New(id, def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
+}
+
+func reloadEndpoint(endpoint endpointTypes.DynamicEndpoint, def []byte) error {
 	conf, err := NewConfig()
 	if err != nil {
 		return err
 	}
 
+	return endpoint.Reload(def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
+}
+
+func InitEndpoint() error {
 	// load endpoints from directory
 
 	rulesPath := config.App.Flowbot.RulesPath
@@ -85,7 +98,7 @@ func InitEndpoint() error {
 				flog.Error(fmt.Errorf("yaml to json error: %w", err))
 				return
 			}
-			ep, err := endpoint.New(endpointId, content, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
+			ep, err := newEndpoint(endpointId, content)
 			if err != nil {
 				flog.Error(fmt.Errorf("load endpoint error: %w", err))
 				return
@@ -152,7 +165,7 @@ func InitEndpoint() error {
 					if !ok {
 						// Load the endpoint
 						go func(endpointId string, def []byte) {
-							ep, err = endpoint.New(endpointId, def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
+							ep, err = newEndpoint(endpointId, def)
 							if err != nil {
 								flog.Error(fmt.Errorf("load endpoint error: %w", err))
 							}
@@ -165,10 +178,7 @@ func InitEndpoint() error {
 						return
 					}
 					// Reload the endpoint
-					err = ep.Reload(def,
-						endpointTypes.DynamicEndpointOptions.WithConfig(conf),
-						endpointTypes.DynamicEndpointOptions.WithRestart(true),
-					)
+					err = reloadEndpoint(ep, def)
 					if err != nil {
 						flog.Error(fmt.Errorf("reload endpoint error: %w", err))
 						return

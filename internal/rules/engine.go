@@ -14,16 +14,33 @@ import (
 	"strings"
 )
 
-func InitEngine() error {
+func newEngine(id string, def []byte) (ruleTypes.RuleEngine, error) {
+	conf, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return rulego.New(id, def,
+		rulego.WithConfig(conf),
+		ruleTypes.WithAspects(&Aspect{}),
+	)
+}
+
+func reloadEngine(ruleEngine ruleTypes.RuleEngine, def []byte) error {
 	conf, err := NewConfig()
 	if err != nil {
 		return err
 	}
 
-	_, err = rulego.New("test", utils.StringToBytes(testCustomDslYamlRule),
+	return ruleEngine.ReloadSelf(def,
 		rulego.WithConfig(conf),
 		ruleTypes.WithAspects(&Aspect{}),
 	)
+}
+
+func InitEngine() error {
+	// default test rule
+	_, err := newEngine("test", utils.StringToBytes(testCustomDslYamlRule))
 	if err != nil {
 		return err
 	}
@@ -89,10 +106,7 @@ func InitEngine() error {
 				flog.Error(fmt.Errorf("read rule file error: %w", err))
 				return
 			}
-			_, err = rulego.New(ruleId, content,
-				rulego.WithConfig(conf),
-				ruleTypes.WithAspects(&Aspect{}),
-			)
+			_, err = newEngine(ruleId, content)
 			if err != nil {
 				flog.Error(fmt.Errorf("load rule error: %w", err))
 				return
@@ -168,10 +182,7 @@ func InitEngine() error {
 					ruleEngine, ok := rulego.Get(ruleId)
 					if !ok {
 						// Load the rule
-						_, err = rulego.New(ruleId, def,
-							rulego.WithConfig(conf),
-							ruleTypes.WithAspects(&Aspect{}),
-						)
+						_, err = newEngine(ruleId, def)
 						if err != nil {
 							flog.Error(fmt.Errorf("load rule error: %w", err))
 						}
@@ -179,10 +190,7 @@ func InitEngine() error {
 						return
 					}
 					// Reload the rule
-					err = ruleEngine.ReloadSelf(def,
-						rulego.WithConfig(conf),
-						ruleTypes.WithAspects(&Aspect{}),
-					)
+					err = reloadEngine(ruleEngine, def)
 					if err != nil {
 						flog.Error(fmt.Errorf("reload rule error: %w", err))
 						return
