@@ -22,7 +22,7 @@ func InitEngine() error {
 
 	_, err = rulego.New("test", utils.StringToBytes(testCustomDslYamlRule),
 		rulego.WithConfig(conf),
-		ruleTypes.WithAspects(&UserAspect{}),
+		ruleTypes.WithAspects(&Aspect{}),
 	)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func InitEngine() error {
 			}
 			_, err = rulego.New(ruleId, content,
 				rulego.WithConfig(conf),
-				ruleTypes.WithAspects(&UserAspect{}),
+				ruleTypes.WithAspects(&Aspect{}),
 			)
 			if err != nil {
 				flog.Error(fmt.Errorf("load rule error: %w", err))
@@ -170,7 +170,7 @@ func InitEngine() error {
 						// Load the rule
 						_, err = rulego.New(ruleId, def,
 							rulego.WithConfig(conf),
-							ruleTypes.WithAspects(&UserAspect{}),
+							ruleTypes.WithAspects(&Aspect{}),
 						)
 						if err != nil {
 							flog.Error(fmt.Errorf("load rule error: %w", err))
@@ -181,7 +181,7 @@ func InitEngine() error {
 					// Reload the rule
 					err = ruleEngine.ReloadSelf(def,
 						rulego.WithConfig(conf),
-						ruleTypes.WithAspects(&UserAspect{}),
+						ruleTypes.WithAspects(&Aspect{}),
 					)
 					if err != nil {
 						flog.Error(fmt.Errorf("reload rule error: %w", err))
