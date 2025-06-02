@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -15,6 +16,8 @@ const (
 	ID              = "github"
 	ClientIdKey     = "id"
 	ClientSecretKey = "secret"
+
+	JSONAccept = "application/vnd.github.v3+json"
 )
 
 type Github struct {
@@ -89,7 +92,7 @@ func (v *Github) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
 func (v *Github) GetAuthenticatedUser() (*User, error) {
 	resp, err := v.c.R().
 		SetResult(&User{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get("/user")
 	if err != nil {
@@ -106,7 +109,7 @@ func (v *Github) GetAuthenticatedUser() (*User, error) {
 func (v *Github) GetUser(username string) (*User, error) {
 	resp, err := v.c.R().
 		SetResult(&User{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/users/%s", username))
 	if err != nil {
@@ -120,10 +123,10 @@ func (v *Github) GetUser(username string) (*User, error) {
 	}
 }
 
-func (v *Github) GetStarred(username string) (*[]Repository, error) {
+func (v *Github) GetStarred(username string) ([]*Repository, error) {
 	resp, err := v.c.R().
 		SetResult(&[]Repository{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/users/%s/starred", username))
 	if err != nil {
@@ -131,7 +134,7 @@ func (v *Github) GetStarred(username string) (*[]Repository, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*[]Repository), nil
+		return resp.Result().([]*Repository), nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -140,7 +143,7 @@ func (v *Github) GetStarred(username string) (*[]Repository, error) {
 func (v *Github) GetFollowers() (*[]User, error) {
 	resp, err := v.c.R().
 		SetResult(&[]User{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get("/user/followers")
 	if err != nil {
@@ -157,7 +160,7 @@ func (v *Github) GetFollowers() (*[]User, error) {
 func (v *Github) CreateIssue(owner, repo string, issue Issue) (*Issue, error) {
 	resp, err := v.c.R().
 		SetResult(&Issue{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		SetBody(issue).
 		Post(fmt.Sprintf("/repos/%s/%s/issues", owner, repo))
@@ -189,7 +192,7 @@ func (v *Github) GetUserProjects(username string) (*[]Project, error) {
 	}
 }
 
-func (v *Github) GetProjectColumns(projectID int64) (*[]ProjectColumn, error) {
+func (v *Github) GetProjectColumns(projectID int64) ([]*ProjectColumn, error) {
 	resp, err := v.c.R().
 		SetResult(&[]ProjectColumn{}).
 		SetHeader("Accept", "application/vnd.github.inertia-preview+json").
@@ -200,7 +203,7 @@ func (v *Github) GetProjectColumns(projectID int64) (*[]ProjectColumn, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*[]ProjectColumn), nil
+		return resp.Result().([]*ProjectColumn), nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -227,7 +230,7 @@ func (v *Github) CreateCard(columnID int64, card ProjectCard) (*ProjectCard, err
 func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 	resp, err := v.c.R().
 		SetResult(&Repository{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/repos/%s/%s", owner, repo))
 	if err != nil {
@@ -241,11 +244,11 @@ func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 	}
 }
 
-// get user notifications
+// GetNotifications get user notifications
 func (v *Github) GetNotifications() (*[]Notification, error) {
 	resp, err := v.c.R().
 		SetResult(&[]Notification{}).
-		SetHeader("Accept", "application/vnd.github.v3+json").
+		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get("/notifications")
 	if err != nil {
@@ -254,6 +257,26 @@ func (v *Github) GetNotifications() (*[]Notification, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		return resp.Result().(*[]Notification), nil
+	} else {
+		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+	}
+}
+
+// GetReleases get releases
+func (v *Github) GetReleases(owner, repo string, page, perPage int) ([]*RepositoryRelease, error) {
+	resp, err := v.c.R().
+		SetResult(&[]Notification{}).
+		SetHeader("Accept", JSONAccept).
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		SetQueryParam("page", strconv.Itoa(page)).
+		SetQueryParam("per_page", strconv.Itoa(perPage)).
+		Get(fmt.Sprintf("/repos/%s/%s/releases", owner, repo))
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode() == http.StatusOK {
+		return resp.Result().([]*RepositoryRelease), nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}

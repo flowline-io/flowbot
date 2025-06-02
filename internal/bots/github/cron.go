@@ -43,10 +43,9 @@ var cronRules = []cron.Rule{
 				flog.Error(err)
 				return []types.MsgPayload{}
 			}
-			reposList := *repos
 			var r []types.MsgPayload
-			for i := range reposList {
-				repo := reposList[i]
+			for i := range repos {
+				repo := repos[i]
 				r = append(r, types.InfoMsg{
 					Title: *repo.FullName,
 					Model: types.KV{

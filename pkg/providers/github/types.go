@@ -2,6 +2,8 @@ package github
 
 import "time"
 
+// struct from github.com/google/go-github/v72/github
+
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 	Scope       string `json:"scope"`
@@ -322,4 +324,50 @@ type PackageWebhook struct {
 			} `json:"container_metadata"`
 		} `json:"package_version"`
 	} `json:"package"`
+}
+
+type RepositoryRelease struct {
+	TagName         *string `json:"tag_name,omitempty"`
+	TargetCommitish *string `json:"target_commitish,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	Body            *string `json:"body,omitempty"`
+	Draft           *bool   `json:"draft,omitempty"`
+	Prerelease      *bool   `json:"prerelease,omitempty"`
+	// MakeLatest can be one of: "true", "false", or "legacy".
+	MakeLatest             *string `json:"make_latest,omitempty"`
+	DiscussionCategoryName *string `json:"discussion_category_name,omitempty"`
+
+	// The following fields are not used in EditRelease:
+	GenerateReleaseNotes *bool `json:"generate_release_notes,omitempty"`
+
+	// The following fields are not used in CreateRelease or EditRelease:
+	ID          *int64          `json:"id,omitempty"`
+	CreatedAt   *time.Time      `json:"created_at,omitempty"`
+	PublishedAt *time.Time      `json:"published_at,omitempty"`
+	URL         *string         `json:"url,omitempty"`
+	HTMLURL     *string         `json:"html_url,omitempty"`
+	AssetsURL   *string         `json:"assets_url,omitempty"`
+	Assets      []*ReleaseAsset `json:"assets,omitempty"`
+	UploadURL   *string         `json:"upload_url,omitempty"`
+	ZipballURL  *string         `json:"zipball_url,omitempty"`
+	TarballURL  *string         `json:"tarball_url,omitempty"`
+	Author      *User           `json:"author,omitempty"`
+	NodeID      *string         `json:"node_id,omitempty"`
+}
+
+// ReleaseAsset represents a GitHub release asset in a repository.
+type ReleaseAsset struct {
+	ID                 *int64     `json:"id,omitempty"`
+	URL                *string    `json:"url,omitempty"`
+	Name               *string    `json:"name,omitempty"`
+	Label              *string    `json:"label,omitempty"`
+	State              *string    `json:"state,omitempty"`
+	ContentType        *string    `json:"content_type,omitempty"`
+	Size               *int       `json:"size,omitempty"`
+	DownloadCount      *int       `json:"download_count,omitempty"`
+	CreatedAt          *time.Time `json:"created_at,omitempty"`
+	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
+	BrowserDownloadURL *string    `json:"browser_download_url,omitempty"`
+	Uploader           *User      `json:"uploader,omitempty"`
+	NodeID             *string    `json:"node_id,omitempty"`
 }

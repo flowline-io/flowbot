@@ -1,22 +1,20 @@
 package updater
 
 import (
-	"context"
 	"crypto/sha256"
 	"fmt"
+	"github.com/Masterminds/semver/v3"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers/github"
+	"github.com/flowline-io/flowbot/version"
+	"github.com/minio/selfupdate"
+	"github.com/samber/lo"
+	"github.com/schollz/progressbar/v3"
 	"io"
 	"net/http"
 	"os"
 	"runtime"
 	"strings"
-
-	"github.com/Masterminds/semver/v3"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/version"
-	"github.com/google/go-github/v72/github"
-	"github.com/minio/selfupdate"
-	"github.com/samber/lo"
-	"github.com/schollz/progressbar/v3"
 )
 
 func CheckUpdates() (bool, string, error) {
@@ -136,8 +134,8 @@ func DownloadFile(url, filename string) error {
 }
 
 func GetLatestRelease() (*github.RepositoryRelease, error) {
-	client := github.NewClient(nil)
-	releases, _, err := client.Repositories.ListReleases(context.Background(), "flowline-io", "flowbot", nil)
+	client := github.NewGithub("", "", "", "")
+	releases, err := client.GetReleases("flowline-io", "flowbot", 1, 1)
 	if err != nil {
 		return nil, err
 	}

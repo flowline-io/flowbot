@@ -177,12 +177,12 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
-			if len(*columns) == 0 {
+			if len(columns) == 0 {
 				return nil
 			}
 
 			// create card
-			card, err := client.CreateCard(*(*columns)[0].ID, github.ProjectCard{Note: &text})
+			card, err := client.CreateCard(*columns[0].ID, github.ProjectCard{Note: &text})
 			if err != nil {
 				flog.Error(err)
 				return nil
