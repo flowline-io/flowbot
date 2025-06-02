@@ -59,9 +59,9 @@ log:
   # Log level: debug, info, warn, error, fatal, panic
   level: info
 
-# Engine configuration
-engine:
-  # Engine type: docker
+# Executor configuration
+executor:
+  # executor type: docker
   type: "docker"
   # Resource limits
   limits:

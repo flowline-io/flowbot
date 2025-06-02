@@ -53,8 +53,8 @@ type Type struct {
 	// Platform
 	Platform platform `json:"platform" yaml:"platform" mapstructure:"platform"`
 
-	// Engine
-	Engine Engine `json:"engine" yaml:"engine" mapstructure:"engine"`
+	// Executor
+	Executor Executor `json:"executor" yaml:"executor" mapstructure:"executor"`
 
 	// Metrics
 	Metrics Metrics `json:"metrics" yaml:"metrics" mapstructure:"metrics"`
@@ -175,8 +175,8 @@ type Tailchat struct {
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
 }
 
-type Engine struct {
-	// Engine type: docker
+type Executor struct {
+	// Executor type: docker
 	Type string `json:"type" yaml:"type" mapstructure:"type"`
 	// Resource limits
 	Limits struct {

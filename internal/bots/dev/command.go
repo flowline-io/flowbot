@@ -7,8 +7,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/executer"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/executor"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -90,7 +90,7 @@ var commandRules = []command.Rule{
 				Image: "ubuntu:mantic",
 				Run:   "echo -n hello > $OUTPUT",
 			}
-			engine := executer.New(runtime.Docker)
+			engine := executor.New(runtime.Docker)
 			err := engine.Run(context.Background(), task)
 			if err != nil {
 				flog.Error(err)

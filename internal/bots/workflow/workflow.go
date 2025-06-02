@@ -9,8 +9,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/crawler"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/executer"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/executor"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/rdb"
@@ -275,7 +275,7 @@ var workflowRules = []workflow.Rule{
 				Run:   run,   // example: "echo -n hello > $OUTPUT",
 			}
 			ctx.SetTimeout(10 * time.Minute)
-			engine := executer.New(runtime.Docker)
+			engine := executor.New(runtime.Docker)
 			err := engine.Run(ctx.Context(), task)
 			if err != nil {
 				return nil, fmt.Errorf("%s step, %w", dockerWorkflowActionID, err)

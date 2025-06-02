@@ -1,4 +1,4 @@
-package executer
+package executor
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime/docker"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime/machine"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime/shell"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime/docker"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime/machine"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -75,8 +75,8 @@ func (e *Engine) mustState(state string) {
 
 func (e *Engine) initRuntime() (runtime.Runtime, error) {
 	e.limits = Limits{
-		DefaultCPUsLimit:   config.App.Engine.Limits.Cpus,
-		DefaultMemoryLimit: config.App.Engine.Limits.Memory,
+		DefaultCPUsLimit:   config.App.Executor.Limits.Cpus,
+		DefaultMemoryLimit: config.App.Executor.Limits.Memory,
 	}
 	switch e.runtimeType {
 	case runtime.Docker:
@@ -86,7 +86,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		}
 		// register bind mounter
 		bm := docker.NewBindMounter(docker.BindConfig{
-			Allowed: config.App.Engine.Mounts.Bind.Allowed,
+			Allowed: config.App.Executor.Mounts.Bind.Allowed,
 		})
 		mounter.RegisterMounter("bind", bm)
 		// register volume mounter
@@ -99,7 +99,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		mounter.RegisterMounter("tmpfs", docker.NewTmpfsMounter())
 		rt, err := docker.NewRuntime(
 			docker.WithMounter(mounter),
-			docker.WithConfig(config.App.Engine.Docker.Config),
+			docker.WithConfig(config.App.Executor.Docker.Config),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to new docker runtime: %w", err)
@@ -107,16 +107,16 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 		e.runtime = rt
 	case runtime.Shell:
 		e.runtime = shell.NewShellRuntime(shell.Config{
-			CMD: config.App.Engine.Shell.CMD,
-			UID: config.App.Engine.Shell.UID,
-			GID: config.App.Engine.Shell.GID,
+			CMD: config.App.Executor.Shell.CMD,
+			UID: config.App.Executor.Shell.UID,
+			GID: config.App.Executor.Shell.GID,
 		})
 	case runtime.Machine:
 		rt, err := machine.NewRuntime(machine.WithConfig(machine.Config{
-			Host:     config.App.Engine.Machine.Host,
-			Port:     config.App.Engine.Machine.Port,
-			Username: config.App.Engine.Machine.Username,
-			Password: config.App.Engine.Machine.Password,
+			Host:     config.App.Executor.Machine.Host,
+			Port:     config.App.Executor.Machine.Port,
+			Username: config.App.Executor.Machine.Username,
+			Password: config.App.Executor.Machine.Password,
 		}))
 		if err != nil {
 			return nil, fmt.Errorf("failed to new machine runtime: %w", err)
