@@ -25,13 +25,13 @@ func newEndpoint(id string, def []byte) (endpointTypes.DynamicEndpoint, error) {
 	return endpoint.New(id, def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
 }
 
-func reloadEndpoint(endpoint endpointTypes.DynamicEndpoint, def []byte) error {
+func reloadEndpoint(dynamicEndpoint endpointTypes.DynamicEndpoint, def []byte) error {
 	conf, err := NewConfig()
 	if err != nil {
 		return err
 	}
 
-	return endpoint.Reload(def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
+	return dynamicEndpoint.Reload(def, endpointTypes.DynamicEndpointOptions.WithConfig(conf))
 }
 
 func InitEndpoint() error {
