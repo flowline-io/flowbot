@@ -123,9 +123,9 @@ func (v *Github) GetUser(username string) (*User, error) {
 	}
 }
 
-func (v *Github) GetStarred(username string) ([]*Repository, error) {
+func (v *Github) GetStarred(username string) (result []*Repository, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]Repository{}).
+		SetResult(&result).
 		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/users/%s/starred", username))
@@ -134,15 +134,15 @@ func (v *Github) GetStarred(username string) ([]*Repository, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().([]*Repository), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
 }
 
-func (v *Github) GetFollowers() (*[]User, error) {
+func (v *Github) GetFollowers() (result []*User, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]User{}).
+		SetResult(&result).
 		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get("/user/followers")
@@ -151,7 +151,7 @@ func (v *Github) GetFollowers() (*[]User, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*[]User), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -175,9 +175,9 @@ func (v *Github) CreateIssue(owner, repo string, issue Issue) (*Issue, error) {
 	}
 }
 
-func (v *Github) GetUserProjects(username string) (*[]Project, error) {
+func (v *Github) GetUserProjects(username string) (result []*Project, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]Project{}).
+		SetResult(&result).
 		SetHeader("Accept", "application/vnd.github.inertia-preview+json").
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/users/%s/projects", username))
@@ -186,15 +186,15 @@ func (v *Github) GetUserProjects(username string) (*[]Project, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*[]Project), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
 }
 
-func (v *Github) GetProjectColumns(projectID int64) ([]*ProjectColumn, error) {
+func (v *Github) GetProjectColumns(projectID int64) (result []*ProjectColumn, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]ProjectColumn{}).
+		SetResult(&result).
 		SetHeader("Accept", "application/vnd.github.inertia-preview+json").
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get(fmt.Sprintf("/projects/%d/columns", projectID))
@@ -203,7 +203,7 @@ func (v *Github) GetProjectColumns(projectID int64) ([]*ProjectColumn, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().([]*ProjectColumn), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -245,9 +245,9 @@ func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 }
 
 // GetNotifications get user notifications
-func (v *Github) GetNotifications() (*[]Notification, error) {
+func (v *Github) GetNotifications() (result []*Notification, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]Notification{}).
+		SetResult(&result).
 		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		Get("/notifications")
@@ -256,16 +256,16 @@ func (v *Github) GetNotifications() (*[]Notification, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*[]Notification), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
 }
 
 // GetReleases get releases
-func (v *Github) GetReleases(owner, repo string, page, perPage int) ([]*RepositoryRelease, error) {
+func (v *Github) GetReleases(owner, repo string, page, perPage int) (result []*RepositoryRelease, err error) {
 	resp, err := v.c.R().
-		SetResult(&[]Notification{}).
+		SetResult(&result).
 		SetHeader("Accept", JSONAccept).
 		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
 		SetQueryParam("page", strconv.Itoa(page)).
@@ -276,7 +276,7 @@ func (v *Github) GetReleases(owner, repo string, page, perPage int) ([]*Reposito
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().([]*RepositoryRelease), nil
+		return
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}

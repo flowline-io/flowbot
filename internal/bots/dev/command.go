@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/internal/rules"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -18,8 +19,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/rulego/rulego"
-	ruleTypes "github.com/rulego/rulego/api/types"
 	"os"
 	"time"
 )
@@ -235,21 +234,26 @@ var commandRules = []command.Rule{
 		Define: "rule test",
 		Help:   `[example] url engine example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			metaData := ruleTypes.NewMetadata()
-			metaData.PutValue("uid", ctx.AsUser.String())
-			metaData.PutValue("topic", ctx.Topic)
-			metaData.PutValue("productType", "test01")
+			//metaData := ruleTypes.NewMetadata()
+			//metaData.PutValue("uid", ctx.AsUser.String())
+			//metaData.PutValue("topic", ctx.Topic)
+			//metaData.PutValue("productType", "test01")
+			//
+			//msg1 := ruleTypes.NewMsg(0, "TEST_MSG_TYPE1", ruleTypes.JSON, metaData, "{\"deviceId\":\"aa\", \"temperature\":41}")
+			//
+			//ruleEngine, ok := rulego.Get("x/func")
+			//if !ok {
+			//	return types.TextMsg{Text: "rule not found"}
+			//}
+			//
+			//ruleEngine.OnMsgAndWait(msg1, ruleTypes.WithOnAllNodeCompleted(func() {
+			//	flog.Info("all node completed")
+			//}))
 
-			msg1 := ruleTypes.NewMsg(0, "TEST_MSG_TYPE1", ruleTypes.JSON, metaData, "{\"deviceId\":\"aa\", \"temperature\":41}")
-
-			ruleEngine, ok := rulego.Get("x/func")
-			if !ok {
-				return types.TextMsg{Text: "rule not found"}
+			err := rules.Updater(ctx.Context())
+			if err != nil {
+				flog.Error(err)
 			}
-
-			ruleEngine.OnMsgAndWait(msg1, ruleTypes.WithOnAllNodeCompleted(func() {
-				flog.Info("all node completed")
-			}))
 
 			return types.TextMsg{Text: "ok"}
 		},

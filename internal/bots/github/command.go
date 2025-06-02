@@ -167,12 +167,12 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
-			if len(*projects) == 0 {
+			if len(projects) == 0 {
 				return nil
 			}
 
 			// get columns
-			columns, err := client.GetProjectColumns(*(*projects)[0].ID)
+			columns, err := client.GetProjectColumns(*projects[0].ID)
 			if err != nil {
 				flog.Error(err)
 				return nil

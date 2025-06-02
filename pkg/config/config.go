@@ -73,6 +73,9 @@ type Type struct {
 
 	// Agents
 	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
+
+	// Rule engine
+	RuleEngine RuleEngine `json:"rule_engine" yaml:"rule_engine" mapstructure:"rule_engine"`
 }
 
 // Large file handler config.
@@ -239,8 +242,6 @@ type Flowbot struct {
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 	// language
 	Language string `json:"language" yaml:"language" mapstructure:"language"`
-	// rules directory path
-	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
 }
 
 type Alarm struct {
@@ -268,6 +269,15 @@ type Model struct {
 	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
 	// Useful model names
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
+}
+
+type RuleEngine struct {
+	// rules directory path
+	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
+	// release access token
+	GithubReleaseAccessToken string `json:"github_release_access_token" yaml:"github_release_access_token" mapstructure:"github_release_access_token"`
+	// rules repo
+	GithubRulesRepo string `json:"github_rules_repo" yaml:"github_rules_repo" mapstructure:"github_rules_repo"`
 }
 
 func Load(path ...string) {

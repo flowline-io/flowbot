@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -113,6 +112,18 @@ var cronRules = []cron.Rule{
 			rdb.SetMetricsInt64(stats.MonitorUpTotalStatsName, up)
 			rdb.SetMetricsInt64(stats.MonitorDownTotalStatsName, down)
 
+			return nil
+		},
+	},
+	{
+		Name:  "rules_updater",
+		Scope: cron.CronScopeSystem,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			//err := rules.Updater(ctx.Context())
+			//if err != nil {
+			//	flog.Error(err)
+			//}
 			return nil
 		},
 	},

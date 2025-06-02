@@ -37,7 +37,7 @@ func reloadEndpoint(dynamicEndpoint endpointTypes.DynamicEndpoint, def []byte) e
 func InitEndpoint() error {
 	// load endpoints from directory
 
-	rulesPath := config.App.Flowbot.RulesPath
+	rulesPath := config.App.RuleEngine.RulesPath
 	endpointsPath := filepath.Join(rulesPath, EndpointDirName)
 	info, err := os.Stat(endpointsPath)
 	if err != nil {

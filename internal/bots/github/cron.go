@@ -104,7 +104,7 @@ var cronRules = []cron.Rule{
 			}
 
 			var r []types.MsgPayload
-			for _, item := range *notifications {
+			for _, item := range notifications {
 				r = append(r, types.InfoMsg{
 					Title: *item.Subject.Title,
 					Model: types.KV{

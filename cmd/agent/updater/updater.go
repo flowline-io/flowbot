@@ -6,10 +6,10 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/minio/selfupdate"
 	"github.com/samber/lo"
-	"github.com/schollz/progressbar/v3"
 	"io"
 	"net/http"
 	"os"
@@ -53,7 +53,7 @@ func UpdateSelf() (bool, error) {
 
 	flog.Info("Downloading latest version...")
 	filename := execName() + ".tmp"
-	err = DownloadFile(*(*asset).BrowserDownloadURL, filename)
+	err = utils.DownloadFile(*(*asset).BrowserDownloadURL, filename)
 	if err != nil {
 		return false, err
 	}
@@ -102,35 +102,6 @@ func UpdateSelf() (bool, error) {
 	}
 
 	return true, nil
-}
-
-func DownloadFile(url, filename string) error {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = f.Close() }()
-
-	bar := progressbar.DefaultBytes(
-		resp.ContentLength,
-		"downloading",
-	)
-	_, err = io.Copy(io.MultiWriter(f, bar), resp.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func GetLatestRelease() (*github.RepositoryRelease, error) {

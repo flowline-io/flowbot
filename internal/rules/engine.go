@@ -48,7 +48,7 @@ func InitEngine() error {
 
 	// load rules from directory
 
-	rulesPath := config.App.Flowbot.RulesPath
+	rulesPath := config.App.RuleEngine.RulesPath
 	info, err := os.Stat(rulesPath)
 	if err != nil {
 		if os.IsNotExist(err) {

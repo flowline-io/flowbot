@@ -139,11 +139,16 @@ agents:
     enabled: true
     model: ""
 
+# Rule engine configuration
+rule_engine:
+  rules_path: "/opt/app/rules"
+  github_release_access_token: ""
+  github_rules_repo: "github.com/owner/rules"
+
 # Flowbot configuration
 flowbot:
   url: ""
   lang: "english"
-  rules_path: "/opt/app/rules"
 
 # Platform integration configuration
 platform:
