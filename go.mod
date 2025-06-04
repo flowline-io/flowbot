@@ -78,7 +78,7 @@ require (
 	golang.org/x/sys v0.33.0
 	golang.org/x/time v0.11.0
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
-	gorm.io/driver/mysql v1.5.7
+	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
 	gorm.io/gorm v1.30.0
 	gorm.io/plugin/dbresolver v1.6.0
