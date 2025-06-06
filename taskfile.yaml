@@ -68,7 +68,6 @@ tasks:
       - go install github.com/mgechev/revive@latest
       - go install github.com/swaggo/swag/cmd/swag@latest
       - go install golang.org/x/vuln/cmd/govulncheck@latest
-      - go install github.com/go-task/task/v3/cmd/task@latest
       - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - go install github.com/hibiken/asynq/tools/asynq@latest
       - go install github.com/zricethezav/gitleaks/v8@v8.24.2
