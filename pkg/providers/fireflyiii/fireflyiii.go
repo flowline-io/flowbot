@@ -34,6 +34,7 @@ func NewFireflyIII(endpoint string, token string) *FireflyIII {
 	v.c.SetBaseURL(endpoint)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(token)
+	v.c.SetDisableWarn(true)
 	traceId := uuid.New().String()
 	v.c.SetHeader("X-Trace-Id", traceId)
 

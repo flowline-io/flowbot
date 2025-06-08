@@ -107,6 +107,11 @@ func (a *adapter) UserGetAll(uid ...types.Uid) ([]*model.User, error) {
 	return q.Find()
 }
 
+func (a *adapter) FirstUser() (*model.User, error) {
+	q := dao.Q.User
+	return q.First()
+}
+
 func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
 	q := dao.Q.User
 	_, err := q.

@@ -35,13 +35,14 @@ func NewCloudflare(token string, zoneID string) *Cloudflare {
 	v.c = resty.New()
 	v.c.SetBaseURL("https://api.cloudflare.com/client/v4/")
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
+	v.c.SetAuthToken(v.token)
 
 	return v
 }
 
 func (v *Cloudflare) GetAnalytics(start, end string) (*AnalyticResponse, error) {
 	resp, err := v.c.R().
-		SetAuthToken(v.token).
 		SetResult(&AnalyticResponse{}).
 		SetBody(map[string]interface{}{
 			"query": fmt.Sprintf(`

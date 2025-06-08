@@ -22,7 +22,7 @@ const (
 
 var App Type
 
-// Contentx of the configuration file
+// Type of the configuration file
 type Type struct {
 	// HTTP(S) address:port to listen on for websocket and long polling clients. Either a
 	// numeric or a canonical name, e.g. ":80" or ":https". Could include a host name, e.g.
@@ -53,8 +53,8 @@ type Type struct {
 	// Platform
 	Platform platform `json:"platform" yaml:"platform" mapstructure:"platform"`
 
-	// Engine
-	Engine Engine `json:"engine" yaml:"engine" mapstructure:"engine"`
+	// Executor
+	Executor Executor `json:"executor" yaml:"executor" mapstructure:"executor"`
 
 	// Metrics
 	Metrics Metrics `json:"metrics" yaml:"metrics" mapstructure:"metrics"`
@@ -73,6 +73,9 @@ type Type struct {
 
 	// Agents
 	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
+
+	// Rule engine
+	RuleEngine RuleEngine `json:"rule_engine" yaml:"rule_engine" mapstructure:"rule_engine"`
 }
 
 // Large file handler config.
@@ -175,8 +178,8 @@ type Tailchat struct {
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
 }
 
-type Engine struct {
-	// Engine type: docker
+type Executor struct {
+	// Executor type: docker
 	Type string `json:"type" yaml:"type" mapstructure:"type"`
 	// Resource limits
 	Limits struct {
@@ -268,6 +271,15 @@ type Model struct {
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
 }
 
+type RuleEngine struct {
+	// rules directory path
+	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
+	// release access token
+	GithubReleaseAccessToken string `json:"github_release_access_token" yaml:"github_release_access_token" mapstructure:"github_release_access_token"`
+	// rules repo
+	GithubRulesRepo string `json:"github_rules_repo" yaml:"github_rules_repo" mapstructure:"github_rules_repo"`
+}
+
 func Load(path ...string) {
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
@@ -324,7 +336,7 @@ func NewConfig(lc fx.Lifecycle) Type {
 		OnStart: func(ctx context.Context) error {
 			// Watch config
 			viper.OnConfigChange(func(e fsnotify.Event) {
-				log.Printf("Config file changed: %s\n", e.Name)
+				log.Printf("Config file changed: %s\n", e.String())
 
 				// Reload
 				err := viper.Unmarshal(&App)

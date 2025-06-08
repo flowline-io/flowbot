@@ -3,15 +3,18 @@ package server
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/internal/rules"
+	"github.com/flowline-io/flowbot/internal/rules/components"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v3"
+	"github.com/rulego/rulego"
+	"github.com/rulego/rulego/endpoint"
+	"time"
 )
 
 var (
@@ -68,4 +71,41 @@ func initializeMetrics() error {
 			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
 		},
 	)
+}
+
+func initializeRuleEngine(app *fiber.App) error {
+	// register components
+	err := rulego.Registry.Register(&components.CommandNode{})
+	if err != nil {
+		return err
+	}
+	err = rulego.Registry.Register(&components.DataNode{})
+	if err != nil {
+		return err
+	}
+	err = rulego.Registry.Register(&components.FunctionsNode{})
+	if err != nil {
+		return err
+	}
+	err = rulego.Registry.Register(&components.DefaultUserNode{})
+	if err != nil {
+		return err
+	}
+
+	// register functions
+	rules.RegisterFunctions()
+
+	// register endpoints
+	err = endpoint.Registry.Register(&RestEndpoint{})
+
+	err = rules.InitEngine()
+	if err != nil {
+		return err
+	}
+	err = rules.InitEndpoint()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

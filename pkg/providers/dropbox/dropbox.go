@@ -33,6 +33,7 @@ func NewDropbox(clientId, clientSecret, redirectURI, accessToken string) *Dropbo
 	v.c = resty.New()
 	v.c.SetBaseURL("https://api.dropboxapi.com")
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
 
 	return v
 }

@@ -12,12 +12,10 @@ import (
 const defaultRunTimeout = 10 * time.Minute
 
 type Rule struct {
-	Id           string
-	Title        string
-	Desc         string
-	InputSchema  []types.FormField
-	OutputSchema []types.FormField
-	Run          func(ctx types.Context, input types.KV) (types.KV, error)
+	Id          string
+	Title       string
+	Description string
+	Run         func(ctx types.Context, input types.KV) (types.KV, error)
 }
 
 func (r Rule) ID() string {

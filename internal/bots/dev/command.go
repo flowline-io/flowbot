@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/internal/rules"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/executer"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/executor"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -88,7 +89,7 @@ var commandRules = []command.Rule{
 				Image: "ubuntu:mantic",
 				Run:   "echo -n hello > $OUTPUT",
 			}
-			engine := executer.New(runtime.Docker)
+			engine := executor.New(runtime.Docker)
 			err := engine.Run(context.Background(), task)
 			if err != nil {
 				flog.Error(err)
@@ -226,6 +227,34 @@ var commandRules = []command.Rule{
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
+			return types.TextMsg{Text: "ok"}
+		},
+	},
+	{
+		Define: "rule test",
+		Help:   `[example] url engine example`,
+		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+			//metaData := ruleTypes.NewMetadata()
+			//metaData.PutValue("uid", ctx.AsUser.String())
+			//metaData.PutValue("topic", ctx.Topic)
+			//metaData.PutValue("productType", "test01")
+			//
+			//msg1 := ruleTypes.NewMsg(0, "TEST_MSG_TYPE1", ruleTypes.JSON, metaData, "{\"deviceId\":\"aa\", \"temperature\":41}")
+			//
+			//ruleEngine, ok := rulego.Get("x/func")
+			//if !ok {
+			//	return types.TextMsg{Text: "rule not found"}
+			//}
+			//
+			//ruleEngine.OnMsgAndWait(msg1, ruleTypes.WithOnAllNodeCompleted(func() {
+			//	flog.Info("all node completed")
+			//}))
+
+			err := rules.Updater(ctx.Context())
+			if err != nil {
+				flog.Error(err)
+			}
+
 			return types.TextMsg{Text: "ok"}
 		},
 	},

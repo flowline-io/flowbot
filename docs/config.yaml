@@ -59,9 +59,9 @@ log:
   # Log level: debug, info, warn, error, fatal, panic
   level: info
 
-# Engine configuration
-engine:
-  # Engine type: docker
+# Executor configuration
+executor:
+  # executor type: docker
   type: "docker"
   # Resource limits
   limits:
@@ -138,6 +138,12 @@ agents:
   - name: "similar-tags"
     enabled: true
     model: ""
+
+# Rule engine configuration
+rule_engine:
+  rules_path: "/opt/app/rules"
+  github_release_access_token: ""
+  github_rules_repo: "github.com/owner/rules"
 
 # Flowbot configuration
 flowbot:

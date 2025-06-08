@@ -13,7 +13,7 @@ import (
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
-	"github.com/flowline-io/flowbot/pkg/executer/runtime"
+	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/stretchr/testify/assert"
