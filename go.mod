@@ -59,7 +59,7 @@ require (
 	github.com/samber/oops v1.18.1
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shirou/gopsutil/v4 v4.25.5
-	github.com/slack-go/slack v0.17.0
+	github.com/slack-go/slack v0.17.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
