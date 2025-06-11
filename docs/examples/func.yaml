@@ -1,0 +1,33 @@
+id: chain_call_custom_func
+name: test rule chain func
+root: true
+debugMode: true
+
+nodes:
+  - id: s1
+    type: flowbot/functions
+    configuration:
+      functionName: 'dev/in'
+
+  - id: s2
+    type: flowbot/functions
+    configuration:
+      functionName: 'dev/add'
+
+  - id: s3
+    type: flowbot/functions
+    configuration:
+      functionName: 'dev/out'
+
+  - id: s4
+    type: flowbot/functions
+    configuration:
+      functionName: 'dev/error'
+
+  - id: log
+    type: log
+    configuration:
+      jsScript: return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);
+
+pipelines:
+  - s1 --Success--> s2 --Success--> s3 --Success--> s4 --Failure--> log
