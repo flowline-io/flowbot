@@ -66,8 +66,8 @@ github.com/chzyer/readline v1.5.0/go.mod h1:x22KAscuvRqlLoK9CsoYsmxoXZMMFVyOl86c
 github.com/chzyer/test v0.0.0-20210722231415-061457976a23/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCyP4=
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
-github.com/cloudwego/eino v0.3.41 h1:bb6W5/+8QE+jlhDBY2TxcxYu6odpNQ436oDdBF45jgQ=
-github.com/cloudwego/eino v0.3.41/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
+github.com/cloudwego/eino v0.3.42 h1:LjoX0Utaso2LDdWhUpIWoh/T932swTDHz+6SX7vHm6E=
+github.com/cloudwego/eino v0.3.42/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
 github.com/cloudwego/eino-ext/components/model/ollama v0.0.0-20250520101807-b2008771903a h1:+/VYbeXv7bCdm0Wk183zIj9MjtF8yVaO1aDQyjfhf6c=
 github.com/cloudwego/eino-ext/components/model/ollama v0.0.0-20250520101807-b2008771903a/go.mod h1:giNUFqA+V7xrm/EDvH7JFnDqoWI+e2m1SVAnReU+Fd8=
 github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a h1:mpUCTgxWY34WyXopxMZcZPMJtg05tOCswxoRRXqT+lQ=
