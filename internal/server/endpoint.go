@@ -34,7 +34,7 @@ type RequestMessage struct {
 	Params   map[string]string
 	msg      *types.RuleMsg
 	err      error
-	Metadata types.Metadata
+	Metadata *types.Metadata
 }
 
 func (r *RequestMessage) Body() []byte {

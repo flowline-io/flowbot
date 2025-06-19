@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/rules/components"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
@@ -37,7 +38,7 @@ func RegisterFunctions() {
 						}
 
 						var input types.KV
-						err := sonic.Unmarshal(utils.StringToBytes(msg.Data), &input)
+						err := sonic.Unmarshal(utils.StringToBytes(msg.GetData()), &input)
 						if err != nil {
 							ctx.TellFailure(msg, err)
 							return
@@ -56,9 +57,9 @@ func RegisterFunctions() {
 								ctx.TellFailure(msg, err)
 								return
 							}
-							msg.Data = utils.BytesToString(d)
+							msg.SetData(utils.BytesToString(d))
 						} else {
-							msg.Data = ""
+							msg.SetData("")
 						}
 
 						ctx.TellSuccess(msg)

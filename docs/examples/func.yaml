@@ -7,22 +7,22 @@ nodes:
   - id: s1
     type: flowbot/functions
     configuration:
-      functionName: 'dev/in'
+      functionName: "dev/in"
 
   - id: s2
     type: flowbot/functions
     configuration:
-      functionName: 'dev/add'
+      functionName: "dev/add"
 
   - id: s3
     type: flowbot/functions
     configuration:
-      functionName: 'dev/out'
+      functionName: "dev/out"
 
   - id: s4
     type: flowbot/functions
     configuration:
-      functionName: 'dev/error'
+      functionName: "dev/error"
 
   - id: log
     type: log

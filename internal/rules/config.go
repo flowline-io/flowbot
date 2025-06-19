@@ -37,7 +37,7 @@ func NewConfig() (types.Config, error) {
 	conf.Logger = flog.RulegoLogger
 
 	// global properties
-	metadata := types.NewMetadata()
+	metadata := types.NewProperties()
 	metadata.PutValue("app", "flowbot")
 	metadata.PutValue("version", version.Buildtags)
 	metadata.PutValue("build", version.Buildstamp)

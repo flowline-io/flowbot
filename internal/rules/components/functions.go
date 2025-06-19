@@ -2,14 +2,15 @@ package components
 
 import (
 	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/rulego/rulego/api/types"
 	"github.com/rulego/rulego/components/base"
 	"github.com/rulego/rulego/utils/maps"
 	"github.com/rulego/rulego/utils/str"
-	"strings"
-	"sync"
 )
 
 var Functions = &FunctionsRegistry{}
@@ -92,10 +93,10 @@ func (x *FunctionsNode) OnMsg(ctx types.RuleContext, msg types.RuleMsg) {
 		if len(x.Config.Params) > 0 {
 			if msg.DataType == types.JSON {
 				var data map[string]interface{}
-				if msg.Data == "" {
+				if msg.GetData() == "" {
 					data = make(map[string]interface{})
 				} else {
-					err := sonic.Unmarshal(utils.StringToBytes(msg.Data), &data)
+					err := sonic.Unmarshal(utils.StringToBytes(msg.GetData()), &data)
 					if err != nil {
 						ctx.TellFailure(msg, err)
 						return
@@ -109,7 +110,7 @@ func (x *FunctionsNode) OnMsg(ctx types.RuleContext, msg types.RuleMsg) {
 					ctx.TellFailure(msg, err)
 					return
 				}
-				msg.Data = utils.BytesToString(b)
+				msg.SetData(utils.BytesToString(b))
 			}
 		}
 		f(ctx, msg)

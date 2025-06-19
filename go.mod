@@ -54,7 +54,7 @@ require (
 	github.com/prometheus/common v0.64.0
 	github.com/redis/go-redis/v9 v9.10.0
 	github.com/rs/zerolog v1.34.0
-	github.com/rulego/rulego v0.31.1
+	github.com/rulego/rulego v0.31.2
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.18.1
 	github.com/schollz/progressbar/v3 v3.18.0

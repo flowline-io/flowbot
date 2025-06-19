@@ -31,7 +31,7 @@ func (n *DataNode) OnMsg(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg) {
 		return
 	}
 	msg.DataType = ruleTypes.JSON
-	msg.Data = utils.BytesToString(b)
+	msg.SetData(utils.BytesToString(b))
 	ctx.TellSuccess(msg)
 	return
 }

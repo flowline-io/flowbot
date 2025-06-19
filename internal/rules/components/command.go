@@ -59,7 +59,7 @@ func (n *CommandNode) OnMsg(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg) {
 			}
 
 			stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
-			msg.Data = utils.BytesToString(d)
+			msg.SetData(utils.BytesToString(d))
 			ctx.TellSuccess(msg)
 			return
 		}
