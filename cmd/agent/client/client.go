@@ -114,10 +114,11 @@ func Online(hostid, hostname string) error {
 	return err
 }
 
-func Offline(hostid string) error {
+func Offline(hostid, hostname string) error {
 	v := newFlowbot()
 	_, err := v.fetcher(types.Offline, types.KV{
-		"hostid": hostid,
+		"hostid":   hostid,
+		"hostname": hostname,
 	})
 	if err != nil {
 		return err

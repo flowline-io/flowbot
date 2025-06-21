@@ -535,22 +535,42 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			return nil, errors.New("register agent error")
 		}
 
-		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s online", hostid)})
+		check, err := rdb.Client.Get(ctx.Context(), fmt.Sprintf("online:%s", hostid)).Result()
+		if err != nil && !errors.Is(err, redis.Nil) {
+			return nil, errors.New("get agent online error")
+		}
+		if check == "" {
+			// send message
+			err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s online", hostid, hostname)})
+			if err != nil {
+				flog.Error(fmt.Errorf("send message error %w", err))
+			}
+		}
+
+		// leave online stats
+		_, err = rdb.Client.Set(ctx.Context(), fmt.Sprintf("online:%s", hostid), time.Now().Unix(), 2*time.Minute).Result()
 		if err != nil {
-			flog.Error(fmt.Errorf("send message error %w", err))
+			flog.Error(err)
+			return nil, errors.New("set agent online error")
 		}
 	case types.Offline:
 		hostid, ok := data.Content.String("hostid")
 		if !ok {
 			return nil, errors.New("error hostid")
 		}
+		hostname, _ := data.Content.String("hostname")
 
 		err := store.Database.UpdateAgentOnlineDuration(uid, "", hostid, time.Now())
 		if err != nil {
 			flog.Error(fmt.Errorf("update online duration error %w", err))
 		}
 
-		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s offline", hostid)})
+		_, err = rdb.Client.Del(ctx.Context(), fmt.Sprintf("online:%s", hostid)).Result()
+		if err != nil {
+			flog.Error(fmt.Errorf("del agent online stats error %w", err))
+		}
+
+		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s stop", hostid, hostname)})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
@@ -665,6 +685,9 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 //
 // if the agent already exists, update its last online time, otherwise create a new agent
 func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
+	if hostid == "" {
+		return fmt.Errorf("hostid is empty")
+	}
 	agent, err := store.Database.GetAgentByHostid(uid, topic, hostid)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err

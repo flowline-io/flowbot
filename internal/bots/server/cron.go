@@ -5,6 +5,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/uptimekuma"
 	"github.com/flowline-io/flowbot/pkg/rdb"
@@ -13,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/redis/go-redis/v9"
 	"runtime"
+	"time"
 )
 
 var cronRules = []cron.Rule{
@@ -133,6 +136,32 @@ var cronRules = []cron.Rule{
 			//if err != nil {
 			//	flog.Error(err)
 			//}
+			return nil
+		},
+	},
+	{
+		Name:  "online_agent_checker",
+		Scope: cron.CronScopeSystem,
+		When:  "*/2 * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			list, err := store.Database.GetAgents()
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+			now := time.Now()
+			for _, item := range list {
+				duration := now.Sub(item.LastOnlineAt)
+				if duration > 2*time.Minute && duration < 3*time.Minute {
+					// offline
+					ctx.AsUser = types.Uid(item.UID)
+					ctx.Topic = item.Topic
+					err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s offline", item.Hostid, item.Hostname)})
+					if err != nil {
+						flog.Error(fmt.Errorf("send message error %w", err))
+					}
+				}
+			}
 			return nil
 		},
 	},

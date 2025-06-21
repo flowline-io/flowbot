@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"go.uber.org/fx"
+	"time"
 )
 
 type Daemon struct {
@@ -40,10 +41,16 @@ func RunDaemon(lc fx.Lifecycle, app *Daemon) {
 
 			// info
 			app.hostid, app.hostname = hostInfo()
-			err := client.Online(app.hostid, app.hostname)
-			if err != nil {
-				flog.Error(err)
-			}
+			go func() {
+				// heartbeat
+				ticker := time.NewTicker(time.Minute)
+				for range ticker.C {
+					err := client.Online(app.hostid, app.hostname)
+					if err != nil {
+						flog.Error(err)
+					}
+				}
+			}()
 
 			// cron
 			instruct.Cron()
@@ -53,7 +60,7 @@ func RunDaemon(lc fx.Lifecycle, app *Daemon) {
 		},
 		OnStop: func(ctx context.Context) error {
 			// offline
-			err := client.Offline(app.hostid)
+			err := client.Offline(app.hostid, app.hostname)
 			if err != nil {
 				flog.Error(err)
 			}
