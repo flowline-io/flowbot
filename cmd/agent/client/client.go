@@ -23,6 +23,7 @@ func newFlowbot() *flowbot {
 	v.c = resty.New()
 	v.c.SetBaseURL(config.App.ApiUrl)
 	v.c.SetTimeout(time.Minute)
+	v.c.SetDisableWarn(true)
 
 	return v
 }

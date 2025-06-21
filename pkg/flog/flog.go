@@ -14,6 +14,8 @@ import (
 
 var l zerolog.Logger
 
+var EnableAlarm = true
+
 func Init(fileLogEnabled bool) {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
@@ -101,8 +103,10 @@ func Warn(format string, a ...any) {
 }
 
 func Error(err error) {
-	// alarm error
-	alarm.Alarm(err, 0)
+	if EnableAlarm {
+		// alarm error
+		alarm.Alarm(err, 0)
+	}
 	// print error
 	l.Error().Caller(1).Stack().Err(err).Msg(err.Error())
 }

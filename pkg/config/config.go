@@ -220,11 +220,15 @@ type Executor struct {
 }
 
 type Metrics struct {
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Metrics endpoint
 	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 }
 
 type Search struct {
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Search endpoint
 	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 	// Search master key
@@ -245,6 +249,8 @@ type Flowbot struct {
 }
 
 type Alarm struct {
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Alarm filter rules
 	Filter string `json:"filter" yaml:"filter" mapstructure:"filter"`
 	// Slack webhook URL

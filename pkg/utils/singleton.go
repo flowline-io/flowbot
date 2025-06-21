@@ -41,7 +41,9 @@ func EmbedServer() {
 		app.Get("/", func(c fiber.Ctx) error { return nil })
 		app.Get("/health", func(c fiber.Ctx) error { return c.SendString("ok") })
 
-		err := app.Listen(net.JoinHostPort("127.0.0.1", EmbedServerPort))
+		err := app.Listen(net.JoinHostPort("127.0.0.1", EmbedServerPort), fiber.ListenConfig{
+			DisableStartupMessage: true,
+		})
 		if err != nil {
 			log.Fatal("embed server error")
 		}

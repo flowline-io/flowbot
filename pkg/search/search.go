@@ -22,6 +22,10 @@ type Client struct {
 }
 
 func NewClient(lc fx.Lifecycle, _ config.Type) *Client {
+	if !config.App.Search.Enabled {
+		return &Client{}
+	}
+
 	Instance = &Client{
 		manager: meilisearch.New(config.App.Search.Endpoint, meilisearch.WithAPIKey(config.App.Search.MasterKey)),
 	}
@@ -45,6 +49,10 @@ func NewClient(lc fx.Lifecycle, _ config.Type) *Client {
 }
 
 func (c *Client) AddDocument(data types.Document) error {
+	if !config.App.Search.Enabled {
+		return nil
+	}
+
 	// metrics
 	stats.SearchProcessedDocumentTotalCounter(config.App.Search.DataIndex).Inc()
 
@@ -67,6 +75,10 @@ func (c *Client) AddDocument(data types.Document) error {
 }
 
 func (c *Client) Search(source, query string, page, pageSize int32) (types.DocumentList, int64, error) {
+	if !config.App.Search.Enabled {
+		return nil, 0, fmt.Errorf("search disabled")
+	}
+
 	// metrics
 	stats.SearchTotalCounter(config.App.Search.DataIndex).Inc()
 

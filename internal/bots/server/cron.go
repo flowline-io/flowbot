@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/redis/go-redis/v9"
+	"runtime"
 )
 
 var cronRules = []cron.Rule{
@@ -39,6 +40,10 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "0 4 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			if runtime.GOOS == "windows" {
+				return nil
+			}
+
 			dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 			if err != nil {
 				flog.Error(err)
@@ -59,6 +64,10 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
+			if runtime.GOOS == "windows" {
+				return nil
+			}
+
 			dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 			if err != nil {
 				flog.Error(err)

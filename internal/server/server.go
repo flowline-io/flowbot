@@ -52,6 +52,7 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 
 			// http server
 			go func() {
+				flog.Info("start http server, listen on %s", config.App.Listen)
 				err := app.Listen(config.App.Listen, fiber.ListenConfig{
 					DisableStartupMessage: true,
 					EnablePrintRoutes:     true,

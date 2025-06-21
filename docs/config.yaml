@@ -86,10 +86,12 @@ executor:
 
 # Metrics configuration
 metrics:
+  enabled: true
   endpoint: "http://127.0.0.1:8428"
 
 # Search service configuration
 search:
+  enabled: true
   endpoint: "http://127.0.0.1:7700"
   master_key: ""
   data_index: "data"
@@ -101,6 +103,7 @@ search:
 
 # Alarm configuration
 alarm:
+  enabled: true
   # Alarm filter rules
   filter: ""
   # Slack webhook URL

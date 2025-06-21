@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
-	"strconv"
-
 	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"net/http"
 	"resty.dev/v3"
+	"strconv"
 )
 
 const (
@@ -19,6 +19,11 @@ const (
 )
 
 func AnkiStats() {
+	if !checkAnkiApiAvailable() {
+		flog.Debug("anki api not available")
+		return
+	}
+
 	html, err := getCollectionStatsHTML()
 	if err != nil {
 		flog.Error(err)
@@ -36,6 +41,11 @@ func AnkiStats() {
 }
 
 func AnkiReview() {
+	if !checkAnkiApiAvailable() {
+		flog.Debug("anki api not available")
+		return
+	}
+
 	num, err := getNumCardsReviewedToday()
 	if err != nil {
 		flog.Error(err)
@@ -108,6 +118,10 @@ func getNumCardsReviewedToday() (int, error) {
 		}
 	}
 	return 0, errors.New("result error")
+}
+
+func checkAnkiApiAvailable() bool {
+	return utils.PortAvailable("8765")
 }
 
 const ApiVersion = 6

@@ -1,0 +1,74 @@
+### agent pull
+
+POST http://{{host}}:{{port}}/agent
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "action": "pull",
+    "version": 1,
+    "content": {}
+}
+
+### agent collect
+
+POST http://{{host}}:{{port}}/agent
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "action": "collect",
+    "version": 1,
+    "content": {
+        "id": "collect_id",
+        "content": {
+            "title": "collect_title",
+            "body": "collect_body"
+        }
+    }
+}
+
+### agent ack
+
+POST http://{{host}}:{{port}}/agent
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "action": "ack",
+    "version": 1,
+    "content": {
+        "no": "123"
+    }
+}
+
+### agent online
+
+POST http://{{host}}:{{port}}/agent
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "action": "online",
+    "version": 1,
+    "content": {
+        "hostid": "afdksf-123",
+        "hostname": "ubuntu server"
+    }
+}
+
+### agent offline
+
+POST http://{{host}}:{{port}}/agent
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "action": "offline",
+    "version": 1,
+    "content": {
+        "hostid": "afdksf-123"
+    }
+}
+
+###

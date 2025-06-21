@@ -51,6 +51,9 @@ func GetClient() (*Kanboard, error) {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
 	username, _ := providers.GetConfig(ID, UsernameKey)
 	password, _ := providers.GetConfig(ID, PasswordKey)
+	if endpoint.String() == "" {
+		return nil, fmt.Errorf("kanboard disabled")
+	}
 
 	return NewKanboard(endpoint.String(), username.String(), password.String())
 }

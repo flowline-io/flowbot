@@ -23,6 +23,9 @@ var (
 )
 
 func initializeLog() error {
+	if config.App.Alarm.Enabled {
+		flog.EnableAlarm = true
+	}
 	flog.Init(false)
 	flog.SetLevel(config.App.Log.Level)
 	return nil
@@ -62,6 +65,10 @@ func initializeMedia() error {
 }
 
 func initializeMetrics() error {
+	if !config.App.Metrics.Enabled {
+		flog.Info("metrics disabled")
+		return nil
+	}
 	return metrics.InitPushWithOptions(
 		context.Background(),
 		fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),

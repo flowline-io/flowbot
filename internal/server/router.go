@@ -3,11 +3,6 @@ package server
 import (
 	"bytes"
 	"errors"
-	"github.com/gofiber/fiber/v3/middleware/healthcheck"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -28,11 +23,15 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {

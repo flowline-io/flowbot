@@ -16,6 +16,10 @@ var cronRules = []cron.Rule{
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			client, err := kanboard.GetClient()
+			if err != nil {
+				flog.Warn(err.Error())
+				return nil
+			}
 			list, err := client.GetAllTasks(ctx.Context(), kanboard.DefaultProjectId, kanboard.Active)
 			if err != nil {
 				flog.Error(err)

@@ -16,7 +16,7 @@ func checkUpdate() {
 	flog.Info("Checking for updates...")
 	needsUpdate, latest, err := updater.CheckUpdates()
 	if err != nil {
-		flog.Error(fmt.Errorf("Failed to check for updates, %w", err))
+		flog.Error(fmt.Errorf("failed to check for updates, %w", err))
 	} else if needsUpdate {
 		flog.Info("New version available current %v latest %v", version.Buildtags, latest[1:])
 
@@ -34,7 +34,7 @@ func checkUpdate() {
 	}
 }
 
-func hostinfo() (string, string) {
+func hostInfo() (string, string) {
 	infoStat, err := host.Info()
 	if err != nil {
 		flog.Error(err)
