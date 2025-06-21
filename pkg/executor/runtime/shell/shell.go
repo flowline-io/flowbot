@@ -6,15 +6,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"os"
-	"os/exec"
-	"strings"
-
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/reexec"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"github.com/rs/zerolog/log"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 type Rexec func(args ...string) *exec.Cmd
@@ -115,7 +114,7 @@ func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	defer r.cmds.Delete(t.ID)
 
-	workdir, err := os.MkdirTemp("", "flowbot")
+	workdir, err := os.MkdirTemp("", fmt.Sprintf("flowbot-%s", t.ID))
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		_ = os.RemoveAll(workdir)
 	}()
 
-	log.Debug().Msgf("Created workdir %s", workdir)
+	flog.Debug("Created workdir %s", workdir)
 
 	if err := os.WriteFile(fmt.Sprintf("%s/stdout", workdir), []byte{}, 0606); err != nil {
 		return fmt.Errorf("error writing the entrypoint, %w", err)
@@ -216,14 +215,15 @@ func reexecRun() {
 
 	workdir := os.Getenv("WORKDIR")
 	if workdir == "" {
-		log.Fatal().Msg("work dir not set")
+		flog.Error(errors.New("work dir not set"))
+		return
 	}
 
 	var env []string
 	for _, entry := range os.Environ() {
 		kv := strings.Split(entry, "=")
 		if len(kv) != 2 {
-			log.Fatal().Msgf("invalid env var: %s", entry)
+			flog.Error(fmt.Errorf("invalid env var: %s", entry))
 		}
 		if strings.HasPrefix(kv[0], envVarPrefix) {
 			k := strings.TrimPrefix(kv[0], envVarPrefix)
@@ -238,9 +238,9 @@ func reexecRun() {
 	cmd.Env = env
 	cmd.Dir = workdir
 
-	log.Debug().Msgf("reexecing: %s as %s:%s", strings.Join(flag.Args(), " "), uid, gid)
+	flog.Info("reexecing: %s as %s:%s", strings.Join(flag.Args(), " "), uid, gid)
 	if err := cmd.Run(); err != nil {
-		log.Fatal().Err(err).Msgf("error reexecing: %s", strings.Join(flag.Args(), " "))
+		flog.Error(fmt.Errorf("error reexecing: %s", strings.Join(flag.Args(), " ")))
 	}
 }
 

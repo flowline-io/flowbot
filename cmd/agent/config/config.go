@@ -16,9 +16,27 @@ import (
 var App Type
 
 type Type struct {
+	// logging level
 	LogLevel string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
-	ApiUrl   string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
+	// server api url
+	ApiUrl string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
+	// api token
 	ApiToken string `json:"api_token" yaml:"api_token" mapstructure:"api_token"`
+	// github token used for upgrade check and download binary
+	GithubToken string `json:"github_token" yaml:"github_token" mapstructure:"github_token"`
+	// script engine
+	ScriptEngine ScriptEngine `json:"script_engine" yaml:"script_engine" mapstructure:"script_engine"`
+}
+
+type ScriptEngine struct {
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// script path
+	ScriptPath string `json:"script_path" yaml:"script_path" mapstructure:"script_path"`
+	// User ID
+	UID string `json:"uid" yaml:"uid" mapstructure:"uid"`
+	// Group ID
+	GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
 }
 
 func Load(path ...string) {

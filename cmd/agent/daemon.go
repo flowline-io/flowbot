@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct"
+	"github.com/flowline-io/flowbot/cmd/agent/script"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
@@ -22,7 +23,11 @@ func NewDaemon(_ config.Type) *Daemon {
 	return &Daemon{}
 }
 
-func RunDaemon(lc fx.Lifecycle, app *Daemon) {
+func RunDaemon(lc fx.Lifecycle, app *Daemon, _ *script.Engine) {
+	// heartbeat ticker
+	heartbeatTicker := time.NewTicker(time.Minute)
+
+	// fx lifecycle hooks
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			// log
@@ -41,10 +46,10 @@ func RunDaemon(lc fx.Lifecycle, app *Daemon) {
 
 			// info
 			app.hostid, app.hostname = hostInfo()
+
+			// heartbeat
 			go func() {
-				// heartbeat
-				ticker := time.NewTicker(time.Minute)
-				for range ticker.C {
+				for range heartbeatTicker.C {
 					err := client.Online(app.hostid, app.hostname)
 					if err != nil {
 						flog.Error(err)
@@ -59,6 +64,8 @@ func RunDaemon(lc fx.Lifecycle, app *Daemon) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			// stop heartbeat
+			heartbeatTicker.Stop()
 			// offline
 			err := client.Offline(app.hostid, app.hostname)
 			if err != nil {

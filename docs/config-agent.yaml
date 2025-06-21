@@ -2,3 +2,9 @@
 log_level: debug
 api_url: "http://127.0.0.1:6060"
 api_token: ""
+github_token: ""
+script_engine:
+  enabled: false
+  script_path: './scripts'
+  uid: ""
+  gid: ""
