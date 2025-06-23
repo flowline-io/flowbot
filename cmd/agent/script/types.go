@@ -41,5 +41,12 @@ type ExecScriptWorker struct {
 }
 
 func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) error {
-	return execScript(job.Args)
+	return execScript(ctx, job.Args)
+}
+
+func (w *ExecScriptWorker) Timeout(job *river.Job[Rule]) time.Duration {
+	if job.Args.Timeout == 0 {
+		return time.Hour
+	}
+	return job.Args.Timeout
 }
