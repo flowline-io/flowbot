@@ -4,22 +4,28 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
+	"fmt"
+	"github.com/adrg/xdg"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riversqlite"
+	"github.com/riverqueue/river/rivermigrate"
 	_ "modernc.org/sqlite" //revive:disable
 )
 
 func (e *Engine) queue() {
-	dbPool, err := sql.Open("sqlite", "file:./river.sqlite3?_pragma=journal_mode(WAL)&_txlock=immediate")
+	if xdg.ConfigHome == "" {
+		flog.Error(errors.New("xdg.ConfigHome is empty"))
+		return
+	}
+	flog.Info("queue database path %s/flowbot-agent/river.sqlite3", xdg.ConfigHome)
+	dbPool, err := sql.Open("sqlite", fmt.Sprintf("file:%s/flowbot-agent/river.sqlite3?_pragma=journal_mode(WAL)&_txlock=immediate", xdg.ConfigHome))
 	if err != nil {
 		flog.Error(err)
 		return
 	}
-	defer dbPool.Close()
-
 	dbPool.SetMaxOpenConns(1)
+	defer dbPool.Close()
 
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &ExecScriptWorker{})
@@ -35,6 +41,23 @@ func (e *Engine) queue() {
 		return
 	}
 	e.client = riverClient
+
+	// migrate
+	migrator, err := rivermigrate.New(riversqlite.New(dbPool), &rivermigrate.Config{
+		Schema: "alternate_schema",
+	})
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+	res, err := migrator.Migrate(context.Background(), rivermigrate.DirectionUp, nil)
+	if err != nil {
+		flog.Error(err)
+		return
+	}
+	for _, migrateVersion := range res.Versions {
+		flog.Info("migrate %s %s:%d in %s", res.Direction, migrateVersion.Name, migrateVersion.Version, migrateVersion.Duration)
+	}
 
 	// Run the client inline. All executed jobs will inherit from ctx:
 	if err := riverClient.Start(context.Background()); err != nil {
