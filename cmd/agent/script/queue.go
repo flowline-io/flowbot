@@ -48,19 +48,7 @@ func (e *Engine) pushQueue(ctx context.Context, r Rule) error {
 	if e.client == nil {
 		return errors.New("queue client is nil")
 	}
-	result, err := e.client.Insert(ctx, r, &river.InsertOpts{
-		MaxAttempts: 1,
-		// UniqueOpts: river.UniqueOpts{
-		// 	ByArgs: true,
-		// 	ByState: []rivertype.JobState{
-		// 		rivertype.JobStateAvailable,
-		// 		rivertype.JobStatePending,
-		// 		rivertype.JobStateRetryable,
-		// 		rivertype.JobStateRunning,
-		// 		rivertype.JobStateScheduled,
-		// 	},
-		// },
-	})
+	result, err := e.client.Insert(ctx, r, nil)
 	if err != nil {
 		return err
 	}

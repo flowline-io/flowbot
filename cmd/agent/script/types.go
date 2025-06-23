@@ -18,6 +18,22 @@ func (Rule) Kind() string {
 	return "script"
 }
 
+func (Rule) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{
+		MaxAttempts: 1,
+		// UniqueOpts: river.UniqueOpts{
+		// 	ByArgs: true,
+		// 	ByState: []rivertype.JobState{
+		// 		rivertype.JobStateAvailable,
+		// 		rivertype.JobStatePending,
+		// 		rivertype.JobStateRetryable,
+		// 		rivertype.JobStateRunning,
+		// 		rivertype.JobStateScheduled,
+		// 	},
+		// },
+	}
+}
+
 type ExecScriptWorker struct {
 	// An embedded WorkerDefaults sets up default methods to fulfill the rest of
 	// the Worker interface:
