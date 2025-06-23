@@ -1,13 +1,22 @@
 package script
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/influxdata/cron"
-	"time"
 )
 
-func (e *Engine) Cron() {
+func (e *Engine) cron() {
 	// todo cron manager
+}
+
+func (e *Engine) startCron() error {
+	return nil
+}
+
+func (e *Engine) changeCron() error {
+	return nil
 }
 
 func (e *Engine) cronScheduler(r Rule) {
@@ -45,7 +54,8 @@ func (e *Engine) cronScheduler(r Rule) {
 }
 
 type Rule struct {
-	Id   string
-	When string
-	Path string
+	Id      string
+	When    string
+	Path    string
+	Timeout time.Duration
 }

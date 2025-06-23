@@ -5,6 +5,6 @@ api_token: ""
 github_token: ""
 script_engine:
   enabled: false
-  script_path: './scripts'
+  script_path: "./scripts"
   uid: ""
   gid: ""

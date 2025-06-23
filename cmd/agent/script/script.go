@@ -2,16 +2,15 @@ package script
 
 import (
 	"context"
-	"github.com/flc1125/go-cron/v4"
+	"sync"
+
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"go.uber.org/fx"
-	"sync"
 )
 
 type Engine struct {
-	c           *cron.Cron
-	cronScripts sync.Map
 	stop        chan struct{}
+	cronScripts sync.Map
 }
 
 func NewEngine(lc fx.Lifecycle, _ config.Type) *Engine {
@@ -29,12 +28,12 @@ func NewEngine(lc fx.Lifecycle, _ config.Type) *Engine {
 				return err
 			}
 
-			// run cron
-			e.Cron()
+			go e.queue()
+			go e.cron()
+
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			e.c.Stop()
 			e.Shutdown()
 			return nil
 		},

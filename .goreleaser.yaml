@@ -13,7 +13,7 @@ project_name: flowbot-agent
 before:
   hooks:
     # You may remove this if you don't use go modules.
-    - go mod tidy
+    - go mod download
     # you may remove this if you don't need go generate
     - go generate ./...
 

@@ -128,10 +128,9 @@ func (e *Engine) scan() error {
 				}
 			case err := <-watcher.Errors:
 				flog.Error(fmt.Errorf("watcher error: %w", err))
-				return
 			case <-e.stop:
 				flog.Info("stop script engine's watcher")
-				break
+				return
 			}
 		}
 	}()

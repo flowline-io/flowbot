@@ -2,9 +2,10 @@ name: Build
 
 on:
   push:
-    branches:
-      - '*'
-  pull_request:
+    paths:
+      - cmd/agent/**
+      - pkg/**
+      - version/**
 
 jobs:
   build:
@@ -27,15 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Lint
+      - name: install task
         run: |
-          go env
           go install github.com/go-task/task/v3/cmd/task@latest
-          go install github.com/mgechev/revive@latest
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
-          go mod download
-          task lint
 
-      - name: Build server
+      - name: Build agent
         run: |
-          task build
+          task snapshot
