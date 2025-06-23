@@ -42,6 +42,7 @@ func (e *Engine) queue() {
 	}
 
 	<-e.stop
+	flog.Info("stop queue client")
 }
 
 func (e *Engine) pushQueue(ctx context.Context, r Rule) error {

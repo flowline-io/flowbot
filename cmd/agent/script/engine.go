@@ -3,12 +3,12 @@ package script
 import (
 	"context"
 	"database/sql"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"runtime"
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/cmd/agent/startup"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/riverqueue/river"
 	"go.uber.org/fx"
 )
@@ -19,7 +19,9 @@ type Engine struct {
 }
 
 func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
-	e := &Engine{}
+	e := &Engine{
+		stop: make(chan struct{}),
+	}
 
 	if !config.App.ScriptEngine.Enabled {
 		return e
@@ -46,7 +48,9 @@ func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 		},
 		OnStop: func(ctx context.Context) error {
 			// Stop fetching new work and wait for active jobs to finish.
-			if err := e.client.StopAndCancel(context.Background()); err != nil {
+			ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+			defer cancel()
+			if err := e.client.Stop(ctx); err != nil {
 				flog.Error(err)
 			}
 			e.Shutdown()
@@ -59,4 +63,5 @@ func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 
 func (e *Engine) Shutdown() {
 	e.stop <- struct{}{}
+	flog.Info("script engine shutdown")
 }
