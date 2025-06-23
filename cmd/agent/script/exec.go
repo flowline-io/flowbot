@@ -6,14 +6,13 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
-func (e *Engine) execWorker(r Rule) {
+func execScript(r Rule) error {
 	rt := shell.NewShellRuntime(shell.Config{
-		CMD: []string{"/bin/sh", "-c", r.Path},
+		CMD: []string{"/bin/sh", "-c"},
 		UID: config.App.ScriptEngine.UID,
 		GID: config.App.ScriptEngine.GID,
 	})
@@ -24,22 +23,12 @@ func (e *Engine) execWorker(r Rule) {
 	defer cancel()
 
 	task := &types.Task{
-		ID: utils.NewUUID(),
+		ID:  utils.NewUUID(),
+		Run: r.Path,
 	}
 	err := rt.Run(ctx, task)
 	if err != nil {
-		flog.Error(err)
-		return
+		return err
 	}
-
-	select {
-	case <-e.stop:
-		flog.Info("cron script %s stopped", r.Id)
-		err = rt.Stop(context.Background(), task)
-		if err != nil {
-			flog.Error(err)
-		}
-	case <-ctx.Done():
-		flog.Info("exec script timout, %s, %s", r.Id, r.Path)
-	}
+	return nil
 }

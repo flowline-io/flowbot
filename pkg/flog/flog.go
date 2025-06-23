@@ -14,9 +14,9 @@ import (
 
 var l zerolog.Logger
 
-var EnableAlarm = true
+var enableAlarm = false
 
-func Init(fileLogEnabled bool) {
+func Init(fileLogEnabled, alarmEnabled bool) {
 	// error stack
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	// json marshaling
@@ -47,6 +47,7 @@ func Init(fileLogEnabled bool) {
 			writer = append(writer, runLogFile)
 		}
 	}
+	enableAlarm = alarmEnabled
 
 	multi := zerolog.MultiLevelWriter(writer...)
 	l = zerolog.New(multi).With().Timestamp().Logger()
@@ -103,7 +104,7 @@ func Warn(format string, a ...any) {
 }
 
 func Error(err error) {
-	if EnableAlarm {
+	if enableAlarm {
 		// alarm error
 		alarm.Alarm(err, 0)
 	}

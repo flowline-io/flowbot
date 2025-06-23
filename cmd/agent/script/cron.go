@@ -52,10 +52,3 @@ func (e *Engine) cronScheduler(r Rule) {
 		}
 	}
 }
-
-type Rule struct {
-	Id      string
-	When    string
-	Path    string
-	Timeout time.Duration
-}

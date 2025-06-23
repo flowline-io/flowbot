@@ -1,14 +1,17 @@
 package script
 
 import (
+	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/cmd/agent/config"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/fsnotify/fsnotify"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/flowline-io/flowbot/cmd/agent/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/fsnotify/fsnotify"
 )
 
 func (e *Engine) scan() error {
@@ -64,6 +67,16 @@ func (e *Engine) scan() error {
 
 	for scriptId, path := range scriptFiles {
 		flog.Info("load script: %s %s", scriptId, path)
+
+		// todo load script
+		err = e.pushQueue(context.Background(), Rule{
+			Id:      scriptId,
+			Path:    path,
+			Timeout: time.Hour, // todo
+		})
+		if err != nil {
+			flog.Error(err)
+		}
 	}
 
 	// Watch scripts directory for changes

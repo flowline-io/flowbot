@@ -23,10 +23,7 @@ var (
 )
 
 func initializeLog() error {
-	if config.App.Alarm.Enabled {
-		flog.EnableAlarm = true
-	}
-	flog.Init(false)
+	flog.Init(false, config.App.Alarm.Enabled)
 	flog.SetLevel(config.App.Log.Level)
 	return nil
 }

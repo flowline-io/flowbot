@@ -6,14 +6,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/utils/reexec"
 	"github.com/flowline-io/flowbot/pkg/utils/syncx"
-	"os"
-	"os/exec"
-	"strings"
 )
 
 type Rexec func(args ...string) *exec.Cmd

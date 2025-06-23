@@ -9,7 +9,6 @@
 /cloc
 /script
 /dist
-
 flowbot.json
 flowbot.yaml
 flowbot.log
@@ -21,3 +20,4 @@ flowbot
 /rules_bak
 /docs/http-client.private.env.json
 /scripts
+*.sqlite3
