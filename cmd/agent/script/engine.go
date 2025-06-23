@@ -3,6 +3,7 @@ package script
 import (
 	"context"
 	"database/sql"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"runtime"
 	"time"
 
@@ -45,10 +46,10 @@ func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 		},
 		OnStop: func(ctx context.Context) error {
 			// Stop fetching new work and wait for active jobs to finish.
-			// if err := e.client.Stop(context.Background()); err != nil {
-			// 	flog.Error(err)
-			// }
-			// e.Shutdown()
+			if err := e.client.StopAndCancel(context.Background()); err != nil {
+				flog.Error(err)
+			}
+			e.Shutdown()
 			return nil
 		},
 	})

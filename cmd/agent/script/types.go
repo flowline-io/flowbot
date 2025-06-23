@@ -2,6 +2,7 @@ package script
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/riverqueue/river"
@@ -40,7 +41,13 @@ type ExecScriptWorker struct {
 	river.WorkerDefaults[Rule]
 }
 
-func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) error {
+func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("exec script recover: %v", r)
+		}
+	}()
+
 	return execScript(ctx, job.Args)
 }
 
