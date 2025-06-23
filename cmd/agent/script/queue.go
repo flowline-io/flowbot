@@ -42,7 +42,8 @@ func (e *Engine) queue() {
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},
-		Workers: workers,
+		Workers:      workers,
+		ErrorHandler: &ErrorHandler{},
 	})
 	if err != nil {
 		flog.Error(err)

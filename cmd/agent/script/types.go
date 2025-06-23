@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/rivertype"
 )
 
 type Rule struct {
@@ -42,12 +44,6 @@ type ExecScriptWorker struct {
 }
 
 func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("exec script recover: %v", r)
-		}
-	}()
-
 	return execScript(ctx, job.Args)
 }
 
@@ -56,4 +52,21 @@ func (w *ExecScriptWorker) Timeout(job *river.Job[Rule]) time.Duration {
 		return time.Hour
 	}
 	return job.Args.Timeout
+}
+
+type ErrorHandler struct{}
+
+func (*ErrorHandler) HandleError(ctx context.Context, job *rivertype.JobRow, err error) *river.ErrorHandlerResult {
+	flog.Error(fmt.Errorf("Job errored with: %s", err))
+	return nil
+}
+
+func (*ErrorHandler) HandlePanic(ctx context.Context, job *rivertype.JobRow, panicVal any, trace string) *river.ErrorHandlerResult {
+	flog.Error(fmt.Errorf("Job panicked with: %v", panicVal))
+	flog.Warn("Stack trace: %s\n", trace)
+
+	// Cancel the job to prevent it from being retried:
+	return &river.ErrorHandlerResult{
+		SetCancelled: true,
+	}
 }
