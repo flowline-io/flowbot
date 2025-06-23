@@ -20,7 +20,7 @@ func (e *Engine) queue() {
 		flog.Error(errors.New("xdg.ConfigHome is empty"))
 		return
 	}
-	agentConfigPath := fmt.Sprintf("%s/flowbot-agent", xdg.ConfigHome)
+	agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
 	if err := os.MkdirAll(agentConfigPath, 0755); err != nil {
 		flog.Error(err)
 		return

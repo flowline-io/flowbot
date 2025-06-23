@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/alarm"
 	"github.com/rs/zerolog"
@@ -36,8 +37,12 @@ func Init(fileLogEnabled, alarmEnabled bool) {
 
 	// file
 	if fileLogEnabled {
+		agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
+		if err := os.MkdirAll(agentConfigPath, 0755); err != nil {
+			panic(err)
+		}
 		runLogFile, err := os.OpenFile(
-			"flowbot.log", // todo file path
+			fmt.Sprintf("%s/flowbot.log", agentConfigPath),
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 			0664,
 		)
