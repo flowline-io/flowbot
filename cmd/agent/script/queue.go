@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/adrg/xdg"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/riverqueue/river"
@@ -18,8 +20,14 @@ func (e *Engine) queue() {
 		flog.Error(errors.New("xdg.ConfigHome is empty"))
 		return
 	}
-	flog.Info("queue database path %s/flowbot-agent/river.sqlite3", xdg.ConfigHome)
-	dbPool, err := sql.Open("sqlite", fmt.Sprintf("file:%s/flowbot-agent/river.sqlite3?_pragma=journal_mode(WAL)&_txlock=immediate", xdg.ConfigHome))
+	agentConfigPath := fmt.Sprintf("%s/flowbot-agent", xdg.ConfigHome)
+	if err := os.MkdirAll(agentConfigPath, 0755); err != nil {
+		flog.Error(err)
+		return
+	}
+
+	flog.Info("queue database path: %s/river.sqlite3", agentConfigPath)
+	dbPool, err := sql.Open("sqlite", fmt.Sprintf("file:%s/river.sqlite3?_pragma=journal_mode(WAL)&_txlock=immediate", agentConfigPath))
 	if err != nil {
 		flog.Error(err)
 		return
@@ -43,9 +51,7 @@ func (e *Engine) queue() {
 	e.client = riverClient
 
 	// migrate
-	migrator, err := rivermigrate.New(riversqlite.New(dbPool), &rivermigrate.Config{
-		Schema: "alternate_schema",
-	})
+	migrator, err := rivermigrate.New(riversqlite.New(dbPool), &rivermigrate.Config{})
 	if err != nil {
 		flog.Error(err)
 		return
@@ -56,7 +62,7 @@ func (e *Engine) queue() {
 		return
 	}
 	for _, migrateVersion := range res.Versions {
-		flog.Info("migrate %s %s:%d in %s", res.Direction, migrateVersion.Name, migrateVersion.Version, migrateVersion.Duration)
+		flog.Info("migrate %s -> %d:%s in %s", res.Direction, migrateVersion.Version, migrateVersion.Name, migrateVersion.Duration)
 	}
 
 	// Run the client inline. All executed jobs will inherit from ctx:
