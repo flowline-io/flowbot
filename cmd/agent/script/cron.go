@@ -10,7 +10,7 @@ import (
 	"github.com/riverqueue/river/rivertype"
 )
 
-func (e *Engine) addCronJob(r Rule) (rivertype.PeriodicJobHandle, error) {
+func (e *Engine) addCronJob(r Rule) (int, error) {
 	schedule, err := cronInterval(r.When)
 	if err != nil {
 		return 0, errors.New("invalid cron schedule")
@@ -27,12 +27,19 @@ func (e *Engine) addCronJob(r Rule) (rivertype.PeriodicJobHandle, error) {
 	if err != nil {
 		return 0, err
 	}
+	e.cronJobs.Store(r.Id, int(periodicJobHandle))
 	flog.Info("add cron job %+v", periodicJobHandle)
-	return periodicJobHandle, nil
+	return int(periodicJobHandle), nil
 }
 
-func (e *Engine) removeCronJob(periodicJobHandle int) {
+func (e *Engine) removeCronJob(r Rule) {
+	cronId, ok := e.cronJobs.Load(r.Id)
+	if !ok {
+		return
+	}
+	periodicJobHandle := rivertype.PeriodicJobHandle(cronId.(int))
 	e.client.PeriodicJobs().Remove(rivertype.PeriodicJobHandle(periodicJobHandle))
+	e.cronJobs.Delete(r.Id)
 	flog.Info("remove cron job %+v", periodicJobHandle)
 }
 

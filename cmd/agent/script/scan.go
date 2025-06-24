@@ -68,25 +68,16 @@ func (e *Engine) scan() error {
 	for scriptId, path := range scriptFiles {
 		flog.Info("load script: %s %s", scriptId, path)
 
-		// todo load script
-		err = e.pushQueue(context.Background(), Rule{
+		// load script
+		err = e.loadScriptJob(context.Background(), Rule{
 			Id:      scriptId,
 			Path:    path,
-			Timeout: time.Hour, // todo
+			Timeout: time.Hour,
 		})
 		if err != nil {
 			flog.Error(err)
 		}
-
-		_, err = e.addCronJob(Rule{
-			Id:      scriptId,
-			Path:    path,
-			Timeout: time.Hour, // todo
-			When:    "* * * * *",
-		})
-		if err != nil {
-			flog.Error(err)
-		}
+		flog.Info("load script: %s", scriptId)
 	}
 
 	// Watch scripts directory for changes
@@ -142,11 +133,27 @@ func (e *Engine) scan() error {
 				flog.Info("load script: %s %s", scriptId, event.Name)
 
 				if event.Op == fsnotify.Remove {
-					// TODO: delete script
+					// delete script
+					err = e.deleteScriptJob(context.Background(), Rule{
+						Id:      scriptId,
+						Path:    event.Name,
+						Timeout: time.Hour,
+					})
+					if err != nil {
+						flog.Error(err)
+					}
 					flog.Info("delete script: %s", scriptId)
 				}
-				if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) {
-					// TODO: reload script
+				if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Chmod) {
+					// reload script
+					err = e.reloadScriptJob(context.Background(), Rule{
+						Id:      scriptId,
+						Path:    event.Name,
+						Timeout: time.Hour,
+					})
+					if err != nil {
+						flog.Error(err)
+					}
 					flog.Info("reload script: %s", scriptId)
 				}
 			case err := <-watcher.Errors:
@@ -171,4 +178,30 @@ func getFileId(rulesPath, path, ext string) (string, error) {
 	ruleId := strings.TrimSuffix(relPath, ext)
 
 	return ruleId, nil
+}
+
+func (e *Engine) loadScriptJob(ctx context.Context, r Rule) error {
+	if r.When != "" {
+		_, err := e.addCronJob(r)
+		return err
+	} else {
+		return e.pushQueue(ctx, r)
+	}
+}
+
+func (e *Engine) deleteScriptJob(_ context.Context, r Rule) error {
+	if r.When != "" {
+		e.removeCronJob(r)
+	}
+	return nil
+}
+
+func (e *Engine) reloadScriptJob(ctx context.Context, r Rule) error {
+	if r.When != "" {
+		err := e.deleteScriptJob(ctx, r)
+		if err != nil {
+			return err
+		}
+	}
+	return e.loadScriptJob(ctx, r)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
@@ -17,12 +18,14 @@ type Engine struct {
 	stop         chan struct{}
 	queueStarted chan struct{}
 	client       *river.Client[*sql.Tx]
+	cronJobs     sync.Map
 }
 
 func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 	e := &Engine{
 		stop:         make(chan struct{}),
 		queueStarted: make(chan struct{}),
+		cronJobs:     sync.Map{},
 	}
 
 	if !config.App.ScriptEngine.Enabled {
