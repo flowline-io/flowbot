@@ -77,6 +77,16 @@ func (e *Engine) scan() error {
 		if err != nil {
 			flog.Error(err)
 		}
+
+		_, err = e.addCronJob(Rule{
+			Id:      scriptId,
+			Path:    path,
+			Timeout: time.Hour, // todo
+			When:    "* * * * *",
+		})
+		if err != nil {
+			flog.Error(err)
+		}
 	}
 
 	// Watch scripts directory for changes

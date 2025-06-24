@@ -70,6 +70,7 @@ func (e *Engine) queue() {
 	if err := riverClient.Start(context.Background()); err != nil {
 		flog.Error(err)
 	}
+	e.queueStarted <- struct{}{}
 
 	<-e.stop
 	flog.Info("stop queue client")

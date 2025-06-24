@@ -1,54 +1,58 @@
 package script
 
 import (
+	"errors"
 	"time"
 
+	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/influxdata/cron"
+	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/rivertype"
 )
 
-func (e *Engine) cron() {
-	// todo cron manager
-}
-
-func (e *Engine) startCron() error {
-	return nil
-}
-
-func (e *Engine) changeCron() error {
-	return nil
-}
-
-func (e *Engine) cronScheduler(r Rule) {
-	flog.Debug("cron script %s scheduler start", r.Id)
-	p, err := cron.ParseUTC(r.When)
+func (e *Engine) addCronJob(r Rule) (rivertype.PeriodicJobHandle, error) {
+	schedule, err := cronInterval(r.When)
 	if err != nil {
-		flog.Error(err)
-		return
+		return 0, errors.New("invalid cron schedule")
 	}
-	nextTime, err := p.Next(time.Now())
+	periodicJobHandle, err := e.client.PeriodicJobs().AddSafely(
+		river.NewPeriodicJob(
+			schedule,
+			func() (river.JobArgs, *river.InsertOpts) {
+				return r, nil
+			},
+			nil,
+		),
+	)
 	if err != nil {
-		flog.Error(err)
-		return
+		return 0, err
+	}
+	flog.Info("add cron job %+v", periodicJobHandle)
+	return periodicJobHandle, nil
+}
+
+func (e *Engine) removeCronJob(periodicJobHandle int) {
+	e.client.PeriodicJobs().Remove(rivertype.PeriodicJobHandle(periodicJobHandle))
+	flog.Info("remove cron job %+v", periodicJobHandle)
+}
+
+type cronIntervalSchedule struct {
+	schedule cron.Schedule
+}
+
+func cronInterval(when string) (*cronIntervalSchedule, error) {
+	p := cron.NewParser(
+		cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	)
+
+	s, err := p.Parse(when)
+	if err != nil {
+		return nil, err
 	}
 
-	ticker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-e.stop:
-			flog.Info("cron script %s scheduler stopped", r.Id)
-			return
-		case <-ticker.C:
-			if nextTime.Format("2006-01-02 15:04") != time.Now().Format("2006-01-02 15:04") {
-				continue
-			}
+	return &cronIntervalSchedule{schedule: s}, nil
+}
 
-			// push queue todo
-
-			nextTime, err = p.Next(time.Now())
-			if err != nil {
-				flog.Error(err)
-			}
-		}
-	}
+func (s *cronIntervalSchedule) Next(t time.Time) time.Time {
+	return s.schedule.Next(t)
 }

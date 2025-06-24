@@ -8,12 +8,12 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/influxdata/cron"
 )
 
 type CronScope string
@@ -78,16 +78,16 @@ func (r *Ruleset) Shutdown() {
 }
 
 func (r *Ruleset) ruleWorker(rule Rule) {
-	p, err := cron.ParseUTC(rule.When)
+	p := cron.NewParser(
+		cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	)
+	schedule, err := p.Parse(rule.When)
 	if err != nil {
 		flog.Error(err)
 		return
 	}
-	nextTime, err := p.Next(time.Now())
-	if err != nil {
-		flog.Error(err)
-		return
-	}
+	nextTime := schedule.Next(time.Now())
+
 	ticker := time.NewTicker(time.Second)
 	for {
 		select {
@@ -161,10 +161,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					r.outCh <- item
 				}
 			}
-			nextTime, err = p.Next(time.Now())
-			if err != nil {
-				flog.Error(err)
-			}
+			nextTime = schedule.Next(time.Now())
 		}
 	}
 }

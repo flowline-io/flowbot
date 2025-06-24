@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/influxdata/cron"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -77,16 +77,15 @@ func (s *Crawler) Shutdown() {
 
 func (s *Crawler) ruleWorker(name string, r Rule) {
 	flog.Debug("crawler %s start", name)
-	p, err := cron.ParseUTC(r.When)
+	p := cron.NewParser(
+		cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	)
+	schedule, err := p.Parse(r.When)
 	if err != nil {
 		flog.Error(err)
 		return
 	}
-	nextTime, err := p.Next(time.Now())
-	if err != nil {
-		flog.Error(err)
-		return
-	}
+	nextTime := schedule.Next(time.Now())
 
 	ticker := time.NewTicker(time.Second)
 	for {
@@ -117,10 +116,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 					Result: result,
 				}
 			}
-			nextTime, err = p.Next(time.Now())
-			if err != nil {
-				flog.Error(err)
-			}
+			nextTime = schedule.Next(time.Now())
 		}
 	}
 }

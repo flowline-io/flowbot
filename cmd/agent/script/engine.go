@@ -14,13 +14,15 @@ import (
 )
 
 type Engine struct {
-	stop   chan struct{}
-	client *river.Client[*sql.Tx]
+	stop         chan struct{}
+	queueStarted chan struct{}
+	client       *river.Client[*sql.Tx]
 }
 
 func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 	e := &Engine{
-		stop: make(chan struct{}),
+		stop:         make(chan struct{}),
+		queueStarted: make(chan struct{}),
 	}
 
 	if !config.App.ScriptEngine.Enabled {
@@ -34,9 +36,8 @@ func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go e.queue()
-			e.cron()
 
-			time.Sleep(time.Second) // fixme
+			<-e.queueStarted
 
 			// scan scripts
 			err := e.scan()
