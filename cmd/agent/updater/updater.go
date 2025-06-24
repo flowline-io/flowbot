@@ -53,20 +53,20 @@ func UpdateSelf() (bool, error) {
 
 	flog.Info("Downloading latest version...")
 	filename := execName() + ".tmp"
-	err = utils.DownloadFile(*(*asset).BrowserDownloadURL, filename)
+	err = utils.DownloadFile(*asset.BrowserDownloadURL, filename)
 	if err != nil {
 		return false, err
 	}
 
 	flog.Info("Verifying checksum...")
 	checksumAsset, ok := lo.Find(release.Assets, func(asset *github.ReleaseAsset) bool {
-		return *(*asset).Name == checksumsName()
+		return *asset.Name == checksumsName()
 	})
 	if !ok || checksumAsset == nil {
 		return false, nil
 	}
 
-	resp, err := http.Get(*(*checksumAsset).BrowserDownloadURL)
+	resp, err := http.Get(*checksumAsset.BrowserDownloadURL)
 	if err != nil {
 		return false, err
 	}

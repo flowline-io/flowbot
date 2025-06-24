@@ -87,7 +87,7 @@ func NewConfig(lc fx.Lifecycle) Type {
 				// Reload
 				err := viper.Unmarshal(&App)
 				if err != nil {
-					log.Fatalf("[config] Failed to unmarshal config: %v", err)
+					log.Printf("[config] Failed to unmarshal config: %v", err)
 				}
 			})
 			viper.WatchConfig()

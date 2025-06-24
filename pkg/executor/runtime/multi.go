@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -44,7 +45,8 @@ func (m *MultiMounter) RegisterMounter(mtype string, mr Mounter) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, ok := m.mounters[mtype]; ok {
-		flog.Fatal("mount: Register called twice for mounter")
+		flog.Error(errors.New("mount: Register called twice for mounter"))
+		return
 	}
 	m.mounters[mtype] = mr
 }

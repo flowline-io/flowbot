@@ -532,7 +532,8 @@ func HandleWebsocket(stop <-chan bool) {
 
 	err = s.Open()
 	if err != nil {
-		log.Fatalf("Cannot open the session: %v", err)
+		flog.Error(fmt.Errorf("Cannot open the session: %v", err))
+		return
 	}
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {

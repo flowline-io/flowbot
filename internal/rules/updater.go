@@ -54,7 +54,7 @@ func Updater(ctx context.Context) error {
 
 	// Create a temporary download file
 	filename := "rules.tar.gz.tmp"
-	err = utils.DownloadFile(*(*asset).BrowserDownloadURL, filename)
+	err = utils.DownloadFile(*asset.BrowserDownloadURL, filename)
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}
