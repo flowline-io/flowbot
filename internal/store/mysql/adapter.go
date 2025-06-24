@@ -281,7 +281,8 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	}
 
 	a.db, err = gorm.Open(mysqlDriver.New(mysqlDriver.Config{Conn: db}), &gorm.Config{
-		Logger: flog.NewGormLogger(config.App.Log.Level),
+		Logger:                 flog.NewGormLogger(config.App.Log.Level),
+		SkipDefaultTransaction: true,
 	})
 	if err != nil {
 		return err
