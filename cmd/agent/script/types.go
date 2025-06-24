@@ -10,20 +10,28 @@ import (
 	"github.com/riverqueue/river/rivertype"
 )
 
+const (
+	// exec script default timeout
+	defaultTimeout = time.Hour
+)
+
 type Rule struct {
-	Id      string `json:"id" river:"unique"`
-	When    string
-	Path    string
-	Timeout time.Duration
+	Id         string `json:"id" river:"unique"`
+	When       string
+	Path       string
+	Timeout    time.Duration
+	Version    string
+	Desciption string
+	Retries    int
 }
 
 func (Rule) Kind() string {
 	return "script"
 }
 
-func (Rule) InsertOpts() river.InsertOpts {
+func (r Rule) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{
-		MaxAttempts: 1,
+		MaxAttempts: 1 + r.Retries,
 		// UniqueOpts: river.UniqueOpts{
 		// 	ByArgs: true,
 		// 	ByState: []rivertype.JobState{
@@ -49,7 +57,7 @@ func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) (err 
 
 func (w *ExecScriptWorker) Timeout(job *river.Job[Rule]) time.Duration {
 	if job.Args.Timeout == 0 {
-		return time.Hour
+		return defaultTimeout
 	}
 	return job.Args.Timeout
 }
