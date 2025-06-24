@@ -32,16 +32,16 @@ func (Rule) Kind() string {
 func (r Rule) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{
 		MaxAttempts: 1 + r.Retries,
-		// UniqueOpts: river.UniqueOpts{
-		// 	ByArgs: true,
-		// 	ByState: []rivertype.JobState{
-		// 		rivertype.JobStateAvailable,
-		// 		rivertype.JobStatePending,
-		// 		rivertype.JobStateRetryable,
-		// 		rivertype.JobStateRunning,
-		// 		rivertype.JobStateScheduled,
-		// 	},
-		// },
+		UniqueOpts: river.UniqueOpts{
+			ByArgs: true,
+			ByState: []rivertype.JobState{
+				rivertype.JobStateAvailable,
+				rivertype.JobStatePending,
+				rivertype.JobStateRetryable,
+				rivertype.JobStateRunning,
+				rivertype.JobStateScheduled,
+			},
+		},
 	}
 }
 
