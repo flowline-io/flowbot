@@ -56,8 +56,9 @@ require (
 	github.com/redis/go-redis/v9 v9.10.0
 	github.com/riverqueue/river v0.23.1
 	github.com/riverqueue/river/riverdriver/riversqlite v0.23.1
+	github.com/riverqueue/river/rivertype v0.23.1
 	github.com/rs/zerolog v1.34.0
-	github.com/rulego/rulego v0.31.2
+	github.com/rulego/rulego v0.31.3
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.18.1
 	github.com/schollz/progressbar/v3 v3.18.0
@@ -198,7 +199,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riverqueue/river/riverdriver v0.23.1 // indirect
 	github.com/riverqueue/river/rivershared v0.23.1 // indirect
-	github.com/riverqueue/river/rivertype v0.23.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
