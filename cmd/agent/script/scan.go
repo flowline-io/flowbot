@@ -85,93 +85,96 @@ func (e *Engine) scan() error {
 	}
 
 	// Watch scripts directory for changes
-	go func() {
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to create watcher: %w", err))
-			return
-		}
-		defer func() {
-			_ = watcher.Close()
-		}()
+	go e.watcher()
 
-		// Watch the rules directory with subdirectories
-		// add new directory, need restart app to watch new directory
-		err = filepath.Walk(scriptsPath, func(path string, info fs.FileInfo, err error) error {
+	return nil
+}
+
+func (e *Engine) watcher() {
+	scriptsPath := config.App.ScriptEngine.ScriptPath
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		flog.Error(fmt.Errorf("failed to create watcher: %w", err))
+		return
+	}
+	defer func() {
+		_ = watcher.Close()
+	}()
+
+	// Watch the rules directory with subdirectories
+	// add new directory, need restart app to watch new directory
+	err = filepath.Walk(scriptsPath, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			if filepath.Base(path) == "." {
+				return filepath.SkipDir
+			}
+			err = watcher.Add(path)
 			if err != nil {
 				return err
 			}
-			if info.IsDir() {
-				if filepath.Base(path) == "." {
-					return filepath.SkipDir
-				}
-				err = watcher.Add(path)
-				if err != nil {
-					return err
-				}
-				flog.Info("Watching directory: %s", path)
+			flog.Info("Watching directory: %s", path)
+		}
+		return nil
+	})
+	if err != nil {
+		flog.Error(fmt.Errorf("failed to watch directory: %w", err))
+		return
+	}
+
+	for {
+		select {
+		case event := <-watcher.Events:
+			flog.Info("File %s has been %s", event.Name, event.Op.String())
+
+			ext := strings.ToLower(filepath.Ext(event.Name))
+			if ext != ".sh" && ext != ".fish" {
+				continue
 			}
-			return nil
-		})
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to watch directory: %w", err))
+
+			scriptId, err := getFileId(scriptsPath, event.Name, ext)
+			if err != nil {
+				flog.Error(fmt.Errorf("get rule id error: %w", err))
+				continue
+			}
+
+			flog.Info("load script: %s %s", scriptId, event.Name)
+
+			if event.Op == fsnotify.Remove {
+				// delete script
+				rule, err := parseScript(scriptId, event.Name)
+				if err != nil {
+					flog.Error(err)
+					continue
+				}
+				err = e.deleteScriptJob(context.Background(), rule)
+				if err != nil {
+					flog.Error(err)
+				}
+				flog.Info("delete script: %s", scriptId)
+			}
+			if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Chmod) {
+				// reload script
+				rule, err := parseScript(scriptId, event.Name)
+				if err != nil {
+					flog.Error(err)
+					continue
+				}
+				err = e.reloadScriptJob(context.Background(), rule)
+				if err != nil {
+					flog.Error(err)
+				}
+				flog.Info("reload script: %s", scriptId)
+			}
+		case err := <-watcher.Errors:
+			flog.Error(fmt.Errorf("watcher error: %w", err))
+		case <-e.stop:
+			flog.Info("stop script engine's watcher")
 			return
 		}
-
-		for {
-			select {
-			case event := <-watcher.Events:
-				flog.Info("File %s has been %s", event.Name, event.Op.String())
-
-				ext := strings.ToLower(filepath.Ext(event.Name))
-				if ext != ".sh" && ext != ".fish" {
-					continue
-				}
-
-				scriptId, err := getFileId(scriptsPath, event.Name, ext)
-				if err != nil {
-					flog.Error(fmt.Errorf("get rule id error: %w", err))
-					continue
-				}
-
-				flog.Info("load script: %s %s", scriptId, event.Name)
-
-				if event.Op == fsnotify.Remove {
-					// delete script
-					rule, err := parseScript(scriptId, event.Name)
-					if err != nil {
-						flog.Error(err)
-						continue
-					}
-					err = e.deleteScriptJob(context.Background(), rule)
-					if err != nil {
-						flog.Error(err)
-					}
-					flog.Info("delete script: %s", scriptId)
-				}
-				if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Chmod) {
-					// reload script
-					rule, err := parseScript(scriptId, event.Name)
-					if err != nil {
-						flog.Error(err)
-						continue
-					}
-					err = e.reloadScriptJob(context.Background(), rule)
-					if err != nil {
-						flog.Error(err)
-					}
-					flog.Info("reload script: %s", scriptId)
-				}
-			case err := <-watcher.Errors:
-				flog.Error(fmt.Errorf("watcher error: %w", err))
-			case <-e.stop:
-				flog.Info("stop script engine's watcher")
-				return
-			}
-		}
-	}()
-
-	return nil
+	}
 }
 
 func getFileId(rulesPath, path, ext string) (string, error) {
