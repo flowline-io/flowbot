@@ -22,7 +22,7 @@ func NewStartup(lc fx.Lifecycle) *Startup {
 			utils.CheckSingleton()
 
 			// embed server
-			utils.EmbedServer()
+			go utils.EmbedServer()
 			return nil
 		},
 	})
