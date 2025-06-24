@@ -38,7 +38,7 @@ func Init(fileLogEnabled, alarmEnabled bool) {
 	// file
 	if fileLogEnabled {
 		agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
-		if err := os.MkdirAll(agentConfigPath, 0755); err != nil {
+		if err := os.MkdirAll(agentConfigPath, 0600); err != nil {
 			panic(err)
 		}
 		runLogFile, err := os.OpenFile(

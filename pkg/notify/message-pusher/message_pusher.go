@@ -2,11 +2,13 @@ package message_pusher
 
 import (
 	"fmt"
+	"net"
+	"net/http"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"net/http"
 	"resty.dev/v3"
-	"time"
 )
 
 const ID = "message-pusher"
@@ -39,7 +41,7 @@ func (n *plugin) Send(tokens types.KV, message notify.Message) error {
 	token, _ := tokens.String("token")
 
 	if domain == "" {
-		domain = fmt.Sprintf("%s:%s", host, port)
+		domain = net.JoinHostPort(host, port)
 	}
 	url := fmt.Sprintf("http://%s/push/%s", domain, user)
 

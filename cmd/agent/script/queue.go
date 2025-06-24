@@ -21,7 +21,7 @@ func (e *Engine) queue() {
 		return
 	}
 	agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
-	if err := os.MkdirAll(agentConfigPath, 0755); err != nil {
+	if err := os.MkdirAll(agentConfigPath, 0600); err != nil {
 		flog.Error(err)
 		return
 	}

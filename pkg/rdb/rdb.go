@@ -3,6 +3,8 @@ package rdb
 import (
 	"context"
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -14,7 +16,7 @@ import (
 var Client *redis.Client
 
 func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
-	addr := fmt.Sprintf("%s:%d", config.App.Redis.Host, config.App.Redis.Port)
+	addr := net.JoinHostPort(config.App.Redis.Host, strconv.Itoa(config.App.Redis.Port))
 	password := config.App.Redis.Password
 	if addr == ":" || password == "" {
 		return nil, fmt.Errorf("redis config error")

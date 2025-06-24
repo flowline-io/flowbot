@@ -58,7 +58,7 @@ func (fh *fshandler) Init(jsconf string) error {
 	}
 
 	// Make sure the upload directory exists.
-	return os.MkdirAll(fh.fileUploadLocation, 0777)
+	return os.MkdirAll(fh.fileUploadLocation, 0750)
 }
 
 // Headers is used for serving CORS headers.

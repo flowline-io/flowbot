@@ -67,7 +67,7 @@ func Updater(ctx context.Context) error {
 
 	// Create a temporary extraction directory
 	tempExtractDir := rulesDir + "_new"
-	if err := os.MkdirAll(tempExtractDir, 0755); err != nil {
+	if err := os.MkdirAll(tempExtractDir, 0600); err != nil {
 		return fmt.Errorf("failed to create temp dir: %w", err)
 	}
 
@@ -193,7 +193,7 @@ func extractTarGz(src string, dest string) error {
 			}
 		case tar.TypeReg:
 			// Ensure the directory exists
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(target), 0600); err != nil {
 				return err
 			}
 			// Create the file
