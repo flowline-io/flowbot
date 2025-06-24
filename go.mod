@@ -1,6 +1,6 @@
 module github.com/flowline-io/flowbot
 
-go 1.24
+go 1.24.0
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
@@ -80,7 +80,7 @@ require (
 	gorm.io/gorm v1.30.0
 	gorm.io/plugin/dbresolver v1.6.0
 	gotest.tools/v3 v3.5.2
-	miniflux.app/v2 v2.2.8
+	miniflux.app/v2 v2.2.10
 	modernc.org/sqlite v1.38.0
 	resty.dev/v3 v3.0.0-beta.3
 )
@@ -240,7 +240,7 @@ require (
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
