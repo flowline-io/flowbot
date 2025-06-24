@@ -63,7 +63,6 @@ func RegisterFunctions() {
 						}
 
 						ctx.TellSuccess(msg)
-						return
 					})
 				}
 			}
@@ -73,6 +72,5 @@ func RegisterFunctions() {
 	// custom functions
 	components.Functions.Register("sendMessage", func(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg) {
 		ctx.TellSuccess(msg)
-		return
 	})
 }

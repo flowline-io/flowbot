@@ -33,7 +33,6 @@ func (n *DataNode) OnMsg(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg) {
 	msg.DataType = ruleTypes.JSON
 	msg.SetData(utils.BytesToString(b))
 	ctx.TellSuccess(msg)
-	return
 }
 
 func (n *DataNode) Destroy() {}

@@ -46,7 +46,6 @@ func (n *DefaultUserNode) OnMsg(ctx ruleTypes.RuleContext, msg ruleTypes.RuleMsg
 	}
 
 	ctx.TellSuccess(msg)
-	return
 }
 
 func (n *DefaultUserNode) Destroy() {}

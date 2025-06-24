@@ -136,9 +136,7 @@ func parsePipelines(lines []string) ([]Edge, map[string]bool, error) {
 		}
 
 		// remove list mark "- " from line head
-		if strings.HasPrefix(line, "- ") {
-			line = strings.TrimPrefix(line, "- ")
-		}
+		line = strings.TrimPrefix(line, "- ")
 
 		// find all arrow positions
 		arrowMatches := arrowRegex.FindAllStringSubmatchIndex(line, -1)

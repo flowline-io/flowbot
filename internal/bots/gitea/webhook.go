@@ -74,8 +74,6 @@ var webhookRules = []webhook.Rule{
 			}
 
 			eventType := eventTypeList[0]
-
-			var err error
 			switch eventType {
 			case "push":
 				var repoPayload *gitea.RepoPayload
@@ -86,13 +84,12 @@ var webhookRules = []webhook.Rule{
 				}
 
 				err = hookPush(ctx, repoPayload)
+				if err != nil {
+					flog.Error(err)
+					return types.TextMsg{Text: err.Error()}
+				}
 			default:
 				return types.TextMsg{Text: "error event type"}
-			}
-
-			if err != nil {
-				flog.Error(err)
-				return types.TextMsg{Text: err.Error()}
 			}
 
 			return types.TextMsg{Text: "done"}

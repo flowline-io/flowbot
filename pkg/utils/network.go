@@ -15,10 +15,8 @@ func PortAvailable(port string) bool {
 	defer func() {
 		_ = conn.Close()
 	}()
-	if conn != nil {
-		return false
-	}
-	return true
+
+	return conn == nil
 }
 
 // NetListener creates net.Listener for tcp and unix domains:
