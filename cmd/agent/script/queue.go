@@ -12,6 +12,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riversqlite"
 	"github.com/riverqueue/river/rivermigrate"
+	"github.com/riverqueue/river/rivertype"
 	_ "modernc.org/sqlite" //revive:disable
 )
 
@@ -44,6 +45,9 @@ func (e *Engine) queue() {
 		},
 		Workers:      workers,
 		ErrorHandler: &ErrorHandler{},
+		Hooks: []rivertype.Hook{
+			&LogHook{},
+		},
 	})
 	if err != nil {
 		flog.Error(err)

@@ -532,7 +532,7 @@ func HandleWebsocket(stop <-chan bool) {
 
 	err = s.Open()
 	if err != nil {
-		flog.Error(fmt.Errorf("Cannot open the session: %v", err))
+		flog.Error(fmt.Errorf("cannot open the session: %v", err))
 		return
 	}
 

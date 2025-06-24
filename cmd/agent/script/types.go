@@ -65,16 +65,35 @@ func (w *ExecScriptWorker) Timeout(job *river.Job[Rule]) time.Duration {
 type ErrorHandler struct{}
 
 func (*ErrorHandler) HandleError(ctx context.Context, job *rivertype.JobRow, err error) *river.ErrorHandlerResult {
-	flog.Error(fmt.Errorf("Job errored with: %s", err))
+	flog.Error(fmt.Errorf("job errored with: %s", err))
 	return nil
 }
 
 func (*ErrorHandler) HandlePanic(ctx context.Context, job *rivertype.JobRow, panicVal any, trace string) *river.ErrorHandlerResult {
-	flog.Error(fmt.Errorf("Job panicked with: %v", panicVal))
+	flog.Error(fmt.Errorf("job panicked with: %v", panicVal))
 	flog.Warn("Stack trace: %s\n", trace)
 
 	// Cancel the job to prevent it from being retried:
 	return &river.ErrorHandlerResult{
 		SetCancelled: true,
 	}
+}
+
+type LogHook struct {
+	river.HookDefaults
+}
+
+func (l *LogHook) InsertBegin(ctx context.Context, params *rivertype.JobInsertParams) error {
+	flog.Debug("[hook] inserting job with kind %q", params.Kind)
+	return nil
+}
+
+func (l *LogHook) WorkBegin(ctx context.Context, job *rivertype.JobRow) error {
+	flog.Debug("[hook] working job with id %q", job.Kind)
+	return nil
+}
+
+func (l *LogHook) WorkEnd(ctx context.Context, err error) error {
+	flog.Debug("[hook] working job ended with %v", err)
+	return nil
 }
