@@ -3,8 +3,10 @@ package dev
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/agents"
-	"github.com/flowline-io/flowbot/internal/rules"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -19,8 +21,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"os"
-	"time"
 )
 
 var commandRules = []command.Rule{
@@ -249,11 +249,6 @@ var commandRules = []command.Rule{
 			//ruleEngine.OnMsgAndWait(msg1, ruleTypes.WithOnAllNodeCompleted(func() {
 			//	flog.Info("all node completed")
 			//}))
-
-			err := rules.Updater(ctx.Context())
-			if err != nil {
-				flog.Error(err)
-			}
 
 			return types.TextMsg{Text: "ok"}
 		},

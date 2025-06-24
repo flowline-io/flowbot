@@ -22,7 +22,7 @@ func RunDaemon(lc fx.Lifecycle, _ *startup.Startup, _ *script.Engine) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			// check update
-			// checkUpdate()
+			checkUpdate()
 
 			// info
 			hostid, hostname = hostInfo()

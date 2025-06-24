@@ -11,4 +11,4 @@ var Buildstamp = "undef"
 // Buildtags set it to git tag:
 //
 //	-ldflags "-X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags`"
-var Buildtags = "v0.0.1"
+var Buildtags = "v0.31.0"

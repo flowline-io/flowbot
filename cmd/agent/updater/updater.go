@@ -3,18 +3,20 @@ package updater
 import (
 	"crypto/sha256"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"runtime"
+	"strings"
+
 	"github.com/Masterminds/semver/v3"
+	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/minio/selfupdate"
 	"github.com/samber/lo"
-	"io"
-	"net/http"
-	"os"
-	"runtime"
-	"strings"
 )
 
 func CheckUpdates() (bool, string, error) {
@@ -22,7 +24,7 @@ func CheckUpdates() (bool, string, error) {
 	if err != nil {
 		return false, "", err
 	}
-	flog.Info("release latest version: %v", *release.TagName)
+	flog.Info("[updater] release latest version: %v", *release.TagName)
 
 	latestVersion, err := semver.NewVersion(*release.TagName)
 	if err != nil {
@@ -51,14 +53,14 @@ func UpdateSelf() (bool, error) {
 		return false, nil
 	}
 
-	flog.Info("Downloading latest version...")
+	flog.Info("[updater] Downloading latest version...")
 	filename := execName() + ".tmp"
 	err = utils.DownloadFile(*asset.BrowserDownloadURL, filename)
 	if err != nil {
 		return false, err
 	}
 
-	flog.Info("Verifying checksum...")
+	flog.Info("[updater] Verifying checksum...")
 	checksumAsset, ok := lo.Find(release.Assets, func(asset *github.ReleaseAsset) bool {
 		return *asset.Name == checksumsName()
 	})
@@ -85,11 +87,11 @@ func UpdateSelf() (bool, error) {
 		return false, err
 	}
 	if ok := findChecksum(string(checksumBytes), fmt.Sprintf("%x", h.Sum(nil))); !ok {
-		return false, fmt.Errorf("checksum mismatch. expected: %s, got: %x", checksumBytes, h.Sum(nil))
+		return false, fmt.Errorf("[updater] checksum mismatch. expected: %s, got: %x", checksumBytes, h.Sum(nil))
 	}
 	_ = file.Close()
 
-	flog.Info("Applying update...")
+	flog.Info("[updater] Applying update...")
 	file, err = os.Open(filename)
 	if err != nil {
 		return false, err
@@ -105,7 +107,7 @@ func UpdateSelf() (bool, error) {
 }
 
 func GetLatestRelease() (*github.RepositoryRelease, error) {
-	client := github.NewGithub("", "", "", "")
+	client := github.NewGithub("", "", "", config.App.GithubToken)
 	releases, err := client.GetReleases("flowline-io", "flowbot", 1, 1)
 	if err != nil {
 		return nil, err

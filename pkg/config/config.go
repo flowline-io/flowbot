@@ -280,10 +280,6 @@ type Model struct {
 type RuleEngine struct {
 	// rules directory path
 	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
-	// release access token
-	GithubReleaseAccessToken string `json:"github_release_access_token" yaml:"github_release_access_token" mapstructure:"github_release_access_token"`
-	// rules repo
-	GithubRulesRepo string `json:"github_rules_repo" yaml:"github_rules_repo" mapstructure:"github_rules_repo"`
 }
 
 func Load(path ...string) {
