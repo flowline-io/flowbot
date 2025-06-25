@@ -9,7 +9,6 @@ func Cron() {
 	c := cron.New(cron.WithSeconds())
 
 	job := &collectJob{}
-	job.RunAnki(c)
-	job.RunDev(c)
+	job.Run(c)
 	c.Start()
 }

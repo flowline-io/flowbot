@@ -18,10 +18,10 @@ type flowbot struct {
 }
 
 func newFlowbot() *flowbot {
-	v := &flowbot{accessToken: config.App.ApiToken}
+	v := &flowbot{accessToken: config.App.Api.Token}
 
 	v.c = resty.New()
-	v.c.SetBaseURL(config.App.ApiUrl)
+	v.c.SetBaseURL(config.App.Api.Url)
 	v.c.SetTimeout(time.Minute)
 	v.c.SetDisableWarn(true)
 

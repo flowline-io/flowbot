@@ -12,13 +12,13 @@ func Cron() {
 	c := cron.New(cron.WithSeconds())
 	ac, err := cache.NewCache(config.Type{})
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("instruct cache init failed %v", err)
 	}
 
 	job := &instructJob{cache: ac}
 	_, err = c.AddJob("*/10 * * * * *", job)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("instruct cron add job failed %v", err)
 	}
 	c.Start()
 }

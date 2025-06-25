@@ -107,7 +107,7 @@ func UpdateSelf() (bool, error) {
 }
 
 func GetLatestRelease() (*github.RepositoryRelease, error) {
-	client := github.NewGithub("", "", "", config.App.GithubToken)
+	client := github.NewGithub("", "", "", config.App.Updater.GithubToken)
 	releases, err := client.GetReleases("flowline-io", "flowbot", 1, 1)
 	if err != nil {
 		return nil, err

@@ -2,15 +2,16 @@ package config
 
 import (
 	"context"
+	"log"
+	"os"
+	"runtime"
+
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
-	"log"
-	"os"
-	"runtime"
 )
 
 var App Type
@@ -18,14 +19,24 @@ var App Type
 type Type struct {
 	// logging level
 	LogLevel string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
-	// server api url
-	ApiUrl string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
-	// api token
-	ApiToken string `json:"api_token" yaml:"api_token" mapstructure:"api_token"`
-	// github token used for upgrade check and download binary
-	GithubToken string `json:"github_token" yaml:"github_token" mapstructure:"github_token"`
+	// API
+	Api Api `json:"api" yaml:"api" mapstructure:"api"`
+	// Updater
+	Updater Updater `json:"updater" yaml:"updater" mapstructure:"updater"`
 	// script engine
 	ScriptEngine ScriptEngine `json:"script_engine" yaml:"script_engine" mapstructure:"script_engine"`
+}
+
+type Api struct {
+	// server api url
+	Url string `json:"url" yaml:"url" mapstructure:"url"`
+	// api token
+	Token string `json:"token" yaml:"token" mapstructure:"token"`
+}
+
+type Updater struct {
+	// github token used for upgrade check and download binary
+	GithubToken string `json:"github_token" yaml:"github_token" mapstructure:"github_token"`
 }
 
 type ScriptEngine struct {

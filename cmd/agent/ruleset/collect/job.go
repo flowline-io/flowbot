@@ -10,7 +10,8 @@ import (
 
 type collectJob struct{}
 
-func (j *collectJob) RunAnki(c *cron.Cron) {
+func (j *collectJob) Run(c *cron.Cron) {
+	// anki
 	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
 		flog.Info("[anki] stats")
 		bot.AnkiStats()
@@ -21,9 +22,8 @@ func (j *collectJob) RunAnki(c *cron.Cron) {
 		bot.AnkiReview()
 		return nil
 	})
-}
 
-func (j *collectJob) RunDev(c *cron.Cron) {
+	// dev
 	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
 		flog.Info("[dev] import")
 		bot.DevImport()
@@ -35,6 +35,6 @@ func (j *collectJob) RunDev(c *cron.Cron) {
 func MustAddFunc(c *cron.Cron, spec string, cmd func(ctx context.Context) error) {
 	_, err := c.AddFunc(spec, cmd)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("collect cron add job failed %v", err)
 	}
 }
