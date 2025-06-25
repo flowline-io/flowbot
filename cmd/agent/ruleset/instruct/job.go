@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/client"
+	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct/bot"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -29,6 +30,10 @@ func (j *instructJob) Run(ctx context.Context) error {
 
 	// instruct loop
 	for _, item := range res.Instruct {
+		// check bot enabled
+		if !config.BotEnabled(item.Bot) {
+			continue
+		}
 		// check has been run
 		_, has := j.cache.Get(item.No)
 		if has {
@@ -42,6 +47,8 @@ func (j *instructJob) Run(ctx context.Context) error {
 		if time.Now().After(expiredAt) {
 			continue
 		}
+
+		// run instruct
 		err = RunInstruct(j.cache, item)
 		if err != nil {
 			flog.Error(fmt.Errorf("instruct run job failed %s %s %s", item.Bot, item.No, err))

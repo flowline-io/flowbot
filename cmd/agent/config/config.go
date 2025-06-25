@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/fsnotify/fsnotify"
+	"github.com/samber/lo"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -19,6 +20,8 @@ var App Type
 type Type struct {
 	// logging level
 	LogLevel string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
+	// bot enabled
+	BotsEnabled []string `json:"bots_enabled" yaml:"bots_enabled" mapstructure:"bots_enabled"`
 	// API
 	Api Api `json:"api" yaml:"api" mapstructure:"api"`
 	// Updater
@@ -111,4 +114,8 @@ func NewConfig(lc fx.Lifecycle) Type {
 	})
 
 	return App
+}
+
+func BotEnabled(id string) bool {
+	return lo.Count(App.BotsEnabled, id) > 0
 }

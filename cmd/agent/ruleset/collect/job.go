@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/flc1125/go-cron/v4"
+	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect/bot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -12,23 +13,29 @@ type collectJob struct{}
 
 func (j *collectJob) Run(c *cron.Cron) {
 	// anki
-	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
-		flog.Info("[anki] stats")
-		bot.AnkiStats()
-		return nil
-	})
-	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
-		flog.Info("[anki] review")
-		bot.AnkiReview()
-		return nil
-	})
+	if config.BotEnabled("anki") {
+		flog.Info("[collect] add cron anki")
+		MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
+			flog.Info("[anki] stats")
+			bot.AnkiStats()
+			return nil
+		})
+		MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
+			flog.Info("[anki] review")
+			bot.AnkiReview()
+			return nil
+		})
+	}
 
 	// dev
-	MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
-		flog.Info("[dev] import")
-		bot.DevImport()
-		return nil
-	})
+	if config.BotEnabled("dev") {
+		flog.Info("[collect] add cron dev")
+		MustAddFunc(c, "0 * * * * *", func(ctx context.Context) error {
+			flog.Info("[dev] import")
+			bot.DevImport()
+			return nil
+		})
+	}
 }
 
 // MustAddFunc will panic
