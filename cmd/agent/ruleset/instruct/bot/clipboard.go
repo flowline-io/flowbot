@@ -5,7 +5,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-var clipboard = []Executor{
+func RegisterClipboard() {
+	types.InstructRegister("clipboard", clipboard)
+}
+
+var clipboard = []types.Executor{
 	{
 		Flag: "clipboard_share",
 		Run: func(data types.KV) error {

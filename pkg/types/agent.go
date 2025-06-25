@@ -1,5 +1,9 @@
 package types
 
+import (
+	"fmt"
+)
+
 const ApiVersion = 1
 
 type Action string
@@ -33,3 +37,20 @@ const (
 	// Tool is the role of a tool, means the message is a tool call output.
 	Tool string = "tool"
 )
+
+type Executor struct {
+	Flag string
+	Run  func(data KV) error
+}
+
+var DoInstruct = map[string][]Executor{}
+
+func InstructRegister(name string, list []Executor) {
+	if DoInstruct == nil {
+		DoInstruct = make(map[string][]Executor)
+	}
+	if _, dup := DoInstruct[name]; dup {
+		panic(fmt.Sprintf("Register: called twice for instruct bot %s", name))
+	}
+	DoInstruct[name] = list
+}

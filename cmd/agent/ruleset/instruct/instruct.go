@@ -8,6 +8,8 @@ import (
 )
 
 func Cron() {
+	// register
+	registerInstruct()
 	// instruct job
 	c := cron.New(cron.WithSeconds())
 	ac, err := cache.NewCache(config.Type{})

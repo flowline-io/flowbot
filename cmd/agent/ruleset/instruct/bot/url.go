@@ -5,7 +5,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-var url = []Executor{
+func RegisterUrl() {
+	types.InstructRegister("url", url)
+}
+
+var url = []types.Executor{
 	{
 		Flag: "url_open",
 		Run: func(data types.KV) error {

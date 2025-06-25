@@ -7,7 +7,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-var dev = []Executor{
+func RegisterDev() {
+	types.InstructRegister("dev", dev)
+}
+
+var dev = []types.Executor{
 	{
 		Flag: "dev_example",
 		Run: func(data types.KV) error {

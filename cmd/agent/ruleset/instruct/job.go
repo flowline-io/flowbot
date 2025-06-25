@@ -14,6 +14,21 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+func registerInstruct() {
+	if config.BotEnabled("clipboard") {
+		bot.RegisterClipboard()
+		flog.Info("[instruct] register clipboard")
+	}
+	if config.BotEnabled("dev") {
+		bot.RegisterDev()
+		flog.Info("[instruct] register dev")
+	}
+	if config.BotEnabled("url") {
+		bot.RegisterUrl()
+		flog.Info("[instruct] register url")
+	}
+}
+
 type instructJob struct {
 	cache *cache.Cache
 }
@@ -59,7 +74,7 @@ func (j *instructJob) Run(ctx context.Context) error {
 }
 
 func RunInstruct(c *cache.Cache, item client.Instruct) error {
-	for id, dos := range bot.DoInstruct {
+	for id, dos := range types.DoInstruct {
 		if item.Bot != id {
 			continue
 		}
