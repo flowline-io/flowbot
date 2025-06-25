@@ -8,6 +8,7 @@ WorkingDirectory = /opt/app
 Restart = on-failure
 StandardOutput = append:/var/log/flowbot-agent.log
 StandardError = append:/var/log/flowbot-agent.log
+EnvironmentFile = /opt/app/flowbot-agent.env
 
 [Install]
 WantedBy = multi-user.target
