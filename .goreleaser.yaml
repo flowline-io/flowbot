@@ -46,6 +46,7 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^Merge"
 
 report_sizes: true
 
