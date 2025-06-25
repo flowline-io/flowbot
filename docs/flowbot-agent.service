@@ -1,0 +1,13 @@
+[Unit]
+Description = flowbot agent
+
+[Service]
+Type = simple
+ExecStart = /opt/app/flowbot-agent
+WorkingDirectory = /opt/app
+Restart = on-failure
+StandardOutput = append:/var/log/flowbot-agent.log
+StandardError = append:/var/log/flowbot-agent.log
+
+[Install]
+WantedBy = multi-user.target
