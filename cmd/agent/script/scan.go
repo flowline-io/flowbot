@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/fsnotify/fsnotify"
+	"github.com/samber/lo"
 )
 
 func (e *Engine) scan() error {
@@ -108,7 +109,11 @@ func (e *Engine) watcher() {
 			return err
 		}
 		if info.IsDir() {
-			if filepath.Base(path) == "." {
+			dir := filepath.Base(path)
+			if dir == "." {
+				return filepath.SkipDir
+			}
+			if lo.Count(config.App.ScriptEngine.SkipWatchDir, dir) > 0 {
 				return filepath.SkipDir
 			}
 			err = watcher.Add(path)

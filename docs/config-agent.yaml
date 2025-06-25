@@ -15,3 +15,6 @@ script_engine:
   script_path: "./scripts"
   uid: ""
   gid: ""
+  skip_watch_dir:
+    - ".git"
+    - ".vscode"

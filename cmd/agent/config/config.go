@@ -51,6 +51,8 @@ type ScriptEngine struct {
 	UID string `json:"uid" yaml:"uid" mapstructure:"uid"`
 	// Group ID
 	GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
+	// skip watch dir
+	SkipWatchDir []string `json:"skip_watch_dir" yaml:"skip_watch_dir" mapstructure:"skip_watch_dir"`
 }
 
 func Load(path ...string) {
