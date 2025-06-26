@@ -23,7 +23,7 @@ func TestShellRuntimeRunResult(t *testing.T) {
 
 	tk := &types.Task{
 		ID:  utils.NewUUID(),
-		Run: "echo -n hello world > $REEXEC_FLOWBOT_OUTPUT",
+		Run: "echo -n hello world > $OUTPUT",
 	}
 
 	err := rt.Run(context.Background(), tk)
@@ -44,7 +44,7 @@ func TestShellRuntimeRunFile(t *testing.T) {
 
 	tk := &types.Task{
 		ID:  utils.NewUUID(),
-		Run: "cat hello.txt > $REEXEC_FLOWBOT_OUTPUT",
+		Run: "cat hello.txt > $OUTPUT",
 		Files: map[string]string{
 			"hello.txt": "hello world",
 		},

@@ -140,7 +140,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
 	}
-	env = append(env, fmt.Sprintf("%sFLOWBOT_OUTPUT=%s/stdout", envVarPrefix, workdir))
+	env = append(env, fmt.Sprintf("%sOUTPUT=%s/stdout", envVarPrefix, workdir))
 	env = append(env, fmt.Sprintf("WORKDIR=%s", workdir))
 	env = append(env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
 

@@ -17,7 +17,7 @@ func checkUpdate() {
 	if err != nil {
 		flog.Error(fmt.Errorf("[updater] failed to check for updates, %w", err))
 	} else if needsUpdate {
-		flog.Info("[updater] New version available current %v latest %v", version.Buildtags, latest[1:])
+		flog.Info("[updater] New version available current %v -> latest %v", version.Buildtags, latest[1:])
 
 		flog.Info("[updater] Updating to the latest version...")
 		updated, err := updater.UpdateSelf()

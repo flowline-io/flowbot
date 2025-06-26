@@ -18,7 +18,7 @@ func NewStartup(lc fx.Lifecycle, _ config.Type) *Startup {
 			// log
 			flog.Init(false, false)
 			flog.SetLevel(config.App.LogLevel)
-			flog.Info("version %s %s", version.Buildtags, version.Buildstamp)
+			flog.Info("[version] %s %s", version.Buildtags, version.Buildstamp)
 
 			// check singleton
 			utils.CheckSingleton()
