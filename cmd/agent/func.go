@@ -39,6 +39,6 @@ func hostInfo() (string, string) {
 		flog.Error(err)
 		return "", ""
 	}
-	flog.Info("agent: %s %s", infoStat.HostID, infoStat.Hostname)
+	flog.Info("host info: %s %s", infoStat.HostID, infoStat.Hostname)
 	return infoStat.HostID, infoStat.Hostname
 }

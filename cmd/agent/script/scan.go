@@ -18,6 +18,11 @@ import (
 	"github.com/samber/lo"
 )
 
+const (
+	bashScriptExt = ".sh"
+	fishScriptExt = ".fish"
+)
+
 func (e *Engine) scan() error {
 	// load scripts from directory
 
@@ -58,7 +63,7 @@ func (e *Engine) scan() error {
 		}
 
 		// only support bash and fish
-		if ext == ".sh" || ext == ".fish" {
+		if ext == bashScriptExt || ext == fishScriptExt {
 			scriptFiles[scriptId] = path
 		}
 
@@ -134,7 +139,7 @@ func (e *Engine) watcher() {
 			flog.Info("[script] File %s has been %s", event.Name, event.Op.String())
 
 			ext := strings.ToLower(filepath.Ext(event.Name))
-			if ext != ".sh" && ext != ".fish" {
+			if ext != bashScriptExt && ext != fishScriptExt {
 				continue
 			}
 

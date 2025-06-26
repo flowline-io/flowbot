@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/client"
@@ -17,22 +18,28 @@ func RunDaemon(lc fx.Lifecycle, _ *startup.Startup, _ *script.Engine) {
 	var hostid, hostname string
 	// heartbeat ticker
 	heartbeatTicker := time.NewTicker(time.Minute)
+	// updater ticker
+	updaterTicker := time.NewTicker(time.Minute)
 
 	// fx lifecycle hooks
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			// check update
-			checkUpdate()
-
 			// info
 			hostid, hostname = hostInfo()
+
+			// check update
+			go func() {
+				for range updaterTicker.C {
+					checkUpdate()
+				}
+			}()
 
 			// heartbeat
 			go func() {
 				for range heartbeatTicker.C {
 					err := client.Online(hostid, hostname)
 					if err != nil {
-						flog.Error(err)
+						flog.Error(fmt.Errorf("[heartbeat] failed to online, %w", err))
 					}
 				}
 			}()
@@ -44,12 +51,13 @@ func RunDaemon(lc fx.Lifecycle, _ *startup.Startup, _ *script.Engine) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			// stop heartbeat
+			// stop ticker
 			heartbeatTicker.Stop()
+			updaterTicker.Stop()
 			// offline
 			err := client.Offline(hostid, hostname)
 			if err != nil {
-				flog.Error(err)
+				flog.Error(fmt.Errorf("failed to offline, %w", err))
 			}
 			return nil
 		},
