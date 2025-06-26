@@ -57,7 +57,7 @@ require (
 	github.com/riverqueue/river/riverdriver/riversqlite v0.23.1
 	github.com/riverqueue/river/rivertype v0.23.1
 	github.com/rs/zerolog v1.34.0
-	github.com/rulego/rulego v0.31.3
+	github.com/rulego/rulego v0.31.4
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.18.1
 	github.com/schollz/progressbar/v3 v3.18.0
