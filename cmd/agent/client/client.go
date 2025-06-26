@@ -39,20 +39,20 @@ func (v *flowbot) fetcher(action types.Action, content types.KV) ([]byte, error)
 		}).
 		Post("/agent")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("request error: %w", err)
 	}
 
 	if resp.StatusCode() == http.StatusOK {
 		r := resp.Result().(*protocol.Response)
 		return sonic.Marshal(r.Data)
 	} else {
-		return nil, fmt.Errorf("%d", resp.StatusCode())
+		return nil, fmt.Errorf("status code: %d", resp.StatusCode())
 	}
 }
 
 func Pull() (*InstructResult, error) {
 	v := newFlowbot()
-	data, err := v.fetcher(types.Pull, nil)
+	data, err := v.fetcher(types.PullAction, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ type Instruct struct {
 
 func Collect(content types.CollectData) error {
 	v := newFlowbot()
-	_, err := v.fetcher(types.Collect, types.KV{
+	_, err := v.fetcher(types.CollectAction, types.KV{
 		"id":      content.Id,
 		"content": content.Content,
 	})
@@ -93,7 +93,7 @@ func Collect(content types.CollectData) error {
 
 func Ack(no string) error {
 	v := newFlowbot()
-	_, err := v.fetcher(types.Ack, types.KV{
+	_, err := v.fetcher(types.AckAction, types.KV{
 		"no": no,
 	})
 	if err != nil {
@@ -104,7 +104,7 @@ func Ack(no string) error {
 
 func Online(hostid, hostname string) error {
 	v := newFlowbot()
-	_, err := v.fetcher(types.Online, types.KV{
+	_, err := v.fetcher(types.OnlineAction, types.KV{
 		"hostid":   hostid,
 		"hostname": hostname,
 	})
@@ -116,9 +116,20 @@ func Online(hostid, hostname string) error {
 
 func Offline(hostid, hostname string) error {
 	v := newFlowbot()
-	_, err := v.fetcher(types.Offline, types.KV{
+	_, err := v.fetcher(types.OfflineAction, types.KV{
 		"hostid":   hostid,
 		"hostname": hostname,
+	})
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func Message(text string) error {
+	v := newFlowbot()
+	_, err := v.fetcher(types.MessageAction, types.KV{
+		"message": text,
 	})
 	if err != nil {
 		return err

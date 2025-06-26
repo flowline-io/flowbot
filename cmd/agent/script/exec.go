@@ -5,12 +5,11 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
-func execScript(ctx context.Context, r Rule) error {
+func execScript(ctx context.Context, r Rule) (*types.Task, error) {
 	rt := shell.NewShellRuntime(shell.Config{
 		CMD: []string{"/bin/sh", "-c"},
 		UID: config.App.ScriptEngine.UID,
@@ -23,8 +22,7 @@ func execScript(ctx context.Context, r Rule) error {
 	}
 	err := rt.Run(ctx, task)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	flog.Debug("[script] exec result %v", task.Result)
-	return nil
+	return task, nil
 }

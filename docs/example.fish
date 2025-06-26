@@ -5,6 +5,7 @@
 # @version 1.0
 # @retries 3
 # @timeout 5m
+# @echo true
 #
 
 echo "example script"

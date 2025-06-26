@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/cmd/agent/client"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
@@ -23,6 +24,7 @@ type Rule struct {
 	Version    string
 	Desciption string
 	Retries    int
+	Echo       bool
 }
 
 func (Rule) Kind() string {
@@ -52,7 +54,23 @@ type ExecScriptWorker struct {
 }
 
 func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) (err error) {
-	return execScript(ctx, job.Args)
+	task, err := execScript(ctx, job.Args)
+	if err != nil {
+		return fmt.Errorf("failed to execute script: %w", err)
+	}
+	if task.Error != "" {
+		return fmt.Errorf("execute script error: %s", task.Error)
+	}
+	if task.Result != "" {
+		flog.Debug("[script] exec result %v", task.Result)
+		if job.Args.Echo {
+			err = client.Message(task.Result)
+			if err != nil {
+				flog.Error(fmt.Errorf("failed to send echo message: %w", err))
+			}
+		}
+	}
+	return nil
 }
 
 func (w *ExecScriptWorker) Timeout(job *river.Job[Rule]) time.Duration {

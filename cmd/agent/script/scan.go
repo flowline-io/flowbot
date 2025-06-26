@@ -278,6 +278,13 @@ func parseScript(scriptId, path string) (Rule, error) {
 		}
 		r.Retries = retries
 	}
+	if v, ok := metadata[echoMetadataTag]; ok {
+		echo, err := strconv.ParseBool(v)
+		if err != nil {
+			return Rule{}, fmt.Errorf("failed to parse echo: %w", err)
+		}
+		r.Echo = echo
+	}
 
 	return r, nil
 }
@@ -288,6 +295,7 @@ const (
 	versionMetadataTag     = "version"
 	descriptionMetadataTag = "description"
 	retriesMetadataTag     = "retries"
+	echoMetadataTag        = "echo"
 )
 
 func parseMetadata(scriptContent []byte) (map[string]string, error) {

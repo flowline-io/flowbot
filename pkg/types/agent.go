@@ -9,11 +9,12 @@ const ApiVersion = 1
 type Action string
 
 const (
-	Pull    Action = "pull"
-	Collect Action = "collect"
-	Ack     Action = "ack"
-	Online  Action = "online"
-	Offline Action = "offline"
+	PullAction    Action = "pull"
+	CollectAction Action = "collect"
+	AckAction     Action = "ack"
+	OnlineAction  Action = "online"
+	OfflineAction Action = "offline"
+	MessageAction Action = "message"
 )
 
 type AgentData struct {

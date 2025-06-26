@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -452,7 +452,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		AsUser: uid,
 	}
 	switch data.Action {
-	case types.Collect:
+	case types.CollectAction:
 		id, ok := data.Content.String("id")
 		if !ok {
 			return nil, errors.New("error collect id")
@@ -492,7 +492,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 				continue
 			}
 		}
-	case types.Pull:
+	case types.PullAction:
 		list, err := store.Database.ListInstruct(uid, false, 10)
 		if err != nil {
 			return nil, err
@@ -509,7 +509,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			})
 		}
 		return instruct, nil
-	case types.Ack:
+	case types.AckAction:
 		no, ok := data.Content.String("no")
 		if !ok {
 			return nil, errors.New("error instruct no")
@@ -522,7 +522,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-	case types.Online:
+	case types.OnlineAction:
 		hostid, ok := data.Content.String("hostid")
 		if !ok {
 			return nil, errors.New("error hostid")
@@ -553,7 +553,7 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 			flog.Error(err)
 			return nil, errors.New("set agent online error")
 		}
-	case types.Offline:
+	case types.OfflineAction:
 		hostid, ok := data.Content.String("hostid")
 		if !ok {
 			return nil, errors.New("error hostid")
@@ -571,6 +571,16 @@ func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
 		}
 
 		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s stop", hostid, hostname)})
+		if err != nil {
+			flog.Error(fmt.Errorf("send message error %w", err))
+		}
+	case types.MessageAction:
+		message, ok := data.Content.String("message")
+		if !ok {
+			return nil, errors.New("empty message")
+		}
+
+		err := event.SendMessage(ctx, types.TextMsg{Text: message})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
