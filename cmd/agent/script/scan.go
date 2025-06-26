@@ -25,7 +25,7 @@ func (e *Engine) scan() error {
 	info, err := os.Stat(scriptsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			flog.Warn("The directory does not exist: %s", scriptsPath)
+			flog.Warn("[script] The directory does not exist: %s", scriptsPath)
 			return nil // Ignore empty scripts directory
 		}
 		return err
@@ -42,7 +42,7 @@ func (e *Engine) scan() error {
 	err = filepath.WalkDir(scriptsPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// Handle errors that may occur during traversal (e.g. permission issues)
-			flog.Warn("Failed to access path %s: %v\n", path, err)
+			flog.Warn("[script] Failed to access path %s: %v\n", path, err)
 			return nil // Skip errors and continue traversal
 		}
 
@@ -70,19 +70,18 @@ func (e *Engine) scan() error {
 	}
 
 	for scriptId, path := range scriptFiles {
-		flog.Info("load script: %s %s", scriptId, path)
-
 		// load script
 		rule, err := parseScript(scriptId, path)
 		if err != nil {
-			flog.Error(err)
+			flog.Error(fmt.Errorf("[script] failed to parse script: %w", err))
 			continue
 		}
 		err = e.loadScriptJob(context.Background(), rule)
 		if err != nil {
-			flog.Error(err)
+			flog.Error(fmt.Errorf("[script] failed to load script: %w", err))
+			continue
 		}
-		flog.Info("load script: %s", scriptId)
+		flog.Info("[script] load script: %s %s", scriptId, path)
 	}
 
 	// Watch scripts directory for changes
@@ -95,7 +94,7 @@ func (e *Engine) watcher() {
 	scriptsPath := config.App.ScriptEngine.ScriptPath
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		flog.Error(fmt.Errorf("failed to create watcher: %w", err))
+		flog.Error(fmt.Errorf("[script] failed to create watcher: %w", err))
 		return
 	}
 	defer func() {
@@ -120,19 +119,19 @@ func (e *Engine) watcher() {
 			if err != nil {
 				return err
 			}
-			flog.Info("Watching directory: %s", path)
+			flog.Info("[script] Watching directory: %s", path)
 		}
 		return nil
 	})
 	if err != nil {
-		flog.Error(fmt.Errorf("failed to watch directory: %w", err))
+		flog.Error(fmt.Errorf("[script] failed to watch directory: %w", err))
 		return
 	}
 
 	for {
 		select {
 		case event := <-watcher.Events:
-			flog.Info("File %s has been %s", event.Name, event.Op.String())
+			flog.Info("[script] File %s has been %s", event.Name, event.Op.String())
 
 			ext := strings.ToLower(filepath.Ext(event.Name))
 			if ext != ".sh" && ext != ".fish" {
@@ -141,11 +140,9 @@ func (e *Engine) watcher() {
 
 			scriptId, err := getFileId(scriptsPath, event.Name, ext)
 			if err != nil {
-				flog.Error(fmt.Errorf("get rule id error: %w", err))
+				flog.Error(fmt.Errorf("[script] get rule id error: %w", err))
 				continue
 			}
-
-			flog.Info("load script: %s %s", scriptId, event.Name)
 
 			if event.Op == fsnotify.Remove {
 				// delete script
@@ -158,7 +155,7 @@ func (e *Engine) watcher() {
 				if err != nil {
 					flog.Error(err)
 				}
-				flog.Info("delete script: %s", scriptId)
+				flog.Info("[script] delete script: %s", scriptId)
 			}
 			if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Chmod) {
 				// reload script
@@ -171,12 +168,12 @@ func (e *Engine) watcher() {
 				if err != nil {
 					flog.Error(err)
 				}
-				flog.Info("reload script: %s", scriptId)
+				flog.Info("[script] reload script: %s", scriptId)
 			}
 		case err := <-watcher.Errors:
-			flog.Error(fmt.Errorf("watcher error: %w", err))
+			flog.Error(fmt.Errorf("[script] watcher error: %w", err))
 		case <-e.stop:
-			flog.Info("stop script engine's watcher")
+			flog.Info("[script] stop script engine's watcher")
 			return
 		}
 	}
@@ -185,7 +182,7 @@ func (e *Engine) watcher() {
 func getFileId(rulesPath, path, ext string) (string, error) {
 	relPath, err := filepath.Rel(rulesPath, path)
 	if err != nil {
-		return "", fmt.Errorf("an error occurred while getting the relative path: %v", err)
+		return "", fmt.Errorf("an error occurred while getting the relative path: %w", err)
 	}
 
 	relPath = filepath.ToSlash(relPath)
@@ -229,7 +226,7 @@ func parseScript(scriptId, path string) (Rule, error) {
 	if err != nil {
 		return Rule{}, fmt.Errorf("failed to parse metadata: %w", err)
 	}
-	flog.Info("%s script metadata: %#v", scriptId, metadata)
+	flog.Info("[script] %s script metadata: %#v", scriptId, metadata)
 
 	r := Rule{
 		Id:         scriptId,

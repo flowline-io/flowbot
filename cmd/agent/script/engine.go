@@ -67,5 +67,5 @@ func NewEngine(lc fx.Lifecycle, _ config.Type, _ *startup.Startup) *Engine {
 
 func (e *Engine) Shutdown() {
 	e.stop <- struct{}{}
-	flog.Info("script engine shutdown")
+	flog.Info("[script] engine shutdown")
 }

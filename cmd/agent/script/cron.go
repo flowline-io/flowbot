@@ -28,7 +28,7 @@ func (e *Engine) addCronJob(r Rule) (int, error) {
 		return 0, err
 	}
 	e.cronJobs.Store(r.Id, int(periodicJobHandle))
-	flog.Info("add cron job %+v", periodicJobHandle)
+	flog.Info("[script] add cron job %+v", periodicJobHandle)
 	return int(periodicJobHandle), nil
 }
 
@@ -40,7 +40,7 @@ func (e *Engine) removeCronJob(r Rule) {
 	periodicJobHandle := rivertype.PeriodicJobHandle(cronId.(int))
 	e.client.PeriodicJobs().Remove(rivertype.PeriodicJobHandle(periodicJobHandle))
 	e.cronJobs.Delete(r.Id)
-	flog.Info("remove cron job %+v", periodicJobHandle)
+	flog.Info("[script] remove cron job %+v", periodicJobHandle)
 }
 
 type cronIntervalSchedule struct {

@@ -18,16 +18,16 @@ import (
 
 func (e *Engine) queue() {
 	if xdg.ConfigHome == "" {
-		flog.Error(errors.New("xdg.ConfigHome is empty"))
+		flog.Error(errors.New("[script] xdg.ConfigHome is empty"))
 		return
 	}
 	agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
 	if err := os.MkdirAll(agentConfigPath, 0600); err != nil {
-		flog.Error(err)
+		flog.Error(fmt.Errorf("[script] failed to create directory: %w", err))
 		return
 	}
 
-	flog.Info("queue database path: %s/river.sqlite3", agentConfigPath)
+	flog.Info("[script] queue database path: %s/river.sqlite3", agentConfigPath)
 	dbPool, err := sql.Open("sqlite", fmt.Sprintf("file:%s/river.sqlite3?_pragma=journal_mode(WAL)&_txlock=immediate", agentConfigPath))
 	if err != nil {
 		flog.Error(err)
@@ -67,7 +67,7 @@ func (e *Engine) queue() {
 		return
 	}
 	for _, migrateVersion := range res.Versions {
-		flog.Info("migrate %s -> %d:%s in %s", res.Direction, migrateVersion.Version, migrateVersion.Name, migrateVersion.Duration)
+		flog.Info("[script] migrate %s -> %d:%s in %s", res.Direction, migrateVersion.Version, migrateVersion.Name, migrateVersion.Duration)
 	}
 
 	// Run the client inline. All executed jobs will inherit from ctx:
@@ -77,7 +77,7 @@ func (e *Engine) queue() {
 	e.queueStarted <- struct{}{}
 
 	<-e.stop
-	flog.Info("stop queue client")
+	flog.Info("[script] stop queue client")
 }
 
 func (e *Engine) pushQueue(ctx context.Context, r Rule) error {
@@ -88,6 +88,6 @@ func (e *Engine) pushQueue(ctx context.Context, r Rule) error {
 	if err != nil {
 		return err
 	}
-	flog.Info("push exec script job %+v", result.Job.ID)
+	flog.Info("[script] push exec script job %+v", result.Job.ID)
 	return nil
 }
