@@ -144,12 +144,23 @@ func (e *Engine) watcher() {
 				continue
 			}
 
-			if event.Op == fsnotify.Remove {
-				// delete script
+			if event.Has(fsnotify.Create) {
+				// load script
 				rule, err := parseScript(scriptId, event.Name)
 				if err != nil {
 					flog.Error(err)
 					continue
+				}
+				err = e.loadScriptJob(context.Background(), rule)
+				if err != nil {
+					flog.Error(err)
+				}
+				flog.Info("[script] load script: %s", scriptId)
+			}
+			if event.Has(fsnotify.Rename) {
+				// delete script
+				rule := Rule{
+					Id: scriptId,
 				}
 				err = e.deleteScriptJob(context.Background(), rule)
 				if err != nil {
@@ -157,7 +168,7 @@ func (e *Engine) watcher() {
 				}
 				flog.Info("[script] delete script: %s", scriptId)
 			}
-			if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Chmod) {
+			if event.Has(fsnotify.Write) {
 				// reload script
 				rule, err := parseScript(scriptId, event.Name)
 				if err != nil {
@@ -169,6 +180,17 @@ func (e *Engine) watcher() {
 					flog.Error(err)
 				}
 				flog.Info("[script] reload script: %s", scriptId)
+			}
+			if event.Op == fsnotify.Remove {
+				// delete script
+				rule := Rule{
+					Id: scriptId,
+				}
+				err = e.deleteScriptJob(context.Background(), rule)
+				if err != nil {
+					flog.Error(err)
+				}
+				flog.Info("[script] delete script: %s", scriptId)
 			}
 		case err := <-watcher.Errors:
 			flog.Error(fmt.Errorf("[script] watcher error: %w", err))
