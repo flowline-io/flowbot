@@ -1,4 +1,6 @@
-package main
+//go:build windows || darwin
+
+package desktop
 
 import (
 	"github.com/flowline-io/flowbot/pkg/flog"

@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/flowline-io/flowbot/cmd/agent/desktop"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -15,9 +16,9 @@ var clipboard = []types.Executor{
 		Run: func(data types.KV) error {
 			txt, _ := data.String("txt")
 			if txt != "" {
-				// app.SendNotification(fyne.NewNotification("clipboard", "share text from chat"))
-				// window.Clipboard().SetContent(txt)
-				flog.Info("todo")
+				flog.Info("share clipboard %s", txt)
+				d := desktop.Desktop{}
+				d.Notify("clipboard", txt)
 			}
 			return nil
 		},
