@@ -25,6 +25,7 @@ type Rule struct {
 	Desciption string
 	Retries    int
 	Echo       bool
+	Once       bool
 }
 
 func (Rule) Kind() string {
@@ -54,6 +55,23 @@ type ExecScriptWorker struct {
 }
 
 func (w *ExecScriptWorker) Work(ctx context.Context, job *river.Job[Rule]) (err error) {
+	// once check
+	if job.Args.Once {
+		f, err := onceLock(job.Args.Id)
+		if err != nil {
+			return fmt.Errorf("failed to get once lock: %w", err)
+		}
+		defer func() {
+			if err == nil {
+				_, writeErr := f.WriteString("1")
+				if writeErr != nil {
+					flog.Error(fmt.Errorf("failed to write once lock: %w", writeErr))
+				}
+				_ = f.Close()
+			}
+		}()
+	}
+
 	task, err := execScript(ctx, job.Args)
 	if err != nil {
 		return fmt.Errorf("failed to execute script: %w", err)

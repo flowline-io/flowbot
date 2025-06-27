@@ -22,7 +22,7 @@ func (e *Engine) queue() {
 		return
 	}
 	agentConfigPath := fmt.Sprintf("%s/flowbot", xdg.ConfigHome)
-	if err := os.MkdirAll(agentConfigPath, 0600); err != nil {
+	if err := os.MkdirAll(agentConfigPath, 0700); err != nil {
 		flog.Error(fmt.Errorf("[script] failed to create directory: %w", err))
 		return
 	}

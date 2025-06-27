@@ -285,6 +285,13 @@ func parseScript(scriptId, path string) (Rule, error) {
 		}
 		r.Echo = echo
 	}
+	if v, ok := metadata[onceMetadataTag]; ok {
+		once, err := strconv.ParseBool(v)
+		if err != nil {
+			return Rule{}, fmt.Errorf("failed to parse once: %w", err)
+		}
+		r.Once = once
+	}
 
 	return r, nil
 }
@@ -296,6 +303,7 @@ const (
 	descriptionMetadataTag = "description"
 	retriesMetadataTag     = "retries"
 	echoMetadataTag        = "echo"
+	onceMetadataTag        = "once"
 )
 
 func parseMetadata(scriptContent []byte) (map[string]string, error) {

@@ -70,7 +70,7 @@ func BotAction(ctx context.Context, c *cli.Command) error {
 	dir := fmt.Sprintf("%s/%s", BasePath, data.BotName)
 	_, err = os.Stat(dir)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(dir, 0600)
+		err = os.Mkdir(dir, 0700)
 		if err != nil {
 			return err
 		}
