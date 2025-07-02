@@ -61,7 +61,7 @@ require (
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.19.0
 	github.com/schollz/progressbar/v3 v3.18.0
-	github.com/shirou/gopsutil/v4 v4.25.5
+	github.com/shirou/gopsutil/v4 v4.25.6
 	github.com/slack-go/slack v0.17.2
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
