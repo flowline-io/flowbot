@@ -20,7 +20,7 @@ require (
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a
 	github.com/creachadair/jrpc2 v1.3.1
 	github.com/dgraph-io/ristretto/v2 v2.2.0
-	github.com/docker/cli v28.3.1+incompatible
+	github.com/docker/cli v28.3.2+incompatible
 	github.com/docker/docker v28.3.2+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.12.2
