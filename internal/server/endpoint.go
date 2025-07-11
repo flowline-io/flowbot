@@ -301,7 +301,7 @@ func (rest *RestEndpoint) Start() error {
 	if err := rest.checkIsInitSharedNode(); err != nil {
 		return err
 	}
-	if netResource, err := rest.SharedNode.Get(); err == nil {
+	if netResource, err := rest.SharedNode.GetSafely(); err == nil {
 		return netResource.startServer()
 	} else {
 		return err
@@ -329,7 +329,7 @@ func (rest *RestEndpoint) addRouter(method string, routers ...endpoint.Router) e
 		item.SetParams(method)
 		rest.RouterStorage[item.GetId()] = item
 		if rest.SharedNode.InstanceId != "" {
-			if shared, err := rest.SharedNode.Get(); err == nil {
+			if shared, err := rest.SharedNode.GetSafely(); err == nil {
 				return shared.addRouter(method, item)
 			} else {
 				return err
@@ -462,7 +462,7 @@ func (rest *RestEndpoint) GetServer() *fiber.App {
 	if rest.Server != nil {
 		return rest.Server
 	} else if rest.SharedNode.InstanceId != "" {
-		if shared, err := rest.SharedNode.Get(); err == nil {
+		if shared, err := rest.SharedNode.GetSafely(); err == nil {
 			return shared.Server
 		}
 	}
