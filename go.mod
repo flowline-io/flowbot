@@ -66,7 +66,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	github.com/swaggo/swag v1.16.4
+	github.com/swaggo/swag v1.16.5
 	github.com/tidwall/gjson v1.18.0
 	github.com/urfave/cli/v3 v3.3.8
 	github.com/valyala/fasthttp v1.64.0
