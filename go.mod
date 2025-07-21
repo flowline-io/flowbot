@@ -78,7 +78,7 @@ require (
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
 	gorm.io/gorm v1.30.0
-	gorm.io/plugin/dbresolver v1.6.0
+	gorm.io/plugin/dbresolver v1.6.1
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.10
 	modernc.org/sqlite v1.38.0
