@@ -25,7 +25,7 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/flc1125/go-cron/v4 v4.5.8
-	github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250529160935-d348985506ed
+	github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77
 	github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1
