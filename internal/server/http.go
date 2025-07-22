@@ -2,6 +2,8 @@ package server
 
 import (
 	"errors"
+	"time"
+
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/contrib/fiberzerolog"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -14,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/samber/oops"
-	"time"
 )
 
 var sharedApp *fiber.App
@@ -69,13 +70,14 @@ func newHTTPServer() *fiber.App {
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 		SkipURIs: []string{
-			healthcheck.DefaultLivenessEndpoint,
-			healthcheck.DefaultReadinessEndpoint,
-			healthcheck.DefaultStartupEndpoint,
+			healthcheck.LivenessEndpoint,
+			healthcheck.ReadinessEndpoint,
+			healthcheck.StartupEndpoint,
 			"/",
 			"/service/user/metrics",
 		},
 	}))
+	app.Use(healthcheck.New())
 
 	// swagger
 	if swagHandler != nil {

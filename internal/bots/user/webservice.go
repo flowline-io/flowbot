@@ -73,7 +73,7 @@ func getKanban(ctx fiber.Ctx) error {
 		return fmt.Errorf("failed to new client %w", err)
 	}
 
-	list, err := client.GetAllTasks(ctx.Context(), kanboard.DefaultProjectId, kanboard.Active)
+	list, err := client.GetAllTasks(ctx.RequestCtx(), kanboard.DefaultProjectId, kanboard.Active)
 	if err != nil {
 		return fmt.Errorf("failed to get all tasks, %w", err)
 	}

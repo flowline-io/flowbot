@@ -23,7 +23,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
-	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
@@ -42,9 +41,6 @@ func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {
 
 	// common
 	a.Get("/", func(c fiber.Ctx) error { return nil })
-	a.Get(healthcheck.DefaultLivenessEndpoint, healthcheck.NewHealthChecker())
-	a.Get(healthcheck.DefaultReadinessEndpoint, healthcheck.NewHealthChecker())
-	a.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	a.Get("/p/:id", ctl.getPage)
 	// form

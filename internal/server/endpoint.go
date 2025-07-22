@@ -438,7 +438,7 @@ func (rest *RestEndpoint) handler(router endpoint.Router, isWait bool) fiber.Han
 				metadata.PutValue(key, value)
 			}
 		}
-		var ctx = c.Context()
+		var ctx = context.Context(c.RequestCtx())
 		if !isWait {
 			ctx = context.Background()
 		}
