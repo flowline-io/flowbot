@@ -13,7 +13,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.29.0
-	github.com/bytedance/sonic v1.13.3
+	github.com/bytedance/sonic v1.14.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.3.53
 	github.com/cloudwego/eino-ext/components/model/ollama v0.0.0-20250520101807-b2008771903a
@@ -95,7 +95,7 @@ require (
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
-	github.com/bytedance/sonic/loader v0.2.4 // indirect
+	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
