@@ -57,6 +57,7 @@ func (c *Client) AddDocument(data types.Document) error {
 	stats.SearchProcessedDocumentTotalCounter(config.App.Search.DataIndex).Inc()
 
 	// add
+	primaryKey := "id"
 	taskInfo, err := c.manager.Index(config.App.Search.DataIndex).AddDocuments(types.KV{
 		"id":          idKey(data.Source, data.SourceId),
 		"source_id":   data.SourceId,
@@ -65,7 +66,7 @@ func (c *Client) AddDocument(data types.Document) error {
 		"description": data.Description,
 		"url":         data.Url,
 		"timestamp":   data.Timestamp,
-	}, "id")
+	}, &primaryKey)
 	if err != nil {
 		return err
 	}
