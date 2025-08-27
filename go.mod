@@ -15,7 +15,7 @@ require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.14.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/cloudwego/eino v0.4.5
+	github.com/cloudwego/eino v0.4.7
 	github.com/cloudwego/eino-ext/components/model/ollama v0.1.1
 	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a
 	github.com/creachadair/jrpc2 v1.3.2
@@ -116,6 +116,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
+	github.com/eino-contrib/jsonschema v1.0.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
 	github.com/expr-lang/expr v1.17.4 // indirect
