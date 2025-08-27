@@ -76,8 +76,8 @@ github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCy
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
 github.com/cloudwego/eino v0.4.7 h1:wwqsFWCuzCQuhw1dYKqHjGWULzjDjFfN9sTn/cezYV4=
 github.com/cloudwego/eino v0.4.7/go.mod h1:1TDlOmwGSsbCJaWB92w9YLZi2FL0WRZoRcD4eMvqikg=
-github.com/cloudwego/eino-ext/components/model/ollama v0.1.1 h1:BMThL4ScF6v+G2qza9kTkzDnGf4ktrBWJFDQXp0n0bE=
-github.com/cloudwego/eino-ext/components/model/ollama v0.1.1/go.mod h1:H0Y39fTeSV5VtrOSdFEa849ybPtFF3H7DpLMtndIYhY=
+github.com/cloudwego/eino-ext/components/model/ollama v0.1.2 h1:WxJ+7oXnr3AhM6u4VbFF3L2ionxCrPfmLetx7V+zthw=
+github.com/cloudwego/eino-ext/components/model/ollama v0.1.2/go.mod h1:OgGMCiR/G/RnOWaJvdK8pVSxAzoz2SlCqim43oFTuwo=
 github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a h1:mpUCTgxWY34WyXopxMZcZPMJtg05tOCswxoRRXqT+lQ=
 github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250520101807-b2008771903a/go.mod h1:LNe4KWTiK8uGf21d1nL1MR9PfFadDOiiHRrCcHMUYyM=
 github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250519084852-38fafa73d9ea h1:FojwJhddzbKAshizfGOYwCR9HPvaCSCM1P6Vlfr4fKo=
