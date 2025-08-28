@@ -8,7 +8,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.5.0
-	github.com/ThreeDotsLabs/watermill-redisstream v1.4.3
+	github.com/ThreeDotsLabs/watermill-redisstream v1.4.4
 	github.com/VictoriaMetrics/metrics v1.39.1
 	github.com/adrg/xdg v0.5.3
 	github.com/bsm/redislock v0.9.4
@@ -250,7 +250,7 @@ require (
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.4 // indirect
 	gorm.io/hints v1.1.0 // indirect
