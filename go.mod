@@ -35,7 +35,7 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
 	github.com/gofiber/fiber/v3 v3.0.0-rc.1
-	github.com/golang-migrate/migrate/v4 v4.18.3
+	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/uuid v1.6.0
 	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
@@ -125,7 +125,7 @@ require (
 	github.com/getkin/kin-openapi v0.118.0 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
@@ -231,12 +231,12 @@ require (
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
-	go.opentelemetry.io/otel v1.29.0 // indirect
+	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.22.0 // indirect
-	go.opentelemetry.io/otel/metric v1.29.0 // indirect
-	go.opentelemetry.io/otel/trace v1.29.0 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
+	go.opentelemetry.io/otel/metric v1.37.0 // indirect
+	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
