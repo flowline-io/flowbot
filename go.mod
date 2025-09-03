@@ -57,7 +57,7 @@ require (
 	github.com/riverqueue/river/riverdriver/riversqlite v0.24.0
 	github.com/riverqueue/river/rivertype v0.24.0
 	github.com/rs/zerolog v1.34.0
-	github.com/rulego/rulego v0.32.0
+	github.com/rulego/rulego v0.33.0
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.19.0
 	github.com/schollz/progressbar/v3 v3.18.0
@@ -119,7 +119,7 @@ require (
 	github.com/eino-contrib/jsonschema v1.0.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
-	github.com/expr-lang/expr v1.17.4 // indirect
+	github.com/expr-lang/expr v1.17.6 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/getkin/kin-openapi v0.118.0 // indirect
