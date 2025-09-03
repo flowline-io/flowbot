@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/RealAlexandreAI/json-repair v0.0.14
-	github.com/ThreeDotsLabs/watermill v1.5.0
+	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.4
 	github.com/VictoriaMetrics/metrics v1.39.1
 	github.com/adrg/xdg v0.5.3
@@ -98,7 +98,7 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
-	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250519084852-38fafa73d9ea // indirect
