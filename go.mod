@@ -52,7 +52,7 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.7
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.66.0
-	github.com/redis/go-redis/v9 v9.12.1
+	github.com/redis/go-redis/v9 v9.13.0
 	github.com/riverqueue/river v0.24.0
 	github.com/riverqueue/river/riverdriver/riversqlite v0.24.0
 	github.com/riverqueue/river/rivertype v0.24.0
