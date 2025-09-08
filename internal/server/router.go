@@ -3,6 +3,10 @@ package server
 import (
 	"bytes"
 	"errors"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -28,9 +32,6 @@ import (
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {

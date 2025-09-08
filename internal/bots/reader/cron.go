@@ -2,9 +2,10 @@ package reader
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/agents"
 	"strings"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/agents"
 
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"

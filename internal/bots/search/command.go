@@ -1,11 +1,12 @@
 package search
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
-	"time"
 )
 
 var commandRules = []command.Rule{

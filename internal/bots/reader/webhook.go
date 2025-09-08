@@ -1,13 +1,14 @@
 package reader
 
 import (
+	"net/http"
+
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	json "github.com/json-iterator/go"
-	"net/http"
 )
 
 const (

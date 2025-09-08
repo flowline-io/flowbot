@@ -3,12 +3,13 @@ package agents
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/cloudwego/eino-ext/components/model/ollama"
 	"github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/cloudwego/eino/components/model"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"sync"
-	"time"
 )
 
 const (

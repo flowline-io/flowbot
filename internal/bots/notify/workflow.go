@@ -2,6 +2,7 @@ package notify
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"

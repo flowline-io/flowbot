@@ -2,11 +2,12 @@ package rules
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/bytedance/sonic"
 	"github.com/goccy/go-yaml"
 	"github.com/rulego/rulego/api/types"
-	"regexp"
-	"strings"
 )
 
 // JSON

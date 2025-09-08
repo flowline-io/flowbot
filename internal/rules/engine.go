@@ -2,16 +2,17 @@ package rules
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/rulego/rulego"
 	ruleTypes "github.com/rulego/rulego/api/types"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 func newEngine(id string, def []byte) (ruleTypes.RuleEngine, error) {

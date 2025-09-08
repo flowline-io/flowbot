@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/rules"
@@ -14,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/rulego/rulego"
 	"github.com/rulego/rulego/endpoint"
-	"time"
 )
 
 var (

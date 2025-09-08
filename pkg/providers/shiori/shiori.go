@@ -2,8 +2,9 @@ package shiori
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/utils"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"resty.dev/v3"

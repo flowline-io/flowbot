@@ -3,9 +3,10 @@ package workflow
 import (
 	"errors"
 	"fmt"
-	"github.com/samber/lo"
 	"regexp"
 	"strings"
+
+	"github.com/samber/lo"
 
 	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/internal/store/model"

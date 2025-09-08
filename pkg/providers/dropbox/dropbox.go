@@ -2,15 +2,16 @@ package dropbox
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"time"
+
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v3"
-	"io"
-	"net/http"
 	"resty.dev/v3"
-	"time"
 )
 
 const (

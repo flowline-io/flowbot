@@ -3,11 +3,12 @@ package agents
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"sync"
 )
 
 const (

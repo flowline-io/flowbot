@@ -3,6 +3,7 @@ package finance
 import (
 	"context"
 	"fmt"
+
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"

@@ -3,7 +3,7 @@
 package server
 
 import (
-	"github.com/flowline-io/fiberswagger"
+	swagger "github.com/flowline-io/fiberswagger"
 	_ "github.com/flowline-io/flowbot/docs"
 )
 

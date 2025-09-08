@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/providers/archivebox"
 
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"

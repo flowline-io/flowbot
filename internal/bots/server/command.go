@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rulego/rulego"
-	ruleTypes "github.com/rulego/rulego/api/types"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rulego/rulego"
+	ruleTypes "github.com/rulego/rulego/api/types"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"

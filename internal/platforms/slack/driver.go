@@ -3,6 +3,8 @@ package slack
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -12,7 +14,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
-	"time"
 )
 
 type Driver struct {

@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/types"

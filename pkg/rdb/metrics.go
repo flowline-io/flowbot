@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"fmt"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 

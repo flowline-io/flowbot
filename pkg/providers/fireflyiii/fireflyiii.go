@@ -2,9 +2,10 @@ package fireflyiii
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/google/uuid"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"resty.dev/v3"

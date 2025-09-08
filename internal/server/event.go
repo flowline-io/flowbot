@@ -3,9 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"strings"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/chatbot"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"

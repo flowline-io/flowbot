@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"github.com/schollz/progressbar/v3"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 func FileExist(name string) bool {

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"go.uber.org/fx"
 )

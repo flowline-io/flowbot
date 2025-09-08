@@ -2,16 +2,17 @@ package rules
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/fsnotify/fsnotify"
 	endpointTypes "github.com/rulego/rulego/api/types/endpoint"
 	"github.com/rulego/rulego/endpoint"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 const EndpointDirName = "endpoints"

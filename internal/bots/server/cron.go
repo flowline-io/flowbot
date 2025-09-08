@@ -2,6 +2,9 @@ package server
 
 import (
 	"fmt"
+	"runtime"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -14,8 +17,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/redis/go-redis/v9"
-	"runtime"
-	"time"
 )
 
 var cronRules = []cron.Rule{

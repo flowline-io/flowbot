@@ -2,8 +2,9 @@ package bookmark
 
 import (
 	"fmt"
-	"github.com/flowline-io/flowbot/internal/agents"
 	"time"
+
+	"github.com/flowline-io/flowbot/internal/agents"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
