@@ -74,7 +74,7 @@ require (
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.41.0
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
-	golang.org/x/sys v0.35.0
+	golang.org/x/sys v0.36.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
 	gorm.io/gorm v1.30.5
