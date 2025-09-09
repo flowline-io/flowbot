@@ -24,7 +24,7 @@ require (
 	github.com/docker/docker v28.4.0+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.13.0
-	github.com/flc1125/go-cron/v4 v4.6.0
+	github.com/flc1125/go-cron/v4 v4.6.1
 	github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77
 	github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c
 	github.com/fsnotify/fsnotify v1.9.0
