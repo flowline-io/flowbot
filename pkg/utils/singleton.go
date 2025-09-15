@@ -13,7 +13,7 @@ import (
 	"resty.dev/v3"
 )
 
-const EmbedServerPort = "5678"
+const EmbedServerPort = "15656"
 
 func CheckSingleton() {
 	if !PortAvailable(EmbedServerPort) {
