@@ -128,7 +128,7 @@ func FileAndLine() string {
 func PrettyPrintJsonStyle(data any) {
 	d, err := sonic.MarshalIndent(data, "", "  ")
 	if err != nil {
-		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
+		_, _ = fmt.Printf("error: %s, data: %+v\n", err, data)
 		return
 	}
 	_, _ = fmt.Println(string(d))
@@ -137,7 +137,7 @@ func PrettyPrintJsonStyle(data any) {
 func PrettyPrintYamlStyle(data any) {
 	d, err := yaml.Marshal(data)
 	if err != nil {
-		_, _ = fmt.Println(fmt.Sprintf("error: %s, data: %+v", err, data))
+		_, _ = fmt.Printf("error: %s, data: %+v\n", err, data)
 		return
 	}
 	_, _ = fmt.Println(string(d))
