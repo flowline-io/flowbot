@@ -26,15 +26,13 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/adaptor"
-	"github.com/mark3labs/mcp-go/server"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
 )
 
-func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {
+func handleRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
 	for _, bot := range chatbot.List() {
 		bot.Webservice(a)
@@ -54,9 +52,6 @@ func handleRoutes(a *fiber.App, mcpSSE *server.SSEServer, ctl *Controller) {
 	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
 	a.All("/chatbot/:platform", ctl.platformCallback)
-	// mcp
-	a.All("/mcp/sse", adaptor.HTTPHandler(mcpSSE.SSEHandler()))
-	a.All("/mcp/message", adaptor.HTTPHandler(mcpSSE.MessageHandler()))
 }
 
 // handler

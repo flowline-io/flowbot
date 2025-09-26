@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/agents/mcp"
 	"github.com/flowline-io/flowbot/internal/bots"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -25,8 +24,6 @@ var Modules = fx.Options(
 		event.NewSubscriber,
 		event.NewPublisher,
 		slack.NewDriver,
-		mcp.NewServer,
-		mcp.NewSSEServer,
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,
