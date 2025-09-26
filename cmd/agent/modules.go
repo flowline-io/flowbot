@@ -15,5 +15,6 @@ var Modules = fx.Options(
 	),
 	fx.Invoke(
 		RunDaemon,
+		tickMetrics,
 	),
 )

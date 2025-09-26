@@ -28,6 +28,8 @@ type Type struct {
 	Updater Updater `json:"updater" yaml:"updater" mapstructure:"updater"`
 	// script engine
 	ScriptEngine ScriptEngine `json:"script_engine" yaml:"script_engine" mapstructure:"script_engine"`
+	// Metrics
+	Metrics Metrics `json:"metrics" yaml:"metrics" mapstructure:"metrics"`
 }
 
 type Api struct {
@@ -53,6 +55,13 @@ type ScriptEngine struct {
 	GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
 	// skip watch dir
 	SkipWatchDir []string `json:"skip_watch_dir" yaml:"skip_watch_dir" mapstructure:"skip_watch_dir"`
+}
+
+type Metrics struct {
+	// Enabled
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Metrics endpoint
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
 }
 
 func Load(path ...string) {
