@@ -18,7 +18,7 @@ require (
 	github.com/cloudwego/eino v0.5.3
 	github.com/cloudwego/eino-ext/components/model/ollama v0.1.2
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.1
-	github.com/creachadair/jrpc2 v1.3.2
+	github.com/creachadair/jrpc2 v1.3.3
 	github.com/dgraph-io/ristretto/v2 v2.3.0
 	github.com/docker/cli v28.4.0+incompatible
 	github.com/docker/docker v28.4.0+incompatible
@@ -106,7 +106,7 @@ require (
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
-	github.com/creachadair/mds v0.25.1 // indirect
+	github.com/creachadair/mds v0.25.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
