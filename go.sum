@@ -148,8 +148,8 @@ github.com/expr-lang/expr v1.17.6 h1:1h6i8ONk9cexhDmowO/A64VPxHScu7qfSl2k8OlINec
 github.com/expr-lang/expr v1.17.6/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/flc1125/go-cron/v4 v4.6.1 h1:FAY+c/kKBa0+784+sk9RQzhCRZZDaiGyXr2NE0IWBEQ=
-github.com/flc1125/go-cron/v4 v4.6.1/go.mod h1:nrdDV7DrL4Fk4kZXAja6YgfU2UrIGIhJt1DaB9b49o0=
+github.com/flc1125/go-cron/v4 v4.6.2 h1:SDhO3Pt1/DFckZnlBoTguIhOrzavHB/wWBjVEU6pWbY=
+github.com/flc1125/go-cron/v4 v4.6.2/go.mod h1:nrdDV7DrL4Fk4kZXAja6YgfU2UrIGIhJt1DaB9b49o0=
 github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77 h1:6iBZTgj0BWIFUqxNpRbtoqFgaHA4ZV9QBjr4vR/79l4=
 github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77/go.mod h1:S2BNSvTjn4JX/u+foxRHiEbAzltqIzmDC0Syqlgwotk=
 github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c h1:BnsSRINEkyL9MLa3NvJH1blJu4Dd2asmjr5j7b/LeI4=
