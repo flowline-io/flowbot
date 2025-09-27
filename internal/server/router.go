@@ -26,8 +26,11 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
@@ -46,6 +49,8 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get(healthcheck.StartupEndpoint, healthcheck.New())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	a.Get("/p/:id", ctl.getPage)
+	// metrics - expose prometheus metrics for scraping
+	a.Get("/metrics", adaptor.HTTPHandler(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{})))
 	// form
 	a.Post("/form", ctl.postForm)
 	// page
