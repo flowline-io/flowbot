@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/pprof"
@@ -86,6 +87,8 @@ func newHTTPServer() *fiber.App {
 	}))
 	// pprof
 	app.Use(pprof.New(pprof.Config{Prefix: "/server-debugger", Next: authPprof}))
+	// favicon
+	app.Use(favicon.New())
 
 	// swagger
 	if swagHandler != nil {

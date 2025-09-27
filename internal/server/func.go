@@ -738,6 +738,10 @@ func authPprof(ctx fiber.Ctx) bool {
 		return true
 	}
 
+	if !strings.Contains(ctx.Path(), "/debug/pprof") {
+		return true
+	}
+
 	accessToken := route.GetAccessToken(&r)
 	if accessToken == "" {
 		flog.Error(fmt.Errorf("pprof auth error: missing token"))
