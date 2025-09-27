@@ -26,6 +26,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
@@ -40,6 +41,9 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 
 	// common
 	a.Get("/", func(c fiber.Ctx) error { return nil })
+	a.Get(healthcheck.LivenessEndpoint, healthcheck.New())
+	a.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
+	a.Get(healthcheck.StartupEndpoint, healthcheck.New())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	a.Get("/p/:id", ctl.getPage)
 	// form

@@ -77,7 +77,6 @@ func newHTTPServer() *fiber.App {
 			"/service/user/metrics",
 		},
 	}))
-	app.Use(healthcheck.New())
 
 	// swagger
 	if swagHandler != nil {
