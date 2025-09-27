@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/prometheus/common/model"
 	"resty.dev/v3"
 )
 
@@ -46,7 +47,7 @@ func (i *UptimeKuma) Metrics() (map[string]*dto.MetricFamily, error) {
 		return nil, fmt.Errorf("failed to get metrics: %w", err)
 	}
 
-	parser := expfmt.TextParser{}
+	parser := expfmt.NewTextParser(model.LegacyValidation)
 	metricFamilies, err := parser.TextToMetricFamilies(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse metrics: %w", err)
