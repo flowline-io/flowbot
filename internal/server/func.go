@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -20,11 +21,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/rdb"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
+	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"gorm.io/gorm"
 )
 
@@ -724,4 +728,27 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 	}
 
 	return nil
+}
+
+// auth pprof middleware for pprof routes
+func authPprof(ctx fiber.Ctx) bool {
+	var r http.Request
+	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
+		flog.Error(fmt.Errorf("pprof auth error: %w", err))
+		return true
+	}
+
+	accessToken := route.GetAccessToken(&r)
+	if accessToken == "" {
+		flog.Error(fmt.Errorf("pprof auth error: missing token"))
+		return true
+	}
+
+	p, err := store.Database.ParameterGet(accessToken)
+	if err != nil || p.ID <= 0 || p.IsExpired() {
+		flog.Error(fmt.Errorf("pprof auth error: parameter error"))
+		return true
+	}
+
+	return false
 }

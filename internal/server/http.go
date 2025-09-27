@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/gofiber/fiber/v3/middleware/pprof"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/samber/oops"
@@ -51,21 +52,27 @@ func newHTTPServer() *fiber.App {
 			return nil
 		},
 	})
+	// recover
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
+	// requestid
 	app.Use(requestid.New())
+	// cors
 	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
 	}))
+	// compress
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
+	// limiter
 	app.Use(limiter.New(limiter.Config{
 		Max:               50,
 		Expiration:        10 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
+	// logger
 	logger := flog.GetLogger()
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
@@ -77,6 +84,8 @@ func newHTTPServer() *fiber.App {
 			"/service/user/metrics",
 		},
 	}))
+	// pprof
+	app.Use(pprof.New(pprof.Config{Prefix: "/server-debugger", Next: authPprof}))
 
 	// swagger
 	if swagHandler != nil {
