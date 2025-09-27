@@ -26,6 +26,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
@@ -755,4 +756,13 @@ func authPprof(ctx fiber.Ctx) bool {
 	}
 
 	return false
+}
+
+type structValidator struct {
+	validate *validator.Validate
+}
+
+// Validator needs to implement the Validate method
+func (v *structValidator) Validate(out any) error {
+	return v.validate.Struct(out)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/contrib/fiberzerolog"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -31,6 +32,9 @@ func newHTTPServer() *fiber.App {
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 90 * time.Second,
 
+		// validator
+		StructValidator: &structValidator{validate: validator.New()},
+		// error handler
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			// custom error
 			var e oops.OopsError
