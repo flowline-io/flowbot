@@ -8,6 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
@@ -104,7 +105,11 @@ func tickMetrics(lc fx.Lifecycle, _ config.Type) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			flog.Info("Metrics push is enabled.")
-			hostid, hostname := hostInfo()
+			hostid, hostname, err := utils.HostInfo()
+			if err != nil {
+				flog.Error(fmt.Errorf("[metrics] failed to get host info, %w", err))
+				return err
+			}
 
 			go func() {
 				for range metricsTicker.C {

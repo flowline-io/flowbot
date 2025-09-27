@@ -1,18 +1,16 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/rules"
 	"github.com/flowline-io/flowbot/internal/rules/components"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/version"
+	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v3"
 	"github.com/rulego/rulego"
 	"github.com/rulego/rulego/endpoint"
@@ -67,15 +65,11 @@ func initializeMetrics() error {
 		flog.Info("metrics disabled")
 		return nil
 	}
-	return metrics.InitPushWithOptions(
-		context.Background(),
-		fmt.Sprintf("%s/api/v1/import/prometheus", config.App.Metrics.Endpoint),
-		10*time.Second,
-		true,
-		&metrics.PushOptions{
-			ExtraLabels: fmt.Sprintf(`instance="flowbot",version="%s"`, version.Buildtags),
-		},
-	)
+
+	return stats.Init(&stats.MetricsConfig{
+		PushGatewayURL: config.App.Metrics.Endpoint,
+		PushInterval:   time.Duration(15) * time.Second,
+	})
 }
 
 func initializeRuleEngine(app *fiber.App) error {

@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/cmd/agent/script"
 	"github.com/flowline-io/flowbot/cmd/agent/startup"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"go.uber.org/fx"
 )
 
@@ -25,7 +26,11 @@ func RunDaemon(lc fx.Lifecycle, _ *startup.Startup, _ *script.Engine) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			// info
-			hostid, hostname = hostInfo()
+			hostid, hostname, err := utils.HostInfo()
+			if err != nil {
+				flog.Error(fmt.Errorf("[daemon] failed to get host info, %w", err))
+				return err
+			}
 
 			// check update
 			go func() {
