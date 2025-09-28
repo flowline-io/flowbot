@@ -2,9 +2,9 @@ package hoarder
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -28,11 +28,9 @@ func GetClient() *Hoarder {
 func NewHoarder(endpoint string, apiKey string) *Hoarder {
 	v := &Hoarder{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(apiKey)
-	v.c.SetDisableWarn(true)
 
 	return v
 }

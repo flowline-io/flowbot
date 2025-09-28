@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -31,10 +30,8 @@ type Dropbox struct {
 func NewDropbox(clientId, clientSecret, redirectURI, accessToken string) *Dropbox {
 	v := &Dropbox{clientId: clientId, clientSecret: clientSecret, redirectURI: redirectURI, accessToken: accessToken}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL("https://api.dropboxapi.com")
-	v.c.SetTimeout(time.Minute)
-	v.c.SetDisableWarn(true)
 
 	return v
 }

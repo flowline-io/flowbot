@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"resty.dev/v3"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -24,7 +24,7 @@ func NewDoctorxiong(token string) *Doctorxiong {
 }
 
 func (v *Doctorxiong) GetFundDetail(ctx context.Context, code, startDate, endDate string) (*FundDetailResponse, error) {
-	c := resty.New()
+	c := utils.DefaultRestyClient()
 	resp, err := c.R().
 		SetContext(ctx).
 		//SetHeader("token", v.token).
@@ -45,7 +45,7 @@ func (v *Doctorxiong) GetFundDetail(ctx context.Context, code, startDate, endDat
 }
 
 func (v *Doctorxiong) GetStockDetail(ctx context.Context, code string) (*StockDetailResponse, error) {
-	c := resty.New()
+	c := utils.DefaultRestyClient()
 	resp, err := c.R().
 		SetContext(ctx).
 		//SetHeader("token", v.token).

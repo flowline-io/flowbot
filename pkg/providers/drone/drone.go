@@ -2,9 +2,9 @@ package drone
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -28,11 +28,9 @@ func GetClient() *Drone {
 func NewDrone(endpoint string, token string) *Drone {
 	v := &Drone{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(token)
-	v.c.SetDisableWarn(true)
 
 	return v
 }

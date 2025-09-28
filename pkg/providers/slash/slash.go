@@ -2,9 +2,9 @@ package slash
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -28,10 +28,8 @@ func GetClient() *Slash {
 
 func NewSlash(endpoint string, token string) *Slash {
 	v := &Slash{token: token}
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
-	v.c.SetDisableWarn(true)
 	v.c.SetAuthToken(token)
 
 	return v

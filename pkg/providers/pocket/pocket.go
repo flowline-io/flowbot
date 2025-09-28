@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 	"resty.dev/v3"
@@ -32,9 +32,8 @@ type Pocket struct {
 func NewPocket(clientId, clientSecret, redirectURI, accessToken string) *Pocket {
 	v := &Pocket{clientId: clientId, clientSecret: clientSecret, redirectURI: redirectURI, accessToken: accessToken}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL("https://getpocket.com")
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

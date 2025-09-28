@@ -3,8 +3,8 @@ package crates
 import (
 	"fmt"
 	"net/http"
-	"time"
 
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -19,9 +19,8 @@ type Crates struct {
 func NewCrates() *Crates {
 	v := &Crates{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL("https://crates.io/api/v1")
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

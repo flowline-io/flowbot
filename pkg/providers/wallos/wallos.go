@@ -3,9 +3,9 @@ package wallos
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -30,9 +30,8 @@ func GetClient() *Wallos {
 
 func NewWallos(endpoint string, apiKey string) *Wallos {
 	v := &Wallos{apiKey: apiKey}
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

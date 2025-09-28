@@ -2,7 +2,6 @@ package shiori
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/utils"
 
@@ -31,9 +30,8 @@ func GetClient() *Shiori {
 func NewShiori(endpoint string) *Shiori {
 	v := &Shiori{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

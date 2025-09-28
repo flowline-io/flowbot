@@ -3,9 +3,9 @@ package safeline
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -29,9 +29,8 @@ func GetClient() *SafeLine {
 
 func NewSafeLine(endpoint string, token string) *SafeLine {
 	v := &SafeLine{token: token}
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

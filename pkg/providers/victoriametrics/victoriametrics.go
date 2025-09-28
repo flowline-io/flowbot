@@ -3,7 +3,6 @@ package victoriametrics
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -20,8 +19,7 @@ type VictoriaMetrics struct {
 
 func NewVictoriaMetrics() *VictoriaMetrics {
 	v := &VictoriaMetrics{}
-	v.c = resty.New()
-	v.c.SetTimeout(time.Minute)
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(config.App.Metrics.Endpoint)
 
 	return v

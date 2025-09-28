@@ -3,7 +3,6 @@ package lobehub
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
@@ -19,8 +18,7 @@ type Lobehub struct {
 
 func NewLobehub() *Lobehub {
 	v := &Lobehub{}
-	v.c = resty.New()
-	v.c.SetTimeout(time.Minute)
+	v.c = utils.DefaultRestyClient()
 
 	return v
 }

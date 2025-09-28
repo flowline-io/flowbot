@@ -2,10 +2,8 @@ package fireflyiii
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/google/uuid"
+	"github.com/flowline-io/flowbot/pkg/utils"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"resty.dev/v3"
@@ -31,15 +29,9 @@ func GetClient() *FireflyIII {
 func NewFireflyIII(endpoint string, token string) *FireflyIII {
 	v := &FireflyIII{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
 	v.c.SetAuthToken(token)
-	v.c.SetDisableWarn(true)
-	traceId := uuid.New().String()
-	v.c.SetHeader("X-Trace-Id", traceId)
-
-	flog.Info("fireflyiii X-Trace-Id: %s", traceId)
 
 	return v
 }

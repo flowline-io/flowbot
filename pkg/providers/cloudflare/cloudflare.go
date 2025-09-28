@@ -3,9 +3,9 @@ package cloudflare
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -32,10 +32,8 @@ func GetClient() *Cloudflare {
 func NewCloudflare(token string, zoneID string) *Cloudflare {
 	v := &Cloudflare{token: token, zoneID: zoneID}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL("https://api.cloudflare.com/client/v4/")
-	v.c.SetTimeout(time.Minute)
-	v.c.SetDisableWarn(true)
 	v.c.SetAuthToken(v.token)
 
 	return v

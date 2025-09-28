@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 )
@@ -31,9 +31,8 @@ type Github struct {
 func NewGithub(clientId, clientSecret, redirectURI, accessToken string) *Github {
 	v := &Github{clientId: clientId, clientSecret: clientSecret, redirectURI: redirectURI, accessToken: accessToken}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL("https://api.github.com")
-	v.c.SetTimeout(time.Minute)
 
 	return v
 }

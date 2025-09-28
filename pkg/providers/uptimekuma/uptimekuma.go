@@ -2,9 +2,9 @@ package uptimekuma
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/prometheus/common/model"
@@ -31,10 +31,8 @@ func GetClient() *UptimeKuma {
 func NewUptimeKuma(endpoint string, token string) *UptimeKuma {
 	v := &UptimeKuma{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
-	v.c.SetDisableWarn(true)
 	v.c.SetBasicAuth("", token)
 
 	return v

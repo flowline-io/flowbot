@@ -2,9 +2,9 @@ package adguard
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
 )
 
@@ -30,10 +30,8 @@ func GetClient() *AdGuardHome {
 func NewAdGuardHome(endpoint string, username string, password string) *AdGuardHome {
 	v := &AdGuardHome{}
 
-	v.c = resty.New()
+	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
-	v.c.SetTimeout(time.Minute)
-	v.c.SetDisableWarn(true)
 	v.c.SetBasicAuth(username, password)
 
 	return v
