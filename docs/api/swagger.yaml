@@ -6,13 +6,13 @@ definitions:
         type: string
       edges:
         items:
-          $ref: '#/definitions/model.Edge'
+          $ref: "#/definitions/model.Edge"
         type: array
       id:
         type: integer
       nodes:
         items:
-          $ref: '#/definitions/model.Node'
+          $ref: "#/definitions/model.Node"
         type: array
       script_id:
         type: integer
@@ -74,10 +74,10 @@ definitions:
       started_at:
         type: string
       state:
-        $ref: '#/definitions/model.JobState'
+        $ref: "#/definitions/model.JobState"
       steps:
         items:
-          $ref: '#/definitions/model.Step'
+          $ref: "#/definitions/model.Step"
         type: array
       topic:
         type: string
@@ -92,22 +92,22 @@ definitions:
     type: object
   model.JobState:
     enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
     type: integer
     x-enum-varnames:
-    - JobStateUnknown
-    - JobReady
-    - JobStart
-    - JobRunning
-    - JobSucceeded
-    - JobCanceled
-    - JobFailed
+      - JobStateUnknown
+      - JobReady
+      - JobStart
+      - JobRunning
+      - JobSucceeded
+      - JobCanceled
+      - JobFailed
   model.KeyResult:
     properties:
       created_at:
@@ -120,7 +120,7 @@ definitions:
         type: integer
       key_result_values:
         items:
-          $ref: '#/definitions/model.KeyResultValue'
+          $ref: "#/definitions/model.KeyResultValue"
         type: array
       memo:
         type: string
@@ -136,7 +136,7 @@ definitions:
         type: string
       todos:
         items:
-          $ref: '#/definitions/model.Todo'
+          $ref: "#/definitions/model.Todo"
         type: array
       topic:
         type: string
@@ -145,7 +145,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        $ref: '#/definitions/model.ValueModeType'
+        $ref: "#/definitions/model.ValueModeType"
     type: object
   model.KeyResultValue:
     properties:
@@ -209,7 +209,7 @@ definitions:
       rule_id:
         type: string
       status:
-        $ref: '#/definitions/model.NodeStatus'
+        $ref: "#/definitions/model.NodeStatus"
       variables:
         items:
           type: string
@@ -223,18 +223,18 @@ definitions:
     type: object
   model.NodeStatus:
     enum:
-    - default
-    - success
-    - processing
-    - error
-    - warning
+      - default
+      - success
+      - processing
+      - error
+      - warning
     type: string
     x-enum-varnames:
-    - NodeDefault
-    - NodeSuccess
-    - NodeProcessing
-    - NodeError
-    - NodeWarning
+      - NodeDefault
+      - NodeSuccess
+      - NodeProcessing
+      - NodeError
+      - NodeWarning
   model.Objective:
     properties:
       created_data:
@@ -249,7 +249,7 @@ definitions:
         type: integer
       key_results:
         items:
-          $ref: '#/definitions/model.KeyResult'
+          $ref: "#/definitions/model.KeyResult"
         type: array
       memo:
         type: string
@@ -263,7 +263,7 @@ definitions:
         type: integer
       reviews:
         items:
-          $ref: '#/definitions/model.Review'
+          $ref: "#/definitions/model.Review"
         type: array
       sequence:
         type: integer
@@ -286,7 +286,7 @@ definitions:
         type: string
       evaluations:
         items:
-          $ref: '#/definitions/model.ReviewEvaluation'
+          $ref: "#/definitions/model.ReviewEvaluation"
         type: array
       id:
         type: integer
@@ -297,7 +297,7 @@ definitions:
       topic:
         type: string
       type:
-        $ref: '#/definitions/model.ReviewType'
+        $ref: "#/definitions/model.ReviewType"
       uid:
         type: string
       updated_at:
@@ -326,18 +326,18 @@ definitions:
     type: object
   model.ReviewType:
     enum:
-    - 0
-    - 1
-    - 2
+      - 0
+      - 1
+      - 2
     type: integer
     x-enum-varnames:
-    - ReviewTypeUnknown
-    - ReviewMid
-    - ReviewEnd
+      - ReviewTypeUnknown
+      - ReviewMid
+      - ReviewEnd
   model.Step:
     properties:
       action:
-        $ref: '#/definitions/model.JSON'
+        $ref: "#/definitions/model.JSON"
       created_at:
         type: string
       depend:
@@ -353,7 +353,7 @@ definitions:
       id:
         type: integer
       input:
-        $ref: '#/definitions/model.JSON'
+        $ref: "#/definitions/model.JSON"
       job_id:
         type: integer
       name:
@@ -361,11 +361,11 @@ definitions:
       node_id:
         type: string
       output:
-        $ref: '#/definitions/model.JSON'
+        $ref: "#/definitions/model.JSON"
       started_at:
         type: string
       state:
-        $ref: '#/definitions/model.StepState'
+        $ref: "#/definitions/model.StepState"
       topic:
         type: string
       uid:
@@ -375,26 +375,26 @@ definitions:
     type: object
   model.StepState:
     enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    - 8
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
     type: integer
     x-enum-varnames:
-    - StepStateUnknown
-    - StepCreated
-    - StepReady
-    - StepStart
-    - StepRunning
-    - StepSucceeded
-    - StepFailed
-    - StepCanceled
-    - StepSkipped
+      - StepStateUnknown
+      - StepCreated
+      - StepReady
+      - StepStart
+      - StepRunning
+      - StepSucceeded
+      - StepFailed
+      - StepCanceled
+      - StepSkipped
   model.Todo:
     properties:
       category:
@@ -429,7 +429,7 @@ definitions:
         type: integer
       sub_todos:
         items:
-          $ref: '#/definitions/model.Todo'
+          $ref: "#/definitions/model.Todo"
         type: array
       topic:
         type: string
@@ -440,26 +440,26 @@ definitions:
     type: object
   model.TriggerType:
     enum:
-    - cron
-    - manual
-    - webhook
+      - cron
+      - manual
+      - webhook
     type: string
     x-enum-varnames:
-    - TriggerCron
-    - TriggerManual
-    - TriggerWebhook
+      - TriggerCron
+      - TriggerManual
+      - TriggerWebhook
   model.ValueModeType:
     enum:
-    - sum
-    - last
-    - avg
-    - max
+      - sum
+      - last
+      - avg
+      - max
     type: string
     x-enum-varnames:
-    - ValueSumMode
-    - ValueLastMode
-    - ValueAvgMode
-    - ValueMaxMode
+      - ValueSumMode
+      - ValueLastMode
+      - ValueAvgMode
+      - ValueMaxMode
   model.Workflow:
     properties:
       canceled_count:
@@ -468,7 +468,7 @@ definitions:
         type: string
       dag:
         items:
-          $ref: '#/definitions/model.Dag'
+          $ref: "#/definitions/model.Dag"
         type: array
       describe:
         type: string
@@ -483,14 +483,14 @@ definitions:
       running_count:
         type: integer
       state:
-        $ref: '#/definitions/model.WorkflowState'
+        $ref: "#/definitions/model.WorkflowState"
       successful_count:
         type: integer
       topic:
         type: string
       triggers:
         items:
-          $ref: '#/definitions/model.WorkflowTrigger'
+          $ref: "#/definitions/model.WorkflowTrigger"
         type: array
       uid:
         type: string
@@ -506,7 +506,7 @@ definitions:
       id:
         type: integer
       lang:
-        $ref: '#/definitions/model.WorkflowScriptLang'
+        $ref: "#/definitions/model.WorkflowScriptLang"
       updated_at:
         type: string
       version:
@@ -516,20 +516,20 @@ definitions:
     type: object
   model.WorkflowScriptLang:
     enum:
-    - yaml
+      - yaml
     type: string
     x-enum-varnames:
-    - WorkflowScriptYaml
+      - WorkflowScriptYaml
   model.WorkflowState:
     enum:
-    - 0
-    - 1
-    - 2
+      - 0
+      - 1
+      - 2
     type: integer
     x-enum-varnames:
-    - WorkflowStateUnknown
-    - WorkflowEnable
-    - WorkflowDisable
+      - WorkflowStateUnknown
+      - WorkflowEnable
+      - WorkflowDisable
   model.WorkflowTrigger:
     properties:
       count:
@@ -539,11 +539,11 @@ definitions:
       id:
         type: integer
       rule:
-        $ref: '#/definitions/model.JSON'
+        $ref: "#/definitions/model.JSON"
       state:
-        $ref: '#/definitions/model.WorkflowTriggerState'
+        $ref: "#/definitions/model.WorkflowTriggerState"
       type:
-        $ref: '#/definitions/model.TriggerType'
+        $ref: "#/definitions/model.TriggerType"
       updated_at:
         type: string
       workflow_id:
@@ -551,14 +551,14 @@ definitions:
     type: object
   model.WorkflowTriggerState:
     enum:
-    - 0
-    - 1
-    - 2
+      - 0
+      - 1
+      - 2
     type: integer
     x-enum-varnames:
-    - WorkflowTriggerStateUnknown
-    - WorkflowTriggerEnable
-    - WorkflowTriggerDisable
+      - WorkflowTriggerStateUnknown
+      - WorkflowTriggerEnable
+      - WorkflowTriggerDisable
   protocol.Response:
     properties:
       data:
@@ -569,24 +569,25 @@ definitions:
           or an empty string when it succeeds.
         type: string
       retcode:
-        description: The return code, which must conform to the return code rules
+        description:
+          The return code, which must conform to the return code rules
           defined later on this page
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/protocol.ResponseStatus'
+          - $ref: "#/definitions/protocol.ResponseStatus"
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
     type: object
   protocol.ResponseStatus:
     enum:
-    - ok
-    - failed
+      - ok
+      - failed
     type: string
     x-enum-varnames:
-    - Success
-    - Failed
+      - Success
+      - Failed
   types.FormField:
     properties:
       key:
@@ -602,65 +603,65 @@ definitions:
       rule:
         type: string
       type:
-        $ref: '#/definitions/types.FormFieldType'
+        $ref: "#/definitions/types.FormFieldType"
       value: {}
       value_type:
-        $ref: '#/definitions/types.FormFieldValueType'
+        $ref: "#/definitions/types.FormFieldValueType"
     type: object
   types.FormFieldType:
     enum:
-    - text
-    - password
-    - number
-    - color
-    - file
-    - month
-    - date
-    - time
-    - email
-    - url
-    - radio
-    - checkbox
-    - range
-    - select
-    - textarea
-    - hidden
+      - text
+      - password
+      - number
+      - color
+      - file
+      - month
+      - date
+      - time
+      - email
+      - url
+      - radio
+      - checkbox
+      - range
+      - select
+      - textarea
+      - hidden
     type: string
     x-enum-varnames:
-    - FormFieldText
-    - FormFieldPassword
-    - FormFieldNumber
-    - FormFieldColor
-    - FormFieldFile
-    - FormFieldMonth
-    - FormFieldDate
-    - FormFieldTime
-    - FormFieldEmail
-    - FormFieldUrl
-    - FormFieldRadio
-    - FormFieldCheckbox
-    - FormFieldRange
-    - FormFieldSelect
-    - FormFieldTextarea
-    - FormFieldHidden
+      - FormFieldText
+      - FormFieldPassword
+      - FormFieldNumber
+      - FormFieldColor
+      - FormFieldFile
+      - FormFieldMonth
+      - FormFieldDate
+      - FormFieldTime
+      - FormFieldEmail
+      - FormFieldUrl
+      - FormFieldRadio
+      - FormFieldCheckbox
+      - FormFieldRange
+      - FormFieldSelect
+      - FormFieldTextarea
+      - FormFieldHidden
   types.FormFieldValueType:
     enum:
-    - string
-    - bool
-    - int64
-    - float64
-    - string_slice
-    - int64_slice
-    - float64_slice
+      - string
+      - bool
+      - int64
+      - float64
+      - string_slice
+      - int64_slice
+      - float64_slice
     type: string
     x-enum-varnames:
-    - FormFieldValueString
-    - FormFieldValueBool
-    - FormFieldValueInt64
-    - FormFieldValueFloat64
-    - FormFieldValueStringSlice
-    - FormFieldValueInt64Slice
-    - FormFieldValueFloat64Slice
+      - FormFieldValueString
+      - FormFieldValueBool
+      - FormFieldValueInt64
+      - FormFieldValueFloat64
+      - FormFieldValueStringSlice
+      - FormFieldValueInt64Slice
+      - FormFieldValueFloat64Slice
   types.KV:
     additionalProperties: true
     type: object
@@ -674,11 +675,11 @@ definitions:
         type: string
       input_schema:
         items:
-          $ref: '#/definitions/types.FormField'
+          $ref: "#/definitions/types.FormField"
         type: array
       output_schema:
         items:
-          $ref: '#/definitions/types.FormField'
+          $ref: "#/definitions/types.FormField"
         type: array
       title:
         type: string
@@ -696,770 +697,770 @@ paths:
   /dev/example:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       summary: Show example
       tags:
-      - dev
+        - dev
   /okr/key_result:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: KeyResult data
-        in: body
-        name: keyResult
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResult'
+        - description: KeyResult data
+          in: body
+          name: keyResult
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResult"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult create
       tags:
-      - okr
+        - okr
   /okr/key_result/{id}/value:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: KeyResultValue data
-        in: body
-        name: KeyResultValue
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResultValue'
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: KeyResultValue data
+          in: body
+          name: KeyResultValue
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResultValue"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value create
       tags:
-      - okr
+        - okr
   /okr/key_result/{id}/values:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.KeyResultValue'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.KeyResultValue"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: key result value list
       tags:
-      - okr
+        - okr
   /okr/key_result/{sequence}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult delete
       tags:
-      - okr
+        - okr
     put:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
-      - description: KeyResult data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResult'
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
+        - description: KeyResult data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResult"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult update
       tags:
-      - okr
+        - okr
   /okr/key_result_value/{id}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value delete
       tags:
-      - okr
+        - okr
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.KeyResultValue'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.KeyResultValue"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value detail
       tags:
-      - okr
+        - okr
   /okr/objective:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: objective data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.Objective'
+        - description: objective data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.Objective"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective create
       tags:
-      - okr
+        - okr
   /okr/objective/{sequence}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective delete
       tags:
-      - okr
+        - okr
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Objective'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.Objective"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective detail
       tags:
-      - okr
+        - okr
     put:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
-      - description: objective data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.Objective'
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
+        - description: objective data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.Objective"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective update
       tags:
-      - okr
+        - okr
   /okr/objectives:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.Objective'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.Objective"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective list
       tags:
-      - okr
+        - okr
   /search/autocomplete:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: search autocomplete
       tags:
-      - search
+        - search
   /search/query:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: search everything
       tags:
-      - search
+        - search
   /server/stacktrace:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get server or goroutines stacktrace
       tags:
-      - dev
+        - dev
   /server/upload:
     post:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: upload PicGO upload api
       tags:
-      - dev
+        - dev
   /user/bookmark:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user bookmark list
       tags:
-      - user
+        - user
   /user/dashboard:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show dashboard
       tags:
-      - user
+        - user
   /user/kanban:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user kanban list
       tags:
-      - user
+        - user
   /user/metrics:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show metrics
       tags:
-      - user
+        - user
   /workflow/actions:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  additionalProperties:
-                    items:
-                      $ref: '#/definitions/workflow.rule'
-                    type: array
-                  type: object
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    additionalProperties:
+                      items:
+                        $ref: "#/definitions/workflow.rule"
+                      type: array
+                    type: object
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get chatbot actions
       tags:
-      - workflow
+        - workflow
   /workflow/job/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Job ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Job ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Job'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.Job"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow job detail
       tags:
-      - workflow
+        - workflow
   /workflow/job/{id}/rerun:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Job ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Job ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow job rerun
       tags:
-      - workflow
+        - workflow
   /workflow/workflow:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: workflow script data
-        in: body
-        name: script
-        required: true
-        schema:
-          $ref: '#/definitions/model.WorkflowScript'
+        - description: workflow script data
+          in: body
+          name: script
+          required: true
+          schema:
+            $ref: "#/definitions/model.WorkflowScript"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow create
       tags:
-      - workflow
+        - workflow
   /workflow/workflow/{id}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow delete
       tags:
-      - workflow
+        - workflow
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Workflow'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.Workflow"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow detail
       tags:
-      - workflow
+        - workflow
     put:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: workflow script data
-        in: body
-        name: script
-        required: true
-        schema:
-          $ref: '#/definitions/model.WorkflowScript'
+        - description: ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: workflow script data
+          in: body
+          name: script
+          required: true
+          schema:
+            $ref: "#/definitions/model.WorkflowScript"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow update
       tags:
-      - workflow
+        - workflow
   /workflow/workflow/{id}/jobs:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Workflow ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.Job'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.Job"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow job list
       tags:
-      - workflow
+        - workflow
   /workflow/workflow/{id}/script:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Workflow ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.WorkflowScript'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.WorkflowScript"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow script detail
       tags:
-      - workflow
+        - workflow
   /workflow/workflow/{id}/triggers:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Workflow ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Workflow ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.WorkflowTrigger'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.WorkflowTrigger"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow trigger list
       tags:
-      - workflow
+        - workflow
   /workflow/workflows:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.Workflow'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.Workflow"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: workflow list
       tags:
-      - workflow
+        - workflow
 schemes:
-- http
+  - http
 securityDefinitions:
   ApiKeyAuth:
     description: access token

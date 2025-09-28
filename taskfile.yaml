@@ -58,7 +58,7 @@ tasks:
   swagger:
     desc: generate swagger
     cmds:
-      - swag init -g cmd/main.go
+      - swag init -g cmd/main.go -o ./docs/api
       - swag fmt -g cmd/main.go
 
   tools:

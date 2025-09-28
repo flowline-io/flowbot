@@ -21,7 +21,7 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 
 ## 🏗️ Architecture
 
-<img src="./docs/architecture.png" alt="Architecture" align="center" width="100%" />
+<img src="./docs/architecture/architecture.png" alt="Architecture" align="center" width="100%" />
 
 The system follows a modular architecture with:
 
@@ -50,7 +50,7 @@ git clone https://github.com/flowline-io/flowbot.git
 cd flowbot
 
 # Configure
-cp docs/config.yaml flowbot.yaml
+cp docs/config/config.yaml flowbot.yaml
 # Edit flowbot.yaml with your settings
 
 # Build and run
