@@ -31,7 +31,6 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.6.2
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
 	github.com/gofiber/fiber/v3 v3.0.0-rc.1
 	github.com/golang-migrate/migrate/v4 v4.19.0
@@ -39,7 +38,6 @@ require (
 	github.com/heimdalr/dag v1.5.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/json-iterator/go v1.1.12
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/maxence-charriere/go-app/v10 v10.1.5
 	github.com/meilisearch/meilisearch-go v0.34.0
@@ -138,6 +136,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gofiber/schema v1.6.0 // indirect
 	github.com/gofiber/utils/v2 v2.0.0-rc.1 // indirect
@@ -162,6 +161,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect

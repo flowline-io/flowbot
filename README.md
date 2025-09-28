@@ -24,6 +24,7 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 <img src="./docs/architecture.png" alt="Architecture" align="center" width="100%" />
 
 The system follows a modular architecture with:
+
 - **Command Layer**: CLI tools for agent and composer operations
 - **Bot Modules**: Specialized handlers for different services
 - **Workflow Engine**: Visual workflow design and execution
@@ -34,7 +35,7 @@ The system follows a modular architecture with:
 
 ### Requirements
 
-- Go 1.25+ 
+- Go 1.25+
 - MySQL/SQLite database
 - Redis server
 - Docker (optional, for containerized execution)
@@ -80,24 +81,25 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/app/flowbot.yaml flowbot
 
 Flowbot includes 20+ specialized bot modules:
 
-| Module | Description | Features |
-|--------|-------------|----------|
-| **Agent** | LLM-powered conversational AI | Multiple model support, context management |
-| **Workflow** | Visual workflow automation | DAG execution, 15+ built-in actions |
-| **Finance** | Financial data management | Bill tracking, expense categorization |
-| **Kanban** | Project management | Task boards, team collaboration |
-| **Notify** | Notification system | Multi-channel alerts, scheduling |
-| **Reader** | RSS/Feed processing | Content aggregation, summaries |
-| **GitHub/Gitea** | Git repository integration | Issue tracking, PR management |
-| **Obsidian** | Note-taking integration | Knowledge management, linking |
-| **Torrent** | Download management | Transmission integration |
-| **Bookmark** | Link management | URL organization, tagging |
-| **Search** | Full-text search | MeiliSearch integration |
-| **Clipboard** | Cross-platform clipboard | Sync and history |
+| Module           | Description                   | Features                                   |
+| ---------------- | ----------------------------- | ------------------------------------------ |
+| **Agent**        | LLM-powered conversational AI | Multiple model support, context management |
+| **Workflow**     | Visual workflow automation    | DAG execution, 15+ built-in actions        |
+| **Finance**      | Financial data management     | Bill tracking, expense categorization      |
+| **Kanban**       | Project management            | Task boards, team collaboration            |
+| **Notify**       | Notification system           | Multi-channel alerts, scheduling           |
+| **Reader**       | RSS/Feed processing           | Content aggregation, summaries             |
+| **GitHub/Gitea** | Git repository integration    | Issue tracking, PR management              |
+| **Obsidian**     | Note-taking integration       | Knowledge management, linking              |
+| **Torrent**      | Download management           | Transmission integration                   |
+| **Bookmark**     | Link management               | URL organization, tagging                  |
+| **Search**       | Full-text search              | MeiliSearch integration                    |
+| **Clipboard**    | Cross-platform clipboard      | Sync and history                           |
 
 ## 🔧 API & Development
 
 ### RESTful API
+
 - **Base URL**: `http://localhost:6060/service`
 - **Authentication**: API key via `X-AccessToken` header
 - **Documentation**: Swagger UI available at `/swagger/`
@@ -118,8 +120,9 @@ Flowbot includes 20+ specialized bot modules:
 ### Workflow Actions
 
 Built-in workflow actions include:
+
 - **Message**: Send notifications to channels
-- **Fetch**: HTTP requests and web scraping  
+- **Fetch**: HTTP requests and web scraping
 - **Feed**: RSS/Atom feed processing
 - **LLM**: AI text processing and generation
 - **Docker**: Container execution
@@ -130,6 +133,7 @@ Built-in workflow actions include:
 ### Third-party Integrations
 
 Supported services:
+
 - **Communication**: Discord, Slack, Tailchat, Telegram
 - **Development**: GitHub, Gitea, Drone CI
 - **Productivity**: Notion, Obsidian, Kanboard
@@ -169,13 +173,13 @@ models:
     api_key: "your-key"
     model_names: ["gpt-4", "gpt-3.5-turbo"]
 
-# Platform integrations  
+# Platform integrations
 platform:
   discord:
     enabled: true
     bot_token: "your-token"
   slack:
-    enabled: true  
+    enabled: true
     bot_token: "your-token"
 ```
 
@@ -231,7 +235,7 @@ task generate
 # Linting
 revive -formatter friendly ./...
 
-# Security scanning  
+# Security scanning
 govulncheck ./...
 
 # Database migrations
