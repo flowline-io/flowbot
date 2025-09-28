@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
-	json "github.com/json-iterator/go"
 )
 
 const (
@@ -42,7 +42,7 @@ var webhookRules = []webhook.Rule{
 				Text string `json:"text"`
 				Ip   string `json:"ip"`
 			}
-			err := json.Unmarshal(data, &param)
+			err := sonic.Unmarshal(data, &param)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error params"}

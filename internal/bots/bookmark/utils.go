@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
+	"github.com/bytedance/sonic"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
@@ -13,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	json "github.com/json-iterator/go"
 )
 
 const tagsPrompt = `
@@ -72,7 +72,7 @@ func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, erro
 	}
 
 	var t tagsList
-	err = json.Unmarshal(utils.StringToBytes(jsonText), &t)
+	err = sonic.Unmarshal(utils.StringToBytes(jsonText), &t)
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, json unmarshal failed, %w", Name, err)
 	}

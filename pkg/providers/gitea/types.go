@@ -2,7 +2,7 @@ package gitea
 
 import (
 	"code.gitea.io/sdk/gitea"
-	json "github.com/json-iterator/go"
+	"github.com/bytedance/sonic"
 )
 
 // HookIssueAction represents the action that is sent along with an issue event.
@@ -54,7 +54,7 @@ type IssuePayload struct {
 
 // JSONPayload encodes the IssuePayload to JSON, with an indentation of two spaces.
 func (p *IssuePayload) JSONPayload() ([]byte, error) {
-	return json.MarshalIndent(p, "", "  ")
+	return sonic.MarshalIndent(p, "", "  ")
 }
 
 // ChangesFromPayload represents the payload information of issue change

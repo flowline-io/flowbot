@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
@@ -12,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
-	json "github.com/json-iterator/go"
 )
 
 const (
@@ -29,7 +29,7 @@ var webhookRules = []webhook.Rule{
 			}
 
 			var resp kanboard.EventResponse
-			err := json.Unmarshal(data, &resp)
+			err := sonic.Unmarshal(data, &resp)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "error event response"}

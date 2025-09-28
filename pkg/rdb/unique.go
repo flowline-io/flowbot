@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	json "github.com/json-iterator/go"
 )
 
 func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
@@ -36,7 +36,7 @@ func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
 }
 
 func kvHash(item any) (string, error) {
-	b, err := json.ConfigCompatibleWithStandardLibrary.Marshal(item)
+	b, err := sonic.ConfigStd.Marshal(item)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal kv: %w", err)
 	}

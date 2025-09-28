@@ -1,11 +1,13 @@
 package kanban
 
-import json "github.com/json-iterator/go"
+import (
+	"github.com/bytedance/sonic"
+)
 
 func unmarshal(data any, v any) error {
-	r, err := json.Marshal(data)
+	r, err := sonic.Marshal(data)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(r, &v)
+	return sonic.Unmarshal(r, &v)
 }

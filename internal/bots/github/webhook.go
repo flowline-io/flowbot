@@ -3,11 +3,11 @@ package github
 import (
 	"net/http"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
-	json "github.com/json-iterator/go"
 )
 
 const (
@@ -36,7 +36,7 @@ var webhookRules = []webhook.Rule{
 				return types.TextMsg{Text: "pong"}
 			case "package":
 				var a github.PackageWebhook
-				err := json.Unmarshal(data, &a)
+				err := sonic.Unmarshal(data, &a)
 				if err != nil {
 					flog.Error(err)
 					return types.TextMsg{Text: "error unmarshal"}
