@@ -134,3 +134,8 @@ tasks:
     desc: Static checker for GitHub Actions workflow files
     cmds:
       - actionlint
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./pkg/utils/... -v
