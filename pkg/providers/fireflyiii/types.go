@@ -1,9 +1,10 @@
 package fireflyiii
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/bytedance/sonic"
 )
 
 func ConvertResponseData[T any](resp *Response, statusCode int) (*T, error) {
@@ -16,12 +17,12 @@ func ConvertResponseData[T any](resp *Response, statusCode int) (*T, error) {
 	}
 
 	var result T
-	b, err := json.Marshal(resp.Data)
+	b, err := sonic.Marshal(resp.Data)
 	if err != nil {
 		return nil, fmt.Errorf("marshal data failed: %w", err)
 	}
 
-	if err := json.Unmarshal(b, &result); err != nil {
+	if err := sonic.Unmarshal(b, &result); err != nil {
 		return nil, fmt.Errorf("unmarshal to target type failed: %w", err)
 	}
 	return &result, nil

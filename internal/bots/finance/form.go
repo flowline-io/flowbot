@@ -1,11 +1,11 @@
 package finance
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -68,7 +68,7 @@ var formRules = []form.Rule{
 				content = content[start:end]
 			}
 
-			err = json.Unmarshal([]byte(content), &result)
+			err = sonic.Unmarshal([]byte(content), &result)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "failed to parse records"}

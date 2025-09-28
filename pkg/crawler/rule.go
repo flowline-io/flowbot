@@ -3,7 +3,6 @@ package crawler
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/mmcdole/gofeed"
 	"github.com/tidwall/gjson"
@@ -87,7 +87,7 @@ func (r Rule) Run() []map[string]string {
 		// mod func
 		gjson.AddModifier("expand", func(raw, arg string) string {
 			var args map[string]string
-			err := json.Unmarshal([]byte(arg), &args)
+			err := sonic.Unmarshal([]byte(arg), &args)
 			if err != nil {
 				return ""
 			}

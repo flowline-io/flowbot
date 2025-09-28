@@ -2,14 +2,13 @@ package gitea
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/agents"
-
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
@@ -225,7 +224,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		responseText = strings.ReplaceAll(strings.ReplaceAll(responseText, "\n", " "), "\r", "")
 
 		var result ReviewResult
-		if err := json.Unmarshal([]byte(responseText), &result); err != nil {
+		if err := sonic.Unmarshal([]byte(responseText), &result); err != nil {
 			flog.Error(fmt.Errorf("JSON parsing error: %w", err))
 			// Return a default review result
 			results = append(results, ReviewResult{

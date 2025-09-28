@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/goccy/go-json"
 	"github.com/meilisearch/meilisearch-go"
 	"go.uber.org/fx"
 )
@@ -105,7 +104,7 @@ func (c *Client) Search(source, query string, page, pageSize int32) (types.Docum
 	}
 
 	var list types.DocumentList
-	err = json.Unmarshal(data, &list)
+	err = sonic.Unmarshal(data, &list)
 	if err != nil {
 		return nil, 0, err
 	}
