@@ -745,13 +745,13 @@ func authPprof(ctx fiber.Ctx) bool {
 
 	accessToken := route.GetAccessToken(&r)
 	if accessToken == "" {
-		flog.Error(fmt.Errorf("pprof auth error: missing token"))
+		flog.Warn("pprof auth warning: missing token")
 		return true
 	}
 
 	p, err := store.Database.ParameterGet(accessToken)
 	if err != nil || p.ID <= 0 || p.IsExpired() {
-		flog.Error(fmt.Errorf("pprof auth error: parameter error"))
+		flog.Warn("pprof auth warning: parameter error")
 		return true
 	}
 

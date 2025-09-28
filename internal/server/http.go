@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
@@ -66,10 +65,6 @@ func newHTTPServer() *fiber.App {
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-	}))
-	// compress
-	app.Use(compress.New(compress.Config{
-		Level: compress.LevelBestSpeed,
 	}))
 	// limiter
 	app.Use(limiter.New(limiter.Config{
