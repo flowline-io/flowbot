@@ -8,7 +8,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/flowline-io/flowbot/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 )
@@ -95,7 +94,6 @@ func Init(config *MetricsConfig) error {
 
 		// create pusher
 		pusher = push.New(pushGatewayURL, jobName).Gatherer(registry)
-		pusher.Grouping("version", version.Buildtags)
 		pusher.Grouping("instance", hostid)
 		pusher.Grouping("hostname", hostname)
 

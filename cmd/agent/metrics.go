@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/cmd/agent/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/flowline-io/flowbot/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 	"go.uber.org/fx"
@@ -79,9 +78,8 @@ func doPush(hostid, hostname string) {
 	// Create a Pusher to push metrics to the Pushgateway
 	// Grouping adds labels; 'job' is required, 'instance' distinguishes different instances
 	pusher := push.New(config.App.Metrics.Endpoint, "flowbot-agent").
-		Grouping("instance", hostid).           // instance label
-		Grouping("hostname", hostname).         // hostname label
-		Grouping("version", version.Buildtags). // version label
+		Grouping("instance", hostid).   // instance label
+		Grouping("hostname", hostname). // hostname label
 		Collector(memoryAllocated).
 		Collector(memoryHeapInuse).
 		Collector(memoryHeapSys).
