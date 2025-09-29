@@ -15,7 +15,7 @@ require (
 	github.com/bytedance/sonic v1.14.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.5.3
-	github.com/cloudwego/eino-ext/components/model/ollama v0.1.2
+	github.com/cloudwego/eino-ext/components/model/ollama v0.1.3
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.1
 	github.com/creachadair/jrpc2 v1.3.3
 	github.com/dgraph-io/ristretto/v2 v2.3.0
@@ -116,6 +116,7 @@ require (
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/eino-contrib/jsonschema v1.0.0 // indirect
+	github.com/eino-contrib/ollama v0.1.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
 	github.com/evanphx/json-patch v0.5.2 // indirect
@@ -189,7 +190,6 @@ require (
 	github.com/nikolalohinski/gonja v1.5.3 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/ollama/ollama v0.11.4 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
