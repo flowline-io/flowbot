@@ -58,7 +58,7 @@ require (
 	github.com/samber/lo v1.51.0
 	github.com/samber/oops v1.19.0
 	github.com/schollz/progressbar/v3 v3.18.0
-	github.com/shirou/gopsutil/v4 v4.25.8
+	github.com/shirou/gopsutil/v4 v4.25.9
 	github.com/slack-go/slack v0.17.3
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
@@ -113,7 +113,7 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/dop251/goja v0.0.0-20231024180952-594410467bc6 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.8.4 // indirect
+	github.com/ebitengine/purego v0.9.0 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/eino-contrib/jsonschema v1.0.1 // indirect
 	github.com/eino-contrib/ollama v0.1.0 // indirect
