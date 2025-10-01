@@ -56,7 +56,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/rulego/rulego v0.33.2
 	github.com/samber/lo v1.51.0
-	github.com/samber/oops v1.19.0
+	github.com/samber/oops v1.19.3
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shirou/gopsutil/v4 v4.25.9
 	github.com/slack-go/slack v0.17.3
