@@ -52,7 +52,7 @@ require (
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/riverqueue/river v0.25.0
 	github.com/riverqueue/river/riverdriver/riversqlite v0.25.0
-	github.com/riverqueue/river/rivertype v0.25.0
+	github.com/riverqueue/river/rivertype v0.26.0
 	github.com/rs/zerolog v1.34.0
 	github.com/rulego/rulego v0.33.2
 	github.com/samber/lo v1.51.0
