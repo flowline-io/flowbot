@@ -20,7 +20,7 @@ require (
 	github.com/creachadair/jrpc2 v1.3.3
 	github.com/dgraph-io/ristretto/v2 v2.3.0
 	github.com/docker/cli v28.4.0+incompatible
-	github.com/docker/docker v28.5.0+incompatible
+	github.com/docker/docker v28.5.1+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.13.0
 	github.com/flc1125/go-cron/v4 v4.6.2
