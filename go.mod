@@ -77,7 +77,7 @@ require (
 	gorm.io/gorm v1.31.0
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
-	miniflux.app/v2 v2.2.12
+	miniflux.app/v2 v2.2.13
 	modernc.org/sqlite v1.39.1
 	resty.dev/v3 v3.0.0-beta.3
 )
@@ -237,6 +237,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
+	go.uber.org/mock v0.6.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
