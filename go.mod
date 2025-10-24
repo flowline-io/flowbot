@@ -66,7 +66,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/tidwall/gjson v1.18.0
 	github.com/urfave/cli/v3 v3.5.0
-	github.com/valyala/fasthttp v1.67.0
+	github.com/valyala/fasthttp v1.68.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.43.0
@@ -164,7 +164,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
