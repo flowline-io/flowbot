@@ -28,7 +28,7 @@ require (
 	github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1
-	github.com/go-echarts/go-echarts/v2 v2.6.5
+	github.com/go-echarts/go-echarts/v2 v2.6.6
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/goccy/go-yaml v1.18.0
