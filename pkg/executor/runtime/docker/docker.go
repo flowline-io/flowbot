@@ -221,7 +221,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		if err := gpuOpts.Set(t.GPUs); err != nil {
 			return fmt.Errorf("error setting GPUs, %w", err)
 		}
-		resources.DeviceRequests = gpuOpts.Value()
+		// resources.DeviceRequests = gpuOpts.Value() FIXME
 	}
 
 	hc := container.HostConfig{
