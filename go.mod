@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	code.gitea.io/sdk/gitea v0.22.1
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/PuerkitoBio/goquery v1.10.3
+	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.4
@@ -242,7 +242,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/term v0.37.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
