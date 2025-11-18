@@ -51,7 +51,7 @@ require (
 	github.com/prometheus/common v0.67.2
 	github.com/redis/go-redis/v9 v9.16.0
 	github.com/riverqueue/river v0.27.0
-	github.com/riverqueue/river/riverdriver/riversqlite v0.26.0
+	github.com/riverqueue/river/riverdriver/riversqlite v0.27.0
 	github.com/riverqueue/river/rivertype v0.27.0
 	github.com/rs/zerolog v1.34.0
 	github.com/rulego/rulego v0.34.1
