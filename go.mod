@@ -49,7 +49,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.67.3
-	github.com/redis/go-redis/v9 v9.16.0
+	github.com/redis/go-redis/v9 v9.17.0
 	github.com/riverqueue/river v0.27.0
 	github.com/riverqueue/river/riverdriver/riversqlite v0.27.0
 	github.com/riverqueue/river/rivertype v0.27.0
