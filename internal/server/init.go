@@ -5,15 +5,11 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/rules"
-	"github.com/flowline-io/flowbot/internal/rules/components"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/gofiber/fiber/v3"
-	"github.com/rulego/rulego"
-	"github.com/rulego/rulego/endpoint"
 )
 
 var (
@@ -70,41 +66,4 @@ func initializeMetrics() error {
 		PushGatewayURL: config.App.Metrics.Endpoint,
 		PushInterval:   time.Duration(15) * time.Second,
 	})
-}
-
-func initializeRuleEngine(app *fiber.App) error {
-	// register components
-	err := rulego.Registry.Register(&components.CommandNode{})
-	if err != nil {
-		return err
-	}
-	err = rulego.Registry.Register(&components.DataNode{})
-	if err != nil {
-		return err
-	}
-	err = rulego.Registry.Register(&components.FunctionsNode{})
-	if err != nil {
-		return err
-	}
-	err = rulego.Registry.Register(&components.DefaultUserNode{})
-	if err != nil {
-		return err
-	}
-
-	// register functions
-	rules.RegisterFunctions()
-
-	// register endpoints
-	err = endpoint.Registry.Register(&RestEndpoint{})
-
-	err = rules.InitEngine()
-	if err != nil {
-		return err
-	}
-	err = rules.InitEndpoint()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -10,9 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rulego/rulego"
-	ruleTypes "github.com/rulego/rulego/api/types"
-
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -162,21 +159,6 @@ var commandRules = []command.Rule{
 		Define: "check",
 		Help:   `self inspection`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			// rule engine
-			metaData := ruleTypes.NewMetadata()
-			metaData.PutValue("productType", "test01")
-
-			msg1 := ruleTypes.NewMsg(0, "TEST_MSG_TYPE1", ruleTypes.JSON, metaData, "{\"deviceId\":\"aa\", \"temperature\":41}")
-
-			ruleEngine, ok := rulego.Get("test")
-			if !ok {
-				return types.TextMsg{Text: "rule not found"}
-			}
-
-			ruleEngine.OnMsgAndWait(msg1, ruleTypes.WithOnAllNodeCompleted(func() {
-				flog.Info("all rule node completed")
-			}))
-
 			// notify
 			err := notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
 				Title: "notify check",
