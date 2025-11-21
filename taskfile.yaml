@@ -1,68 +1,173 @@
 version: "3"
 tasks:
   default:
-    desc: Default task
+    desc: Default task - run common checks
     cmds:
       - task: tidy
       - task: swagger
       - task: format
       - task: lint
       - task: scc
-      - echo "Both done"
+      - echo "All checks completed"
 
   check:
-    desc: check something
+    desc: Run all security and quality checks
     cmds:
       - task: lint
       - task: secure
       - task: leak
       - task: gosec
-      - echo "Both done"
+      - echo "All checks completed"
 
+  # Build tasks
   build:
-    desc: Build flowbot
+    desc: Build flowbot server
     cmds:
-      - go build -v -o tmp github.com/flowline-io/flowbot/cmd
+      - go build -v -o bin/flowbot github.com/flowline-io/flowbot/cmd
 
   build:agent:
-    desc: Build agent
+    desc: Build flowbot agent
     cmds:
-      - go build -v -o tmp github.com/flowline-io/flowbot/cmd/agent
+      - go build -v -o bin/flowbot-agent github.com/flowline-io/flowbot/cmd/agent
 
+  build:composer:
+    desc: Build composer tool
+    cmds:
+      - go build -v -o bin/composer github.com/flowline-io/flowbot/cmd/composer
+
+  build:all:
+    desc: Build all binaries
+    cmds:
+      - task: build
+      - task: build:agent
+      - task: build:composer
+
+  # Run tasks
   run:
-    desc: Run flowbot
+    desc: Run flowbot server
     cmds:
       - go run -tags swagger github.com/flowline-io/flowbot/cmd
 
   run:agent:
-    desc: Run agent
+    desc: Run flowbot agent
     cmds:
       - go run github.com/flowline-io/flowbot/cmd/agent
 
+  # Code quality tasks
   cloc:
-    desc: Count lines of code
+    desc: Count lines of code using cloc
     cmds:
       - cloc --exclude-dir=node_modules --exclude-ext=json .
 
   scc:
-    desc: Sloc, Cloc and Code
+    desc: Generate code statistics using scc
     cmds:
       - scc > ./cloc/{{ now.Format "2006-01-02" }}.txt
 
   lint:
-    desc: Static checker
+    desc: Run static code analysis
     cmds:
       - revive -config revive.toml -formatter friendly ./...
       - task: lint:action
 
+  lint:action:
+    desc: Lint GitHub Actions workflow files
+    cmds:
+      - actionlint
+
+  format:
+    desc: Format code (Go and other files)
+    cmds:
+      - go fmt ./...
+      - npx prettier --write .
+
+  tidy:
+    desc: Clean up Go module dependencies
+    cmds:
+      - go mod tidy
+
+  # Security tasks
+  secure:
+    desc: Check for Go vulnerabilities
+    cmds:
+      - govulncheck ./...
+
+  leak:
+    desc: Find secrets with Gitleaks
+    cmds:
+      - gitleaks git -v
+
+  gosec:
+    desc: Run Go security checker
+    cmds:
+      - gosec ./...
+
+  # Test tasks
+  test:
+    desc: Run tests in pkg/utils package
+    cmds:
+      - go test ./pkg/utils/... -v
+
+  test:all:
+    desc: Run all tests
+    cmds:
+      - go test ./... -v
+
+  test:coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - go test ./... -coverprofile=coverage.out -covermode=atomic
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "coverage report generated in coverage.html"
+
+  # Documentation tasks
   swagger:
-    desc: generate swagger
+    desc: Generate Swagger API documentation
     cmds:
       - swag init -g cmd/main.go -o ./docs/api
       - swag fmt -g cmd/main.go
 
+  doc:
+    desc: Generate database schema documentation
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer doc
+
+  # Code generation tasks
+  dao:
+    desc: Generate DAO code from database
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer dao
+
+  generator:bot:
+    desc: Generate bot code (task generator:bot NAME=botname RULE=command,form)
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer generator bot -name {{.NAME | default "example"}} -rule {{.RULE | default "command"}}
+
+  generator:vendor:
+    desc: Generate vendor API code (task generator:vendor NAME=vendorname)
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name {{.NAME | default "example"}}
+
+  # Database migration tasks
+  migrate:
+    desc: Import database migrations
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer migrate import
+
+  migration:
+    desc: Create new migration file (task migration NAME=migration_name)
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{.NAME | default .CLI_ARGS | default "migration"}}
+
+  # Workflow tasks
+  workflow:import:
+    desc: Import workflow configuration (task workflow:import TOKEN=xxx PATH=./path/to/workflow.yaml)
+    cmds:
+      - go run github.com/flowline-io/flowbot/cmd/composer workflow import -token {{.TOKEN}} -path {{.PATH}}
+
+  # Development tools
   tools:
-    desc: install tools
+    desc: Install all development tools
     cmds:
       - go install github.com/go-task/task/v3/cmd/task@latest
       - go install github.com/mgechev/revive@latest
@@ -78,63 +183,20 @@ tasks:
       - go install github.com/riverqueue/river/cmd/river@latest
       - npm install -g prettier
 
-  secure:
-    desc: Go vulnerability checker
-    cmds:
-      - govulncheck ./...
-
-  dao:
-    desc: generate dao
-    cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer dao
-
-  migrate:
-    desc: migrate database
-    cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer migrate import
-
-  migration:
-    desc: create migration
-    cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{ .CLI_ARGS }}
-
-  tidy:
-    desc: Cleans up your Go module dependencies
-    cmds:
-      - go mod tidy
-
-  leak:
-    desc: Find secrets with Gitleaks
-    cmds:
-      - gitleaks git -v
-
+  # Release tasks
   snapshot:
-    desc: release snapshot
+    desc: Create snapshot release
     cmds:
       - goreleaser release --snapshot --clean
 
-  format:
-    desc: Format code
+  # Utility tasks
+  clean:
+    desc: Clean build artifacts and temporary files
     cmds:
-      - go fmt ./...
-      - npx prettier --write .
+      - go clean -cache -testcache
+      - rm -rf bin/ tmp/ coverage.out coverage.html || true
 
   air:
-    desc: Live reload for Go apps
+    desc: Run with live reload using air
     cmds:
       - air --build.cmd "go build -o flowbot cmd/main.go" --build.bin "./flowbot"
-
-  gosec:
-    desc: Go security checker
-    cmds:
-      - gosec ./...
-
-  lint:action:
-    desc: Static checker for GitHub Actions workflow files
-    cmds:
-      - actionlint
-
-  test:
-    desc: Run tests
-    cmds:
-      - go test ./pkg/utils/... -v

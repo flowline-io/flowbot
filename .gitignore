@@ -8,6 +8,7 @@
 /cloc
 /script
 /dist
+/bin
 flowbot.json
 flowbot.yaml
 flowbot.log
