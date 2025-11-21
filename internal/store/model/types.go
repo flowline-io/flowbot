@@ -49,7 +49,6 @@ const (
 	PageForm  PageType = "form"
 	PageTable PageType = "table"
 	PageHtml  PageType = "html"
-	PageChart PageType = "chart"
 )
 
 func (j PageType) Value() (driver.Value, error) {

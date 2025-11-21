@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"errors"
 	"net/http"
 	"strconv"
@@ -23,8 +22,6 @@ import (
 	formRule "github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
@@ -140,33 +137,6 @@ func (c *Controller) getPage(ctx fiber.Ctx) error {
 		comp = page.RenderTable(p)
 	case model.PageHtml:
 		comp = page.RenderHtml(p)
-	case model.PageChart:
-		d, err := sonic.Marshal(p.Schema)
-		if err != nil {
-			return protocol.ErrBadParam.Wrap(err)
-		}
-		var msg types.ChartMsg
-		err = sonic.Unmarshal(d, &msg)
-		if err != nil {
-			return protocol.ErrBadParam.Wrap(err)
-		}
-
-		line := charts.NewLine()
-		line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
-			Title:    msg.Title,
-			Subtitle: msg.SubTitle,
-		}), charts.WithInitializationOpts(opts.Initialization{PageTitle: "Chart"}))
-
-		var lineData []opts.LineData
-		for _, i := range msg.Series {
-			lineData = append(lineData, opts.LineData{Value: i})
-		}
-
-		line.SetXAxis(msg.XAxis).AddSeries("Chart", lineData)
-
-		buf := bytes.NewBuffer(nil)
-		_ = line.Render(buf)
-		return ctx.Send(buf.Bytes())
 	default:
 		return protocol.ErrBadRequest.New("error type")
 	}
