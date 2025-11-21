@@ -15,9 +15,7 @@ RUN apk add --no-cache bash curl tzdata
 WORKDIR /opt/app
 
 COPY --from=builder /opt/app/flowbot .
-COPY deployments/entrypoint.sh .
 
-RUN chmod +x flowbot && chmod +x entrypoint.sh
+RUN chmod +x flowbot
 
-ENTRYPOINT ./entrypoint.sh
-EXPOSE 6060
+ENTRYPOINT exec /opt/app/flowbot
