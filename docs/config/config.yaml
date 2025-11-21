@@ -257,3 +257,7 @@ vendors:
   drone:
     endpoint: ""
     token: ""
+  # n8n configuration
+  n8n:
+    endpoint: ""
+    api_key: ""
