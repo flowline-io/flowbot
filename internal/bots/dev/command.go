@@ -15,7 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
-	"github.com/flowline-io/flowbot/pkg/providers/safeline"
 	"github.com/flowline-io/flowbot/pkg/providers/transmission"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -199,22 +198,6 @@ var commandRules = []command.Rule{
 			}
 
 			return types.TextMsg{Text: fmt.Sprintf("url: %s, size: %d", url, size)}
-		},
-	},
-	{
-		Define: "safeline test",
-		Help:   `[example] safeline example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			client := safeline.GetClient()
-			resp, err := client.QPS(context.Background())
-
-			if err != nil {
-				return types.TextMsg{Text: err.Error()}
-			}
-			return types.InfoMsg{
-				Title: "safeline demo",
-				Model: resp,
-			}
 		},
 	},
 	{

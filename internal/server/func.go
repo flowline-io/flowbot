@@ -19,7 +19,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
-	"github.com/flowline-io/flowbot/pkg/providers/pocket"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -48,9 +47,6 @@ func newProvider(category string) providers.OAuthProvider {
 	var provider providers.OAuthProvider
 
 	switch category {
-	case pocket.ID:
-		key, _ := providers.GetConfig(pocket.ID, pocket.ClientIdKey)
-		provider = pocket.NewPocket(key.String(), "", "", "")
 	case github.ID:
 		id, _ := providers.GetConfig(github.ID, github.ClientIdKey)
 		secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
