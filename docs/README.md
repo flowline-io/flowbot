@@ -5,33 +5,27 @@ FlowBot is a workflow-based intelligent chatbot framework.
 ## Directory Structure
 
 - 📁 [`api/`](./api/) - API documentation and interface definitions
-
   - `swagger.json` - OpenAPI 3.0 specification file (JSON format)
   - `swagger.yaml` - OpenAPI 3.0 specification file (YAML format)
   - `docs.go` - Auto-generated API documentation code
   - `api.http` - HTTP request examples collection
 
 - 📁 [`config/`](./config/) - Configuration files and examples
-
   - `config.yaml` - Main configuration file template
   - `agent.yaml` - Agent configuration file template
   - [`examples/`](./config/examples/) - Configuration example files
 
 - 📁 [`deployment/`](./deployment/) - Deployment-related documentation
-
   - `flowbot-agent.service` - Systemd service configuration file
 
 - 📁 [`development/`](./development/) - Development-related documentation and tools
-
   - `example.fish` - Fish Shell script example
   - `http-client.private.env.json` - HTTP client environment configuration
 
 - 📁 [`database/`](./database/) - Database-related documentation
-
   - `schema.md` - Database table structure documentation
 
 - 📁 [`architecture/`](./architecture/) - System architecture documentation
-
   - `architecture.png` - System architecture diagram
   - `flowchart.mermaid` - Workflow flowchart
 

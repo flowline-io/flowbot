@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/contrib/fiberzerolog"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
+	fiberzerolog "github.com/gofiber/contrib/v3/zerolog"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/favicon"

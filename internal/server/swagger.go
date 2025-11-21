@@ -3,10 +3,10 @@
 package server
 
 import (
-	swagger "github.com/flowline-io/fiberswagger"
 	_ "github.com/flowline-io/flowbot/docs/api"
+	"github.com/gofiber/contrib/v3/swaggo"
 )
 
 func init() {
-	swagHandler = swagger.HandlerDefault
+	swagHandler = swaggo.HandlerDefault
 }

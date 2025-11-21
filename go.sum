@@ -152,10 +152,6 @@ github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/flc1125/go-cron/v4 v4.7.1 h1:KQ4P16Wd5ZTBbKugyFcpPYk8SnfhKLWz4OF3BQ+YTOI=
 github.com/flc1125/go-cron/v4 v4.7.1/go.mod h1:nrdDV7DrL4Fk4kZXAja6YgfU2UrIGIhJt1DaB9b49o0=
-github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77 h1:6iBZTgj0BWIFUqxNpRbtoqFgaHA4ZV9QBjr4vR/79l4=
-github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77/go.mod h1:S2BNSvTjn4JX/u+foxRHiEbAzltqIzmDC0Syqlgwotk=
-github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c h1:BnsSRINEkyL9MLa3NvJH1blJu4Dd2asmjr5j7b/LeI4=
-github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c/go.mod h1:PciAU8mP0jIPPIo8S9Q9VYswlzq/J4YMNwUGZ0mnbt0=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
@@ -221,6 +217,10 @@ github.com/goccy/go-yaml v1.18.0/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7Lk
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/godbus/dbus/v5 v5.1.0 h1:4KLkAxT3aOY8Li4FRJe/KvhoNFFxo0m6fNuFUO8QJUk=
 github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
+github.com/gofiber/contrib/v3/swaggo v1.0.0-rc.1 h1:PDKUa9qdpuQ4N8S9cdHouEf31LGxl3vGUFAmzXQzgJI=
+github.com/gofiber/contrib/v3/swaggo v1.0.0-rc.1/go.mod h1:Byf3B5Q/sjnm8Xk5KjxQQMgBl5L+9DZU71HFEX5Xq5c=
+github.com/gofiber/contrib/v3/zerolog v1.0.0-rc.1 h1:g47QSO64eFAKjKz+hOHnpH2iwvuY1FygnRJ+iznspFQ=
+github.com/gofiber/contrib/v3/zerolog v1.0.0-rc.1/go.mod h1:XGSPR+RthgqQRhKiOT/xvGAz41F+FNekKPjv4YSZMI0=
 github.com/gofiber/fiber/v3 v3.0.0-rc.3 h1:h0KXuRHbivSslIpoHD1R/XjUsjcGwt+2vK0avFiYonA=
 github.com/gofiber/fiber/v3 v3.0.0-rc.3/go.mod h1:LNBPuS/rGoUFlOyy03fXsWAeWfdGoT1QytwjRVNSVWo=
 github.com/gofiber/schema v1.6.0 h1:rAgVDFwhndtC+hgV7Vu5ItQCn7eC2mBA4Eu1/ZTiEYY=

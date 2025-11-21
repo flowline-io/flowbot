@@ -87,13 +87,11 @@ Please refer to Docker-related files in the `deployments/` directory under the p
 ### Common Issues
 
 1. **Service fails to start**
-
    - Check configuration file path and permissions
    - Check log output
    - Verify database connection
 
 2. **Port conflicts**
-
    - Modify port settings in configuration file
    - Or use environment variable `FLOWBOT_SERVER_PORT`
 

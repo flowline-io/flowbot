@@ -19,19 +19,16 @@ FlowBot adopts a microservices architecture with the following main components:
 ### Core Components
 
 1. **API Gateway**
-
    - Unified API entry point
    - Request routing and load balancing
    - Authentication and authorization
 
 2. **FlowBot Server**
-
    - Main business logic processing
    - RESTful API service
    - Core chatbot functionality
 
 3. **FlowBot Agent**
-
    - Background task executor
    - Workflow scheduling and execution
    - Scheduled task management
@@ -44,7 +41,6 @@ FlowBot adopts a microservices architecture with the following main components:
 ### External Integrations
 
 1. **Chat Platforms**
-
    - Discord
    - Slack
    - Tailchat
@@ -58,13 +54,11 @@ FlowBot adopts a microservices architecture with the following main components:
 ### Workflow Engine
 
 1. **Rules Engine**
-
    - Rule parsing and execution
    - Condition evaluation and routing
    - Dynamic rule loading
 
 2. **Task Scheduler**
-
    - Task queue management
    - Concurrency control
    - Failure retry mechanism

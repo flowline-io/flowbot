@@ -24,14 +24,14 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.13.0
 	github.com/flc1125/go-cron/v4 v4.7.1
-	github.com/flowline-io/contrib/fiberzerolog v0.0.0-20250722021955-e0d9f6321e77
-	github.com/flowline-io/fiberswagger v0.0.0-20250529155353-3b5b94dbd01c
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.1
 	github.com/go-echarts/go-echarts/v2 v2.6.7
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/goccy/go-yaml v1.18.0
+	github.com/gofiber/contrib/v3/swaggo v1.0.0-rc.1
+	github.com/gofiber/contrib/v3/zerolog v1.0.0-rc.1
 	github.com/gofiber/fiber/v3 v3.0.0-rc.3
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/uuid v1.6.0
