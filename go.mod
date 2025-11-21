@@ -15,7 +15,6 @@ require (
 	github.com/bytedance/sonic v1.14.2
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.7.0
-	github.com/cloudwego/eino-ext/components/model/ollama v0.1.6
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.5
 	github.com/creachadair/jrpc2 v1.3.3
 	github.com/dgraph-io/ristretto/v2 v2.3.0
@@ -113,7 +112,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
 	github.com/eino-contrib/jsonschema v1.0.2 // indirect
-	github.com/eino-contrib/ollama v0.1.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
 	github.com/evanphx/json-patch v0.5.2 // indirect

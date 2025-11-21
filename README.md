@@ -9,7 +9,7 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 ## ✨ Key Features
 
 - 🤖 **Multi-Platform Chatbot** - Support for Discord, Slack, Tailchat, and Telegram
-- 🧠 **LLM Agent System** - Advanced AI agents with multiple model support (OpenAI, Ollama, etc.)
+- 🧠 **LLM Agent System** - Advanced AI agents with multiple model support (OpenAI, etc.)
 - ⚡ **Workflow Engine** - Visual workflow designer with DAG-based execution
 - 📨 **Message Hub** - Publish/Subscribe messaging with Redis Stream
 - ⏰ **Scheduling System** - Cron jobs, triggers, and automated tasks
@@ -74,7 +74,7 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/app/flowbot.yaml flowbot
 1. **Database Setup**: Configure MySQL or SQLite in `flowbot.yaml`
 2. **Redis Configuration**: Set Redis connection details
 3. **Platform Integration**: Add bot tokens for Discord/Slack/etc.
-4. **LLM Models**: Configure OpenAI API key or Ollama endpoint
+4. **LLM Models**: Configure OpenAI API key endpoint
 5. **Start Service**: Launch flowbot and access Web UI at `http://localhost:6060`
 
 ## 🤖 Bot Modules

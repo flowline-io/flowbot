@@ -111,7 +111,7 @@ alarm:
 
 # Model configuration
 models:
-  - provider: "openai" # openai, openai-compatible, ollama ...
+  - provider: "openai" # openai, openai-compatible
     base_url: "https://api.openai.com/v1"
     api_key: ""
     model_names:
