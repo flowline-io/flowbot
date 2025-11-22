@@ -77,7 +77,3 @@ func (bot) Cron() (*cron.Ruleset, error) {
 func (bot) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return chatbot.RunForm(formRules, ctx, values)
 }
-
-func (bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
-	return chatbot.RunWorkflow(workflowRules, ctx, input)
-}

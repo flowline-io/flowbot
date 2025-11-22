@@ -26,7 +26,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/workflow"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
@@ -210,11 +209,6 @@ func RunCollect(collectRules []collect.Rule, ctx types.Context, content types.KV
 func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
 	rs := event.Ruleset(eventRules)
 	return rs.ProcessEvent(ctx, param)
-}
-
-func RunWorkflow(workflowRules []workflow.Rule, ctx types.Context, input types.KV) (types.KV, error) {
-	rs := workflow.Ruleset(workflowRules)
-	return rs.ProcessRule(ctx, input)
 }
 
 func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, data []byte) (types.MsgPayload, error) {

@@ -49,9 +49,6 @@ type Handler interface {
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
 
-	// Workflow return workflow result
-	Workflow(ctx types.Context, input types.KV) (types.KV, error)
-
 	// Webhook return webhook result
 	Webhook(ctx types.Context, data []byte) (types.MsgPayload, error)
 
@@ -105,10 +102,6 @@ func (Base) Page(_ types.Context, _ string, _ types.KV) (string, error) {
 }
 
 func (Base) Webservice(_ *fiber.App) {
-}
-
-func (Base) Workflow(_ types.Context, _ types.KV) (types.KV, error) {
-	return nil, nil
 }
 
 func (Base) Webhook(_ types.Context, _ []byte) (types.MsgPayload, error) {

@@ -110,10 +110,6 @@ func (bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
 	return chatbot.RunPage(pageRules, ctx, flag, args)
 }
 
-func (bot) Workflow(ctx types.Context, input types.KV) (types.KV, error) {
-	return chatbot.RunWorkflow(workflowRules, ctx, input)
-}
-
 func (bot) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
 	return chatbot.RunWebhook(webhookRules, ctx, data)
 }
