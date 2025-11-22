@@ -73,9 +73,6 @@ type Type struct {
 
 	// Agents
 	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
-
-	// Rule engine
-	RuleEngine RuleEngine `json:"rule_engine" yaml:"rule_engine" mapstructure:"rule_engine"`
 }
 
 // Large file handler config.
@@ -277,11 +274,6 @@ type Model struct {
 	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
 	// Useful model names
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
-}
-
-type RuleEngine struct {
-	// rules directory path
-	RulesPath string `json:"rules_path" yaml:"rules_path" mapstructure:"rules_path"`
 }
 
 func Load(path ...string) {
