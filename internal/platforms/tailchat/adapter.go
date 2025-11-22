@@ -1,9 +1,8 @@
-package discord
+package tailchat
 
 import (
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -19,14 +18,9 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 	var result protocol.Event
 
 	switch evt := data.(type) {
-	case *discordgo.Ready:
-		result.Id = types.Id()
-		result.Time = time.Now().UnixMicro()
-		result.Type = protocol.MetaEventType
-		result.DetailType = protocol.MetaConnectEvent
-	case *discordgo.MessageCreate:
+	case *Payload:
 		// Ignore all messages created by the bot itself
-		if evt.Author.Bot {
+		if evt.UserID == evt.Payload.MessageAuthor {
 			return result
 		}
 
@@ -35,35 +29,25 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 		result.Type = protocol.MessageEventType
 
 		// Determine if it's a direct message or group message
-		// If GuildID is empty, it's typically a DM
-		topicType := "text"
-		if evt.GuildID == "" {
+		// If GroupID is empty, it's typically a DM
+		topicType := "group"
+		if evt.Payload.GroupID == "" {
 			result.DetailType = protocol.MessageDirectEvent
 			topicType = "dm"
 		} else {
 			result.DetailType = protocol.MessageGroupEvent
-			topicType = "text"
+			topicType = "group"
 		}
 
 		result.Data = protocol.MessageEventData{
 			Self: protocol.Self{
 				Platform: ID,
 			},
-			MessageId:  evt.ID,
-			AltMessage: evt.Content,
-			UserId:     evt.Author.ID,
-			TopicId:    evt.ChannelID,
+			MessageId:  evt.Payload.MessageID,
+			AltMessage: evt.Payload.MessagePlainContent,
+			UserId:     evt.Payload.MessageAuthor,
+			TopicId:    evt.Payload.ConverseID,
 			TopicType:  topicType,
-		}
-	case *discordgo.InteractionCreate:
-		if evt.ApplicationCommandData().Name != "" {
-			result.Id = types.Id()
-			result.Time = time.Now().UnixMicro()
-			result.Type = protocol.MessageEventType
-			result.DetailType = protocol.MessageCommandEvent
-			result.Data = protocol.CommandEventData{
-				Command: evt.ApplicationCommandData().Name,
-			}
 		}
 	}
 

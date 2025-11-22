@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page"
 	"github.com/flowline-io/flowbot/pkg/page/form"
@@ -63,12 +64,14 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 // handler
 
 type Controller struct {
-	driver protocol.Driver
+	driver         protocol.Driver
+	tailchatDriver protocol.Driver
 }
 
-func newController(driver protocol.Driver) *Controller {
+func newController(driver protocol.Driver, cfg config.Type, storeAdapter store.Adapter) *Controller {
 	return &Controller{
-		driver: driver,
+		driver:         driver,
+		tailchatDriver: tailchat.NewDriver(cfg, storeAdapter),
 	}
 }
 
@@ -344,9 +347,11 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	var err error
 	switch platform {
 	case tailchat.ID:
-		err = tailchat.HandleHttp(ctx)
+		err = c.tailchatDriver.HttpServer(ctx)
 	case slack.ID:
 		err = c.driver.HttpServer(ctx)
+	default:
+		return protocol.ErrNotFound.New("platform not found")
 	}
 	if err != nil {
 		var e oops.OopsError
