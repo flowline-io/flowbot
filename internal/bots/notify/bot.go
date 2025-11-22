@@ -62,7 +62,6 @@ func (bot) Rules() []interface{} {
 		commandRules,
 		formRules,
 		cronRules,
-		workflowRules,
 	}
 }
 

@@ -75,7 +75,6 @@ func (bot) Rules() []interface{} {
 		pageRules,
 		collectRules,
 		webserviceRules,
-		workflowRules,
 		webhookRules,
 		toolRules,
 		eventRules,
