@@ -3,6 +3,7 @@ package platforms
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -42,9 +43,143 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Text(v.Text),
 		}
 	case types.LinkMsg:
-		return protocol.Message{
+		msg := protocol.Message{
 			protocol.Text(v.Title),
 			protocol.Url(v.Url),
+		}
+		return msg
+	case types.TableMsg:
+		var parts []string
+		if v.Title != "" {
+			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
+		}
+		if len(v.Header) > 0 {
+			headerRow := strings.Join(v.Header, " | ")
+			parts = append(parts, headerRow)
+			separator := strings.Repeat("-", len(headerRow))
+			parts = append(parts, separator)
+		}
+		for _, row := range v.Row {
+			var rowParts []string
+			for _, cell := range row {
+				rowParts = append(rowParts, fmt.Sprintf("%v", cell))
+			}
+			parts = append(parts, strings.Join(rowParts, " | "))
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.InfoMsg:
+		var parts []string
+		if v.Title != "" {
+			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
+		}
+		if v.Model != nil {
+			s, err := yaml.Marshal(v.Model)
+			if err == nil {
+				parts = append(parts, utils.BytesToString(s))
+			}
+		}
+		if len(parts) == 0 {
+			return nil
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.ChartMsg:
+		var parts []string
+		if v.Title != "" {
+			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
+		}
+		if v.SubTitle != "" {
+			parts = append(parts, fmt.Sprintf("_%s_", v.SubTitle))
+		}
+		if len(v.XAxis) > 0 && len(v.Series) > 0 {
+			parts = append(parts, "Chart Data:")
+			for i, label := range v.XAxis {
+				if i < len(v.Series) {
+					parts = append(parts, fmt.Sprintf("  %s: %.2f", label, v.Series[i]))
+				}
+			}
+		}
+		if len(parts) == 0 {
+			return nil
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.HtmlMsg:
+		// Convert HTML to plain text (basic conversion)
+		// For better results, consider using a HTML parser
+		return protocol.Message{
+			protocol.Text(v.Raw),
+		}
+	case types.MarkdownMsg:
+		var parts []string
+		if v.Title != "" {
+			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
+		}
+		if v.Raw != "" {
+			parts = append(parts, v.Raw)
+		}
+		if len(parts) == 0 {
+			return nil
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.InstructMsg:
+		var parts []string
+		parts = append(parts, fmt.Sprintf("*Instruction: %s*", v.No))
+		if v.Bot != "" {
+			parts = append(parts, fmt.Sprintf("Bot: %s", v.Bot))
+		}
+		if v.Flag != "" {
+			parts = append(parts, fmt.Sprintf("Flag: %s", v.Flag))
+		}
+		if len(v.Content) > 0 {
+			s, err := yaml.Marshal(v.Content)
+			if err == nil {
+				parts = append(parts, fmt.Sprintf("Content:\n%s", utils.BytesToString(s)))
+			}
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.KVMsg:
+		var parts []string
+		for k, val := range v {
+			parts = append(parts, fmt.Sprintf("%s: %v", k, val))
+		}
+		if len(parts) == 0 {
+			return nil
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
+		}
+	case types.FormMsg:
+		var parts []string
+		if v.Title != "" {
+			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
+		}
+		if v.ID != "" {
+			parts = append(parts, fmt.Sprintf("Form ID: %s", v.ID))
+		}
+		if len(v.Field) > 0 {
+			parts = append(parts, "Fields:")
+			for _, field := range v.Field {
+				fieldText := fmt.Sprintf("  - %s (%s)", field.Label, field.Type)
+				if field.Value != nil {
+					fieldText += fmt.Sprintf(": %v", field.Value)
+				}
+				parts = append(parts, fieldText)
+			}
+		}
+		if len(parts) == 0 {
+			return nil
+		}
+		return protocol.Message{
+			protocol.Text(strings.Join(parts, "\n")),
 		}
 	case types.EmptyMsg:
 		return nil
