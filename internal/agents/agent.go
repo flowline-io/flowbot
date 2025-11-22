@@ -11,19 +11,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-const (
-	AgentChat              = "chat"
-	AgentReact             = "react"
-	AgentRepoReviewComment = "repo-review-comment"
-	AgentNewsSummary       = "news-summary"
-	AgentBillClassify      = "bill-classify"
-	AgentExtractTags       = "extract-tags"
-	AgentSimilarTags       = "similar-tags"
+var (
+	agents         = make(map[string]config.Agent)
+	loadOnceAgents = sync.Once{}
 )
 
-var agents = make(map[string]config.Agent)
-var loadOnceAgents = sync.Once{}
-
+// loadAgents loads and caches all agent configurations.
 func loadAgents() {
 	loadOnceAgents.Do(func() {
 		for _, item := range config.App.Agents {
@@ -32,6 +25,7 @@ func loadAgents() {
 	})
 }
 
+// AgentModelName returns the model name for the specified agent.
 func AgentModelName(name string) string {
 	loadAgents()
 	a, ok := agents[name]
@@ -41,6 +35,7 @@ func AgentModelName(name string) string {
 	return a.Model
 }
 
+// AgentEnabled checks if the specified agent is enabled.
 func AgentEnabled(name string) bool {
 	loadAgents()
 	a, ok := agents[name]
@@ -53,6 +48,7 @@ func AgentEnabled(name string) bool {
 	return true
 }
 
+// ReactAgent creates a React agent instance.
 func ReactAgent(ctx context.Context, modelName string, tools []tool.BaseTool) (*react.Agent, error) {
 	llm, err := ChatModel(ctx, modelName)
 	if err != nil {
@@ -71,11 +67,11 @@ func ReactAgent(ctx context.Context, modelName string, tools []tool.BaseTool) (*
 	return agent, nil
 }
 
+// LLMGenerate generates a text response using the specified model.
 func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) {
 	messages, err := BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
-
 	if err != nil {
 		return "", fmt.Errorf("prompt format failed, %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/pkoukk/tiktoken-go"
 )
 
+// CountToken counts the number of tokens in text.
 func CountToken(text string) int {
 	encoding := tiktoken.MODEL_CL100K_BASE
 
@@ -25,6 +26,7 @@ func CountToken(text string) int {
 	return len(token)
 }
 
+// CountMessageTokens counts the total number of tokens in a message list.
 func CountMessageTokens(messages []*schema.Message) (int, error) {
 	start := time.Now()
 
