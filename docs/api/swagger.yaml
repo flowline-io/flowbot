@@ -12,7 +12,7 @@ definitions:
         type: integer
       key_result_values:
         items:
-          $ref: '#/definitions/model.KeyResultValue'
+          $ref: "#/definitions/model.KeyResultValue"
         type: array
       memo:
         type: string
@@ -28,7 +28,7 @@ definitions:
         type: string
       todos:
         items:
-          $ref: '#/definitions/model.Todo'
+          $ref: "#/definitions/model.Todo"
         type: array
       topic:
         type: string
@@ -37,7 +37,7 @@ definitions:
       updated_at:
         type: string
       value_mode:
-        $ref: '#/definitions/model.ValueModeType'
+        $ref: "#/definitions/model.ValueModeType"
     type: object
   model.KeyResultValue:
     properties:
@@ -68,7 +68,7 @@ definitions:
         type: integer
       key_results:
         items:
-          $ref: '#/definitions/model.KeyResult'
+          $ref: "#/definitions/model.KeyResult"
         type: array
       memo:
         type: string
@@ -82,7 +82,7 @@ definitions:
         type: integer
       reviews:
         items:
-          $ref: '#/definitions/model.Review'
+          $ref: "#/definitions/model.Review"
         type: array
       sequence:
         type: integer
@@ -105,7 +105,7 @@ definitions:
         type: string
       evaluations:
         items:
-          $ref: '#/definitions/model.ReviewEvaluation'
+          $ref: "#/definitions/model.ReviewEvaluation"
         type: array
       id:
         type: integer
@@ -116,7 +116,7 @@ definitions:
       topic:
         type: string
       type:
-        $ref: '#/definitions/model.ReviewType'
+        $ref: "#/definitions/model.ReviewType"
       uid:
         type: string
       updated_at:
@@ -145,14 +145,14 @@ definitions:
     type: object
   model.ReviewType:
     enum:
-    - 0
-    - 1
-    - 2
+      - 0
+      - 1
+      - 2
     type: integer
     x-enum-varnames:
-    - ReviewTypeUnknown
-    - ReviewMid
-    - ReviewEnd
+      - ReviewTypeUnknown
+      - ReviewMid
+      - ReviewEnd
   model.Todo:
     properties:
       category:
@@ -187,7 +187,7 @@ definitions:
         type: integer
       sub_todos:
         items:
-          $ref: '#/definitions/model.Todo'
+          $ref: "#/definitions/model.Todo"
         type: array
       topic:
         type: string
@@ -198,16 +198,16 @@ definitions:
     type: object
   model.ValueModeType:
     enum:
-    - sum
-    - last
-    - avg
-    - max
+      - sum
+      - last
+      - avg
+      - max
     type: string
     x-enum-varnames:
-    - ValueSumMode
-    - ValueLastMode
-    - ValueAvgMode
-    - ValueMaxMode
+      - ValueSumMode
+      - ValueLastMode
+      - ValueAvgMode
+      - ValueMaxMode
   protocol.Response:
     properties:
       data:
@@ -218,24 +218,25 @@ definitions:
           or an empty string when it succeeds.
         type: string
       retcode:
-        description: The return code, which must conform to the return code rules
+        description:
+          The return code, which must conform to the return code rules
           defined later on this page
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/protocol.ResponseStatus'
+          - $ref: "#/definitions/protocol.ResponseStatus"
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
     type: object
   protocol.ResponseStatus:
     enum:
-    - ok
-    - failed
+      - ok
+      - failed
     type: string
     x-enum-varnames:
-    - Success
-    - Failed
+      - Success
+      - Failed
   types.KV:
     additionalProperties: true
     type: object
@@ -252,490 +253,490 @@ paths:
   /dev/example:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       summary: Show example
       tags:
-      - dev
+        - dev
   /okr/key_result:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: KeyResult data
-        in: body
-        name: keyResult
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResult'
+        - description: KeyResult data
+          in: body
+          name: keyResult
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResult"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult create
       tags:
-      - okr
+        - okr
   /okr/key_result/{id}/value:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: KeyResultValue data
-        in: body
-        name: KeyResultValue
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResultValue'
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: KeyResultValue data
+          in: body
+          name: KeyResultValue
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResultValue"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value create
       tags:
-      - okr
+        - okr
   /okr/key_result/{id}/values:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.KeyResultValue'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.KeyResultValue"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: key result value list
       tags:
-      - okr
+        - okr
   /okr/key_result/{sequence}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult delete
       tags:
-      - okr
+        - okr
     put:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
-      - description: KeyResult data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.KeyResult'
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
+        - description: KeyResult data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.KeyResult"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult update
       tags:
-      - okr
+        - okr
   /okr/key_result_value/{id}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value delete
       tags:
-      - okr
+        - okr
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: key result id
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: key result id
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.KeyResultValue'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.KeyResultValue"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: KeyResult value detail
       tags:
-      - okr
+        - okr
   /okr/objective:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: objective data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.Objective'
+        - description: objective data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.Objective"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective create
       tags:
-      - okr
+        - okr
   /okr/objective/{sequence}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective delete
       tags:
-      - okr
+        - okr
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.Objective'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/model.Objective"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective detail
       tags:
-      - okr
+        - okr
     put:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Sequence
-        in: path
-        name: sequence
-        required: true
-        type: integer
-      - description: objective data
-        in: body
-        name: objective
-        required: true
-        schema:
-          $ref: '#/definitions/model.Objective'
+        - description: Sequence
+          in: path
+          name: sequence
+          required: true
+          type: integer
+        - description: objective data
+          in: body
+          name: objective
+          required: true
+          schema:
+            $ref: "#/definitions/model.Objective"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protocol.Response'
+            $ref: "#/definitions/protocol.Response"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective update
       tags:
-      - okr
+        - okr
   /okr/objectives:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.Objective'
-                  type: array
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/model.Objective"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: objective list
       tags:
-      - okr
+        - okr
   /search/autocomplete:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: search autocomplete
       tags:
-      - search
+        - search
   /search/query:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: search everything
       tags:
-      - search
+        - search
   /server/stacktrace:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get server or goroutines stacktrace
       tags:
-      - dev
+        - dev
   /server/upload:
     post:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: upload PicGO upload api
       tags:
-      - dev
+        - dev
   /user/bookmark:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user bookmark list
       tags:
-      - user
+        - user
   /user/dashboard:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show dashboard
       tags:
-      - user
+        - user
   /user/kanban:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user kanban list
       tags:
-      - user
+        - user
   /user/metrics:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show metrics
       tags:
-      - user
+        - user
 schemes:
-- http
+  - http
 securityDefinitions:
   ApiKeyAuth:
     description: access token

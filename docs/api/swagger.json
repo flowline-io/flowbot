@@ -1,1225 +1,1078 @@
 {
-    "schemes": [
-        "http"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Flowbot Chatbot API",
-        "title": "Flowbot API",
-        "contact": {},
-        "license": {
-            "name": "GPL 3.0",
-            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
-        },
-        "version": "1.0"
+  "schemes": ["http"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Flowbot Chatbot API",
+    "title": "Flowbot API",
+    "contact": {},
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
     },
-    "host": "localhost:6060",
-    "basePath": "/service",
-    "paths": {
-        "/dev/example": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "Show example",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
+    "version": "1.0"
+  },
+  "host": "localhost:6060",
+  "basePath": "/service",
+  "paths": {
+    "/dev/example": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "Show example",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
                     }
+                  }
                 }
+              ]
             }
-        },
-        "/okr/key_result": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult create",
-                "parameters": [
-                    {
-                        "description": "KeyResult data",
-                        "name": "keyResult",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.KeyResult"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/key_result/{id}/value": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult value create",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "key result id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "KeyResultValue data",
-                        "name": "KeyResultValue",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.KeyResultValue"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/key_result/{id}/values": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "key result value list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "key result id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/model.KeyResultValue"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/key_result/{sequence}": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult update",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Sequence",
-                        "name": "sequence",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "KeyResult data",
-                        "name": "objective",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.KeyResult"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult delete",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Sequence",
-                        "name": "sequence",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/key_result_value/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult value detail",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "key result id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.KeyResultValue"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "KeyResult value delete",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "key result id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/objective": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "objective create",
-                "parameters": [
-                    {
-                        "description": "objective data",
-                        "name": "objective",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Objective"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/objective/{sequence}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "objective detail",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Sequence",
-                        "name": "sequence",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.Objective"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "objective update",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Sequence",
-                        "name": "sequence",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "objective data",
-                        "name": "objective",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Objective"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "objective delete",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Sequence",
-                        "name": "sequence",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/okr/objectives": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "okr"
-                ],
-                "summary": "objective list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/model.Objective"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/search/autocomplete": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "search"
-                ],
-                "summary": "search autocomplete",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/search/query": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "search"
-                ],
-                "summary": "search everything",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/server/stacktrace": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "get server or goroutines stacktrace",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/server/upload": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "upload PicGO upload api",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/user/bookmark": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user bookmark list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/user/dashboard": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/user/kanban": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user kanban list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/user/metrics": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show metrics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "model.KeyResult": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "current_value": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "initial_value": {
-                    "type": "integer"
-                },
-                "key_result_values": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.KeyResultValue"
-                    }
-                },
-                "memo": {
-                    "type": "string"
-                },
-                "objective_id": {
-                    "type": "integer"
-                },
-                "sequence": {
-                    "type": "integer"
-                },
-                "tag": {
-                    "type": "string"
-                },
-                "target_value": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "todos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Todo"
-                    }
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "value_mode": {
-                    "$ref": "#/definitions/model.ValueModeType"
-                }
+    "/okr/key_result": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult create",
+        "parameters": [
+          {
+            "description": "KeyResult data",
+            "name": "keyResult",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/model.KeyResult"
             }
-        },
-        "model.KeyResultValue": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "key_result_id": {
-                    "type": "integer"
-                },
-                "memo": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "integer"
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
             }
-        },
-        "model.Objective": {
-            "type": "object",
-            "properties": {
-                "created_data": {
-                    "type": "string"
-                },
-                "current_value": {
-                    "type": "integer"
-                },
-                "feasibility": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_plan": {
-                    "type": "integer"
-                },
-                "key_results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.KeyResult"
-                    }
-                },
-                "memo": {
-                    "type": "string"
-                },
-                "motive": {
-                    "type": "string"
-                },
-                "plan_end": {
-                    "type": "string"
-                },
-                "plan_start": {
-                    "type": "string"
-                },
-                "progress": {
-                    "type": "integer"
-                },
-                "reviews": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Review"
-                    }
-                },
-                "sequence": {
-                    "type": "integer"
-                },
-                "tag": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "total_value": {
-                    "type": "integer"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updated_date": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Review": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "evaluations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.ReviewEvaluation"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "objective_id": {
-                    "type": "integer"
-                },
-                "rating": {
-                    "type": "integer"
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/model.ReviewType"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.ReviewEvaluation": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "question": {
-                    "type": "string"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "review_id": {
-                    "type": "integer"
-                },
-                "solving": {
-                    "type": "string"
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.ReviewType": {
+          }
+        }
+      }
+    },
+    "/okr/key_result/{id}/value": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult value create",
+        "parameters": [
+          {
             "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "ReviewTypeUnknown",
-                "ReviewMid",
-                "ReviewEnd"
-            ]
-        },
-        "model.Todo": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "complete": {
-                    "type": "integer"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_remind_at_time": {
-                    "type": "integer"
-                },
-                "key_result_id": {
-                    "type": "integer"
-                },
-                "parent_id": {
-                    "type": "integer"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "remark": {
-                    "type": "string"
-                },
-                "remind_at": {
-                    "type": "integer"
-                },
-                "repeat_end_at": {
-                    "type": "integer"
-                },
-                "repeat_method": {
-                    "type": "string"
-                },
-                "repeat_rule": {
-                    "type": "string"
-                },
-                "sequence": {
-                    "type": "integer"
-                },
-                "sub_todos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Todo"
-                    }
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
+            "description": "key result id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "KeyResultValue data",
+            "name": "KeyResultValue",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/model.KeyResultValue"
             }
-        },
-        "model.ValueModeType": {
-            "type": "string",
-            "enum": [
-                "sum",
-                "last",
-                "avg",
-                "max"
-            ],
-            "x-enum-varnames": [
-                "ValueSumMode",
-                "ValueLastMode",
-                "ValueAvgMode",
-                "ValueMaxMode"
-            ]
-        },
-        "protocol.Response": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Response data"
-                },
-                "message": {
-                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
-                    "type": "string"
-                },
-                "retcode": {
-                    "description": "The return code, which must conform to the return code rules defined later on this page",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/protocol.ResponseStatus"
-                        }
-                    ]
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
             }
-        },
-        "protocol.ResponseStatus": {
-            "type": "string",
-            "enum": [
-                "ok",
-                "failed"
-            ],
-            "x-enum-varnames": [
-                "Success",
-                "Failed"
-            ]
-        },
-        "types.KV": {
-            "type": "object",
-            "additionalProperties": true
+          }
         }
+      }
     },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "description": "access token",
-            "type": "apiKey",
-            "name": "X-AccessToken",
-            "in": "header"
+    "/okr/key_result/{id}/values": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "key result value list",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "key result id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/model.KeyResultValue"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
+      }
+    },
+    "/okr/key_result/{sequence}": {
+      "put": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult update",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Sequence",
+            "name": "sequence",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "KeyResult data",
+            "name": "objective",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/model.KeyResult"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult delete",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Sequence",
+            "name": "sequence",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/okr/key_result_value/{id}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult value detail",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "key result id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/model.KeyResultValue"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "KeyResult value delete",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "key result id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/okr/objective": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "objective create",
+        "parameters": [
+          {
+            "description": "objective data",
+            "name": "objective",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/model.Objective"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/okr/objective/{sequence}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "objective detail",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Sequence",
+            "name": "sequence",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/model.Objective"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "objective update",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Sequence",
+            "name": "sequence",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "objective data",
+            "name": "objective",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/model.Objective"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "objective delete",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Sequence",
+            "name": "sequence",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/okr/objectives": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["okr"],
+        "summary": "objective list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/model.Objective"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search/autocomplete": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["search"],
+        "summary": "search autocomplete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search/query": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["search"],
+        "summary": "search everything",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/server/stacktrace": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "get server or goroutines stacktrace",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/server/upload": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "upload PicGO upload api",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user/bookmark": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user bookmark list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user/dashboard": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user/kanban": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user kanban list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user/metrics": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show metrics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "model.KeyResult": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "current_value": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "initial_value": {
+          "type": "integer"
+        },
+        "key_result_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.KeyResultValue"
+          }
+        },
+        "memo": {
+          "type": "string"
+        },
+        "objective_id": {
+          "type": "integer"
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "target_value": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "todos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.Todo"
+          }
+        },
+        "topic": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "value_mode": {
+          "$ref": "#/definitions/model.ValueModeType"
+        }
+      }
+    },
+    "model.KeyResultValue": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "key_result_id": {
+          "type": "integer"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "value": {
+          "type": "integer"
+        }
+      }
+    },
+    "model.Objective": {
+      "type": "object",
+      "properties": {
+        "created_data": {
+          "type": "string"
+        },
+        "current_value": {
+          "type": "integer"
+        },
+        "feasibility": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "is_plan": {
+          "type": "integer"
+        },
+        "key_results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.KeyResult"
+          }
+        },
+        "memo": {
+          "type": "string"
+        },
+        "motive": {
+          "type": "string"
+        },
+        "plan_end": {
+          "type": "string"
+        },
+        "plan_start": {
+          "type": "string"
+        },
+        "progress": {
+          "type": "integer"
+        },
+        "reviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.Review"
+          }
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "total_value": {
+          "type": "integer"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "updated_date": {
+          "type": "string"
+        }
+      }
+    },
+    "model.Review": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.ReviewEvaluation"
+          }
+        },
+        "id": {
+          "type": "integer"
+        },
+        "objective_id": {
+          "type": "integer"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/model.ReviewType"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "model.ReviewEvaluation": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "question": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "review_id": {
+          "type": "integer"
+        },
+        "solving": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "model.ReviewType": {
+      "type": "integer",
+      "enum": [0, 1, 2],
+      "x-enum-varnames": ["ReviewTypeUnknown", "ReviewMid", "ReviewEnd"]
+    },
+    "model.Todo": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "complete": {
+          "type": "integer"
+        },
+        "content": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "is_remind_at_time": {
+          "type": "integer"
+        },
+        "key_result_id": {
+          "type": "integer"
+        },
+        "parent_id": {
+          "type": "integer"
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "remark": {
+          "type": "string"
+        },
+        "remind_at": {
+          "type": "integer"
+        },
+        "repeat_end_at": {
+          "type": "integer"
+        },
+        "repeat_method": {
+          "type": "string"
+        },
+        "repeat_rule": {
+          "type": "string"
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "sub_todos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model.Todo"
+          }
+        },
+        "topic": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "model.ValueModeType": {
+      "type": "string",
+      "enum": ["sum", "last", "avg", "max"],
+      "x-enum-varnames": [
+        "ValueSumMode",
+        "ValueLastMode",
+        "ValueAvgMode",
+        "ValueMaxMode"
+      ]
+    },
+    "protocol.Response": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "Response data"
+        },
+        "message": {
+          "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+          "type": "string"
+        },
+        "retcode": {
+          "description": "The return code, which must conform to the return code rules defined later on this page",
+          "type": "string"
+        },
+        "status": {
+          "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/protocol.ResponseStatus"
+            }
+          ]
+        }
+      }
+    },
+    "protocol.ResponseStatus": {
+      "type": "string",
+      "enum": ["ok", "failed"],
+      "x-enum-varnames": ["Success", "Failed"]
+    },
+    "types.KV": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "description": "access token",
+      "type": "apiKey",
+      "name": "X-AccessToken",
+      "in": "header"
+    }
+  }
 }
