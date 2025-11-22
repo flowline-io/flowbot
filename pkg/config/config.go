@@ -246,6 +246,8 @@ type Flowbot struct {
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 	// language
 	Language string `json:"language" yaml:"language" mapstructure:"language"`
+	// MCP token for authentication
+	MCPToken string `json:"mcp_token" yaml:"mcp_token" mapstructure:"mcp_token"`
 }
 
 type Alarm struct {

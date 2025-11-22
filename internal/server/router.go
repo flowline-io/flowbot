@@ -59,6 +59,8 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
 	a.All("/chatbot/:platform", ctl.platformCallback)
+	// MCP
+	a.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
 }
 
 // handler
