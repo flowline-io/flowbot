@@ -276,97 +276,12 @@ type Adapter interface {
 	GetWebhookBySecret(secret string) (*model.Webhook, error)
 	GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Webhook, error)
 
-	GetObjectiveByID(id int64) (*model.Objective, error)
-	GetObjectiveBySequence(uid types.Uid, topic string, sequence int64) (*model.Objective, error)
-	ListObjectives(uid types.Uid, topic string) ([]*model.Objective, error)
-	CreateObjective(objective *model.Objective) (int64, error)
-	UpdateObjective(objective *model.Objective) error
-	DeleteObjective(id int64) error
-	DeleteObjectiveBySequence(uid types.Uid, topic string, sequence int64) error
-	GetKeyResultByID(id int64) (*model.KeyResult, error)
-	GetKeyResultBySequence(uid types.Uid, topic string, sequence int64) (*model.KeyResult, error)
-	ListKeyResults(uid types.Uid, topic string) ([]*model.KeyResult, error)
-	ListKeyResultsById(id []int64) ([]*model.KeyResult, error)
-	ListKeyResultsByObjectiveId(objectiveId int64) ([]*model.KeyResult, error)
-	CreateKeyResult(keyResult *model.KeyResult) (int64, error)
-	UpdateKeyResult(keyResult *model.KeyResult) error
-	DeleteKeyResult(id int64) error
-	DeleteKeyResultBySequence(uid types.Uid, topic string, sequence int64) error
-	AggregateObjectiveValue(id int64) error
-	AggregateKeyResultValue(id int64) error
-	CreateKeyResultValue(keyResultValue *model.KeyResultValue) (int64, error)
-	DeleteKeyResultValue(id int64) error
-	GetKeyResultValues(keyResultId int64) ([]*model.KeyResultValue, error)
-	GetKeyResultValue(id int64) (*model.KeyResultValue, error)
-	CreateTodo(todo *model.Todo) (int64, error)
-	ListTodos(uid types.Uid, topic string) ([]*model.Todo, error)
-	ListRemindTodos(uid types.Uid, topic string) ([]*model.Todo, error)
-	GetTodo(id int64) (*model.Todo, error)
-	GetTodoBySequence(uid types.Uid, topic string, sequence int64) (*model.Todo, error)
-	CompleteTodo(id int64) error
-	CompleteTodoBySequence(uid types.Uid, topic string, sequence int64) error
-	UpdateTodo(todo *model.Todo) error
-	DeleteTodo(id int64) error
-	DeleteTodoBySequence(uid types.Uid, topic string, sequence int64) error
-	CreateReview(review *model.Review) (int64, error)
-	UpdateReview(review *model.Review) error
-	ListReviews(uid types.Uid, topic string) ([]*model.Review, error)
-	GetReviewByID(id int64) (*model.Review, error)
-	CreateReviewEvaluation(evaluation *model.ReviewEvaluation) (int64, error)
-	UpdateReviewEvaluation(evaluation *model.ReviewEvaluation) error
-	ListReviewEvaluations(uid types.Uid, topic string, reviewID int64) ([]*model.ReviewEvaluation, error)
-	GetReviewEvaluationByID(id int64) (*model.ReviewEvaluation, error)
-	CreateCycle(cycle *model.Cycle) (int64, error)
-	UpdateCycle(cycle *model.Cycle) error
-	ListCycles(uid types.Uid, topic string) ([]*model.Cycle, error)
-	GetCycleByID(id int64) (*model.Cycle, error)
-
 	CreateCounter(counter *model.Counter) (int64, error)
 	IncreaseCounter(id, amount int64) error
 	DecreaseCounter(id, amount int64) error
 	ListCounter(uid types.Uid, topic string) ([]*model.Counter, error)
 	GetCounter(id int64) (model.Counter, error)
 	GetCounterByFlag(uid types.Uid, topic string, flag string) (model.Counter, error)
-
-	CreateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) (int64, error)
-	GetWorkflow(id int64) (*model.Workflow, error)
-	UpdateWorkflow(workflow *model.Workflow, script *model.WorkflowScript, dag *model.Dag, triggers []*model.WorkflowTrigger) error
-	UpdateWorkflowState(id int64, state model.WorkflowState) error
-	ListWorkflows(uid types.Uid, topic string) ([]*model.Workflow, error)
-	IncreaseWorkflowCount(id int64, successful int32, failed int32, running int32, canceled int32) error
-	IncreaseWorkflowTriggerCount(id int64, count int32) error
-	DeleteWorkflow(id int64) error
-	CreateWorkflowScript(item *model.WorkflowScript) (int64, error)
-	GetWorkflowScript(id int64) (any, error)
-	GetWorkflowScriptByWorkflowId(workflowId int64) (any, error)
-	CreateWorkflowTrigger(item *model.WorkflowTrigger) (int64, error)
-	UpdateWorkflowTrigger(item *model.WorkflowTrigger) error
-	UpdateWorkflowTriggerStateByWorkflowId(workflowId int64, state model.WorkflowTriggerState) error
-	DeleteWorkflowTrigger(id int64) error
-	ListWorkflowTriggerByType(t model.TriggerType) ([]*model.WorkflowTrigger, error)
-	UpdateDag(item *model.Dag) error
-	GetDag(id int64) (*model.Dag, error)
-	GetJob(id int64) (*model.Job, error)
-	CreateJob(item *model.Job) (int64, error)
-	DeleteJob(id int64) error
-	DeleteJobByIds(ids []int64) error
-	DeleteStepByJobIds(jobIds []int64) error
-	ListJobs(workflowID int64) ([]*model.Job, error)
-	ListJobsByFilter(filter types.JobFilter) ([]*model.Job, error)
-	GetJobsByState(state model.JobState) ([]*model.Job, error)
-	GetJobsByStates(states []model.JobState) ([]*model.Job, error)
-	GetJobsByWorkflowId(workflowID int64) ([]*model.Job, error)
-	UpdateJobState(id int64, state model.JobState) error
-	UpdateStep(id int64, item *model.Step) error
-	UpdateStepState(id int64, state model.StepState) error
-	UpdateStepInput(id int64, input types.KV) error
-	UpdateStepOutput(id int64, output types.KV) error
-	CreateStep(step *model.Step) (int64, error)
-	CreateSteps(steps []*model.Step) error
-	GetStepsByState(state model.StepState) ([]*model.Step, error)
-	GetLastStepByState(state model.StepState) (*model.Step, error)
-	GetStepsByDepend(jobId int64, depend []string) ([]*model.Step, error)
-	GetStepsByJobId(jobId int64) ([]*model.Step, error)
 
 	GetAgents() ([]*model.Agent, error)
 	GetAgentByHostid(uid types.Uid, topic string, hostid string) (*model.Agent, error)

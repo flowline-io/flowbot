@@ -116,7 +116,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "auth failed"}
 			}
 
-			err = store.Database.DeleteWorkflow(find.ID)
+			err = store.Database.DeleteWebhook(find.ID)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "delete failed"}
