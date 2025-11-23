@@ -64,7 +64,7 @@ var pageRules = []page.Rule{
 				))
 			}
 
-			js := fmt.Sprintf(`
+			js := `
 				function executeFlow(id) {
 					fetch('/service/flows/' + id + '/execute', {
 						method: 'POST',
@@ -81,7 +81,7 @@ var pageRules = []page.Rule{
 							.then(r => location.reload());
 					}
 				}
-			`)
+			`
 
 			appUI := uikit.App(
 				uikit.H2("Flows").Class(uikit.TextCenterClass),
@@ -250,7 +250,7 @@ var pageRules = []page.Rule{
 				))
 			}
 
-			js := fmt.Sprintf(`
+			js := `
 				function appAction(id, action) {
 					fetch('/service/apps/' + id + '/' + action, {method: 'POST'})
 						.then(r => r.json())
@@ -267,7 +267,7 @@ var pageRules = []page.Rule{
 							location.reload();
 						});
 				}
-			`)
+			`
 
 			appUI := uikit.App(
 				uikit.H2("Apps").Class(uikit.TextCenterClass),
@@ -334,14 +334,14 @@ var pageRules = []page.Rule{
 				))
 			}
 
-			js := fmt.Sprintf(`
+			js := `
 				function deleteConnection(id) {
 					if (confirm('Are you sure?')) {
 						fetch('/service/connections/' + id, {method: 'DELETE'})
 							.then(r => location.reload());
 					}
 				}
-			`)
+			`
 
 			appUI := uikit.App(
 				uikit.H2("Connections").Class(uikit.TextCenterClass),
@@ -407,14 +407,14 @@ var pageRules = []page.Rule{
 				))
 			}
 
-			js := fmt.Sprintf(`
+			js := `
 				function deleteAuth(id) {
 					if (confirm('Are you sure?')) {
 						fetch('/service/authentications/' + id, {method: 'DELETE'})
 							.then(r => location.reload());
 					}
 				}
-			`)
+			`
 
 			appUI := uikit.App(
 				uikit.H2("Authentications").Class(uikit.TextCenterClass),
