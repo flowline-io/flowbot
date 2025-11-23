@@ -387,3 +387,69 @@ const (
 func (j WebhookState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
+
+type AppStatus string
+
+const (
+	AppStatusUnknown    AppStatus = "unknown"
+	AppStatusRunning    AppStatus = "running"
+	AppStatusStopped    AppStatus = "stopped"
+	AppStatusPaused     AppStatus = "paused"
+	AppStatusRestarting AppStatus = "restarting"
+	AppStatusRemoving   AppStatus = "removing"
+)
+
+func (j AppStatus) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
+type FlowState int
+
+const (
+	FlowStateUnknown FlowState = iota
+	FlowActive
+	FlowInactive
+)
+
+func (j FlowState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
+type ExecutionState int
+
+const (
+	ExecutionStateUnknown ExecutionState = iota
+	ExecutionPending
+	ExecutionRunning
+	ExecutionSucceeded
+	ExecutionFailed
+	ExecutionCancelled
+)
+
+func (j ExecutionState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
+type NodeType string
+
+const (
+	NodeTypeTrigger   NodeType = "trigger"
+	NodeTypeAction    NodeType = "action"
+	NodeTypeFilter    NodeType = "filter"
+	NodeTypeCondition NodeType = "condition"
+)
+
+func (j NodeType) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
+type RateLimitType string
+
+const (
+	RateLimitTypeFlow RateLimitType = "flow"
+	RateLimitTypeNode RateLimitType = "node"
+)
+
+func (j RateLimitType) Value() (driver.Value, error) {
+	return string(j), nil
+}

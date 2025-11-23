@@ -1,0 +1,414 @@
+package flows
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strconv"
+	"time"
+
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/lithammer/shortuuid/v4"
+)
+
+// Engine executes IF THEN flows
+type Engine struct {
+	store store.Adapter
+}
+
+// NewEngine creates a new flow engine
+func NewEngine(storeAdapter store.Adapter) *Engine {
+	return &Engine{
+		store: storeAdapter,
+	}
+}
+
+// ExecuteFlow executes a flow with the given trigger
+func (e *Engine) ExecuteFlow(ctx context.Context, flowID int64, triggerType string, triggerID string, payload types.KV) error {
+	flow, err := e.store.GetFlow(flowID)
+	if err != nil {
+		return fmt.Errorf("failed to get flow: %w", err)
+	}
+
+	if !flow.Enabled {
+		return fmt.Errorf("flow is disabled")
+	}
+
+	// Create execution record
+	executionID := shortuuid.New()
+	execution := &model.Execution{
+		FlowID:      flowID,
+		ExecutionID: executionID,
+		TriggerType: triggerType,
+		TriggerID:   triggerID,
+		State:       model.ExecutionPending,
+		Payload:     model.JSON(payload),
+		Variables:   model.JSON(make(types.KV)),
+	}
+
+	now := time.Now()
+	execution.StartedAt = &now
+	execution.State = model.ExecutionRunning
+
+	_, err = e.store.CreateExecution(execution)
+	if err != nil {
+		return fmt.Errorf("failed to create execution: %w", err)
+	}
+
+	// Execute flow nodes
+	err = e.executeNodes(ctx, flowID, execution, payload)
+	if err != nil {
+		execution.State = model.ExecutionFailed
+		execution.Error = err.Error()
+		finishedAt := time.Now()
+		execution.FinishedAt = &finishedAt
+		_ = e.store.UpdateExecution(execution)
+		return fmt.Errorf("failed to execute flow: %w", err)
+	}
+
+	execution.State = model.ExecutionSucceeded
+	finishedAt := time.Now()
+	execution.FinishedAt = &finishedAt
+	return e.store.UpdateExecution(execution)
+}
+
+// executeNodes executes flow nodes in order
+func (e *Engine) executeNodes(ctx context.Context, flowID int64, execution *model.Execution, initialPayload types.KV) error {
+	// Get all nodes
+	nodes, err := e.store.GetFlowNodes(flowID)
+	if err != nil {
+		return fmt.Errorf("failed to get flow nodes: %w", err)
+	}
+
+	// Get all edges
+	edges, err := e.store.GetFlowEdges(flowID)
+	if err != nil {
+		return fmt.Errorf("failed to get flow edges: %w", err)
+	}
+
+	// Build node graph
+	nodeMap := make(map[string]*model.FlowNode)
+	for _, node := range nodes {
+		nodeMap[node.NodeID] = node
+	}
+
+	edgeMap := make(map[string][]*model.FlowEdge)
+	for _, edge := range edges {
+		edgeMap[edge.SourceNode] = append(edgeMap[edge.SourceNode], edge)
+	}
+
+	// Find trigger nodes
+	var triggerNodes []*model.FlowNode
+	for _, node := range nodes {
+		if node.Type == model.NodeTypeTrigger {
+			triggerNodes = append(triggerNodes, node)
+		}
+	}
+
+	if len(triggerNodes) == 0 {
+		return fmt.Errorf("no trigger nodes found")
+	}
+
+	// Execute from trigger nodes
+	variables := make(types.KV)
+	payloadData, err := json.Marshal(initialPayload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal initial payload: %w", err)
+	}
+	if err := json.Unmarshal(payloadData, &variables); err != nil {
+		return fmt.Errorf("failed to unmarshal initial payload: %w", err)
+	}
+
+	for _, triggerNode := range triggerNodes {
+		if err := e.executeNodeChain(ctx, triggerNode, nodeMap, edgeMap, variables, execution, 0); err != nil {
+			return err
+		}
+	}
+
+	// Update execution variables
+	execution.Variables = model.JSON(variables)
+	return nil
+}
+
+// executeNodeChain executes a chain of nodes starting from a trigger node
+// maxDepth limits the chain depth to 2-3 nodes
+func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int) error {
+	if depth > 3 {
+		return fmt.Errorf("max chain depth exceeded")
+	}
+
+	// Execute current node
+	result, err := e.executeNode(ctx, node, variables)
+	if err != nil {
+		return fmt.Errorf("failed to execute node %s: %w", node.NodeID, err)
+	}
+
+	// Merge result into variables
+	for k, v := range result {
+		variables[k] = v
+	}
+
+	// Execute connected nodes
+	edges := edgeMap[node.NodeID]
+	for _, edge := range edges {
+		targetNode, ok := nodeMap[edge.TargetNode]
+		if !ok {
+			continue
+		}
+
+		// Check conditions if this is a filter/condition node
+		if targetNode.Type == model.NodeTypeFilter || targetNode.Type == model.NodeTypeCondition {
+			shouldContinue, err := e.evaluateConditions(targetNode, variables)
+			if err != nil {
+				return fmt.Errorf("failed to evaluate conditions: %w", err)
+			}
+			if !shouldContinue {
+				continue
+			}
+		}
+
+		// Execute next node in chain
+		if err := e.executeNodeChain(ctx, targetNode, nodeMap, edgeMap, variables, execution, depth+1); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// executeNode executes a single node
+func (e *Engine) executeNode(ctx context.Context, node *model.FlowNode, variables types.KV) (types.KV, error) {
+	// Get bot handler
+	botHandler := getBotHandler(node.Bot, node.RuleID)
+	if botHandler == nil {
+		return nil, fmt.Errorf("bot handler not found: %s/%s", node.Bot, node.RuleID)
+	}
+
+	// Prepare parameters with variable substitution
+	params := e.prepareParameters(node.Parameters, variables)
+
+	// Create context
+	ctxWithVars := types.Context{
+		AsUser: types.Uid(""),
+		Topic:  "",
+	}
+
+	// Execute node based on type
+	switch node.Type {
+	case model.NodeTypeTrigger:
+		return botHandler.Trigger(ctxWithVars, params, variables)
+	case model.NodeTypeAction:
+		return botHandler.Action(ctxWithVars, params, variables)
+	case model.NodeTypeFilter, model.NodeTypeCondition:
+		// Conditions are evaluated separately
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("unknown node type: %s", node.Type)
+	}
+}
+
+// evaluateConditions evaluates filter/condition nodes
+func (e *Engine) evaluateConditions(node *model.FlowNode, variables types.KV) (bool, error) {
+	if node.Conditions == nil {
+		return true, nil
+	}
+
+	// Parse conditions
+	var conditions []Condition
+	condData, _ := json.Marshal(node.Conditions)
+	if err := json.Unmarshal(condData, &conditions); err != nil {
+		return false, fmt.Errorf("failed to parse conditions: %w", err)
+	}
+
+	// Evaluate all conditions (AND logic)
+	for _, cond := range conditions {
+		value, ok := variables[cond.Variable]
+		if !ok {
+			return false, nil
+		}
+
+		if !evaluateCondition(value, cond.Operator, cond.Value) {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// evaluateCondition evaluates a single condition
+func evaluateCondition(value interface{}, operator string, expected interface{}) bool {
+	switch operator {
+	case "eq", "==":
+		return fmt.Sprintf("%v", value) == fmt.Sprintf("%v", expected)
+	case "ne", "!=":
+		return fmt.Sprintf("%v", value) != fmt.Sprintf("%v", expected)
+	case "gt", ">":
+		return compareNumbers(value, expected) > 0
+	case "gte", ">=":
+		return compareNumbers(value, expected) >= 0
+	case "lt", "<":
+		return compareNumbers(value, expected) < 0
+	case "lte", "<=":
+		return compareNumbers(value, expected) <= 0
+	case "contains":
+		return containsString(value, expected)
+	default:
+		return false
+	}
+}
+
+// prepareParameters prepares node parameters with variable substitution
+func (e *Engine) prepareParameters(params model.JSON, variables types.KV) types.KV {
+	if params == nil {
+		return make(types.KV)
+	}
+
+	var paramMap types.KV
+	paramData, err := json.Marshal(params)
+	if err != nil {
+		return make(types.KV)
+	}
+	if err := json.Unmarshal(paramData, &paramMap); err != nil {
+		return make(types.KV)
+	}
+
+	// Substitute variables
+	result := make(types.KV)
+	for k, v := range paramMap {
+		result[k] = substituteVariables(v, variables)
+	}
+
+	return result
+}
+
+// Condition represents a filter condition
+type Condition struct {
+	Variable string      `json:"variable"`
+	Operator string      `json:"operator"`
+	Value    interface{} `json:"value"`
+}
+
+// Helper functions
+func compareNumbers(a, b interface{}) int {
+	// Convert both values to float64 for comparison
+	aFloat := toFloat64(a)
+	bFloat := toFloat64(b)
+
+	if aFloat > bFloat {
+		return 1
+	} else if aFloat < bFloat {
+		return -1
+	}
+	return 0
+}
+
+// toFloat64 converts an interface{} to float64
+func toFloat64(v interface{}) float64 {
+	switch n := v.(type) {
+	case int:
+		return float64(n)
+	case int8:
+		return float64(n)
+	case int16:
+		return float64(n)
+	case int32:
+		return float64(n)
+	case int64:
+		return float64(n)
+	case uint:
+		return float64(n)
+	case uint8:
+		return float64(n)
+	case uint16:
+		return float64(n)
+	case uint32:
+		return float64(n)
+	case uint64:
+		return float64(n)
+	case float32:
+		return float64(n)
+	case float64:
+		return n
+	case string:
+		// Try to parse as number
+		if f, err := strconv.ParseFloat(n, 64); err == nil {
+			return f
+		}
+		return 0
+	default:
+		// Try to convert via reflection
+		rv := reflect.ValueOf(v)
+		switch rv.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return float64(rv.Int())
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return float64(rv.Uint())
+		case reflect.Float32, reflect.Float64:
+			return rv.Float()
+		}
+		return 0
+	}
+}
+
+func containsString(value interface{}, expected interface{}) bool {
+	str := fmt.Sprintf("%v", value)
+	substr := fmt.Sprintf("%v", expected)
+	return len(str) > 0 && len(substr) > 0 && contains(str, substr)
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || indexOf(s, substr) >= 0)
+}
+
+func indexOf(s, substr string) int {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+	return -1
+}
+
+func substituteVariables(value interface{}, variables types.KV) interface{} {
+	switch v := value.(type) {
+	case string:
+		// Simple template substitution: {{variable}}
+		result := v
+		for key, val := range variables {
+			placeholder := fmt.Sprintf("{{%s}}", key)
+			if contains(result, placeholder) {
+				result = replaceAll(result, placeholder, fmt.Sprintf("%v", val))
+			}
+		}
+		return result
+	case map[string]interface{}:
+		result := make(map[string]interface{})
+		for k, val := range v {
+			result[k] = substituteVariables(val, variables)
+		}
+		return result
+	case []interface{}:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = substituteVariables(val, variables)
+		}
+		return result
+	default:
+		return value
+	}
+}
+
+func replaceAll(s, old, replacement string) string {
+	result := s
+	for {
+		idx := indexOf(result, old)
+		if idx < 0 {
+			break
+		}
+		result = result[:idx] + replacement + result[idx+len(old):]
+	}
+	return result
+}

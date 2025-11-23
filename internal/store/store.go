@@ -288,6 +288,62 @@ type Adapter interface {
 	CreateAgent(agent *model.Agent) (int64, error)
 	UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid string, lastOnlineAt time.Time) error
 	UpdateAgentOnlineDuration(uid types.Uid, topic string, hostid string, offlineTime time.Time) error
+
+	// Apps management
+	GetApps() ([]*model.App, error)
+	GetApp(id int64) (*model.App, error)
+	GetAppByName(name string) (*model.App, error)
+	CreateApp(app *model.App) (int64, error)
+	UpdateApp(app *model.App) error
+	DeleteApp(id int64) error
+
+	// Flows management
+	GetFlows(uid types.Uid, topic string) ([]*model.Flow, error)
+	GetFlow(id int64) (*model.Flow, error)
+	CreateFlow(flow *model.Flow) (int64, error)
+	UpdateFlow(flow *model.Flow) error
+	DeleteFlow(id int64) error
+
+	// Flow nodes management
+	GetFlowNodes(flowID int64) ([]*model.FlowNode, error)
+	GetFlowNode(flowID int64, nodeID string) (*model.FlowNode, error)
+	CreateFlowNode(node *model.FlowNode) (int64, error)
+	UpdateFlowNode(node *model.FlowNode) error
+	DeleteFlowNode(id int64) error
+	DeleteFlowNodesByFlowID(flowID int64) error
+
+	// Flow edges management
+	GetFlowEdges(flowID int64) ([]*model.FlowEdge, error)
+	CreateFlowEdge(edge *model.FlowEdge) (int64, error)
+	UpdateFlowEdge(edge *model.FlowEdge) error
+	DeleteFlowEdge(id int64) error
+	DeleteFlowEdgesByFlowID(flowID int64) error
+
+	// Executions management
+	GetExecutions(flowID int64, limit int) ([]*model.Execution, error)
+	GetExecution(executionID string) (*model.Execution, error)
+	CreateExecution(execution *model.Execution) (int64, error)
+	UpdateExecution(execution *model.Execution) error
+
+	// Connections management
+	GetConnections(uid types.Uid, topic string) ([]*model.Connection, error)
+	GetConnection(id int64) (*model.Connection, error)
+	CreateConnection(conn *model.Connection) (int64, error)
+	UpdateConnection(conn *model.Connection) error
+	DeleteConnection(id int64) error
+
+	// Authentications management
+	GetAuthentications(uid types.Uid, topic string) ([]*model.Authentication, error)
+	GetAuthentication(id int64) (*model.Authentication, error)
+	CreateAuthentication(auth *model.Authentication) (int64, error)
+	UpdateAuthentication(auth *model.Authentication) error
+	DeleteAuthentication(id int64) error
+
+	// Rate limits management
+	GetRateLimits(flowID *int64, nodeID string) ([]*model.RateLimit, error)
+	CreateRateLimit(limit *model.RateLimit) (int64, error)
+	UpdateRateLimit(limit *model.RateLimit) error
+	DeleteRateLimit(id int64) error
 }
 
 var Database Adapter
