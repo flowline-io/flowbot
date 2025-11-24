@@ -79,7 +79,7 @@ require (
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.14
 	modernc.org/sqlite v1.40.1
-	resty.dev/v3 v3.0.0-beta.3
+	resty.dev/v3 v3.0.0-beta.4
 )
 
 require (
