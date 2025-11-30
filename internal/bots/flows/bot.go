@@ -54,12 +54,17 @@ func (bot) Bootstrap() error {
 	return nil
 }
 
-func (bot) Rules() []interface{} {
-	return []interface{}{
+func (bot) Rules() []any {
+	return []any{
 		pageRules,
+		commandRules,
 	}
 }
 
 func (bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
 	return chatbot.RunPage(pageRules, ctx, flag, args)
+}
+
+func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
+	return chatbot.RunCommand(commandRules, ctx, content)
 }
