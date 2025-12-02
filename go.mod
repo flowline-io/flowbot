@@ -8,7 +8,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/RealAlexandreAI/json-repair v0.0.14
 	github.com/ThreeDotsLabs/watermill v1.5.1
-	github.com/ThreeDotsLabs/watermill-redisstream v1.4.4
+	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/adrg/xdg v0.5.3
 	github.com/bsm/redislock v0.9.4
 	github.com/bwmarrin/discordgo v0.29.0
