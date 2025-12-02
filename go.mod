@@ -58,7 +58,7 @@ require (
 	github.com/samber/lo v1.52.0
 	github.com/samber/oops v1.19.4
 	github.com/schollz/progressbar/v3 v3.18.0
-	github.com/shirou/gopsutil/v4 v4.25.10
+	github.com/shirou/gopsutil/v4 v4.25.11
 	github.com/slack-go/slack v0.17.3
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
@@ -113,7 +113,7 @@ require (
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/dop251/goja v0.0.0-20231024180952-594410467bc6 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.9.0 // indirect
+	github.com/ebitengine/purego v0.9.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/eino-contrib/jsonschema v1.0.3 // indirect
 	github.com/eino-contrib/ollama v0.1.0 // indirect
@@ -217,8 +217,8 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tinylib/msgp v1.5.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.15 // indirect
-	github.com/tklauser/numcpus v0.10.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.16 // indirect
+	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
