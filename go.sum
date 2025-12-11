@@ -161,8 +161,8 @@ github.com/fxamacker/cbor/v2 v2.9.0 h1:NpKPmjDBgUfBms6tr6JZkTHtfFGcMKsw3eGcmD/sa
 github.com/fxamacker/cbor/v2 v2.9.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/gabriel-vasile/mimetype v1.4.10 h1:zyueNbySn/z8mJZHLt6IPw0KoZsiQNszIpU+bX4+ZK0=
 github.com/gabriel-vasile/mimetype v1.4.10/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
-github.com/gen2brain/beeep v0.11.1 h1:EbSIhrQZFDj1K2fzlMpAYlFOzV8YuNe721A58XcCTYI=
-github.com/gen2brain/beeep v0.11.1/go.mod h1:jQVvuwnLuwOcdctHn/uyh8horSBNJ8uGb9Cn2W4tvoc=
+github.com/gen2brain/beeep v0.11.2 h1:+KfiKQBbQCuhfJFPANZuJ+oxsSKAYNe88hIpJuyKWDA=
+github.com/gen2brain/beeep v0.11.2/go.mod h1:jQVvuwnLuwOcdctHn/uyh8horSBNJ8uGb9Cn2W4tvoc=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/go-check/check v0.0.0-20180628173108-788fd7840127 h1:0gkP6mzaMqkmpcJYCFOLkIBwI7xFExG03bbkOkCvUPI=
 github.com/go-check/check v0.0.0-20180628173108-788fd7840127/go.mod h1:9ES+weclKsC9YodN5RgxqK/VD9HM9JsCSh7rNhMZE98=

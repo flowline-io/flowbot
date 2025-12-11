@@ -25,7 +25,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.13.0
 	github.com/flc1125/go-cron/v4 v4.7.1
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/gen2brain/beeep v0.11.1
+	github.com/gen2brain/beeep v0.11.2
 	github.com/go-echarts/go-echarts/v2 v2.6.7
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/go-sql-driver/mysql v1.9.3
