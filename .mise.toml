@@ -1,0 +1,192 @@
+[tools]
+node = "24" 
+go = "1.25"
+
+# Dev tools (managed by mise)
+"npm:prettier" = "latest"
+"go:github.com/mgechev/revive" = { version = "latest" }
+"go:github.com/swaggo/swag/cmd/swag" = { version = "latest" }
+"go:golang.org/x/vuln/cmd/govulncheck" = { version = "latest" }
+"go:github.com/zricethezav/gitleaks/v8" = { version = "v8.24.2" }
+"go:github.com/goreleaser/goreleaser/v2" = { version = "latest" }
+"go:github.com/air-verse/air" = { version = "latest" }
+"go:github.com/securego/gosec/v2/cmd/gosec" = { version = "latest" }
+"go:github.com/boyter/scc/v3" = { version = "latest" }
+"go:github.com/rhysd/actionlint/cmd/actionlint" = { version = "latest" }
+"go:github.com/riverqueue/river/cmd/river" = { version = "latest" }
+"go:github.com/golang-migrate/migrate/v4/cmd/migrate" = { version = "latest", tags = "mysql" }
+
+# Task runner config (migrated from taskfile.yaml)
+
+[tasks.default]
+description = "Default task - run common checks"
+depends = ["tidy", "swagger", "format", "lint", "scc"]
+run = "echo All checks completed"
+
+[tasks.check]
+description = "Run all security and quality checks"
+depends = ["lint", "secure", "leak", "gosec"]
+run = "echo All checks completed"
+
+# Build tasks
+[tasks.build]
+description = "Build flowbot server"
+run = "go build -v -o bin/flowbot github.com/flowline-io/flowbot/cmd"
+
+[tasks."build:agent"]
+description = "Build flowbot agent"
+run = "go build -v -o bin/flowbot-agent github.com/flowline-io/flowbot/cmd/agent"
+
+[tasks."build:composer"]
+description = "Build composer tool"
+run = "go build -v -o bin/composer github.com/flowline-io/flowbot/cmd/composer"
+
+[tasks."build:all"]
+description = "Build all binaries"
+depends = ["build", "build:agent", "build:composer"]
+run = "echo Build completed"
+
+# Run tasks
+[tasks.run]
+description = "Run flowbot server"
+run = "go run -tags swagger github.com/flowline-io/flowbot/cmd"
+
+[tasks."run:agent"]
+description = "Run flowbot agent"
+run = "go run github.com/flowline-io/flowbot/cmd/agent"
+
+# Code quality tasks
+[tasks.cloc]
+description = "Count lines of code using cloc"
+run = "cloc --exclude-dir=node_modules --exclude-ext=json ."
+
+[tasks.scc]
+description = "Generate code statistics using scc"
+run = "scc > ./cloc/$(date +%F).txt"
+run_windows = "pwsh -NoProfile -Command \"scc | Out-File -Encoding utf8 ('./cloc/{0}.txt' -f (Get-Date -Format yyyy-MM-dd))\""
+
+[tasks.lint]
+description = "Run static code analysis"
+run = "revive -config revive.toml -formatter friendly ./..."
+depends_post = ["lint:action"]
+
+[tasks."lint:action"]
+description = "Lint GitHub Actions workflow files"
+run = "actionlint"
+
+[tasks.format]
+description = "Format code (Go and other files)"
+run = [
+	"go fmt ./...",
+	"npx prettier --write .",
+]
+
+[tasks.tidy]
+description = "Clean up Go module dependencies"
+run = "go mod tidy"
+
+# Security tasks
+[tasks.secure]
+description = "Check for Go vulnerabilities"
+run = "govulncheck ./..."
+
+[tasks.leak]
+description = "Find secrets with Gitleaks"
+run = "gitleaks git -v"
+
+[tasks.gosec]
+description = "Run Go security checker"
+run = "gosec ./..."
+
+# Test tasks
+[tasks.test]
+description = "Run tests in pkg/utils package"
+run = "go test ./pkg/utils/... -v"
+
+[tasks."test:all"]
+description = "Run all tests"
+run = "go test ./... -v"
+
+[tasks."test:coverage"]
+description = "Run tests with coverage report"
+run = [
+	"go test ./... -coverprofile=coverage.out -covermode=atomic",
+	"go tool cover -html=coverage.out -o coverage.html",
+	"echo coverage report generated in coverage.html",
+]
+
+# Documentation tasks
+[tasks.swagger]
+description = "Generate Swagger API documentation"
+run = [
+	"swag init -g cmd/main.go -o ./docs/api",
+	"swag fmt -g cmd/main.go",
+]
+
+[tasks.doc]
+description = "Generate database schema documentation"
+run = "go run github.com/flowline-io/flowbot/cmd/composer doc"
+
+# Code generation tasks
+[tasks.dao]
+description = "Generate DAO code from database"
+run = "go run github.com/flowline-io/flowbot/cmd/composer dao"
+
+[tasks."generator:bot"]
+description = "Generate bot code (mise run generator:bot -- <name> <rule>)"
+usage = '''
+arg "<name>" help="Bot name" default="example" env="NAME"
+arg "<rule>" help="Rule (command|form)" default="command" env="RULE"
+'''
+run = "go run github.com/flowline-io/flowbot/cmd/composer generator bot -name ${usage_name?} -rule ${usage_rule?}"
+run_windows = 'pwsh -NoProfile -Command "go run github.com/flowline-io/flowbot/cmd/composer generator bot -name $env:usage_name -rule $env:usage_rule"'
+
+[tasks."generator:vendor"]
+description = "Generate vendor API code (mise run generator:vendor -- <name>)"
+usage = '''
+arg "<name>" help="Vendor name" default="example" env="NAME"
+'''
+run = "go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name ${usage_name?}"
+run_windows = 'pwsh -NoProfile -Command "go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name $env:usage_name"'
+
+# Database migration tasks
+[tasks.migrate]
+description = "Import database migrations"
+run = "go run github.com/flowline-io/flowbot/cmd/composer migrate import"
+
+[tasks.migration]
+description = "Create new migration file (mise run migration -- <name>)"
+usage = '''
+arg "<name>" help="Migration name" default="migration" env="NAME"
+'''
+run = "go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name ${usage_name?}"
+run_windows = 'pwsh -NoProfile -Command "go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name $env:usage_name"'
+
+# Workflow tasks
+[tasks."workflow:import"]
+description = "Import workflow configuration (mise run workflow:import -- <token> <workflow-path>)"
+usage = '''
+arg "<token>" help="Access token" env="TOKEN"
+arg "<path>" help="Workflow file path" env="WORKFLOW_PATH"
+'''
+run = "go run github.com/flowline-io/flowbot/cmd/composer workflow import -token ${usage_token?} -path ${usage_path?}"
+run_windows = 'pwsh -NoProfile -Command "go run github.com/flowline-io/flowbot/cmd/composer workflow import -token $env:usage_token -path $env:usage_path"'
+
+# Release tasks
+[tasks.snapshot]
+description = "Create snapshot release"
+run = "goreleaser release --snapshot --clean"
+
+# Utility tasks
+[tasks.clean]
+description = "Clean build artifacts and temporary files"
+run = [
+	"go clean -cache -testcache",
+	"rm -rf bin/ tmp/ coverage.out coverage.html || true",
+]
+run_windows = 'pwsh -NoProfile -Command "go clean -cache -testcache; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue bin,tmp,coverage.out,coverage.html"'
+
+[tasks.air]
+description = "Run with live reload using air"
+run = "air --build.cmd \"go build -o flowbot cmd/main.go\" --build.bin \"./flowbot\""
+run_windows = "air --build.cmd \"go build -o flowbot.exe cmd/main.go\" --build.bin \".\\flowbot.exe\""

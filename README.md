@@ -98,6 +98,21 @@ Flowbot includes 20+ specialized bot modules:
 
 ## 🔧 API & Development
 
+### Development Tasks
+
+This repository uses `mise` for common development tasks.
+
+```bash
+# list tasks
+mise tasks
+
+# run the common checks (tidy/swagger/format/lint/scc)
+mise run default
+
+# build all binaries
+mise run build:all
+```
+
 ### RESTful API
 
 - **Base URL**: `http://localhost:6060/service`
