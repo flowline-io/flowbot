@@ -18,7 +18,9 @@ function currentFlag() {
 function serviceUrl(path) {
   const p = currentFlag();
   if (!p) return path;
-  return path + (path.indexOf("?") >= 0 ? "&" : "?") + "p=" + encodeURIComponent(p);
+  return (
+    path + (path.indexOf("?") >= 0 ? "&" : "?") + "p=" + encodeURIComponent(p)
+  );
 }
 
 async function jsonFetch(url, options) {
@@ -39,15 +41,18 @@ async function jsonFetch(url, options) {
 
 async function executeFlow(id) {
   try {
-    const res = await jsonFetch(serviceUrl("/service/flows/" + id + "/execute"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        trigger_type: "manual",
-        trigger_id: "",
-        payload: {},
-      }),
-    });
+    const res = await jsonFetch(
+      serviceUrl("/service/flows/" + id + "/execute"),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trigger_type: "manual",
+          trigger_id: "",
+          payload: {},
+        }),
+      },
+    );
     notify((res && res.message) || "Flow execution started", "success");
   } catch (e) {
     notify((e && e.message) || String(e), "danger");
@@ -68,7 +73,9 @@ async function scanApps() {
 }
 
 async function appAction(id, action) {
-  await jsonFetch(serviceUrl("/service/apps/" + id + "/" + action), { method: "POST" });
+  await jsonFetch(serviceUrl("/service/apps/" + id + "/" + action), {
+    method: "POST",
+  });
   notify("Action completed", "success");
   location.reload();
 }
@@ -82,7 +89,9 @@ async function deleteConnection(id) {
 
 async function deleteAuth(id) {
   if (!confirm("Are you sure?")) return;
-  await fetch(serviceUrl("/service/authentications/" + id), { method: "DELETE" });
+  await fetch(serviceUrl("/service/authentications/" + id), {
+    method: "DELETE",
+  });
   notify("Authentication deleted", "success");
   location.reload();
 }

@@ -277,10 +277,3 @@ func (q *QueueManager) claimNextJob(ctx context.Context) (*FlowQueueJob, bool, e
 	}
 	return claimed, true, nil
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
