@@ -29,7 +29,7 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.6.7
 	github.com/go-playground/validator/v10 v10.29.0
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/goccy/go-yaml v1.19.0
+	github.com/goccy/go-yaml v1.19.1
 	github.com/gofiber/contrib/v3/swaggo v1.0.0-rc.1
 	github.com/gofiber/contrib/v3/zerolog v1.0.0-rc.1
 	github.com/gofiber/fiber/v3 v3.0.0-rc.3
