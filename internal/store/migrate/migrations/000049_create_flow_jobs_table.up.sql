@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS flow_jobs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  flow_id BIGINT NOT NULL,
+  execution_id VARCHAR(64) NOT NULL,
+  node_id VARCHAR(64) NOT NULL,
+  node_type VARCHAR(32) NOT NULL,
+  bot VARCHAR(64) NOT NULL,
+  rule_id VARCHAR(128) NOT NULL,
+  attempt INT NOT NULL DEFAULT 1,
+  state INT NOT NULL DEFAULT 0,
+  params JSON NULL,
+  result JSON NULL,
+  error TEXT NULL,
+  started_at DATETIME NULL,
+  finished_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  INDEX idx_flow_jobs_flow_id (flow_id),
+  INDEX idx_flow_jobs_execution_id (execution_id),
+  INDEX idx_flow_jobs_node_id (node_id)
+);

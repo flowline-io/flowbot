@@ -3,6 +3,7 @@ package flows
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/lithammer/shortuuid/v4"
+	"gorm.io/gorm"
 )
 
 // Engine executes IF THEN flows
@@ -28,34 +30,68 @@ func NewEngine(storeAdapter store.Adapter) *Engine {
 
 // ExecuteFlow executes a flow with the given trigger
 func (e *Engine) ExecuteFlow(ctx context.Context, flowID int64, triggerType string, triggerID string, payload types.KV) error {
+	_, err := e.ExecuteFlowWithExecutionID(ctx, flowID, "", triggerType, triggerID, payload)
+	return err
+}
+
+// ExecuteFlowWithExecutionID executes a flow using a caller-provided executionID.
+// If executionID is provided and an execution already exists, it will be reused and updated.
+// This makes queue retries idempotent (one queued job => one execution row).
+func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, executionID string, triggerType string, triggerID string, payload types.KV) (string, error) {
 	flow, err := e.store.GetFlow(flowID)
 	if err != nil {
-		return fmt.Errorf("failed to get flow: %w", err)
+		return "", fmt.Errorf("failed to get flow: %w", err)
 	}
 
 	if !flow.Enabled {
-		return fmt.Errorf("flow is disabled")
+		return "", fmt.Errorf("flow is disabled")
 	}
 
-	// Create execution record
-	executionID := shortuuid.New()
-	execution := &model.Execution{
-		FlowID:      flowID,
-		ExecutionID: executionID,
-		TriggerType: triggerType,
-		TriggerID:   triggerID,
-		State:       model.ExecutionPending,
-		Payload:     model.JSON(payload),
-		Variables:   model.JSON(make(types.KV)),
+	if executionID == "" {
+		executionID = shortuuid.New()
 	}
 
-	now := time.Now()
-	execution.StartedAt = &now
-	execution.State = model.ExecutionRunning
-
-	_, err = e.store.CreateExecution(execution)
+	// Create (or reuse) execution record.
+	execution, err := e.store.GetExecution(executionID)
 	if err != nil {
-		return fmt.Errorf("failed to create execution: %w", err)
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return executionID, fmt.Errorf("failed to get execution: %w", err)
+		}
+
+		execution = &model.Execution{
+			FlowID:      flowID,
+			ExecutionID: executionID,
+			TriggerType: triggerType,
+			TriggerID:   triggerID,
+			State:       model.ExecutionPending,
+			Payload:     model.JSON(payload),
+			Variables:   model.JSON(make(types.KV)),
+		}
+
+		now := time.Now()
+		execution.StartedAt = &now
+		execution.State = model.ExecutionRunning
+
+		_, err = e.store.CreateExecution(execution)
+		if err != nil {
+			return executionID, fmt.Errorf("failed to create execution: %w", err)
+		}
+	} else {
+		// Reuse existing execution row (e.g., queue retry) instead of inserting a new one.
+		if execution.FlowID != flowID {
+			return executionID, fmt.Errorf("execution_id is bound to a different flow")
+		}
+		if execution.StartedAt == nil {
+			now := time.Now()
+			execution.StartedAt = &now
+		}
+		execution.TriggerType = triggerType
+		execution.TriggerID = triggerID
+		execution.Payload = model.JSON(payload)
+		execution.State = model.ExecutionRunning
+		execution.Error = ""
+		execution.FinishedAt = nil
+		_ = e.store.UpdateExecution(execution)
 	}
 
 	// Execute flow nodes
@@ -66,13 +102,13 @@ func (e *Engine) ExecuteFlow(ctx context.Context, flowID int64, triggerType stri
 		finishedAt := time.Now()
 		execution.FinishedAt = &finishedAt
 		_ = e.store.UpdateExecution(execution)
-		return fmt.Errorf("failed to execute flow: %w", err)
+		return executionID, fmt.Errorf("failed to execute flow: %w", err)
 	}
 
 	execution.State = model.ExecutionSucceeded
 	finishedAt := time.Now()
 	execution.FinishedAt = &finishedAt
-	return e.store.UpdateExecution(execution)
+	return executionID, e.store.UpdateExecution(execution)
 }
 
 // executeNodes executes flow nodes in order
@@ -140,11 +176,47 @@ func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nod
 		return fmt.Errorf("max chain depth exceeded")
 	}
 
-	// Execute current node
+	// Execute current node with job logging
+	job := &model.FlowJob{
+		FlowID:      node.FlowID,
+		ExecutionID: execution.ExecutionID,
+		NodeID:      node.NodeID,
+		NodeType:    node.Type,
+		Bot:         node.Bot,
+		RuleID:      node.RuleID,
+		Attempt:     1,
+		State:       model.JobStart,
+		Params:      node.Parameters,
+	}
+	now := time.Now()
+	job.StartedAt = &now
+	job.CreatedAt = now
+	job.UpdatedAt = now
+	_, _ = e.store.CreateFlowJob(job)
+
 	result, err := e.executeNode(ctx, node, variables)
 	if err != nil {
+		job.State = model.JobFailed
+		job.Error = err.Error()
+		finishedAt := time.Now()
+		job.FinishedAt = &finishedAt
+		job.UpdatedAt = finishedAt
+		_ = e.store.UpdateFlowJob(job)
 		return fmt.Errorf("failed to execute node %s: %w", node.NodeID, err)
 	}
+
+	job.State = model.JobSucceeded
+	if result != nil {
+		res := make(map[string]interface{}, len(result))
+		for k, v := range result {
+			res[k] = v
+		}
+		job.Result = model.JSON(res)
+	}
+	finishedAt := time.Now()
+	job.FinishedAt = &finishedAt
+	job.UpdatedAt = finishedAt
+	_ = e.store.UpdateFlowJob(job)
 
 	// Merge result into variables
 	for k, v := range result {

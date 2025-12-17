@@ -25,8 +25,7 @@ func NewAPI(storeAdapter store.Adapter) *API {
 
 // ListConnections lists all connections
 func (a *API) ListConnections(c fiber.Ctx) error {
-	uid := types.Uid(c.Query("uid", ""))
-	topic := c.Query("topic", "")
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
 
 	connections, err := a.store.GetConnections(uid, topic)
 	if err != nil {
@@ -37,6 +36,29 @@ func (a *API) ListConnections(c fiber.Ctx) error {
 	}
 
 	return c.JSON(connections)
+}
+
+func resolveUIDTopicFromRequest(c fiber.Ctx, storeAdapter store.Adapter) (types.Uid, string) {
+	uidStr := c.Query("uid", "")
+	topic := c.Query("topic", "")
+	if uidStr != "" {
+		return types.Uid(uidStr), topic
+	}
+
+	flag := c.Query("p", "")
+	if flag == "" {
+		return "", ""
+	}
+	p, err := storeAdapter.ParameterGet(flag)
+	if err != nil {
+		return "", ""
+	}
+	if p.IsExpired() {
+		return "", ""
+	}
+	uid, _ := types.KV(p.Params).String("uid")
+	topic, _ = types.KV(p.Params).String("topic")
+	return types.Uid(uid), topic
 }
 
 // GetConnection gets a connection by ID
@@ -67,6 +89,14 @@ func (a *API) CreateConnection(c fiber.Ctx) error {
 		})
 	}
 
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if conn.UID == "" {
+		conn.UID = uid.String()
+	}
+	if conn.Topic == "" {
+		conn.Topic = topic
+	}
+
 	id, err := a.store.CreateConnection(&conn)
 	if err != nil {
 		flog.Error(err)
@@ -93,6 +123,14 @@ func (a *API) UpdateConnection(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
+	}
+
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if conn.UID == "" {
+		conn.UID = uid.String()
+	}
+	if conn.Topic == "" {
+		conn.Topic = topic
 	}
 
 	conn.ID = id
@@ -127,8 +165,7 @@ func (a *API) DeleteConnection(c fiber.Ctx) error {
 
 // ListAuthentications lists all authentications
 func (a *API) ListAuthentications(c fiber.Ctx) error {
-	uid := types.Uid(c.Query("uid", ""))
-	topic := c.Query("topic", "")
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
 
 	auths, err := a.store.GetAuthentications(uid, topic)
 	if err != nil {
@@ -169,6 +206,14 @@ func (a *API) CreateAuthentication(c fiber.Ctx) error {
 		})
 	}
 
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if auth.UID == "" {
+		auth.UID = uid.String()
+	}
+	if auth.Topic == "" {
+		auth.Topic = topic
+	}
+
 	id, err := a.store.CreateAuthentication(&auth)
 	if err != nil {
 		flog.Error(err)
@@ -195,6 +240,14 @@ func (a *API) UpdateAuthentication(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
+	}
+
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if auth.UID == "" {
+		auth.UID = uid.String()
+	}
+	if auth.Topic == "" {
+		auth.Topic = topic
 	}
 
 	auth.ID = id

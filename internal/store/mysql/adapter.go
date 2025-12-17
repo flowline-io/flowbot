@@ -1253,6 +1253,25 @@ func (a *adapter) UpdateExecution(execution *model.Execution) error {
 	return a.db.Model(&model.Execution{}).Where("id = ?", execution.ID).Updates(execution).Error
 }
 
+// Flow job (per-node execution) management
+func (a *adapter) CreateFlowJob(job *model.FlowJob) (int64, error) {
+	err := a.db.Create(job).Error
+	if err != nil {
+		return 0, err
+	}
+	return job.ID, nil
+}
+
+func (a *adapter) UpdateFlowJob(job *model.FlowJob) error {
+	return a.db.Model(&model.FlowJob{}).Where("id = ?", job.ID).Updates(job).Error
+}
+
+func (a *adapter) GetFlowJobsByExecution(executionID string) ([]*model.FlowJob, error) {
+	var jobs []*model.FlowJob
+	err := a.db.Where("execution_id = ?", executionID).Order("created_at ASC").Find(&jobs).Error
+	return jobs, err
+}
+
 // Connections management
 func (a *adapter) GetConnections(uid types.Uid, topic string) ([]*model.Connection, error) {
 	var connections []*model.Connection

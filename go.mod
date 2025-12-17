@@ -184,6 +184,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riverqueue/river/riverdriver v0.27.0 // indirect
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.27.0 // indirect
 	github.com/riverqueue/river/rivershared v0.27.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect

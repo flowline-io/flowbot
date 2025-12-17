@@ -75,6 +75,7 @@ func handleRoutes(a *fiber.App, ctl *Controller, flowAPI *flows.API, appAPI *app
 	flowGroup.Post("/:id/execute", flowAPI.ExecuteFlow)
 	flowGroup.Get("/:id/executions", flowAPI.ListExecutions)
 	flowGroup.Get("/executions/:execution_id", flowAPI.GetExecution)
+	flowGroup.Get("/executions/:execution_id/jobs", flowAPI.ListExecutionJobs)
 	flowGroup.Put("/:id/nodes", flowAPI.UpdateFlowNodes)
 
 	// App API

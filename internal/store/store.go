@@ -325,6 +325,11 @@ type Adapter interface {
 	CreateExecution(execution *model.Execution) (int64, error)
 	UpdateExecution(execution *model.Execution) error
 
+	// Flow job (per-node execution) management
+	CreateFlowJob(job *model.FlowJob) (int64, error)
+	UpdateFlowJob(job *model.FlowJob) error
+	GetFlowJobsByExecution(executionID string) ([]*model.FlowJob, error)
+
 	// Connections management
 	GetConnections(uid types.Uid, topic string) ([]*model.Connection, error)
 	GetConnection(id int64) (*model.Connection, error)

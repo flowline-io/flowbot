@@ -32,8 +32,7 @@ func NewAPI(engine *Engine, rateLimiter *RateLimiter, storeAdapter store.Adapter
 
 // ListFlows lists all flows
 func (a *API) ListFlows(c fiber.Ctx) error {
-	uid := types.Uid(c.Query("uid", ""))
-	topic := c.Query("topic", "")
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
 
 	flows, err := a.store.GetFlows(uid, topic)
 	if err != nil {
@@ -43,6 +42,27 @@ func (a *API) ListFlows(c fiber.Ctx) error {
 	}
 
 	return c.JSON(flows)
+}
+
+func resolveUIDTopicFromRequest(c fiber.Ctx, storeAdapter store.Adapter) (types.Uid, string) {
+	uidStr := c.Query("uid", "")
+	topic := c.Query("topic", "")
+	if uidStr != "" {
+		return types.Uid(uidStr), topic
+	}
+
+	flag := c.Query("p", "")
+	if flag == "" {
+		return "", ""
+	}
+
+	p, err := storeAdapter.ParameterGet(flag)
+	if err != nil || p.IsExpired() {
+		return "", ""
+	}
+	uid, _ := types.KV(p.Params).String("uid")
+	topic, _ = types.KV(p.Params).String("topic")
+	return types.Uid(uid), topic
 }
 
 // GetFlow gets a flow by ID
@@ -81,6 +101,14 @@ func (a *API) CreateFlow(c fiber.Ctx) error {
 		})
 	}
 
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if flow.UID == "" {
+		flow.UID = uid.String()
+	}
+	if flow.Topic == "" {
+		flow.Topic = topic
+	}
+
 	id, err := a.store.CreateFlow(&flow)
 	if err != nil {
 		flog.Error(err)
@@ -107,6 +135,14 @@ func (a *API) UpdateFlow(c fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
+	}
+
+	uid, topic := resolveUIDTopicFromRequest(c, a.store)
+	if flow.UID == "" {
+		flow.UID = uid.String()
+	}
+	if flow.Topic == "" {
+		flow.Topic = topic
 	}
 
 	flow.ID = id
@@ -174,20 +210,20 @@ func (a *API) ExecuteFlow(c fiber.Ctx) error {
 
 	// Execute flow asynchronously via queue
 	if a.queue != nil {
-		err = a.queue.EnqueueFlowExecution(c.Context(), id, req.TriggerType, req.TriggerID, req.Payload)
-		if err != nil {
-			flog.Error(err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+		executionID, err := a.queue.EnqueueFlowExecution(c.Context(), id, req.TriggerType, req.TriggerID, req.Payload)
+		if err == nil {
+			return c.JSON(fiber.Map{
+				"message":      "flow execution queued successfully",
+				"execution_id": executionID,
 			})
 		}
-		return c.JSON(fiber.Map{
-			"message": "flow execution queued successfully",
-		})
+		// If queue isn't configured or enqueue fails, fall back to synchronous
+		// execution to keep UX working.
+		flog.Error(err)
 	}
 
 	// Fallback to synchronous execution
-	err = a.engine.ExecuteFlow(c.Context(), id, req.TriggerType, req.TriggerID, req.Payload)
+	executionID, err := a.engine.ExecuteFlowWithExecutionID(c.Context(), id, "", req.TriggerType, req.TriggerID, req.Payload)
 	if err != nil {
 		flog.Error(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -196,7 +232,8 @@ func (a *API) ExecuteFlow(c fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "flow executed successfully",
+		"message":      "flow executed successfully",
+		"execution_id": executionID,
 	})
 }
 
@@ -244,6 +281,26 @@ func (a *API) GetExecution(c fiber.Ctx) error {
 	}
 
 	return c.JSON(execution)
+}
+
+// ListExecutionJobs lists per-node jobs for an execution
+func (a *API) ListExecutionJobs(c fiber.Ctx) error {
+	executionID := c.Params("execution_id")
+	if executionID == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid execution id",
+		})
+	}
+
+	jobs, err := a.store.GetFlowJobsByExecution(executionID)
+	if err != nil {
+		flog.Error(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get execution jobs",
+		})
+	}
+
+	return c.JSON(jobs)
 }
 
 // UpdateFlowNodes updates flow nodes

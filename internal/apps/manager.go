@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -18,6 +20,11 @@ const (
 	// HomelabAppEnableLabel is the label key used to identify homelab applications
 	// Container with this label set to "true" will be treated as a homelab app
 	HomelabAppEnableLabel = "homelab.app.enable"
+
+	// Docker Compose labels
+	composeProjectLabel    = "com.docker.compose.project"
+	composeWorkingDirLabel = "com.docker.compose.project.working_dir"
+	composeServiceLabel    = "com.docker.compose.service"
 )
 
 // Manager manages homelab applications
@@ -52,26 +59,11 @@ func (m *Manager) ScanApps(ctx context.Context) error {
 	// Track found apps to handle removed containers
 	foundAppNames := make(map[string]bool)
 
-	// Scan containers with homelab app label
+	// Scan containers with homelab app label or docker compose labels
 	for _, c := range containers {
-		// Check if container has the homelab app enable label set to "true"
-		enableLabel, hasLabel := c.Labels[HomelabAppEnableLabel]
-		if !hasLabel || enableLabel != "true" {
+		appName, appPath, ok := m.detectAppFromContainer(&c)
+		if !ok {
 			continue
-		}
-
-		// Get app name from container name (remove leading slash if present)
-		appName := ""
-		if len(c.Names) > 0 {
-			appName = c.Names[0]
-			// Remove leading slash from container name
-			if len(appName) > 0 && appName[0] == '/' {
-				appName = appName[1:]
-			}
-		}
-		if appName == "" {
-			// Fallback to container ID if no name
-			appName = c.ID[:12]
 		}
 
 		foundAppNames[appName] = true
@@ -80,15 +72,16 @@ func (m *Manager) ScanApps(ctx context.Context) error {
 		app, err := m.store.GetAppByName(appName)
 		if err != nil {
 			// Create new app
-			app = &model.App{
-				Name:   appName,
-				Path:   "", // Path is not needed when scanning from Docker
-				Status: model.AppStatusUnknown,
-			}
+			app = &model.App{Name: appName, Path: appPath, Status: model.AppStatusUnknown}
 			_, err = m.store.CreateApp(app)
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to create app %s: %w", appName, err))
 				continue
+			}
+		} else {
+			// Update path when available (prefer compose working dir)
+			if appPath != "" && app.Path != appPath {
+				app.Path = appPath
 			}
 		}
 
@@ -173,6 +166,11 @@ func (m *Manager) updateAppStatusFromContainer(ctx context.Context, app *model.A
 		"created": containerInfo.Created,
 		"ports":   containerInfo.NetworkSettings.Ports,
 		"labels":  containerInfo.Config.Labels,
+		"compose": map[string]interface{}{
+			"project":     containerInfo.Config.Labels[composeProjectLabel],
+			"service":     containerInfo.Config.Labels[composeServiceLabel],
+			"working_dir": containerInfo.Config.Labels[composeWorkingDirLabel],
+		},
 	}
 
 	infoJSON, err := json.Marshal(dockerInfo)
@@ -188,6 +186,54 @@ func (m *Manager) updateAppStatusFromContainer(ctx context.Context, app *model.A
 	app.UpdatedAt = time.Now()
 
 	return nil
+}
+
+// detectAppFromContainer determines whether a container belongs to a homelab app.
+// It supports:
+// 1) Explicit label homelab.app.enable=true
+// 2) Docker Compose defaults (com.docker.compose.project + com.docker.compose.project.working_dir)
+func (m *Manager) detectAppFromContainer(c *types.Container) (appName string, appPath string, ok bool) {
+	if c == nil {
+		return "", "", false
+	}
+
+	// 1) Explicit opt-in label
+	if enableLabel, hasLabel := c.Labels[HomelabAppEnableLabel]; hasLabel && enableLabel == "true" {
+		name := m.containerDisplayName(c)
+		if name == "" {
+			name = c.ID[:12]
+		}
+		return name, "", true
+	}
+
+	// 2) Docker Compose: project + working dir
+	project := strings.TrimSpace(c.Labels[composeProjectLabel])
+	workingDir := strings.TrimSpace(c.Labels[composeWorkingDirLabel])
+	if project == "" || workingDir == "" {
+		return "", "", false
+	}
+
+	// Only treat compose stacks under a homelab/apps directory as homelab apps.
+	// This matches Linux paths like /home/<user>/homelab/apps/<app>.
+	wd := filepath.Clean(workingDir)
+	wdUnix := strings.ReplaceAll(wd, "\\", "/")
+	if !strings.Contains(wdUnix, "/homelab/apps/") {
+		return "", "", false
+	}
+
+	return project, workingDir, true
+}
+
+func (m *Manager) containerDisplayName(c *types.Container) string {
+	if c == nil {
+		return ""
+	}
+	if len(c.Names) == 0 {
+		return ""
+	}
+	name := c.Names[0]
+	name = strings.TrimPrefix(name, "/")
+	return name
 }
 
 // updateAppStatus updates app status by finding container with homelab app label

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
@@ -17,6 +19,8 @@ const (
 	appsPageId            = "apps"
 	connectionsPageId     = "connections"
 	authenticationsPageId = "authentications"
+	connectionEditPageId  = "connection_edit"
+	authenticationEditId  = "authentication_edit"
 )
 
 var pageRules = []page.Rule{
@@ -29,83 +33,71 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("failed to get flows: %w", err)
 			}
 
-			var items []app.UI
-			for _, flow := range flows {
-				statusClass := "uk-label-default"
-				if flow.Enabled {
-					statusClass = "uk-label-success"
-				}
-
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text(fmt.Sprintf("%d", flow.ID))),
-					uikit.Td(uikit.Link(flow.Name, fmt.Sprintf("/page/%s/%s?flow_id=%d", flowsEditPageId, flag, flow.ID))),
-					uikit.Td(uikit.Text(flow.Description)),
-					uikit.Td(
-						uikit.Label(func() string {
-							if flow.State == 1 {
-								return "Active"
-							}
-							return "Inactive"
-						}()).Class(statusClass),
-					),
-					uikit.Td(uikit.Text(flow.CreatedAt.Format("2006-01-02 15:04:05"))),
-					uikit.Td(
-						uikit.Button("Execute").Class("uk-button uk-button-small uk-button-primary").
-							Attr("onclick", fmt.Sprintf("executeFlow(%d)", flow.ID)),
-						uikit.Button("Delete").Class("uk-button uk-button-small uk-button-danger").
-							Attr("onclick", fmt.Sprintf("deleteFlow(%d)", flow.ID)),
-					),
-				))
-			}
-
-			if len(items) == 0 {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text("No flows found.").Class(uikit.TextCenterClass)).ColSpan(6),
-				))
-			}
-
-			js := `
-				function executeFlow(id) {
-					fetch('/service/flows/' + id + '/execute', {
-						method: 'POST',
-						headers: {'Content-Type': 'application/json'},
-						body: JSON.stringify({trigger_type: 'manual', trigger_id: '', payload: {}})
-					}).then(r => r.json()).then(d => {
-						alert(d.message || 'Flow executed');
-						location.reload();
-					});
-				}
-				function deleteFlow(id) {
-					if (confirm('Are you sure?')) {
-						fetch('/service/flows/' + id, {method: 'DELETE'})
-							.then(r => location.reload());
-					}
-				}
-			`
-
-			appUI := uikit.App(
-				uikit.H2("Flows").Class(uikit.TextCenterClass),
-				uikit.Button("New Flow").Class("uk-button uk-button-primary").
-					Attr("onclick", fmt.Sprintf("location.href='/page/%s/%s'", flowsEditPageId, flag)),
-				uikit.Table(
-					uikit.THead(
-						uikit.Tr(
-							uikit.Th(uikit.Text("ID")),
-							uikit.Th(uikit.Text("Name")),
-							uikit.Th(uikit.Text("Description")),
-							uikit.Th(uikit.Text("Status")),
-							uikit.Th(uikit.Text("Created")),
-							uikit.Th(uikit.Text("Actions")),
-						),
-					),
-					uikit.TBody(items...),
-				).Class(uikit.TableDividerClass, uikit.TableHoverClass),
-			)
+			appUI := component.FlowListView(flag, flows)
 
 			return &types.UI{
 				App: appUI,
-				JS:  []app.HTMLScript{uikit.Js(js)},
+				JS:  []app.HTMLScript{uikit.Js(component.AdminJS())},
 			}, nil
+		},
+	},
+	{
+		Id: flowsEditPageId,
+		UI: func(ctx types.Context, flag string, args types.KV) (*types.UI, error) {
+			flowIDStr, _ := args.String("flow_id")
+			data := component.FlowEditData{
+				Flag:        flag,
+				FlowID:      "",
+				Enabled:     true,
+				TriggerType: "manual",
+			}
+
+			if flowIDStr != "" {
+				var flowID int64
+				if _, err := fmt.Sscanf(flowIDStr, "%d", &flowID); err != nil {
+					return nil, fmt.Errorf("invalid flow_id: %s", flowIDStr)
+				}
+
+				flow, err := store.Database.GetFlow(flowID)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get flow: %w", err)
+				}
+				nodes, _ := store.Database.GetFlowNodes(flowID)
+				edges, _ := store.Database.GetFlowEdges(flowID)
+
+				data.FlowID = fmt.Sprintf("%d", flow.ID)
+				data.Name = flow.Name
+				data.Description = flow.Description
+				data.Enabled = flow.Enabled
+
+				triggerNode, action1Node, action2Node := flowGraphToChain(nodes, edges)
+				if triggerNode != nil {
+					data.TriggerType = triggerNode.RuleID
+					if triggerNode.Parameters != nil {
+						if tok, ok := triggerNode.Parameters["token"].(string); ok {
+							data.WebhookToken = tok
+						}
+						if spec, ok := triggerNode.Parameters["spec"].(string); ok {
+							data.CronSpec = spec
+						}
+					}
+				}
+				if action1Node != nil {
+					data.Action1 = action1Node.Bot + "|" + action1Node.RuleID
+					data.Action1Params = component.JSONString(action1Node.Parameters)
+				} else {
+					data.Action1Params = "{}"
+				}
+				if action2Node != nil {
+					data.Action2 = action2Node.Bot + "|" + action2Node.RuleID
+					data.Action2Params = component.JSONString(action2Node.Parameters)
+				} else {
+					data.Action2Params = "{}"
+				}
+			}
+
+			appUI := component.FlowEditView(data)
+			return &types.UI{App: appUI, JS: []app.HTMLScript{uikit.Js(component.AdminJS())}}, nil
 		},
 	},
 	{
@@ -126,81 +118,7 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("failed to get executions: %w", err)
 			}
 
-			var items []app.UI
-			for _, exec := range executions {
-				stateClass := "uk-label-default"
-				switch exec.State {
-				case 1: // Pending
-					stateClass = "uk-label-warning"
-				case 2: // Running
-					stateClass = "uk-label-primary"
-				case 3: // Succeeded
-					stateClass = "uk-label-success"
-				case 4: // Failed
-					stateClass = "uk-label-danger"
-				}
-
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text(exec.ExecutionID)),
-					uikit.Td(uikit.Text(exec.TriggerType)),
-					uikit.Td(
-						uikit.Label(func() string {
-							switch exec.State {
-							case 0:
-								return "Unknown"
-							case 1:
-								return "Pending"
-							case 2:
-								return "Running"
-							case 3:
-								return "Succeeded"
-							case 4:
-								return "Failed"
-							case 5:
-								return "Cancelled"
-							}
-							return "Unknown"
-						}()).Class(stateClass),
-					),
-					uikit.Td(uikit.Text(exec.CreatedAt.Format("2006-01-02 15:04:05"))),
-					uikit.Td(uikit.Text(func() string {
-						if exec.FinishedAt != nil {
-							return exec.FinishedAt.Format("2006-01-02 15:04:05")
-						}
-						return "-"
-					}())),
-					uikit.Td(uikit.Text(func() string {
-						if exec.Error != "" {
-							return exec.Error
-						}
-						return "-"
-					}())),
-				))
-			}
-
-			if len(items) == 0 {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text("No executions found.").Class(uikit.TextCenterClass)).ColSpan(6),
-				))
-			}
-
-			appUI := uikit.App(
-				uikit.H2("Executions").Class(uikit.TextCenterClass),
-				uikit.Table(
-					uikit.THead(
-						uikit.Tr(
-							uikit.Th(uikit.Text("Execution ID")),
-							uikit.Th(uikit.Text("Trigger")),
-							uikit.Th(uikit.Text("State")),
-							uikit.Th(uikit.Text("Started")),
-							uikit.Th(uikit.Text("Finished")),
-							uikit.Th(uikit.Text("Error")),
-						),
-					),
-					uikit.TBody(items...),
-				).Class(uikit.TableDividerClass, uikit.TableHoverClass),
-			)
-
+			appUI := component.ExecutionsView(executions)
 			return &types.UI{
 				App: appUI,
 			}, nil
@@ -214,82 +132,11 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("failed to get apps: %w", err)
 			}
 
-			var items []app.UI
-			for _, appItem := range apps {
-				statusClass := "uk-label-default"
-				switch appItem.Status {
-				case "running":
-					statusClass = "uk-label-success"
-				case "stopped":
-					statusClass = "uk-label-danger"
-				case "paused":
-					statusClass = "uk-label-warning"
-				}
-
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text(appItem.Name)),
-					uikit.Td(uikit.Text(appItem.Path)),
-					uikit.Td(
-						uikit.Label(string(appItem.Status)).Class(statusClass),
-					),
-					uikit.Td(uikit.Text(appItem.ContainerID)),
-					uikit.Td(
-						uikit.Button("Start").Class("uk-button uk-button-small uk-button-primary").
-							Attr("onclick", fmt.Sprintf("appAction(%d, 'start')", appItem.ID)),
-						uikit.Button("Stop").Class("uk-button uk-button-small uk-button-danger").
-							Attr("onclick", fmt.Sprintf("appAction(%d, 'stop')", appItem.ID)),
-						uikit.Button("Restart").Class("uk-button uk-button-small uk-button-default").
-							Attr("onclick", fmt.Sprintf("appAction(%d, 'restart')", appItem.ID)),
-					),
-				))
-			}
-
-			if len(items) == 0 {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text("No apps found.").Class(uikit.TextCenterClass)).ColSpan(5),
-				))
-			}
-
-			js := `
-				function appAction(id, action) {
-					fetch('/service/apps/' + id + '/' + action, {method: 'POST'})
-						.then(r => r.json())
-						.then(d => {
-							alert(d.message || 'Action completed');
-							location.reload();
-						});
-				}
-				function scanApps() {
-					fetch('/service/apps/scan', {method: 'POST'})
-						.then(r => r.json())
-						.then(d => {
-							alert(d.message || 'Scan completed');
-							location.reload();
-						});
-				}
-			`
-
-			appUI := uikit.App(
-				uikit.H2("Apps").Class(uikit.TextCenterClass),
-				uikit.Button("Scan Apps").Class("uk-button uk-button-primary").
-					Attr("onclick", "scanApps()"),
-				uikit.Table(
-					uikit.THead(
-						uikit.Tr(
-							uikit.Th(uikit.Text("Name")),
-							uikit.Th(uikit.Text("Path")),
-							uikit.Th(uikit.Text("Status")),
-							uikit.Th(uikit.Text("Container ID")),
-							uikit.Th(uikit.Text("Actions")),
-						),
-					),
-					uikit.TBody(items...),
-				).Class(uikit.TableDividerClass, uikit.TableHoverClass),
-			)
+			appUI := component.AppsView(apps)
 
 			return &types.UI{
 				App: appUI,
-				JS:  []app.HTMLScript{uikit.Js(js)},
+				JS:  []app.HTMLScript{uikit.Js(component.AdminJS())},
 			}, nil
 		},
 	},
@@ -301,69 +148,36 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("failed to get connections: %w", err)
 			}
 
-			var items []app.UI
-			for _, conn := range connections {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text(conn.Name)),
-					uikit.Td(uikit.Text(conn.Type)),
-					uikit.Td(
-						uikit.Label(func() string {
-							if conn.Enabled {
-								return "Enabled"
-							}
-							return "Disabled"
-						}()).Class(func() string {
-							if conn.Enabled {
-								return "uk-label-success"
-							}
-							return "uk-label-default"
-						}()),
-					),
-					uikit.Td(uikit.Text(conn.CreatedAt.Format("2006-01-02 15:04:05"))),
-					uikit.Td(
-						uikit.Button("Edit").Class("uk-button uk-button-small"),
-						uikit.Button("Delete").Class("uk-button uk-button-small uk-button-danger").
-							Attr("onclick", fmt.Sprintf("deleteConnection(%d)", conn.ID)),
-					),
-				))
-			}
-
-			if len(items) == 0 {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text("No connections found.").Class(uikit.TextCenterClass)).ColSpan(5),
-				))
-			}
-
-			js := `
-				function deleteConnection(id) {
-					if (confirm('Are you sure?')) {
-						fetch('/service/connections/' + id, {method: 'DELETE'})
-							.then(r => location.reload());
-					}
-				}
-			`
-
-			appUI := uikit.App(
-				uikit.H2("Connections").Class(uikit.TextCenterClass),
-				uikit.Button("New Connection").Class("uk-button uk-button-primary"),
-				uikit.Table(
-					uikit.THead(
-						uikit.Tr(
-							uikit.Th(uikit.Text("Name")),
-							uikit.Th(uikit.Text("Type")),
-							uikit.Th(uikit.Text("Status")),
-							uikit.Th(uikit.Text("Created")),
-							uikit.Th(uikit.Text("Actions")),
-						),
-					),
-					uikit.TBody(items...),
-				).Class(uikit.TableDividerClass, uikit.TableHoverClass),
-			)
+			appUI := component.ConnectionsView(flag, connections)
 
 			return &types.UI{
 				App: appUI,
-				JS:  []app.HTMLScript{uikit.Js(js)},
+				JS:  []app.HTMLScript{uikit.Js(component.AdminJS())},
 			}, nil
+		},
+	},
+	{
+		Id: connectionEditPageId,
+		UI: func(ctx types.Context, flag string, args types.KV) (*types.UI, error) {
+			idStr, _ := args.String("id")
+			data := component.ConnectionEditData{Flag: flag, Enabled: true}
+			if idStr != "" {
+				var id int64
+				if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+					return nil, fmt.Errorf("invalid id: %s", idStr)
+				}
+				conn, err := store.Database.GetConnection(id)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get connection: %w", err)
+				}
+				data.ID = fmt.Sprintf("%d", conn.ID)
+				data.Name = conn.Name
+				data.Type = conn.Type
+				data.Enabled = conn.Enabled
+				data.Config = component.JSONString(conn.Config)
+			}
+			appUI := component.ConnectionEditView(data)
+			return &types.UI{App: appUI, JS: []app.HTMLScript{uikit.Js(component.AdminJS())}}, nil
 		},
 	},
 	{
@@ -374,69 +188,79 @@ var pageRules = []page.Rule{
 				return nil, fmt.Errorf("failed to get authentications: %w", err)
 			}
 
-			var items []app.UI
-			for _, auth := range auths {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text(auth.Name)),
-					uikit.Td(uikit.Text(auth.Type)),
-					uikit.Td(
-						uikit.Label(func() string {
-							if auth.Enabled {
-								return "Enabled"
-							}
-							return "Disabled"
-						}()).Class(func() string {
-							if auth.Enabled {
-								return "uk-label-success"
-							}
-							return "uk-label-default"
-						}()),
-					),
-					uikit.Td(uikit.Text(auth.CreatedAt.Format("2006-01-02 15:04:05"))),
-					uikit.Td(
-						uikit.Button("Edit").Class("uk-button uk-button-small"),
-						uikit.Button("Delete").Class("uk-button uk-button-small uk-button-danger").
-							Attr("onclick", fmt.Sprintf("deleteAuth(%d)", auth.ID)),
-					),
-				))
-			}
-
-			if len(items) == 0 {
-				items = append(items, uikit.Tr(
-					uikit.Td(uikit.Text("No authentications found.").Class(uikit.TextCenterClass)).ColSpan(5),
-				))
-			}
-
-			js := `
-				function deleteAuth(id) {
-					if (confirm('Are you sure?')) {
-						fetch('/service/authentications/' + id, {method: 'DELETE'})
-							.then(r => location.reload());
-					}
-				}
-			`
-
-			appUI := uikit.App(
-				uikit.H2("Authentications").Class(uikit.TextCenterClass),
-				uikit.Button("New Authentication").Class("uk-button uk-button-primary"),
-				uikit.Table(
-					uikit.THead(
-						uikit.Tr(
-							uikit.Th(uikit.Text("Name")),
-							uikit.Th(uikit.Text("Type")),
-							uikit.Th(uikit.Text("Status")),
-							uikit.Th(uikit.Text("Created")),
-							uikit.Th(uikit.Text("Actions")),
-						),
-					),
-					uikit.TBody(items...),
-				).Class(uikit.TableDividerClass, uikit.TableHoverClass),
-			)
+			appUI := component.AuthenticationsView(flag, auths)
 
 			return &types.UI{
 				App: appUI,
-				JS:  []app.HTMLScript{uikit.Js(js)},
+				JS:  []app.HTMLScript{uikit.Js(component.AdminJS())},
 			}, nil
 		},
 	},
+	{
+		Id: authenticationEditId,
+		UI: func(ctx types.Context, flag string, args types.KV) (*types.UI, error) {
+			idStr, _ := args.String("id")
+			data := component.AuthenticationEditData{Flag: flag, Enabled: true}
+			if idStr != "" {
+				var id int64
+				if _, err := fmt.Sscanf(idStr, "%d", &id); err != nil {
+					return nil, fmt.Errorf("invalid id: %s", idStr)
+				}
+				auth, err := store.Database.GetAuthentication(id)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get authentication: %w", err)
+				}
+				data.ID = fmt.Sprintf("%d", auth.ID)
+				data.Name = auth.Name
+				data.Type = auth.Type
+				data.Enabled = auth.Enabled
+				data.Credentials = component.JSONString(auth.Credentials)
+			}
+			appUI := component.AuthenticationEditView(data)
+			return &types.UI{App: appUI, JS: []app.HTMLScript{uikit.Js(component.AdminJS())}}, nil
+		},
+	},
+}
+
+func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (trigger *model.FlowNode, action1 *model.FlowNode, action2 *model.FlowNode) {
+	if len(nodes) == 0 {
+		return nil, nil, nil
+	}
+	nodeMap := make(map[string]*model.FlowNode, len(nodes))
+	for _, n := range nodes {
+		nodeMap[n.NodeID] = n
+		if trigger == nil && n.Type == model.NodeTypeTrigger {
+			trigger = n
+		}
+	}
+	if trigger == nil {
+		return nil, nil, nil
+	}
+
+	outgoing := make(map[string][]string)
+	for _, e := range edges {
+		outgoing[e.SourceNode] = append(outgoing[e.SourceNode], e.TargetNode)
+	}
+
+	firstTargets := outgoing[trigger.NodeID]
+	for _, tid := range firstTargets {
+		n := nodeMap[tid]
+		if n != nil && n.Type == model.NodeTypeAction {
+			action1 = n
+			break
+		}
+	}
+	if action1 == nil {
+		return trigger, nil, nil
+	}
+
+	secondTargets := outgoing[action1.NodeID]
+	for _, tid := range secondTargets {
+		n := nodeMap[tid]
+		if n != nil && n.Type == model.NodeTypeAction {
+			action2 = n
+			break
+		}
+	}
+	return trigger, action1, action2
 }
