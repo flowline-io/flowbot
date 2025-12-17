@@ -184,6 +184,20 @@ func (a *API) ExecuteFlow(c fiber.Ctx) error {
 		})
 	}
 
+	// If flow is disabled, don't enqueue or create execution records.
+	flow, err := a.store.GetFlow(id)
+	if err != nil {
+		flog.Error(err)
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error": "flow not found",
+		})
+	}
+	if !flow.Enabled {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "flow is disabled",
+		})
+	}
+
 	var req struct {
 		TriggerType string   `json:"trigger_type"`
 		TriggerID   string   `json:"trigger_id"`

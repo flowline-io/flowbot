@@ -1151,7 +1151,16 @@ func (a *adapter) CreateFlow(flow *model.Flow) (int64, error) {
 }
 
 func (a *adapter) UpdateFlow(flow *model.Flow) error {
-	return a.db.Model(&model.Flow{}).Where("id = ?", flow.ID).Updates(flow).Error
+	updates := map[string]any{
+		"uid":         flow.UID,
+		"topic":       flow.Topic,
+		"name":        flow.Name,
+		"description": flow.Description,
+		"state":       flow.State,
+		"enabled":     flow.Enabled,
+		"updated_at":  time.Now(),
+	}
+	return a.db.Model(&model.Flow{}).Where("id = ?", flow.ID).Updates(updates).Error
 }
 
 func (a *adapter) DeleteFlow(id int64) error {

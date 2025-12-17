@@ -127,6 +127,14 @@ func (q *QueueManager) Stop(ctx context.Context) error {
 // EnqueueFlowExecution enqueues a flow execution job
 // Currently returns error as queue is disabled - use synchronous execution instead
 func (q *QueueManager) EnqueueFlowExecution(ctx context.Context, flowID int64, triggerType string, triggerID string, payload types.KV) (string, error) {
+	flow, err := q.store.GetFlow(flowID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get flow: %w", err)
+	}
+	if !flow.Enabled {
+		return "", fmt.Errorf("flow is disabled")
+	}
+
 	executionID := shortuuid.New()
 	job := &FlowQueueJob{
 		FlowID:      flowID,
