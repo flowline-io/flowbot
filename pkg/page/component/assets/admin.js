@@ -134,7 +134,8 @@ async function saveFlow(formId) {
     const triggerParams = readJsonFromTextarea("trigger_params");
 
     const actionEl =
-      f.querySelector("select[name=action]") || f.querySelector("input[name=action]");
+      f.querySelector("select[name=action]") ||
+      f.querySelector("input[name=action]");
     const action = actionEl ? actionEl.value : "";
     const actionParams = readJsonFromTextarea("action_params");
 

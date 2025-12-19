@@ -399,18 +399,18 @@ func defaultTriggerParamsExample(r trigger.Rule) types.KV {
 	}
 }
 
-func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (trigger *model.FlowNode, action1 *model.FlowNode, action2 *model.FlowNode) {
+func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (triggerNode *model.FlowNode, action1 *model.FlowNode, action2 *model.FlowNode) {
 	if len(nodes) == 0 {
 		return nil, nil, nil
 	}
 	nodeMap := make(map[string]*model.FlowNode, len(nodes))
 	for _, n := range nodes {
 		nodeMap[n.NodeID] = n
-		if trigger == nil && n.Type == model.NodeTypeTrigger {
-			trigger = n
+		if triggerNode == nil && n.Type == model.NodeTypeTrigger {
+			triggerNode = n
 		}
 	}
-	if trigger == nil {
+	if triggerNode == nil {
 		return nil, nil, nil
 	}
 
@@ -419,7 +419,7 @@ func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (trigger
 		outgoing[e.SourceNode] = append(outgoing[e.SourceNode], e.TargetNode)
 	}
 
-	firstTargets := outgoing[trigger.NodeID]
+	firstTargets := outgoing[triggerNode.NodeID]
 	for _, tid := range firstTargets {
 		n := nodeMap[tid]
 		if n != nil && n.Type == model.NodeTypeAction {
@@ -428,7 +428,7 @@ func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (trigger
 		}
 	}
 	if action1 == nil {
-		return trigger, nil, nil
+		return triggerNode, nil, nil
 	}
 
 	secondTargets := outgoing[action1.NodeID]
@@ -439,5 +439,5 @@ func flowGraphToChain(nodes []*model.FlowNode, edges []*model.FlowEdge) (trigger
 			break
 		}
 	}
-	return trigger, action1, action2
+	return triggerNode, action1, action2
 }

@@ -239,7 +239,7 @@ func (e *Engine) executeNodes(ctx context.Context, flow *model.Flow, execution *
 }
 
 // executeNodeChain executes a chain of nodes starting from a trigger node
-// maxDepth limits the chain depth to 2-3 nodes
+// maxDepth limits the chain depth to prevent runaway graphs.
 func (e *Engine) executeNodeChain(ctx context.Context, flow *model.Flow, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int, path map[string]bool) error {
 	maxDepth := e.maxDepth
 	if maxDepth <= 0 {
