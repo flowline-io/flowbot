@@ -21,6 +21,7 @@ type Ruler interface {
 type RulesetType string
 
 const (
+	ActionRule     RulesetType = "action"
 	CollectRule    RulesetType = "collect"
 	CommandRule    RulesetType = "command"
 	CronRule       RulesetType = "cron"
@@ -30,6 +31,7 @@ const (
 	PageRule       RulesetType = "page"
 	SettingRule    RulesetType = "setting"
 	ToolRule       RulesetType = "tool"
+	TriggerRule    RulesetType = "trigger"
 	WebhookRule    RulesetType = "webhook"
 	WebserviceRule RulesetType = "webservice"
 	WorkflowRule   RulesetType = "workflow"

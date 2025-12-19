@@ -47,7 +47,7 @@ async function executeFlow(id) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trigger_type: "manual",
+          trigger_type: "dev|manual",
           trigger_id: "",
           payload: {},
         }),
@@ -123,30 +123,20 @@ async function saveFlow(formId) {
   try {
     const f = document.getElementById(formId);
     const flowId = (f.querySelector("input[name=flow_id]").value || "").trim();
+    const isNewFlow = !flowId;
     const name = (f.querySelector("input[name=name]").value || "").trim();
     const description = (
       f.querySelector("input[name=description]").value || ""
     ).trim();
     const enabled = !!f.querySelector("input[name=enabled]").checked;
 
-    const triggerType = f.querySelector("select[name=trigger_type]").value;
-    const webhookToken = (
-      f.querySelector("input[name=webhook_token]").value || ""
-    ).trim();
-    const cronSpec = (
-      f.querySelector("input[name=cron_spec]").value || ""
-    ).trim();
+    const trigger = (f.querySelector("select[name=trigger]") || {}).value || "";
+    const triggerParams = readJsonFromTextarea("trigger_params");
 
-    const action1El =
-      f.querySelector("select[name=action1]") ||
-      f.querySelector("input[name=action1]");
-    const action1 = action1El ? action1El.value : "";
-    const action1Params = readJsonFromTextarea("action1_params");
-    const action2El =
-      f.querySelector("select[name=action2]") ||
-      f.querySelector("input[name=action2]");
-    const action2 = action2El ? action2El.value : "";
-    const action2Params = readJsonFromTextarea("action2_params");
+    const actionEl =
+      f.querySelector("select[name=action]") || f.querySelector("input[name=action]");
+    const action = actionEl ? actionEl.value : "";
+    const actionParams = readJsonFromTextarea("action_params");
 
     if (!name) {
       notify("Name is required", "danger");
@@ -180,22 +170,30 @@ async function saveFlow(formId) {
     const edges = [];
 
     const triggerNodeId = "trigger";
-    const triggerParams = {};
-    if (triggerType === "webhook") triggerParams.token = webhookToken;
-    if (triggerType === "cron") triggerParams.spec = cronSpec;
+    let triggerBot = "dev";
+    let triggerRule = "manual";
+    if (trigger && trigger.indexOf("|") >= 0) {
+      const parts = trigger.split("|");
+      triggerBot = parts[0];
+      triggerRule = parts[1];
+    } else if (trigger) {
+      triggerRule = trigger;
+    }
 
     nodes.push({
       node_id: triggerNodeId,
       type: "trigger",
-      bot: "system",
-      rule_id: triggerType,
-      label: triggerType,
-      parameters: triggerParams,
+      bot: triggerBot,
+      rule_id: triggerRule,
+      label: trigger,
+      parameters: triggerParams || {},
     });
 
     let prev = triggerNodeId;
     function addAction(nodeId, actionValue, params) {
       if (!actionValue) return;
+      if (String(actionValue).trim() === "(none)") return;
+      if (String(actionValue).trim() === "") return;
       if (actionValue.indexOf("|") === -1) {
         notify("Action must be in format bot|rule_id", "danger");
         throw new Error("invalid action format");
@@ -219,8 +217,7 @@ async function saveFlow(formId) {
       prev = nodeId;
     }
 
-    addAction("action1", action1, action1Params);
-    addAction("action2", action2, action2Params);
+    addAction("action", action, actionParams);
 
     await jsonFetch(serviceUrl("/service/flows/" + id + "/nodes"), {
       method: "PUT",
@@ -229,8 +226,17 @@ async function saveFlow(formId) {
     });
 
     notify("Flow saved", "success");
-    location.href =
-      "/page/flows_list/" + (f.querySelector("input[name=flag]").value || "");
+    const flag = (f.querySelector("input[name=flag]").value || "").trim();
+    if (isNewFlow) {
+      // New flow: open edit page so server-generated values like webhook token are visible.
+      location.assign(
+        "/page/flows_edit/" + flag + "?flow_id=" + encodeURIComponent(id),
+      );
+      return;
+    }
+
+    // Existing flow: return to list page.
+    location.assign("/page/flows_list/" + flag);
   } catch (e) {
     notify((e && e.message) || String(e), "danger");
   }
@@ -267,6 +273,164 @@ async function saveConnection(formId) {
   location.href =
     "/page/connections/" + (f.querySelector("input[name=flag]").value || "");
 }
+
+function getFlowRuleMeta() {
+  const el = document.getElementById("flow_rule_meta");
+  if (!el) return null;
+  const txt = (el.textContent || "").trim();
+  if (!txt) return null;
+  try {
+    return JSON.parse(txt);
+  } catch (e) {
+    // Don't break the whole admin bundle.
+    return null;
+  }
+}
+
+function setReadonlyJsonText(id, obj) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  try {
+    const txt = JSON.stringify(obj || {}, null, 2);
+    if (typeof el.value === "string") {
+      el.value = txt;
+    } else {
+      el.textContent = txt;
+    }
+  } catch (e) {
+    if (typeof el.value === "string") {
+      el.value = "{}";
+    } else {
+      el.textContent = "{}";
+    }
+  }
+}
+
+function safeJsonParse(txt) {
+  try {
+    return JSON.parse(txt);
+  } catch (e) {
+    return null;
+  }
+}
+
+function extractIngredientNamesFromParams(params) {
+  if (!params || typeof params !== "object") return [];
+  const arr = params.ingredients;
+  if (!Array.isArray(arr)) return [];
+  const names = [];
+  for (const it of arr) {
+    if (!it || typeof it !== "object") continue;
+    const n = String(it.name || "").trim();
+    if (n) names.push(n);
+  }
+  // de-dupe, preserve order
+  return [...new Set(names)];
+}
+
+function initFlowEditorMetaUI() {
+  const meta = getFlowRuleMeta();
+  if (!meta) return;
+
+  const formEl = document.getElementById("flow_edit_form");
+  // Prevent re-binding events during SPA DOM swaps.
+  if (formEl && formEl.dataset && formEl.dataset.flowMetaInit === "1") {
+    return;
+  }
+
+  const triggerSel = document.querySelector("select[name=trigger]");
+  const actionSel = document.querySelector("select[name=action]");
+  const triggerParamsEl = document.getElementById("trigger_params");
+
+  function updateTrigger() {
+    if (!triggerSel) return;
+    const k = triggerSel.value || "";
+    const t = (meta.triggers || {})[k] || {};
+
+    setReadonlyJsonText("trigger_params_example", t.params_example || {});
+
+    // Ingredients variables: prefer current Trigger Params, fallback to rule-defined ingredients.
+    let ingredientNames = [];
+    if (triggerParamsEl) {
+      const parsed = safeJsonParse((triggerParamsEl.value || "").trim());
+      ingredientNames = extractIngredientNamesFromParams(parsed);
+    }
+    // If user hasn't configured trigger params yet, fall back to the rule's example.
+    if (ingredientNames.length === 0) {
+      ingredientNames = extractIngredientNamesFromParams(t.params_example);
+    }
+    // Finally, fall back to any statically declared ingredients on the rule.
+    if (ingredientNames.length === 0 && Array.isArray(t.ingredients)) {
+      ingredientNames = [
+        ...new Set(
+          t.ingredients
+            .map((x) => String((x || {}).name || "").trim())
+            .filter(Boolean),
+        ),
+      ];
+    }
+
+    const varsEl = document.getElementById("trigger_ingredient_vars");
+    if (varsEl) {
+      if (!ingredientNames.length) {
+        varsEl.textContent = "";
+      } else {
+        // Clear any server-rendered placeholder nodes.
+        varsEl.innerHTML = "";
+        varsEl.textContent = ingredientNames.map((n) => `{{${n}}}`).join(", ");
+      }
+    }
+  }
+
+  function updateAction() {
+    if (!actionSel) return;
+    const k = actionSel.value || "";
+    const a = (meta.actions || {})[k] || {};
+    setReadonlyJsonText("action_params_example", a.params_example || {});
+  }
+
+  if (triggerSel) triggerSel.addEventListener("change", updateTrigger);
+  if (actionSel) actionSel.addEventListener("change", updateAction);
+  if (triggerParamsEl) triggerParamsEl.addEventListener("input", updateTrigger);
+
+  // Initial render.
+  updateTrigger();
+  updateAction();
+
+  if (formEl && formEl.dataset) {
+    formEl.dataset.flowMetaInit = "1";
+  }
+}
+
+function tryInitFlowEditorMetaUI() {
+  // In go-app SPA navigation, scripts persist while the DOM swaps.
+  // Only initialize when the Flow Editor DOM is present.
+  const hasMeta = !!document.getElementById("flow_rule_meta");
+  const hasForm = !!document.getElementById("flow_edit_form");
+  if (!hasMeta || !hasForm) return false;
+  initFlowEditorMetaUI();
+  return true;
+}
+
+// Initial attempt for first page load.
+window.addEventListener("load", tryInitFlowEditorMetaUI);
+tryInitFlowEditorMetaUI();
+
+// Observe DOM changes so editor works after SPA navigation.
+(() => {
+  let lastInitAt = 0;
+  const obs = new MutationObserver(() => {
+    const now = Date.now();
+    // Basic throttle to avoid excessive work during large DOM updates.
+    if (now - lastInitAt < 200) return;
+    if (tryInitFlowEditorMetaUI()) {
+      lastInitAt = now;
+    }
+  });
+  if (document.documentElement) {
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+  }
+})();
 
 async function saveAuthentication(formId) {
   const f = document.getElementById(formId);

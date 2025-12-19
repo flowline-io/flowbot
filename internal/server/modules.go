@@ -41,6 +41,9 @@ var Modules = fx.Options(
 		func(engine *flows.Engine, storeAdapter store.Adapter) (*flows.QueueManager, error) {
 			return flows.NewQueueManager(storeAdapter, engine)
 		},
+		func(storeAdapter store.Adapter, queue *flows.QueueManager) *flows.Poller {
+			return flows.NewPoller(storeAdapter, queue)
+		},
 		func(engine *flows.Engine, rateLimiter *flows.RateLimiter, storeAdapter store.Adapter, queue *flows.QueueManager) *flows.API {
 			return flows.NewAPI(engine, rateLimiter, storeAdapter, queue)
 		},
@@ -62,6 +65,7 @@ var Modules = fx.Options(
 		handleChatbot,
 		handlePlatform,
 		handleFlowQueue,
+		handleFlowPoller,
 		RunServer,
 	),
 )

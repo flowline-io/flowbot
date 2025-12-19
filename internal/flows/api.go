@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/trigger"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -18,6 +21,102 @@ type API struct {
 	rateLimiter *RateLimiter
 	store       store.Adapter
 	queue       *QueueManager
+}
+
+// FlowWebhook triggers a flow using a webhook token.
+// This endpoint is intended for external systems.
+func (a *API) FlowWebhook(c fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid flow id"})
+	}
+	token := strings.TrimSpace(c.Params("token"))
+	if token == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid token"})
+	}
+
+	flow, err := a.store.GetFlow(id)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "flow not found"})
+	}
+	if !flow.Enabled {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "flow is disabled"})
+	}
+
+	nodes, err := a.store.GetFlowNodes(id)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "failed to get flow nodes"})
+	}
+
+	var matched *model.FlowNode
+	for i := range nodes {
+		n := nodes[i]
+		if n.Type != model.NodeTypeTrigger {
+			continue
+		}
+		r, err := findTriggerRule(n.Bot, n.RuleID)
+		if err != nil {
+			continue
+		}
+		if r.Mode != trigger.ModeWebhook {
+			continue
+		}
+		if n.Parameters == nil {
+			continue
+		}
+		// token is stored in node.Parameters["token"].
+		if v, ok := n.Parameters["token"].(string); ok && v == token {
+			matched = n
+			break
+		}
+	}
+	if matched == nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "webhook trigger not found"})
+	}
+
+	// Parse payload.
+	payload := make(types.KV)
+	switch c.Method() {
+	case http.MethodGet:
+		args := c.Request().URI().QueryArgs()
+		args.VisitAll(func(k, v []byte) {
+			payload[string(k)] = string(v)
+		})
+	default:
+		body := c.Body()
+		if len(body) > 0 {
+			var obj map[string]any
+			if err := sonic.Unmarshal(body, &obj); err == nil {
+				payload = obj
+			} else {
+				payload["raw"] = string(body)
+			}
+		}
+	}
+
+	// Rate limit.
+	flowID := &id
+	allowed, _ := a.rateLimiter.CheckRateLimit(c.Context(), flowID, "")
+	if !allowed {
+		return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{"error": "rate limit exceeded"})
+	}
+
+	triggerType := fmt.Sprintf("%s|%s", matched.Bot, matched.RuleID)
+
+	if a.queue != nil {
+		executionID, err := a.queue.EnqueueFlowExecution(c.Context(), id, triggerType, token, payload)
+		if err == nil {
+			return c.JSON(fiber.Map{"message": "flow execution queued successfully", "execution_id": executionID})
+		}
+		flog.Error(err)
+	}
+
+	executionID, err := a.engine.ExecuteFlowWithExecutionID(c.Context(), id, "", triggerType, token, payload)
+	if err != nil {
+		flog.Error(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "flow executed successfully", "execution_id": executionID})
 }
 
 // NewAPI creates a new flow API
@@ -337,7 +436,14 @@ func (a *API) UpdateFlowNodes(c fiber.Ctx) error {
 		})
 	}
 
-	// Delete existing nodes and edges
+	// Preserve existing node variables/state by NodeID.
+	oldNodes, _ := a.store.GetFlowNodes(id)
+	oldByNodeID := make(map[string]*model.FlowNode, len(oldNodes))
+	for _, n := range oldNodes {
+		oldByNodeID[n.NodeID] = n
+	}
+
+	// Delete existing nodes and edges.
 	if err := a.store.DeleteFlowNodesByFlowID(id); err != nil {
 		flog.Error(fmt.Errorf("failed to delete flow nodes: %w", err))
 	}
@@ -348,6 +454,38 @@ func (a *API) UpdateFlowNodes(c fiber.Ctx) error {
 	// Create new nodes
 	for _, node := range req.Nodes {
 		node.FlowID = id
+		if node.Bot == "" {
+			node.Bot = "dev"
+		}
+		if old := oldByNodeID[node.NodeID]; old != nil {
+			if node.Variables == nil {
+				node.Variables = old.Variables
+			}
+		}
+
+		// Ensure referenced trigger/action rules exist.
+		switch node.Type {
+		case model.NodeTypeTrigger:
+			r, err := findTriggerRule(node.Bot, node.RuleID)
+			if err != nil {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			}
+			// Generate token for webhook triggers if missing.
+			if r.Mode == trigger.ModeWebhook {
+				if node.Parameters == nil {
+					node.Parameters = model.JSON{}
+				}
+				tok, _ := node.Parameters["token"].(string)
+				if strings.TrimSpace(tok) == "" {
+					node.Parameters["token"] = types.Id()
+				}
+			}
+		case model.NodeTypeAction:
+			if _, err := findActionRule(node.Bot, node.RuleID); err != nil {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			}
+		}
+
 		if _, err := a.store.CreateFlowNode(&node); err != nil {
 			flog.Error(fmt.Errorf("failed to create flow node: %w", err))
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

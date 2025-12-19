@@ -25,16 +25,62 @@ func optionWithValue(value, label string, selected bool) app.HTMLOption {
 }
 
 func FlowListView(flag string, flows []*model.Flow) app.UI {
+	return FlowListViewWithSummary(flag, flows, nil)
+}
+
+type FlowListSummary struct {
+	Trigger string
+	Action  string
+}
+
+func FlowListViewWithSummary(flag string, flows []*model.Flow, summaryByID map[int64]FlowListSummary) app.UI {
 	var items []app.UI
 	for _, flow := range flows {
 		statusClass := "uk-label-default"
 		if flow.Enabled {
 			statusClass = "uk-label-success"
 		}
+
+		triggerText := "-"
+		actionText := "-"
+		if summaryByID != nil {
+			if s, ok := summaryByID[flow.ID]; ok {
+				if strings.TrimSpace(s.Trigger) != "" {
+					triggerText = s.Trigger
+				}
+				if strings.TrimSpace(s.Action) != "" {
+					actionText = s.Action
+				}
+			}
+		}
+		triggerUI := app.Span().Text(triggerText)
+		if triggerText != "-" {
+			triggerUI = uikit.Label(triggerText).Class("uk-label")
+		}
+		actionUI := app.Span().Text(actionText)
+		if actionText != "-" {
+			actionUI = uikit.Label(actionText).Class("uk-label uk-label-default")
+		}
+
+		actionsUI := app.Div().Class("uk-button-group").Body(
+			uikit.Button("Execute").Class("uk-button uk-button-small uk-button-primary").Attr("onclick", fmt.Sprintf("executeFlow(%d)", flow.ID)),
+			uikit.Button("Edit").Class("uk-button uk-button-small uk-button-default").Attr("onclick", fmt.Sprintf("location.href='/page/flows_edit/%s?flow_id=%d'", flag, flow.ID)),
+			uikit.Button("Executions").Class("uk-button uk-button-small uk-button-default").Attr("onclick", fmt.Sprintf("location.href='/page/executions/%s?flow_id=%d'", flag, flow.ID)),
+			uikit.Button("Delete").Class("uk-button uk-button-small uk-button-danger").Attr("onclick", fmt.Sprintf("deleteFlow(%d)", flow.ID)),
+		)
+
 		items = append(items, uikit.Tr(
 			uikit.Td(uikit.Text(fmt.Sprintf("%d", flow.ID))),
-			uikit.Td(uikit.Link(flow.Name, fmt.Sprintf("/page/flows_edit/%s?flow_id=%d", flag, flow.ID))),
-			uikit.Td(uikit.Text(flow.Description)),
+			uikit.Td(
+				app.Div().Body(
+					uikit.Link(flow.Name, fmt.Sprintf("/page/flows_edit/%s?flow_id=%d", flag, flow.ID)).Class("uk-link-heading"),
+					app.If(strings.TrimSpace(flow.Description) != "", func() app.UI {
+						return app.Div().Class("uk-text-small uk-text-muted").Text(flow.Description)
+					}),
+				),
+			),
+			uikit.Td(triggerUI),
+			uikit.Td(actionUI),
 			uikit.Td(uikit.Label(func() string {
 				if flow.State == 1 {
 					return "Active"
@@ -42,32 +88,34 @@ func FlowListView(flag string, flows []*model.Flow) app.UI {
 				return "Inactive"
 			}()).Class(statusClass)),
 			uikit.Td(uikit.Text(flow.CreatedAt.Format("2006-01-02 15:04:05"))),
-			uikit.Td(
-				uikit.Button("Execute").Class("uk-button uk-button-small uk-button-primary").Attr("onclick", fmt.Sprintf("executeFlow(%d)", flow.ID)),
-				uikit.Button("Edit").Class("uk-button uk-button-small").Attr("onclick", fmt.Sprintf("location.href='/page/flows_edit/%s?flow_id=%d'", flag, flow.ID)),
-				uikit.Button("Delete").Class("uk-button uk-button-small uk-button-danger").Attr("onclick", fmt.Sprintf("deleteFlow(%d)", flow.ID)),
-				uikit.Button("Executions").Class("uk-button uk-button-small uk-button-default").Attr("onclick", fmt.Sprintf("location.href='/page/executions/%s?flow_id=%d'", flag, flow.ID)),
-			),
+			uikit.Td(actionsUI),
 		))
 	}
 	if len(items) == 0 {
-		items = append(items, uikit.Tr(uikit.Td(uikit.Text("No flows found.").Class(uikit.TextCenterClass)).ColSpan(6)))
+		items = append(items, uikit.Tr(uikit.Td(uikit.Text("No flows found.").Class(uikit.TextCenterClass)).ColSpan(8)))
 	}
 
 	return uikit.App(
-		uikit.H2("Flows").Class(uikit.TextCenterClass),
-		uikit.Button("New Flow").Class("uk-button uk-button-primary").Attr("onclick", fmt.Sprintf("location.href='/page/flows_edit/%s'", flag)),
-		uikit.Table(
-			uikit.THead(uikit.Tr(
-				uikit.Th(uikit.Text("ID")),
-				uikit.Th(uikit.Text("Name")),
-				uikit.Th(uikit.Text("Description")),
-				uikit.Th(uikit.Text("Status")),
-				uikit.Th(uikit.Text("Created")),
-				uikit.Th(uikit.Text("Actions")),
-			)),
-			uikit.TBody(items...),
-		).Class(uikit.TableDividerClass, uikit.TableHoverClass),
+		app.Div().Class("uk-flex uk-flex-between uk-flex-middle uk-margin").Body(
+			uikit.H2("Flows").Class("uk-margin-remove"),
+			uikit.Button("New Flow").Class("uk-button uk-button-primary").Attr("onclick", fmt.Sprintf("location.href='/page/flows_edit/%s'", flag)),
+		),
+		app.Div().Class("uk-card uk-card-default uk-card-body uk-padding-small").Body(
+			app.Div().Class("uk-overflow-auto").Body(
+				uikit.Table(
+					uikit.THead(uikit.Tr(
+						uikit.Th(uikit.Text("ID")),
+						uikit.Th(uikit.Text("Name")),
+						uikit.Th(uikit.Text("Trigger")),
+						uikit.Th(uikit.Text("Action")),
+						uikit.Th(uikit.Text("Status")),
+						uikit.Th(uikit.Text("Created")),
+						uikit.Th(uikit.Text("Actions")),
+					)),
+					uikit.TBody(items...),
+				).Class(uikit.TableDividerClass, uikit.TableHoverClass, "uk-table-small", "uk-table-middle"),
+			),
+		),
 	)
 }
 
@@ -259,31 +307,50 @@ func AuthenticationsView(flag string, auths []*model.Authentication) app.UI {
 }
 
 type FlowEditData struct {
-	Flag          string
-	FlowID        string
-	Name          string
-	Description   string
-	Enabled       bool
-	TriggerType   string
-	WebhookToken  string
-	CronSpec      string
-	Action1       string
-	Action1Params string
-	Action2       string
-	Action2Params string
-	ActionOptions []BotRuleOption
+	Flag           string
+	FlowID         string
+	Name           string
+	Description    string
+	Enabled        bool
+	Trigger        string
+	TriggerParams  string
+	WebhookURL     string
+	Action         string
+	ActionParams   string
+	RuleMetaJSON   string
+	TriggerOptions []BotRuleOption
+	ActionOptions  []BotRuleOption
 }
 
 func FlowEditView(d FlowEditData) app.UI {
-	triggerOptions := []app.UI{
-		optionWithValue("manual", "manual", d.TriggerType == "manual"),
-		optionWithValue("webhook", "webhook", d.TriggerType == "webhook"),
-		optionWithValue("cron", "cron", d.TriggerType == "cron"),
+	if strings.TrimSpace(d.TriggerParams) == "" {
+		d.TriggerParams = "{}"
 	}
-	triggerSelect := uikit.Select(triggerOptions...).Name("trigger_type")
+	if strings.TrimSpace(d.ActionParams) == "" {
+		d.ActionParams = "{}"
+	}
+
+	var triggerOptions []app.UI
+	for _, opt := range d.TriggerOptions {
+		value := opt.Bot + "|" + opt.Rule
+		triggerOptions = append(triggerOptions, optionWithValue(value, opt.Label, d.Trigger == value))
+	}
+	triggerSelect := uikit.Select(triggerOptions...).Name("trigger")
+
+	var actionOptions []app.UI
+	actionOptions = append(actionOptions, optionWithValue("", "(none)", d.Action == ""))
+	for _, opt := range d.ActionOptions {
+		value := opt.Bot + "|" + opt.Rule
+		actionOptions = append(actionOptions, optionWithValue(value, opt.Label, d.Action == value))
+	}
+	actionSelect := uikit.Select(actionOptions...).Name("action")
 
 	return uikit.App(
 		uikit.H2("Flow Editor").Class(uikit.TextCenterClass),
+		app.If(strings.TrimSpace(d.RuleMetaJSON) != "", func() app.UI {
+			// Use Raw to avoid HTML-escaping the JSON inside the script tag.
+			return app.Raw(fmt.Sprintf(`<script type="application/json" id="flow_rule_meta">%s</script>`, d.RuleMetaJSON))
+		}),
 		uikit.Form().ID("flow_edit_form").Body(
 			uikit.Input().Type("hidden").Name("flow_id").Value(d.FlowID),
 			uikit.Input().Type("hidden").Name("flag").Value(d.Flag),
@@ -303,20 +370,25 @@ func FlowEditView(d FlowEditData) app.UI {
 
 			uikit.H3("Trigger"),
 			triggerSelect,
-			uikit.Margin(uikit.Text("Webhook Token (when trigger=webhook)")),
-			uikit.Input().Name("webhook_token").Value(d.WebhookToken).Class(uikit.WidthClass(1, 1)),
-			uikit.Margin(uikit.Text("Cron Spec (when trigger=cron)")),
-			uikit.Input().Name("cron_spec").Value(d.CronSpec).Class(uikit.WidthClass(1, 1)),
+			uikit.Margin(uikit.Text("Trigger Params (JSON)")),
+			uikit.Textarea().ID("trigger_params").Text(d.TriggerParams).Class(uikit.WidthClass(1, 1)),
+			uikit.Margin(uikit.Text("Trigger Params Example (JSON)")),
+			app.Pre().ID("trigger_params_example").Text("{}").Class(uikit.WidthClass(1, 1)),
+			uikit.Margin(uikit.Text("Ingredients Variables")),
+			app.Div().ID("trigger_ingredient_vars").Body(uikit.Text("")),
+			app.If(d.WebhookURL != "", func() app.UI {
+				return app.Div().Body(
+					uikit.Margin(uikit.Text("Webhook URL")),
+					uikit.Input().Attr("readonly", "readonly").Value(d.WebhookURL).Class(uikit.WidthClass(1, 1)),
+				)
+			}),
 
-			uikit.H3("Action 1"),
-			uikit.Input().Name("action1").Value(d.Action1).Attr("placeholder", "bot|rule_id").Class(uikit.WidthClass(1, 1)),
-			uikit.Margin(uikit.Text("Action 1 Params (JSON)")),
-			uikit.Textarea().ID("action1_params").Text(d.Action1Params).Class(uikit.WidthClass(1, 1)),
-
-			uikit.H3("Action 2"),
-			uikit.Input().Name("action2").Value(d.Action2).Attr("placeholder", "bot|rule_id").Class(uikit.WidthClass(1, 1)),
-			uikit.Margin(uikit.Text("Action 2 Params (JSON)")),
-			uikit.Textarea().ID("action2_params").Text(d.Action2Params).Class(uikit.WidthClass(1, 1)),
+			uikit.H3("Action"),
+			actionSelect,
+			uikit.Margin(uikit.Text("Action Params (JSON)")),
+			uikit.Textarea().ID("action_params").Text(d.ActionParams).Class(uikit.WidthClass(1, 1)),
+			uikit.Margin(uikit.Text("Action Params Example (JSON)")),
+			app.Pre().ID("action_params_example").Text("{}").Class(uikit.WidthClass(1, 1)),
 
 			uikit.Margin(
 				uikit.Button("Save").Class("uk-button uk-button-primary").Attr("type", "button").Attr("onclick", "saveFlow('flow_edit_form')"),

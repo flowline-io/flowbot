@@ -60,6 +60,8 @@ func handleRoutes(a *fiber.App, ctl *Controller, flowAPI *flows.API, appAPI *app
 	a.Post("/agent", ctl.agentData)
 	// webhook
 	a.All("/webhook/:flag", ctl.doWebhook)
+	// flow webhook (public trigger endpoint)
+	a.All("/flows/webhook/:id/:token", flowAPI.FlowWebhook)
 	// platform
 	a.All("/chatbot/:platform", ctl.platformCallback)
 	// MCP

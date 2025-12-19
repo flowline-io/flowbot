@@ -6,11 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strconv"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/flows"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/lithammer/shortuuid/v4"
 	"gorm.io/gorm"
@@ -37,7 +40,29 @@ func (e *Engine) ExecuteFlow(ctx context.Context, flowID int64, triggerType stri
 // ExecuteFlowWithExecutionID executes a flow using a caller-provided executionID.
 // If executionID is provided and an execution already exists, it will be reused and updated.
 // This makes queue retries idempotent (one queued job => one execution row).
-func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, executionID string, triggerType string, triggerID string, payload types.KV) (string, error) {
+func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, executionID string, triggerType string, triggerID string, payload types.KV) (_ string, err error) {
+	var execution *model.Execution
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+
+		stack := debug.Stack()
+		flog.Error(fmt.Errorf("flow execution panicked: %v\n%s", r, string(stack)))
+
+		if execution != nil {
+			execution.State = model.ExecutionFailed
+			execution.Error = fmt.Sprintf("panic: %v", r)
+			finishedAt := time.Now()
+			execution.FinishedAt = &finishedAt
+			_ = e.store.UpdateExecution(execution)
+		}
+
+		err = fmt.Errorf("flow execution panicked: %v", r)
+	}()
+
 	flow, err := e.store.GetFlow(flowID)
 	if err != nil {
 		return "", fmt.Errorf("failed to get flow: %w", err)
@@ -52,7 +77,7 @@ func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, e
 	}
 
 	// Create (or reuse) execution record.
-	execution, err := e.store.GetExecution(executionID)
+	execution, err = e.store.GetExecution(executionID)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return executionID, fmt.Errorf("failed to get execution: %w", err)
@@ -95,7 +120,7 @@ func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, e
 	}
 
 	// Execute flow nodes
-	err = e.executeNodes(ctx, flowID, execution, payload)
+	err = e.executeNodes(ctx, flow, execution, payload)
 	if err != nil {
 		execution.State = model.ExecutionFailed
 		execution.Error = err.Error()
@@ -112,15 +137,15 @@ func (e *Engine) ExecuteFlowWithExecutionID(ctx context.Context, flowID int64, e
 }
 
 // executeNodes executes flow nodes in order
-func (e *Engine) executeNodes(ctx context.Context, flowID int64, execution *model.Execution, initialPayload types.KV) error {
+func (e *Engine) executeNodes(ctx context.Context, flow *model.Flow, execution *model.Execution, initialPayload types.KV) error {
 	// Get all nodes
-	nodes, err := e.store.GetFlowNodes(flowID)
+	nodes, err := e.store.GetFlowNodes(flow.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get flow nodes: %w", err)
 	}
 
 	// Get all edges
-	edges, err := e.store.GetFlowEdges(flowID)
+	edges, err := e.store.GetFlowEdges(flow.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get flow edges: %w", err)
 	}
@@ -149,6 +174,10 @@ func (e *Engine) executeNodes(ctx context.Context, flowID int64, execution *mode
 	}
 
 	// Execute from trigger nodes
+	if initialPayload == nil {
+		initialPayload = types.KV{}
+	}
+
 	variables := make(types.KV)
 	payloadData, err := json.Marshal(initialPayload)
 	if err != nil {
@@ -157,9 +186,30 @@ func (e *Engine) executeNodes(ctx context.Context, flowID int64, execution *mode
 	if err := json.Unmarshal(payloadData, &variables); err != nil {
 		return fmt.Errorf("failed to unmarshal initial payload: %w", err)
 	}
+	if variables == nil {
+		variables = make(types.KV)
+	}
+	variables["payload"] = initialPayload
+
+	// Add trigger metadata for templates and conditions.
+	variables["__trigger_type"] = execution.TriggerType
+	variables["__trigger_id"] = execution.TriggerID
+
+	// Only execute the trigger node that matches the incoming trigger.
+	triggerBot, triggerRule := normalizeFlowTriggerType(execution.TriggerType)
+	triggerKey := ""
+	if triggerBot != "" && triggerRule != "" {
+		triggerKey = fmt.Sprintf("%s|%s", triggerBot, triggerRule)
+	}
 
 	for _, triggerNode := range triggerNodes {
-		if err := e.executeNodeChain(ctx, triggerNode, nodeMap, edgeMap, variables, execution, 0); err != nil {
+		if triggerKey != "" {
+			k := fmt.Sprintf("%s|%s", triggerNode.Bot, triggerNode.RuleID)
+			if k != triggerKey {
+				continue
+			}
+		}
+		if err := e.executeNodeChain(ctx, flow, triggerNode, nodeMap, edgeMap, variables, execution, 0); err != nil {
 			return err
 		}
 	}
@@ -171,7 +221,7 @@ func (e *Engine) executeNodes(ctx context.Context, flowID int64, execution *mode
 
 // executeNodeChain executes a chain of nodes starting from a trigger node
 // maxDepth limits the chain depth to 2-3 nodes
-func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int) error {
+func (e *Engine) executeNodeChain(ctx context.Context, flow *model.Flow, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int) error {
 	if depth > 3 {
 		return fmt.Errorf("max chain depth exceeded")
 	}
@@ -194,7 +244,7 @@ func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nod
 	job.UpdatedAt = now
 	_, _ = e.store.CreateFlowJob(job)
 
-	result, err := e.executeNode(ctx, node, variables)
+	result, err := e.executeNode(ctx, flow, node, variables)
 	if err != nil {
 		job.State = model.JobFailed
 		job.Error = err.Error()
@@ -243,7 +293,7 @@ func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nod
 		}
 
 		// Execute next node in chain
-		if err := e.executeNodeChain(ctx, targetNode, nodeMap, edgeMap, variables, execution, depth+1); err != nil {
+		if err := e.executeNodeChain(ctx, flow, targetNode, nodeMap, edgeMap, variables, execution, depth+1); err != nil {
 			return err
 		}
 	}
@@ -252,28 +302,57 @@ func (e *Engine) executeNodeChain(ctx context.Context, node *model.FlowNode, nod
 }
 
 // executeNode executes a single node
-func (e *Engine) executeNode(ctx context.Context, node *model.FlowNode, variables types.KV) (types.KV, error) {
-	// Get bot handler
-	botHandler := getBotHandler(node.Bot, node.RuleID)
-	if botHandler == nil {
-		return nil, fmt.Errorf("bot handler not found: %s/%s", node.Bot, node.RuleID)
-	}
 
+func (e *Engine) executeNode(ctx context.Context, flow *model.Flow, node *model.FlowNode, variables types.KV) (types.KV, error) {
 	// Prepare parameters with variable substitution
 	params := e.prepareParameters(node.Parameters, variables)
 
 	// Create context
 	ctxWithVars := types.Context{
-		AsUser: types.Uid(""),
-		Topic:  "",
+		AsUser: types.Uid(flow.UID),
+		Topic:  flow.Topic,
 	}
+	ctxWithVars.SetTimeout(2 * time.Minute)
 
 	// Execute node based on type
 	switch node.Type {
 	case model.NodeTypeTrigger:
-		return botHandler.Trigger(ctxWithVars, params, variables)
+		r, err := findTriggerRule(node.Bot, node.RuleID)
+		if err != nil {
+			return nil, err
+		}
+		if r.Config != nil {
+			if err := r.Config(params); err != nil {
+				return nil, err
+			}
+		}
+		payload := make(types.KV)
+		// Variables include initial payload; expose it for triggers.
+		if v, ok := variables["payload"].(types.KV); ok {
+			payload = v
+		} else if v, ok := variables["payload"].(map[string]any); ok {
+			payload = v
+		}
+		out, err := r.Extract(ctxWithVars, params, payload)
+		if err != nil {
+			return nil, err
+		}
+		return out, nil
 	case model.NodeTypeAction:
-		return botHandler.Action(ctxWithVars, params, variables)
+		r, err := findActionRule(node.Bot, node.RuleID)
+		if err != nil {
+			return nil, err
+		}
+		if r.Validate != nil {
+			if err := r.Validate(params); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := flows.ValidateParams(params, r.Inputs); err != nil {
+				return nil, err
+			}
+		}
+		return r.Run(ctxWithVars, params, variables)
 	case model.NodeTypeFilter, model.NodeTypeCondition:
 		// Conditions are evaluated separately
 		return nil, nil

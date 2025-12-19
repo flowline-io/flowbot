@@ -1129,6 +1129,10 @@ func (a *adapter) DeleteApp(id int64) error {
 // Flows management
 func (a *adapter) GetFlows(uid types.Uid, topic string) ([]*model.Flow, error) {
 	var flows []*model.Flow
+	if uid == "" && topic == "" {
+		err := a.db.Find(&flows).Error
+		return flows, err
+	}
 	err := a.db.Where("uid = ? AND topic = ?", uid.String(), topic).Find(&flows).Error
 	return flows, err
 }

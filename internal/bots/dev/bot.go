@@ -78,6 +78,8 @@ func (bot) Rules() []interface{} {
 		webhookRules,
 		toolRules,
 		eventRules,
+		TriggerRules,
+		ActionRules,
 	}
 }
 
