@@ -22,13 +22,32 @@ import (
 // Engine executes IF THEN flows
 type Engine struct {
 	store store.Adapter
+	reg   RuleRegistry
+	rnd   TemplateRenderer
+
+	maxDepth int
 }
 
 // NewEngine creates a new flow engine
-func NewEngine(storeAdapter store.Adapter) *Engine {
-	return &Engine{
-		store: storeAdapter,
+func NewEngine(storeAdapter store.Adapter, reg RuleRegistry, renderer TemplateRenderer) *Engine {
+	if reg == nil {
+		reg = NewChatbotRuleRegistry()
 	}
+	if renderer == nil {
+		renderer = NewSimpleTemplateRenderer()
+	}
+	return &Engine{store: storeAdapter, reg: reg, rnd: renderer, maxDepth: 64}
+}
+
+func (e *Engine) SetMaxDepth(n int) {
+	if e == nil {
+		return
+	}
+	if n <= 0 {
+		e.maxDepth = 64
+		return
+	}
+	e.maxDepth = n
 }
 
 // ExecuteFlow executes a flow with the given trigger
@@ -209,7 +228,7 @@ func (e *Engine) executeNodes(ctx context.Context, flow *model.Flow, execution *
 				continue
 			}
 		}
-		if err := e.executeNodeChain(ctx, flow, triggerNode, nodeMap, edgeMap, variables, execution, 0); err != nil {
+		if err := e.executeNodeChain(ctx, flow, triggerNode, nodeMap, edgeMap, variables, execution, 0, make(map[string]bool)); err != nil {
 			return err
 		}
 	}
@@ -221,9 +240,23 @@ func (e *Engine) executeNodes(ctx context.Context, flow *model.Flow, execution *
 
 // executeNodeChain executes a chain of nodes starting from a trigger node
 // maxDepth limits the chain depth to 2-3 nodes
-func (e *Engine) executeNodeChain(ctx context.Context, flow *model.Flow, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int) error {
-	if depth > 3 {
-		return fmt.Errorf("max chain depth exceeded")
+func (e *Engine) executeNodeChain(ctx context.Context, flow *model.Flow, node *model.FlowNode, nodeMap map[string]*model.FlowNode, edgeMap map[string][]*model.FlowEdge, variables types.KV, execution *model.Execution, depth int, path map[string]bool) error {
+	maxDepth := e.maxDepth
+	if maxDepth <= 0 {
+		maxDepth = 64
+	}
+	if depth > maxDepth {
+		return fmt.Errorf("max chain depth exceeded (%d)", maxDepth)
+	}
+	if node == nil {
+		return nil
+	}
+	if path != nil {
+		if path[node.NodeID] {
+			return fmt.Errorf("cycle detected at node '%s'", node.NodeID)
+		}
+		path[node.NodeID] = true
+		defer delete(path, node.NodeID)
 	}
 
 	// Execute current node with job logging
@@ -293,7 +326,7 @@ func (e *Engine) executeNodeChain(ctx context.Context, flow *model.Flow, node *m
 		}
 
 		// Execute next node in chain
-		if err := e.executeNodeChain(ctx, flow, targetNode, nodeMap, edgeMap, variables, execution, depth+1); err != nil {
+		if err := e.executeNodeChain(ctx, flow, targetNode, nodeMap, edgeMap, variables, execution, depth+1, path); err != nil {
 			return err
 		}
 	}
@@ -317,7 +350,7 @@ func (e *Engine) executeNode(ctx context.Context, flow *model.Flow, node *model.
 	// Execute node based on type
 	switch node.Type {
 	case model.NodeTypeTrigger:
-		r, err := findTriggerRule(node.Bot, node.RuleID)
+		r, err := e.reg.FindTrigger(node.Bot, node.RuleID)
 		if err != nil {
 			return nil, err
 		}
@@ -339,7 +372,7 @@ func (e *Engine) executeNode(ctx context.Context, flow *model.Flow, node *model.
 		}
 		return out, nil
 	case model.NodeTypeAction:
-		r, err := findActionRule(node.Bot, node.RuleID)
+		r, err := e.reg.FindAction(node.Bot, node.RuleID)
 		if err != nil {
 			return nil, err
 		}
@@ -429,10 +462,31 @@ func (e *Engine) prepareParameters(params model.JSON, variables types.KV) types.
 	// Substitute variables
 	result := make(types.KV)
 	for k, v := range paramMap {
-		result[k] = substituteVariables(v, variables)
+		result[k] = e.renderValue(v, variables)
 	}
 
 	return result
+}
+
+func (e *Engine) renderValue(value any, variables types.KV) any {
+	switch v := value.(type) {
+	case string:
+		return e.rnd.Render(v, variables)
+	case map[string]any:
+		out := make(map[string]any, len(v))
+		for k, vv := range v {
+			out[k] = e.renderValue(vv, variables)
+		}
+		return out
+	case []any:
+		out := make([]any, len(v))
+		for i := range v {
+			out[i] = e.renderValue(v[i], variables)
+		}
+		return out
+	default:
+		return value
+	}
 }
 
 // Condition represents a filter condition
@@ -521,45 +575,4 @@ func indexOf(s, substr string) int {
 		}
 	}
 	return -1
-}
-
-func substituteVariables(value interface{}, variables types.KV) interface{} {
-	switch v := value.(type) {
-	case string:
-		// Simple template substitution: {{variable}}
-		result := v
-		for key, val := range variables {
-			placeholder := fmt.Sprintf("{{%s}}", key)
-			if contains(result, placeholder) {
-				result = replaceAll(result, placeholder, fmt.Sprintf("%v", val))
-			}
-		}
-		return result
-	case map[string]interface{}:
-		result := make(map[string]interface{})
-		for k, val := range v {
-			result[k] = substituteVariables(val, variables)
-		}
-		return result
-	case []interface{}:
-		result := make([]interface{}, len(v))
-		for i, val := range v {
-			result[i] = substituteVariables(val, variables)
-		}
-		return result
-	default:
-		return value
-	}
-}
-
-func replaceAll(s, old, replacement string) string {
-	result := s
-	for {
-		idx := indexOf(result, old)
-		if idx < 0 {
-			break
-		}
-		result = result[:idx] + replacement + result[idx+len(old):]
-	}
-	return result
 }

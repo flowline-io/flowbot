@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/trigger"
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
 )
 
 // API provides HTTP handlers for flow management
@@ -21,6 +22,7 @@ type API struct {
 	rateLimiter *RateLimiter
 	store       store.Adapter
 	queue       *QueueManager
+	reg         RuleRegistry
 }
 
 // FlowWebhook triggers a flow using a webhook token.
@@ -54,7 +56,7 @@ func (a *API) FlowWebhook(c fiber.Ctx) error {
 		if n.Type != model.NodeTypeTrigger {
 			continue
 		}
-		r, err := findTriggerRule(n.Bot, n.RuleID)
+		r, err := a.reg.FindTrigger(n.Bot, n.RuleID)
 		if err != nil {
 			continue
 		}
@@ -120,12 +122,17 @@ func (a *API) FlowWebhook(c fiber.Ctx) error {
 }
 
 // NewAPI creates a new flow API
-func NewAPI(engine *Engine, rateLimiter *RateLimiter, storeAdapter store.Adapter, queue *QueueManager) *API {
+
+func NewAPI(engine *Engine, rateLimiter *RateLimiter, storeAdapter store.Adapter, queue *QueueManager, reg RuleRegistry) *API {
+	if reg == nil {
+		reg = NewChatbotRuleRegistry()
+	}
 	return &API{
 		engine:      engine,
 		rateLimiter: rateLimiter,
 		store:       storeAdapter,
 		queue:       queue,
+		reg:         reg,
 	}
 }
 
@@ -443,15 +450,13 @@ func (a *API) UpdateFlowNodes(c fiber.Ctx) error {
 		oldByNodeID[n.NodeID] = n
 	}
 
-	// Delete existing nodes and edges.
-	if err := a.store.DeleteFlowNodesByFlowID(id); err != nil {
-		flog.Error(fmt.Errorf("failed to delete flow nodes: %w", err))
-	}
-	if err := a.store.DeleteFlowEdgesByFlowID(id); err != nil {
-		flog.Error(fmt.Errorf("failed to delete flow edges: %w", err))
+	db := a.store.GetDB()
+	if db == nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "database is not initialized"})
 	}
 
-	// Create new nodes
+	// Validate and normalize nodes/edges before writing.
+	nodes := make([]model.FlowNode, 0, len(req.Nodes))
 	for _, node := range req.Nodes {
 		node.FlowID = id
 		if node.Bot == "" {
@@ -466,7 +471,7 @@ func (a *API) UpdateFlowNodes(c fiber.Ctx) error {
 		// Ensure referenced trigger/action rules exist.
 		switch node.Type {
 		case model.NodeTypeTrigger:
-			r, err := findTriggerRule(node.Bot, node.RuleID)
+			r, err := a.reg.FindTrigger(node.Bot, node.RuleID)
 			if err != nil {
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 			}
@@ -481,28 +486,43 @@ func (a *API) UpdateFlowNodes(c fiber.Ctx) error {
 				}
 			}
 		case model.NodeTypeAction:
-			if _, err := findActionRule(node.Bot, node.RuleID); err != nil {
+			if _, err := a.reg.FindAction(node.Bot, node.RuleID); err != nil {
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 			}
 		}
-
-		if _, err := a.store.CreateFlowNode(&node); err != nil {
-			flog.Error(fmt.Errorf("failed to create flow node: %w", err))
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": fmt.Sprintf("failed to create flow node: %v", err),
-			})
-		}
+		nodes = append(nodes, node)
 	}
 
-	// Create new edges
+	edges := make([]model.FlowEdge, 0, len(req.Edges))
 	for _, edge := range req.Edges {
 		edge.FlowID = id
-		if _, err := a.store.CreateFlowEdge(&edge); err != nil {
-			flog.Error(fmt.Errorf("failed to create flow edge: %w", err))
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": fmt.Sprintf("failed to create flow edge: %v", err),
-			})
+		edges = append(edges, edge)
+	}
+
+	// Atomic replace: delete edges+nodes, then insert all.
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("flow_id = ?", id).Delete(&model.FlowEdge{}).Error; err != nil {
+			return fmt.Errorf("failed to delete flow edges: %w", err)
 		}
+		if err := tx.Where("flow_id = ?", id).Delete(&model.FlowNode{}).Error; err != nil {
+			return fmt.Errorf("failed to delete flow nodes: %w", err)
+		}
+		for i := range nodes {
+			n := nodes[i]
+			if err := tx.Create(&n).Error; err != nil {
+				return fmt.Errorf("failed to create flow node: %w", err)
+			}
+		}
+		for i := range edges {
+			e := edges[i]
+			if err := tx.Create(&e).Error; err != nil {
+				return fmt.Errorf("failed to create flow edge: %w", err)
+			}
+		}
+		return nil
+	}); err != nil {
+		flog.Error(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{

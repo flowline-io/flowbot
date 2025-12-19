@@ -19,10 +19,14 @@ import (
 type Poller struct {
 	store store.Adapter
 	queue *QueueManager
+	reg   RuleRegistry
 }
 
-func NewPoller(storeAdapter store.Adapter, queue *QueueManager) *Poller {
-	return &Poller{store: storeAdapter, queue: queue}
+func NewPoller(storeAdapter store.Adapter, queue *QueueManager, reg RuleRegistry) *Poller {
+	if reg == nil {
+		reg = NewChatbotRuleRegistry()
+	}
+	return &Poller{store: storeAdapter, queue: queue, reg: reg}
 }
 
 func (p *Poller) Start(ctx context.Context) {
@@ -65,7 +69,7 @@ func (p *Poller) tick(ctx context.Context) {
 			if n == nil || n.Type != model.NodeTypeTrigger {
 				continue
 			}
-			r, err := findTriggerRule(n.Bot, n.RuleID)
+			r, err := p.reg.FindTrigger(n.Bot, n.RuleID)
 			if err != nil {
 				continue
 			}
