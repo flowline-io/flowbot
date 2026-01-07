@@ -77,7 +77,7 @@ require (
 	gorm.io/gorm v1.31.1
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
-	miniflux.app/v2 v2.2.15
+	miniflux.app/v2 v2.2.16
 	modernc.org/sqlite v1.40.1
 	resty.dev/v3 v3.0.0-beta.5
 )
