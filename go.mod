@@ -70,7 +70,7 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.46.0
-	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
+	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	golang.org/x/sys v0.40.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
@@ -78,7 +78,7 @@ require (
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.16
-	modernc.org/sqlite v1.40.1
+	modernc.org/sqlite v1.44.3
 	resty.dev/v3 v3.0.0-beta.5
 )
 
@@ -182,7 +182,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/nikolalohinski/gonja v1.5.3 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -250,7 +250,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.4 // indirect
 	gorm.io/hints v1.1.0 // indirect
-	modernc.org/libc v1.66.10 // indirect
+	modernc.org/libc v1.67.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
