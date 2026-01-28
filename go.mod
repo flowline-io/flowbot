@@ -14,7 +14,7 @@ require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/cloudwego/eino v0.7.27
+	github.com/cloudwego/eino v0.7.28
 	github.com/cloudwego/eino-ext/components/model/ollama v0.1.8
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.8
 	github.com/creachadair/jrpc2 v1.3.4
