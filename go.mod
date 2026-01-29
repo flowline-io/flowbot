@@ -6,7 +6,7 @@ require (
 	code.gitea.io/sdk/gitea v0.22.1
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/RealAlexandreAI/json-repair v0.0.14
+	github.com/RealAlexandreAI/json-repair v0.0.15
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/adrg/xdg v0.5.3
