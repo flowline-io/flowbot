@@ -362,8 +362,8 @@ github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh
 github.com/mattn/go-sqlite3 v1.14.8/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/maxence-charriere/go-app/v10 v10.1.9 h1:FZBXf6bXfJDVdxRMaDStxQTDSpZyO/J8TTKSAWLa1SA=
-github.com/maxence-charriere/go-app/v10 v10.1.9/go.mod h1:FqUW4on4nJewVfBnSkuxQd3fvtK2RdKS/z76OOUDAAY=
+github.com/maxence-charriere/go-app/v10 v10.1.11 h1:4JUSlVQ8zVIeL3acFJEpuerP6FLoEQWg6CUTtHcz7Ro=
+github.com/maxence-charriere/go-app/v10 v10.1.11/go.mod h1:FqUW4on4nJewVfBnSkuxQd3fvtK2RdKS/z76OOUDAAY=
 github.com/meguminnnnnnnnn/go-openai v0.1.1 h1:u/IMMgrj/d617Dh/8BKAwlcstD74ynOJzCtVl+y8xAs=
 github.com/meguminnnnnnnnn/go-openai v0.1.1/go.mod h1:qs96ysDmxhE4BZoU45I43zcyfnaYxU3X+aRzLko/htY=
 github.com/meilisearch/meilisearch-go v0.34.2 h1:/OVQ2NQU3nRT5M/bhtg6pzxckxxGLy1hZyo3zjrja28=

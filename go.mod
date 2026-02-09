@@ -39,7 +39,7 @@ require (
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lithammer/shortuuid/v4 v4.2.0
-	github.com/maxence-charriere/go-app/v10 v10.1.9
+	github.com/maxence-charriere/go-app/v10 v10.1.11
 	github.com/meilisearch/meilisearch-go v0.34.2
 	github.com/minio/minio-go/v7 v7.0.98
 	github.com/minio/selfupdate v0.6.0
