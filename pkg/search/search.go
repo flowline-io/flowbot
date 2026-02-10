@@ -65,7 +65,9 @@ func (c *Client) AddDocument(data types.Document) error {
 		"description": data.Description,
 		"url":         data.Url,
 		"timestamp":   data.Timestamp,
-	}, &primaryKey)
+	}, &meilisearch.DocumentOptions{
+		PrimaryKey: &primaryKey,
+	})
 	if err != nil {
 		return err
 	}
