@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/pprof"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/samber/lo"
 	"github.com/samber/oops"
 )
 
@@ -76,12 +77,18 @@ func newHTTPServer() *fiber.App {
 	logger := flog.GetLogger()
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
-		SkipURIs: []string{
-			healthcheck.LivenessEndpoint,
-			healthcheck.ReadinessEndpoint,
-			healthcheck.StartupEndpoint,
-			"/",
-			"/service/user/metrics",
+		SkipHeader: func(header string, c fiber.Ctx) bool {
+			skipURIs := []string{
+				healthcheck.LivenessEndpoint,
+				healthcheck.ReadinessEndpoint,
+				healthcheck.StartupEndpoint,
+				"/",
+				"/service/user/metrics",
+			}
+			if lo.Contains(skipURIs, c.Path()) {
+				return true
+			}
+			return false
 		},
 	}))
 	// pprof
