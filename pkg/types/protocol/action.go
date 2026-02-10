@@ -184,7 +184,7 @@ func NewFailedResponse(err error) Response {
 		}
 		return Response{
 			Status:  Failed,
-			RetCode: e.Code(),
+			RetCode: fmt.Sprintf("%v", e.Code()),
 			Message: message,
 		}
 	}
