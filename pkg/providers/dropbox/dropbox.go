@@ -110,7 +110,6 @@ func (v *Dropbox) Upload(path string, content io.Reader) error {
 		SetAuthToken(v.accessToken).
 		SetHeader("Content-Type", "application/octet-stream").
 		SetHeader("Dropbox-API-Arg", string(apiArg)).
-		SetContentLength(true).
 		SetBody(content).
 		Post("https://content.dropboxapi.com/2/files/upload")
 	if err != nil {
