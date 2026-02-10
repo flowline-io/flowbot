@@ -31,7 +31,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.0
-	github.com/gofiber/contrib/v3/zerolog v1.0.0-rc.1
+	github.com/gofiber/contrib/v3/zerolog v1.0.0
 	github.com/gofiber/fiber/v3 v3.0.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
