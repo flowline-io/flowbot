@@ -7,9 +7,6 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/apps"
-	"github.com/flowline-io/flowbot/internal/connections"
-	"github.com/flowline-io/flowbot/internal/flows"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -37,7 +34,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func handleRoutes(a *fiber.App, ctl *Controller, flowAPI *flows.API, appAPI *apps.API, connAPI *connections.API) {
+func handleRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
 	for _, bot := range chatbot.List() {
 		bot.Webservice(a)
@@ -60,50 +57,10 @@ func handleRoutes(a *fiber.App, ctl *Controller, flowAPI *flows.API, appAPI *app
 	a.Post("/agent", ctl.agentData)
 	// webhook
 	a.All("/webhook/:flag", ctl.doWebhook)
-	// flow webhook (public trigger endpoint)
-	a.All("/flows/webhook/:id/:token", flowAPI.FlowWebhook)
 	// platform
 	a.All("/chatbot/:platform", ctl.platformCallback)
 	// MCP
 	a.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
-
-	// Flow API
-	flowGroup := a.Group("/service/flows")
-	flowGroup.Get("/", flowAPI.ListFlows)
-	flowGroup.Get("/:id", flowAPI.GetFlow)
-	flowGroup.Post("/", flowAPI.CreateFlow)
-	flowGroup.Put("/:id", flowAPI.UpdateFlow)
-	flowGroup.Delete("/:id", flowAPI.DeleteFlow)
-	flowGroup.Post("/:id/execute", flowAPI.ExecuteFlow)
-	flowGroup.Get("/:id/executions", flowAPI.ListExecutions)
-	flowGroup.Get("/executions/:execution_id", flowAPI.GetExecution)
-	flowGroup.Get("/executions/:execution_id/jobs", flowAPI.ListExecutionJobs)
-	flowGroup.Put("/:id/nodes", flowAPI.UpdateFlowNodes)
-
-	// App API
-	appGroup := a.Group("/service/apps")
-	appGroup.Get("/", appAPI.ListApps)
-	appGroup.Get("/:id", appAPI.GetApp)
-	appGroup.Post("/scan", appAPI.ScanApps)
-	appGroup.Post("/:id/start", appAPI.StartApp)
-	appGroup.Post("/:id/stop", appAPI.StopApp)
-	appGroup.Post("/:id/restart", appAPI.RestartApp)
-
-	// Connection API
-	connGroup := a.Group("/service/connections")
-	connGroup.Get("/", connAPI.ListConnections)
-	connGroup.Get("/:id", connAPI.GetConnection)
-	connGroup.Post("/", connAPI.CreateConnection)
-	connGroup.Put("/:id", connAPI.UpdateConnection)
-	connGroup.Delete("/:id", connAPI.DeleteConnection)
-
-	// Authentication API
-	authGroup := a.Group("/service/authentications")
-	authGroup.Get("/", connAPI.ListAuthentications)
-	authGroup.Get("/:id", connAPI.GetAuthentication)
-	authGroup.Post("/", connAPI.CreateAuthentication)
-	authGroup.Put("/:id", connAPI.UpdateAuthentication)
-	authGroup.Delete("/:id", connAPI.DeleteAuthentication)
 }
 
 // handler

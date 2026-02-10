@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots/cloudflare"
 	"github.com/flowline-io/flowbot/internal/bots/dev"
 	"github.com/flowline-io/flowbot/internal/bots/finance"
-	"github.com/flowline-io/flowbot/internal/bots/flows"
 	"github.com/flowline-io/flowbot/internal/bots/gitea"
 	"github.com/flowline-io/flowbot/internal/bots/github"
 	"github.com/flowline-io/flowbot/internal/bots/kanban"
@@ -32,7 +31,6 @@ var Modules = fx.Options(
 		cloudflare.Register,
 		dev.Register,
 		finance.Register,
-		flows.Register,
 		gitea.Register,
 		github.Register,
 		kanban.Register,

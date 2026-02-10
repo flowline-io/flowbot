@@ -1,10 +1,7 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/apps"
 	"github.com/flowline-io/flowbot/internal/bots"
-	"github.com/flowline-io/flowbot/internal/connections"
-	"github.com/flowline-io/flowbot/internal/flows"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -18,9 +15,6 @@ var Modules = fx.Options(
 	bots.Modules,
 	NotifyModules,
 	MediaModules,
-	flows.Modules,
-	apps.Modules,
-	connections.Modules,
 	fx.Provide(
 		config.NewConfig,
 		cache.NewCache,
@@ -39,8 +33,6 @@ var Modules = fx.Options(
 		handleEvents,
 		handleChatbot,
 		handlePlatform,
-		handleFlowQueue,
-		handleFlowPoller,
 		RunServer,
 	),
 )
