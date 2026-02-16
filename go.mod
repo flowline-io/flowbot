@@ -72,7 +72,7 @@ require (
 	gorm.io/gorm v1.31.1
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
-	miniflux.app/v2 v2.2.16
+	miniflux.app/v2 v2.2.17
 	modernc.org/sqlite v1.45.0
 	resty.dev/v3 v3.0.0-beta.6
 )
@@ -230,8 +230,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/oauth2 v0.34.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
