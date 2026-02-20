@@ -73,7 +73,7 @@ require (
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.17
-	modernc.org/sqlite v1.45.0
+	modernc.org/sqlite v1.46.1
 	resty.dev/v3 v3.0.0-beta.6
 )
 
