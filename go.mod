@@ -21,7 +21,7 @@ require (
 	github.com/docker/cli v29.2.1+incompatible
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-units v0.5.0
-	github.com/flc1125/go-cron/v4 v4.7.2
+	github.com/flc1125/go-cron/v4 v4.8.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/beeep v0.11.2
 	github.com/go-playground/validator/v10 v10.30.1
