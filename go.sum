@@ -127,8 +127,8 @@ github.com/evanphx/json-patch v0.5.2 h1:xVCHIVMUu1wtM/VkR9jVZ45N3FhZfYMMYGorLCR8
 github.com/evanphx/json-patch v0.5.2/go.mod h1:ZWS5hhDbVDyob71nXKNL0+PWn6ToqBHMikGIFbs31qQ=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/flc1125/go-cron/v4 v4.7.2 h1:lZEEWFHvVJ37L46cYsgtLw3pMR3Vq9y//OJYR2A4MXc=
-github.com/flc1125/go-cron/v4 v4.7.2/go.mod h1:nrdDV7DrL4Fk4kZXAja6YgfU2UrIGIhJt1DaB9b49o0=
+github.com/flc1125/go-cron/v4 v4.8.0 h1:PYGZicIqWDAdArFlj07OjV08rU96KY1oZmU8V5Tlr1M=
+github.com/flc1125/go-cron/v4 v4.8.0/go.mod h1:IKYsy6ESQF8440cVMEozK6T0Hq0SZG9HljJvEK7wpBE=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
