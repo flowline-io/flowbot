@@ -29,7 +29,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.0
 	github.com/gofiber/contrib/v3/zerolog v1.0.0
-	github.com/gofiber/fiber/v3 v3.0.0
+	github.com/gofiber/fiber/v3 v3.1.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
@@ -133,7 +133,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gofiber/schema v1.7.0 // indirect
-	github.com/gofiber/utils/v2 v2.0.1 // indirect
+	github.com/gofiber/utils/v2 v2.0.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
@@ -151,7 +151,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.18.3 // indirect
+	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
