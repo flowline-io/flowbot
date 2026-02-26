@@ -2,6 +2,7 @@ package sets
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 )
 
@@ -17,7 +18,7 @@ func NewString(items ...string) String {
 
 // StringKeySet creates a String from a keys of a map[string](? extends interface{}).
 // If the value passed in is not actually a map, this will panic.
-func StringKeySet(theMap interface{}) String {
+func StringKeySet(theMap any) String {
 	v := reflect.ValueOf(theMap)
 	ret := String{}
 
@@ -61,12 +62,7 @@ func (s String) HasAll(items ...string) bool {
 
 // HasAny returns true if any items are contained in the set.
 func (s String) HasAny(items ...string) bool {
-	for _, item := range items {
-		if s.Has(item) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(items, s.Has)
 }
 
 // Difference returns a set of objects that are not in s2

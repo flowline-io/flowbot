@@ -45,5 +45,5 @@ type Stats struct {
 // TopArrayEntry Represent the number of hits or time duration per key (url, domain, or client IP).
 type TopArrayEntry struct {
 	DomainOrIp           *float32 `json:"domain_or_ip,omitempty"`
-	AdditionalProperties map[string]interface{}
+	AdditionalProperties map[string]any
 }

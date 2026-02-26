@@ -53,7 +53,7 @@ func Register(name string, bot Handler) {
 	_, _ = fmt.Printf("%s info %s [bot] %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
 }
 
-func Help(rules []interface{}) (map[string][]string, error) {
+func Help(rules []any) (map[string][]string, error) {
 	result := make(map[string][]string)
 
 	for _, rule := range rules {
@@ -94,7 +94,7 @@ func Help(rules []interface{}) (map[string][]string, error) {
 	return result, nil
 }
 
-func RunCommand(commandRules []command.Rule, ctx types.Context, content interface{}) (types.MsgPayload, error) {
+func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (types.MsgPayload, error) {
 	in, ok := content.(string)
 	if !ok {
 		return nil, nil

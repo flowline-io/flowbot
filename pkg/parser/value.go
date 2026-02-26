@@ -1,7 +1,7 @@
 package parser
 
 type Value struct {
-	Source interface{}
+	Source any
 }
 
 func (v Value) String() (string, bool) {
@@ -19,6 +19,6 @@ func (v Value) Bool() (bool, bool) {
 	return s, ok
 }
 
-func Variable(i interface{}) Value {
+func Variable(i any) Value {
 	return Value{Source: i}
 }

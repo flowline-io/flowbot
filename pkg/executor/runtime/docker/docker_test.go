@@ -35,7 +35,7 @@ func TestParseCPUs(t *testing.T) {
 
 func TestPrintableReader(t *testing.T) {
 	var s []byte
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		s = append(s, 0)
 	}
 	s = append(s, []byte{104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100}...)
@@ -105,7 +105,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 	wg := sync.WaitGroup{}
 	c := 10
 	wg.Add(10)
-	for i := 0; i < c; i++ {
+	for range c {
 		go func() {
 			defer wg.Done()
 			tk := &types.Task{
@@ -341,7 +341,7 @@ func Test_imagePull(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		go func() {
 			defer wg.Done()
 			err := rt.imagePull(ctx, &types.Task{Image: "busybox:1.36"})

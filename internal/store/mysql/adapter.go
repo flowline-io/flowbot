@@ -306,7 +306,7 @@ func (a *adapter) GetName() string {
 	return adapterName
 }
 
-func (a *adapter) Stats() interface{} {
+func (a *adapter) Stats() any {
 	if a.db == nil {
 		return nil
 	}
@@ -608,7 +608,7 @@ func (a *adapter) FormSet(formId string, form model.Form) error {
 		return a.db.
 			Model(&model.Form{}).
 			Where("`form_id` = ?", formId).
-			UpdateColumns(map[string]interface{}{
+			UpdateColumns(map[string]any{
 				"values":     form.Values,
 				"state":      form.State,
 				"updated_at": time.Now(),

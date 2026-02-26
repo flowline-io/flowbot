@@ -40,7 +40,7 @@ func (v *Dropbox) GetAuthorizeURL() string {
 	return fmt.Sprintf("https://www.dropbox.com/oauth2/authorize?client_id=%s&response_type=code&redirect_uri=%s", v.clientId, v.redirectURI)
 }
 
-func (v *Dropbox) completeAuth(code string) (interface{}, error) {
+func (v *Dropbox) completeAuth(code string) (any, error) {
 	resp, err := v.c.R().
 		SetBasicAuth(v.clientId, v.clientSecret).
 		SetFormData(map[string]string{
@@ -96,7 +96,7 @@ func (v *Dropbox) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
 }
 
 func (v *Dropbox) Upload(path string, content io.Reader) error {
-	apiArg, err := sonic.Marshal(map[string]interface{}{
+	apiArg, err := sonic.Marshal(map[string]any{
 		"path":            path,
 		"mode":            "add",
 		"autorename":      true,

@@ -33,7 +33,7 @@ func HasHan(txt string) bool {
 
 func RandomString(n int) (string, error) {
 	ret := make([]byte, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
 		if err != nil {
 			return "", err
@@ -68,9 +68,9 @@ func Masker(input string, start int) string {
 	}
 }
 
-func Fn(public interface{}) string {
+func Fn(public any) string {
 	switch v := public.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		if s, ok := v["fn"].(string); ok {
 			return s
 		}
@@ -144,7 +144,7 @@ func PrettyPrintYamlStyle(data any) {
 }
 
 func YamlToJson(data []byte) ([]byte, error) {
-	var def map[string]interface{}
+	var def map[string]any
 	if err := yaml.Unmarshal(data, &def); err != nil {
 		return nil, err
 	}

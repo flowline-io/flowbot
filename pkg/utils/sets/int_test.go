@@ -2,6 +2,7 @@ package sets
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -48,7 +49,7 @@ func TestNewInt(t *testing.T) {
 func TestIntKeySet(t *testing.T) {
 	tests := []struct {
 		name    string
-		theMap  interface{}
+		theMap  any
 		want    Int
 		wantErr bool
 	}{
@@ -290,13 +291,7 @@ func TestInt_UnsortedList(t *testing.T) {
 
 	// Should contain all original elements
 	for _, item := range []int{1, 2, 3} {
-		found := false
-		for _, resultItem := range result {
-			if item == resultItem {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(result, item)
 		if !found {
 			t.Errorf("UnsortedList() missing item %v", item)
 		}

@@ -44,19 +44,19 @@ func (n *plugin) Send(tokens types.KV, message notify.Message) error {
 	c := resty.New()
 	c.SetTimeout(time.Minute)
 
-	resp, err := c.R().SetBody(map[string]interface{}{
+	resp, err := c.R().SetBody(map[string]any{
 		"text": message.Title,
-		"blocks": []map[string]interface{}{
+		"blocks": []map[string]any{
 			{
 				"type": "section",
-				"text": map[string]interface{}{
+				"text": map[string]any{
 					"type": "mrkdwn",
 					"text": message.Body,
 				},
 			},
 			{
 				"type": "section",
-				"text": map[string]interface{}{
+				"text": map[string]any{
 					"type": "mrkdwn",
 					"text": message.Url,
 				},

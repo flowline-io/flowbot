@@ -99,7 +99,7 @@ func (b Builder) UI() (app.UI, error) {
 }
 
 func (b Builder) Validate() error {
-	rules := make(map[string]interface{}, len(b.Field))
+	rules := make(map[string]any, len(b.Field))
 	for _, field := range b.Field {
 		if field.Rule != "" {
 			rules[field.Key] = field.Rule
@@ -118,7 +118,7 @@ func (b Builder) Validate() error {
 	return nil
 }
 
-func fixInt64Value(t types.FormFieldValueType, v interface{}) interface{} {
+func fixInt64Value(t types.FormFieldValueType, v any) any {
 	if t == types.FormFieldValueInt64 {
 		switch v := v.(type) {
 		case float64:

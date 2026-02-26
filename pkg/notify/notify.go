@@ -74,8 +74,8 @@ func ParseSchema(testString string) (string, error) {
 }
 
 func Send(text string, message Message) error {
-	lines := strings.Split(text, "\n")
-	for _, v := range lines {
+	lines := strings.SplitSeq(text, "\n")
+	for v := range lines {
 		v = strings.TrimSpace(v)
 		if v == "" {
 			continue

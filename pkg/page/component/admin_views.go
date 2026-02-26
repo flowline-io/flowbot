@@ -493,7 +493,7 @@ func execState(state model.ExecutionState) string {
 	}
 }
 
-func JSONString(v interface{}) string {
+func JSONString(v any) string {
 	if v == nil {
 		return "{}"
 	}

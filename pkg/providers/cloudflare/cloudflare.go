@@ -42,7 +42,7 @@ func NewCloudflare(token string, zoneID string) *Cloudflare {
 func (v *Cloudflare) GetAnalytics(start, end string) (*AnalyticResponse, error) {
 	resp, err := v.c.R().
 		SetResult(&AnalyticResponse{}).
-		SetBody(map[string]interface{}{
+		SetBody(map[string]any{
 			"query": fmt.Sprintf(`
 query
 {

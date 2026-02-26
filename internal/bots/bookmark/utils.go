@@ -120,8 +120,8 @@ func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, 
 	}
 
 	result := make(map[string]string)
-	lines := strings.Split(resp.Content, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(resp.Content, "\n")
+	for line := range lines {
 		if line == "" {
 			continue
 		}

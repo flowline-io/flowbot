@@ -108,18 +108,12 @@ func CreatePagination(currentPage, totalPages int, urlFormat string, maxVisible 
 	if maxVisible > 0 && totalPages > maxVisible {
 		// Calculate start and end page numbers
 		half := maxVisible / 2
-		startPage = currentPage - half
-		if startPage < 1 {
-			startPage = 1
-		}
+		startPage = max(currentPage-half, 1)
 
 		endPage = startPage + maxVisible - 1
 		if endPage > totalPages {
 			endPage = totalPages
-			startPage = endPage - maxVisible + 1
-			if startPage < 1 {
-				startPage = 1
-			}
+			startPage = max(endPage-maxVisible+1, 1)
 		}
 	}
 

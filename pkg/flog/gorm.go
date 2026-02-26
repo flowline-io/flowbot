@@ -31,15 +31,15 @@ func (g *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 	return g
 }
 
-func (g *GormLogger) Info(_ context.Context, s string, i ...interface{}) {
+func (g *GormLogger) Info(_ context.Context, s string, i ...any) {
 	Info(s, i...)
 }
 
-func (g *GormLogger) Warn(_ context.Context, s string, i ...interface{}) {
+func (g *GormLogger) Warn(_ context.Context, s string, i ...any) {
 	Warn(s, i...)
 }
 
-func (g *GormLogger) Error(_ context.Context, s string, i ...interface{}) {
+func (g *GormLogger) Error(_ context.Context, s string, i ...any) {
 	l.Error().Caller(1).Stack().Msgf(s, i...)
 }
 

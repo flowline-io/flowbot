@@ -448,7 +448,7 @@ func onlineStatus(msg protocol.Event) {
 // when action is types.Ack, it will update instruct state to done
 // when action is types.Online, it will register agent
 // when action is types.Offline, it will update agent online duration
-func agentAction(uid types.Uid, data types.AgentData) (interface{}, error) {
+func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 	ctx := types.Context{
 		AsUser: uid,
 	}

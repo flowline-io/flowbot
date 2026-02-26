@@ -226,8 +226,8 @@ func reexecRun() {
 		if len(kv) != 2 {
 			flog.Error(fmt.Errorf("invalid env var: %s", entry))
 		}
-		if strings.HasPrefix(kv[0], envVarPrefix) {
-			k := strings.TrimPrefix(kv[0], envVarPrefix)
+		if after, ok := strings.CutPrefix(kv[0], envVarPrefix); ok {
+			k := after
 			v := kv[1]
 			env = append(env, fmt.Sprintf("%s=%s", k, v))
 		}

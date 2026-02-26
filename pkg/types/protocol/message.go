@@ -31,7 +31,7 @@ func (s MessageSegment) String() string {
 	return b.String()
 }
 
-func Text(text ...interface{}) MessageSegment {
+func Text(text ...any) MessageSegment {
 	return MessageSegment{
 		Type: "text",
 		Data: map[string]any{

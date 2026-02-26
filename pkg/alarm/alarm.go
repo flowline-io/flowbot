@@ -56,8 +56,8 @@ func filter(str string) bool {
 	if config.App.Alarm.Filter == "" {
 		return false
 	}
-	keywords := strings.Split(config.App.Alarm.Filter, "|")
-	for _, keyword := range keywords {
+	keywords := strings.SplitSeq(config.App.Alarm.Filter, "|")
+	for keyword := range keywords {
 		if strings.Contains(str, strings.TrimSpace(keyword)) {
 			return true
 		}

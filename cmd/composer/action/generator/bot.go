@@ -182,7 +182,7 @@ func fileExist(botName, fileName string) bool {
 	return !os.IsNotExist(err)
 }
 
-func parseTemplate(text string, data interface{}) []byte {
+func parseTemplate(text string, data any) []byte {
 	buf := bytes.NewBufferString("")
 	t, err := template.New("tmpl").Parse(text)
 	if err != nil {

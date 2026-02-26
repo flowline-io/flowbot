@@ -45,10 +45,10 @@ type Type struct {
 	Log Log `json:"log" yaml:"log" mapstructure:"log"`
 
 	// Config for bots
-	Bots interface{} `json:"bots" yaml:"bots" mapstructure:"bots"`
+	Bots any `json:"bots" yaml:"bots" mapstructure:"bots"`
 
 	// Config for vendors
-	Vendors interface{} `json:"vendors" yaml:"vendors" mapstructure:"vendors"`
+	Vendors any `json:"vendors" yaml:"vendors" mapstructure:"vendors"`
 
 	// Platform
 	Platform platform `json:"platform" yaml:"platform" mapstructure:"platform"`
@@ -86,7 +86,7 @@ type mediaConfig struct {
 	// Number of entries to delete in one pass
 	GcBlockSize int `json:"gc_block_size" yaml:"gc_block_size" mapstructure:"gc_block_size"`
 	// Individual handler config params to pass to handlers unchanged.
-	Handlers map[string]interface{} `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
+	Handlers map[string]any `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
 }
 
 type StoreType struct {
@@ -95,7 +95,7 @@ type StoreType struct {
 	// DB adapter name to use. Should be one of those specified in `Adapters`.
 	UseAdapter string `json:"use_adapter" yaml:"use_adapter" mapstructure:"use_adapter"`
 	// Configurations for individual adapters.
-	Adapters map[string]interface{} `json:"adapters" yaml:"adapters" mapstructure:"adapters"`
+	Adapters map[string]any `json:"adapters" yaml:"adapters" mapstructure:"adapters"`
 }
 
 type Log struct {

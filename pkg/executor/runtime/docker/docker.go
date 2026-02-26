@@ -528,7 +528,7 @@ func (r printableReader) Read(p []byte) (int, error) {
 		}
 	}
 	j := 0
-	for i := 0; i < n; i++ {
+	for i := range n {
 		if unicode.IsPrint(rune(buf[i])) {
 			p[j] = buf[i]
 			j++

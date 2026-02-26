@@ -16,5 +16,5 @@ type AnalyticResponse struct {
 			} `json:"zones"`
 		} `json:"viewer"`
 	} `json:"data"`
-	Errors interface{} `json:"errors"`
+	Errors any `json:"errors"`
 }

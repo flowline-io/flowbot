@@ -67,8 +67,8 @@ func (bot) Webservice(app *fiber.App) {
 	chatbot.Webservice(app, Name, webserviceRules)
 }
 
-func (bot) Rules() []interface{} {
-	return []interface{}{
+func (bot) Rules() []any {
+	return []any{
 		commandRules,
 		formRules,
 		instructRules,
@@ -81,11 +81,11 @@ func (bot) Rules() []interface{} {
 	}
 }
 
-func (bot) Input(_ types.Context, _ types.KV, _ interface{}) (types.MsgPayload, error) {
+func (bot) Input(_ types.Context, _ types.KV, _ any) (types.MsgPayload, error) {
 	return types.TextMsg{Text: "Input"}, nil
 }
 
-func (bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 	return chatbot.RunCommand(commandRules, ctx, content)
 }
 

@@ -35,23 +35,23 @@ func Div(elems ...app.UI) app.HTMLDiv {
 	return app.Div().Body(elems...)
 }
 
-func Text(v interface{}) app.HTMLDiv {
+func Text(v any) app.HTMLDiv {
 	return app.Div().Text(v)
 }
 
-func Pre(v interface{}) app.HTMLPre {
+func Pre(v any) app.HTMLPre {
 	return app.Pre().Text(v)
 }
 
-func H1(v interface{}) app.HTMLH1 {
+func H1(v any) app.HTMLH1 {
 	return app.H1().Text(v)
 }
 
-func H2(v interface{}) app.HTMLH2 {
+func H2(v any) app.HTMLH2 {
 	return app.H2().Text(v)
 }
 
-func H3(v interface{}) app.HTMLH3 {
+func H3(v any) app.HTMLH3 {
 	return app.H3().Text(v)
 }
 

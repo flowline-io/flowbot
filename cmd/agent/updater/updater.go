@@ -132,8 +132,8 @@ func checksumsName() string {
 }
 
 func findChecksum(text string, hash string) bool {
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(text, "\n")
+	for line := range lines {
 		arr := strings.Split(line, "  ")
 		if len(arr) == 2 {
 			if arr[0] == hash {

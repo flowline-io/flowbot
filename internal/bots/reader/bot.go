@@ -57,15 +57,15 @@ func (bot) Bootstrap() error {
 	return nil
 }
 
-func (bot) Rules() []interface{} {
-	return []interface{}{
+func (bot) Rules() []any {
+	return []any{
 		commandRules,
 		cronRules,
 		webhookRules,
 	}
 }
 
-func (bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 	return chatbot.RunCommand(commandRules, ctx, content)
 }
 

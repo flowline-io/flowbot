@@ -67,7 +67,7 @@ func (a FormMsg) Convert() any {
 type FormField struct {
 	Type        FormFieldType      `json:"type"`
 	Key         string             `json:"key"`
-	Value       interface{}        `json:"value"`
+	Value       any                `json:"value"`
 	ValueType   FormFieldValueType `json:"value_type"`
 	Label       string             `json:"label"`
 	Placeholder string             `json:"placeholder"`
@@ -86,9 +86,9 @@ func (a LinkMsg) Convert() any {
 }
 
 type TableMsg struct {
-	Title  string          `json:"title"`
-	Header []string        `json:"header"`
-	Row    [][]interface{} `json:"row"`
+	Title  string   `json:"title"`
+	Header []string `json:"header"`
+	Row    [][]any  `json:"row"`
 }
 
 func (t TableMsg) Convert() any {
@@ -96,8 +96,8 @@ func (t TableMsg) Convert() any {
 }
 
 type InfoMsg struct {
-	Title string      `json:"title"`
-	Model interface{} `json:"model,omitempty"`
+	Title string `json:"title"`
+	Model any    `json:"model,omitempty"`
 }
 
 func (i InfoMsg) Convert() any {

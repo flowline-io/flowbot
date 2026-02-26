@@ -55,15 +55,15 @@ func (bot) IsReady() bool {
 	return handler.initialized
 }
 
-func (bot) Rules() []interface{} {
-	return []interface{}{
+func (bot) Rules() []any {
+	return []any{
 		commandRules,
 		collectRules,
 		webserviceRules,
 	}
 }
 
-func (bot) Command(ctx types.Context, content interface{}) (types.MsgPayload, error) {
+func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 	return chatbot.RunCommand(commandRules, ctx, content)
 }
 

@@ -32,7 +32,7 @@ const htmlLayout = `
 `
 
 // unmarshalPageSchema parses specific types of messages from Page.Schema
-func unmarshalPageSchema(page model.Page, target interface{}) error {
+func unmarshalPageSchema(page model.Page, target any) error {
 	data, err := sonic.Marshal(page.Schema)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to marshal page schema: %w", err))
@@ -107,7 +107,7 @@ func scripts(comp *types.UI) string {
 				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %d;\n", key, v)
 			case float32, float64:
 				_, _ = fmt.Fprintf(&scriptsStr, "Global.%s = %f;\n", key, v)
-			case map[string]interface{}:
+			case map[string]any:
 				j, err := sonic.Marshal(v)
 				if err != nil {
 					flog.Error(fmt.Errorf("failed to marshal global variable %s: %w", key, err))

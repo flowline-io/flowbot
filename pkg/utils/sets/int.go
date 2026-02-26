@@ -2,6 +2,7 @@ package sets
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 )
 
@@ -17,7 +18,7 @@ func NewInt(items ...int) Int {
 
 // IntKeySet creates a Int from a keys of a map[int](? extends interface{}).
 // If the value passed in is not actually a map, this will panic.
-func IntKeySet(theMap interface{}) Int {
+func IntKeySet(theMap any) Int {
 	v := reflect.ValueOf(theMap)
 	ret := Int{}
 
@@ -61,12 +62,7 @@ func (s Int) HasAll(items ...int) bool {
 
 // HasAny returns true if any items are contained in the set.
 func (s Int) HasAny(items ...int) bool {
-	for _, item := range items {
-		if s.Has(item) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(items, s.Has)
 }
 
 // Difference returns a set of objects that are not in s2

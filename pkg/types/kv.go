@@ -9,11 +9,11 @@ import (
 	"github.com/bytedance/sonic"
 )
 
-type KV map[string]interface{}
+type KV map[string]any
 
-func (j *KV) Scan(value interface{}) error {
+func (j *KV) Scan(value any) error {
 	if bytes, ok := value.([]byte); ok {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		err := sonic.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
@@ -21,7 +21,7 @@ func (j *KV) Scan(value interface{}) error {
 		*j = result
 		return nil
 	}
-	if result, ok := value.(map[string]interface{}); ok {
+	if result, ok := value.(map[string]any); ok {
 		*j = result
 		return nil
 	}
@@ -48,9 +48,9 @@ func (j KV) Int64(key string) (int64, bool) {
 	if v, ok := j.get(key); ok {
 		switch n := v.(type) {
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			return reflect.ValueOf(n).Convert(reflect.TypeOf(int64(0))).Int(), true
+			return reflect.ValueOf(n).Convert(reflect.TypeFor[int64]()).Int(), true
 		case float32, float64:
-			return reflect.ValueOf(n).Convert(reflect.TypeOf(int64(0))).Int(), true
+			return reflect.ValueOf(n).Convert(reflect.TypeFor[int64]()).Int(), true
 		}
 	}
 	return 0, false
@@ -74,9 +74,9 @@ func (j KV) Float64(key string) (float64, bool) {
 	return 0, false
 }
 
-func (j KV) Map(key string) (map[string]interface{}, bool) {
+func (j KV) Map(key string) (map[string]any, bool) {
 	if v, ok := j.get(key); ok {
-		if t, ok := v.(map[string]interface{}); ok {
+		if t, ok := v.(map[string]any); ok {
 			return t, ok
 		}
 	}
@@ -99,7 +99,7 @@ func (j KV) List(key string) ([]any, bool) {
 	return nil, false
 }
 
-func (j KV) get(key string) (interface{}, bool) {
+func (j KV) get(key string) (any, bool) {
 	v, ok := j[key]
 	return v, ok
 }

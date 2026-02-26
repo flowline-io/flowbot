@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -67,13 +68,7 @@ func ValidateParams(params types.KV, specs []ParamSpec) error {
 			}
 			if len(spec.Enum) > 0 {
 				s := val.(string)
-				allowed := false
-				for _, a := range spec.Enum {
-					if a == s {
-						allowed = true
-						break
-					}
-				}
+				allowed := slices.Contains(spec.Enum, s)
 				if !allowed {
 					fields[spec.Name] = fmt.Sprintf("must be one of %v", spec.Enum)
 					continue

@@ -15,7 +15,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{
@@ -63,7 +63,7 @@ func TestEncodeJSON(t *testing.T) {
 // TestEncodeJSONEscapeHTML tests the EncodeJSONEscapeHTML function
 func TestEncodeJSONEscapeHTML(t *testing.T) {
 	type args struct {
-		v   interface{}
+		v   any
 		esc bool
 	}
 	tests := []struct {
@@ -125,7 +125,7 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		v       interface{}
+		v       any
 		esc     bool
 		indent  string
 		wantErr bool
@@ -142,7 +142,7 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 		},
 		{
 			name: "indent_with_tabs",
-			v: map[string]interface{}{
+			v: map[string]any{
 				"key1": "value1",
 				"key2": 123,
 			},
@@ -182,7 +182,7 @@ func TestDecodeJSON(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		target  interface{}
+		target  any
 		wantErr bool
 	}{
 		{

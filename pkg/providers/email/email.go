@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/smtp"
+	"strings"
 )
 
 const (
@@ -29,11 +30,11 @@ func SendEmail(config *Config, toMail string, title, content string) error {
 	header["Subject"] = title
 	header["Content-Type"] = "text/html; charset=UTF-8"
 	body := content
-	message := ""
+	var message strings.Builder
 	for k, v := range header {
-		message += fmt.Sprintf("%s: %s\r\n", k, v)
+		message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
 	}
-	message += "\r\n" + body
+	message.WriteString("\r\n" + body)
 	auth := smtp.PlainAuth(
 		"",
 		config.Username,
@@ -45,7 +46,7 @@ func SendEmail(config *Config, toMail string, title, content string) error {
 		auth,
 		config.Username,
 		[]string{toMail},
-		[]byte(message),
+		[]byte(message.String()),
 	)
 }
 

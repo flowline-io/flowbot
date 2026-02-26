@@ -34,7 +34,7 @@ type EventResponse struct {
 
 type TaskClose struct {
 	TaskId int  `json:"task_id,omitempty"`
-	Task   Task `json:"task,omitempty"`
+	Task   Task `json:"task"`
 }
 
 type Task struct {

@@ -178,9 +178,9 @@ func getOrCreateMCPServer(botName string) (*mcp.Server, error) {
 }
 
 // convertParamsOneOfToJSONSchema converts ParamsOneOf to JSON Schema format.
-func convertParamsOneOfToJSONSchema(paramsOneOf *schema.ParamsOneOf) interface{} {
+func convertParamsOneOfToJSONSchema(paramsOneOf *schema.ParamsOneOf) any {
 	if paramsOneOf == nil {
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
@@ -189,13 +189,13 @@ func convertParamsOneOfToJSONSchema(paramsOneOf *schema.ParamsOneOf) interface{}
 	schemaObj, err := paramsOneOf.ToJSONSchema()
 	if err != nil {
 		flog.Warn("failed to convert ParamsOneOf to JSON Schema: %v", err)
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
 
 	if schemaObj == nil {
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
@@ -204,22 +204,22 @@ func convertParamsOneOfToJSONSchema(paramsOneOf *schema.ParamsOneOf) interface{}
 	data, err := json.Marshal(schemaObj)
 	if err != nil {
 		flog.Warn("failed to marshal JSON Schema: %v", err)
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	if err := json.Unmarshal(data, &result); err != nil {
 		flog.Warn("failed to unmarshal JSON Schema: %v", err)
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
 
 	// If schema is empty or invalid, return default
 	if len(result) == 0 {
-		return map[string]interface{}{
+		return map[string]any{
 			"type": "object",
 		}
 	}
@@ -339,7 +339,7 @@ func (c *Controller) handleMCPRequestFallback(ctx fiber.Ctx, botName string) err
 
 // handleMCPToolCall handles MCP tool call requests.
 func (c *Controller) handleMCPToolCall(ctx fiber.Ctx, botName string) error {
-	var mcpRequest map[string]interface{}
+	var mcpRequest map[string]any
 	if err := json.Unmarshal(ctx.Body(), &mcpRequest); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).
 			JSON(protocol.NewFailedResponse(protocol.ErrBadParam.Wrap(err)))
@@ -353,7 +353,7 @@ func (c *Controller) handleMCPToolCall(ctx fiber.Ctx, botName string) error {
 		toolName, _ = mcpRequest["tool"].(string)
 	}
 
-	arguments, _ := mcpRequest["arguments"].(map[string]interface{})
+	arguments, _ := mcpRequest["arguments"].(map[string]any)
 
 	if toolName == "" {
 		return ctx.Status(fiber.StatusBadRequest).

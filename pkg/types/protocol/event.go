@@ -36,7 +36,7 @@ type Event struct {
 }
 
 type MessageEventData struct {
-	Self       Self             `json:"self,omitempty"`
+	Self       Self             `json:"self"`
 	MessageId  string           `json:"message_id,omitempty"`
 	Message    []MessageSegment `json:"message,omitempty"`
 	AltMessage string           `json:"alt_message,omitempty"`

@@ -223,12 +223,12 @@ func TestIsUrl(t *testing.T) {
 func TestFn(t *testing.T) {
 	tests := []struct {
 		name   string
-		public interface{}
+		public any
 		want   string
 	}{
 		{
 			name: "valid_map_with_fn",
-			public: map[string]interface{}{
+			public: map[string]any{
 				"fn":   "test_function",
 				"name": "test",
 			},
@@ -236,14 +236,14 @@ func TestFn(t *testing.T) {
 		},
 		{
 			name: "map_without_fn",
-			public: map[string]interface{}{
+			public: map[string]any{
 				"name": "test",
 			},
 			want: "",
 		},
 		{
 			name: "map_with_non_string_fn",
-			public: map[string]interface{}{
+			public: map[string]any{
 				"fn": 123,
 			},
 			want: "",

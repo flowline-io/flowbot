@@ -8,15 +8,15 @@ import (
 	"github.com/bytedance/sonic"
 )
 
-type JSON map[string]interface{}
+type JSON map[string]any
 
 func (j JSON) GormDataType() string {
 	return "json"
 }
 
-func (j *JSON) Scan(value interface{}) error {
+func (j *JSON) Scan(value any) error {
 	if bytes, ok := value.([]byte); ok {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		err := sonic.Unmarshal(bytes, &result)
 		if err != nil {
 			return err
@@ -24,7 +24,7 @@ func (j *JSON) Scan(value interface{}) error {
 		*j = result
 		return nil
 	}
-	if result, ok := value.(map[string]interface{}); ok {
+	if result, ok := value.(map[string]any); ok {
 		*j = result
 		return nil
 	}
@@ -44,7 +44,7 @@ func (j IDList) GormDataType() string {
 	return "json"
 }
 
-func (j *IDList) Scan(value interface{}) error {
+func (j *IDList) Scan(value any) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make([]int64, 0)
 		err := sonic.Unmarshal(bytes, &result)

@@ -23,13 +23,13 @@ type Handler interface {
 	Help() (map[string][]string, error)
 
 	// Rules return bot ruleset
-	Rules() []interface{}
+	Rules() []any
 
 	// Input return input result
-	Input(ctx types.Context, head types.KV, content interface{}) (types.MsgPayload, error)
+	Input(ctx types.Context, head types.KV, content any) (types.MsgPayload, error)
 
 	// Command return bot result
-	Command(ctx types.Context, content interface{}) (types.MsgPayload, error)
+	Command(ctx types.Context, content any) (types.MsgPayload, error)
 
 	// Form return bot form result
 	Form(ctx types.Context, values types.KV) (types.MsgPayload, error)
@@ -69,15 +69,15 @@ func (b Base) Help() (map[string][]string, error) {
 	return Help(b.Rules())
 }
 
-func (Base) Rules() []interface{} {
+func (Base) Rules() []any {
 	return nil
 }
 
-func (Base) Input(_ types.Context, _ types.KV, _ interface{}) (types.MsgPayload, error) {
+func (Base) Input(_ types.Context, _ types.KV, _ any) (types.MsgPayload, error) {
 	return nil, nil
 }
 
-func (Base) Command(_ types.Context, _ interface{}) (types.MsgPayload, error) {
+func (Base) Command(_ types.Context, _ any) (types.MsgPayload, error) {
 	return nil, nil
 }
 

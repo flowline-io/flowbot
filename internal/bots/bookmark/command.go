@@ -21,11 +21,11 @@ var commandRules = []command.Rule{
 			}
 
 			var header []string
-			var row [][]interface{}
+			var row [][]any
 			if resp != nil && len(resp.Bookmarks) > 0 {
 				header = []string{"Id", "Title", "TaggingStatus"}
 				for _, v := range resp.Bookmarks {
-					row = append(row, []interface{}{v.Id, v.Content.Title, v.TaggingStatus})
+					row = append(row, []any{v.Id, v.Content.Title, v.TaggingStatus})
 				}
 			}
 

@@ -12,7 +12,7 @@ func foo3(a, b string, c int) *testing.InternalExample {
 
 func TestGetFunctionName(t *testing.T) {
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name string

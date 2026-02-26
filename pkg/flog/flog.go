@@ -29,7 +29,7 @@ func Init(fileLogEnabled, alarmEnabled bool) {
 		Out:        os.Stdout,
 		TimeFormat: time.DateTime,
 		NoColor:    true,
-		FormatLevel: func(i interface{}) string {
+		FormatLevel: func(i any) string {
 			return fmt.Sprintf("%s", i)
 		},
 	}

@@ -159,7 +159,7 @@ func (v *N8N) DeactivateWorkflow(id string) error {
 }
 
 // ExecuteWorkflow executes a workflow via webhook with optional input data
-func (v *N8N) ExecuteWorkflow(id string, data map[string]interface{}) error {
+func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
 	// Get workflow to find webhook node
 	workflow, err := v.GetWorkflow(id)
 	if err != nil {

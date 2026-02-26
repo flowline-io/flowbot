@@ -39,7 +39,7 @@ func handleChatbot(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Cli
 }
 
 // initialize bots
-func initializeBot(botsConfig interface{}, vendorsConfig interface{}) {
+func initializeBot(botsConfig any, vendorsConfig any) {
 	b, err := sonic.Marshal(botsConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal bots: %v", err)

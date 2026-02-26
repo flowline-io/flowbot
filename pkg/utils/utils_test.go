@@ -64,7 +64,7 @@ func TestStringSliceDelta(t *testing.T) {
 func TestIsNullValue(t *testing.T) {
 	tests := []struct {
 		name  string
-		input interface{}
+		input any
 		want  bool
 	}{
 		{

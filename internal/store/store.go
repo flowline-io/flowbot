@@ -121,7 +121,7 @@ type PersistentStorageInterface interface {
 	Close() error
 	IsOpen() bool
 	GetAdapter() Adapter
-	DbStats() func() interface{}
+	DbStats() func() any
 }
 
 // Store is the main object for interacting with persistent storage.
@@ -157,7 +157,7 @@ func (storeObj) IsOpen() bool {
 	return false
 }
 
-func (s storeObj) DbStats() func() interface{} {
+func (s storeObj) DbStats() func() any {
 	if !s.IsOpen() {
 		return nil
 	}
@@ -176,7 +176,7 @@ type Adapter interface {
 	// GetName returns the name of the adapter
 	GetName() string
 	// Stats returns the DB connection stats object.
-	Stats() interface{}
+	Stats() any
 	// GetDB returns the underlying DB connection
 	GetDB() *gorm.DB
 

@@ -41,11 +41,11 @@ func (v *Github) GetAuthorizeURL() string {
 	return fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo", v.clientId, v.redirectURI)
 }
 
-func (v *Github) completeAuth(code string) (interface{}, error) {
+func (v *Github) completeAuth(code string) (any, error) {
 	resp, err := v.c.R().
 		SetResult(&TokenResponse{}).
 		SetHeader("Accept", "application/vnd.github.v3+json").
-		SetBody(map[string]interface{}{
+		SetBody(map[string]any{
 			"client_id":     v.clientId,
 			"client_secret": v.clientSecret,
 			"code":          code,

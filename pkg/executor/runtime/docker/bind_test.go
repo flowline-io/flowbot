@@ -33,7 +33,7 @@ func TestMountCreate(t *testing.T) {
 	wg := sync.WaitGroup{}
 	c := 10
 	wg.Add(c)
-	for i := 0; i < c; i++ {
+	for range c {
 		go func() {
 			defer wg.Done()
 			err := m.Mount(context.Background(), &types.Mount{

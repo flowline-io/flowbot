@@ -100,7 +100,7 @@ func TestSignalHandlerChannelType(t *testing.T) {
 	select {
 	case val := <-stopChan:
 		// If we receive a value, it should be bool
-		if _, ok := interface{}(val).(bool); !ok {
+		if _, ok := any(val).(bool); !ok {
 			t.Error("SignalHandler() channel should carry bool values")
 		}
 		// Don't expect to receive anything immediately

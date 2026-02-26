@@ -47,7 +47,7 @@ func (n *plugin) Send(tokens types.KV, message notify.Message) error {
 	c.SetBaseURL(url)
 	c.SetTimeout(time.Minute)
 
-	resp, err := c.R().SetBody(map[string]interface{}{
+	resp, err := c.R().SetBody(map[string]any{
 		"topic":    topic,
 		"title":    message.Title,
 		"message":  message.Body,
