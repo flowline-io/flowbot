@@ -147,7 +147,7 @@ func literal(s string) *regexp.Regexp {
 func expression(res ...*regexp.Regexp) *regexp.Regexp {
 	var s strings.Builder
 	for _, re := range res {
-		s.WriteString(re.String())
+		_, _ = s.WriteString(re.String())
 	}
 
 	return match(s.String())

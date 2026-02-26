@@ -32,9 +32,9 @@ func SendEmail(config *Config, toMail string, title, content string) error {
 	body := content
 	var message strings.Builder
 	for k, v := range header {
-		message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		_, _ = message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
 	}
-	message.WriteString("\r\n" + body)
+	_, _ = message.WriteString("\r\n" + body)
 	auth := smtp.PlainAuth(
 		"",
 		config.Username,
