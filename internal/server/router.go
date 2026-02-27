@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/internal/admin"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -34,7 +35,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func handleRoutes(a *fiber.App, ctl *Controller) {
+func handleRoutes(a *fiber.App, ctl *Controller, adminCtl *admin.AdminController) {
 	// Webservice
 	for _, bot := range chatbot.List() {
 		bot.Webservice(a)
@@ -61,6 +62,9 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.All("/chatbot/:platform", ctl.platformCallback)
 	// MCP
 	a.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
+
+	// Admin panel routes (API + PWA)
+	handleAdminRoutes(a, adminCtl)
 }
 
 // handler

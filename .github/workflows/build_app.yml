@@ -1,0 +1,81 @@
+# build_app.yml - Admin PWA frontend + backend server build workflow
+#
+# Triggers: Push to main branch / Pull request
+# Build steps:
+#   1. Compile Wasm frontend (GOOS=js GOARCH=wasm)
+#   2. Compile backend server (with generated Wasm assets)
+#   3. Upload build artifacts
+#   4. Build Docker image
+
+name: Build Admin App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build Wasm & Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # ---- Step 1: Build Wasm frontend ----
+      - name: Build Wasm frontend
+        run: |
+          mkdir -p web
+          GOOS=js GOARCH=wasm go build -o web/app.wasm ./cmd/app
+        env:
+          CGO_ENABLED: 0
+
+      - name: Verify Wasm artifact
+        run: |
+          ls -lh web/app.wasm
+          echo "Wasm build successful"
+
+      # ---- Step 2: Build backend server ----
+      - name: Build server binary
+        run: |
+          mkdir -p bin
+          go build -o bin/server ./cmd
+        env:
+          CGO_ENABLED: 1
+
+      - name: Verify server binary
+        run: |
+          ls -lh bin/server
+          echo "Server build successful"
+
+      # ---- Upload build artifacts ----
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowbot-build
+          path: |
+            bin/server
+            web/app.wasm
+          retention-days: 7
+
+      # ---- Step 3: Build Docker image ----
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deployments/Dockerfile
+          push: false
+          tags: flowbot:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

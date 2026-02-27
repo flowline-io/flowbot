@@ -35,12 +35,28 @@ tasks:
     cmds:
       - go build -v -o bin/composer ./cmd/composer
 
+  build:app:wasm:
+    desc: Build admin PWA WebAssembly binary
+    env:
+      GOOS: js
+      GOARCH: wasm
+      CGO_ENABLED: "0"
+    cmds:
+      - go build -v -o web/app.wasm ./cmd/app
+
+  build:app:
+    desc: Build admin PWA (WebAssembly + server)
+    cmds:
+      - task: build:app:wasm
+      - go build -v -o bin/flowbot-app ./cmd/app
+
   build:all:
     desc: Build all binaries
     cmds:
       - task: build
       - task: build:agent
       - task: build:composer
+      - task: build:app
 
   # Run tasks
   run:
@@ -52,6 +68,12 @@ tasks:
     desc: Run flowbot agent
     cmds:
       - go run ./cmd/agent
+
+  run:app:
+    desc: Run admin PWA server
+    cmds:
+      - task: build:app:wasm
+      - go run ./cmd/app
 
   # Code quality tasks
   cloc:

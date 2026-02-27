@@ -18,6 +18,9 @@ flowbot
 flowbot.json
 flowbot.yaml
 flowbot-agent.yaml
+flowbot-agent.json
+flowbot-app.yaml
+flowbot-app.json
 /rules/
 /rules_bak/
 
@@ -39,3 +42,6 @@ flowbot.log
 /scripts/
 /templ/
 /cloc/
+
+# app
+web/app.wasm
