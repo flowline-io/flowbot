@@ -64,7 +64,8 @@ func Load(path ...string) {
 
 // NewConfig is an fx-compatible constructor that loads the configuration
 // and sets up hot-reload via file watching.
-func NewConfig(lc fx.Lifecycle) Type {
+// It returns a pointer so that fx consumers see updates from hot-reload.
+func NewConfig(lc fx.Lifecycle) *Type {
 	curwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Failed to get working directory: %v", err)
@@ -88,5 +89,5 @@ func NewConfig(lc fx.Lifecycle) Type {
 		},
 	})
 
-	return App
+	return &App
 }

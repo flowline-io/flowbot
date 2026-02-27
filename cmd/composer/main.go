@@ -18,7 +18,7 @@ import (
 func main() {
 	command := NewCommand()
 	if err := command.Run(context.Background(), os.Args); err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 }
 

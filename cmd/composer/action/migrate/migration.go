@@ -24,7 +24,7 @@ func MigrationAction(ctx context.Context, c *cli.Command) error {
 	// find current version
 	entry, err := os.ReadDir(path)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	maxNo := 0
 	for _, item := range entry {
@@ -38,7 +38,7 @@ func MigrationAction(ctx context.Context, c *cli.Command) error {
 		}
 		reg, err := regexp.Compile(`\d{6}`)
 		if err != nil {
-			flog.Panic(err.Error())
+			flog.Panic("%s", err.Error())
 		}
 		str := reg.FindString(info.Name())
 
@@ -55,12 +55,12 @@ func MigrationAction(ctx context.Context, c *cli.Command) error {
 
 	_, err = os.Create(fmt.Sprintf("%s/%s", path, upName))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	_, _ = fmt.Printf("Created %s\n", upName)
 	_, err = os.Create(fmt.Sprintf("%s/%s", path, downName))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	_, _ = fmt.Printf("Created %s\n", downName)
 	_, _ = fmt.Println("done")

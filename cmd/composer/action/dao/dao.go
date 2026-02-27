@@ -36,31 +36,31 @@ func GenerationAction(ctx context.Context, c *cli.Command) error {
 
 	file, err := os.Open(conffile)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		flog.Panic("error adapter")
+		flog.Panic("%s", "error adapter")
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		flog.Panic("error adapter dsn")
+		flog.Panic("%s", "error adapter dsn")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	g := gen.NewGenerator(gen.Config{

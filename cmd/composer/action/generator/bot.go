@@ -186,11 +186,11 @@ func parseTemplate(text string, data any) []byte {
 	buf := bytes.NewBufferString("")
 	t, err := template.New("tmpl").Parse(text)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	err = t.Execute(buf, data)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	return buf.Bytes()
 }
@@ -216,12 +216,12 @@ func parseRule(rules []string, data *schema) {
 func appendFileContent(filePath string, content []byte) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	_, err = file.Write(content)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	_ = file.Close()

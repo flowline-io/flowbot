@@ -23,7 +23,7 @@ func main() {
 
 // startServer creates a Fiber app with admin API routes and the PWA handler,
 // then starts listening on the configured address.
-func startServer(lc fx.Lifecycle, cfg config.Type) {
+func startServer(lc fx.Lifecycle, cfg *config.Type) {
 	registerRoutes()
 
 	app := fiber.New()

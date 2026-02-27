@@ -80,32 +80,32 @@ func SchemaAction(ctx context.Context, c *cli.Command) error {
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		flog.Panic("error adapter")
+		flog.Panic("%s", "error adapter")
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		flog.Panic("error adapter dsn")
+		flog.Panic("%s", "error adapter dsn")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
 	// Conn
 	db, err := sqlx.Open("mysql", dsn)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	defer func() {
 		_ = db.Close()
@@ -115,7 +115,7 @@ func SchemaAction(ctx context.Context, c *cli.Command) error {
 	var tables []Table
 	err = db.Select(&tables, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	// Markdown
@@ -124,7 +124,7 @@ func SchemaAction(ctx context.Context, c *cli.Command) error {
 		var columns []Column
 		err = db.Select(&columns, "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?", database, table.TableName)
 		if err != nil {
-			flog.Panic(err.Error())
+			flog.Panic("%s", err.Error())
 		}
 
 		var comment strings.Builder
@@ -145,7 +145,7 @@ func SchemaAction(ctx context.Context, c *cli.Command) error {
 	// Write File
 	err = os.WriteFile("./docs/schema.md", []byte(markdown.String()), 0644)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	fmt.Println("See schema.md")

@@ -22,18 +22,18 @@ func ImportAction(ctx context.Context, c *cli.Command) error {
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	// args
@@ -44,11 +44,11 @@ func ImportAction(ctx context.Context, c *cli.Command) error {
 	path := c.String("path")
 	yamlFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	yamlData, err := io.ReadAll(yamlFile)
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 	_, _ = fmt.Println(string(yamlData))
 
@@ -67,7 +67,7 @@ func ImportAction(ctx context.Context, c *cli.Command) error {
 		}).
 		Post("/service/workflow/workflow")
 	if err != nil {
-		flog.Panic(err.Error())
+		flog.Panic("%s", err.Error())
 	}
 
 	_, _ = fmt.Printf("%+v\n", resp)
