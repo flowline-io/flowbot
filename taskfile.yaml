@@ -23,7 +23,7 @@ tasks:
   build:
     desc: Build flowbot server
     cmds:
-      - go build -v -o bin/flowbot ./cmd
+      - GOEXPERIMENT=goroutineleakprofile go build -v -o bin/flowbot ./cmd
 
   build:agent:
     desc: Build flowbot agent
