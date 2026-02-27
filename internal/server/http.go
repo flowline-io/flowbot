@@ -2,6 +2,8 @@ package server
 
 import (
 	"errors"
+	"fmt"
+	"runtime/trace"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -93,6 +95,29 @@ func newHTTPServer() *fiber.App {
 	}))
 	// pprof
 	app.Use(pprof.New(pprof.Config{Prefix: "/server-debugger", Next: authPprof}))
+	
+	// flight recorder
+	fr := trace.NewFlightRecorder(trace.FlightRecorderConfig{})
+	if err := fr.Start(); err != nil {
+		flog.Error(fmt.Errorf("failed to start flight recorder: %w", err))
+	} else {
+		flog.Info("flight recorder started")
+		
+		// add debug route for flight recorder
+		app.Get("/server-debugger/debug/trace", func(c fiber.Ctx) error {
+			// Use the same auth logic as pprof
+			if authPprof(c) {
+				return c.SendStatus(fiber.StatusUnauthorized)
+			}
+
+			c.Set("Content-Type", "application/octet-stream")
+			c.Set("Content-Disposition", `attachment; filename="trace.out"`)
+			
+			_, err := fr.WriteTo(c.Response().BodyWriter())
+			return err
+		})
+	}
+
 	// favicon
 	app.Use(favicon.New())
 
