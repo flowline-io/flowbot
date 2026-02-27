@@ -139,6 +139,12 @@ go install github.com/zricethezav/gitleaks/v8@v8.21.1
 gitleaks git -v
 ```
 
+## Add golang tool
+
+```shell
+go get -tool import_path@version
+```
+
 ## Contributing
 
 1. Fork this project

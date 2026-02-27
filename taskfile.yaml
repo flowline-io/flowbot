@@ -23,17 +23,17 @@ tasks:
   build:
     desc: Build flowbot server
     cmds:
-      - go build -v -o bin/flowbot github.com/flowline-io/flowbot/cmd
+      - go build -v -o bin/flowbot ./cmd
 
   build:agent:
     desc: Build flowbot agent
     cmds:
-      - go build -v -o bin/flowbot-agent github.com/flowline-io/flowbot/cmd/agent
+      - go build -v -o bin/flowbot-agent ./cmd/agent
 
   build:composer:
     desc: Build composer tool
     cmds:
-      - go build -v -o bin/composer github.com/flowline-io/flowbot/cmd/composer
+      - go build -v -o bin/composer ./cmd/composer
 
   build:all:
     desc: Build all binaries
@@ -46,12 +46,12 @@ tasks:
   run:
     desc: Run flowbot server
     cmds:
-      - go run -tags swagger github.com/flowline-io/flowbot/cmd
+      - go run -tags swagger ./cmd
 
   run:agent:
     desc: Run flowbot agent
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/agent
+      - go run ./cmd/agent
 
   # Code quality tasks
   cloc:
@@ -62,18 +62,18 @@ tasks:
   scc:
     desc: Generate code statistics using scc
     cmds:
-      - scc > ./cloc/{{ now.Format "2006-01-02" }}.txt
+      - go tool scc > ./cloc/{{ now.Format "2006-01-02" }}.txt
 
   lint:
     desc: Run static code analysis
     cmds:
-      - revive -config revive.toml -formatter friendly ./...
+      - go tool revive -config revive.toml -formatter friendly ./...
       - task: lint:action
 
   lint:action:
     desc: Lint GitHub Actions workflow files
     cmds:
-      - actionlint
+      - go tool actionlint
 
   format:
     desc: Format code (Go and other files)
@@ -90,17 +90,17 @@ tasks:
   secure:
     desc: Check for Go vulnerabilities
     cmds:
-      - govulncheck ./...
+      - go tool govulncheck ./...
 
   leak:
     desc: Find secrets with Gitleaks
     cmds:
-      - gitleaks git -v
+      - go tool gitleaks git -v
 
   gosec:
     desc: Run Go security checker
     cmds:
-      - gosec ./...
+      - go tool gosec ./...
 
   # Test tasks
   test:
@@ -124,79 +124,69 @@ tasks:
   swagger:
     desc: Generate Swagger API documentation
     cmds:
-      - swag init -g cmd/main.go -o ./docs/api
-      - swag fmt -g cmd/main.go
+      - go tool swag init -g cmd/main.go -o ./docs/api
+      - go tool swag fmt -g cmd/main.go
 
   doc:
     desc: Generate database schema documentation
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer doc
+      - go run ./cmd/composer doc
 
   # Code generation tasks
   dao:
     desc: Generate DAO code from database
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer dao
+      - go run ./cmd/composer dao
 
   generator:bot:
     desc: Generate bot code (task generator:bot NAME=botname RULE=command,form)
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer generator bot -name {{.NAME | default "example"}} -rule {{.RULE | default "command"}}
+      - go run ./cmd/composer generator bot -name {{.NAME | default "example"}} -rule {{.RULE | default "command"}}
 
   generator:vendor:
     desc: Generate vendor API code (task generator:vendor NAME=vendorname)
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name {{.NAME | default "example"}}
+      - go run ./cmd/composer generator vendor -name {{.NAME | default "example"}}
 
   # Database migration tasks
   migrate:
     desc: Import database migrations
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer migrate import
+      - go run ./cmd/composer migrate import
 
   migration:
     desc: Create new migration file (task migration NAME=migration_name)
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name {{.NAME | default .CLI_ARGS | default "migration"}}
+      - go run ./cmd/composer migrate migration -name {{.NAME | default .CLI_ARGS | default "migration"}}
 
   # Workflow tasks
   workflow:import:
     desc: Import workflow configuration (task workflow:import TOKEN=xxx PATH=./path/to/workflow.yaml)
     cmds:
-      - go run github.com/flowline-io/flowbot/cmd/composer workflow import -token {{.TOKEN}} -path {{.PATH}}
+      - go run ./cmd/composer workflow import -token {{.TOKEN}} -path {{.PATH}}
 
   # Development tools
   tools:
     desc: Install all development tools
     cmds:
-      - go install github.com/go-task/task/v3/cmd/task@latest
-      - go install github.com/mgechev/revive@latest
-      - go install github.com/swaggo/swag/cmd/swag@latest
-      - go install golang.org/x/vuln/cmd/govulncheck@latest
-      - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-      - go install github.com/zricethezav/gitleaks/v8@v8.24.2
-      - go install github.com/goreleaser/goreleaser/v2@latest
-      - go install github.com/air-verse/air@latest
-      - go install github.com/securego/gosec/v2/cmd/gosec@latest
-      - go install github.com/boyter/scc/v3@latest
-      - go install github.com/rhysd/actionlint/cmd/actionlint@latest
-      - go install github.com/riverqueue/river/cmd/river@latest
+      - go mod download
       - npm install -g prettier
 
   # Release tasks
   snapshot:
     desc: Create snapshot release
     cmds:
-      - goreleaser release --snapshot --clean
+      - go tool goreleaser release --snapshot --clean
 
   # Utility tasks
   clean:
     desc: Clean build artifacts and temporary files
     cmds:
       - go clean -cache -testcache
-      - rm -rf bin/ tmp/ coverage.out coverage.html || true
+      - cmd: rm -rf bin/ tmp/ coverage.out coverage.html
+        ignore_error: true
 
   air:
     desc: Run with live reload using air
     cmds:
-      - air --build.cmd "go build -o flowbot cmd/main.go" --build.bin "./flowbot"
+      - air -c .air.toml
