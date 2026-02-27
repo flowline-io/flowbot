@@ -136,20 +136,16 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 // HandlePageRoutes registers go-app PWA static resource routes on the given Fiber app.
 // Used by the PWA server (cmd/app) which serves the frontend.
 // apiBaseURL is forwarded to the Wasm client via environment variables.
+//
+// A catch-all fallback is registered so the go-app Handler can serve all
+// generated assets (app.css, app.js, app-worker.js, wasm_exec.js, manifest,
+// web/* resources, etc.) without having to enumerate every path explicitly.
 func HandlePageRoutes(a *fiber.App, apiBaseURL string) {
 	appHandler := NewAppHandler(apiBaseURL)
 	httpHandler := adaptor.HTTPHandler(appHandler)
 
-	// Admin page entry (all /admin/* paths return the SPA HTML)
-	a.Get("/admin", httpHandler)
-	a.Get("/admin/*", httpHandler)
-
-	// go-app runtime assets
-	a.Get("/web/*", httpHandler)
-	a.Get("/app.js", httpHandler)
-	a.Get("/app-worker.js", httpHandler)
-	a.Get("/manifest.webmanifest", httpHandler)
-	a.Get("/wasm_exec.js", httpHandler)
+	// Catch-all: let go-app handle every request (SPA pages + static assets).
+	a.Use(httpHandler)
 
 	log.Println("admin page routes registered")
 }
