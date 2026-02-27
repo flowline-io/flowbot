@@ -1,10 +1,22 @@
-name: Build
+name: BuildAgent
 
 on:
   push:
     branches:
       - '*'
+    paths:
+      - cmd/agent/**
+      - pkg/**
+      - version/**
+      - go.mod
+      - go.sum
   pull_request:
+    paths:
+      - cmd/agent/**
+      - pkg/**
+      - version/**
+      - go.mod
+      - go.sum
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,14 +40,12 @@ jobs:
         with:
           version: 3.x
 
-      - name: Lint
-        run: |
-          go env
-          go install github.com/mgechev/revive@latest
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
-          go mod download
-          task lint
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          install-only: true
+          version: '~> v2'
 
-      - name: Build server
+      - name: Build agent
         run: |
-          task build
+          task snapshot
