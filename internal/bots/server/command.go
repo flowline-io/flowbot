@@ -176,6 +176,7 @@ var commandRules = []command.Rule{
 			}
 			_, _, err = store.FileSystem.Upload(&types.FileDef{
 				User:     ctx.AsUser.String(),
+				Name:     "check.txt",
 				Size:     f.Size(),
 				MimeType: "text/plain",
 				Location: "check",

@@ -135,15 +135,13 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		if _, err = store.Database.FileFinishUpload(fdef, false, fdef.Size); err != nil {
-			flog.Warn("failed to update file record %v %v", fdef.Id, err)
-			return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
+		if _, finishErr := store.Database.FileFinishUpload(fdef, false, 0); finishErr != nil {
+			flog.Warn("failed to update file record %v %v", fdef.Id, finishErr)
 		}
-
 		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
 	}
 
-	if _, err = store.Database.FileFinishUpload(fdef, true, fdef.Size); err != nil {
+	if _, err = store.Database.FileFinishUpload(fdef, true, info.Size); err != nil {
 		flog.Warn("failed to update file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
@@ -158,11 +156,29 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 
 // Download processes request for file download.
 // The returned ReadSeekCloser must be closed after use.
-func (ah *handler) Download(_ string) (*types.FileDef, media.ReadSeekCloser, error) {
-	return nil, nil, protocol.ErrUnsupported.New("unsupport download")
+func (ah *handler) Download(fUrl string) (*types.FileDef, media.ReadSeekCloser, error) {
+	fid := ah.GetIdFromUrl(fUrl)
+	if fid.IsZero() {
+		return nil, nil, protocol.ErrNotFound.New("fid not found")
+	}
+
+	fd, err := store.Database.FileGet(fid.String())
+	if err != nil {
+		return nil, nil, fmt.Errorf("file not found %v, %w", fid, err)
+	}
+	if fd == nil {
+		return nil, nil, protocol.ErrNotFound.New("fid not found")
+	}
+
+	obj, err := ah.svc.GetObject(context.Background(), ah.conf.BucketName, fd.Location, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to download file %v from minio, %w", fd.Location, err)
+	}
+
+	return fd, obj, nil
 }
 
-// Delete deletes files from aws by provided slice of locations.
+// Delete deletes files from minio by provided slice of locations.
 func (ah *handler) Delete(locations []string) error {
 	objectsCh := make(chan minio.ObjectInfo)
 
@@ -177,12 +193,14 @@ func (ah *handler) Delete(locations []string) error {
 	// Call RemoveObjects API
 	errorCh := ah.svc.RemoveObjects(context.Background(), ah.conf.BucketName, objectsCh, minio.RemoveObjectsOptions{})
 
-	// Print errors received from RemoveObjects API
+	// Collect all errors from RemoveObjects API
+	var errs []error
 	for e := range errorCh {
-		return fmt.Errorf("failed to remove %s, error: %w", e.ObjectName, e.Err)
+		flog.Warn("failed to remove %s: %v", e.ObjectName, e.Err)
+		errs = append(errs, fmt.Errorf("failed to remove %s: %w", e.ObjectName, e.Err))
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 // GetIdFromUrl converts an attahment URL to a file UID.

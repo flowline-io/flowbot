@@ -189,6 +189,7 @@ var commandRules = []command.Rule{
 
 			url, size, err := store.FileSystem.Upload(&types.FileDef{
 				User:     ctx.AsUser.String(),
+				Name:     "README.md",
 				Size:     fileSize,
 				MimeType: "text/markdown",
 				Location: "example",

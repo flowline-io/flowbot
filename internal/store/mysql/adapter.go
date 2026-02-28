@@ -145,16 +145,19 @@ func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) 
 	if success {
 		res.State = model.FileFinish
 		res.Size = size
-		_, err = q.
-			Where(q.Fid.Eq(fd.Id)).
-			Updates(res)
-		return fd, err
 	} else {
-		_, err = q.
-			Where(q.Fid.Eq(fd.Id)).
-			Delete()
+		res.State = model.FileFailed
+	}
+	_, err = q.
+		Where(q.Fid.Eq(fd.Id)).
+		Updates(res)
+	if err != nil {
 		return nil, err
 	}
+	if success {
+		return fd, nil
+	}
+	return nil, nil
 }
 
 func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
@@ -182,17 +185,36 @@ func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 
 func (a *adapter) FileDeleteUnused(olderThan time.Time, limit int) ([]string, error) {
 	q := dao.Q.Fileupload
+	// Find files that are not in FileFinish state and older than the given time.
 	list, err := q.
-		Where(q.CreatedAt.Lt(olderThan)).
+		Where(q.State.Neq(model.FileFinish), q.CreatedAt.Lt(olderThan)).
 		Limit(limit).
 		Find()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]string, len(list))
-	for i, f := range list {
-		result[i] = f.UID
+	if len(list) == 0 {
+		return nil, nil
 	}
+
+	// Collect locations for actual file deletion.
+	result := make([]string, 0, len(list))
+	fids := make([]string, 0, len(list))
+	for _, f := range list {
+		if f.Location != "" {
+			result = append(result, f.Location)
+		}
+		fids = append(fids, f.Fid)
+	}
+
+	// Delete the database records.
+	if len(fids) > 0 {
+		_, err = q.Where(q.Fid.In(fids...)).Delete()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return result, nil
 }
 

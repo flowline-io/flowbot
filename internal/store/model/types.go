@@ -346,6 +346,7 @@ const (
 	FileStateUnknown FileState = iota
 	FileStart
 	FileFinish
+	FileFailed
 )
 
 func (j FileState) Value() (driver.Value, error) {

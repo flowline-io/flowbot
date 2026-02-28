@@ -47,7 +47,9 @@ var fileNamePattern = regexp.MustCompile(`^[-_A-Za-z0-9]+`)
 func GetIdFromUrl(url, serveUrl string) types.Uid {
 	dir, fname := path.Split(path.Clean(url))
 
-	if dir != "" && dir != serveUrl {
+	// Normalize both paths for comparison: path.Clean removes trailing slash,
+	// so we need to clean serveUrl as well.
+	if dir != "" && path.Clean(dir) != path.Clean(serveUrl) {
 		return types.ZeroUid
 	}
 

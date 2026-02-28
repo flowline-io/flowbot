@@ -69,6 +69,11 @@ func (fh *fshandler) Headers(req *http.Request, serve bool) (http.Header, int, e
 
 // Upload processes request for file upload. The file is given as io.Reader.
 func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int64, error) {
+	// Ensure file ID is set.
+	if fdef.Id == "" {
+		fdef.Id = types.Id()
+	}
+
 	// FIXME: create two-three levels of nested directories. Serving from a single directory
 	// with tens of thousands of files in it will not perform well.
 
@@ -97,7 +102,15 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 	_ = outfile.Close()
 	if err != nil {
 		_ = os.Remove(fdef.Location)
+		if _, finishErr := store.Database.FileFinishUpload(fdef, false, 0); finishErr != nil {
+			flog.Warn("failed to update file record %v %v", fdef.Id, finishErr)
+		}
 		return "", 0, fmt.Errorf("failed to upload file %v, %w", fdef.Location, err)
+	}
+
+	if _, err = store.Database.FileFinishUpload(fdef, true, size); err != nil {
+		flog.Warn("failed to update file record %v %v", fdef.Id, err)
+		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
 
 	fname := fdef.Id
@@ -137,16 +150,19 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 
 // Delete deletes files from storage by provided slice of locations.
 func (fh *fshandler) Delete(locations []string) error {
+	var errs []error
 	for _, loc := range locations {
 		err := os.Remove(loc)
-		var e *os.PathError
-		if errors.As(err, &e) {
-			if !errors.Is(err, os.ErrNotExist) {
-				flog.Warn("fs: error deleting file %v %v", loc, err)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				// File already gone, not an error.
+				continue
 			}
+			flog.Warn("fs: error deleting file %v %v", loc, err)
+			errs = append(errs, err)
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // GetIdFromUrl converts an attahment URL to a file UID.

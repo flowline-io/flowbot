@@ -50,6 +50,7 @@ func upload(ctx fiber.Ctx) error {
 					ObjHeader: types.ObjHeader{
 						Id: types.Id(),
 					},
+					Name:     part.Filename,
 					MimeType: mimeType,
 					Size:     part.Size,
 					Location: "/image",
