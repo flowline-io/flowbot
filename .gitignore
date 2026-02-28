@@ -45,3 +45,6 @@ flowbot.log
 
 # app
 web/app.wasm
+
+# testing
+coverage.out
