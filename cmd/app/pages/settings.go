@@ -67,15 +67,25 @@ func (s *Settings) loadSettings(ctx app.Context) {
 // Render renders the system settings form.
 func (s *Settings) Render() app.UI {
 	return components.WithLayout(
-		app.H1().Class("text-3xl font-bold mb-6").Text("System Settings"),
+		// Page header
+		app.Div().Class("mb-8").Body(
+			app.H1().Class("text-3xl font-bold tracking-tight").Text("System Settings"),
+			app.P().Class("text-base-content/50 mt-1").Text("Configure your Flowbot instance"),
+		),
 
 		app.If(s.loading, func() app.UI {
-			return app.Div().Class("flex justify-center py-12").Body(
-				app.Span().Class("loading loading-spinner loading-lg"),
+			return app.Div().Class("flex justify-center py-16").Body(
+				app.Span().Class("loading loading-spinner loading-lg text-primary"),
 			)
 		}).Else(func() app.UI {
 			return app.Div().Class("card bg-base-100 shadow-md max-w-2xl").Body(
-				app.Div().Class("card-body").Body(
+				app.Div().Class("card-body gap-0").Body(
+					// Section: General
+					app.Div().Class("flex items-center gap-2 mb-4").Body(
+						app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`),
+						app.H3().Class("font-semibold text-base").Text("General"),
+					),
+
 					// Site name
 					s.formField("Site Name", "text", s.siteName, "Enter site name", func(ctx app.Context, e app.Event) {
 						s.siteName = ctx.JSSrc().Get("value").String()
@@ -86,13 +96,23 @@ func (s *Settings) Render() app.UI {
 						s.logoURL = ctx.JSSrc().Get("value").String()
 						s.debounceSave(ctx)
 					}),
+
+					// Divider
+					app.Div().Class("divider my-4"),
+
+					// Section: SEO & Limits
+					app.Div().Class("flex items-center gap-2 mb-4").Body(
+						app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>`),
+						app.H3().Class("font-semibold text-base").Text("SEO & Limits"),
+					),
+
 					// SEO description
 					app.Div().Class("form-control mb-4").Body(
 						app.Label().Class("label").Body(
 							app.Span().Class("label-text font-medium").Text("SEO Description"),
 						),
 						app.Textarea().
-							Class("textarea textarea-bordered h-24").
+							Class("textarea textarea-bordered h-24 leading-relaxed").
 							Placeholder("Enter SEO description").
 							Text(s.seoDescription).
 							OnChange(func(ctx app.Context, e app.Event) {
@@ -107,14 +127,16 @@ func (s *Settings) Render() app.UI {
 					}),
 
 					// Submit button
-					app.Div().Class("mt-6").Body(
+					app.Div().Class("mt-6 flex justify-end").Body(
 						app.Button().
-							Class("btn btn-primary").
+							Class("btn btn-primary gap-2").
 							Disabled(s.saving).
 							OnClick(s.handleSave).
 							Body(
 								app.If(s.saving, func() app.UI {
-									return app.Span().Class("loading loading-spinner loading-sm mr-2")
+									return app.Span().Class("loading loading-spinner loading-sm")
+								}).Else(func() app.UI {
+									return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`)
 								}),
 								app.Text("Save Settings"),
 							),

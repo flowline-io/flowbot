@@ -40,13 +40,14 @@ func (n *Navbar) OnNav(ctx app.Context) {
 
 // Render renders the navigation bar.
 func (n *Navbar) Render() app.UI {
-	return app.Div().Class("navbar bg-base-100 shadow-md sticky top-0 z-50").Body(
+	return app.Div().Class("navbar bg-base-100 border-b border-base-200 sticky top-0 z-50 backdrop-blur-sm bg-base-100/95").Body(
 		// Left: Logo and site name
 		app.Div().Class("flex-1").Body(
-			app.A().Href("/admin").Class("btn btn-ghost text-xl normal-case").Body(
-				// Logo icon (SVG placeholder)
-				app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`),
-				app.Text("Flowbot Admin"),
+			app.A().Href("/admin").Class("btn btn-ghost text-xl normal-case gap-2").Body(
+				app.Div().Class("w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center").Body(
+					app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`),
+				),
+				app.Span().Class("font-bold").Text("Flowbot"),
 			),
 		),
 
@@ -112,7 +113,7 @@ func (n *Navbar) Render() app.UI {
 
 // navLink renders a single navigation link.
 func (n *Navbar) navLink(href, label string) app.UI {
-	return app.A().Href(href).Class("btn btn-ghost btn-sm normal-case").Text(label)
+	return app.A().Href(href).Class("btn btn-ghost btn-sm normal-case font-medium").Text(label)
 }
 
 // avatarInitial returns the first character of the user's name (for default avatar).

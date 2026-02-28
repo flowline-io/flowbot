@@ -13,6 +13,7 @@ import (
 // registerRoutes registers all frontend page routes.
 // Shared by both Wasm and native server builds.
 func registerRoutes() {
+	app.Route("/", func() app.Composer { return &pages.Home{} })
 	app.Route("/admin", func() app.Composer { return &pages.Dashboard{} })
 	app.Route("/admin/login", func() app.Composer { return &pages.Login{} })
 	app.Route("/admin/settings", func() app.Composer { return &pages.Settings{} })
