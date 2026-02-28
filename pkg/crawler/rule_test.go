@@ -14,7 +14,7 @@ func skipIfNoNetwork(t *testing.T, url string) {
 	if err != nil {
 		t.Skipf("skipping test: network not available: %v", err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Skipf("skipping test: %s returned status %d", url, resp.StatusCode)
 	}
