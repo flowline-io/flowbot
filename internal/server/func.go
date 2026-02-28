@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
+	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -53,6 +54,10 @@ func newProvider(category string) providers.OAuthProvider {
 		provider = github.NewGithub(id.String(), secret.String(), "", "")
 	case dropbox.ID:
 		provider = dropbox.NewDropbox("", "", "", "")
+	case slackProvider.ID:
+		id, _ := providers.GetConfig(slackProvider.ID, slackProvider.ClientIdKey)
+		secret, _ := providers.GetConfig(slackProvider.ID, slackProvider.ClientSecretKey)
+		provider = slackProvider.NewSlack(id.String(), secret.String(), "", "")
 	default:
 		return nil
 	}

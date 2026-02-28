@@ -120,6 +120,19 @@ func DevLogin(token string) (string, error) {
 	return resp.Token, nil
 }
 
+// ExchangeCode swaps a one-time OAuth exchange code for a session token.
+func ExchangeCode(code string) (string, error) {
+	data, err := doRequest("", "POST", "/auth/exchange", admin.CodeExchangeRequest{Code: code})
+	if err != nil {
+		return "", err
+	}
+	var resp admin.TokenResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return "", err
+	}
+	return resp.Token, nil
+}
+
 // GetCurrentUser retrieves information about the currently logged-in user.
 func GetCurrentUser(token string) (*admin.UserInfo, error) {
 	data, err := doRequest(token, "GET", "/auth/me", nil)

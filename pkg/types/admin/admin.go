@@ -91,3 +91,9 @@ type SlackOAuthURLResponse struct {
 type TokenResponse struct {
 	Token string `json:"token"`
 }
+
+// CodeExchangeRequest is the payload for exchanging a one-time OAuth code
+// for a session token.
+type CodeExchangeRequest struct {
+	Code string `json:"code"`
+}

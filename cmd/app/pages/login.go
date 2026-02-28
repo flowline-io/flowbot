@@ -18,7 +18,7 @@ type Login struct {
 	errMsg string
 }
 
-// OnNav checks the URL for a token parameter (sent by the OAuth callback).
+// OnNav checks the URL for a code or error parameter from the OAuth callback.
 func (l *Login) OnNav(ctx app.Context) {
 	// If already logged in, navigate directly to the dashboard
 	if state.IsAuthenticated(ctx) {
@@ -26,12 +26,28 @@ func (l *Login) OnNav(ctx app.Context) {
 		return
 	}
 
-	// Check whether the URL carries a token from the OAuth callback
-	token := ctx.Page().URL().Query().Get("token")
-	if token != "" {
-		state.SetToken(ctx, token)
-		components.ShowToast(ctx, "Login successful", "success")
-		ctx.Navigate("/admin")
+	// Check whether the URL carries an error from the OAuth callback
+	if errMsg := ctx.Page().URL().Query().Get("error"); errMsg != "" {
+		l.errMsg = errMsg
+	}
+
+	// Check whether the URL carries a one-time exchange code from the OAuth callback
+	code := ctx.Page().URL().Query().Get("code")
+	if code != "" {
+		l.loading = true
+		ctx.Async(func() {
+			token, err := api.ExchangeCode(code)
+			ctx.Dispatch(func(ctx app.Context) {
+				l.loading = false
+				if err != nil {
+					l.errMsg = "Login failed: " + err.Error()
+					return
+				}
+				state.SetToken(ctx, token)
+				components.ShowToast(ctx, "Login successful", "success")
+				ctx.Navigate("/admin")
+			})
+		})
 	}
 }
 

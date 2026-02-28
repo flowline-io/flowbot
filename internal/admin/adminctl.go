@@ -10,9 +10,12 @@
 package admin
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,6 +23,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/flowline-io/flowbot/pkg/types/admin"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/fiber/v3"
@@ -32,6 +36,34 @@ import (
 type Options struct {
 	// SlackClientID is the Slack OAuth application client ID.
 	SlackClientID string
+	// SlackClientSecret is the Slack OAuth application client secret.
+	SlackClientSecret string
+	// OAuthStore is an optional callback invoked after a successful Slack OAuth
+	// exchange. It receives the user ID and the access token + extra data so
+	// the caller can persist them (e.g. to the oauth table). When nil the
+	// token is only kept in memory.
+	OAuthStore func(uid, accessToken string, extra []byte) error
+}
+
+// tokenTTL is the session token lifetime.
+const tokenTTL = 24 * time.Hour
+
+// stateTTL is the OAuth state parameter lifetime.
+const stateTTL = 10 * time.Minute
+
+// codeExchangeTTL is the one-time code lifetime.
+const codeExchangeTTL = 2 * time.Minute
+
+// tokenEntry wraps user info with an expiration timestamp.
+type tokenEntry struct {
+	User      admin.UserInfo
+	ExpiresAt time.Time
+}
+
+// timedValue is a generic value with an expiration timestamp.
+type timedValue struct {
+	Value     string
+	ExpiresAt time.Time
 }
 
 // ---------------------------------------------------------------------------
@@ -44,7 +76,9 @@ type AdminController struct {
 	containers []admin.Container
 	nextID     atomic.Int64
 	settings   admin.Settings
-	tokens     sync.Map // token(string) -> admin.UserInfo
+	tokens     sync.Map // token(string) -> tokenEntry
+	states     sync.Map // state(string) -> timedValue (CSRF nonce)
+	codes      sync.Map // code(string)  -> timedValue (one-time exchange code -> session token)
 	opts       Options
 }
 
@@ -61,7 +95,35 @@ func NewAdminController(opts Options) *AdminController {
 	}
 	ctl.nextID.Store(1)
 	ctl.initMockData()
+	go ctl.cleanupLoop()
 	return ctl
+}
+
+// cleanupLoop periodically removes expired tokens, states, and codes.
+func (ac *AdminController) cleanupLoop() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		now := time.Now()
+		ac.tokens.Range(func(key, value any) bool {
+			if entry, ok := value.(tokenEntry); ok && now.After(entry.ExpiresAt) {
+				ac.tokens.Delete(key)
+			}
+			return true
+		})
+		ac.states.Range(func(key, value any) bool {
+			if entry, ok := value.(timedValue); ok && now.After(entry.ExpiresAt) {
+				ac.states.Delete(key)
+			}
+			return true
+		})
+		ac.codes.Range(func(key, value any) bool {
+			if entry, ok := value.(timedValue); ok && now.After(entry.ExpiresAt) {
+				ac.codes.Delete(key)
+			}
+			return true
+		})
+	}
 }
 
 // initMockData initializes example container data.
@@ -117,6 +179,7 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 	// Auth endpoints (no token required)
 	adminAPI.Get("/auth/slack/url", ac.getSlackOAuthURL)
 	adminAPI.Get("/auth/slack/callback", ac.handleSlackCallback)
+	adminAPI.Post("/auth/exchange", ac.exchangeCode)
 	adminAPI.Post("/auth/dev-login", ac.devLogin)
 
 	// Authenticated API endpoints
@@ -168,8 +231,14 @@ func (ac *AdminController) adminAuth(handler fiber.Handler) fiber.Handler {
 		}
 
 		token := parts[1]
-		if _, ok := ac.tokens.Load(token); !ok {
+		v, ok := ac.tokens.Load(token)
+		if !ok {
 			return protocol.ErrNotAuthorized.New("token invalid or expired")
+		}
+		entry, ok := v.(tokenEntry)
+		if !ok || time.Now().After(entry.ExpiresAt) {
+			ac.tokens.Delete(token)
+			return protocol.ErrNotAuthorized.New("token expired")
 		}
 
 		ctx.Locals("admin_token", token)
@@ -181,8 +250,9 @@ func (ac *AdminController) adminAuth(handler fiber.Handler) fiber.Handler {
 func (ac *AdminController) getTokenUser(ctx fiber.Ctx) *admin.UserInfo {
 	token, _ := ctx.Locals("admin_token").(string)
 	if v, ok := ac.tokens.Load(token); ok {
-		user := v.(admin.UserInfo)
-		return &user
+		if entry, ok := v.(tokenEntry); ok {
+			return &entry.User
+		}
 	}
 	return nil
 }
@@ -195,47 +265,161 @@ func (ac *AdminController) getTokenUser(ctx fiber.Ctx) *admin.UserInfo {
 func (ac *AdminController) getSlackOAuthURL(ctx fiber.Ctx) error {
 	clientID := ac.opts.SlackClientID
 	if clientID == "" {
-		clientID = "YOUR_SLACK_CLIENT_ID"
+		return protocol.ErrBadParam.New("Slack client ID is not configured")
 	}
 
-	scheme := "http"
-	host := ctx.Hostname()
-	redirectURI := fmt.Sprintf("%s://%s/service/admin/auth/slack/callback", scheme, host)
+	redirectURI := ac.buildRedirectURI(ctx)
+	state := ac.generateState()
 
-	oauthURL := fmt.Sprintf(
-		"https://slack.com/oauth/v2/authorize?client_id=%s&user_scope=identity.basic,identity.avatar&redirect_uri=%s",
-		clientID,
-		redirectURI,
-	)
+	// Reuse the Slack provider to construct the authorize URL.
+	provider := slackProvider.NewSlack(clientID, "", redirectURI, "")
+	provider.SetState(state)
 
 	return ctx.JSON(protocol.NewSuccessResponse(admin.SlackOAuthURLResponse{
-		URL: oauthURL,
+		URL: provider.GetAuthorizeURL(),
 	}))
+}
+
+// generateState creates a cryptographically random state string and stores it
+// with a TTL for later validation.
+func (ac *AdminController) generateState() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	state := hex.EncodeToString(b)
+	ac.states.Store(state, timedValue{
+		Value:     state,
+		ExpiresAt: time.Now().Add(stateTTL),
+	})
+	return state
+}
+
+// validateState checks that the state parameter returned by Slack matches a
+// pending state and has not expired. The state is consumed (deleted) on success.
+func (ac *AdminController) validateState(state string) bool {
+	v, ok := ac.states.LoadAndDelete(state)
+	if !ok {
+		return false
+	}
+	entry, ok := v.(timedValue)
+	if !ok {
+		return false
+	}
+	return time.Now().Before(entry.ExpiresAt)
+}
+
+// buildRedirectURI constructs the OAuth callback URL based on the current request.
+func (ac *AdminController) buildRedirectURI(ctx fiber.Ctx) string {
+	scheme := "https"
+	if ctx.Protocol() == "http" {
+		scheme = "http"
+	}
+	return fmt.Sprintf("%s://%s/service/admin/auth/slack/callback", scheme, ctx.Hostname())
 }
 
 // handleSlackCallback handles the Slack OAuth callback.
 func (ac *AdminController) handleSlackCallback(ctx fiber.Ctx) error {
-	code := ctx.Query("code")
-	if code == "" {
-		return protocol.ErrBadParam.New("missing code parameter")
+	// Validate the CSRF state parameter first.
+	state := ctx.Query("state")
+	if state == "" || !ac.validateState(state) {
+		log.Printf("slack oauth callback: invalid or expired state")
+		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Invalid OAuth state — please try again"))
 	}
 
-	// TODO: In production, exchange the code for user info via Slack API:
-	//   1. POST https://slack.com/api/oauth.v2.access to get access_token
-	//   2. GET https://slack.com/api/users.identity to get user info
-	// Currently a mock implementation that generates a test user.
+	code := ctx.Query("code")
+	if code == "" {
+		errMsg := ctx.Query("error", "missing code parameter")
+		log.Printf("slack oauth callback error: %s", errMsg)
+		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape(errMsg))
+	}
 
-	log.Printf("slack oauth callback received, code=%s", code)
+	clientID := ac.opts.SlackClientID
+	clientSecret := ac.opts.SlackClientSecret
+	if clientID == "" || clientSecret == "" {
+		log.Printf("slack oauth: client ID or secret not configured")
+		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Slack OAuth is not configured"))
+	}
+
+	redirectURI := ac.buildRedirectURI(ctx)
+
+	// Step 1: Exchange the authorization code for an access token via the Slack provider.
+	provider := slackProvider.NewSlack(clientID, clientSecret, redirectURI, "")
+	kv, err := provider.GetAccessToken(ctx)
+	if err != nil {
+		log.Printf("slack oauth token exchange failed: %v", err)
+		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Slack authentication failed"))
+	}
+
+	accessToken, _ := kv["token"].(string)
+
+	// Step 2: Use the same provider instance to fetch the user's identity
+	// (accessToken is already set internally after GetAccessToken).
+	identity, err := provider.GetIdentity()
+	if err != nil {
+		log.Printf("slack oauth identity fetch failed: %v", err)
+		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Failed to retrieve Slack user info"))
+	}
 
 	user := admin.UserInfo{
-		UID:      "slack-user-" + code[:8],
-		Name:     "Slack User",
-		Avatar:   "",
+		UID:      identity.User.ID,
+		Name:     identity.User.Name,
+		Avatar:   identity.User.Image48,
 		Platform: "slack",
 	}
 
-	token := ac.createToken(user)
-	return ctx.Redirect().To(fmt.Sprintf("/admin/login?token=%s", token))
+	// Step 3: Persist the OAuth token to the database (if a store callback is provided).
+	if ac.opts.OAuthStore != nil {
+		extra, _ := kv["extra"].([]byte)
+		if err := ac.opts.OAuthStore(user.UID, accessToken, extra); err != nil {
+			log.Printf("slack oauth store failed: %v", err)
+			// Non-fatal: the user can still log in even if persistence fails.
+		}
+	}
+
+	log.Printf("slack oauth login successful: uid=%s name=%s", user.UID, user.Name)
+
+	// Step 4: Create a session token and wrap it in a one-time exchange code
+	// so the real token never appears in the URL / browser history.
+	sessionToken := ac.createToken(user)
+	exchangeCode := ac.createExchangeCode(sessionToken)
+	return ctx.Redirect().To("/admin/login?code=" + url.QueryEscape(exchangeCode))
+}
+
+// exchangeCode handles POST /auth/exchange — swaps a one-time code for a
+// session token. The code is consumed (deleted) on first use.
+func (ac *AdminController) exchangeCode(ctx fiber.Ctx) error {
+	var req admin.CodeExchangeRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+	if req.Code == "" {
+		return protocol.ErrBadParam.New("missing code")
+	}
+
+	v, ok := ac.codes.LoadAndDelete(req.Code)
+	if !ok {
+		return protocol.ErrNotAuthorized.New("invalid or expired code")
+	}
+	entry, ok := v.(timedValue)
+	if !ok || time.Now().After(entry.ExpiresAt) {
+		return protocol.ErrNotAuthorized.New("code expired")
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(admin.TokenResponse{
+		Token: entry.Value,
+	}))
+}
+
+// createExchangeCode generates a short-lived one-time code that maps to a
+// session token. The caller redirects with this code instead of the real token.
+func (ac *AdminController) createExchangeCode(sessionToken string) string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	code := hex.EncodeToString(b)
+	ac.codes.Store(code, timedValue{
+		Value:     sessionToken,
+		ExpiresAt: time.Now().Add(codeExchangeTTL),
+	})
+	return code
 }
 
 // devLogin performs a quick dev-mode login (no Slack OAuth required).
@@ -254,10 +438,13 @@ func (ac *AdminController) devLogin(ctx fiber.Ctx) error {
 	}))
 }
 
-// createToken generates an access token and stores the user info mapping.
+// createToken generates an access token with TTL and stores the user info mapping.
 func (ac *AdminController) createToken(user admin.UserInfo) string {
 	token := uuid.New().String()
-	ac.tokens.Store(token, user)
+	ac.tokens.Store(token, tokenEntry{
+		User:      user,
+		ExpiresAt: time.Now().Add(tokenTTL),
+	})
 	return token
 }
 
