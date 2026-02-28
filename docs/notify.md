@@ -1,6 +1,17 @@
 # Notification Configuration
 
-This document describes the notification configuration templates supported by FlowBot.
+This document describes the notification providers supported by Flowbot.
+
+Notification providers are implemented in `pkg/notify/`.
+
+## Supported Providers
+
+| Provider | Directory | Description |
+|----------|-----------|-------------|
+| Slack | `slack/` | Channel/user notifications |
+| Pushover | `pushover/` | Mobile push notifications |
+| ntfy | `ntfy/` | Self-hosted push notifications |
+| Message Pusher | `message-pusher/` | Custom internal notifications |
 
 ## Slack
 
@@ -51,6 +62,27 @@ pushover://u123abc@a456def
 pushover://u123abc@a456def/iphone,android
 ```
 
+## ntfy
+
+Send push notifications via [ntfy](https://ntfy.sh), a self-hosted push notification service.
+
+### Configuration Format
+
+```
+ntfy://{server}/{topic}
+```
+
+### Parameters
+
+- `server` - ntfy server URL (e.g., `ntfy.sh` or your self-hosted instance)
+- `topic` - Target topic name
+
+### Example
+
+```
+ntfy://ntfy.sh/my-alerts
+```
+
 ## Message Pusher
 
 Custom message pusher service for internal notifications.
@@ -79,32 +111,4 @@ message-pusher://admin@example.com/general/abc123token
 
 # Using host and port
 message-pusher://admin@192.168.1.100:8080/alerts/xyz789token
-```
-
-## Usage in Configuration
-
-Add notification URLs to your FlowBot configuration:
-
-```yaml
-notifications:
-  channels:
-    - name: "slack-alerts"
-      url: "slack://YOUR_BOT_TOKEN/YOUR_TEAM_ID/YOUR_CHANNEL_ID"
-    - name: "mobile-push"
-      url: "pushover://YOUR_USER_KEY@YOUR_APP_TOKEN"
-    - name: "internal-alerts"
-      url: "message-pusher://USERNAME@HOSTNAME:PORT/CHANNEL/TOKEN"
-```
-
-## Testing Notifications
-
-Use the FlowBot API to test notification configurations:
-
-```bash
-curl -X POST http://localhost:8080/notify/test \
-  -H "Content-Type: application/json" \
-  -d '{
-    "channel": "slack-alerts",
-    "message": "Test notification"
-  }'
 ```

@@ -1,41 +1,84 @@
 # Deployment Documentation
 
-This directory contains deployment-related documentation and configuration files for FlowBot.
+This directory contains deployment-related documentation and configuration files for Flowbot.
 
 ## File Descriptions
 
 ### `flowbot-agent.service`
 
-Systemd service configuration file for running FlowBot Agent as a system service on Linux systems.
+Systemd service configuration file for running Flowbot Agent as a system service on Linux.
+
+## Build
+
+All binaries are built using [Task](https://taskfile.dev):
+
+```bash
+# Build main server
+task build
+
+# Build agent
+task build:agent
+
+# Build admin PWA (Wasm + server)
+task build:app
+
+# Build all
+task build:all
+```
 
 ## Deployment Methods
 
-### 1. Systemd Service Deployment (Recommended)
+### 1. Docker Deployment (Recommended)
 
-#### Installation Steps
+Two Dockerfiles are available in the `deployments/` directory:
 
-1. Copy executable to system directory:
+| File | Image | Description |
+|------|-------|-------------|
+| `Dockerfile` | `flowbot` | Main server (single binary) |
+| `Dockerfile.app` | `flowbot-app` | Admin PWA (multi-stage: Wasm + server on Alpine) |
+
+#### Build Docker Images
 
 ```bash
-sudo cp flowbot /usr/local/bin/
-sudo chmod +x /usr/local/bin/flowbot
+# Main server
+docker build -f deployments/Dockerfile -t flowbot .
+
+# Admin PWA
+docker build -f deployments/Dockerfile.app -t flowbot-app .
 ```
 
-2. Install service file:
+#### Run
 
 ```bash
+# Main server
+docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
+
+# Admin PWA
+docker run -p 8090:8090 flowbot-app
+```
+
+### 2. Systemd Service Deployment
+
+#### Agent Service
+
+1. Copy binary and service file:
+
+```bash
+sudo cp bin/flowbot-agent /opt/app/
+sudo chmod +x /opt/app/flowbot-agent
 sudo cp docs/deployment/flowbot-agent.service /etc/systemd/system/
 ```
 
-3. Reload systemd configuration:
+2. Create environment file:
+
+```bash
+sudo vi /opt/app/flowbot-agent.env
+```
+
+3. Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-```
-
-4. Enable and start service:
-
-```bash
 sudo systemctl enable flowbot-agent
 sudo systemctl start flowbot-agent
 ```
@@ -43,58 +86,51 @@ sudo systemctl start flowbot-agent
 #### Service Management
 
 ```bash
-# Check service status
 sudo systemctl status flowbot-agent
-
-# Start service
-sudo systemctl start flowbot-agent
-
-# Stop service
-sudo systemctl stop flowbot-agent
-
-# Restart service
 sudo systemctl restart flowbot-agent
-
-# View logs
 sudo journalctl -u flowbot-agent -f
 ```
 
-### 2. Docker Deployment
-
-Please refer to Docker-related files in the `deployments/` directory under the project root.
-
 ### 3. Manual Deployment
 
-1. Ensure configuration files are properly set
-2. Run executable directly:
+```bash
+# Server
+./bin/flowbot
+
+# Agent
+./bin/flowbot-agent
+
+# Admin PWA
+./bin/flowbot-app
+```
+
+## CI/CD
+
+GitHub Actions workflows (`.github/workflows/`):
+
+| Workflow | Description |
+|----------|-------------|
+| `build.yml` | Build main server |
+| `build_agent.yml` | Build agent |
+| `build_app.yml` | Build admin PWA + Docker image (uses `task build:app`) |
+| `docker.yml` | Docker image publishing |
+| `release.yml` | Release pipeline |
+
+## Health Checks
+
+The main server exposes health check endpoints:
 
 ```bash
-./flowbot agent
+curl http://localhost:6060/livez    # Liveness
+curl http://localhost:6060/readyz   # Readiness
+curl http://localhost:6060/startupz # Startup
 ```
 
 ## Deployment Checklist
 
-- [ ] Configuration files are properly set
-- [ ] Database connection is working
-- [ ] Necessary environment variables are set
+- [ ] Configuration file (`flowbot.yaml`) is set up
+- [ ] MySQL database is accessible
+- [ ] Redis server is running
+- [ ] Required ports are open (default: 6060 for server, 8090 for PWA)
 - [ ] Log directory has write permissions
-- [ ] Network ports are accessible
-- [ ] Service starts normally
-- [ ] API interfaces respond correctly
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Service fails to start**
-   - Check configuration file path and permissions
-   - Check log output
-   - Verify database connection
-
-2. **Port conflicts**
-   - Modify port settings in configuration file
-   - Or use environment variable `FLOWBOT_SERVER_PORT`
-
-3. **Permission issues**
-   - Ensure service user has sufficient permissions
-   - Check file and directory permissions
+- [ ] Service starts and health checks pass

@@ -1,22 +1,30 @@
 flowchart TD
     %% CMD Entry Points
     subgraph "CMD Entry Points"
+        ServerCLI["Server CLI"]:::cmd
         AgentCLI["Agent CLI"]:::cmd
+        AppCLI["Admin PWA"]:::cmd
         ComposerCLI["Composer CLI"]:::cmd
     end
 
     %% Core Business Logic
     subgraph "Core Business Logic"
         Server["API / Server Layer"]:::internal
-        Agents["Agent Module"]:::internal
         Bots["Bot Modules"]:::internal
+        Platforms["Platform Layer"]:::internal
         Store["Persistence Layer"]:::store
+    end
+
+    %% Admin PWA
+    subgraph "Admin PWA"
+        Wasm["Wasm Frontend"]:::cmd
+        AdminAPI["Admin API"]:::internal
     end
 
     %% Workflow & Execution Engine
     subgraph "Workflow & Execution Engine"
         WF["Workflow Engine"]:::internal
-        EX["Executer"]:::internal
+        EX["Executor"]:::internal
     end
 
     %% Integration Layer
@@ -25,58 +33,58 @@ flowchart TD
         Notify["Notifications"]:::integration
     end
 
-    %% Utility Services & Libraries
-    subgraph "Utility Services & Libraries"
+    %% Shared Packages
+    subgraph "Shared Packages"
         Parser["Parser"]:::utilities
         Event["Event System"]:::utilities
-        Expression["Expression"]:::utilities
-    end
-
-    %% Deployment & Configuration
-    subgraph "Deployment & Configuration"
-        Deployments["Deployments"]:::deploy
-        Docs["Docs"]:::deploy
+        Crawler["Crawler"]:::utilities
+        Flog["Logging"]:::utilities
     end
 
     %% Connections
-    AgentCLI -->|"initiates"| Agents
-    ComposerCLI -->|"initiates"| Server
-    Server -->|"routes"| Agents
+    ServerCLI -->|"starts"| Server
+    AgentCLI -->|"connects"| Server
+    AppCLI -->|"serves"| Wasm
+    AppCLI -->|"proxies"| AdminAPI
+    AdminAPI -->|"calls"| Server
+    ComposerCLI -->|"generates"| Bots
+
+    Server -->|"dispatches"| Bots
     Server -->|"persists"| Store
-    Agents -->|"calls"| Bots
-    Agents -->|"updates"| Store
-    Server -->|"triggers"| WF
-    WF -->|"orchestrates"| Agents
-    WF -->|"orchestrates"| Bots
-    WF -->|"executes"| EX
-    Agents -->|"sends"| WF
+    Server -->|"receives"| Platforms
     Bots -->|"integrates"| Providers
-    Bots -->|"integrates"| Notify
-    Agents -->|"uses"| Parser
-    Agents -->|"uses"| Event
-    Agents -->|"uses"| Expression
+    Bots -->|"sends"| Notify
+    Server -->|"triggers"| WF
+    WF -->|"executes"| EX
+    WF -->|"orchestrates"| Bots
     Bots -->|"uses"| Parser
     Bots -->|"uses"| Event
-    Bots -->|"uses"| Expression
-    Providers -->|"alerts"| Server
-    Notify -->|"alerts"| Server
+    Bots -->|"uses"| Crawler
 
     %% Click Events
+    click ServerCLI "https://github.com/flowline-io/flowbot/blob/master/cmd/main.go"
     click AgentCLI "https://github.com/flowline-io/flowbot/blob/master/cmd/agent/main.go"
+    click AppCLI "https://github.com/flowline-io/flowbot/blob/master/cmd/app/main.go"
     click ComposerCLI "https://github.com/flowline-io/flowbot/blob/master/cmd/composer/main.go"
-    click Agents "https://github.com/flowline-io/flowbot/tree/master/internal/agents"
     click Bots "https://github.com/flowline-io/flowbot/tree/master/internal/bots"
     click Server "https://github.com/flowline-io/flowbot/tree/master/internal/server"
-    click WF "https://github.com/flowline-io/flowbot/tree/master/internal/workflow"
-    click EX "https://github.com/flowline-io/flowbot/tree/master/pkg/executer"
+    click Platforms "https://github.com/flowline-io/flowbot/tree/master/internal/platforms"
+    click WF "https://github.com/flowline-io/flowbot/tree/master/internal/bots/workflow"
+    click EX "https://github.com/flowline-io/flowbot/tree/master/pkg/executor"
     click Store "https://github.com/flowline-io/flowbot/tree/master/internal/store"
     click Providers "https://github.com/flowline-io/flowbot/tree/master/pkg/providers"
     click Notify "https://github.com/flowline-io/flowbot/tree/master/pkg/notify"
     click Parser "https://github.com/flowline-io/flowbot/tree/master/pkg/parser"
     click Event "https://github.com/flowline-io/flowbot/tree/master/pkg/event"
-    click Expression "https://github.com/flowline-io/flowbot/tree/master/pkg/expression"
-    click Deployments "https://github.com/flowline-io/flowbot/tree/master/deployments"
-    click Docs "https://github.com/flowline-io/flowbot/tree/master/docs"
+    click Crawler "https://github.com/flowline-io/flowbot/tree/master/pkg/crawler"
+    click Flog "https://github.com/flowline-io/flowbot/tree/master/pkg/flog"
+
+    %% Styles
+    classDef cmd fill:#f9d6cd,stroke:#333,stroke-width:2px;
+    classDef internal fill:#cce5ff,stroke:#333,stroke-width:2px;
+    classDef integration fill:#d4edda,stroke:#333,stroke-width:2px;
+    classDef utilities fill:#fff3cd,stroke:#333,stroke-width:2px;
+    classDef store fill:#cce5ff,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
 
     %% Styles
     classDef cmd fill:#f9d6cd,stroke:#333,stroke-width:2px;

@@ -1,74 +1,76 @@
 # Configuration Files
 
-This directory contains various configuration files and examples for FlowBot.
+This directory contains configuration templates and examples for Flowbot.
 
 ## File Descriptions
 
 ### `config.yaml`
 
-Main application configuration file, includes:
+Main application configuration file template for the Flowbot server. Covers:
 
-- Database configuration
-- Server settings
+- Server listen address and API path
+- Media storage (file system / MinIO)
+- Database connection (MySQL)
+- Redis connection
 - Logging configuration
-- External service integration configuration
+- Executor settings (Docker / Shell / Machine)
+- Prometheus metrics
+- MeiliSearch integration
+- LLM model configuration (OpenAI-compatible)
+- AI agent definitions
+- Platform integrations (Slack, Discord, Tailchat)
+- Bot module settings
+- Third-party vendor configurations
 
 ### `agent.yaml`
 
-Dedicated configuration file for Agent service, includes:
+Dedicated configuration for the Flowbot Agent (`cmd/agent`). Settings include:
 
-- Agent-specific settings
-- Task execution configuration
-- Scheduling and monitoring settings
+- Log level
+- Enabled bot modules
+- API connection (URL + token)
+- GitHub updater token
+- Script engine (paths, UID/GID, watch exclusions)
+- Prometheus metrics endpoint
 
 ### `examples/`
 
-Configuration examples directory, contains:
+Workflow configuration examples:
 
-- `docker_example.yaml` - Docker deployment configuration example
-- `example.yaml` - Basic configuration example
-- `func_example.yaml` - Function configuration example
+- `docker_example.yaml` - Docker container execution workflow
+- `example.yaml` - Rule chain with JS filter/transform/log
+- `func_example.yaml` - Custom function chain workflow
 
-## Configuration Structure
+## Quick Start
 
-### Basic Configuration
+1. Copy the appropriate template:
+   ```bash
+   # Server configuration
+   cp docs/config/config.yaml flowbot.yaml
 
-```yaml
-# Server configuration
-server:
-  port: 8080
-  host: "0.0.0.0"
+   # Agent configuration
+   cp docs/config/agent.yaml flowbot-agent.yaml
+   ```
 
-# Database configuration
-database:
-  type: mysql
-  host: localhost
-  port: 3306
-  name: flowbot
+2. Edit configuration values for your environment
 
-# Logging configuration
-log:
-  level: info
-  format: json
+3. Start the service:
+   ```bash
+   # Server
+   task run
+
+   # Agent
+   task run:agent
+
+   # Admin PWA
+   task run:app
+   ```
+
+## Environment Variables
+
+Configuration values can be overridden via environment variables:
+
+```bash
+export FLOWBOT_CONFIG_PATH=/path/to/flowbot.yaml
+export FLOWBOT_LOG_LEVEL=info
 ```
-
-### Agent Configuration
-
-```yaml
-# Agent basic settings
-agent:
-  name: "flowbot-agent"
-  interval: "30s"
-
-# Task execution configuration
-executor:
-  workers: 4
-  timeout: "5m"
-```
-
-## Usage
-
-1. Copy example configuration files
-2. Modify configuration parameters according to environment
-3. Set necessary environment variables
-4. Start the service

@@ -1,6 +1,6 @@
-# FlowBot Documentation
+# Flowbot Documentation
 
-FlowBot is a workflow-based intelligent chatbot framework.
+Flowbot is an advanced multi-platform chatbot framework that provides intelligent conversation, workflow automation, and comprehensive LLM agent capabilities.
 
 ## Directory Structure
 
@@ -13,133 +13,143 @@ FlowBot is a workflow-based intelligent chatbot framework.
 - 📁 [`config/`](./config/) - Configuration files and examples
   - `config.yaml` - Main configuration file template
   - `agent.yaml` - Agent configuration file template
-  - [`examples/`](./config/examples/) - Configuration example files
+  - [`examples/`](./config/examples/) - Workflow configuration examples
 
 - 📁 [`deployment/`](./deployment/) - Deployment-related documentation
   - `flowbot-agent.service` - Systemd service configuration file
-
-- 📁 [`development/`](./development/) - Development-related documentation and tools
-  - `example.fish` - Fish Shell script example
-  - `http-client.private.env.json` - HTTP client environment configuration
 
 - 📁 [`database/`](./database/) - Database-related documentation
   - `schema.md` - Database table structure documentation
 
 - 📁 [`architecture/`](./architecture/) - System architecture documentation
   - `architecture.png` - System architecture diagram
-  - `flowchart.mermaid` - Workflow flowchart
+  - `flowchart.mermaid` - Workflow flowchart (Mermaid)
 
-- 📄 `notify.md` - Notification configuration guide
+- 📄 [`notify.md`](./notify.md) - Notification configuration guide
+- 📄 [`schema.md`](./schema.md) - Database schema reference
 
 ## Quick Start
 
 1. **Configuration**: Refer to configuration files in the [`config/`](./config/) directory
 2. **Deployment**: Check deployment guides in the [`deployment/`](./deployment/) directory
 3. **API**: View API documentation in the [`api/`](./api/) directory
-4. **Development**: Refer to development tools in the [`development/`](./development/) directory
+4. **Architecture**: Review system design in the [`architecture/`](./architecture/) directory
 
 ## Development Tools
 
-### Task Management
+All development tools are managed as Go tools (via `go get -tool`) or through [Task](https://taskfile.dev) runner.
+
+### Task Runner
 
 ```shell
-# Install
-go install github.com/go-task/task/v3/cmd/task@latest
-
-# View available tasks
+# View all available tasks
 task -a
+
+# Run common checks (tidy → swagger → format → lint → scc)
+task default
+
+# Build all binaries
+task build:all
+```
+
+### Build Commands
+
+```shell
+# Build main server
+task build
+
+# Build agent
+task build:agent
+
+# Build admin PWA (Wasm + server)
+task build:app
+
+# Build composer CLI
+task build:composer
+
+# Run with live reload
+task air
 ```
 
 ### Code Generation
 
 ```shell
-# Generate bot
-go run github.com/flowline-io/flowbot/cmd/composer generator bot -name example -rule collect,command,cron,form,input,instruct
+# Generate bot scaffolding
+task generator:bot NAME=example RULE=command,form
 
-# Generate vendor
-go run github.com/flowline-io/flowbot/cmd/composer generator vendor -name example
+# Generate vendor API code
+task generator:vendor NAME=example
+
+# Generate DAO code from database
+task dao
 ```
 
 ### Database Migration
 
 ```shell
-# Import migration
-go run github.com/flowline-io/flowbot/cmd/composer migrate import
+# Import migrations
+task migrate
 
-# Create migration file
-go run github.com/flowline-io/flowbot/cmd/composer migrate migration -name file_name
+# Create new migration file
+task migration NAME=add_new_feature
 
-# Import workflow
-go run github.com/flowline-io/flowbot/cmd/composer workflow import -token xxx -path ./docs/config/examples/docker_example.yaml
+# Import workflow configuration
+task workflow:import TOKEN=xxx PATH=./docs/config/examples/docker_example.yaml
 ```
 
-### Code Linting
+### Code Quality
 
 ```shell
-# Install revive
-go install github.com/mgechev/revive@latest
+# Lint (revive + actionlint)
+task lint
 
-# Run code check
-revive -formatter friendly ./...
+# Format code (go fmt + prettier)
+task format
+
+# Tidy Go modules
+task tidy
 ```
 
-### Code Statistics
+### Security
 
 ```shell
-# Install cloc
-sudo apt install cloc  # Linux
-brew install cloc      # macOS
+# Vulnerability check
+task secure
 
-# Count code
-cloc --exclude-dir=node_modules --exclude-ext=json .
+# Secret leak detection
+task leak
+
+# Go security checker
+task gosec
+
+# Run all security & quality checks
+task check
 ```
 
-### Security Check
+### Testing
 
 ```shell
-# Install govulncheck
-go install golang.org/x/vuln/cmd/govulncheck@latest
+# Run unit tests
+task test
 
-# Run security check
-govulncheck ./...
+# Run all tests
+task test:all
+
+# Generate coverage report
+task test:coverage
 ```
 
-### API Documentation Generation
-
-> Reference: https://github.com/swaggo/swag/blob/master/README.md
+### API Documentation
 
 ```shell
-# Install swag
-go install github.com/swaggo/swag/cmd/swag@latest
+# Generate Swagger docs
+task swagger
 
-# Generate documentation
-swag init -g cmd/main.go
-
-# Format documentation
-swag fmt -g cmd/main.go
+# Generate database schema docs
+task doc
 ```
 
-### Database Migration Tool
-
-```shell
-# Install migration tool
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-
-# Run migration
-migrate -source file://./internal/store/migrate -database mysql://user:password@tcp(127.0.0.1:3306)/db?parseTime=True&collation=utf8mb4_unicode_ci up
-```
-
-### Git Leak Detection
-
-```shell
-# Install gitleaks
-go install github.com/zricethezav/gitleaks/v8@v8.21.1
-
-# Check for leaks
-gitleaks git -v
-```
-
-## Add golang tool
+### Add Go Tool Dependency
 
 ```shell
 go get -tool import_path@version
