@@ -103,6 +103,14 @@ func (a *Action) makeRequest(in *request) error {
 	return nil
 }
 
+func (a *Action) UpdateMessage(_ protocol.Request) protocol.Response {
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
+}
+
+func (a *Action) DeleteMessage(_ protocol.Request) protocol.Response {
+	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
+}
+
 // request takes in the StatusCode and Content from other functions to display to the user's discord.
 type request struct {
 	// StatusCode is the http code that will be returned back to the user.

@@ -39,6 +39,10 @@ type Action interface {
 
 	// SendMessage send message
 	SendMessage(req Request) Response
+	// UpdateMessage update an existing message (e.g. replace "thinking..." with final result)
+	UpdateMessage(req Request) Response
+	// DeleteMessage delete a message
+	DeleteMessage(req Request) Response
 
 	// GetUserInfo get user info
 	GetUserInfo(req Request) Response

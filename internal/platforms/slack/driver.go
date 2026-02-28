@@ -76,9 +76,13 @@ func (d *Driver) WebSocketClient() {
 				flog.Info("Slack is shutting down.")
 				return
 			case evt := <-client.Events:
-				// ack
+				// ack all event types that require acknowledgment
 				switch evt.Type {
 				case socketmode.EventTypeEventsAPI:
+					client.Ack(*evt.Request)
+				case socketmode.EventTypeInteractive:
+					client.Ack(*evt.Request)
+				case socketmode.EventTypeSlashCommand:
 					client.Ack(*evt.Request)
 				}
 

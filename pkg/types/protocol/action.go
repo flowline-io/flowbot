@@ -21,7 +21,9 @@ const (
 	GetStatusAction           = "get_status"
 	GetVersionAction          = "get_version"
 
-	SendMessageAction = "send_message"
+	SendMessageAction   = "send_message"
+	UpdateMessageAction = "update_message"
+	DeleteMessageAction = "delete_message"
 
 	GetUserInfoAction = "get_user_info"
 

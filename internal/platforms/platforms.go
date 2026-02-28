@@ -3,7 +3,6 @@ package platforms
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -26,6 +25,10 @@ func (c *Caller) Do(req protocol.Request) protocol.Response {
 	switch req.Action {
 	case protocol.SendMessageAction:
 		return c.Action.SendMessage(req)
+	case protocol.UpdateMessageAction:
+		return c.Action.UpdateMessage(req)
+	case protocol.DeleteMessageAction:
+		return c.Action.DeleteMessage(req)
 	}
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("error action"))
 }
@@ -43,143 +46,193 @@ func MessageConvert(data any) protocol.Message {
 			protocol.Text(v.Text),
 		}
 	case types.LinkMsg:
-		msg := protocol.Message{
-			protocol.Text(v.Title),
-			protocol.Url(v.Url),
+		// Rich link segment with title, URL, and optional cover image
+		return protocol.Message{
+			{
+				Type: "link",
+				Data: map[string]any{
+					"title": v.Title,
+					"url":   v.Url,
+					"cover": v.Cover,
+				},
+			},
 		}
-		return msg
 	case types.TableMsg:
-		var parts []string
-		if v.Title != "" {
-			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
-		}
-		if len(v.Header) > 0 {
-			headerRow := strings.Join(v.Header, " | ")
-			parts = append(parts, headerRow)
-			separator := strings.Repeat("-", len(headerRow))
-			parts = append(parts, separator)
-		}
+		// Produce a rich "table" segment so platforms with Block Kit can render it natively
+		var rows []any
 		for _, row := range v.Row {
-			var rowParts []string
-			for _, cell := range row {
-				rowParts = append(rowParts, fmt.Sprintf("%v", cell))
-			}
-			parts = append(parts, strings.Join(rowParts, " | "))
+			rows = append(rows, row)
 		}
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "table",
+				Data: map[string]any{
+					"title":   v.Title,
+					"headers": v.Header,
+					"rows":    rows,
+				},
+			},
 		}
 	case types.InfoMsg:
-		var parts []string
-		if v.Title != "" {
-			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
-		}
+		// Rich action card segment with key-value fields
+		var description string
+		structuredFields := make(map[string]any)
 		if v.Model != nil {
-			s, err := yaml.Marshal(v.Model)
-			if err == nil {
-				parts = append(parts, utils.BytesToString(s))
-			}
-		}
-		if len(parts) == 0 {
-			return nil
-		}
-		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
-		}
-	case types.ChartMsg:
-		var parts []string
-		if v.Title != "" {
-			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
-		}
-		if v.SubTitle != "" {
-			parts = append(parts, fmt.Sprintf("_%s_", v.SubTitle))
-		}
-		if len(v.XAxis) > 0 && len(v.Series) > 0 {
-			parts = append(parts, "Chart Data:")
-			for i, label := range v.XAxis {
-				if i < len(v.Series) {
-					parts = append(parts, fmt.Sprintf("  %s: %.2f", label, v.Series[i]))
+			// Try to extract structured fields from the model
+			switch m := v.Model.(type) {
+			case map[string]any:
+				for k, val := range m {
+					structuredFields[k] = val
+				}
+			case map[string]string:
+				for k, val := range m {
+					structuredFields[k] = val
+				}
+			default:
+				// Fallback: marshal to YAML for display as description
+				s, err := yaml.Marshal(v.Model)
+				if err == nil {
+					description = utils.BytesToString(s)
 				}
 			}
 		}
-		if len(parts) == 0 {
-			return nil
+		return protocol.Message{
+			{
+				Type: "action_card",
+				Data: map[string]any{
+					"title":       v.Title,
+					"description": description,
+					"fields":      structuredFields,
+				},
+			},
+		}
+	case types.ChartMsg:
+		// Rich chart segment
+		labels := make([]any, 0, len(v.XAxis))
+		for _, l := range v.XAxis {
+			labels = append(labels, l)
+		}
+		values := make([]any, 0, len(v.Series))
+		for _, s := range v.Series {
+			values = append(values, s)
 		}
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "chart",
+				Data: map[string]any{
+					"chart_type": "bar",
+					"title":      v.Title,
+					"subtitle":   v.SubTitle,
+					"labels":     labels,
+					"values":     values,
+				},
+			},
 		}
 	case types.HtmlMsg:
-		// Convert HTML to plain text (basic conversion)
-		// For better results, consider using a HTML parser
+		// Rich HTML/markdown segment
 		return protocol.Message{
-			protocol.Text(v.Raw),
+			{
+				Type: "markdown",
+				Data: map[string]any{
+					"text": v.Raw,
+				},
+			},
 		}
 	case types.MarkdownMsg:
-		var parts []string
-		if v.Title != "" {
-			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
-		}
-		if v.Raw != "" {
-			parts = append(parts, v.Raw)
-		}
-		if len(parts) == 0 {
+		if v.Title == "" && v.Raw == "" {
 			return nil
 		}
+		// Rich markdown segment
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "markdown",
+				Data: map[string]any{
+					"title": v.Title,
+					"text":  v.Raw,
+				},
+			},
 		}
 	case types.InstructMsg:
-		var parts []string
-		parts = append(parts, fmt.Sprintf("*Instruction: %s*", v.No))
+		// Rich instruct card segment
+		fields := map[string]any{
+			"No":       v.No,
+			"State":    string(v.State),
+			"Priority": string(v.Priority),
+		}
 		if v.Bot != "" {
-			parts = append(parts, fmt.Sprintf("Bot: %s", v.Bot))
+			fields["Bot"] = v.Bot
 		}
 		if v.Flag != "" {
-			parts = append(parts, fmt.Sprintf("Flag: %s", v.Flag))
+			fields["Flag"] = v.Flag
 		}
+		if !v.ExpireAt.IsZero() {
+			fields["ExpireAt"] = v.ExpireAt.Format("2006-01-02 15:04")
+		}
+		var description string
 		if len(v.Content) > 0 {
 			s, err := yaml.Marshal(v.Content)
 			if err == nil {
-				parts = append(parts, fmt.Sprintf("Content:\n%s", utils.BytesToString(s)))
+				description = utils.BytesToString(s)
 			}
 		}
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "action_card",
+				Data: map[string]any{
+					"title":       fmt.Sprintf("Instruction: %s", v.No),
+					"description": description,
+					"fields":      fields,
+				},
+			},
 		}
 	case types.KVMsg:
-		var parts []string
-		for k, val := range v {
-			parts = append(parts, fmt.Sprintf("%s: %v", k, val))
-		}
-		if len(parts) == 0 {
+		if len(v) == 0 {
 			return nil
 		}
+		// Rich key-value fields segment
+		fields := make(map[string]any, len(v))
+		for k, val := range v {
+			fields[k] = val
+		}
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "kv",
+				Data: map[string]any{
+					"fields": fields,
+				},
+			},
 		}
 	case types.FormMsg:
-		var parts []string
-		if v.Title != "" {
-			parts = append(parts, fmt.Sprintf("*%s*", v.Title))
-		}
-		if v.ID != "" {
-			parts = append(parts, fmt.Sprintf("Form ID: %s", v.ID))
-		}
-		if len(v.Field) > 0 {
-			parts = append(parts, "Fields:")
-			for _, field := range v.Field {
-				fieldText := fmt.Sprintf("  - %s (%s)", field.Label, field.Type)
-				if field.Value != nil {
-					fieldText += fmt.Sprintf(": %v", field.Value)
-				}
-				parts = append(parts, fieldText)
+		// Rich form segment for platforms that support interactive forms
+		var fields []any
+		for _, field := range v.Field {
+			f := map[string]any{
+				"label":       field.Label,
+				"key":         field.Key,
+				"type":        string(field.Type),
+				"placeholder": field.Placeholder,
 			}
-		}
-		if len(parts) == 0 {
-			return nil
+			if field.Value != nil {
+				f["initial_value"] = fmt.Sprintf("%v", field.Value)
+			}
+			if len(field.Option) > 0 {
+				opts := make([]any, 0, len(field.Option))
+				for _, o := range field.Option {
+					opts = append(opts, o)
+				}
+				f["options"] = opts
+			}
+			fields = append(fields, f)
 		}
 		return protocol.Message{
-			protocol.Text(strings.Join(parts, "\n")),
+			{
+				Type: "form",
+				Data: map[string]any{
+					"title":  v.Title,
+					"id":     v.ID,
+					"fields": fields,
+				},
+			},
 		}
 	case types.EmptyMsg:
 		return nil
