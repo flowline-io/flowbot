@@ -19,6 +19,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// skipIfNoDocker skips the test if the Docker daemon is not reachable.
+func skipIfNoDocker(t *testing.T) {
+	t.Helper()
+	rt, err := NewRuntime()
+	if err != nil {
+		t.Skipf("skipping test: Docker runtime not available: %v", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := rt.HealthCheck(ctx); err != nil {
+		t.Skipf("skipping test: Docker daemon not reachable: %v", err)
+	}
+}
+
 func TestParseCPUs(t *testing.T) {
 	parsed, err := parseCPUs(&types.TaskLimits{CPUs: ".25"})
 	assert.NoError(t, err)
@@ -80,12 +94,14 @@ func TestParseMemory(t *testing.T) {
 }
 
 func TestNewDockerRuntime(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
 }
 
 func TestRunTaskCMD(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -99,6 +115,7 @@ func TestRunTaskCMD(t *testing.T) {
 }
 
 func TestRunTaskConcurrently(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -122,6 +139,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 }
 
 func TestRunTaskWithTimeout(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -136,6 +154,7 @@ func TestRunTaskWithTimeout(t *testing.T) {
 }
 
 func TestRunTaskWithError(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -150,6 +169,7 @@ func TestRunTaskWithError(t *testing.T) {
 }
 
 func TestRunAndStopTask(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -169,6 +189,7 @@ func TestRunAndStopTask(t *testing.T) {
 }
 
 func TestHealthCheck(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -178,6 +199,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckFailed(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -187,6 +209,7 @@ func TestHealthCheckFailed(t *testing.T) {
 }
 
 func TestRunTaskWithNetwork(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	assert.NotNil(t, rt)
@@ -210,6 +233,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 }
 
 func TestRunTaskWithVolume(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 
@@ -231,6 +255,7 @@ func TestRunTaskWithVolume(t *testing.T) {
 }
 
 func TestRunTaskWithBind(t *testing.T) {
+	skipIfNoDocker(t)
 	mm := runtime.NewMultiMounter()
 	vm, err := NewVolumeMounter()
 	assert.NoError(t, err)
@@ -255,6 +280,7 @@ func TestRunTaskWithBind(t *testing.T) {
 }
 
 func TestRunTaskWithTempfs(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime(
 		WithMounter(NewTmpfsMounter()),
 	)
@@ -278,6 +304,7 @@ func TestRunTaskWithTempfs(t *testing.T) {
 }
 
 func TestRunTaskWithCustomMounter(t *testing.T) {
+	skipIfNoDocker(t)
 	mounter := runtime.NewMultiMounter()
 	vmounter, err := NewVolumeMounter()
 	assert.NoError(t, err)
@@ -301,6 +328,7 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 }
 
 func TestRunTaskInitWorkdir(t *testing.T) {
+	skipIfNoDocker(t)
 	rt, err := NewRuntime()
 	assert.NoError(t, err)
 	t1 := &types.Task{
@@ -319,6 +347,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 }
 
 func Test_imagePull(t *testing.T) {
+	skipIfNoDocker(t)
 	ctx := context.Background()
 
 	rt, err := NewRuntime()
@@ -352,6 +381,7 @@ func Test_imagePull(t *testing.T) {
 }
 
 func Test_imagePullPrivateRegistry(t *testing.T) {
+	skipIfNoDocker(t)
 	ctx := context.Background()
 
 	rt, err := NewRuntime()

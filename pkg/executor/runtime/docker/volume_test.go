@@ -10,6 +10,7 @@ import (
 )
 
 func TestCreateVolume(t *testing.T) {
+	skipIfNoDocker(t)
 	vm, err := NewVolumeMounter()
 	assert.NoError(t, err)
 
@@ -41,6 +42,7 @@ func TestCreateVolume(t *testing.T) {
 }
 
 func Test_createMountVolume(t *testing.T) {
+	skipIfNoDocker(t)
 	m, err := NewVolumeMounter()
 	assert.NoError(t, err)
 

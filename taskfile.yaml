@@ -126,14 +126,14 @@ tasks:
 
   # Test tasks
   test:
-    desc: Run tests in pkg/utils package
-    cmds:
-      - go test ./pkg/utils/... -v
-
-  test:all:
     desc: Run all tests
     cmds:
       - go test ./... -v
+  
+  test:utils:
+    desc: Run tests in pkg/utils package
+    cmds:
+      - go test ./pkg/utils/... -v
 
   test:coverage:
     desc: Run tests with coverage report

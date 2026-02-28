@@ -3,6 +3,7 @@ package shell
 import (
 	"context"
 	"os/exec"
+	"runtime"
 	"testing"
 	"time"
 
@@ -11,7 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func skipIfWindows(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows: requires bash and Unix paths")
+	}
+}
+
 func TestShellRuntimeRunResult(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
@@ -33,6 +42,7 @@ func TestShellRuntimeRunResult(t *testing.T) {
 }
 
 func TestShellRuntimeRunFile(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
@@ -57,6 +67,7 @@ func TestShellRuntimeRunFile(t *testing.T) {
 }
 
 func TestShellRuntimeRunNotSupported(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{})
 
 	tk := &types.Task{
@@ -71,6 +82,7 @@ func TestShellRuntimeRunNotSupported(t *testing.T) {
 }
 
 func TestShellRuntimeRunError(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
@@ -91,6 +103,7 @@ func TestShellRuntimeRunError(t *testing.T) {
 }
 
 func TestShellRuntimeRunTimeout(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
@@ -114,6 +127,7 @@ func TestShellRuntimeRunTimeout(t *testing.T) {
 }
 
 func TestShellRuntimeStop(t *testing.T) {
+	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
