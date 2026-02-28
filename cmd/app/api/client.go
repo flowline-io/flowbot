@@ -169,6 +169,19 @@ func UpdateSettings(token string, s admin.Settings) error {
 	return err
 }
 
+// GetDashboardStats retrieves aggregated statistics for the admin dashboard.
+func GetDashboardStats(token string) (*admin.DashboardStats, error) {
+	data, err := doRequest(token, "GET", "/dashboard/stats", nil)
+	if err != nil {
+		return nil, err
+	}
+	var stats admin.DashboardStats
+	if err := json.Unmarshal(data, &stats); err != nil {
+		return nil, err
+	}
+	return &stats, nil
+}
+
 // ---------------------------------------------------------------------------
 // Container management API
 // ---------------------------------------------------------------------------

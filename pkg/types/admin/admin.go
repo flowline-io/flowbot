@@ -97,3 +97,42 @@ type TokenResponse struct {
 type CodeExchangeRequest struct {
 	Code string `json:"code"`
 }
+
+// ---------------------------------------------------------------------------
+// Dashboard statistics
+// ---------------------------------------------------------------------------
+
+// DashboardStats holds aggregated stats displayed on the admin dashboard.
+type DashboardStats struct {
+	// Container counts
+	TotalContainers   int `json:"total_containers"`
+	RunningContainers int `json:"running_containers"`
+	StoppedContainers int `json:"stopped_containers"`
+	PausedContainers  int `json:"paused_containers"`
+	ErrorContainers   int `json:"error_containers"`
+
+	// System info
+	Uptime      string `json:"uptime"`       // human-readable uptime
+	GoVersion   string `json:"go_version"`   // Go runtime version
+	SystemOS    string `json:"system_os"`    // operating system
+	SystemArch  string `json:"system_arch"`  // architecture
+	NumCPU      int    `json:"num_cpu"`      // number of CPUs
+	NumRoutines int    `json:"num_routines"` // number of goroutines
+	MemoryUsage uint64 `json:"memory_usage"` // heap memory in bytes
+	MemoryTotal uint64 `json:"memory_total"` // total allocated memory in bytes
+	Version     string `json:"version"`      // application version
+
+	// Recent containers (last 5)
+	RecentContainers []Container `json:"recent_containers"`
+
+	// Activity / event log (recent entries)
+	ActivityLog []ActivityEntry `json:"activity_log"`
+}
+
+// ActivityEntry represents a single entry in the activity log.
+type ActivityEntry struct {
+	Time    string `json:"time"`
+	Action  string `json:"action"`
+	Target  string `json:"target"`
+	Success bool   `json:"success"`
+}
