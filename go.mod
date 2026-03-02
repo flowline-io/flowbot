@@ -28,7 +28,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.0
-	github.com/gofiber/contrib/v3/zerolog v1.0.0
+	github.com/gofiber/contrib/v3/zerolog v1.0.1
 	github.com/gofiber/fiber/v3 v3.1.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
@@ -603,7 +603,7 @@ require (
 	gocloud.dev v0.44.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260209163413-e7419c687ee4 // indirect
