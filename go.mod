@@ -60,7 +60,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 	github.com/tidwall/gjson v1.18.0
-	github.com/urfave/cli/v3 v3.6.2
+	github.com/urfave/cli/v3 v3.7.0
 	github.com/valyala/fasthttp v1.69.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
