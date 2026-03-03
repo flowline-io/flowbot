@@ -6,12 +6,12 @@ Notification providers are implemented in `pkg/notify/`.
 
 ## Supported Providers
 
-| Provider | Directory | Description |
-|----------|-----------|-------------|
-| Slack | `slack/` | Channel/user notifications |
-| Pushover | `pushover/` | Mobile push notifications |
-| ntfy | `ntfy/` | Self-hosted push notifications |
-| Message Pusher | `message-pusher/` | Custom internal notifications |
+| Provider       | Directory         | Description                    |
+| -------------- | ----------------- | ------------------------------ |
+| Slack          | `slack/`          | Channel/user notifications     |
+| Pushover       | `pushover/`       | Mobile push notifications      |
+| ntfy           | `ntfy/`           | Self-hosted push notifications |
+| Message Pusher | `message-pusher/` | Custom internal notifications  |
 
 ## Slack
 

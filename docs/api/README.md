@@ -55,45 +55,45 @@ X-AccessToken: <your-token>
 
 ### Main API Modules
 
-| Module | Description |
-|--------|-------------|
-| `dev` | Development and debugging |
-| `search` | Full-text search (autocomplete, query) |
-| `user` | User data (bookmarks, dashboard, kanban, metrics) |
-| `server` | Server management (stacktrace, uploads) |
-| `workflow` | Workflow management |
+| Module     | Description                                       |
+| ---------- | ------------------------------------------------- |
+| `dev`      | Development and debugging                         |
+| `search`   | Full-text search (autocomplete, query)            |
+| `user`     | User data (bookmarks, dashboard, kanban, metrics) |
+| `server`   | Server management (stacktrace, uploads)           |
+| `workflow` | Workflow management                               |
 
 ### Server Routes
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/livez` | GET | Liveness probe |
-| `/readyz` | GET | Readiness probe |
-| `/startupz` | GET | Startup probe |
-| `/metrics` | GET | Prometheus metrics |
-| `/oauth/:provider/:flag` | ALL | OAuth callbacks |
-| `/webhook/:flag` | ALL | Webhook handler |
-| `/chatbot/:platform` | ALL | Platform callbacks |
-| `/mcp/:bot_name` | ALL | MCP protocol handler (bearer auth) |
-| `/form` | POST | Form submissions |
-| `/p/:id` | GET | Page rendering |
-| `/agent` | POST | Agent data endpoint |
+| Route                    | Method | Description                        |
+| ------------------------ | ------ | ---------------------------------- |
+| `/livez`                 | GET    | Liveness probe                     |
+| `/readyz`                | GET    | Readiness probe                    |
+| `/startupz`              | GET    | Startup probe                      |
+| `/metrics`               | GET    | Prometheus metrics                 |
+| `/oauth/:provider/:flag` | ALL    | OAuth callbacks                    |
+| `/webhook/:flag`         | ALL    | Webhook handler                    |
+| `/chatbot/:platform`     | ALL    | Platform callbacks                 |
+| `/mcp/:bot_name`         | ALL    | MCP protocol handler (bearer auth) |
+| `/form`                  | POST   | Form submissions                   |
+| `/p/:id`                 | GET    | Page rendering                     |
+| `/agent`                 | POST   | Agent data endpoint                |
 
 ### Admin PWA API
 
 The admin panel (`cmd/app`) has its own API endpoints served at `/admin/api/`:
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/login/dev` | POST | Dev mode login |
-| `/login/slack/url` | GET | Slack OAuth URL |
-| `/login/slack/exchange` | POST | Exchange OAuth code |
-| `/me` | GET | Current user info |
-| `/settings` | GET/PUT | System settings |
-| `/dashboard/stats` | GET | Dashboard statistics |
-| `/containers` | GET/POST | Container list/create |
-| `/containers/:id` | GET/PUT/DELETE | Container CRUD |
-| `/containers/batch-delete` | POST | Batch delete |
+| Route                      | Method         | Description           |
+| -------------------------- | -------------- | --------------------- |
+| `/login/dev`               | POST           | Dev mode login        |
+| `/login/slack/url`         | GET            | Slack OAuth URL       |
+| `/login/slack/exchange`    | POST           | Exchange OAuth code   |
+| `/me`                      | GET            | Current user info     |
+| `/settings`                | GET/PUT        | System settings       |
+| `/dashboard/stats`         | GET            | Dashboard statistics  |
+| `/containers`              | GET/POST       | Container list/create |
+| `/containers/:id`          | GET/PUT/DELETE | Container CRUD        |
+| `/containers/batch-delete` | POST           | Batch delete          |
 
 ### Bot Webservice Routes
 

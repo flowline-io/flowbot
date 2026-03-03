@@ -44,6 +44,7 @@ Workflow configuration examples:
 ## Quick Start
 
 1. Copy the appropriate template:
+
    ```bash
    # Server configuration
    cp docs/config/config.yaml flowbot.yaml
@@ -55,6 +56,7 @@ Workflow configuration examples:
 2. Edit configuration values for your environment
 
 3. Start the service:
+
    ```bash
    # Server
    task run

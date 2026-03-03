@@ -55,11 +55,6 @@ const docTemplate = `{
         },
         "/search/autocomplete": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -89,16 +84,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/search/query": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/search/query": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -128,16 +123,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/server/stacktrace": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/server/stacktrace": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -167,16 +162,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/server/upload": {
-            "post": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/server/upload": {
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -206,16 +201,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/user/bookmark": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/user/bookmark": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -245,16 +240,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/user/dashboard": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/user/dashboard": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -284,16 +279,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/user/kanban": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/user/kanban": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -323,16 +318,16 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
-            }
-        },
-        "/user/metrics": {
-            "get": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/user/metrics": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -362,7 +357,12 @@ const docTemplate = `{
                             ]
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         }
     },
@@ -404,7 +404,7 @@ const docTemplate = `{
         },
         "types.KV": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": {}
         }
     },
     "securityDefinitions": {

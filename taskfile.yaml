@@ -7,6 +7,7 @@ tasks:
       - task: swagger
       - task: format
       - task: lint
+      - task: test
       - task: scc
       - echo "All checks completed"
 
@@ -129,7 +130,7 @@ tasks:
     desc: Run all tests
     cmds:
       - go tool gotestsum --hide-summary=skipped --packages="./..."
-  
+
   test:utils:
     desc: Run tests in pkg/utils package
     cmds:

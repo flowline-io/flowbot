@@ -32,9 +32,9 @@ task build:all
 
 Two Dockerfiles are available in the `deployments/` directory:
 
-| File | Image | Description |
-|------|-------|-------------|
-| `Dockerfile` | `flowbot` | Main server (single binary) |
+| File             | Image         | Description                                      |
+| ---------------- | ------------- | ------------------------------------------------ |
+| `Dockerfile`     | `flowbot`     | Main server (single binary)                      |
 | `Dockerfile.app` | `flowbot-app` | Admin PWA (multi-stage: Wasm + server on Alpine) |
 
 #### Build Docker Images
@@ -108,13 +108,13 @@ sudo journalctl -u flowbot-agent -f
 
 GitHub Actions workflows (`.github/workflows/`):
 
-| Workflow | Description |
-|----------|-------------|
-| `build.yml` | Build main server |
-| `build_agent.yml` | Build agent |
-| `build_app.yml` | Build admin PWA + Docker image (uses `task build:app`) |
-| `docker.yml` | Docker image publishing |
-| `release.yml` | Release pipeline |
+| Workflow          | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `build.yml`       | Build main server                                      |
+| `build_agent.yml` | Build agent                                            |
+| `build_app.yml`   | Build admin PWA + Docker image (uses `task build:app`) |
+| `docker.yml`      | Docker image publishing                                |
+| `release.yml`     | Release pipeline                                       |
 
 ## Health Checks
 

@@ -18,12 +18,12 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 
 ### Entry Points (`cmd/`)
 
-| Binary | Description |
-|--------|-------------|
-| `cmd/main.go` | Main server — API, chatbot, workflow engine (Fiber v3 + fx DI) |
-| `cmd/agent/` | Desktop agent — background tasks, script engine, system tray |
-| `cmd/app/` | Admin PWA — WebAssembly frontend + Fiber server (go-app/v10) |
-| `cmd/composer/` | CLI tool — code generation, migration, workflow import |
+| Binary          | Description                                                    |
+| --------------- | -------------------------------------------------------------- |
+| `cmd/main.go`   | Main server — API, chatbot, workflow engine (Fiber v3 + fx DI) |
+| `cmd/agent/`    | Desktop agent — background tasks, script engine, system tray   |
+| `cmd/app/`      | Admin PWA — WebAssembly frontend + Fiber server (go-app/v10)   |
+| `cmd/composer/` | CLI tool — code generation, migration, workflow import         |
 
 ### Core Components
 
@@ -60,10 +60,10 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 
 ### Platform Layer (`internal/platforms/`)
 
-| Platform | Directory |
-|----------|-----------|
-| Discord | `discord/` |
-| Slack | `slack/` |
+| Platform | Directory   |
+| -------- | ----------- |
+| Discord  | `discord/`  |
+| Slack    | `slack/`    |
 | Tailchat | `tailchat/` |
 
 ### Storage Layer (`internal/store/`)
@@ -77,43 +77,43 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 
 17 third-party service integrations:
 
-| Category | Providers |
-|----------|-----------|
-| Development | GitHub, Gitea, Drone CI |
-| Communication | Slack, Email |
-| Infrastructure | AdGuard, Cloudflare, Uptime Kuma |
-| Productivity | Kanboard, n8n |
-| Finance | Firefly III |
-| Media | Transmission, Miniflux, ArchiveBox, Karakeep |
-| Storage | Dropbox |
-| Other | Slash |
+| Category       | Providers                                    |
+| -------------- | -------------------------------------------- |
+| Development    | GitHub, Gitea, Drone CI                      |
+| Communication  | Slack, Email                                 |
+| Infrastructure | AdGuard, Cloudflare, Uptime Kuma             |
+| Productivity   | Kanboard, n8n                                |
+| Finance        | Firefly III                                  |
+| Media          | Transmission, Miniflux, ArchiveBox, Karakeep |
+| Storage        | Dropbox                                      |
+| Other          | Slash                                        |
 
 ### Notification System (`pkg/notify/`)
 
-| Provider | Description |
-|----------|-------------|
-| Slack | Channel/user notifications |
-| Pushover | Mobile push notifications |
-| ntfy | Self-hosted push notifications |
-| Message Pusher | Custom internal notifications |
+| Provider       | Description                    |
+| -------------- | ------------------------------ |
+| Slack          | Channel/user notifications     |
+| Pushover       | Mobile push notifications      |
+| ntfy           | Self-hosted push notifications |
+| Message Pusher | Custom internal notifications  |
 
 ### Shared Packages (`pkg/`)
 
-| Package | Purpose |
-|---------|---------|
-| `chatbot` | Bot interface and registration |
-| `config` | Configuration loading |
-| `crawler` | Web crawling and scraping |
-| `event` | Redis-based pub/sub event system |
-| `executor` | Docker/shell execution runtime |
-| `flows` | Flow validation and ingredients |
-| `flog` | Structured logging (Zerolog) |
-| `media` | File storage abstraction |
-| `parser` | Command/syntax lexer and parser |
-| `route` | Bot route definitions |
-| `search` | MeiliSearch integration |
-| `types` | Shared type definitions |
-| `utils` | Common utilities |
+| Package    | Purpose                          |
+| ---------- | -------------------------------- |
+| `chatbot`  | Bot interface and registration   |
+| `config`   | Configuration loading            |
+| `crawler`  | Web crawling and scraping        |
+| `event`    | Redis-based pub/sub event system |
+| `executor` | Docker/shell execution runtime   |
+| `flows`    | Flow validation and ingredients  |
+| `flog`     | Structured logging (Zerolog)     |
+| `media`    | File storage abstraction         |
+| `parser`   | Command/syntax lexer and parser  |
+| `route`    | Bot route definitions            |
+| `search`   | MeiliSearch integration          |
+| `types`    | Shared type definitions          |
+| `utils`    | Common utilities                 |
 
 ## Data Flow
 
@@ -137,20 +137,20 @@ graph TB
 
 ### Docker Images
 
-| Image | Dockerfile | Description |
-|-------|-----------|-------------|
-| `flowbot` | `deployments/Dockerfile` | Main server |
+| Image         | Dockerfile                   | Description                            |
+| ------------- | ---------------------------- | -------------------------------------- |
+| `flowbot`     | `deployments/Dockerfile`     | Main server                            |
 | `flowbot-app` | `deployments/Dockerfile.app` | Admin PWA (multi-stage: Wasm + server) |
 
 ### CI/CD Workflows (`.github/workflows/`)
 
-| Workflow | Description |
-|----------|-------------|
-| `build.yml` | Build main server |
-| `build_agent.yml` | Build agent |
-| `build_app.yml` | Build admin PWA + Docker image |
-| `docker.yml` | Docker image publishing |
-| `release.yml` | Release pipeline |
+| Workflow          | Description                    |
+| ----------------- | ------------------------------ |
+| `build.yml`       | Build main server              |
+| `build_agent.yml` | Build agent                    |
+| `build_app.yml`   | Build admin PWA + Docker image |
+| `docker.yml`      | Docker image publishing        |
+| `release.yml`     | Release pipeline               |
 
 ### Systemd Service
 

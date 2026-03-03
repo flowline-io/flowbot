@@ -77,26 +77,26 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 
 ## Bot Modules
 
-| Module | Description | Features |
-|--------|-------------|----------|
-| **Agent** | LLM-powered AI | Multiple models, context management |
-| **Workflow** | Workflow automation | DAG execution, 8+ actions |
-| **Finance** | Financial tracking | Bill tracking, categorization |
-| **Kanban** | Project management | Task boards |
-| **Notify** | Notifications | Slack, Pushover, ntfy, Message Pusher |
-| **Reader** | RSS/Feed reader | Content aggregation |
-| **GitHub** | GitHub integration | Issues, PRs |
-| **Gitea** | Gitea integration | Repository management |
-| **Cloudflare** | Cloudflare | DNS, analytics |
-| **Torrent** | Downloads | Transmission integration |
-| **Bookmark** | Link management | URL organization, tagging |
-| **Search** | Full-text search | MeiliSearch |
-| **Clipboard** | Clipboard sync | Cross-platform sync |
-| **Anki** | Flashcards | Spaced repetition |
-| **Server** | Server management | System operations |
-| **Dev** | Developer tools | Debugging, testing |
-| **User** | User management | Profiles, settings |
-| **Webhook** | Webhooks | Inbound/outbound hooks |
+| Module         | Description         | Features                              |
+| -------------- | ------------------- | ------------------------------------- |
+| **Agent**      | LLM-powered AI      | Multiple models, context management   |
+| **Workflow**   | Workflow automation | DAG execution, 8+ actions             |
+| **Finance**    | Financial tracking  | Bill tracking, categorization         |
+| **Kanban**     | Project management  | Task boards                           |
+| **Notify**     | Notifications       | Slack, Pushover, ntfy, Message Pusher |
+| **Reader**     | RSS/Feed reader     | Content aggregation                   |
+| **GitHub**     | GitHub integration  | Issues, PRs                           |
+| **Gitea**      | Gitea integration   | Repository management                 |
+| **Cloudflare** | Cloudflare          | DNS, analytics                        |
+| **Torrent**    | Downloads           | Transmission integration              |
+| **Bookmark**   | Link management     | URL organization, tagging             |
+| **Search**     | Full-text search    | MeiliSearch                           |
+| **Clipboard**  | Clipboard sync      | Cross-platform sync                   |
+| **Anki**       | Flashcards          | Spaced repetition                     |
+| **Server**     | Server management   | System operations                     |
+| **Dev**        | Developer tools     | Debugging, testing                    |
+| **User**       | User management     | Profiles, settings                    |
+| **Webhook**    | Webhooks            | Inbound/outbound hooks                |
 
 ## Development
 
@@ -169,16 +169,16 @@ Built-in actions: **Message**, **Fetch**, **Feed**, **LLM**, **Docker**, **Grep*
 
 ### Third-party Integrations
 
-| Category | Services |
-|----------|----------|
-| Communication | Discord, Slack, Tailchat |
-| Development | GitHub, Gitea, Drone CI |
-| Productivity | Kanboard, n8n |
-| Finance | Firefly III |
-| Infrastructure | AdGuard, Cloudflare, Uptime Kuma |
-| Media | Transmission, Miniflux, ArchiveBox, Karakeep |
-| Storage | Dropbox |
-| Other | Slash, Email |
+| Category       | Services                                     |
+| -------------- | -------------------------------------------- |
+| Communication  | Discord, Slack, Tailchat                     |
+| Development    | GitHub, Gitea, Drone CI                      |
+| Productivity   | Kanboard, n8n                                |
+| Finance        | Firefly III                                  |
+| Infrastructure | AdGuard, Cloudflare, Uptime Kuma             |
+| Media          | Transmission, Miniflux, ArchiveBox, Karakeep |
+| Storage        | Dropbox                                      |
+| Other          | Slash, Email                                 |
 
 ## Deployment
 

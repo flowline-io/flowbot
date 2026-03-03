@@ -2,7 +2,6 @@ package shell
 
 import (
 	"context"
-	"os/exec"
 	"runtime"
 	"testing"
 	"time"
@@ -24,10 +23,6 @@ func TestShellRuntimeRunResult(t *testing.T) {
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
-		Rexec: func(args ...string) *exec.Cmd {
-			cmd := exec.Command(args[5], args[6:]...)
-			return cmd
-		},
 	})
 
 	tk := &types.Task{
@@ -46,10 +41,6 @@ func TestShellRuntimeRunFile(t *testing.T) {
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
-		Rexec: func(args ...string) *exec.Cmd {
-			cmd := exec.Command(args[5], args[6:]...)
-			return cmd
-		},
 	})
 
 	tk := &types.Task{
@@ -86,10 +77,6 @@ func TestShellRuntimeRunError(t *testing.T) {
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
-		Rexec: func(args ...string) *exec.Cmd {
-			cmd := exec.Command(args[5], args[6:]...)
-			return cmd
-		},
 	})
 
 	tk := &types.Task{
@@ -107,10 +94,6 @@ func TestShellRuntimeRunTimeout(t *testing.T) {
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
-		Rexec: func(args ...string) *exec.Cmd {
-			cmd := exec.Command(args[5], args[6:]...)
-			return cmd
-		},
 	})
 
 	tk := &types.Task{
@@ -131,10 +114,6 @@ func TestShellRuntimeStop(t *testing.T) {
 	rt := NewShellRuntime(Config{
 		UID: DefaultUid,
 		GID: DefaultGid,
-		Rexec: func(args ...string) *exec.Cmd {
-			cmd := exec.Command(args[5], args[6:]...)
-			return cmd
-		},
 	})
 
 	tk := &types.Task{
