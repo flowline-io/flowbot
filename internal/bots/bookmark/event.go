@@ -31,7 +31,7 @@ var eventRules = []event.Rule{
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("bookmark %s (%s) archive %v", bookmark.Title, id, ok),
+				Text: fmt.Sprintf("bookmark %s (%s) archive %v", bookmark.GetTitle(), id, ok),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)

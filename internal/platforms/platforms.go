@@ -156,8 +156,8 @@ func MessageConvert(data any) protocol.Message {
 		// Rich instruct card segment
 		fields := map[string]any{
 			"No":       v.No,
-			"State":    string(v.State),
-			"Priority": string(v.Priority),
+			"State":    fmt.Sprintf("%d", v.State),
+			"Priority": fmt.Sprintf("%d", v.Priority),
 		}
 		if v.Bot != "" {
 			fields["Bot"] = v.Bot
