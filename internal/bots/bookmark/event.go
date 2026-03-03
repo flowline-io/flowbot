@@ -7,7 +7,7 @@ import (
 
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
+	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 )
@@ -16,16 +16,22 @@ var eventRules = []event.Rule{
 	{
 		Id: types.BookmarkArchiveBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
-			client := hoarder.GetClient()
+			client := karakeep.GetClient()
 
 			id, _ := param.String("id")
+
+			bookmark, err := client.GetBookmark(id)
+			if err != nil {
+				return fmt.Errorf("failed to get bookmark %w", err)
+			}
+
 			ok, err := client.ArchiveBookmark(id)
 			if err != nil {
 				return fmt.Errorf("failed to archive bookmark %w", err)
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("bookmark %s archive %v", id, ok),
+				Text: fmt.Sprintf("bookmark %s (%s) archive %v", bookmark.Title, id, ok),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)
@@ -37,7 +43,7 @@ var eventRules = []event.Rule{
 	{
 		Id: types.BookmarkCreateBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
-			client := hoarder.GetClient()
+			client := karakeep.GetClient()
 
 			url, _ := param.String("url")
 			item, err := client.CreateBookmark(url)

@@ -12,7 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
+	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -34,7 +34,7 @@ CONTENT END HERE
 You must respond in JSON with the key "tags" and the value is an array of string tags.
 `
 
-func extractTags(ctx context.Context, bookmark hoarder.Bookmark) ([]string, error) {
+func extractTags(ctx context.Context, bookmark karakeep.Bookmark) ([]string, error) {
 	var content string
 	title := bookmark.Content.Title
 	if title != nil {
@@ -179,8 +179,8 @@ func sliceEqual(a, b []string) bool {
 	return true
 }
 
-// convertTagsToStrings Convert hoarder.Tag slice to string slice
-func convertTagsToStrings(tags []hoarder.Tag) []string {
+// convertTagsToStrings Convert karakeep.Tag slice to string slice
+func convertTagsToStrings(tags []karakeep.Tag) []string {
 	result := make([]string, len(tags))
 	for i, tag := range tags {
 		result[i] = tag.Name
@@ -189,7 +189,7 @@ func convertTagsToStrings(tags []hoarder.Tag) []string {
 }
 
 // convertBookmarkTagsToStrings Convert BookmarkTagsInner slice to string slice
-func convertBookmarkTagsToStrings(tags []hoarder.BookmarkTagsInner) []string {
+func convertBookmarkTagsToStrings(tags []karakeep.BookmarkTagsInner) []string {
 	result := make([]string, len(tags))
 	for i, tag := range tags {
 		result[i] = tag.Name
@@ -198,10 +198,10 @@ func convertBookmarkTagsToStrings(tags []hoarder.BookmarkTagsInner) []string {
 }
 
 // convertStringsToBookmarkTags Convert string slice to BookmarkTagsInner slice
-func convertStringsToBookmarkTags(tags []string) []hoarder.BookmarkTagsInner {
-	result := make([]hoarder.BookmarkTagsInner, len(tags))
+func convertStringsToBookmarkTags(tags []string) []karakeep.BookmarkTagsInner {
+	result := make([]karakeep.BookmarkTagsInner, len(tags))
 	for i, tag := range tags {
-		result[i] = hoarder.BookmarkTagsInner{
+		result[i] = karakeep.BookmarkTagsInner{
 			Name: tag,
 		}
 	}

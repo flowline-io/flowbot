@@ -1,4 +1,4 @@
-package hoarder
+package karakeep
 
 import (
 	"fmt"
@@ -9,24 +9,24 @@ import (
 )
 
 const (
-	ID          = "hoarder"
+	ID          = "karakeep"
 	EndpointKey = "endpoint"
 	ApikeyKey   = "api_key"
 )
 
-type Hoarder struct {
+type Karakeep struct {
 	c *resty.Client
 }
 
-func GetClient() *Hoarder {
+func GetClient() *Karakeep {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
 	apiKey, _ := providers.GetConfig(ID, ApikeyKey)
 
-	return NewHoarder(endpoint.String(), apiKey.String())
+	return NewKarakeep(endpoint.String(), apiKey.String())
 }
 
-func NewHoarder(endpoint string, apiKey string) *Hoarder {
-	v := &Hoarder{}
+func NewKarakeep(endpoint string, apiKey string) *Karakeep {
+	v := &Karakeep{}
 
 	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)
@@ -35,7 +35,7 @@ func NewHoarder(endpoint string, apiKey string) *Hoarder {
 	return v
 }
 
-func (i *Hoarder) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, error) {
+func (i *Karakeep) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, error) {
 	request := i.c.R().SetResult(&BookmarksResponse{})
 
 	if query == nil {
@@ -67,7 +67,7 @@ func (i *Hoarder) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, er
 	return result, nil
 }
 
-func (i *Hoarder) GetAllTags() ([]Tag, error) {
+func (i *Karakeep) GetAllTags() ([]Tag, error) {
 	resp, err := i.c.R().
 		SetResult(&TagsResponse{}).
 		Get("/tags")
@@ -79,7 +79,7 @@ func (i *Hoarder) GetAllTags() ([]Tag, error) {
 	return result.Tags, nil
 }
 
-func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+func (i *Karakeep) AttachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
 	var list []BookmarkTagRequest
 	for _, tag := range tags {
 		list = append(list, BookmarkTagRequest{
@@ -99,7 +99,7 @@ func (i *Hoarder) AttachTagsToBookmark(bookmarkId string, tags []string) ([]stri
 	return result.Attached, nil
 }
 
-func (i *Hoarder) DetachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+func (i *Karakeep) DetachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
 	var list []BookmarkTagRequest
 	for _, tag := range tags {
 		list = append(list, BookmarkTagRequest{
@@ -119,7 +119,7 @@ func (i *Hoarder) DetachTagsToBookmark(bookmarkId string, tags []string) ([]stri
 	return result.Detached, nil
 }
 
-func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
+func (i *Karakeep) ArchiveBookmark(id string) (bool, error) {
 	resp, err := i.c.R().
 		SetResult(&ArchiveResponse{}).
 		SetBody(map[string]bool{
@@ -134,7 +134,7 @@ func (i *Hoarder) ArchiveBookmark(id string) (bool, error) {
 	return result.Archived, nil
 }
 
-func (i *Hoarder) CreateBookmark(url string) (*Bookmark, error) {
+func (i *Karakeep) CreateBookmark(url string) (*Bookmark, error) {
 	resp, err := i.c.R().
 		SetResult(&Bookmark{}).
 		SetBody(map[string]string{
@@ -147,4 +147,23 @@ func (i *Hoarder) CreateBookmark(url string) (*Bookmark, error) {
 	}
 
 	return resp.Result().(*Bookmark), nil
+}
+
+// GetBookmark retrieves a single bookmark by its ID.  This corresponds
+// to GET /bookmarks/:bookmarkId in the karakeep API and returns the
+// full bookmark object, including fields that are not present in the
+// list response (summarizationStatus, source, userId, etc.).
+//
+// The caller is responsible for handling a nil result or any error
+// produced by the underlying HTTP client.
+func (i *Karakeep) GetBookmark(id string) (*Bookmark, error) {
+	resp, err := i.c.R().
+		SetResult(&Bookmark{}).
+		Get(fmt.Sprintf("/bookmarks/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bookmark %s: %w", id, err)
+	}
+
+	result := resp.Result().(*Bookmark)
+	return result, nil
 }

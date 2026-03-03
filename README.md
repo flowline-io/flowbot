@@ -176,7 +176,7 @@ Built-in actions: **Message**, **Fetch**, **Feed**, **LLM**, **Docker**, **Grep*
 | Productivity | Kanboard, n8n |
 | Finance | Firefly III |
 | Infrastructure | AdGuard, Cloudflare, Uptime Kuma |
-| Media | Transmission, Miniflux, ArchiveBox, Hoarder |
+| Media | Transmission, Miniflux, ArchiveBox, Karakeep |
 | Storage | Dropbox |
 | Other | Slash, Email |
 

@@ -3,8 +3,8 @@ package user
 import (
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -91,14 +91,14 @@ func getKanban(ctx fiber.Ctx) error {
 //	@Security	ApiKeyAuth
 //	@Router		/user/bookmark [get]
 func getBookmark(ctx fiber.Ctx) error {
-	client := hoarder.GetClient()
+	client := karakeep.GetClient()
 
-	resp, err := client.GetAllBookmarks(&hoarder.BookmarksQuery{Limit: hoarder.MaxPageSize})
+	resp, err := client.GetAllBookmarks(&karakeep.BookmarksQuery{Limit: karakeep.MaxPageSize})
 	if err != nil {
 		return fmt.Errorf("failed to get all bookmarks, %w", err)
 	}
 
-	list := make([]hoarder.Bookmark, 0, 10)
+	list := make([]karakeep.Bookmark, 0, 10)
 	for i, item := range resp.Bookmarks {
 		if item.Archived {
 			continue

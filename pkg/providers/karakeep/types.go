@@ -1,4 +1,4 @@
-package hoarder
+package karakeep
 
 const (
 	MaxPageSize = 100
@@ -30,18 +30,25 @@ type BookmarkTagRequest struct {
 }
 
 type Bookmark struct {
-	Id            string                      `json:"id"`
-	CreatedAt     string                      `json:"createdAt"`
-	ModifiedAt    *string                     `json:"modifiedAt"`
-	Title         *string                     `json:"title,omitempty"`
-	Archived      bool                        `json:"archived"`
-	Favourited    bool                        `json:"favourited"`
-	TaggingStatus *string                     `json:"taggingStatus"`
-	Note          *string                     `json:"note,omitempty"`
-	Summary       *string                     `json:"summary,omitempty"`
-	Tags          []BookmarkTagsInner         `json:"tags"`
-	Assets        []BookmarksBookmarkIdAssets `json:"assets"`
-	Content       BookmarkContent             `json:"content"`
+	Id            string  `json:"id"`
+	CreatedAt     string  `json:"createdAt"`
+	ModifiedAt    *string `json:"modifiedAt"`
+	Title         *string `json:"title,omitempty"`
+	Archived      bool    `json:"archived"`
+	Favourited    bool    `json:"favourited"`
+	TaggingStatus *string `json:"taggingStatus,omitempty"`
+	// summarization status was added in API responses starting
+	// with the new /bookmarks/:id endpoint and is not returned
+	// by the older list call.  Use a pointer to distinguish
+	// missing values.
+	SummarizationStatus *string                     `json:"summarizationStatus,omitempty"`
+	Source              *string                     `json:"source,omitempty"`
+	UserId              *string                     `json:"userId,omitempty"`
+	Note                *string                     `json:"note,omitempty"`
+	Summary             *string                     `json:"summary,omitempty"`
+	Tags                []BookmarkTagsInner         `json:"tags"`
+	Assets              []BookmarksBookmarkIdAssets `json:"assets"`
+	Content             BookmarkContent             `json:"content"`
 }
 
 func (b Bookmark) GetTitle() string {
@@ -83,6 +90,7 @@ type BookmarkTagsInner struct {
 type BookmarksBookmarkIdAssets struct {
 	Id        string `json:"id"`
 	AssetType string `json:"assetType"`
+	FileName  string `json:"fileName"`
 }
 
 type Tag struct {

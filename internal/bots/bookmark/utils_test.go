@@ -3,7 +3,7 @@ package bookmark
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
+	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +49,7 @@ func TestSliceEqual_Empty(t *testing.T) {
 }
 
 func TestConvertTagsToStrings(t *testing.T) {
-	tags := []hoarder.Tag{
+	tags := []karakeep.Tag{
 		{Name: "foo"},
 		{Name: "bar"},
 	}
@@ -58,12 +58,12 @@ func TestConvertTagsToStrings(t *testing.T) {
 }
 
 func TestConvertTagsToStrings_Empty(t *testing.T) {
-	result := convertTagsToStrings([]hoarder.Tag{})
+	result := convertTagsToStrings([]karakeep.Tag{})
 	assert.Empty(t, result)
 }
 
 func TestConvertBookmarkTagsToStrings(t *testing.T) {
-	tags := []hoarder.BookmarkTagsInner{
+	tags := []karakeep.BookmarkTagsInner{
 		{Name: "alpha"},
 		{Name: "beta"},
 	}

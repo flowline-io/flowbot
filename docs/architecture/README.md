@@ -84,7 +84,7 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 | Infrastructure | AdGuard, Cloudflare, Uptime Kuma |
 | Productivity | Kanboard, n8n |
 | Finance | Firefly III |
-| Media | Transmission, Miniflux, ArchiveBox, Hoarder |
+| Media | Transmission, Miniflux, ArchiveBox, Karakeep |
 | Storage | Dropbox |
 | Other | Slash |
 

@@ -8,8 +8,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
-	"github.com/flowline-io/flowbot/pkg/providers/hoarder"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
@@ -71,7 +71,7 @@ var webhookRules = []webhook.Rule{
 				}
 
 				switch app {
-				case hoarder.ID:
+				case karakeep.ID:
 					err = event.BotEventFire(ctx, types.BookmarkArchiveBotEventID, types.KV{
 						"id": id,
 					})
