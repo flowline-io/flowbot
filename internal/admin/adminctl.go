@@ -13,7 +13,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -24,6 +23,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/flowline-io/flowbot/pkg/types/admin"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -198,7 +198,7 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 	adminAPI.Put("/containers/:id", ac.adminAuth(ac.updateContainer))
 	adminAPI.Delete("/containers/:id", ac.adminAuth(ac.deleteContainer))
 
-	log.Println("admin API routes registered")
+	flog.Info("admin API routes registered")
 }
 
 // HandlePageRoutes registers go-app PWA static resource routes on the given Fiber app.
@@ -215,7 +215,7 @@ func HandlePageRoutes(a *fiber.App, apiBaseURL string) {
 	// Catch-all: let go-app handle every request (SPA pages + static assets).
 	a.Use(httpHandler)
 
-	log.Println("admin page routes registered")
+	flog.Info("admin page routes registered")
 }
 
 // ---------------------------------------------------------------------------
@@ -326,21 +326,21 @@ func (ac *AdminController) handleSlackCallback(ctx fiber.Ctx) error {
 	// Validate the CSRF state parameter first.
 	state := ctx.Query("state")
 	if state == "" || !ac.validateState(state) {
-		log.Printf("slack oauth callback: invalid or expired state")
+		flog.Info("slack oauth callback: invalid or expired state")
 		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Invalid OAuth state — please try again"))
 	}
 
 	code := ctx.Query("code")
 	if code == "" {
 		errMsg := ctx.Query("error", "missing code parameter")
-		log.Printf("slack oauth callback error: %s", errMsg)
+		flog.Info("slack oauth callback error: %s", errMsg)
 		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape(errMsg))
 	}
 
 	clientID := ac.opts.SlackClientID
 	clientSecret := ac.opts.SlackClientSecret
 	if clientID == "" || clientSecret == "" {
-		log.Printf("slack oauth: client ID or secret not configured")
+		flog.Info("slack oauth: client ID or secret not configured")
 		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Slack OAuth is not configured"))
 	}
 
@@ -350,7 +350,7 @@ func (ac *AdminController) handleSlackCallback(ctx fiber.Ctx) error {
 	provider := slackProvider.NewSlack(clientID, clientSecret, redirectURI, "")
 	kv, err := provider.GetAccessToken(ctx)
 	if err != nil {
-		log.Printf("slack oauth token exchange failed: %v", err)
+		flog.Info("slack oauth token exchange failed: %v", err)
 		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Slack authentication failed"))
 	}
 
@@ -360,7 +360,7 @@ func (ac *AdminController) handleSlackCallback(ctx fiber.Ctx) error {
 	// (accessToken is already set internally after GetAccessToken).
 	identity, err := provider.GetIdentity()
 	if err != nil {
-		log.Printf("slack oauth identity fetch failed: %v", err)
+		flog.Info("slack oauth identity fetch failed: %v", err)
 		return ctx.Redirect().To("/admin/login?error=" + url.QueryEscape("Failed to retrieve Slack user info"))
 	}
 
@@ -375,12 +375,12 @@ func (ac *AdminController) handleSlackCallback(ctx fiber.Ctx) error {
 	if ac.opts.OAuthStore != nil {
 		extra, _ := kv["extra"].([]byte)
 		if err := ac.opts.OAuthStore(user.UID, accessToken, extra); err != nil {
-			log.Printf("slack oauth store failed: %v", err)
+			flog.Info("slack oauth store failed: %v", err)
 			// Non-fatal: the user can still log in even if persistence fails.
 		}
 	}
 
-	log.Printf("slack oauth login successful: uid=%s name=%s", user.UID, user.Name)
+	flog.Info("slack oauth login successful: uid=%s name=%s", user.UID, user.Name)
 
 	// Step 4: Create a session token and wrap it in a one-time exchange code
 	// so the real token never appears in the URL / browser history.
@@ -484,7 +484,7 @@ func (ac *AdminController) updateSettings(ctx fiber.Ctx) error {
 	ac.settings = req
 	ac.mu.Unlock()
 
-	log.Printf("admin settings updated: %+v", req)
+	flog.Info("admin settings updated: %+v", req)
 	return ctx.JSON(protocol.NewSuccessResponse(ac.settings))
 }
 
@@ -596,7 +596,7 @@ func (ac *AdminController) createContainer(ctx fiber.Ctx) error {
 	ac.containers = append(ac.containers, newContainer)
 	ac.mu.Unlock()
 
-	log.Printf("admin container created: %+v", newContainer)
+	flog.Info("admin container created: %+v", newContainer)
 	return ctx.JSON(protocol.NewSuccessResponse(newContainer))
 }
 
@@ -642,7 +642,7 @@ func (ac *AdminController) updateContainer(ctx fiber.Ctx) error {
 			if req.Status != "" {
 				ac.containers[i].Status = req.Status
 			}
-			log.Printf("admin container updated: %+v", ac.containers[i])
+			flog.Info("admin container updated: %+v", ac.containers[i])
 			return ctx.JSON(protocol.NewSuccessResponse(ac.containers[i]))
 		}
 	}
@@ -663,7 +663,7 @@ func (ac *AdminController) deleteContainer(ctx fiber.Ctx) error {
 	for i, c := range ac.containers {
 		if c.ID == id {
 			ac.containers = append(ac.containers[:i], ac.containers[i+1:]...)
-			log.Printf("admin container deleted: id=%d", id)
+			flog.Info("admin container deleted: id=%d", id)
 			return ctx.JSON(protocol.NewSuccessResponse(nil))
 		}
 	}
@@ -700,7 +700,7 @@ func (ac *AdminController) batchDeleteContainers(ctx fiber.Ctx) error {
 	ac.containers = filtered
 	ac.mu.Unlock()
 
-	log.Printf("admin containers batch deleted: %d items", deleted)
+	flog.Info("admin containers batch deleted: %d items", deleted)
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
