@@ -63,8 +63,8 @@ func handleRoutes(a *fiber.App, ctl *Controller, adminCtl *admin.AdminController
 	// MCP
 	a.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
 
-	// Admin panel routes (API + PWA)
-	handleAdminRoutes(a, adminCtl)
+	// Admin panel routes (API + PWA) TODO
+	// handleAdminRoutes(a, adminCtl)
 }
 
 // handler
