@@ -35,16 +35,8 @@ jobs:
           go-version: '^1.26'
           cache: true
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v7
-        with:
-          install-only: true
-          version: '~> v2'
+      - name: Go mod download
+        run: go mod download
 
       - name: Build agent
         run: |

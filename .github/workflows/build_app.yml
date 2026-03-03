@@ -28,15 +28,12 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
+      - name: Go mod download
+        run: go mod download
 
       - name: Build app
         run: task build:app
 
-      # ---- Build Docker image ----
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

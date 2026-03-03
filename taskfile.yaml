@@ -128,12 +128,12 @@ tasks:
   test:
     desc: Run all tests
     cmds:
-      - go test ./... -v
+      - go tool gotestsum --hide-summary=skipped --packages="./..."
   
   test:utils:
     desc: Run tests in pkg/utils package
     cmds:
-      - go test ./pkg/utils/... -v
+      - go tool gotestsum --hide-summary=skipped --packages="./pkg/utils/..."
 
   test:coverage:
     desc: Run tests with coverage report

@@ -23,18 +23,16 @@ jobs:
           go-version: '^1.26'
           cache: true
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
+      - name: Go mod download
+        run: go mod download
 
       - name: Lint
         run: |
-          go env
-          go install github.com/mgechev/revive@latest
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
-          go mod download
           task lint
+
+      - name: Test
+        run: |
+          task test
 
       - name: Build server
         run: |
