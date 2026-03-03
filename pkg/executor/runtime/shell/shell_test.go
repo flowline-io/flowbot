@@ -20,9 +20,12 @@ func skipIfWindows(t *testing.T) {
 }
 
 // mockReexec creates a simple exec.Cmd for testing without re-executing the binary
+// It returns a bash command that will unpack REEXEC_ prefixed environment variables
+// before executing the actual script, simulating what reexecRun() does in production
 func mockReexec(args ...string) *exec.Cmd {
 	// Skip the first argument (program name) and the -uid/-gid flags
 	// Find where the actual shell command starts
+	// Args look like: ["shell", "-uid", "val", "-gid", "val", "bash", "-c", "/path/to/entrypoint"]
 	var cmdArgs []string
 	for i := 0; i < len(args); i++ {
 		if args[i] == "-uid" {
@@ -35,6 +38,27 @@ func mockReexec(args ...string) *exec.Cmd {
 	}
 	if len(cmdArgs) == 0 {
 		cmdArgs = args
+	}
+
+	// Create a wrapper script that unpacks REEXEC_ variables before executing bash
+	// This simulates what happens in the real reexecRun() function
+	wrapperScript := `
+for entry in $(env); do
+  if [[ $entry == REEXEC_* ]]; then
+    key="${entry#REEXEC_}"
+    key="${key%%=*}"
+    value="${entry#REEXEC_${key}=}"
+    export "$key"="$value"
+  fi
+done
+exec bash -c "$@"
+`
+
+	// Return a bash command that runs the wrapper script with the original command
+	if len(cmdArgs) >= 3 && cmdArgs[0] == "bash" && cmdArgs[1] == "-c" {
+		// cmdArgs is ["bash", "-c", "/path/to/entrypoint"]
+		// We want to run: bash -c 'wrapper_script' bash -c /path/to/entrypoint
+		return exec.Command("bash", "-c", wrapperScript, "bash", "-c", cmdArgs[2])
 	}
 	if len(cmdArgs) >= 2 {
 		return exec.Command(cmdArgs[0], cmdArgs[1:]...)
