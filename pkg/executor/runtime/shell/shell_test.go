@@ -2,6 +2,7 @@ package shell
 
 import (
 	"context"
+	"os/exec"
 	"runtime"
 	"testing"
 	"time"
@@ -18,11 +19,35 @@ func skipIfWindows(t *testing.T) {
 	}
 }
 
+// mockReexec creates a simple exec.Cmd for testing without re-executing the binary
+func mockReexec(args ...string) *exec.Cmd {
+	// Skip the first argument (program name) and the -uid/-gid flags
+	// Find where the actual shell command starts
+	var cmdArgs []string
+	for i := 0; i < len(args); i++ {
+		if args[i] == "-uid" {
+			i++ // skip the -uid value
+		} else if args[i] == "-gid" {
+			i++ // skip the -gid value
+		} else if args[i] != "shell" {
+			cmdArgs = append(cmdArgs, args[i])
+		}
+	}
+	if len(cmdArgs) == 0 {
+		cmdArgs = args
+	}
+	if len(cmdArgs) >= 2 {
+		return exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	}
+	return exec.Command("bash", "-c", "")
+}
+
 func TestShellRuntimeRunResult(t *testing.T) {
 	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
-		UID: DefaultUid,
-		GID: DefaultGid,
+		UID:   DefaultUid,
+		GID:   DefaultGid,
+		Rexec: mockReexec,
 	})
 
 	tk := &types.Task{
@@ -39,8 +64,9 @@ func TestShellRuntimeRunResult(t *testing.T) {
 func TestShellRuntimeRunFile(t *testing.T) {
 	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
-		UID: DefaultUid,
-		GID: DefaultGid,
+		UID:   DefaultUid,
+		GID:   DefaultGid,
+		Rexec: mockReexec,
 	})
 
 	tk := &types.Task{
@@ -75,8 +101,9 @@ func TestShellRuntimeRunNotSupported(t *testing.T) {
 func TestShellRuntimeRunError(t *testing.T) {
 	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
-		UID: DefaultUid,
-		GID: DefaultGid,
+		UID:   DefaultUid,
+		GID:   DefaultGid,
+		Rexec: mockReexec,
 	})
 
 	tk := &types.Task{
@@ -92,8 +119,9 @@ func TestShellRuntimeRunError(t *testing.T) {
 func TestShellRuntimeRunTimeout(t *testing.T) {
 	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
-		UID: DefaultUid,
-		GID: DefaultGid,
+		UID:   DefaultUid,
+		GID:   DefaultGid,
+		Rexec: mockReexec,
 	})
 
 	tk := &types.Task{
@@ -112,8 +140,9 @@ func TestShellRuntimeRunTimeout(t *testing.T) {
 func TestShellRuntimeStop(t *testing.T) {
 	skipIfWindows(t)
 	rt := NewShellRuntime(Config{
-		UID: DefaultUid,
-		GID: DefaultGid,
+		UID:   DefaultUid,
+		GID:   DefaultGid,
+		Rexec: mockReexec,
 	})
 
 	tk := &types.Task{
