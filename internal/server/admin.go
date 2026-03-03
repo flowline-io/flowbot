@@ -4,12 +4,12 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/flowline-io/flowbot/internal/admin"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/gofiber/fiber/v3"
 )
@@ -35,10 +35,10 @@ func newAdminController() *admin.AdminController {
 				Extra: extraJSON,
 			})
 			if err != nil {
-				log.Printf("failed to persist slack oauth token for uid=%s: %v", uid, err)
+				flog.Info("failed to persist slack oauth token for uid=%s: %v", uid, err)
 				return err
 			}
-			log.Printf("slack oauth token persisted for uid=%s", uid)
+			flog.Info("slack oauth token persisted for uid=%s", uid)
 			return nil
 		},
 	})

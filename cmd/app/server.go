@@ -8,6 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/app/config"
 	"github.com/flowline-io/flowbot/internal/admin"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/fx"
 )
@@ -35,7 +36,7 @@ func startServer(lc fx.Lifecycle, cfg *config.Type) {
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
-			log.Printf("Admin PWA server listening on %s", cfg.Listen)
+			flog.Info("Admin PWA server listening on %s", cfg.Listen)
 			go func() {
 				if err := app.Listen(cfg.Listen, fiber.ListenConfig{DisableStartupMessage: true}); err != nil {
 					log.Fatalf("Fiber server error: %v", err)
