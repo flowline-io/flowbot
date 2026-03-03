@@ -28,12 +28,12 @@ jobs:
 
       - name: Lint
         run: |
-          task lint
+          go tool task lint
 
       - name: Test
         run: |
-          task test
+          go tool task test
 
       - name: Build server
         run: |
-          task build
+          go tool task build

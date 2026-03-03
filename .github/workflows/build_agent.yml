@@ -40,4 +40,4 @@ jobs:
 
       - name: Build agent
         run: |
-          task snapshot
+          go tool task snapshot
