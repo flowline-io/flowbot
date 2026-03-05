@@ -16,7 +16,7 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.7.37
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.8
-	github.com/creachadair/jrpc2 v1.3.4
+	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.0
 	github.com/docker/cli v29.2.1+incompatible
 	github.com/docker/docker v28.5.2+incompatible
@@ -231,7 +231,7 @@ require (
 	github.com/containerd/stargz-snapshotter/estargz v0.18.2 // indirect
 	github.com/coreos/go-oidc/v3 v3.17.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
-	github.com/creachadair/mds v0.25.13 // indirect
+	github.com/creachadair/mds v0.26.1 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
 	github.com/cyphar/filepath-securejoin v0.5.1 // indirect
 	github.com/cznic/mathutil v0.0.0-20180504122225-ca4c9f2c1369 // indirect
