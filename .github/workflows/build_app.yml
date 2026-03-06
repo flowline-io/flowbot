@@ -42,7 +42,7 @@ jobs:
         run: echo "tag=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: deployments/Dockerfile.app
