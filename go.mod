@@ -37,7 +37,7 @@ require (
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/maxence-charriere/go-app/v10 v10.1.11
 	github.com/meilisearch/meilisearch-go v0.36.1
-	github.com/minio/minio-go/v7 v7.0.98
+	github.com/minio/minio-go/v7 v7.0.99
 	github.com/minio/selfupdate v0.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/modelcontextprotocol/go-sdk v1.4.0
