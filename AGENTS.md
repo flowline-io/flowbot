@@ -2,6 +2,9 @@
 
 Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM agents.
 
+**Generated:** 2026-03-11
+**Go Version:** 1.26
+
 ## Quick Reference
 
 | Task          | Location           | Notes                   |
@@ -9,6 +12,7 @@ Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM a
 | Add new bot   | `internal/bots/`   | See `AGENTS.md` there   |
 | Database work | `internal/store/`  | DAO pattern, migrations |
 | New provider  | `pkg/providers/`   | OAuth + API clients     |
+| Core types    | `pkg/types/`       | Rulesets, protocol, KV  |
 | API routes    | `internal/server/` | Fiber v3 handlers       |
 | Entry points  | `cmd/`             | 4 binaries              |
 
@@ -129,7 +133,7 @@ task gosec     # security scan
 
 ## Notes
 
-- Go 1.24+ required
+- Go 1.26+ required
 - MySQL + Redis required
 - Uses Fiber v3 for HTTP
 - WebAssembly for admin PWA
