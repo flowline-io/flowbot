@@ -7,29 +7,24 @@ import (
 	"github.com/flowline-io/flowbot/cmd/app/api"
 	"github.com/flowline-io/flowbot/cmd/app/components"
 	"github.com/flowline-io/flowbot/cmd/app/state"
+	"github.com/flowline-io/flowbot/cmd/app/utils"
 	"github.com/flowline-io/flowbot/pkg/types/admin"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
-// debounceDelay is the form-submit debounce delay.
-const debounceDelay = 500 * time.Millisecond
-
 // Settings is the system settings page component.
-// The form supports debounced submission and loading-state display.
 type Settings struct {
 	app.Compo
 
-	// Form fields
 	siteName       string
 	logoURL        string
 	seoDescription string
-	maxUploadSize  string // string input in MB
+	maxUploadSize  string
 
-	// Status flags
-	loading    bool
-	saving     bool
-	loadError  string
-	debounceID int64 // debounce timer identifier
+	loading   bool
+	saving    bool
+	loadError string
+	debounce  *utils.Debouncer
 }
 
 // OnNav checks login status and loads settings on page navigation.
@@ -162,21 +157,12 @@ func (s *Settings) formField(label, inputType, value, placeholder string, onChan
 	)
 }
 
-// debounceSave debounces the save operation: delays execution after each input
-// change, resetting the timer if more input arrives within the delay.
 func (s *Settings) debounceSave(ctx app.Context) {
-	s.debounceID++
-	currentID := s.debounceID
-
-	ctx.Async(func() {
-		time.Sleep(debounceDelay)
-		ctx.Dispatch(func(ctx app.Context) {
-			// If debounceID has changed, new input arrived; skip this save
-			if s.debounceID != currentID {
-				return
-			}
-			s.doSave(ctx)
-		})
+	if s.debounce == nil {
+		s.debounce = utils.NewDebouncer(500 * time.Millisecond)
+	}
+	s.debounce.Call(ctx, func() {
+		s.doSave(ctx)
 	})
 }
 

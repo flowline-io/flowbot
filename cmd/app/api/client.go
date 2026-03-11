@@ -262,3 +262,208 @@ func BatchDeleteContainers(token string, ids []int64) error {
 	_, err := doRequest(token, "POST", "/containers/batch-delete", admin.BatchDeleteRequest{IDs: ids})
 	return err
 }
+
+// ---------------------------------------------------------------------------
+// User management API
+// ---------------------------------------------------------------------------
+
+func ListUsers(token string, page, pageSize int, search, sortBy string, sortDesc bool) (*admin.ListResponse[admin.User], error) {
+	params := url.Values{}
+	params.Set("page", strconv.Itoa(page))
+	params.Set("page_size", strconv.Itoa(pageSize))
+	if search != "" {
+		params.Set("search", search)
+	}
+	if sortBy != "" {
+		params.Set("sort_by", sortBy)
+	}
+	if sortDesc {
+		params.Set("sort_desc", "true")
+	}
+
+	data, err := doRequest(token, "GET", "/users?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	var resp admin.ListResponse[admin.User]
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func CreateUser(token string, req admin.UserCreateRequest) (*admin.User, error) {
+	data, err := doRequest(token, "POST", "/users", req)
+	if err != nil {
+		return nil, err
+	}
+	var user admin.User
+	if err := json.Unmarshal(data, &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func GetUser(token string, id int64) (*admin.User, error) {
+	data, err := doRequest(token, "GET", fmt.Sprintf("/users/%d", id), nil)
+	if err != nil {
+		return nil, err
+	}
+	var user admin.User
+	if err := json.Unmarshal(data, &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func UpdateUser(token string, id int64, req admin.UserUpdateRequest) (*admin.User, error) {
+	data, err := doRequest(token, "PUT", fmt.Sprintf("/users/%d", id), req)
+	if err != nil {
+		return nil, err
+	}
+	var user admin.User
+	if err := json.Unmarshal(data, &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func DeleteUser(token string, id int64) error {
+	_, err := doRequest(token, "DELETE", fmt.Sprintf("/users/%d", id), nil)
+	return err
+}
+
+func ListLogs(token string, page, pageSize int, level, source, search string) (*admin.LogListResponse, error) {
+	params := url.Values{}
+	params.Set("page", strconv.Itoa(page))
+	params.Set("page_size", strconv.Itoa(pageSize))
+	if level != "" {
+		params.Set("level", level)
+	}
+	if source != "" {
+		params.Set("source", source)
+	}
+	if search != "" {
+		params.Set("search", search)
+	}
+
+	data, err := doRequest(token, "GET", "/logs?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	var resp admin.LogListResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// ---------------------------------------------------------------------------
+// Bot management API
+// ---------------------------------------------------------------------------
+
+func ListBots(token string) (*admin.BotListResponse, error) {
+	data, err := doRequest(token, "GET", "/bots", nil)
+	if err != nil {
+		return nil, err
+	}
+	var resp admin.BotListResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func GetBot(token string, name string) (*admin.BotInfo, error) {
+	data, err := doRequest(token, "GET", fmt.Sprintf("/bots/%s", name), nil)
+	if err != nil {
+		return nil, err
+	}
+	var bot admin.BotInfo
+	if err := json.Unmarshal(data, &bot); err != nil {
+		return nil, err
+	}
+	return &bot, nil
+}
+
+func EnableBot(token string, name string) error {
+	_, err := doRequest(token, "POST", fmt.Sprintf("/bots/%s/enable", name), nil)
+	return err
+}
+
+func DisableBot(token string, name string) error {
+	_, err := doRequest(token, "POST", fmt.Sprintf("/bots/%s/disable", name), nil)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// Workflow management API
+// ---------------------------------------------------------------------------
+
+func ListWorkflows(token string, page, pageSize int, status, search string) (*admin.ListResponse[admin.Workflow], error) {
+	params := url.Values{}
+	params.Set("page", strconv.Itoa(page))
+	params.Set("page_size", strconv.Itoa(pageSize))
+	if status != "" {
+		params.Set("status", status)
+	}
+	if search != "" {
+		params.Set("search", search)
+	}
+
+	data, err := doRequest(token, "GET", "/workflows?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	var resp admin.ListResponse[admin.Workflow]
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func GetWorkflow(token string, id int64) (*admin.Workflow, error) {
+	data, err := doRequest(token, "GET", fmt.Sprintf("/workflows/%d", id), nil)
+	if err != nil {
+		return nil, err
+	}
+	var workflow admin.Workflow
+	if err := json.Unmarshal(data, &workflow); err != nil {
+		return nil, err
+	}
+	return &workflow, nil
+}
+
+func CreateWorkflow(token string, req admin.WorkflowCreateRequest) (*admin.Workflow, error) {
+	data, err := doRequest(token, "POST", "/workflows", req)
+	if err != nil {
+		return nil, err
+	}
+	var workflow admin.Workflow
+	if err := json.Unmarshal(data, &workflow); err != nil {
+		return nil, err
+	}
+	return &workflow, nil
+}
+
+func DeleteWorkflow(token string, id int64) error {
+	_, err := doRequest(token, "DELETE", fmt.Sprintf("/workflows/%d", id), nil)
+	return err
+}
+
+func RunWorkflow(token string, id int64) error {
+	_, err := doRequest(token, "POST", fmt.Sprintf("/workflows/%d/run", id), nil)
+	return err
+}
+
+func GetLogSources(token string) ([]string, error) {
+	data, err := doRequest(token, "GET", "/logs/sources", nil)
+	if err != nil {
+		return nil, err
+	}
+	var sources []string
+	if err := json.Unmarshal(data, &sources); err != nil {
+		return nil, err
+	}
+	return sources, nil
+}

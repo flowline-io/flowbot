@@ -42,6 +42,11 @@ type Containers struct {
 	// Status flags
 	loading  bool
 	deleting bool
+
+	showConfirm    bool
+	confirmTitle   string
+	confirmMessage string
+	confirmAction  func()
 }
 
 // OnNav initializes the page and loads data on navigation.
@@ -104,7 +109,7 @@ func (c *Containers) Render() app.UI {
 					return app.Button().
 						Class("btn btn-error btn-sm gap-2").
 						Disabled(c.deleting).
-						OnClick(c.handleBatchDelete).
+						OnClick(c.showBatchDeleteConfirm).
 						Body(
 							app.If(c.deleting, func() app.UI {
 								return app.Span().Class("loading loading-spinner loading-xs")
@@ -185,6 +190,9 @@ func (c *Containers) Render() app.UI {
 
 		// Create / edit modal
 		c.renderModal(),
+
+		// Confirm dialog
+		c.renderConfirmDialog(),
 	)
 }
 
@@ -222,7 +230,7 @@ func (c *Containers) renderRows() []app.UI {
 						),
 					app.Button().
 						Class("btn btn-ghost btn-xs text-error gap-1").
-						OnClick(c.handleDelete(ct.ID)).
+						OnClick(c.showDeleteConfirm(ct)).
 						Body(
 							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`),
 							app.Text("Delete"),
@@ -581,4 +589,86 @@ func (c *Containers) handleSaveContainer(ctx app.Context, e app.Event) {
 			})
 		})
 	}
+}
+
+func (c *Containers) renderConfirmDialog() app.UI {
+	return &components.ConfirmDialog{
+		Show:         c.showConfirm,
+		Title:        c.confirmTitle,
+		Message:      c.confirmMessage,
+		ConfirmLabel: "Delete",
+		CancelLabel:  "Cancel",
+		ConfirmClass: "btn-error",
+		OnConfirm:    c.confirmAction,
+		OnCancel:     c.closeConfirmDialog,
+	}
+}
+
+func (c *Containers) showDeleteConfirm(ct admin.Container) app.EventHandler {
+	return func(ctx app.Context, e app.Event) {
+		c.confirmTitle = "Delete Container"
+		c.confirmMessage = fmt.Sprintf("Are you sure you want to delete container \"%s\"? This action cannot be undone.", ct.Name)
+		c.confirmAction = func() {
+			c.doDeleteContainer(ctx, ct.ID)
+		}
+		c.showConfirm = true
+	}
+}
+
+func (c *Containers) showBatchDeleteConfirm(ctx app.Context, e app.Event) {
+	count := c.selectedCount()
+	c.confirmTitle = "Delete Containers"
+	c.confirmMessage = fmt.Sprintf("Are you sure you want to delete %d container(s)? This action cannot be undone.", count)
+	c.confirmAction = func() {
+		c.doBatchDelete(ctx)
+	}
+	c.showConfirm = true
+}
+
+func (c *Containers) closeConfirmDialog() {
+	c.showConfirm = false
+	c.confirmAction = nil
+}
+
+func (c *Containers) doDeleteContainer(ctx app.Context, id int64) {
+	c.showConfirm = false
+	c.deleting = true
+	token := state.Token(ctx)
+
+	ctx.Async(func() {
+		err := api.DeleteContainer(token, id)
+		ctx.Dispatch(func(ctx app.Context) {
+			c.deleting = false
+			if err != nil {
+				components.ShowToast(ctx, "Delete failed: "+err.Error(), "error")
+				return
+			}
+			components.ShowToast(ctx, "Container deleted", "success")
+			c.loadData(ctx)
+		})
+	})
+}
+
+func (c *Containers) doBatchDelete(ctx app.Context) {
+	c.showConfirm = false
+	ids := c.selectedIDs()
+	if len(ids) == 0 {
+		return
+	}
+
+	c.deleting = true
+	token := state.Token(ctx)
+
+	ctx.Async(func() {
+		err := api.BatchDeleteContainers(token, ids)
+		ctx.Dispatch(func(ctx app.Context) {
+			c.deleting = false
+			if err != nil {
+				components.ShowToast(ctx, "Batch delete failed: "+err.Error(), "error")
+				return
+			}
+			components.ShowToast(ctx, fmt.Sprintf("Successfully deleted %d containers", len(ids)), "success")
+			c.loadData(ctx)
+		})
+	})
 }

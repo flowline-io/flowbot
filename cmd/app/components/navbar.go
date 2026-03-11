@@ -13,14 +13,14 @@ import (
 type Navbar struct {
 	app.Compo
 
-	// Current logged-in user info
-	user *admin.UserInfo
-	// Unread notification count (demo)
+	user        *admin.UserInfo
 	notifyCount int
+	isDark      bool
 }
 
-// OnNav loads user info on each navigation.
 func (n *Navbar) OnNav(ctx app.Context) {
+	n.isDark = state.IsDarkMode(ctx)
+
 	if !state.IsAuthenticated(ctx) {
 		return
 	}
@@ -30,11 +30,14 @@ func (n *Navbar) OnNav(ctx app.Context) {
 		user, err := api.GetCurrentUser(token)
 		ctx.Dispatch(func(ctx app.Context) {
 			if err != nil {
-				// Silently ignore errors to avoid blocking page rendering
 				return
 			}
 			n.user = user
 		})
+	})
+
+	ctx.Handle("theme-changed", func(ctx app.Context, a app.Action) {
+		n.isDark = state.IsDarkMode(ctx)
 	})
 }
 
@@ -54,12 +57,25 @@ func (n *Navbar) Render() app.UI {
 		// Center: Nav links (visible on desktop)
 		app.Div().Class("hidden md:flex gap-1").Body(
 			n.navLink("/admin", "Home"),
+			n.navLink("/admin/users", "Users"),
 			n.navLink("/admin/containers", "Containers"),
+			n.navLink("/admin/workflows", "Workflows"),
+			n.navLink("/admin/bots", "Bots"),
+			n.navLink("/admin/logs", "Logs"),
 			n.navLink("/admin/settings", "Settings"),
 		),
 
-		// Right: Notification + user avatar
+		// Right: Notification + theme + user avatar
 		app.Div().Class("flex-none gap-2").Body(
+			// Theme toggle
+			app.Button().Class("btn btn-ghost btn-circle").OnClick(n.handleThemeToggle).Body(
+				app.If(n.isDark, func() app.UI {
+					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`)
+				}).Else(func() app.UI {
+					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`)
+				}),
+			),
+
 			// Notification icon
 			app.Button().Class("btn btn-ghost btn-circle").Body(
 				app.Div().Class("indicator").Body(
@@ -103,7 +119,11 @@ func (n *Navbar) Render() app.UI {
 				),
 				app.Ul().TabIndex(0).Class("dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow mt-3").Body(
 					app.Li().Body(app.A().Href("/admin").Text("Home")),
+					app.Li().Body(app.A().Href("/admin/users").Text("Users")),
 					app.Li().Body(app.A().Href("/admin/containers").Text("Containers")),
+					app.Li().Body(app.A().Href("/admin/workflows").Text("Workflows")),
+					app.Li().Body(app.A().Href("/admin/bots").Text("Bots")),
+					app.Li().Body(app.A().Href("/admin/logs").Text("Logs")),
 					app.Li().Body(app.A().Href("/admin/settings").Text("Settings")),
 				),
 			),
@@ -132,9 +152,13 @@ func (n *Navbar) displayName() string {
 	return n.user.Name
 }
 
-// handleLogout handles the logout action.
 func (n *Navbar) handleLogout(ctx app.Context, e app.Event) {
 	state.ClearToken(ctx)
 	n.user = nil
 	ctx.Navigate("/admin/login")
+}
+
+func (n *Navbar) handleThemeToggle(ctx app.Context, e app.Event) {
+	state.ToggleTheme(ctx)
+	n.isDark = state.IsDarkMode(ctx)
 }

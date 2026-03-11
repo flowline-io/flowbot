@@ -136,3 +136,134 @@ type ActivityEntry struct {
 	Target  string `json:"target"`
 	Success bool   `json:"success"`
 }
+
+// ---------------------------------------------------------------------------
+// User management types
+// ---------------------------------------------------------------------------
+
+type UserRole string
+
+const (
+	RoleAdmin  UserRole = "admin"
+	RoleUser   UserRole = "user"
+	RoleViewer UserRole = "viewer"
+)
+
+type UserStatus string
+
+const (
+	UserActive    UserStatus = "active"
+	UserInactive  UserStatus = "inactive"
+	UserSuspended UserStatus = "suspended"
+)
+
+type User struct {
+	ID        int64      `json:"id"`
+	UID       string     `json:"uid"`
+	Name      string     `json:"name"`
+	Email     string     `json:"email"`
+	Avatar    string     `json:"avatar"`
+	Role      UserRole   `json:"role"`
+	Status    UserStatus `json:"status"`
+	Platform  string     `json:"platform"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+type UserCreateRequest struct {
+	Name     string   `json:"name" validate:"required"`
+	Email    string   `json:"email" validate:"required,email"`
+	Role     UserRole `json:"role" validate:"required"`
+	Password string   `json:"password" validate:"required,min=8"`
+}
+
+type UserUpdateRequest struct {
+	Name   string     `json:"name"`
+	Email  string     `json:"email"`
+	Role   UserRole   `json:"role"`
+	Status UserStatus `json:"status"`
+}
+
+// ---------------------------------------------------------------------------
+// Log viewer types
+// ---------------------------------------------------------------------------
+
+type LogLevel string
+
+const (
+	LogLevelDebug LogLevel = "debug"
+	LogLevelInfo  LogLevel = "info"
+	LogLevelWarn  LogLevel = "warn"
+	LogLevelError LogLevel = "error"
+)
+
+type LogEntry struct {
+	ID        int64    `json:"id"`
+	Level     LogLevel `json:"level"`
+	Message   string   `json:"message"`
+	Source    string   `json:"source"`
+	Timestamp string   `json:"timestamp"`
+}
+
+type LogListResponse struct {
+	Items      []LogEntry `json:"items"`
+	Total      int64      `json:"total"`
+	Page       int        `json:"page"`
+	PageSize   int        `json:"page_size"`
+	TotalPages int        `json:"total_pages"`
+}
+
+// ---------------------------------------------------------------------------
+// Bot management types
+// ---------------------------------------------------------------------------
+
+type BotInfo struct {
+	Name        string   `json:"name"`
+	Enabled     bool     `json:"enabled"`
+	Description string   `json:"description"`
+	Commands    []string `json:"commands,omitempty"`
+	HasForm     bool     `json:"has_form"`
+	HasCron     bool     `json:"has_cron"`
+	HasWebhook  bool     `json:"has_webhook"`
+}
+
+type BotListResponse struct {
+	Items []BotInfo `json:"items"`
+	Total int64     `json:"total"`
+}
+
+// ---------------------------------------------------------------------------
+// Workflow management types
+// ---------------------------------------------------------------------------
+
+type WorkflowStatus string
+
+const (
+	WorkflowPending   WorkflowStatus = "pending"
+	WorkflowRunning   WorkflowStatus = "running"
+	WorkflowCompleted WorkflowStatus = "completed"
+	WorkflowFailed    WorkflowStatus = "failed"
+)
+
+type Workflow struct {
+	ID          int64          `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Status      WorkflowStatus `json:"status"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+type WorkflowCreateRequest struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
+	Config      string `json:"config"`
+}
+
+type WorkflowListResponse struct {
+	Items      []Workflow `json:"items"`
+	Total      int64      `json:"total"`
+	Page       int        `json:"page"`
+	PageSize   int        `json:"page_size"`
+	TotalPages int        `json:"total_pages"`
+}

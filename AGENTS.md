@@ -31,10 +31,9 @@ flowbot/
 │   ├── server/          # HTTP server
 │   └── platforms/       # Discord, Slack, Tailchat
 ├── pkg/
-│   ├── providers/       # 17 third-party APIs
-│   ├── utils/           # Shared utilities
-│   └── types/           # Common types
-└── app/                 # WebAssembly admin UI
+    ├── providers/       # 17 third-party APIs
+    ├── utils/           # Shared utilities
+    └── types/           # Common types
 ```
 
 ## Build Commands

@@ -18,4 +18,8 @@ func registerRoutes() {
 	app.Route("/admin/login", func() app.Composer { return &pages.Login{} })
 	app.Route("/admin/settings", func() app.Composer { return &pages.Settings{} })
 	app.Route("/admin/containers", func() app.Composer { return &pages.Containers{} })
+	app.Route("/admin/users", func() app.Composer { return &pages.Users{} })
+	app.Route("/admin/logs", func() app.Composer { return &pages.Logs{} })
+	app.Route("/admin/bots", func() app.Composer { return &pages.Bots{} })
+	app.Route("/admin/workflows", func() app.Composer { return &pages.Workflows{} })
 }

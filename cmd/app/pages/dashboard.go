@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/flowline-io/flowbot/cmd/app/api"
 	"github.com/flowline-io/flowbot/cmd/app/components"
@@ -356,6 +357,50 @@ func formatBytes(b uint64) string {
 
 // formatTimeAgo converts an RFC3339 time string to a relative "time ago" string.
 func formatTimeAgo(timeStr string) string {
-	// Simple fallback if parsing fails
-	return timeStr
+	t, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		return timeStr
+	}
+
+	d := time.Since(t)
+
+	switch {
+	case d.Seconds() < 60:
+		return "just now"
+	case d.Minutes() < 60:
+		m := int(d.Minutes())
+		if m == 1 {
+			return "1 minute ago"
+		}
+		return fmt.Sprintf("%d minutes ago", m)
+	case d.Hours() < 24:
+		h := int(d.Hours())
+		if h == 1 {
+			return "1 hour ago"
+		}
+		return fmt.Sprintf("%d hours ago", h)
+	case d.Hours() < 48:
+		return "yesterday"
+	case d.Hours() < 24*7:
+		days := int(d.Hours() / 24)
+		return fmt.Sprintf("%d days ago", days)
+	case d.Hours() < 24*30:
+		weeks := int(d.Hours() / (24 * 7))
+		if weeks == 1 {
+			return "1 week ago"
+		}
+		return fmt.Sprintf("%d weeks ago", weeks)
+	case d.Hours() < 24*365:
+		months := int(d.Hours() / (24 * 30))
+		if months == 1 {
+			return "1 month ago"
+		}
+		return fmt.Sprintf("%d months ago", months)
+	default:
+		years := int(d.Hours() / (24 * 365))
+		if years == 1 {
+			return "1 year ago"
+		}
+		return fmt.Sprintf("%d years ago", years)
+	}
 }
