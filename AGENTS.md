@@ -4,13 +4,13 @@ Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM a
 
 ## Quick Reference
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add new bot | `internal/bots/` | See `AGENTS.md` there |
-| Database work | `internal/store/` | DAO pattern, migrations |
-| New provider | `pkg/providers/` | OAuth + API clients |
-| API routes | `internal/server/` | Fiber v3 handlers |
-| Entry points | `cmd/` | 4 binaries |
+| Task          | Location           | Notes                   |
+| ------------- | ------------------ | ----------------------- |
+| Add new bot   | `internal/bots/`   | See `AGENTS.md` there   |
+| Database work | `internal/store/`  | DAO pattern, migrations |
+| New provider  | `pkg/providers/`   | OAuth + API clients     |
+| API routes    | `internal/server/` | Fiber v3 handlers       |
+| Entry points  | `cmd/`             | 4 binaries              |
 
 ## Structure
 
@@ -62,6 +62,7 @@ enabled: blank-imports, dot-imports, error-naming, import-shadowing
 ## Key Patterns
 
 ### Bot Module
+
 ```go
 type Bot struct{}
 func (b *Bot) Info() types.BotInfo
@@ -70,6 +71,7 @@ func (b *Bot) HandleEvent(evt types.Event) error
 ```
 
 ### Error Handling
+
 ```go
 if err != nil {
     return fmt.Errorf("context: %w", err)
@@ -77,6 +79,7 @@ if err != nil {
 ```
 
 ### Testing
+
 ```bash
 go test ./pkg/utils
 go test -run ^TestFoo$ ./pkg/utils
@@ -84,11 +87,11 @@ go test -run ^TestFoo$ ./pkg/utils
 
 ## Generated Code
 
-| Type | Command | Location |
-|------|---------|----------|
-| DAO | `task dao` | `internal/store/dao/*.gen.go` |
-| Swagger | `task swagger` | `docs/api/` |
-| Migrations | `task migration` | `internal/store/migrate/` |
+| Type       | Command          | Location                      |
+| ---------- | ---------------- | ----------------------------- |
+| DAO        | `task dao`       | `internal/store/dao/*.gen.go` |
+| Swagger    | `task swagger`   | `docs/api/`                   |
+| Migrations | `task migration` | `internal/store/migrate/`     |
 
 **Never** edit `.gen.go` files directly.
 

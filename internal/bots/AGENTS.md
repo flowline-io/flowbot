@@ -40,16 +40,16 @@ func (b *Bot) HandleEvent(evt types.Event) error  // Event processing
 
 ## Bot Types
 
-| Bot | Domain | Key Features |
-|-----|--------|--------------|
-| agent | LLM AI | Multi-model, context management |
-| workflow | Automation | DAG execution, 8+ actions |
-| finance | Bills | Firefly III integration |
-| kanban | Tasks | Kanboard sync |
-| reader | RSS | Miniflux integration |
-| github | Dev | Issues, PRs |
-| gitea | Dev | Repos, issues |
-| dev | Debug | Testing utilities |
+| Bot      | Domain     | Key Features                    |
+| -------- | ---------- | ------------------------------- |
+| agent    | LLM AI     | Multi-model, context management |
+| workflow | Automation | DAG execution, 8+ actions       |
+| finance  | Bills      | Firefly III integration         |
+| kanban   | Tasks      | Kanboard sync                   |
+| reader   | RSS        | Miniflux integration            |
+| github   | Dev        | Issues, PRs                     |
+| gitea    | Dev        | Repos, issues                   |
+| dev      | Debug      | Testing utilities               |
 
 ## Registration
 
