@@ -64,7 +64,7 @@ require (
 	github.com/valyala/fasthttp v1.69.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.24.0
-	golang.org/x/crypto v0.48.0
+	golang.org/x/crypto v0.49.0
 	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
 	golang.org/x/sys v0.42.0
 	gorm.io/driver/mysql v1.6.0
@@ -608,10 +608,10 @@ require (
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260209163413-e7419c687ee4 // indirect
-	golang.org/x/term v0.40.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/term v0.41.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
