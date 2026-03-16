@@ -15,7 +15,7 @@ require (
 	github.com/bytedance/sonic v1.15.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudwego/eino v0.8.1
-	github.com/cloudwego/eino-ext/components/model/openai v0.1.9
+	github.com/cloudwego/eino-ext/components/model/openai v0.1.10
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.0
 	github.com/docker/cli v29.3.0+incompatible
