@@ -25,13 +25,13 @@ var eventRules = []event.Rule{
 				return fmt.Errorf("failed to get bookmark %w", err)
 			}
 
-			ok, err := client.ArchiveBookmark(id)
+			_, err = client.ArchiveBookmark(id)
 			if err != nil {
-				return fmt.Errorf("failed to archive bookmark %w", err)
+				return fmt.Errorf("failed to archive bookmark: %w", err)
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("bookmark %s (%s) archive %v", bookmark.GetTitle(), id, ok),
+				Text: fmt.Sprintf("Bookmark archived: [%s](%s)", bookmark.GetTitle(), id),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)
@@ -53,7 +53,7 @@ var eventRules = []event.Rule{
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("bookmark %s created", item.Id),
+				Text: fmt.Sprintf("Bookmark created: %s", item.Id),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)
@@ -77,15 +77,15 @@ var eventRules = []event.Rule{
 				return nil
 			}
 
-			status := "success"
+			status := "Success"
 			if !resp.Success {
-				status = "failed"
+				status = "Failed"
 				flog.Warn("[archivebox] add %s failed, result: %v, errors: %v, stdout: %s, stderr: %s",
 					url, resp.Result, resp.Errors, resp.Stdout, resp.Stderr)
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("archivebox add %v, %v", url, status),
+				Text: fmt.Sprintf("ArchiveBox: %s - %s", status, url),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)

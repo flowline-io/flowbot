@@ -56,97 +56,97 @@ task build:all
 
 ```shell
 # Build main server
-task build
+go tool task build
 
 # Build agent
-task build:agent
+go tool task build:agent
 
 # Build admin PWA (Wasm + server)
-task build:app
+go tool task build:app
 
 # Build composer CLI
-task build:composer
+go tool task build:composer
 
 # Run with live reload
-task air
+go tool task air
 ```
 
 ### Code Generation
 
 ```shell
 # Generate bot scaffolding
-task generator:bot NAME=example RULE=command,form
+go tool task generator:bot NAME=example RULE=command,form
 
 # Generate vendor API code
-task generator:vendor NAME=example
+go tool task generator:vendor NAME=example
 
 # Generate DAO code from database
-task dao
+go tool task dao
 ```
 
 ### Database Migration
 
 ```shell
 # Import migrations
-task migrate
+go tool task migrate
 
 # Create new migration file
-task migration NAME=add_new_feature
+go tool task migration NAME=add_new_feature
 
 # Import workflow configuration
-task workflow:import TOKEN=xxx PATH=./docs/config/examples/docker_example.yaml
+go tool task workflow:import TOKEN=xxx PATH=./docs/config/examples/docker_example.yaml
 ```
 
 ### Code Quality
 
 ```shell
 # Lint (revive + actionlint)
-task lint
+go tool task lint
 
 # Format code (go fmt + prettier)
-task format
+go tool task format
 
 # Tidy Go modules
-task tidy
+go tool task tidy
 ```
 
 ### Security
 
 ```shell
 # Vulnerability check
-task secure
+go tool task secure
 
 # Secret leak detection
-task leak
+go tool task leak
 
 # Go security checker
-task gosec
+go tool task gosec
 
 # Run all security & quality checks
-task check
+go tool task check
 ```
 
 ### Testing
 
 ```shell
 # Run unit tests
-task test
+go tool task test
 
 # Run all tests
-task test:all
+go tool task test:all
 
 # Generate coverage report
-task test:coverage
+go tool task test:coverage
 ```
 
 ### API Documentation
 
 ```shell
 # Generate Swagger docs
-task swagger
+go tool task swagger
 
 # Generate database schema docs
-task doc
+go tool task doc
 ```
 
 ### Add Go Tool Dependency

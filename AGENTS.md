@@ -39,12 +39,12 @@ flowbot/
 ## Build Commands
 
 ```bash
-task default       # tidy → swagger → format → lint → test
-task build         # Main server
-task build:agent   # Agent daemon
-task build:app     # Admin PWA
-task test          # All tests
-task lint          # revive + actionlint
+go tool task default       # tidy → swagger → format → lint → test
+go tool task build         # Main server
+go tool task build:agent   # Agent daemon
+go tool task build:app     # Admin PWA
+go tool task test          # All tests
+go tool task lint          # revive + actionlint
 ```
 
 ## Code Style
@@ -117,10 +117,11 @@ go test -run ^TestFoo$ ./pkg/utils
 ## CI/Quality
 
 ```bash
-task check     # lint + secure + leak + gosec
-task secure    # govulncheck
-task leak      # gitleaks
-task gosec     # security scan
+go tool task link      # code lint
+go tool task check     # lint + secure + leak + gosec
+go tool task secure    # govulncheck
+go tool task leak      # gitleaks
+go tool task gosec     # security scan
 ```
 
 ## Configuration
@@ -137,3 +138,5 @@ task gosec     # security scan
 - Uses Fiber v3 for HTTP
 - WebAssembly for admin PWA
 - MCP protocol support per bot
+- Do not use emojis
+- You must run lint after modifying the code.

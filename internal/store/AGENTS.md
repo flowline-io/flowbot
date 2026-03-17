@@ -55,10 +55,10 @@ Create non-generated DAOs for complex queries:
 ## Commands
 
 ```bash
-task dao        # Regenerate DAOs from schema
-task migrate    # Run migrations
-task migration NAME=feature  # Create new migration
-task doc        # Generate schema docs
+go tool task dao        # Regenerate DAOs from schema
+go tool task migrate    # Run migrations
+go tool task migration NAME=feature  # Create new migration
+go tool task doc        # Generate schema docs
 ```
 
 ## Notes

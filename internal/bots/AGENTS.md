@@ -77,6 +77,6 @@ func init() {
 ## Commands
 
 ```bash
-task generator:bot NAME=mybot RULE=command,form  # Generate new bot
+go tool task generator:bot NAME=mybot RULE=command,form  # Generate new bot
 go test ./internal/bots/dev/...                  # Test specific bot
 ```

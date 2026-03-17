@@ -47,7 +47,13 @@ var eventRules = []event.Rule{
 			}
 
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("%s/task/%d", config.App.Search.UrlBaseMap[kanboard.ID], taskId),
+				Text: fmt.Sprintf("Task created: [%s](%s/task/%d)\n\n*Title:* %s\n*Project ID:* %d",
+					title,
+					config.App.Search.UrlBaseMap[kanboard.ID],
+					taskId,
+					title,
+					projectId,
+				),
 			})
 			if err != nil {
 				return fmt.Errorf("failed to send message %w", err)

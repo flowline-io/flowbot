@@ -154,10 +154,10 @@ var cronRules = []cron.Rule{
 			for _, item := range list {
 				duration := now.Sub(item.LastOnlineAt)
 				if duration > 2*time.Minute && duration < 3*time.Minute {
-					// offline
 					ctx.AsUser = types.Uid(item.UID)
 					ctx.Topic = item.Topic
-					err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s offline", item.Hostid, item.Hostname)})
+					err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("Server offline: [%s](%s) - Host ID: %s",
+						item.Hostname, item.Hostid, item.Hostid)})
 					if err != nil {
 						flog.Error(fmt.Errorf("send message error %w", err))
 					}

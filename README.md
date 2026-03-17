@@ -119,30 +119,30 @@ task air
 ### Build Commands
 
 ```bash
-task build           # Main server
-task build:agent     # Agent
-task build:app       # Admin PWA (Wasm + server)
-task build:composer  # Composer CLI
+go tool task build           # Main server
+go tool task build:agent     # Agent
+go tool task build:app       # Admin PWA (Wasm + server)
+go tool task build:composer  # Composer CLI
 ```
 
 ### Code Generation
 
 ```bash
-task generator:bot NAME=mybot RULE=command,form  # Generate bot
-task generator:vendor NAME=myvendor              # Generate vendor
-task dao                                         # Generate DAO from DB
-task swagger                                     # Generate Swagger docs
-task doc                                         # Generate schema docs
+go tool task generator:bot NAME=mybot RULE=command,form  # Generate bot
+go tool task generator:vendor NAME=myvendor              # Generate vendor
+go tool task dao                                         # Generate DAO from DB
+go tool task swagger                                     # Generate Swagger docs
+go tool task doc                                         # Generate schema docs
 ```
 
 ### Testing & Quality
 
 ```bash
-task test           # Run unit tests
-task test:all       # Run all tests
-task test:coverage  # Coverage report
-task lint           # Lint (revive + actionlint)
-task check          # All security & quality checks
+go tool task test           # Run unit tests
+go tool task test:all       # Run all tests
+go tool task test:coverage  # Coverage report
+go tool task lint           # Lint (revive + actionlint)
+go tool task check          # All security & quality checks
 ```
 
 ### API
@@ -157,10 +157,10 @@ task check          # All security & quality checks
 
 ```bash
 # Composer — code generation & migrations
-task generator:bot NAME=mybot RULE=command
-task migrate
-task migration NAME=add_feature
-task workflow:import TOKEN=xxx PATH=./workflow.yaml
+go tool task generator:bot NAME=mybot RULE=command
+go tool task migrate
+go tool task migration NAME=add_feature
+go tool task workflow:import TOKEN=xxx PATH=./workflow.yaml
 ```
 
 ### Workflow Actions
