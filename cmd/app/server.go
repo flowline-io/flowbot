@@ -32,7 +32,7 @@ func startServer(lc fx.Lifecycle, cfg *config.Type) {
 	// Register PWA page routes (API is served by the main server).
 	// Pass the API base URL so the Wasm client knows where to send requests.
 	apiBaseURL := cfg.API.URL + cfg.API.Prefix
-	admin.HandlePageRoutes(app, apiBaseURL)
+	admin.HandlePageRoutes(app, apiBaseURL, cfg.DevMode)
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {

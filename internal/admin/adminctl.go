@@ -165,7 +165,7 @@ func (ac *AdminController) cleanupLoop() {
 
 // NewAppHandler creates the go-app HTTP Handler that serves Wasm and
 // static assets. Tailwind CSS and DaisyUI are loaded via CDN.
-func NewAppHandler(apiBaseURL string) http.Handler {
+func NewAppHandler(apiBaseURL string, devMode bool) http.Handler {
 	h := &app.Handler{
 		Name:        "Flowbot Admin",
 		ShortName:   "FBAdmin",
@@ -182,12 +182,24 @@ func NewAppHandler(apiBaseURL string) http.Handler {
 			`<style>` + themeCSS + `</style>`,
 		},
 	}
-	if apiBaseURL != "" {
+	if apiBaseURL != "" || devMode {
+		h.Env = map[string]string{
+			"API_BASE_URL": apiBaseURL,
+			"DEV_MODE":     boolToString(devMode),
+		}
+	} else if apiBaseURL != "" {
 		h.Env = map[string]string{
 			"API_BASE_URL": apiBaseURL,
 		}
 	}
 	return h
+}
+
+func boolToString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
 }
 
 // HandleAPIRoutes registers Admin API endpoints (/service/admin/*) on the given Fiber app.
@@ -203,7 +215,6 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 		adminAPI.Post("/auth/dev-login", ac.devLogin)
 		flog.Info("admin dev-login endpoint enabled")
 	}
-	adminAPI.Get("/auth/dev-mode", ac.getDevModeStatus)
 
 	// Authenticated API endpoints
 	adminAPI.Get("/auth/me", ac.adminAuth(ac.getCurrentUser))
@@ -251,8 +262,8 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 // A catch-all fallback is registered so the go-app Handler can serve all
 // generated assets (app.css, app.js, app-worker.js, wasm_exec.js, manifest,
 // web/* resources, etc.) without having to enumerate every path explicitly.
-func HandlePageRoutes(a *fiber.App, apiBaseURL string) {
-	appHandler := NewAppHandler(apiBaseURL)
+func HandlePageRoutes(a *fiber.App, apiBaseURL string, devMode bool) {
+	appHandler := NewAppHandler(apiBaseURL, devMode)
 	httpHandler := adaptor.HTTPHandler(appHandler)
 
 	// Catch-all: let go-app handle every request (SPA pages + static assets).
@@ -483,12 +494,6 @@ func (ac *AdminController) devLogin(ctx fiber.Ctx) error {
 
 	return ctx.JSON(protocol.NewSuccessResponse(admin.TokenResponse{
 		Token: token,
-	}))
-}
-
-func (ac *AdminController) getDevModeStatus(ctx fiber.Ctx) error {
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{
-		"enabled": ac.opts.DevMode,
 	}))
 }
 

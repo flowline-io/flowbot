@@ -123,19 +123,9 @@ func DevLogin(token string) (string, error) {
 	return resp.Token, nil
 }
 
-// GetDevModeStatus checks whether dev mode is enabled on the server.
-func GetDevModeStatus() (bool, error) {
-	data, err := doRequest("", "GET", "/auth/dev-mode", nil)
-	if err != nil {
-		return false, err
-	}
-	var resp struct {
-		Enabled bool `json:"enabled"`
-	}
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return false, err
-	}
-	return resp.Enabled, nil
+// DevMode returns whether dev mode is enabled based on the server configuration.
+func DevMode() bool {
+	return app.Getenv("DEV_MODE") == "true"
 }
 
 // ExchangeCode swaps a one-time OAuth exchange code for a session token.

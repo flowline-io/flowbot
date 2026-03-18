@@ -12,10 +12,8 @@ import (
 type Login struct {
 	app.Compo
 
-	loading  bool
-	errMsg   string
-	devMode  bool
-	devCheck bool
+	loading bool
+	errMsg  string
 }
 
 // OnNav checks the URL for a code or error parameter from the OAuth callback.
@@ -43,18 +41,6 @@ func (l *Login) OnNav(ctx app.Context) {
 				state.SetToken(ctx, token)
 				components.ShowToast(ctx, "Login successful", "success")
 				ctx.Navigate("/admin")
-			})
-		})
-	}
-
-	if !l.devCheck {
-		l.devCheck = true
-		ctx.Async(func() {
-			devMode, err := api.GetDevModeStatus()
-			ctx.Dispatch(func(ctx app.Context) {
-				if err == nil {
-					l.devMode = devMode
-				}
 			})
 		})
 	}
@@ -93,7 +79,7 @@ func (l *Login) Render() app.UI {
 								app.Text("Continue with Slack"),
 							),
 
-						app.If(l.devMode, func() app.UI {
+						app.If(api.DevMode(), func() app.UI {
 							return app.Div().Body(
 								app.Div().Class("divider text-base-content/30 text-xs font-medium my-2").Text("OR"),
 

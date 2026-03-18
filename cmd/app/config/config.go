@@ -24,6 +24,8 @@ type Type struct {
 	API API `json:"api" yaml:"api" mapstructure:"api"`
 	// Logging settings
 	Log Log `json:"log" yaml:"log" mapstructure:"log"`
+	// DevMode enables dev features like dev-login
+	DevMode bool `json:"dev_mode" yaml:"dev_mode" mapstructure:"dev_mode"`
 }
 
 // API holds the main server API connection configuration.
