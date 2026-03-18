@@ -20,6 +20,13 @@ type Navbar struct {
 
 func (n *Navbar) OnNav(ctx app.Context) {
 	n.isDark = state.IsDarkMode(ctx)
+	state.SetTheme(ctx, state.Theme(ctx))
+
+	ctx.Handle("theme-changed", func(ctx app.Context, a app.Action) {
+		ctx.Dispatch(func(ctx app.Context) {
+			n.isDark = state.IsDarkMode(ctx)
+		})
+	})
 
 	if !state.IsAuthenticated(ctx) {
 		return
@@ -34,10 +41,6 @@ func (n *Navbar) OnNav(ctx app.Context) {
 			}
 			n.user = user
 		})
-	})
-
-	ctx.Handle("theme-changed", func(ctx app.Context, a app.Action) {
-		n.isDark = state.IsDarkMode(ctx)
 	})
 }
 
@@ -159,6 +162,11 @@ func (n *Navbar) handleLogout(ctx app.Context, e app.Event) {
 }
 
 func (n *Navbar) handleThemeToggle(ctx app.Context, e app.Event) {
-	state.ToggleTheme(ctx)
-	n.isDark = state.IsDarkMode(ctx)
+	n.isDark = !n.isDark
+	if n.isDark {
+		state.SetTheme(ctx, "dark")
+	} else {
+		state.SetTheme(ctx, "light")
+	}
+	ctx.NewAction("theme-changed")
 }

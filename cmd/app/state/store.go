@@ -39,6 +39,11 @@ func Theme(ctx app.Context) string {
 
 func SetTheme(ctx app.Context, theme string) {
 	ctx.LocalStorage().Set(themeKey, theme)
+	if doc := app.Window().Get("document"); !doc.IsNull() {
+		if html := doc.Get("documentElement"); !html.IsNull() {
+			html.Call("setAttribute", "data-theme", theme)
+		}
+	}
 	ctx.NewAction("theme-changed", app.T("theme", theme))
 }
 
