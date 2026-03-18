@@ -66,17 +66,16 @@ func (l *Logs) loadLogs(ctx app.Context) {
 
 func (l *Logs) Render() app.UI {
 	return components.WithLayout(
-		app.Div().Class("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6").Body(
+		app.Div().Class("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8").Body(
 			app.Div().Body(
 				app.H1().Class("text-3xl font-bold tracking-tight").Text("System Logs"),
-				app.P().Class("text-base-content/50 mt-1").Text(
-					fmt.Sprintf("%d log entries", l.total),
-				),
+				app.P().Class("text-base-content/50 mt-1").
+					Text(fmt.Sprintf("%d log entries", l.total)),
 			),
 			app.Div().Class("flex gap-2").Body(
 				app.If(l.autoRefresh, func() app.UI {
 					return app.Button().
-						Class("btn btn-ghost btn-sm gap-2").
+						Class("btn btn-primary btn-sm gap-2").
 						OnClick(l.toggleAutoRefresh).
 						Body(
 							app.Span().Class("loading loading-spinner loading-xs"),
@@ -84,7 +83,7 @@ func (l *Logs) Render() app.UI {
 						)
 				}).Else(func() app.UI {
 					return app.Button().
-						Class("btn btn-ghost btn-sm gap-2").
+						Class("btn btn-outline btn-sm gap-2").
 						OnClick(l.toggleAutoRefresh).
 						Body(
 							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.296 2H6M4 4v5h.582m15.296 2H6M4 4v5h.582m15.296 2H6m6 9l6-6-6-6"/></svg>`),
@@ -105,42 +104,44 @@ func (l *Logs) Render() app.UI {
 			),
 		),
 
-		app.Div().Class("card bg-base-100 shadow-md").Body(
+		app.Div().Class("card bg-base-100/80 backdrop-blur-sm shadow-xl border border-base-200/50 overflow-hidden").Body(
 			app.Div().Class("card-body p-0").Body(
-				app.Div().Class("px-6 pt-5 pb-3 flex flex-wrap gap-3").Body(
-					app.Div().Class("relative max-w-xs").Body(
-						app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-base-content/40").Body(
-							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`),
+				app.Div().Class("px-6 pt-5 pb-4 border-b border-base-200/50").Body(
+					app.Div().Class("flex flex-wrap gap-3 items-center").Body(
+						app.Div().Class("relative max-w-md").Body(
+							app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-base-content/40").Body(
+								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`),
+							),
+							app.Input().
+								Type("text").
+								Class("input input-bordered input-md w-full pl-11 pr-4 bg-base-200/30 focus:bg-base-100 transition-colors duration-200").
+								Placeholder("Search logs...").
+								Value(l.search).
+								OnChange(l.handleSearch),
 						),
-						app.Input().
-							Type("text").
-							Class("input input-bordered input-sm w-full pl-9").
-							Placeholder("Search logs...").
-							Value(l.search).
-							OnChange(l.handleSearch),
+
+						app.Select().
+							Class("select select-bordered select-md w-36 bg-base-200/30 focus:bg-base-100").
+							OnChange(l.handleLevelFilter).
+							Body(
+								app.Option().Value("").Selected(l.level == "").Text("All Levels"),
+								app.Option().Value("debug").Selected(l.level == "debug").Text("Debug"),
+								app.Option().Value("info").Selected(l.level == "info").Text("Info"),
+								app.Option().Value("warn").Selected(l.level == "warn").Text("Warn"),
+								app.Option().Value("error").Selected(l.level == "error").Text("Error"),
+							),
+
+						app.Select().
+							Class("select select-bordered select-md w-40 bg-base-200/30 focus:bg-base-100").
+							OnChange(l.handleSourceFilter).
+							Body(
+								app.Option().Value("").Selected(l.source == "").Text("All Sources"),
+								app.Option().Value("server").Selected(l.source == "server").Text("Server"),
+								app.Option().Value("agent").Selected(l.source == "agent").Text("Agent"),
+								app.Option().Value("workflow").Selected(l.source == "workflow").Text("Workflow"),
+								app.Option().Value("platform").Selected(l.source == "platform").Text("Platform"),
+							),
 					),
-
-					app.Select().
-						Class("select select-bordered select-sm w-32").
-						OnChange(l.handleLevelFilter).
-						Body(
-							app.Option().Value("").Selected(l.level == "").Text("All Levels"),
-							app.Option().Value("debug").Selected(l.level == "debug").Text("Debug"),
-							app.Option().Value("info").Selected(l.level == "info").Text("Info"),
-							app.Option().Value("warn").Selected(l.level == "warn").Text("Warn"),
-							app.Option().Value("error").Selected(l.level == "error").Text("Error"),
-						),
-
-					app.Select().
-						Class("select select-bordered select-sm w-40").
-						OnChange(l.handleSourceFilter).
-						Body(
-							app.Option().Value("").Selected(l.source == "").Text("All Sources"),
-							app.Option().Value("server").Selected(l.source == "server").Text("Server"),
-							app.Option().Value("agent").Selected(l.source == "agent").Text("Agent"),
-							app.Option().Value("workflow").Selected(l.source == "workflow").Text("Workflow"),
-							app.Option().Value("platform").Selected(l.source == "platform").Text("Platform"),
-						),
 				),
 
 				app.Div().Class("overflow-x-auto max-h-[60vh] overflow-y-auto").Body(
@@ -149,23 +150,25 @@ func (l *Logs) Render() app.UI {
 							app.Span().Class("loading loading-spinner loading-lg text-primary"),
 						)
 					}).Else(func() app.UI {
-						return app.Table().Class("table table-zebra w-full").Body(
-							app.THead().Body(
-								app.Tr().Class("text-base-content/60").Body(
-									app.Th().Class("w-20").Text("Level"),
-									app.Th().Class("w-32").Text("Source"),
-									app.Th().Text("Message"),
-									app.Th().Class("w-44").Text("Time"),
+						return app.Div().Class("overflow-x-auto").Body(
+							app.Table().Class("table").Body(
+								app.THead().Body(
+									app.Tr().Class("bg-base-200/30 sticky top-0").Body(
+										app.Th().Class("w-20").Text("Level"),
+										app.Th().Class("w-28").Text("Source"),
+										app.Th().Text("Message"),
+										app.Th().Class("w-44").Text("Time"),
+									),
 								),
-							),
-							app.TBody().Body(
-								l.renderRows()...,
+								app.TBody().Body(
+									l.renderRows()...,
+								),
 							),
 						)
 					}),
 				),
 
-				app.Div().Class("px-6 py-4 border-t border-base-200").Body(
+				app.Div().Class("px-6 py-4 border-t border-base-200/50 bg-base-200/20").Body(
 					l.renderPagination(),
 				),
 			),
@@ -177,10 +180,10 @@ func (l *Logs) renderRows() []app.UI {
 	rows := make([]app.UI, 0, len(l.logs))
 	for _, entry := range l.logs {
 		e := entry
-		rows = append(rows, app.Tr().Class("hover").Body(
+		rows = append(rows, app.Tr().Class("transition-colors duration-150 hover:bg-base-200/30").Body(
 			app.Td().Body(l.levelBadge(e.Level)),
 			app.Td().Class("text-base-content/60 text-sm font-mono").Text(e.Source),
-			app.Td().Class("text-sm font-mono break-all").Body(
+			app.Td().Class("text-sm font-mono").Body(
 				components.HighlightText(l.truncateMessage(e.Message, 200), l.search),
 			),
 			app.Td().Class("text-base-content/50 text-xs").Text(e.Timestamp),

@@ -1,0 +1,282 @@
+/* Flowbot Admin - Refined Color Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom Theme Variables */
+:root {
+  --fallback-font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base theme with refined colors */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  
+  /* Primary - Refined Blue */
+  --color-base-100: #ffffff;
+  --color-base-200: #f8fafc;
+  --color-base-300: #f1f5f9;
+  --color-base-content: #1e293b;
+  
+  /* Primary - Sophisticated Indigo */
+  --color-primary: #4f46e5;
+  --color-primary-content: #ffffff;
+  --color-primary-focus: #4338ca;
+  --color-primary-active: #3730a3;
+  
+  /* Secondary - Warm Slate */
+  --color-secondary: #64748b;
+  --color-secondary-content: #ffffff;
+  
+  /* Accent - Vibrant Teal */
+  --color-accent: #14b8a6;
+  --color-accent-content: #ffffff;
+  
+  /* Neutral - Cool Gray */
+  --color-neutral: #334155;
+  --color-neutral-content: #ffffff;
+  
+  /* Base colors */
+  --color-base: #ffffff;
+  --color-base-emphasis: #0f172a;
+  --color-base-highlight: #f8fafc;
+  
+  /* Info - Refined Sky */
+  --color-info: #0ea5e9;
+  --color-info-content: #ffffff;
+  
+  /* Success - Fresh Emerald */
+  --color-success: #10b981;
+  --color-success-content: #ffffff;
+  
+  /* Warning - Warm Amber */
+  --color-warning: #f59e0b;
+  --color-warning-content: #ffffff;
+  
+  /* Error - Soft Rose */
+  --color-error: #ef4444;
+  --color-error-content: #ffffff;
+  
+  /* Custom properties */
+  --rounded-box: 1rem;
+  --rounded-btn: 0.625rem;
+  --rounded-badge: 1.9rem;
+  --animation-btn: 0.2s;
+  --animation-input: 0.2s;
+  --btn-focus-scale: 0.98;
+  --border-btn: 1px;
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+}
+
+/* Dark Theme - Refined */
+[data-theme="dark"] {
+  color-scheme: dark;
+  
+  /* Base - Deep Slate */
+  --color-base-100: #0f172a;
+  --color-base-200: #1e293b;
+  --color-base-300: #334155;
+  --color-base-content: #f1f5f9;
+  
+  /* Primary - Bright Indigo */
+  --color-primary: #818cf8;
+  --color-primary-content: #1e1b4b;
+  --color-primary-focus: #a5b4fc;
+  --color-primary-active: #6366f1;
+  
+  /* Secondary - Cool Gray */
+  --color-secondary: #94a3b8;
+  --color-secondary-content: #1e293b;
+  
+  /* Accent - Bright Teal */
+  --color-accent: #2dd4bf;
+  --color-accent-content: #042f2e;
+  
+  /* Neutral - Slate */
+  --color-neutral: #475569;
+  --color-neutral-content: #f8fafc;
+  
+  /* Base */
+  --color-base: #0f172a;
+  --color-base-emphasis: #f8fafc;
+  --color-base-highlight: #1e293b;
+  
+  /* Info - Bright Sky */
+  --color-info: #38bdf8;
+  --color-info-content: #0c4a6e;
+  
+  /* Success - Bright Emerald */
+  --color-success: #34d399;
+  --color-success-content: #022c22;
+  
+  /* Warning - Bright Amber */
+  --color-warning: #fbbf24;
+  --color-warning-content: #451a03;
+  
+  /* Error - Bright Rose */
+  --color-error: #f87171;
+  --color-error-content: #450a0a;
+}
+
+/* Global Styles */
+* {
+  font-family: var(--fallback-font-sans);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-base-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 70%, white) 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, var(--color-base-100) 0%, var(--color-base-200) 100%);
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-theme="dark"] .glass {
+  background: rgba(15, 23, 42, 0.7);
+}
+
+/* Shadow refinements */
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-glow-primary {
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+}
+
+.shadow-glow-success {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Text gradient */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Border refinements */
+.border-soft {
+  border-color: var(--color-base-300);
+}
+
+/* Badge refinements */
+.badge-soft {
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--color-base-200) 80%, transparent);
+}
+
+/* Button hover glow effect */
+.btn-glow:hover {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading pulse */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Stagger animation for lists */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: stagger-fade 0.4s ease forwards;
+}
+
+@keyframes stagger-fade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.1s; }
+.stagger-item:nth-child(3) { animation-delay: 0.15s; }
+.stagger-item:nth-child(4) { animation-delay: 0.2s; }
+.stagger-item:nth-child(5) { animation-delay: 0.25s; }
+.stagger-item:nth-child(6) { animation-delay: 0.3s; }
+.stagger-item:nth-child(7) { animation-delay: 0.35s; }
+.stagger-item:nth-child(8) { animation-delay: 0.4s; }
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--color-base-200) 25%, var(--color-base-300) 50%, var(--color-base-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

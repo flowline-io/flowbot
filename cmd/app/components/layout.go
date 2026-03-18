@@ -9,14 +9,14 @@ func WithLayout(content ...app.UI) app.UI {
 	allContent = append(allContent, &Breadcrumb{})
 	allContent = append(allContent, content...)
 
-	return app.Div().Class("min-h-screen bg-base-200/50 flex flex-col").Body(
+	return app.Div().Class("min-h-screen bg-gradient-to-br from-base-100 via-base-200/30 to-base-100 flex flex-col").Body(
 		&Navbar{},
 
 		app.Main().Class("flex-1 container mx-auto px-4 sm:px-6 py-8 max-w-7xl").Body(
 			allContent...,
 		),
 
-		app.Footer().Class("footer footer-center py-4 text-base-content/40 text-xs").Body(
+		app.Footer().Class("footer footer-center py-6 text-base-content/30 text-sm mt-auto border-t border-base-200/30").Body(
 			app.P().Text("Powered by Flowbot"),
 		),
 
@@ -28,7 +28,7 @@ func WithLayout(content ...app.UI) app.UI {
 
 // WithMinimalLayout wraps page content without Navbar (e.g. for login page).
 func WithMinimalLayout(content ...app.UI) app.UI {
-	return app.Div().Class("min-h-screen bg-base-200/50 flex flex-col").Body(
+	return app.Div().Class("min-h-screen bg-gradient-to-br from-base-100 via-base-200/20 to-base-100 flex flex-col").Body(
 		app.Main().Class("flex-1 container mx-auto px-4 sm:px-6 py-8 max-w-7xl").Body(
 			content...,
 		),

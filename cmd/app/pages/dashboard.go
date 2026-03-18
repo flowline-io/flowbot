@@ -189,16 +189,36 @@ func (d *Dashboard) sectionHeader(title, icon string) app.UI {
 	)
 }
 
-// statCard renders a stat card with an icon.
+// statCard renders a stat card with an icon and gradient effect.
 func (d *Dashboard) statCard(title string, value int, color, icon string) app.UI {
-	return app.Div().Class("card bg-base-100 shadow-md hover:shadow-lg transition-shadow").Body(
-		app.Div().Class("card-body flex-row items-center gap-3 p-4").Body(
-			app.Div().Class("flex-shrink-0 rounded-xl bg-"+color+"/10 p-2.5 text-"+color).Body(
+	gradientClass := ""
+	shadowClass := ""
+	switch color {
+	case "primary":
+		gradientClass = "bg-gradient-to-br from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10"
+		shadowClass = "hover:shadow-primary/10"
+	case "success":
+		gradientClass = "bg-gradient-to-br from-success/10 to-success/5 hover:from-success/15 hover:to-success/10"
+		shadowClass = "hover:shadow-success/10"
+	case "warning":
+		gradientClass = "bg-gradient-to-br from-warning/10 to-warning/5 hover:from-warning/15 hover:to-warning/10"
+		shadowClass = "hover:shadow-warning/10"
+	case "error":
+		gradientClass = "bg-gradient-to-br from-error/10 to-error/5 hover:from-error/15 hover:to-error/10"
+		shadowClass = "hover:shadow-error/10"
+	default:
+		gradientClass = "bg-gradient-to-br from-base-300/30 to-base-200/20"
+		shadowClass = ""
+	}
+
+	return app.Div().Class("card bg-base-100 shadow-md transition-all duration-300 " + gradientClass + " " + shadowClass).Body(
+		app.Div().Class("card-body flex-row items-center gap-4 p-5").Body(
+			app.Div().Class("flex-shrink-0 rounded-xl bg-base-100 shadow-sm p-3 border border-base-200/30").Body(
 				app.Raw(icon),
 			),
-			app.Div().Body(
-				app.Div().Class("text-xs text-base-content/50 uppercase tracking-wide").Text(title),
-				app.Div().Class("text-2xl font-bold text-"+color).Text(
+			app.Div().Class("flex-1 min-w-0").Body(
+				app.Div().Class("text-sm font-medium text-base-content/50 uppercase tracking-wider").Text(title),
+				app.Div().Class("text-3xl font-bold mt-1").Text(
 					fmt.Sprintf("%d", value),
 				),
 			),
@@ -206,12 +226,11 @@ func (d *Dashboard) statCard(title string, value int, color, icon string) app.UI
 	)
 }
 
-// miniStat renders a compact stat item for the status breakdown.
 func (d *Dashboard) miniStat(label string, value int, color string) app.UI {
-	return app.Div().Class("flex items-center gap-2 rounded-lg bg-base-200/50 px-3 py-2").Body(
-		app.Span().Class("w-2 h-2 rounded-full bg-"+color),
-		app.Span().Class("text-sm text-base-content/70").Text(label),
-		app.Span().Class("text-sm font-semibold ml-auto").Text(fmt.Sprintf("%d", value)),
+	return app.Div().Class("flex items-center gap-2 rounded-lg bg-base-200/60 px-3 py-2.5 transition-all duration-200 hover:bg-base-200").Body(
+		app.Span().Class("w-2.5 h-2.5 rounded-full bg-"+color+" shadow-sm"),
+		app.Span().Class("text-sm font-medium text-base-content/70").Text(label),
+		app.Span().Class("text-sm font-bold ml-auto tabular-nums").Text(fmt.Sprintf("%d", value)),
 	)
 }
 
@@ -226,91 +245,101 @@ func (d *Dashboard) infoRow(label, value string) app.UI {
 	)
 }
 
-// renderStatusBar renders a colored progress bar showing container status distribution.
 func (d *Dashboard) renderStatusBar(stats *admin.DashboardStats) app.UI {
 	total := stats.TotalContainers
 	if total == 0 {
-		return app.Div().Class("w-full h-3 rounded-full bg-base-200 mt-2")
+		return app.Div().Class("w-full h-3 rounded-full bg-base-200 mt-2 overflow-hidden").Body(
+			app.Div().Class("w-full h-full flex").Body(
+				app.Div().Class("flex-1 bg-base-300/30"),
+			),
+		)
 	}
 
 	pct := func(n int) string {
 		return fmt.Sprintf("%.1f%%", float64(n)/float64(total)*100)
 	}
 
-	return app.Div().Class("w-full h-3 rounded-full bg-base-200 flex overflow-hidden mt-2").Body(
+	return app.Div().Class("w-full h-3 rounded-full bg-base-200 overflow-hidden mt-2 shadow-inner").Body(
 		app.If(stats.RunningContainers > 0, func() app.UI {
-			return app.Div().Class("bg-success h-full transition-all").Style("width", pct(stats.RunningContainers))
+			return app.Div().Class("h-full bg-gradient-to-r from-success to-success/80 transition-all duration-500 ease-out animate-pulse").Style("width", pct(stats.RunningContainers))
 		}),
 		app.If(stats.PausedContainers > 0, func() app.UI {
-			return app.Div().Class("bg-info h-full transition-all").Style("width", pct(stats.PausedContainers))
+			return app.Div().Class("h-full bg-gradient-to-r from-info to-info/80 transition-all duration-500 ease-out animate-pulse").Style("width", pct(stats.PausedContainers))
 		}),
 		app.If(stats.StoppedContainers > 0, func() app.UI {
-			return app.Div().Class("bg-warning h-full transition-all").Style("width", pct(stats.StoppedContainers))
+			return app.Div().Class("h-full bg-gradient-to-r from-warning to-warning/80 transition-all duration-500 ease-out animate-pulse").Style("width", pct(stats.StoppedContainers))
 		}),
 		app.If(stats.ErrorContainers > 0, func() app.UI {
-			return app.Div().Class("bg-error h-full transition-all").Style("width", pct(stats.ErrorContainers))
+			return app.Div().Class("h-full bg-gradient-to-r from-error to-error/80 transition-all duration-500 ease-out animate-pulse").Style("width", pct(stats.ErrorContainers))
 		}),
 	)
 }
 
-// renderRecentContainers renders a list of recent containers.
 func (d *Dashboard) renderRecentContainers(containers []admin.Container) app.UI {
 	if len(containers) == 0 {
-		return app.Div().Class("text-center py-8 text-base-content/40").Body(
-			app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`),
-			app.P().Text("No containers yet"),
+		return app.Div().Class("text-center py-10 px-4").Body(
+			app.Div().Class("w-16 h-16 mx-auto mb-3 rounded-full bg-base-200 flex items-center justify-center").Body(
+				app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`),
+			),
+			app.P().Class("text-base-content/40 font-medium").Text("No containers yet"),
+			app.P().Class("text-base-content/30 text-sm mt-1").Text("Create your first container to get started"),
 		)
 	}
 
 	items := make([]app.UI, 0, len(containers))
 	for _, ct := range containers {
-		items = append(items, app.Div().Class("flex items-center justify-between py-2.5 border-b border-base-200 last:border-0").Body(
+		items = append(items, app.Div().Class("flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors duration-200 hover:bg-base-200/50").Body(
 			app.Div().Class("flex items-center gap-3").Body(
 				d.statusDot(ct.Status),
 				app.Div().Body(
 					app.Div().Class("font-medium text-sm").Text(ct.Name),
-					app.Div().Class("text-xs text-base-content/40").Text(ct.CreatedAt.Format("2006-01-02 15:04")),
+					app.Div().Class("text-xs text-base-content/40 mt-0.5").Text(ct.CreatedAt.Format("Jan 02, 15:04")),
 				),
 			),
 			d.containerStatusBadge(ct.Status),
 		))
 	}
-	return app.Div().Body(items...)
+	return app.Div().Class("divide-y divide-base-200/50").Body(items...)
 }
 
-// renderActivityLog renders the activity log entries.
 func (d *Dashboard) renderActivityLog(entries []admin.ActivityEntry) app.UI {
 	if len(entries) == 0 {
-		return app.Div().Class("text-center py-8 text-base-content/40").Body(
-			app.P().Text("No recent activity"),
+		return app.Div().Class("text-center py-10 px-4").Body(
+			app.Div().Class("w-16 h-16 mx-auto mb-3 rounded-full bg-base-200 flex items-center justify-center").Body(
+				app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`),
+			),
+			app.P().Class("text-base-content/40 font-medium").Text("No recent activity"),
+			app.P().Class("text-base-content/30 text-sm mt-1").Text("Activity will appear here"),
 		)
 	}
 
 	items := make([]app.UI, 0, len(entries))
 	for _, e := range entries {
 		iconColor := "text-success"
+		bgColor := "bg-success/10"
 		if !e.Success {
 			iconColor = "text-error"
+			bgColor = "bg-error/10"
 		}
-		items = append(items, app.Div().Class("flex items-start gap-3 py-2.5 border-b border-base-200 last:border-0").Body(
-			app.Div().Class("mt-0.5 "+iconColor).Body(
+		items = append(items, app.Div().Class("flex items-start gap-3 py-3 px-2 -mx-2 rounded-lg transition-colors duration-200 hover:bg-base-200/50").Body(
+			app.Div().Class("w-8 h-8 rounded-full "+bgColor+" flex items-center justify-center flex-shrink-0 mt-0.5").Body(
 				app.If(e.Success, func() app.UI {
-					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`)
+					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ` + iconColor + `" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`)
 				}).Else(func() app.UI {
-					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`)
+					return app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ` + iconColor + `" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`)
 				}),
 			),
 			app.Div().Class("flex-1 min-w-0").Body(
-				app.Div().Class("text-sm").Body(
-					app.Span().Class("font-medium").Text(e.Action),
-					app.Span().Class("text-base-content/50").Text(" · "),
+				app.Div().Class("text-sm leading-relaxed").Body(
+					app.Span().Class("font-semibold").Text(e.Action),
+					app.Span().Class("text-base-content/40").Text(" · "),
 					app.Span().Class("text-base-content/60").Text(e.Target),
 				),
-				app.Div().Class("text-xs text-base-content/40 mt-0.5").Text(formatTimeAgo(e.Time)),
+				app.Div().Class("text-xs text-base-content/40 mt-1").Text(formatTimeAgo(e.Time)),
 			),
 		))
 	}
-	return app.Div().Body(items...)
+	return app.Div().Class("divide-y divide-base-200/50").Body(items...)
 }
 
 // statusDot renders a small colored dot indicating container status.

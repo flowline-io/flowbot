@@ -81,31 +81,33 @@ func (w *Workflows) Render() app.UI {
 			),
 		),
 
-		app.Div().Class("card bg-base-100 shadow-md").Body(
+		app.Div().Class("card bg-base-100/80 backdrop-blur-sm shadow-xl border border-base-200/50 overflow-hidden").Body(
 			app.Div().Class("card-body p-0").Body(
-				app.Div().Class("px-6 pt-5 pb-3 flex flex-wrap gap-3").Body(
-					app.Div().Class("relative max-w-xs").Body(
-						app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-base-content/40").Body(
-							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`),
+				app.Div().Class("px-6 pt-5 pb-4 border-b border-base-200/50").Body(
+					app.Div().Class("flex flex-wrap gap-3 items-center").Body(
+						app.Div().Class("relative max-w-md").Body(
+							app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-base-content/40").Body(
+								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`),
+							),
+							app.Input().
+								Type("text").
+								Class("input input-bordered input-md w-full pl-11 pr-4 bg-base-200/30 focus:bg-base-100 transition-colors duration-200").
+								Placeholder("Search workflows...").
+								Value(w.search).
+								OnChange(w.handleSearch),
 						),
-						app.Input().
-							Type("text").
-							Class("input input-bordered input-sm w-full pl-9").
-							Placeholder("Search workflows...").
-							Value(w.search).
-							OnChange(w.handleSearch),
-					),
 
-					app.Select().
-						Class("select select-bordered select-sm w-32").
-						OnChange(w.handleStatusFilter).
-						Body(
-							app.Option().Value("").Selected(w.status == "").Text("All Status"),
-							app.Option().Value("pending").Selected(w.status == "pending").Text("Pending"),
-							app.Option().Value("running").Selected(w.status == "running").Text("Running"),
-							app.Option().Value("completed").Selected(w.status == "completed").Text("Completed"),
-							app.Option().Value("failed").Selected(w.status == "failed").Text("Failed"),
-						),
+						app.Select().
+							Class("select select-bordered select-md w-36 bg-base-200/30 focus:bg-base-100").
+							OnChange(w.handleStatusFilter).
+							Body(
+								app.Option().Value("").Selected(w.status == "").Text("All Status"),
+								app.Option().Value("pending").Selected(w.status == "pending").Text("Pending"),
+								app.Option().Value("running").Selected(w.status == "running").Text("Running"),
+								app.Option().Value("completed").Selected(w.status == "completed").Text("Completed"),
+								app.Option().Value("failed").Selected(w.status == "failed").Text("Failed"),
+							),
+					),
 				),
 
 				app.Div().Class("overflow-x-auto").Body(
@@ -116,29 +118,34 @@ func (w *Workflows) Render() app.UI {
 					}).Else(func() app.UI {
 						if len(w.workflows) == 0 {
 							return app.Div().Class("text-center py-16").Body(
-								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`),
-								app.P().Class("text-base-content/50").Text("No workflows found"),
+								app.Div().Class("w-20 h-20 mx-auto mb-4 rounded-full bg-base-200/50 flex items-center justify-center").Body(
+									app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`),
+								),
+								app.P().Class("text-base-content/50 font-medium").Text("No workflows found"),
+								app.P().Class("text-base-content/30 text-sm mt-1").Text("Create your first workflow to get started"),
 							)
 						}
-						return app.Table().Class("table table-zebra w-full").Body(
-							app.THead().Body(
-								app.Tr().Class("text-base-content/60").Body(
-									app.Th().Text("ID"),
-									app.Th().Text("Name"),
-									app.Th().Text("Description"),
-									app.Th().Text("Status"),
-									app.Th().Text("Created"),
-									app.Th().Class("w-32").Text("Actions"),
+						return app.Div().Class("overflow-x-auto").Body(
+							app.Table().Class("table").Body(
+								app.THead().Body(
+									app.Tr().Class("bg-base-200/30").Body(
+										app.Th().Text("ID"),
+										app.Th().Text("Name"),
+										app.Th().Text("Description"),
+										app.Th().Text("Status"),
+										app.Th().Class("w-28").Text("Created"),
+										app.Th().Class("w-16").Text("Actions"),
+									),
 								),
-							),
-							app.TBody().Body(
-								w.renderRows()...,
+								app.TBody().Body(
+									w.renderRows()...,
+								),
 							),
 						)
 					}),
 				),
 
-				app.Div().Class("px-6 py-4 border-t border-base-200").Body(
+				app.Div().Class("px-6 py-4 border-t border-base-200/50 bg-base-200/20").Body(
 					w.renderPagination(),
 				),
 			),
@@ -161,24 +168,24 @@ func (w *Workflows) renderRows() []app.UI {
 				components.HighlightText(w.truncateDescription(wf.Description), w.search),
 			),
 			app.Td().Body(w.statusBadge(wf.Status)),
-			app.Td().Class("text-base-content/60 text-sm").Text(wf.CreatedAt.Format("2006-01-02 15:04")),
+			app.Td().Class("text-base-content/60 text-sm whitespace-nowrap").Text(wf.CreatedAt.Format("Jan 02 15:04")),
 			app.Td().Body(
 				app.Div().Class("flex gap-1").Body(
 					app.If(wf.Status == admin.WorkflowPending, func() app.UI {
 						return app.Button().
-							Class("btn btn-ghost btn-xs gap-1 text-success").
+							Class("btn btn-ghost btn-xs btn-circle hover:bg-success/10 hover:text-success transition-colors duration-150").
+							Title("Run").
 							OnClick(w.handleRun(wf.ID)).
 							Body(
-								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`),
-								app.Text("Run"),
+								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`),
 							)
 					}),
 					app.Button().
-						Class("btn btn-ghost btn-xs text-error gap-1").
+						Class("btn btn-ghost btn-xs btn-circle hover:bg-error/10 hover:text-error transition-colors duration-150").
+						Title("Delete").
 						OnClick(w.handleDelete(wf.ID)).
 						Body(
-							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`),
-							app.Text("Delete"),
+							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`),
 						),
 				),
 			),

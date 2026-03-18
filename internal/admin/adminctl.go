@@ -131,8 +131,6 @@ func (ac *AdminController) cleanupLoop() {
 
 // NewAppHandler creates the go-app HTTP Handler that serves Wasm and
 // static assets. Tailwind CSS and DaisyUI are loaded via CDN.
-// apiBaseURL is passed to the Wasm client via Handler.Env so the frontend
-// knows which backend API endpoint to call (e.g. "http://127.0.0.1:6060/service/admin").
 func NewAppHandler(apiBaseURL string) http.Handler {
 	h := &app.Handler{
 		Name:        "Flowbot Admin",
@@ -141,9 +139,13 @@ func NewAppHandler(apiBaseURL string) http.Handler {
 		Author:      "Flowline",
 		Styles: []string{
 			"https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css",
+			"/app.css",
 		},
 		RawHeaders: []string{
 			`<script src="https://cdn.tailwindcss.com"></script>`,
+			`<link rel="preconnect" href="https://fonts.googleapis.com">`,
+			`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`,
+			`<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">`,
 		},
 	}
 	if apiBaseURL != "" {

@@ -82,12 +82,11 @@ func (u *Users) loadData(ctx app.Context) {
 
 func (u *Users) Render() app.UI {
 	return components.WithLayout(
-		app.Div().Class("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6").Body(
+		app.Div().Class("flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8").Body(
 			app.Div().Body(
 				app.H1().Class("text-3xl font-bold tracking-tight").Text("Users"),
-				app.P().Class("text-base-content/50 mt-1").Text(
-					fmt.Sprintf("%d users total", u.total),
-				),
+				app.P().Class("text-base-content/50 mt-1").
+					Text(fmt.Sprintf("%d users total", u.total)),
 			),
 			app.Div().Class("flex gap-2").Body(
 				app.If(u.selectedCount() > 0, func() app.UI {
@@ -113,16 +112,16 @@ func (u *Users) Render() app.UI {
 			),
 		),
 
-		app.Div().Class("card bg-base-100 shadow-md").Body(
+		app.Div().Class("card bg-base-100/80 backdrop-blur-sm shadow-xl border border-base-200/50 overflow-hidden").Body(
 			app.Div().Class("card-body p-0").Body(
-				app.Div().Class("px-6 pt-5 pb-3").Body(
-					app.Div().Class("relative max-w-xs").Body(
-						app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-base-content/40").Body(
+				app.Div().Class("px-6 pt-5 pb-4 border-b border-base-200/50").Body(
+					app.Div().Class("relative max-w-md").Body(
+						app.Div().Class("absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-base-content/40").Body(
 							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`),
 						),
 						app.Input().
 							Type("text").
-							Class("input input-bordered input-sm w-full pl-9").
+							Class("input input-bordered input-md w-full pl-11 pr-4 bg-base-200/30 focus:bg-base-100 transition-colors duration-200").
 							Placeholder("Search users...").
 							Value(u.search).
 							OnChange(u.handleSearch),
@@ -135,33 +134,35 @@ func (u *Users) Render() app.UI {
 							app.Span().Class("loading loading-spinner loading-lg text-primary"),
 						)
 					}).Else(func() app.UI {
-						return app.Table().Class("table table-zebra w-full").Body(
-							app.THead().Body(
-								app.Tr().Class("text-base-content/60").Body(
-									app.Th().Class("w-12").Body(
-										app.Input().
-											Type("checkbox").
-											Class("checkbox checkbox-sm").
-											Checked(u.isAllSelected()).
-											OnChange(u.handleSelectAll),
+						return app.Div().Class("overflow-x-auto").Body(
+							app.Table().Class("table").Body(
+								app.THead().Body(
+									app.Tr().Class("bg-base-200/30").Body(
+										app.Th().Class("w-12").Body(
+											app.Input().
+												Type("checkbox").
+												Class("checkbox checkbox-sm checkbox-primary").
+												Checked(u.isAllSelected()).
+												OnChange(u.handleSelectAll),
+										),
+										u.sortableHeader("ID", "id"),
+										u.sortableHeader("Name", "name"),
+										u.sortableHeader("Email", "email"),
+										u.sortableHeader("Role", "role"),
+										u.sortableHeader("Status", "status"),
+										u.sortableHeader("Created", "created_at"),
+										app.Th().Class("w-16").Text("Actions"),
 									),
-									u.sortableHeader("ID", "id"),
-									u.sortableHeader("Name", "name"),
-									u.sortableHeader("Email", "email"),
-									u.sortableHeader("Role", "role"),
-									u.sortableHeader("Status", "status"),
-									u.sortableHeader("Created", "created_at"),
-									app.Th().Class("w-28").Text("Actions"),
 								),
-							),
-							app.TBody().Body(
-								u.renderRows()...,
+								app.TBody().Body(
+									u.renderRows()...,
+								),
 							),
 						)
 					}),
 				),
 
-				app.Div().Class("px-6 py-4 border-t border-base-200").Body(
+				app.Div().Class("px-6 py-4 border-t border-base-200/50 bg-base-200/20").Body(
 					u.renderPagination(),
 				),
 			),
@@ -176,11 +177,11 @@ func (u *Users) renderRows() []app.UI {
 	rows := make([]app.UI, 0, len(u.users))
 	for _, user := range u.users {
 		usr := user
-		rows = append(rows, app.Tr().Class("hover").Body(
+		rows = append(rows, app.Tr().Class("transition-colors duration-150 hover:bg-base-200/30").Body(
 			app.Td().Body(
 				app.Input().
 					Type("checkbox").
-					Class("checkbox checkbox-sm").
+					Class("checkbox checkbox-sm checkbox-primary").
 					Checked(u.selected[usr.ID]).
 					OnChange(u.toggleSelect(usr.ID)),
 			),
@@ -188,7 +189,7 @@ func (u *Users) renderRows() []app.UI {
 			app.Td().Body(
 				app.Div().Class("flex items-center gap-3").Body(
 					app.Div().Class("avatar placeholder").Body(
-						app.Div().Class("bg-neutral text-neutral-content w-8 h-8 rounded-full flex items-center justify-center").Body(
+						app.Div().Class("bg-gradient-to-br from-primary to-primary/70 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold").Body(
 							app.Text(u.avatarInitial(usr.Name)),
 						),
 					),
@@ -202,22 +203,22 @@ func (u *Users) renderRows() []app.UI {
 			),
 			app.Td().Body(u.roleBadge(usr.Role)),
 			app.Td().Body(u.statusBadge(usr.Status)),
-			app.Td().Class("text-base-content/60 text-sm").Text(usr.CreatedAt.Format("2006-01-02")),
+			app.Td().Class("text-base-content/60 text-sm whitespace-nowrap").Text(usr.CreatedAt.Format("Jan 02 15:04")),
 			app.Td().Body(
 				app.Div().Class("flex gap-1").Body(
 					app.Button().
-						Class("btn btn-ghost btn-xs gap-1").
+						Class("btn btn-ghost btn-xs btn-circle hover:bg-primary/10 hover:text-primary transition-colors duration-150").
+						Title("Edit").
 						OnClick(u.handleEdit(usr)).
 						Body(
-							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`),
-							app.Text("Edit"),
+							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`),
 						),
 					app.Button().
-						Class("btn btn-ghost btn-xs text-error gap-1").
+						Class("btn btn-ghost btn-xs btn-circle hover:bg-error/10 hover:text-error transition-colors duration-150").
+						Title("Delete").
 						OnClick(u.showDeleteConfirm(usr.ID)).
 						Body(
-							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`),
-							app.Text("Delete"),
+							app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`),
 						),
 				),
 			),
