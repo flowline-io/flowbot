@@ -33,6 +33,38 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
+var themeCSS = `/* Flowbot Admin - Refined Color Theme */
+:root,[data-theme="light"]{color-scheme:light;--color-base-100:#ffffff;--color-base-200:#f8fafc;--color-base-300:#f1f5f9;--color-base-content:#1e293b;--color-primary:#4f46e5;--color-primary-content:#ffffff;--color-primary-focus:#4338ca;--color-primary-active:#3730a3;--color-secondary:#64748b;--color-secondary-content:#ffffff;--color-accent:#14b8a6;--color-accent-content:#ffffff;--color-neutral:#334155;--color-neutral-content:#ffffff;--color-base:#ffffff;--color-base-emphasis:#0f172a;--color-base-highlight:#f8fafc;--color-info:#0ea5e9;--color-info-content:#ffffff;--color-success:#10b981;--color-success-content:#ffffff;--color-warning:#f59e0b;--color-warning-content:#ffffff;--color-error:#ef4444;--color-error-content:#ffffff;--rounded-box:1rem;--rounded-btn:0.625rem;--rounded-badge:1.9rem;--animation-btn:0.2s;--animation-input:0.2s;--btn-focus-scale:0.98;--border-btn:1px;--tab-border:1px;--tab-radius:0.5rem}
+[data-theme="dark"]{color-scheme:dark;--color-base-100:#0f172a;--color-base-200:#1e293b;--color-base-300:#334155;--color-base-content:#f1f5f9;--color-primary:#818cf8;--color-primary-content:#1e1b4b;--color-primary-focus:#a5b4fc;--color-primary-active:#6366f1;--color-secondary:#94a3b8;--color-secondary-content:#1e293b;--color-accent:#2dd4bf;--color-accent-content:#042f2e;--color-neutral:#475569;--color-neutral-content:#f8fafc;--color-base:#0f172a;--color-base-emphasis:#f8fafc;--color-base-highlight:#1e293b;--color-info:#38bdf8;--color-info-content:#0c4a6e;--color-success:#34d399;--color-success-content:#022c22;--color-warning:#fbbf24;--color-warning-content:#451a03;--color-error:#f87171;--color-error-content:#450a0a}
+*{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--color-base-300);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--color-neutral)}
+::selection{background:var(--color-primary);color:var(--color-primary-content)}
+:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth}
+.gradient-primary{background:linear-gradient(135deg,var(--color-primary) 0%,color-mix(in srgb,var(--color-primary) 70%,white) 100%)}
+.gradient-dark{background:linear-gradient(135deg,var(--color-base-100) 0%,var(--color-base-200) 100%)}
+.glass{background:rgba(255,255,255,0.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+[data-theme="dark"] .glass{background:rgba(15,23,42,0.7)}
+.shadow-soft{box-shadow:0 2px 15px -3px rgba(0,0,0,0.07),0 10px 20px -2px rgba(0,0,0,0.04)}
+.shadow-glow-primary{box-shadow:0 0 20px rgba(79,70,229,0.3)}
+.shadow-glow-success{box-shadow:0 0 20px rgba(16,185,129,0.3)}
+.text-gradient{background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.border-soft{border-color:var(--color-base-300)}
+.badge-soft{backdrop-filter:blur(8px);background:color-mix(in srgb,var(--color-base-200) 80%,transparent)}
+.btn-glow:hover{box-shadow:0 0 20px color-mix(in srgb,var(--color-primary) 40%,transparent)}
+.card-lift{transition:transform 0.3s ease,box-shadow 0.3s ease}
+.card-lift:hover{transform:translateY(-4px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1)}
+@keyframes pulse-soft{0%,100%{opacity:1}50%{opacity:0.7}}
+.animate-pulse-soft{animation:pulse-soft 2s cubic-bezier(0.4,0,0.6,1) infinite}
+.stagger-item{opacity:0;transform:translateY(10px);animation:stagger-fade 0.4s ease forwards}
+@keyframes stagger-fade{to{opacity:1;transform:translateY(0)}}
+.stagger-item:nth-child(1){animation-delay:0.05s}.stagger-item:nth-child(2){animation-delay:0.1s}.stagger-item:nth-child(3){animation-delay:0.15s}.stagger-item:nth-child(4){animation-delay:0.2s}.stagger-item:nth-child(5){animation-delay:0.25s}.stagger-item:nth-child(6){animation-delay:0.3s}.stagger-item:nth-child(7){animation-delay:0.35s}.stagger-item:nth-child(8){animation-delay:0.4s}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton-shimmer{background:linear-gradient(90deg,var(--color-base-200) 25%,var(--color-base-300) 50%,var(--color-base-200) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}`
+
 // Options holds configurable parameters for the admin controller.
 type Options struct {
 	// SlackClientID is the Slack OAuth application client ID.
@@ -139,13 +171,13 @@ func NewAppHandler(apiBaseURL string) http.Handler {
 		Author:      "Flowline",
 		Styles: []string{
 			"https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css",
-			"/app.css",
 		},
 		RawHeaders: []string{
 			`<script src="https://cdn.tailwindcss.com"></script>`,
 			`<link rel="preconnect" href="https://fonts.googleapis.com">`,
 			`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`,
 			`<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">`,
+			`<style>` + themeCSS + `</style>`,
 		},
 	}
 	if apiBaseURL != "" {

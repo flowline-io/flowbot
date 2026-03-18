@@ -44,7 +44,7 @@ flowbot.log
 /cloc/
 
 # app
-web/app.wasm
+/web/
 
 # testing
 coverage.out
