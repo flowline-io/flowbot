@@ -198,6 +198,30 @@ func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 	adminAPI.Put("/containers/:id", ac.adminAuth(ac.updateContainer))
 	adminAPI.Delete("/containers/:id", ac.adminAuth(ac.deleteContainer))
 
+	// User management endpoints
+	adminAPI.Get("/users", ac.adminAuth(ac.listUsers))
+	adminAPI.Post("/users", ac.adminAuth(ac.createUser))
+	adminAPI.Get("/users/:id", ac.adminAuth(ac.getUser))
+	adminAPI.Put("/users/:id", ac.adminAuth(ac.updateUser))
+	adminAPI.Delete("/users/:id", ac.adminAuth(ac.deleteUser))
+
+	// Workflow management endpoints
+	adminAPI.Get("/workflows", ac.adminAuth(ac.listWorkflows))
+	adminAPI.Post("/workflows", ac.adminAuth(ac.createWorkflow))
+	adminAPI.Get("/workflows/:id", ac.adminAuth(ac.getWorkflow))
+	adminAPI.Delete("/workflows/:id", ac.adminAuth(ac.deleteWorkflow))
+	adminAPI.Post("/workflows/:id/run", ac.adminAuth(ac.runWorkflow))
+
+	// Bot management endpoints
+	adminAPI.Get("/bots", ac.adminAuth(ac.listBots))
+	adminAPI.Get("/bots/:name", ac.adminAuth(ac.getBot))
+	adminAPI.Post("/bots/:name/enable", ac.adminAuth(ac.enableBot))
+	adminAPI.Post("/bots/:name/disable", ac.adminAuth(ac.disableBot))
+
+	// Log viewer endpoints
+	adminAPI.Get("/logs", ac.adminAuth(ac.listLogs))
+	adminAPI.Get("/logs/sources", ac.adminAuth(ac.getLogSources))
+
 	flog.Info("admin API routes registered")
 }
 
@@ -783,4 +807,570 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dh %dm", hours, minutes)
 	}
 	return fmt.Sprintf("%dm", minutes)
+}
+
+// ---------------------------------------------------------------------------
+// User management API (mock data)
+// ---------------------------------------------------------------------------
+
+var (
+	mockUsers     []admin.User
+	mockUserID    atomic.Int64
+	usersInitOnce sync.Once
+)
+
+func initMockUsers() {
+	usersInitOnce.Do(func() {
+		now := time.Now()
+		mockUsers = []admin.User{
+			{ID: 1, UID: "user-1", Name: "Admin User", Email: "admin@flowbot.io", Role: admin.RoleAdmin, Status: admin.UserActive, Platform: "slack", CreatedAt: now.Add(-30 * 24 * time.Hour), UpdatedAt: now},
+			{ID: 2, UID: "user-2", Name: "John Doe", Email: "john@example.com", Role: admin.RoleUser, Status: admin.UserActive, Platform: "slack", CreatedAt: now.Add(-15 * 24 * time.Hour), UpdatedAt: now},
+			{ID: 3, UID: "user-3", Name: "Jane Smith", Email: "jane@example.com", Role: admin.RoleUser, Status: admin.UserInactive, Platform: "dev", CreatedAt: now.Add(-7 * 24 * time.Hour), UpdatedAt: now},
+		}
+		mockUserID.Store(4)
+	})
+}
+
+func (ac *AdminController) listUsers(ctx fiber.Ctx) error {
+	initMockUsers()
+
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "10"))
+	search := ctx.Query("search")
+	sortBy := ctx.Query("sort_by")
+	sortDesc := ctx.Query("sort_desc") == "true"
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+
+	ac.mu.RLock()
+	all := make([]admin.User, len(mockUsers))
+	copy(all, mockUsers)
+	ac.mu.RUnlock()
+
+	if search != "" {
+		filtered := make([]admin.User, 0)
+		searchLower := strings.ToLower(search)
+		for _, u := range all {
+			if strings.Contains(strings.ToLower(u.Name), searchLower) ||
+				strings.Contains(strings.ToLower(u.Email), searchLower) {
+				filtered = append(filtered, u)
+			}
+		}
+		all = filtered
+	}
+
+	if sortBy != "" {
+		sort.Slice(all, func(i, j int) bool {
+			less := false
+			switch sortBy {
+			case "id":
+				less = all[i].ID < all[j].ID
+			case "name":
+				less = all[i].Name < all[j].Name
+			case "email":
+				less = all[i].Email < all[j].Email
+			case "role":
+				less = string(all[i].Role) < string(all[j].Role)
+			case "status":
+				less = string(all[i].Status) < string(all[j].Status)
+			case "created_at":
+				less = all[i].CreatedAt.Before(all[j].CreatedAt)
+			default:
+				less = all[i].ID < all[j].ID
+			}
+			if sortDesc {
+				return !less
+			}
+			return less
+		})
+	}
+
+	total := int64(len(all))
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize != 0 {
+		totalPages++
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > len(all) {
+		start = len(all)
+	}
+	if end > len(all) {
+		end = len(all)
+	}
+
+	items := all[start:end]
+
+	return ctx.JSON(protocol.NewSuccessResponse(admin.ListResponse[admin.User]{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}))
+}
+
+func (ac *AdminController) createUser(ctx fiber.Ctx) error {
+	initMockUsers()
+
+	var req admin.UserCreateRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if req.Name == "" || req.Email == "" {
+		return protocol.ErrBadParam.New("name and email are required")
+	}
+
+	now := time.Now()
+	newUser := admin.User{
+		ID:        mockUserID.Add(1) - 1,
+		UID:       fmt.Sprintf("user-%d", mockUserID.Load()),
+		Name:      req.Name,
+		Email:     req.Email,
+		Role:      req.Role,
+		Status:    admin.UserActive,
+		Platform:  "local",
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	ac.mu.Lock()
+	mockUsers = append(mockUsers, newUser)
+	ac.mu.Unlock()
+
+	return ctx.JSON(protocol.NewSuccessResponse(newUser))
+}
+
+func (ac *AdminController) getUser(ctx fiber.Ctx) error {
+	initMockUsers()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.RLock()
+	defer ac.mu.RUnlock()
+
+	for _, u := range mockUsers {
+		if u.ID == id {
+			return ctx.JSON(protocol.NewSuccessResponse(u))
+		}
+	}
+
+	return protocol.ErrNotFound.New("user not found")
+}
+
+func (ac *AdminController) updateUser(ctx fiber.Ctx) error {
+	initMockUsers()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	var req admin.UserUpdateRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.Lock()
+	defer ac.mu.Unlock()
+
+	for i, u := range mockUsers {
+		if u.ID == id {
+			if req.Name != "" {
+				mockUsers[i].Name = req.Name
+			}
+			if req.Email != "" {
+				mockUsers[i].Email = req.Email
+			}
+			if req.Role != "" {
+				mockUsers[i].Role = req.Role
+			}
+			if req.Status != "" {
+				mockUsers[i].Status = req.Status
+			}
+			mockUsers[i].UpdatedAt = time.Now()
+			return ctx.JSON(protocol.NewSuccessResponse(mockUsers[i]))
+		}
+	}
+
+	return protocol.ErrNotFound.New("user not found")
+}
+
+func (ac *AdminController) deleteUser(ctx fiber.Ctx) error {
+	initMockUsers()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.Lock()
+	defer ac.mu.Unlock()
+
+	for i, u := range mockUsers {
+		if u.ID == id {
+			mockUsers = append(mockUsers[:i], mockUsers[i+1:]...)
+			return ctx.JSON(protocol.NewSuccessResponse(nil))
+		}
+	}
+
+	return protocol.ErrNotFound.New("user not found")
+}
+
+// ---------------------------------------------------------------------------
+// Workflow management API (mock data)
+// ---------------------------------------------------------------------------
+
+var (
+	mockWorkflows     []admin.Workflow
+	mockWorkflowID    atomic.Int64
+	workflowsInitOnce sync.Once
+)
+
+func initMockWorkflows() {
+	workflowsInitOnce.Do(func() {
+		now := time.Now()
+		mockWorkflows = []admin.Workflow{
+			{ID: 1, Name: "Daily Report", Description: "Generate daily summary report", Status: admin.WorkflowCompleted, CreatedAt: now.Add(-24 * time.Hour), UpdatedAt: now},
+			{ID: 2, Name: "Backup Database", Description: "Backup database to S3", Status: admin.WorkflowPending, CreatedAt: now.Add(-12 * time.Hour), UpdatedAt: now},
+			{ID: 3, Name: "Send Notifications", Description: "Send push notifications to users", Status: admin.WorkflowRunning, CreatedAt: now.Add(-6 * time.Hour), UpdatedAt: now},
+			{ID: 4, Name: "Cleanup Logs", Description: "Clean up old log files", Status: admin.WorkflowFailed, CreatedAt: now.Add(-3 * time.Hour), UpdatedAt: now},
+		}
+		mockWorkflowID.Store(5)
+	})
+}
+
+func (ac *AdminController) listWorkflows(ctx fiber.Ctx) error {
+	initMockWorkflows()
+
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "10"))
+	status := ctx.Query("status")
+	search := ctx.Query("search")
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+
+	ac.mu.RLock()
+	all := make([]admin.Workflow, len(mockWorkflows))
+	copy(all, mockWorkflows)
+	ac.mu.RUnlock()
+
+	if status != "" {
+		filtered := make([]admin.Workflow, 0)
+		for _, w := range all {
+			if string(w.Status) == status {
+				filtered = append(filtered, w)
+			}
+		}
+		all = filtered
+	}
+
+	if search != "" {
+		filtered := make([]admin.Workflow, 0)
+		searchLower := strings.ToLower(search)
+		for _, w := range all {
+			if strings.Contains(strings.ToLower(w.Name), searchLower) ||
+				strings.Contains(strings.ToLower(w.Description), searchLower) {
+				filtered = append(filtered, w)
+			}
+		}
+		all = filtered
+	}
+
+	sort.Slice(all, func(i, j int) bool {
+		return all[i].CreatedAt.After(all[j].CreatedAt)
+	})
+
+	total := int64(len(all))
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize != 0 {
+		totalPages++
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > len(all) {
+		start = len(all)
+	}
+	if end > len(all) {
+		end = len(all)
+	}
+
+	items := all[start:end]
+
+	return ctx.JSON(protocol.NewSuccessResponse(admin.ListResponse[admin.Workflow]{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}))
+}
+
+func (ac *AdminController) createWorkflow(ctx fiber.Ctx) error {
+	initMockWorkflows()
+
+	var req admin.WorkflowCreateRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if req.Name == "" {
+		return protocol.ErrBadParam.New("workflow name is required")
+	}
+
+	now := time.Now()
+	newWorkflow := admin.Workflow{
+		ID:          mockWorkflowID.Add(1) - 1,
+		Name:        req.Name,
+		Description: req.Description,
+		Status:      admin.WorkflowPending,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	ac.mu.Lock()
+	mockWorkflows = append(mockWorkflows, newWorkflow)
+	ac.mu.Unlock()
+
+	return ctx.JSON(protocol.NewSuccessResponse(newWorkflow))
+}
+
+func (ac *AdminController) getWorkflow(ctx fiber.Ctx) error {
+	initMockWorkflows()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.RLock()
+	defer ac.mu.RUnlock()
+
+	for _, w := range mockWorkflows {
+		if w.ID == id {
+			return ctx.JSON(protocol.NewSuccessResponse(w))
+		}
+	}
+
+	return protocol.ErrNotFound.New("workflow not found")
+}
+
+func (ac *AdminController) deleteWorkflow(ctx fiber.Ctx) error {
+	initMockWorkflows()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.Lock()
+	defer ac.mu.Unlock()
+
+	for i, w := range mockWorkflows {
+		if w.ID == id {
+			mockWorkflows = append(mockWorkflows[:i], mockWorkflows[i+1:]...)
+			return ctx.JSON(protocol.NewSuccessResponse(nil))
+		}
+	}
+
+	return protocol.ErrNotFound.New("workflow not found")
+}
+
+func (ac *AdminController) runWorkflow(ctx fiber.Ctx) error {
+	initMockWorkflows()
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	ac.mu.Lock()
+	defer ac.mu.Unlock()
+
+	for i, w := range mockWorkflows {
+		if w.ID == id {
+			mockWorkflows[i].Status = admin.WorkflowRunning
+			mockWorkflows[i].UpdatedAt = time.Now()
+			return ctx.JSON(protocol.NewSuccessResponse(mockWorkflows[i]))
+		}
+	}
+
+	return protocol.ErrNotFound.New("workflow not found")
+}
+
+// ---------------------------------------------------------------------------
+// Bot management API
+// ---------------------------------------------------------------------------
+
+func (ac *AdminController) listBots(ctx fiber.Ctx) error {
+	bots := []admin.BotInfo{
+		{Name: "Agent", Enabled: true, Description: "LLM-powered AI assistant", Commands: []string{"/agent", "/ask"}, HasForm: true, HasCron: false, HasWebhook: false},
+		{Name: "Workflow", Enabled: true, Description: "Workflow automation engine", Commands: []string{"/workflow", "/run"}, HasForm: true, HasCron: true, HasWebhook: true},
+		{Name: "Finance", Enabled: true, Description: "Financial tracking and budgeting", Commands: []string{"/bill", "/budget"}, HasForm: true, HasCron: false, HasWebhook: false},
+		{Name: "Kanban", Enabled: true, Description: "Project management with kanban boards", Commands: []string{"/task", "/board"}, HasForm: true, HasCron: false, HasWebhook: false},
+		{Name: "Notify", Enabled: true, Description: "Multi-channel notifications", Commands: []string{"/notify"}, HasForm: true, HasCron: true, HasWebhook: true},
+		{Name: "Reader", Enabled: true, Description: "RSS feed reader", Commands: []string{"/feed", "/subscribe"}, HasForm: false, HasCron: true, HasWebhook: false},
+		{Name: "GitHub", Enabled: true, Description: "GitHub integration", Commands: []string{"/github", "/pr", "/issue"}, HasForm: true, HasCron: false, HasWebhook: true},
+		{Name: "Bookmark", Enabled: false, Description: "URL bookmarking", Commands: []string{"/bookmark"}, HasForm: true, HasCron: false, HasWebhook: false},
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(admin.BotListResponse{
+		Items: bots,
+		Total: int64(len(bots)),
+	}))
+}
+
+func (ac *AdminController) getBot(ctx fiber.Ctx) error {
+	name := ctx.Params("name")
+
+	bots := []admin.BotInfo{
+		{Name: "Agent", Enabled: true, Description: "LLM-powered AI assistant", Commands: []string{"/agent", "/ask"}, HasForm: true, HasCron: false, HasWebhook: false},
+		{Name: "Workflow", Enabled: true, Description: "Workflow automation engine", Commands: []string{"/workflow", "/run"}, HasForm: true, HasCron: true, HasWebhook: true},
+	}
+
+	for _, b := range bots {
+		if strings.EqualFold(b.Name, name) {
+			return ctx.JSON(protocol.NewSuccessResponse(b))
+		}
+	}
+
+	return protocol.ErrNotFound.New("bot not found")
+}
+
+func (ac *AdminController) enableBot(ctx fiber.Ctx) error {
+	name := ctx.Params("name")
+	flog.Info("enabling bot: %s", name)
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]string{"status": "enabled"}))
+}
+
+func (ac *AdminController) disableBot(ctx fiber.Ctx) error {
+	name := ctx.Params("name")
+	flog.Info("disabling bot: %s", name)
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]string{"status": "disabled"}))
+}
+
+// ---------------------------------------------------------------------------
+// Log viewer API (mock data)
+// ---------------------------------------------------------------------------
+
+var (
+	mockLogs     []admin.LogEntry
+	mockLogID    atomic.Int64
+	logsInitOnce sync.Once
+)
+
+func initMockLogs() {
+	logsInitOnce.Do(func() {
+		now := time.Now()
+		mockLogs = []admin.LogEntry{
+			{ID: 1, Level: admin.LogLevelInfo, Message: "Server started successfully", Source: "server", Timestamp: now.Add(-1 * time.Hour).Format(time.RFC3339)},
+			{ID: 2, Level: admin.LogLevelInfo, Message: "Connected to database", Source: "server", Timestamp: now.Add(-59 * time.Minute).Format(time.RFC3339)},
+			{ID: 3, Level: admin.LogLevelWarn, Message: "High memory usage detected: 85%", Source: "server", Timestamp: now.Add(-30 * time.Minute).Format(time.RFC3339)},
+			{ID: 4, Level: admin.LogLevelInfo, Message: "Workflow 'Daily Report' completed", Source: "workflow", Timestamp: now.Add(-15 * time.Minute).Format(time.RFC3339)},
+			{ID: 5, Level: admin.LogLevelError, Message: "Failed to connect to Slack API: timeout", Source: "platform", Timestamp: now.Add(-10 * time.Minute).Format(time.RFC3339)},
+			{ID: 6, Level: admin.LogLevelDebug, Message: "Processing message: hello world", Source: "agent", Timestamp: now.Add(-5 * time.Minute).Format(time.RFC3339)},
+			{ID: 7, Level: admin.LogLevelInfo, Message: "User login: admin@flowbot.io", Source: "server", Timestamp: now.Add(-2 * time.Minute).Format(time.RFC3339)},
+			{ID: 8, Level: admin.LogLevelWarn, Message: "Slow query detected: 2.5s", Source: "server", Timestamp: now.Add(-1 * time.Minute).Format(time.RFC3339)},
+		}
+		mockLogID.Store(9)
+	})
+}
+
+func (ac *AdminController) listLogs(ctx fiber.Ctx) error {
+	initMockLogs()
+
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "50"))
+	level := ctx.Query("level")
+	source := ctx.Query("source")
+	search := ctx.Query("search")
+
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 1000 {
+		pageSize = 50
+	}
+
+	ac.mu.RLock()
+	all := make([]admin.LogEntry, len(mockLogs))
+	copy(all, mockLogs)
+	ac.mu.RUnlock()
+
+	if level != "" {
+		filtered := make([]admin.LogEntry, 0)
+		for _, l := range all {
+			if strings.EqualFold(string(l.Level), level) {
+				filtered = append(filtered, l)
+			}
+		}
+		all = filtered
+	}
+
+	if source != "" {
+		filtered := make([]admin.LogEntry, 0)
+		for _, l := range all {
+			if strings.EqualFold(l.Source, source) {
+				filtered = append(filtered, l)
+			}
+		}
+		all = filtered
+	}
+
+	if search != "" {
+		filtered := make([]admin.LogEntry, 0)
+		searchLower := strings.ToLower(search)
+		for _, l := range all {
+			if strings.Contains(strings.ToLower(l.Message), searchLower) {
+				filtered = append(filtered, l)
+			}
+		}
+		all = filtered
+	}
+
+	total := int64(len(all))
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize != 0 {
+		totalPages++
+	}
+
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > len(all) {
+		start = len(all)
+	}
+	if end > len(all) {
+		end = len(all)
+	}
+
+	items := all[start:end]
+
+	return ctx.JSON(protocol.NewSuccessResponse(admin.LogListResponse{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}))
+}
+
+func (ac *AdminController) getLogSources(ctx fiber.Ctx) error {
+	sources := []string{"server", "agent", "workflow", "platform"}
+	return ctx.JSON(protocol.NewSuccessResponse(sources))
 }
