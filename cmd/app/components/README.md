@@ -44,6 +44,7 @@ Top navigation bar with logo, nav links, theme toggle, and user dropdown.
 ```
 
 Features:
+
 - Logo and site name
 - Desktop navigation links
 - Mobile hamburger menu
@@ -105,7 +106,7 @@ type MyPage struct {
 func (p *MyPage) Render() app.UI {
     return components.WithLayout(
         // Page content...
-        
+
         &components.ConfirmDialog{
             Show:         p.showConfirm,
             Title:        p.confirmTitle,
@@ -183,6 +184,7 @@ components.HighlightTextIf(text, query, shouldHighlight)
 ```
 
 Features:
+
 - Case-insensitive matching
 - Preserves original case in output
 - Uses DaisyUI-compatible styling
@@ -198,6 +200,7 @@ Global keyboard shortcut handler.
 ```
 
 Built-in shortcuts:
+
 - `/` - Focus search (dispatches "focus-search" action)
 - `?` - Show help toast
 
@@ -262,7 +265,7 @@ func (p *MyPage) renderPagination() app.UI {
     if !p.pagination.HasPages() {
         return app.Div()
     }
-    
+
     buttons := make([]app.UI, 0)
     for _, page := range p.pagination.VisiblePages() {
         // Render page button...
@@ -275,23 +278,23 @@ func (p *MyPage) renderPagination() app.UI {
 
 ### DaisyUI Classes
 
-| Component | Classes |
-|-----------|---------|
-| Button | `btn`, `btn-primary`, `btn-secondary`, `btn-ghost`, `btn-sm`, `btn-circle` |
-| Badge | `badge`, `badge-success`, `badge-warning`, `badge-error`, `badge-info` |
-| Card | `card`, `bg-base-100`, `shadow-md` |
-| Input | `input`, `input-bordered`, `input-sm` |
-| Select | `select`, `select-bordered`, `select-sm` |
-| Table | `table`, `table-zebra` |
-| Loading | `loading`, `loading-spinner`, `loading-lg`, `loading-sm` |
-| Modal | `modal`, `modal-open`, `modal-box`, `modal-action` |
+| Component | Classes                                                                    |
+| --------- | -------------------------------------------------------------------------- |
+| Button    | `btn`, `btn-primary`, `btn-secondary`, `btn-ghost`, `btn-sm`, `btn-circle` |
+| Badge     | `badge`, `badge-success`, `badge-warning`, `badge-error`, `badge-info`     |
+| Card      | `card`, `bg-base-100`, `shadow-md`                                         |
+| Input     | `input`, `input-bordered`, `input-sm`                                      |
+| Select    | `select`, `select-bordered`, `select-sm`                                   |
+| Table     | `table`, `table-zebra`                                                     |
+| Loading   | `loading`, `loading-spinner`, `loading-lg`, `loading-sm`                   |
+| Modal     | `modal`, `modal-open`, `modal-box`, `modal-action`                         |
 
 ### Tailwind Utilities
 
-| Purpose | Classes |
-|---------|---------|
-| Flex | `flex`, `flex-col`, `gap-2`, `gap-4`, `items-center`, `justify-between` |
-| Spacing | `p-4`, `px-6`, `py-2`, `mb-4`, `mt-2` |
-| Text | `text-sm`, `text-lg`, `font-medium`, `font-bold` |
-| Colors | `text-base-content`, `bg-base-100`, `text-primary`, `text-error` |
-| Responsive | `sm:px-6`, `md:flex`, `lg:grid-cols-3` |
+| Purpose    | Classes                                                                 |
+| ---------- | ----------------------------------------------------------------------- |
+| Flex       | `flex`, `flex-col`, `gap-2`, `gap-4`, `items-center`, `justify-between` |
+| Spacing    | `p-4`, `px-6`, `py-2`, `mb-4`, `mt-2`                                   |
+| Text       | `text-sm`, `text-lg`, `font-medium`, `font-bold`                        |
+| Colors     | `text-base-content`, `bg-base-100`, `text-primary`, `text-error`        |
+| Responsive | `sm:px-6`, `md:flex`, `lg:grid-cols-3`                                  |

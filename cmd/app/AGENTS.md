@@ -7,12 +7,12 @@ WebAssembly-based admin frontend using go-app/v10, DaisyUI, and Tailwind CSS.
 
 ## Quick Reference
 
-| Task          | Command              | Notes                   |
-| ------------- | -------------------- | ----------------------- |
-| Build PWA     | `task build:app`     | Wasm + static server    |
-| Run dev       | `task air`           | Live reload             |
-| Run tests     | `go test ./cmd/app/...` | Unit tests           |
-| Format        | `task format`        | go fmt + prettier       |
+| Task      | Command                 | Notes                |
+| --------- | ----------------------- | -------------------- |
+| Build PWA | `task build:app`        | Wasm + static server |
+| Run dev   | `task air`              | Live reload          |
+| Run tests | `go test ./cmd/app/...` | Unit tests           |
+| Format    | `task format`           | go fmt + prettier    |
 
 ## Architecture
 
@@ -209,16 +209,16 @@ app.Span().Class("loading loading-spinner loading-lg text-primary")
 
 ## Routes
 
-| Path                | Component     | Description          |
-| ------------------- | ------------- | -------------------- |
-| `/admin`            | Dashboard     | Home page            |
-| `/admin/login`      | Login         | OAuth authentication |
-| `/admin/users`      | Users         | User management      |
-| `/admin/containers` | Containers    | Container management |
-| `/admin/workflows`  | Workflows     | Workflow management  |
-| `/admin/bots`       | Bots          | Bot modules          |
-| `/admin/logs`       | Logs          | Log viewer           |
-| `/admin/settings`   | Settings      | System settings      |
+| Path                | Component  | Description          |
+| ------------------- | ---------- | -------------------- |
+| `/admin`            | Dashboard  | Home page            |
+| `/admin/login`      | Login      | OAuth authentication |
+| `/admin/users`      | Users      | User management      |
+| `/admin/containers` | Containers | Container management |
+| `/admin/workflows`  | Workflows  | Workflow management  |
+| `/admin/bots`       | Bots       | Bot modules          |
+| `/admin/logs`       | Logs       | Log viewer           |
+| `/admin/settings`   | Settings   | System settings      |
 
 ## Testing
 

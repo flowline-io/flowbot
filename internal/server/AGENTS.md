@@ -22,21 +22,21 @@ server/
 
 ## Routes
 
-| Endpoint         | Handler              |
-| ---------------- | -------------------- |
-| `/`              | Health check         |
-| `/livez`         | Liveness probe       |
-| `/readyz`        | Readiness probe      |
-| `/startupz`      | Startup probe        |
-| `/metrics`       | Prometheus metrics   |
-| `/oauth/:provider/:flag` | OAuth callback |
-| `/p/:id`         | Page render          |
-| `/form`          | Form submission      |
-| `/page/:id/:flag`| Page handler         |
-| `/agent`         | Agent data           |
-| `/webhook/:flag` | Webhook handler      |
-| `/chatbot/:platform` | Platform callback |
-| `/mcp/:bot_name` | MCP protocol         |
+| Endpoint                 | Handler            |
+| ------------------------ | ------------------ |
+| `/`                      | Health check       |
+| `/livez`                 | Liveness probe     |
+| `/readyz`                | Readiness probe    |
+| `/startupz`              | Startup probe      |
+| `/metrics`               | Prometheus metrics |
+| `/oauth/:provider/:flag` | OAuth callback     |
+| `/p/:id`                 | Page render        |
+| `/form`                  | Form submission    |
+| `/page/:id/:flag`        | Page handler       |
+| `/agent`                 | Agent data         |
+| `/webhook/:flag`         | Webhook handler    |
+| `/chatbot/:platform`     | Platform callback  |
+| `/mcp/:bot_name`         | MCP protocol       |
 
 ## Fiber v3 Patterns
 

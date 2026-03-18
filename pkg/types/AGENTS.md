@@ -39,40 +39,40 @@ types/
 
 14 rule types defined in `types.go`:
 
-| Type        | Purpose              |
-| ----------- | -------------------- |
-| ActionRule  | Generic actions      |
-| CommandRule | Slash commands       |
-| FormRule    | Interactive forms    |
-| CronRule    | Scheduled tasks      |
-| EventRule   | Event handlers       |
-| WebhookRule | HTTP webhooks        |
-| WebserviceRule | HTTP endpoints    |
-| ToolRule    | MCP protocol tools   |
-| InstructRule| LLM instructions     |
-| PageRule    | UI pages             |
-| SettingRule | Bot configuration    |
-| CollectRule | Data collection      |
-| TriggerRule | Workflow triggers    |
-| WorkflowRule| Workflow actions     |
+| Type           | Purpose            |
+| -------------- | ------------------ |
+| ActionRule     | Generic actions    |
+| CommandRule    | Slash commands     |
+| FormRule       | Interactive forms  |
+| CronRule       | Scheduled tasks    |
+| EventRule      | Event handlers     |
+| WebhookRule    | HTTP webhooks      |
+| WebserviceRule | HTTP endpoints     |
+| ToolRule       | MCP protocol tools |
+| InstructRule   | LLM instructions   |
+| PageRule       | UI pages           |
+| SettingRule    | Bot configuration  |
+| CollectRule    | Data collection    |
+| TriggerRule    | Workflow triggers  |
+| WorkflowRule   | Workflow actions   |
 
 ## Message Types
 
 All implement `MsgPayload` interface:
 
-| Type        | Usage                |
-| ----------- | -------------------- |
-| TextMsg     | Plain text           |
-| FormMsg     | Interactive forms    |
-| LinkMsg     | URL previews         |
-| TableMsg    | Tabular data         |
-| InfoMsg     | Info display         |
-| ChartMsg    | Chart data           |
-| MarkdownMsg | Markdown content     |
-| HtmlMsg     | Raw HTML             |
-| InstructMsg | LLM instructions     |
-| KVMsg       | Key-value data       |
-| EmptyMsg    | No content           |
+| Type        | Usage             |
+| ----------- | ----------------- |
+| TextMsg     | Plain text        |
+| FormMsg     | Interactive forms |
+| LinkMsg     | URL previews      |
+| TableMsg    | Tabular data      |
+| InfoMsg     | Info display      |
+| ChartMsg    | Chart data        |
+| MarkdownMsg | Markdown content  |
+| HtmlMsg     | Raw HTML          |
+| InstructMsg | LLM instructions  |
+| KVMsg       | Key-value data    |
+| EmptyMsg    | No content        |
 
 ## KV Type
 
