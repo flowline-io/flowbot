@@ -68,6 +68,9 @@ func newHTTPServer() *fiber.App {
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
+		AllowMethods:     []string{fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete, fiber.MethodPatch, fiber.MethodOptions},
+		AllowHeaders:     []string{fiber.HeaderOrigin, fiber.HeaderContentType, fiber.HeaderAccept, fiber.HeaderAuthorization},
+		AllowCredentials: true,
 	}))
 	// limiter
 	app.Use(limiter.New(limiter.Config{

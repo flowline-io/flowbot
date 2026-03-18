@@ -153,7 +153,7 @@ func (ac *AdminController) initMockData() {
 // NewAppHandler creates the go-app HTTP Handler that serves Wasm and
 // static assets. Tailwind CSS and DaisyUI are loaded via CDN.
 // apiBaseURL is passed to the Wasm client via Handler.Env so the frontend
-// knows which backend API endpoint to call (e.g. "http://127.0.0.1:8060/service/admin").
+// knows which backend API endpoint to call (e.g. "http://127.0.0.1:6060/service/admin").
 func NewAppHandler(apiBaseURL string) http.Handler {
 	h := &app.Handler{
 		Name:        "Flowbot Admin",

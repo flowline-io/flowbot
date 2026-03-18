@@ -28,7 +28,7 @@ type Type struct {
 
 // API holds the main server API connection configuration.
 type API struct {
-	// Main server URL (e.g., "http://127.0.0.1:8060")
+	// Main server URL (e.g., "http://127.0.0.1:6060")
 	URL string `json:"url" yaml:"url" mapstructure:"url"`
 	// API route prefix (e.g., "/service/admin")
 	Prefix string `json:"prefix" yaml:"prefix" mapstructure:"prefix"`

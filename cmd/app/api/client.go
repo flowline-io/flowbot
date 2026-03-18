@@ -63,24 +63,27 @@ func doRequest(token, method, path string, body interface{}) (json.RawMessage, e
 		r.SetBody(body)
 	}
 
-	var apiResp APIResponse
-	r.SetResult(&apiResp)
-
+	var resp *resty.Response
 	var err error
 	switch method {
 	case "GET":
-		_, err = r.Get(path)
+		resp, err = r.Get(path)
 	case "POST":
-		_, err = r.Post(path)
+		resp, err = r.Post(path)
 	case "PUT":
-		_, err = r.Put(path)
+		resp, err = r.Put(path)
 	case "DELETE":
-		_, err = r.Delete(path)
+		resp, err = r.Delete(path)
 	default:
 		return nil, fmt.Errorf("unsupported HTTP method: %s", method)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
+	}
+
+	var apiResp APIResponse
+	if err := json.Unmarshal(resp.Bytes(), &apiResp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
 	if apiResp.Status != "ok" {
