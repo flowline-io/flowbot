@@ -4,9 +4,6 @@
 // This package is intentionally standalone — it only depends on lightweight
 // libraries (Fiber, go-app, flog, protocol, admin types) so it can be imported
 // by both the main server (internal/server) and the PWA server (cmd/app).
-//
-// The backend uses mock in-memory data storage for demonstration purposes.
-// In production, this should be replaced with database storage.
 package admin
 
 import (
@@ -23,6 +20,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/store/dao"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/flowline-io/flowbot/pkg/types/admin"
@@ -72,17 +71,15 @@ type timedValue struct {
 // AdminController
 // ---------------------------------------------------------------------------
 
-// AdminController is the admin panel controller, holding mock data storage and business logic.
+// AdminController is the admin panel controller, holding business logic.
 type AdminController struct {
-	mu         sync.RWMutex
-	containers []admin.Container
-	nextID     atomic.Int64
-	settings   admin.Settings
-	tokens     sync.Map // token(string) -> tokenEntry
-	states     sync.Map // state(string) -> timedValue (CSRF nonce)
-	codes      sync.Map // code(string)  -> timedValue (one-time exchange code -> session token)
-	opts       Options
-	startTime  time.Time // server start time for uptime calculation
+	mu        sync.RWMutex
+	settings  admin.Settings
+	tokens    sync.Map // token(string) -> tokenEntry
+	states    sync.Map // state(string) -> timedValue (CSRF nonce)
+	codes     sync.Map // code(string)  -> timedValue (one-time exchange code -> session token)
+	opts      Options
+	startTime time.Time // server start time for uptime calculation
 }
 
 // NewAdminController creates an AdminController instance with the given options.
@@ -97,8 +94,6 @@ func NewAdminController(opts Options) *AdminController {
 			MaxUploadSize:  10 * 1024 * 1024, // 10MB
 		},
 	}
-	ctl.nextID.Store(1)
-	ctl.initMockData()
 	go ctl.cleanupLoop()
 	return ctl
 }
@@ -128,22 +123,6 @@ func (ac *AdminController) cleanupLoop() {
 			return true
 		})
 	}
-}
-
-// initMockData initializes example container data.
-func (ac *AdminController) initMockData() {
-	now := time.Now()
-	ac.containers = []admin.Container{
-		{ID: 1, Name: "nginx-proxy", Status: admin.ContainerRunning, CreatedAt: now.Add(-72 * time.Hour)},
-		{ID: 2, Name: "redis-cache", Status: admin.ContainerRunning, CreatedAt: now.Add(-48 * time.Hour)},
-		{ID: 3, Name: "postgres-db", Status: admin.ContainerStopped, CreatedAt: now.Add(-24 * time.Hour)},
-		{ID: 4, Name: "app-backend", Status: admin.ContainerRunning, CreatedAt: now.Add(-12 * time.Hour)},
-		{ID: 5, Name: "monitoring", Status: admin.ContainerPaused, CreatedAt: now.Add(-6 * time.Hour)},
-		{ID: 6, Name: "rabbitmq", Status: admin.ContainerRunning, CreatedAt: now.Add(-3 * time.Hour)},
-		{ID: 7, Name: "elasticsearch", Status: admin.ContainerStopped, CreatedAt: now.Add(-2 * time.Hour)},
-		{ID: 8, Name: "minio-storage", Status: admin.ContainerRunning, CreatedAt: now.Add(-1 * time.Hour)},
-	}
-	ac.nextID.Store(9)
 }
 
 // ---------------------------------------------------------------------------
@@ -513,16 +492,13 @@ func (ac *AdminController) updateSettings(ctx fiber.Ctx) error {
 }
 
 // ---------------------------------------------------------------------------
-// Container Management API (Mock CRUD)
+// Container Management API
 // ---------------------------------------------------------------------------
 
-// listContainers returns a paginated, searchable, sortable container list.
+// listContainers returns an empty list as containers are not stored in database.
 func (ac *AdminController) listContainers(ctx fiber.Ctx) error {
 	page, _ := strconv.Atoi(ctx.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "10"))
-	search := ctx.Query("search")
-	sortBy := ctx.Query("sort_by")
-	sortDesc := ctx.Query("sort_desc") == "true"
 
 	if page < 1 {
 		page = 1
@@ -531,231 +507,59 @@ func (ac *AdminController) listContainers(ctx fiber.Ctx) error {
 		pageSize = 10
 	}
 
-	ac.mu.RLock()
-	all := make([]admin.Container, len(ac.containers))
-	copy(all, ac.containers)
-	ac.mu.RUnlock()
-
-	// Search filter
-	if search != "" {
-		filtered := make([]admin.Container, 0)
-		searchLower := strings.ToLower(search)
-		for _, c := range all {
-			if strings.Contains(strings.ToLower(c.Name), searchLower) {
-				filtered = append(filtered, c)
-			}
-		}
-		all = filtered
-	}
-
-	// Sort
-	if sortBy != "" {
-		sort.Slice(all, func(i, j int) bool {
-			less := false
-			switch sortBy {
-			case "id":
-				less = all[i].ID < all[j].ID
-			case "name":
-				less = all[i].Name < all[j].Name
-			case "status":
-				less = string(all[i].Status) < string(all[j].Status)
-			case "created_at":
-				less = all[i].CreatedAt.Before(all[j].CreatedAt)
-			default:
-				less = all[i].ID < all[j].ID
-			}
-			if sortDesc {
-				return !less
-			}
-			return less
-		})
-	}
-
-	// Paginate
-	total := int64(len(all))
-	totalPages := int(total) / pageSize
-	if int(total)%pageSize != 0 {
-		totalPages++
-	}
-
-	start := (page - 1) * pageSize
-	end := start + pageSize
-	if start > len(all) {
-		start = len(all)
-	}
-	if end > len(all) {
-		end = len(all)
-	}
-
-	items := all[start:end]
-
 	return ctx.JSON(protocol.NewSuccessResponse(admin.ListResponse[admin.Container]{
-		Items:      items,
-		Total:      total,
+		Items:      []admin.Container{},
+		Total:      0,
 		Page:       page,
 		PageSize:   pageSize,
-		TotalPages: totalPages,
+		TotalPages: 0,
 	}))
 }
 
-// createContainer creates a new container.
+// createContainer is not implemented as containers are not stored in database.
 func (ac *AdminController) createContainer(ctx fiber.Ctx) error {
-	var req admin.ContainerCreateRequest
-	if err := ctx.Bind().JSON(&req); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	if req.Name == "" {
-		return protocol.ErrBadParam.New("container name cannot be empty")
-	}
-
-	newContainer := admin.Container{
-		ID:        ac.nextID.Add(1) - 1,
-		Name:      req.Name,
-		Status:    req.Status,
-		CreatedAt: time.Now(),
-	}
-
-	ac.mu.Lock()
-	ac.containers = append(ac.containers, newContainer)
-	ac.mu.Unlock()
-
-	flog.Info("admin container created: %+v", newContainer)
-	return ctx.JSON(protocol.NewSuccessResponse(newContainer))
+	return protocol.ErrUnsupported.New("container management is not available")
 }
 
-// getContainer retrieves a single container by ID.
+// getContainer is not implemented as containers are not stored in database.
 func (ac *AdminController) getContainer(ctx fiber.Ctx) error {
-	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
-	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	ac.mu.RLock()
-	defer ac.mu.RUnlock()
-
-	for _, c := range ac.containers {
-		if c.ID == id {
-			return ctx.JSON(protocol.NewSuccessResponse(c))
-		}
-	}
-
 	return protocol.ErrNotFound.New("container not found")
 }
 
-// updateContainer updates an existing container.
+// updateContainer is not implemented as containers are not stored in database.
 func (ac *AdminController) updateContainer(ctx fiber.Ctx) error {
-	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
-	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	var req admin.ContainerUpdateRequest
-	if err := ctx.Bind().JSON(&req); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, c := range ac.containers {
-		if c.ID == id {
-			if req.Name != "" {
-				ac.containers[i].Name = req.Name
-			}
-			if req.Status != "" {
-				ac.containers[i].Status = req.Status
-			}
-			flog.Info("admin container updated: %+v", ac.containers[i])
-			return ctx.JSON(protocol.NewSuccessResponse(ac.containers[i]))
-		}
-	}
-
 	return protocol.ErrNotFound.New("container not found")
 }
 
-// deleteContainer removes a container by ID.
+// deleteContainer is not implemented as containers are not stored in database.
 func (ac *AdminController) deleteContainer(ctx fiber.Ctx) error {
-	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
-	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, c := range ac.containers {
-		if c.ID == id {
-			ac.containers = append(ac.containers[:i], ac.containers[i+1:]...)
-			flog.Info("admin container deleted: id=%d", id)
-			return ctx.JSON(protocol.NewSuccessResponse(nil))
-		}
-	}
-
 	return protocol.ErrNotFound.New("container not found")
 }
 
-// batchDeleteContainers removes multiple containers by their IDs.
+// batchDeleteContainers is not implemented as containers are not stored in database.
 func (ac *AdminController) batchDeleteContainers(ctx fiber.Ctx) error {
-	var req admin.BatchDeleteRequest
-	if err := ctx.Bind().JSON(&req); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	if len(req.IDs) == 0 {
-		return protocol.ErrBadParam.New("ID list cannot be empty")
-	}
-
-	deleteSet := make(map[int64]bool, len(req.IDs))
-	for _, id := range req.IDs {
-		deleteSet[id] = true
-	}
-
-	ac.mu.Lock()
-	filtered := make([]admin.Container, 0, len(ac.containers))
-	deleted := 0
-	for _, c := range ac.containers {
-		if deleteSet[c.ID] {
-			deleted++
-		} else {
-			filtered = append(filtered, c)
-		}
-	}
-	ac.containers = filtered
-	ac.mu.Unlock()
-
-	flog.Info("admin containers batch deleted: %d items", deleted)
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // getDashboardStats returns aggregated statistics for the admin dashboard.
 func (ac *AdminController) getDashboardStats(ctx fiber.Ctx) error {
-	ac.mu.RLock()
-	defer ac.mu.RUnlock()
-
-	var running, stopped, paused, errCount int
-	for _, c := range ac.containers {
-		switch c.Status {
-		case admin.ContainerRunning:
-			running++
-		case admin.ContainerStopped:
-			stopped++
-		case admin.ContainerPaused:
-			paused++
-		case admin.ContainerError:
-			errCount++
-		}
+	// Get counts from database
+	userCount, err := dao.User.WithContext(ctx.Context()).Count()
+	if err != nil {
+		flog.Error(fmt.Errorf("failed to get user count: %w", err))
+		userCount = 0
 	}
 
-	// Recent containers (last 5 by CreatedAt)
-	sorted := make([]admin.Container, len(ac.containers))
-	copy(sorted, ac.containers)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].CreatedAt.After(sorted[j].CreatedAt)
-	})
-	recent := sorted
-	if len(recent) > 5 {
-		recent = recent[:5]
+	botCount, err := dao.Bot.WithContext(ctx.Context()).Count()
+	if err != nil {
+		flog.Error(fmt.Errorf("failed to get bot count: %w", err))
+		botCount = 0
+	}
+
+	workflowCount, err := dao.Workflow.WithContext(ctx.Context()).Count()
+	if err != nil {
+		flog.Error(fmt.Errorf("failed to get workflow count: %w", err))
+		workflowCount = 0
 	}
 
 	// Runtime info
@@ -765,11 +569,11 @@ func (ac *AdminController) getDashboardStats(ctx fiber.Ctx) error {
 	uptime := time.Since(ac.startTime)
 
 	stats := admin.DashboardStats{
-		TotalContainers:   len(ac.containers),
-		RunningContainers: running,
-		StoppedContainers: stopped,
-		PausedContainers:  paused,
-		ErrorContainers:   errCount,
+		TotalContainers:   int(workflowCount),
+		RunningContainers: int(botCount),
+		StoppedContainers: int(userCount),
+		PausedContainers:  0,
+		ErrorContainers:   0,
 
 		Uptime:      formatDuration(uptime),
 		GoVersion:   runtime.Version(),
@@ -781,15 +585,8 @@ func (ac *AdminController) getDashboardStats(ctx fiber.Ctx) error {
 		MemoryTotal: memStats.TotalAlloc,
 		Version:     versionPkg.Buildtags,
 
-		RecentContainers: recent,
-
-		ActivityLog: []admin.ActivityEntry{
-			{Time: time.Now().Add(-5 * time.Minute).Format(time.RFC3339), Action: "Container started", Target: "nginx-proxy", Success: true},
-			{Time: time.Now().Add(-15 * time.Minute).Format(time.RFC3339), Action: "Settings updated", Target: "system", Success: true},
-			{Time: time.Now().Add(-30 * time.Minute).Format(time.RFC3339), Action: "Container stopped", Target: "postgres-db", Success: true},
-			{Time: time.Now().Add(-1 * time.Hour).Format(time.RFC3339), Action: "Container created", Target: "minio-storage", Success: true},
-			{Time: time.Now().Add(-2 * time.Hour).Format(time.RFC3339), Action: "Login", Target: "admin", Success: true},
-		},
+		RecentContainers: []admin.Container{},
+		ActivityLog:      []admin.ActivityEntry{},
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(stats))
@@ -810,35 +607,31 @@ func formatDuration(d time.Duration) string {
 }
 
 // ---------------------------------------------------------------------------
-// User management API (mock data)
+// User management API
 // ---------------------------------------------------------------------------
 
-var (
-	mockUsers     []admin.User
-	mockUserID    atomic.Int64
-	usersInitOnce sync.Once
-)
+func modelUserToAdminUser(u *model.User) admin.User {
+	status := admin.UserActive
+	if u.State == model.UserInactive {
+		status = admin.UserInactive
+	}
 
-func initMockUsers() {
-	usersInitOnce.Do(func() {
-		now := time.Now()
-		mockUsers = []admin.User{
-			{ID: 1, UID: "user-1", Name: "Admin User", Email: "admin@flowbot.io", Role: admin.RoleAdmin, Status: admin.UserActive, Platform: "slack", CreatedAt: now.Add(-30 * 24 * time.Hour), UpdatedAt: now},
-			{ID: 2, UID: "user-2", Name: "John Doe", Email: "john@example.com", Role: admin.RoleUser, Status: admin.UserActive, Platform: "slack", CreatedAt: now.Add(-15 * 24 * time.Hour), UpdatedAt: now},
-			{ID: 3, UID: "user-3", Name: "Jane Smith", Email: "jane@example.com", Role: admin.RoleUser, Status: admin.UserInactive, Platform: "dev", CreatedAt: now.Add(-7 * 24 * time.Hour), UpdatedAt: now},
-		}
-		mockUserID.Store(4)
-	})
+	return admin.User{
+		ID:        u.ID,
+		UID:       u.Flag,
+		Name:      u.Name,
+		Email:     "",
+		Role:      admin.RoleUser,
+		Status:    status,
+		Platform:  "local",
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}
 }
 
 func (ac *AdminController) listUsers(ctx fiber.Ctx) error {
-	initMockUsers()
-
 	page, _ := strconv.Atoi(ctx.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "10"))
-	search := ctx.Query("search")
-	sortBy := ctx.Query("sort_by")
-	sortDesc := ctx.Query("sort_desc") == "true"
 
 	if page < 1 {
 		page = 1
@@ -847,49 +640,18 @@ func (ac *AdminController) listUsers(ctx fiber.Ctx) error {
 		pageSize = 10
 	}
 
-	ac.mu.RLock()
-	all := make([]admin.User, len(mockUsers))
-	copy(all, mockUsers)
-	ac.mu.RUnlock()
-
-	if search != "" {
-		filtered := make([]admin.User, 0)
-		searchLower := strings.ToLower(search)
-		for _, u := range all {
-			if strings.Contains(strings.ToLower(u.Name), searchLower) ||
-				strings.Contains(strings.ToLower(u.Email), searchLower) {
-				filtered = append(filtered, u)
-			}
-		}
-		all = filtered
+	// Get users from database
+	dbUsers, err := dao.User.WithContext(ctx.Context()).Find()
+	if err != nil {
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 
-	if sortBy != "" {
-		sort.Slice(all, func(i, j int) bool {
-			less := false
-			switch sortBy {
-			case "id":
-				less = all[i].ID < all[j].ID
-			case "name":
-				less = all[i].Name < all[j].Name
-			case "email":
-				less = all[i].Email < all[j].Email
-			case "role":
-				less = string(all[i].Role) < string(all[j].Role)
-			case "status":
-				less = string(all[i].Status) < string(all[j].Status)
-			case "created_at":
-				less = all[i].CreatedAt.Before(all[j].CreatedAt)
-			default:
-				less = all[i].ID < all[j].ID
-			}
-			if sortDesc {
-				return !less
-			}
-			return less
-		})
+	all := make([]admin.User, 0, len(dbUsers))
+	for _, u := range dbUsers {
+		all = append(all, modelUserToAdminUser(u))
 	}
 
+	// Pagination
 	total := int64(len(all))
 	totalPages := int(total) / pageSize
 	if int(total)%pageSize != 0 {
@@ -917,60 +679,46 @@ func (ac *AdminController) listUsers(ctx fiber.Ctx) error {
 }
 
 func (ac *AdminController) createUser(ctx fiber.Ctx) error {
-	initMockUsers()
-
 	var req admin.UserCreateRequest
 	if err := ctx.Bind().JSON(&req); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if req.Name == "" || req.Email == "" {
-		return protocol.ErrBadParam.New("name and email are required")
+	if req.Name == "" {
+		return protocol.ErrBadParam.New("name is required")
 	}
 
 	now := time.Now()
-	newUser := admin.User{
-		ID:        mockUserID.Add(1) - 1,
-		UID:       fmt.Sprintf("user-%d", mockUserID.Load()),
+	newUser := &model.User{
+		Flag:      uuid.New().String(),
 		Name:      req.Name,
-		Email:     req.Email,
-		Role:      req.Role,
-		Status:    admin.UserActive,
-		Platform:  "local",
+		State:     model.UserActive,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
 
-	ac.mu.Lock()
-	mockUsers = append(mockUsers, newUser)
-	ac.mu.Unlock()
+	if err := dao.User.WithContext(ctx.Context()).Create(newUser); err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
+	}
 
-	return ctx.JSON(protocol.NewSuccessResponse(newUser))
+	return ctx.JSON(protocol.NewSuccessResponse(modelUserToAdminUser(newUser)))
 }
 
 func (ac *AdminController) getUser(ctx fiber.Ctx) error {
-	initMockUsers()
-
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	ac.mu.RLock()
-	defer ac.mu.RUnlock()
-
-	for _, u := range mockUsers {
-		if u.ID == id {
-			return ctx.JSON(protocol.NewSuccessResponse(u))
-		}
+	u, err := dao.User.WithContext(ctx.Context()).Where(dao.User.ID.Eq(id)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("user not found")
 	}
 
-	return protocol.ErrNotFound.New("user not found")
+	return ctx.JSON(protocol.NewSuccessResponse(modelUserToAdminUser(u)))
 }
 
 func (ac *AdminController) updateUser(ctx fiber.Ctx) error {
-	initMockUsers()
-
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
@@ -981,82 +729,63 @@ func (ac *AdminController) updateUser(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, u := range mockUsers {
-		if u.ID == id {
-			if req.Name != "" {
-				mockUsers[i].Name = req.Name
-			}
-			if req.Email != "" {
-				mockUsers[i].Email = req.Email
-			}
-			if req.Role != "" {
-				mockUsers[i].Role = req.Role
-			}
-			if req.Status != "" {
-				mockUsers[i].Status = req.Status
-			}
-			mockUsers[i].UpdatedAt = time.Now()
-			return ctx.JSON(protocol.NewSuccessResponse(mockUsers[i]))
-		}
+	u, err := dao.User.WithContext(ctx.Context()).Where(dao.User.ID.Eq(id)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("user not found")
 	}
 
-	return protocol.ErrNotFound.New("user not found")
+	if req.Name != "" {
+		u.Name = req.Name
+	}
+	u.UpdatedAt = time.Now()
+
+	if err := dao.User.WithContext(ctx.Context()).Save(u); err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(modelUserToAdminUser(u)))
 }
 
 func (ac *AdminController) deleteUser(ctx fiber.Ctx) error {
-	initMockUsers()
-
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, u := range mockUsers {
-		if u.ID == id {
-			mockUsers = append(mockUsers[:i], mockUsers[i+1:]...)
-			return ctx.JSON(protocol.NewSuccessResponse(nil))
-		}
+	_, err = dao.User.WithContext(ctx.Context()).Where(dao.User.ID.Eq(id)).Delete()
+	if err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
 	}
 
-	return protocol.ErrNotFound.New("user not found")
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 // ---------------------------------------------------------------------------
-// Workflow management API (mock data)
+// Workflow management API
 // ---------------------------------------------------------------------------
 
-var (
-	mockWorkflows     []admin.Workflow
-	mockWorkflowID    atomic.Int64
-	workflowsInitOnce sync.Once
-)
+func modelWorkflowToAdminWorkflow(w *model.Workflow) admin.Workflow {
+	status := admin.WorkflowPending
+	switch w.State {
+	case model.WorkflowEnable:
+		status = admin.WorkflowRunning
+	case model.WorkflowDisable:
+		status = admin.WorkflowPending
+	}
 
-func initMockWorkflows() {
-	workflowsInitOnce.Do(func() {
-		now := time.Now()
-		mockWorkflows = []admin.Workflow{
-			{ID: 1, Name: "Daily Report", Description: "Generate daily summary report", Status: admin.WorkflowCompleted, CreatedAt: now.Add(-24 * time.Hour), UpdatedAt: now},
-			{ID: 2, Name: "Backup Database", Description: "Backup database to S3", Status: admin.WorkflowPending, CreatedAt: now.Add(-12 * time.Hour), UpdatedAt: now},
-			{ID: 3, Name: "Send Notifications", Description: "Send push notifications to users", Status: admin.WorkflowRunning, CreatedAt: now.Add(-6 * time.Hour), UpdatedAt: now},
-			{ID: 4, Name: "Cleanup Logs", Description: "Clean up old log files", Status: admin.WorkflowFailed, CreatedAt: now.Add(-3 * time.Hour), UpdatedAt: now},
-		}
-		mockWorkflowID.Store(5)
-	})
+	return admin.Workflow{
+		ID:          w.ID,
+		Name:        w.Name,
+		Description: w.Describe,
+		Status:      status,
+		CreatedAt:   w.CreatedAt,
+		UpdatedAt:   w.UpdatedAt,
+	}
 }
 
 func (ac *AdminController) listWorkflows(ctx fiber.Ctx) error {
-	initMockWorkflows()
-
 	page, _ := strconv.Atoi(ctx.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.Query("page_size", "10"))
-	status := ctx.Query("status")
-	search := ctx.Query("search")
 
 	if page < 1 {
 		page = 1
@@ -1065,37 +794,23 @@ func (ac *AdminController) listWorkflows(ctx fiber.Ctx) error {
 		pageSize = 10
 	}
 
-	ac.mu.RLock()
-	all := make([]admin.Workflow, len(mockWorkflows))
-	copy(all, mockWorkflows)
-	ac.mu.RUnlock()
-
-	if status != "" {
-		filtered := make([]admin.Workflow, 0)
-		for _, w := range all {
-			if string(w.Status) == status {
-				filtered = append(filtered, w)
-			}
-		}
-		all = filtered
+	// Get workflows from database
+	dbWorkflows, err := dao.Workflow.WithContext(ctx.Context()).Find()
+	if err != nil {
+		return protocol.ErrDatabaseReadError.Wrap(err)
 	}
 
-	if search != "" {
-		filtered := make([]admin.Workflow, 0)
-		searchLower := strings.ToLower(search)
-		for _, w := range all {
-			if strings.Contains(strings.ToLower(w.Name), searchLower) ||
-				strings.Contains(strings.ToLower(w.Description), searchLower) {
-				filtered = append(filtered, w)
-			}
-		}
-		all = filtered
+	all := make([]admin.Workflow, 0, len(dbWorkflows))
+	for _, w := range dbWorkflows {
+		all = append(all, modelWorkflowToAdminWorkflow(w))
 	}
 
+	// Sort by created_at desc
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].CreatedAt.After(all[j].CreatedAt)
 	})
 
+	// Pagination
 	total := int64(len(all))
 	totalPages := int(total) / pageSize
 	if int(total)%pageSize != 0 {
@@ -1123,8 +838,6 @@ func (ac *AdminController) listWorkflows(ctx fiber.Ctx) error {
 }
 
 func (ac *AdminController) createWorkflow(ctx fiber.Ctx) error {
-	initMockWorkflows()
-
 	var req admin.WorkflowCreateRequest
 	if err := ctx.Bind().JSON(&req); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
@@ -1135,99 +848,83 @@ func (ac *AdminController) createWorkflow(ctx fiber.Ctx) error {
 	}
 
 	now := time.Now()
-	newWorkflow := admin.Workflow{
-		ID:          mockWorkflowID.Add(1) - 1,
-		Name:        req.Name,
-		Description: req.Description,
-		Status:      admin.WorkflowPending,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+	newWorkflow := &model.Workflow{
+		UID:       uuid.New().String(),
+		Topic:     "default",
+		Flag:      uuid.New().String(),
+		Name:      req.Name,
+		Describe:  req.Description,
+		State:     model.WorkflowEnable,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
-	ac.mu.Lock()
-	mockWorkflows = append(mockWorkflows, newWorkflow)
-	ac.mu.Unlock()
+	if err := dao.Workflow.WithContext(ctx.Context()).Create(newWorkflow); err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
+	}
 
-	return ctx.JSON(protocol.NewSuccessResponse(newWorkflow))
+	return ctx.JSON(protocol.NewSuccessResponse(modelWorkflowToAdminWorkflow(newWorkflow)))
 }
 
 func (ac *AdminController) getWorkflow(ctx fiber.Ctx) error {
-	initMockWorkflows()
-
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	ac.mu.RLock()
-	defer ac.mu.RUnlock()
-
-	for _, w := range mockWorkflows {
-		if w.ID == id {
-			return ctx.JSON(protocol.NewSuccessResponse(w))
-		}
+	w, err := dao.Workflow.WithContext(ctx.Context()).Where(dao.Workflow.ID.Eq(id)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("workflow not found")
 	}
 
-	return protocol.ErrNotFound.New("workflow not found")
+	return ctx.JSON(protocol.NewSuccessResponse(modelWorkflowToAdminWorkflow(w)))
 }
 
 func (ac *AdminController) deleteWorkflow(ctx fiber.Ctx) error {
-	initMockWorkflows()
-
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, w := range mockWorkflows {
-		if w.ID == id {
-			mockWorkflows = append(mockWorkflows[:i], mockWorkflows[i+1:]...)
-			return ctx.JSON(protocol.NewSuccessResponse(nil))
-		}
+	_, err = dao.Workflow.WithContext(ctx.Context()).Where(dao.Workflow.ID.Eq(id)).Delete()
+	if err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
 	}
 
-	return protocol.ErrNotFound.New("workflow not found")
+	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
 func (ac *AdminController) runWorkflow(ctx fiber.Ctx) error {
-	initMockWorkflows()
-
-	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
-	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	ac.mu.Lock()
-	defer ac.mu.Unlock()
-
-	for i, w := range mockWorkflows {
-		if w.ID == id {
-			mockWorkflows[i].Status = admin.WorkflowRunning
-			mockWorkflows[i].UpdatedAt = time.Now()
-			return ctx.JSON(protocol.NewSuccessResponse(mockWorkflows[i]))
-		}
-	}
-
-	return protocol.ErrNotFound.New("workflow not found")
+	return protocol.ErrUnsupported.New("workflow run is not supported via admin API")
 }
 
 // ---------------------------------------------------------------------------
 // Bot management API
 // ---------------------------------------------------------------------------
 
+func modelBotToAdminBot(b *model.Bot) admin.BotInfo {
+	enabled := b.State == model.BotActive
+	return admin.BotInfo{
+		Name:        b.Name,
+		Enabled:     enabled,
+		Description: "",
+		Commands:    []string{},
+		HasForm:     false,
+		HasCron:     false,
+		HasWebhook:  false,
+	}
+}
+
 func (ac *AdminController) listBots(ctx fiber.Ctx) error {
-	bots := []admin.BotInfo{
-		{Name: "Agent", Enabled: true, Description: "LLM-powered AI assistant", Commands: []string{"/agent", "/ask"}, HasForm: true, HasCron: false, HasWebhook: false},
-		{Name: "Workflow", Enabled: true, Description: "Workflow automation engine", Commands: []string{"/workflow", "/run"}, HasForm: true, HasCron: true, HasWebhook: true},
-		{Name: "Finance", Enabled: true, Description: "Financial tracking and budgeting", Commands: []string{"/bill", "/budget"}, HasForm: true, HasCron: false, HasWebhook: false},
-		{Name: "Kanban", Enabled: true, Description: "Project management with kanban boards", Commands: []string{"/task", "/board"}, HasForm: true, HasCron: false, HasWebhook: false},
-		{Name: "Notify", Enabled: true, Description: "Multi-channel notifications", Commands: []string{"/notify"}, HasForm: true, HasCron: true, HasWebhook: true},
-		{Name: "Reader", Enabled: true, Description: "RSS feed reader", Commands: []string{"/feed", "/subscribe"}, HasForm: false, HasCron: true, HasWebhook: false},
-		{Name: "GitHub", Enabled: true, Description: "GitHub integration", Commands: []string{"/github", "/pr", "/issue"}, HasForm: true, HasCron: false, HasWebhook: true},
-		{Name: "Bookmark", Enabled: false, Description: "URL bookmarking", Commands: []string{"/bookmark"}, HasForm: true, HasCron: false, HasWebhook: false},
+	// Get bots from database
+	dbBots, err := dao.Bot.WithContext(ctx.Context()).Find()
+	if err != nil {
+		return protocol.ErrDatabaseReadError.Wrap(err)
+	}
+
+	bots := make([]admin.BotInfo, 0, len(dbBots))
+	for _, b := range dbBots {
+		bots = append(bots, modelBotToAdminBot(b))
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(admin.BotListResponse{
@@ -1239,29 +936,43 @@ func (ac *AdminController) listBots(ctx fiber.Ctx) error {
 func (ac *AdminController) getBot(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 
-	bots := []admin.BotInfo{
-		{Name: "Agent", Enabled: true, Description: "LLM-powered AI assistant", Commands: []string{"/agent", "/ask"}, HasForm: true, HasCron: false, HasWebhook: false},
-		{Name: "Workflow", Enabled: true, Description: "Workflow automation engine", Commands: []string{"/workflow", "/run"}, HasForm: true, HasCron: true, HasWebhook: true},
+	b, err := dao.Bot.WithContext(ctx.Context()).Where(dao.Bot.Name.Eq(name)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("bot not found")
 	}
 
-	for _, b := range bots {
-		if strings.EqualFold(b.Name, name) {
-			return ctx.JSON(protocol.NewSuccessResponse(b))
-		}
-	}
-
-	return protocol.ErrNotFound.New("bot not found")
+	return ctx.JSON(protocol.NewSuccessResponse(modelBotToAdminBot(b)))
 }
 
 func (ac *AdminController) enableBot(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
-	flog.Info("enabling bot: %s", name)
+
+	b, err := dao.Bot.WithContext(ctx.Context()).Where(dao.Bot.Name.Eq(name)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("bot not found")
+	}
+
+	b.State = model.BotActive
+	if err := dao.Bot.WithContext(ctx.Context()).Save(b); err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
+	}
+
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]string{"status": "enabled"}))
 }
 
 func (ac *AdminController) disableBot(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
-	flog.Info("disabling bot: %s", name)
+
+	b, err := dao.Bot.WithContext(ctx.Context()).Where(dao.Bot.Name.Eq(name)).First()
+	if err != nil {
+		return protocol.ErrNotFound.New("bot not found")
+	}
+
+	b.State = model.BotInactive
+	if err := dao.Bot.WithContext(ctx.Context()).Save(b); err != nil {
+		return protocol.ErrDatabaseWriteError.Wrap(err)
+	}
+
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]string{"status": "disabled"}))
 }
 
