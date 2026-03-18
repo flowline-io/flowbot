@@ -44,6 +44,9 @@ type Type struct {
 	// Log
 	Log Log `json:"log" yaml:"log" mapstructure:"log"`
 
+	// DevMode enables dev features like dev-login
+	DevMode bool `json:"dev_mode" yaml:"dev_mode" mapstructure:"dev_mode"`
+
 	// Config for bots
 	Bots any `json:"bots" yaml:"bots" mapstructure:"bots"`
 

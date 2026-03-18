@@ -12,26 +12,23 @@ import (
 type Login struct {
 	app.Compo
 
-	// loading indicates whether a login request is in progress.
-	loading bool
-	// errMsg holds the login error message, if any.
-	errMsg string
+	loading  bool
+	errMsg   string
+	devMode  bool
+	devCheck bool
 }
 
 // OnNav checks the URL for a code or error parameter from the OAuth callback.
 func (l *Login) OnNav(ctx app.Context) {
-	// If already logged in, navigate directly to the dashboard
 	if state.IsAuthenticated(ctx) {
 		ctx.Navigate("/admin")
 		return
 	}
 
-	// Check whether the URL carries an error from the OAuth callback
 	if errMsg := ctx.Page().URL().Query().Get("error"); errMsg != "" {
 		l.errMsg = errMsg
 	}
 
-	// Check whether the URL carries a one-time exchange code from the OAuth callback
 	code := ctx.Page().URL().Query().Get("code")
 	if code != "" {
 		l.loading = true
@@ -46,6 +43,18 @@ func (l *Login) OnNav(ctx app.Context) {
 				state.SetToken(ctx, token)
 				components.ShowToast(ctx, "Login successful", "success")
 				ctx.Navigate("/admin")
+			})
+		})
+	}
+
+	if !l.devCheck {
+		l.devCheck = true
+		ctx.Async(func() {
+			devMode, err := api.GetDevModeStatus()
+			ctx.Dispatch(func(ctx app.Context) {
+				if err == nil {
+					l.devMode = devMode
+				}
 			})
 		})
 	}
@@ -84,16 +93,20 @@ func (l *Login) Render() app.UI {
 								app.Text("Continue with Slack"),
 							),
 
-						app.Div().Class("divider text-base-content/30 text-xs font-medium my-2").Text("OR"),
+						app.If(l.devMode, func() app.UI {
+							return app.Div().Body(
+								app.Div().Class("divider text-base-content/30 text-xs font-medium my-2").Text("OR"),
 
-						app.Button().
-							Class("btn btn-outline btn-block btn-sm gap-2 hover:btn-ghost hover:bg-primary/5 transition-all duration-200").
-							Disabled(l.loading).
-							OnClick(l.handleDevLogin).
-							Body(
-								app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>`),
-								app.Text("Dev Quick Login"),
-							),
+								app.Button().
+									Class("btn btn-outline btn-block btn-sm gap-2 hover:btn-ghost hover:bg-primary/5 transition-all duration-200").
+									Disabled(l.loading).
+									OnClick(l.handleDevLogin).
+									Body(
+										app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>`),
+										app.Text("Dev Quick Login"),
+									),
+							)
+						}),
 					),
 				),
 

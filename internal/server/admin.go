@@ -19,6 +19,7 @@ func newAdminController() *admin.AdminController {
 	return admin.NewAdminController(admin.Options{
 		SlackClientID:     config.App.Platform.Slack.ClientID,
 		SlackClientSecret: config.App.Platform.Slack.ClientSecret,
+		DevMode:           config.App.DevMode,
 		OAuthStore: func(uid, accessToken string, extra []byte) error {
 			var extraJSON model.JSON
 			if len(extra) > 0 {

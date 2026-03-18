@@ -123,6 +123,21 @@ func DevLogin(token string) (string, error) {
 	return resp.Token, nil
 }
 
+// GetDevModeStatus checks whether dev mode is enabled on the server.
+func GetDevModeStatus() (bool, error) {
+	data, err := doRequest("", "GET", "/auth/dev-mode", nil)
+	if err != nil {
+		return false, err
+	}
+	var resp struct {
+		Enabled bool `json:"enabled"`
+	}
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return false, err
+	}
+	return resp.Enabled, nil
+}
+
 // ExchangeCode swaps a one-time OAuth exchange code for a session token.
 func ExchangeCode(code string) (string, error) {
 	data, err := doRequest("", "POST", "/auth/exchange", admin.CodeExchangeRequest{Code: code})

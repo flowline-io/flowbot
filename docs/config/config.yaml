@@ -3,6 +3,8 @@
 listen: ":6060"
 # API path prefix
 api_path: "/"
+# Enable dev mode features (e.g., dev-login endpoint)
+dev_mode: false
 
 media:
   # Media storage handler type: fs(filesystem) or minio

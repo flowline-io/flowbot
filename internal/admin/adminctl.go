@@ -71,6 +71,8 @@ type Options struct {
 	SlackClientID string
 	// SlackClientSecret is the Slack OAuth application client secret.
 	SlackClientSecret string
+	// DevMode enables dev-login endpoint and related features.
+	DevMode bool
 	// OAuthStore is an optional callback invoked after a successful Slack OAuth
 	// exchange. It receives the user ID and the access token + extra data so
 	// the caller can persist them (e.g. to the oauth table). When nil the
@@ -193,11 +195,15 @@ func NewAppHandler(apiBaseURL string) http.Handler {
 func HandleAPIRoutes(a *fiber.App, ac *AdminController) {
 	adminAPI := a.Group("/service/admin")
 
-	// Auth endpoints (no token required)
 	adminAPI.Get("/auth/slack/url", ac.getSlackOAuthURL)
 	adminAPI.Get("/auth/slack/callback", ac.handleSlackCallback)
 	adminAPI.Post("/auth/exchange", ac.exchangeCode)
-	adminAPI.Post("/auth/dev-login", ac.devLogin)
+
+	if ac.opts.DevMode {
+		adminAPI.Post("/auth/dev-login", ac.devLogin)
+		flog.Info("admin dev-login endpoint enabled")
+	}
+	adminAPI.Get("/auth/dev-mode", ac.getDevModeStatus)
 
 	// Authenticated API endpoints
 	adminAPI.Get("/auth/me", ac.adminAuth(ac.getCurrentUser))
@@ -477,6 +483,12 @@ func (ac *AdminController) devLogin(ctx fiber.Ctx) error {
 
 	return ctx.JSON(protocol.NewSuccessResponse(admin.TokenResponse{
 		Token: token,
+	}))
+}
+
+func (ac *AdminController) getDevModeStatus(ctx fiber.Ctx) error {
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{
+		"enabled": ac.opts.DevMode,
 	}))
 }
 
