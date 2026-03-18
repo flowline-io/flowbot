@@ -26,6 +26,7 @@ import (
 	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
 	"github.com/flowline-io/flowbot/pkg/types/admin"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	versionPkg "github.com/flowline-io/flowbot/version"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
@@ -185,7 +186,7 @@ func NewAppHandler(apiBaseURL string, devMode bool) http.Handler {
 	if apiBaseURL != "" || devMode {
 		h.Env = map[string]string{
 			"API_BASE_URL": apiBaseURL,
-			"DEV_MODE":     boolToString(devMode),
+			"DEV_MODE":     utils.BoolToString(devMode),
 		}
 	} else if apiBaseURL != "" {
 		h.Env = map[string]string{
@@ -193,13 +194,6 @@ func NewAppHandler(apiBaseURL string, devMode bool) http.Handler {
 		}
 	}
 	return h
-}
-
-func boolToString(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
 }
 
 // HandleAPIRoutes registers Admin API endpoints (/service/admin/*) on the given Fiber app.

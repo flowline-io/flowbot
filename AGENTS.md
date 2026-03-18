@@ -141,3 +141,4 @@ go tool task gosec     # security scan
 - Do not use emojis
 - You must run lint after modifying the code.
 - Code comments, documentation, Git commit messages, and other text should all be written in English.
+- The code in the utils directory must have unit tests.

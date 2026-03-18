@@ -156,3 +156,10 @@ func YamlToJson(data []byte) ([]byte, error) {
 
 	return jsonData, nil
 }
+
+func BoolToString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
