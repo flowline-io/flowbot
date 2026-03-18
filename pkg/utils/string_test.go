@@ -410,3 +410,30 @@ func TestYamlToJson(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolToString(t *testing.T) {
+	tests := []struct {
+		name string
+		b    bool
+		want string
+	}{
+		{
+			name: "true",
+			b:    true,
+			want: "true",
+		},
+		{
+			name: "false",
+			b:    false,
+			want: "false",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := BoolToString(tt.b); got != tt.want {
+				t.Errorf("BoolToString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
