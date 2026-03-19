@@ -36,7 +36,7 @@ The system follows a modular architecture:
 
 ### Requirements
 
-- Go 1.24+
+- Go 1.26+
 - MySQL database
 - Redis server
 - [Task](https://taskfile.dev) runner

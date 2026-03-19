@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o /out/app.wasm ./cmd/app
 
 # ---- Stage 2: Build server binary ----
-FROM golang:1.24 AS server-builder
+FROM golang:1.26 AS server-builder
 
 WORKDIR /src
 
