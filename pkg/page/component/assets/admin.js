@@ -231,13 +231,13 @@ async function saveFlow(formId) {
     if (isNewFlow) {
       // New flow: open edit page so server-generated values like webhook token are visible.
       location.assign(
-        "/page/flows_edit/" + flag + "?flow_id=" + encodeURIComponent(id),
+        "/page/flows_edit/" + encodeURIComponent(flag) + "?flow_id=" + encodeURIComponent(id),
       );
       return;
     }
 
     // Existing flow: return to list page.
-    location.assign("/page/flows_list/" + flag);
+    location.assign("/page/flows_list/" + encodeURIComponent(flag));
   } catch (e) {
     notify((e && e.message) || String(e), "danger");
   }
@@ -272,7 +272,7 @@ async function saveConnection(formId) {
   }
   notify("Connection saved", "success");
   location.href =
-    "/page/connections/" + (f.querySelector("input[name=flag]").value || "");
+    "/page/connections/" + encodeURIComponent(f.querySelector("input[name=flag]").value || "");
 }
 
 function getFlowRuleMeta() {
@@ -467,6 +467,5 @@ async function saveAuthentication(formId) {
   }
   notify("Authentication saved", "success");
   location.href =
-    "/page/authentications/" +
-    (f.querySelector("input[name=flag]").value || "");
+    "/page/authentications/" + encodeURIComponent(f.querySelector("input[name=flag]").value || "");
 }
