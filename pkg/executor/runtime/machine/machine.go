@@ -3,9 +3,9 @@ package machine
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,6 +20,7 @@ type Config struct {
 	Port     int
 	Username string
 	Password string
+	HostKey  string
 }
 
 type Runtime struct {
@@ -44,17 +45,26 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 		o(rt)
 	}
 
+	var hostKeyCallback ssh.HostKeyCallback
+	if rt.config.HostKey != "" {
+		keyBytes, err := base64.StdEncoding.DecodeString(rt.config.HostKey)
+		if err != nil {
+			return nil, fmt.Errorf("invalid host key base64: %w", err)
+		}
+		pubKey, err := ssh.ParsePublicKey(keyBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse host key: %w", err)
+		}
+		hostKeyCallback = ssh.FixedHostKey(pubKey)
+	} else {
+		return nil, fmt.Errorf("host key is required for secure SSH connection (set executor.machine.host_key in config)")
+	}
+
 	cfg := &ssh.ClientConfig{
-		User: rt.config.Username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(rt.config.Password),
-		},
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			// Audit the use of InsecureIgnoreHostKey
-			flog.Warn("InsecureIgnoreHostKey used for host: %s", hostname)
-			return nil
-		},
-		Timeout: time.Minute,
+		User:            rt.config.Username,
+		Auth:            []ssh.AuthMethod{ssh.Password(rt.config.Password)},
+		HostKeyCallback: hostKeyCallback,
+		Timeout:         time.Minute,
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", rt.config.Host, rt.config.Port), cfg)
 	if err != nil {

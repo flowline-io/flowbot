@@ -117,6 +117,7 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			Port:     config.App.Executor.Machine.Port,
 			Username: config.App.Executor.Machine.Username,
 			Password: config.App.Executor.Machine.Password,
+			HostKey:  config.App.Executor.Machine.HostKey,
 		}))
 		if err != nil {
 			return nil, fmt.Errorf("failed to new machine runtime: %w", err)

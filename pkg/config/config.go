@@ -211,11 +211,13 @@ type Executor struct {
 		// Host
 		Host string `json:"host" yaml:"host" mapstructure:"host"`
 		// Port
-		Port int `json:"post" yaml:"port" mapstructure:"port"`
+		Port int `json:"port" yaml:"port" mapstructure:"port"`
 		// Username
 		Username string `json:"username" yaml:"username" mapstructure:"username"`
 		// Password
 		Password string `json:"password" yaml:"password" mapstructure:"password"`
+		// HostKey is the base64-encoded SSH host public key
+		HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key"`
 	} `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
 

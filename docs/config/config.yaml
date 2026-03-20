@@ -85,6 +85,7 @@ executor:
     port: 0
     username: ""
     password: ""
+    host_key: ""
 
 # Metrics configuration
 metrics:
