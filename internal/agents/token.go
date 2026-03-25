@@ -3,31 +3,25 @@ package agents
 import (
 	"time"
 
-	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/pkoukk/tiktoken-go"
 )
 
-// CountToken counts the number of tokens in text.
 func CountToken(text string) int {
 	encoding := tiktoken.MODEL_CL100K_BASE
 
-	// if you don't want download dictionary at runtime, you can use offline loader
-	// tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
 		flog.Warn("get encoding failed: %v", err)
 		return 0
 	}
 
-	// encode
 	token := tke.Encode(text, nil, nil)
 
 	return len(token)
 }
 
-// CountMessageTokens counts the total number of tokens in a message list.
-func CountMessageTokens(messages []*schema.Message) (int, error) {
+func CountMessageTokens(messages []*Message) (int, error) {
 	start := time.Now()
 
 	var tokensPerMessage, tokensPerName int
@@ -44,7 +38,7 @@ func CountMessageTokens(messages []*schema.Message) (int, error) {
 			numTokens += tokensPerName
 		}
 	}
-	numTokens += 3 // every reply is primed with <|start|>assistant<|message|>
+	numTokens += 3
 
 	elapsed := time.Since(start)
 	flog.Info("token count: %d, time: %s", numTokens, elapsed)

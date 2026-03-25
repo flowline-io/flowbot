@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cloudwego/eino/components/tool"
-	"github.com/cloudwego/eino/compose"
-	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -16,7 +13,6 @@ var (
 	loadOnceAgents = sync.Once{}
 )
 
-// loadAgents loads and caches all agent configurations.
 func loadAgents() {
 	loadOnceAgents.Do(func() {
 		for _, item := range config.App.Agents {
@@ -25,7 +21,6 @@ func loadAgents() {
 	})
 }
 
-// AgentModelName returns the model name for the specified agent.
 func AgentModelName(name string) string {
 	loadAgents()
 	a, ok := agents[name]
@@ -35,7 +30,6 @@ func AgentModelName(name string) string {
 	return a.Model
 }
 
-// AgentEnabled checks if the specified agent is enabled.
 func AgentEnabled(name string) bool {
 	loadAgents()
 	a, ok := agents[name]
@@ -48,26 +42,30 @@ func AgentEnabled(name string) bool {
 	return true
 }
 
-// ReactAgent creates a React agent instance.
-func ReactAgent(ctx context.Context, modelName string, tools []tool.BaseTool) (*react.Agent, error) {
-	llm, err := ChatModel(ctx, modelName)
+// ReactAgent creates a ReAct agent instance with tools
+func ReactAgent(ctx context.Context, modelName string, tools []BaseTool) (*ReactAgentInstance, error) {
+	client, err := ChatModel(ctx, modelName)
 	if err != nil {
 		return nil, fmt.Errorf("chat model failed, %w", err)
 	}
-	agent, err := react.NewAgent(ctx, &react.AgentConfig{
-		ToolCallingModel: llm,
-		ToolsConfig: compose.ToolsNodeConfig{
-			Tools: tools,
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("react agent failed, %w", err)
-	}
 
-	return agent, nil
+	return &ReactAgentInstance{
+		client: client,
+		tools:  tools,
+	}, nil
 }
 
-// LLMGenerate generates a text response using the specified model.
+// ReactAgentInstance represents an agent that can call tools
+type ReactAgentInstance struct {
+	client *GenaiClient
+	tools  []BaseTool
+}
+
+// Generate runs the agent with messages
+func (a *ReactAgentInstance) Generate(ctx context.Context, messages []*Message) (*Message, error) {
+	return Generate(ctx, a.client, messages)
+}
+
 func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) {
 	messages, err := BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
@@ -76,12 +74,12 @@ func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) 
 		return "", fmt.Errorf("prompt format failed, %w", err)
 	}
 
-	llm, err := ChatModel(ctx, modelName)
+	client, err := ChatModel(ctx, modelName)
 	if err != nil {
 		return "", fmt.Errorf("chat model failed, %w", err)
 	}
 
-	resp, err := Generate(ctx, llm, messages)
+	resp, err := Generate(ctx, client, messages)
 	if err != nil {
 		return "", fmt.Errorf("llm generate failed, %w", err)
 	}

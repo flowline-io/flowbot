@@ -6,16 +6,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudwego/eino-ext/components/model/openai"
-	"github.com/cloudwego/eino/components/model"
-	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"google.golang.org/genai"
 )
 
 var models = make(map[string]config.Model)
 var loadOnceModels = sync.Once{}
 
-// GetModel returns the model configuration.
 func GetModel(modelName string) config.Model {
 	loadOnceModels.Do(func() {
 		for i, item := range config.App.Models {
@@ -27,57 +24,100 @@ func GetModel(modelName string) config.Model {
 	return models[modelName]
 }
 
-// ChatModel creates a chat model instance.
-func ChatModel(ctx context.Context, modelName string) (model.ToolCallingChatModel, error) {
+// GenaiClient wraps genai.Client for model operations
+type GenaiClient struct {
+	client   *genai.Client
+	model    string
+	provider string
+	baseURL  string
+	apiKey   string
+	timeout  time.Duration
+}
+
+// Generate generates content using the model
+func (c *GenaiClient) Generate(ctx context.Context, contents []*genai.Content) (*genai.Content, error) {
+	if c.client == nil {
+		return nil, fmt.Errorf("genai client not initialized")
+	}
+
+	resp, err := c.client.Models.GenerateContent(ctx, c.model, contents, nil)
+	if err != nil {
+		return nil, fmt.Errorf("generate content failed: %w", err)
+	}
+
+	if resp == nil || len(resp.Candidates) == 0 {
+		return nil, fmt.Errorf("empty response from model")
+	}
+
+	return resp.Candidates[0].Content, nil
+}
+
+// ChatModel creates a chat model client
+func ChatModel(ctx context.Context, modelName string) (*GenaiClient, error) {
 	if modelName == "" {
 		return nil, fmt.Errorf("model or agent disabled")
 	}
-	timeout := 10 * time.Minute
 
 	m := GetModel(modelName)
-	switch m.Provider {
-	case ProviderOpenAI:
-		return openai.NewChatModel(ctx, &openai.ChatModelConfig{
-			APIKey:  m.ApiKey,
-			Model:   modelName,
-			Timeout: timeout,
-		})
-	case ProviderOpenAICompatible:
-		return openai.NewChatModel(ctx, &openai.ChatModelConfig{
-			BaseURL: m.BaseUrl,
-			APIKey:  m.ApiKey,
-			Model:   modelName,
-			Timeout: timeout,
-		})
+
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey: m.ApiKey,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create genai client: %w", err)
 	}
 
-	return nil, fmt.Errorf("model provider not found")
+	return &GenaiClient{
+		client:   client,
+		model:    modelName,
+		provider: m.Provider,
+		baseURL:  m.BaseUrl,
+		apiKey:   m.ApiKey,
+		timeout:  10 * time.Minute,
+	}, nil
 }
 
-// Generate generates an LLM response.
-func Generate(ctx context.Context, llm model.ToolCallingChatModel, in []*schema.Message) (*schema.Message, error) {
-	_, err := CountMessageTokens(in)
+// Generate generates an LLM response
+func Generate(ctx context.Context, client *GenaiClient, messages []*Message) (*Message, error) {
+	_, err := CountMessageTokens(messages)
 	if err != nil {
 		return nil, fmt.Errorf("count token failed: %w", err)
 	}
 
-	result, err := llm.Generate(ctx, in)
+	contents := make([]*genai.Content, len(messages))
+	for i, msg := range messages {
+		contents[i] = msg.ToGenaiContent()
+	}
+
+	resp, err := client.Generate(ctx, contents)
 	if err != nil {
 		return nil, fmt.Errorf("llm generate failed: %w", err)
 	}
-	return result, nil
+
+	return MessageFromGenaiContent(resp), nil
 }
 
-// Stream streams an LLM response.
-func Stream(ctx context.Context, llm model.ToolCallingChatModel, in []*schema.Message) (*schema.StreamReader[*schema.Message], error) {
-	_, err := CountMessageTokens(in)
+// Stream streams an LLM response
+func Stream(ctx context.Context, client *GenaiClient, messages []*Message) (<-chan *Message, error) {
+	_, err := CountMessageTokens(messages)
 	if err != nil {
 		return nil, fmt.Errorf("count token failed: %w", err)
 	}
 
-	result, err := llm.Stream(ctx, in)
-	if err != nil {
-		return nil, fmt.Errorf("llm generate failed: %w", err)
+	contents := make([]*genai.Content, len(messages))
+	for i, msg := range messages {
+		contents[i] = msg.ToGenaiContent()
 	}
-	return result, nil
+
+	streamChan := make(chan *Message)
+	go func() {
+		defer close(streamChan)
+		resp, err := client.Generate(ctx, contents)
+		if err != nil {
+			return
+		}
+		streamChan <- MessageFromGenaiContent(resp)
+	}()
+
+	return streamChan, nil
 }
