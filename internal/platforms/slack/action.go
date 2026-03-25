@@ -335,10 +335,10 @@ func (a *Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, [
 // fileIDs here are expected to be file paths or publicly accessible URLs.
 func (a *Action) uploadAndShareFiles(channel string, fileIDs []string) {
 	for _, fileRef := range fileIDs {
-		_, err := a.api.UploadFile(slack.UploadFileParameters{
+		_, err := a.api.UploadFile(slack.FileUploadParameters{
 			File:     fileRef,
 			Filename: fileRef,
-			Channel:  channel,
+			Channels: []string{channel},
 		})
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to share file %s to %s: %w", fileRef, channel, err))
