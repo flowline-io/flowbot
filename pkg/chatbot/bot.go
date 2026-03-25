@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	llmTool "github.com/cloudwego/eino/components/tool"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -59,7 +59,6 @@ func Help(rules []any) (map[string][]string, error) {
 	for _, rule := range rules {
 		switch v := rule.(type) {
 		case []command.Rule:
-			// command
 			rs := command.Ruleset(v)
 			var rows []string
 			for _, rule := range rs {
@@ -69,7 +68,6 @@ func Help(rules []any) (map[string][]string, error) {
 				result["command"] = rows
 			}
 		case []collect.Rule:
-			// collect
 			rs := collect.Ruleset(v)
 			var rows []string
 			for _, rule := range rs {
@@ -79,7 +77,6 @@ func Help(rules []any) (map[string][]string, error) {
 				result["collect"] = rows
 			}
 		case []cron.Rule:
-			// cron
 			rs := v
 			var rows []string
 			for _, rule := range rs {
@@ -117,7 +114,6 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (ty
 }
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
-	// check form
 	exForm, err := store.Database.FormGet(ctx.FormId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
@@ -129,14 +125,12 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		return nil, nil
 	}
 
-	// process form
 	rs := form.Ruleset(formRules)
 	payload, err := rs.ProcessForm(ctx, values)
 	if err != nil {
 		return nil, err
 	}
 
-	// is long term
 	isLongTerm := false
 	for _, rule := range rs {
 		if rule.Id == ctx.FormRuleId {
@@ -144,13 +138,11 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		}
 	}
 	if !isLongTerm {
-		// store form
 		err = store.Database.FormSet(ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
 		if err != nil {
 			return nil, err
 		}
 
-		// store page state
 		err = store.Database.PageSet(ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
 		if err != nil {
 			return nil, err
@@ -222,7 +214,6 @@ func RunTool(toolRules []tool.Rule, ctx types.Context, argumentsInJSON string) (
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {
-	// get form fields
 	formMsg := types.FormMsg{ID: id}
 	var title string
 	var field []types.FormField
@@ -238,7 +229,6 @@ func FormMsg(ctx types.Context, id string) types.MsgPayload {
 					title = rule.Title
 					field = rule.Field
 
-					// default value type
 					for index, formField := range field {
 						if formField.ValueType == "" {
 							switch formField.Type {
@@ -289,10 +279,8 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		}
 	}
 
-	// set extra
 	var extra = make(types.KV)
 
-	// store form
 	err = store.Database.FormSet(formId, model.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
@@ -307,7 +295,6 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	// store page
 	err = store.Database.PageSet(formId, model.Page{
 		PageID: formId,
 		UID:    ctx.AsUser.String(),
@@ -346,7 +333,6 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	// store page
 	err = store.Database.PageSet(pageId, model.Page{
 		PageID: pageId,
 		UID:    ctx.AsUser.String(),
@@ -360,7 +346,6 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	// fix han compatible styles
 	title = fmt.Sprintf("%s %s", category, title)
 	if utils.HasHan(title) {
 		title = ""
@@ -419,21 +404,6 @@ func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload
 	if err != nil {
 		return types.TextMsg{Text: "store instruct error"}
 	}
-
-	// event todo
-	//err = pkgEvent.PublishMessage(pkgEvent.InstructEvent, types.KV{
-	//	"uid":       ctx.AsUser.String(),
-	//	"no":        msg.No,
-	//	"object":    msg.Object,
-	//	"bot":       msg.Bot,
-	//	"flag":      msg.Flag,
-	//	"content":   msg.Content,
-	//	"state":     msg.State,
-	//	"expire_at": msg.ExpireAt,
-	//})
-	//if err != nil {
-	//	flog.Error(err)
-	//}
 
 	return types.TextMsg{Text: fmt.Sprintf("Instruct[%s:%s]", msg.Flag, msg.No)}
 }
@@ -524,9 +494,8 @@ func Shortcut(title, link string) (string, error) {
 	return fmt.Sprintf("%s/s/%s", endpoint, name), nil
 }
 
-// AvailableTools  the tools/functions we're making available for the model.
-func AvailableTools(ctx types.Context) ([]llmTool.BaseTool, error) {
-	var tools []llmTool.BaseTool
+func AvailableTools(ctx types.Context) ([]agents.BaseTool, error) {
+	var tools []agents.BaseTool
 	for _, handler := range handlers {
 		for _, item := range handler.Rules() {
 			switch v := item.(type) {
@@ -564,7 +533,6 @@ type configType struct {
 	Name string `json:"name"`
 }
 
-// Init initializes registered handlers.
 func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
@@ -586,7 +554,6 @@ func Init(jsonconf json.RawMessage) error {
 		if v, ok := configMap[name]; ok {
 			configItem = v
 		} else {
-			// default config
 			configItem = []byte(`{"enabled": true}`)
 		}
 		if err := bot.Init(configItem); err != nil {
@@ -597,7 +564,6 @@ func Init(jsonconf json.RawMessage) error {
 	return nil
 }
 
-// Bootstrap bots bootstrap
 func Bootstrap() error {
 	for _, bot := range handlers {
 		if !bot.IsReady() {
@@ -610,7 +576,6 @@ func Bootstrap() error {
 	return nil
 }
 
-// Cron registered handlers
 func Cron() ([]*cron.Ruleset, error) {
 	rss := make([]*cron.Ruleset, 0)
 	for _, bot := range handlers {
@@ -625,7 +590,6 @@ func Cron() ([]*cron.Ruleset, error) {
 	return rss, nil
 }
 
-// List registered handlers
 func List() map[string]Handler {
 	return handlers
 }
