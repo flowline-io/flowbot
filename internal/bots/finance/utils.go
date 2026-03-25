@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cloudwego/eino/components/prompt"
-	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -16,11 +14,7 @@ func classify(ctx context.Context) {
 		return
 	}
 
-	template := prompt.FromMessages(schema.GoTemplate,
-		schema.UserMessage(`Given i want to categorize transactions on my bank account into this categories: {{.categories}}
-In which category would a transaction from "{{.destination_name}}" with the subject "{{.description}}" fall into?
-Just output the name of the category. Does not have to be a complete sentence.`),
-	)
+	template := agents.BaseTemplate()
 	_, _ = fmt.Println(template)
 }
 

@@ -7,8 +7,6 @@ import (
 
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
 	"github.com/bytedance/sonic"
-	"github.com/cloudwego/eino/components/prompt"
-	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,14 +18,14 @@ const tagsPrompt = `
 You are a bot in a read-it-later app and your responsibility is to help with automatic tagging.
 Please analyze the text between the sentences "CONTENT START HERE" and "CONTENT END HERE" and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
-- The tags language must be in {{.language}}.
+- The tags language must be in %s.
 - If it's a famous website you may also include a tag for the website. If the tag is not generic enough, don't include it.
 - The content can include text for cookie consent and privacy policy, ignore those while tagging.
 - Aim for 3-5 tags.
 - If there are no good tags, leave the array empty.
 
 CONTENT START HERE
-{{.content}}
+%s
 <CONTENT_HERE>
 
 CONTENT END HERE
@@ -44,19 +42,17 @@ func extractTags(ctx context.Context, bookmark karakeep.Bookmark) ([]string, err
 		return nil, nil
 	}
 
-	messages, err := prompt.FromMessages(schema.GoTemplate,
-		schema.UserMessage(tagsPrompt),
-	).Format(ctx, map[string]any{
-		"content":  content,
-		"language": config.App.Flowbot.Language,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
-	}
-
+	prompt := fmt.Sprintf(tagsPrompt, config.App.Flowbot.Language, content)
 	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentExtractTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
+	}
+
+	messages, err := agents.BaseTemplate().Format(ctx, map[string]any{
+		"content": prompt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
 	resp, err := agents.Generate(ctx, llm, messages)
@@ -89,29 +85,26 @@ You are a bot in a reading application, responsible for helping to analyze and m
 Please analyze the list of tags provided below, identify similar or duplicate tags, and suggest how to merge them.
 For each tag that needs to be merged, please use the format "Original Tag -> Target Tag" to indicate.
 - For example, if "Programming" and "Program Design" are similar, you can suggest "Program Design -> Programming".
-- The tag language must be {{.language}}.
+- The tag language must be %s.
 - Do not merge technical terms.
 - Do not explain, just give the result, and do not answer the content of the tag
 
 Tag list:
-{{.tags}}
+%s
 `
 
-// analyzeSimilarTags Analyze similar tags using a large model
 func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, error) {
-	messages, err := prompt.FromMessages(schema.GoTemplate,
-		schema.UserMessage(similarTagsPrompt),
-	).Format(ctx, map[string]any{
-		"tags":     strings.Join(tags, "\n"),
-		"language": config.App.Flowbot.Language,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
-	}
-
+	prompt := fmt.Sprintf(similarTagsPrompt, config.App.Flowbot.Language, strings.Join(tags, "\n"))
 	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentSimilarTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
+	}
+
+	messages, err := agents.BaseTemplate().Format(ctx, map[string]any{
+		"content": prompt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
 	resp, err := agents.Generate(ctx, llm, messages)
@@ -120,8 +113,8 @@ func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, 
 	}
 
 	result := make(map[string]string)
-	lines := strings.SplitSeq(resp.Content, "\n")
-	for line := range lines {
+	lines := strings.Split(resp.Content, "\n")
+	for _, line := range lines {
 		if line == "" {
 			continue
 		}
@@ -141,7 +134,6 @@ func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, 
 	return result, nil
 }
 
-// replaceSimilarTags Replace similar tags
 func replaceSimilarTags(tags []string, similarTags map[string]string) []string {
 	if len(tags) == 0 {
 		return tags
@@ -151,12 +143,10 @@ func replaceSimilarTags(tags []string, similarTags map[string]string) []string {
 	seen := make(map[string]bool)
 
 	for _, tag := range tags {
-		// If there is a similar tag mapping, use the mapped tag
 		if target, ok := similarTags[tag]; ok {
 			tag = target
 		}
 
-		// Remove duplicates
 		if !seen[tag] {
 			newTags = append(newTags, tag)
 			seen[tag] = true
@@ -166,7 +156,6 @@ func replaceSimilarTags(tags []string, similarTags map[string]string) []string {
 	return newTags
 }
 
-// sliceEqual Check if two string slices are equal
 func sliceEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -179,7 +168,6 @@ func sliceEqual(a, b []string) bool {
 	return true
 }
 
-// convertTagsToStrings Convert karakeep.Tag slice to string slice
 func convertTagsToStrings(tags []karakeep.Tag) []string {
 	result := make([]string, len(tags))
 	for i, tag := range tags {
@@ -188,7 +176,6 @@ func convertTagsToStrings(tags []karakeep.Tag) []string {
 	return result
 }
 
-// convertBookmarkTagsToStrings Convert BookmarkTagsInner slice to string slice
 func convertBookmarkTagsToStrings(tags []karakeep.BookmarkTagsInner) []string {
 	result := make([]string, len(tags))
 	for i, tag := range tags {
@@ -197,7 +184,6 @@ func convertBookmarkTagsToStrings(tags []karakeep.BookmarkTagsInner) []string {
 	return result
 }
 
-// convertStringsToBookmarkTags Convert string slice to BookmarkTagsInner slice
 func convertStringsToBookmarkTags(tags []string) []karakeep.BookmarkTagsInner {
 	result := make([]karakeep.BookmarkTagsInner, len(tags))
 	for i, tag := range tags {
