@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudwego/eino/schema"
 	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -276,11 +275,11 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			return
 		}
 
-		chatHistory := make([]*schema.Message, 0, len(list))
+		chatHistory := make([]*agents.Message, 0, len(list))
 		for _, item := range list {
 			content, _ := types.KV(item.Content).String("text")
-			chatHistory = append(chatHistory, &schema.Message{
-				Role:    schema.RoleType(item.Role),
+			chatHistory = append(chatHistory, &agents.Message{
+				Role:    agents.Role(item.Role),
 				Content: content,
 			})
 		}

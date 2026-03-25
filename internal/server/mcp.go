@@ -9,8 +9,7 @@ import (
 	"sync"
 	"time"
 
-	llmTool "github.com/cloudwego/eino/components/tool"
-	"github.com/cloudwego/eino/schema"
+	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -37,13 +36,13 @@ func hasToolRules(botName string) bool {
 }
 
 // getBotTools returns all tools for a specific bot.
-func getBotTools(botName string, ctx types.Context) ([]llmTool.BaseTool, error) {
+func getBotTools(botName string, ctx types.Context) ([]agents.BaseTool, error) {
 	handler, ok := chatbot.List()[botName]
 	if !ok || !handler.IsReady() {
 		return nil, fmt.Errorf("bot %s not found or not ready", botName)
 	}
 
-	var tools []llmTool.BaseTool
+	var tools []agents.BaseTool
 	for _, item := range handler.Rules() {
 		if toolRules, ok := item.([]tool.Rule); ok {
 			for _, rule := range toolRules {
@@ -178,7 +177,7 @@ func getOrCreateMCPServer(botName string) (*mcp.Server, error) {
 }
 
 // convertParamsOneOfToJSONSchema converts ParamsOneOf to JSON Schema format.
-func convertParamsOneOfToJSONSchema(paramsOneOf *schema.ParamsOneOf) any {
+func convertParamsOneOfToJSONSchema(paramsOneOf *agents.ParamsOneOf) any {
 	if paramsOneOf == nil {
 		return map[string]any{
 			"type": "object",
@@ -376,8 +375,8 @@ func (c *Controller) handleMCPToolCall(ctx fiber.Ctx, botName string) error {
 	}
 
 	// Return MCP response format
-	return ctx.JSON(fiber.Map{
-		"content": []fiber.Map{
+	return ctx.JSON(map[string]any{
+		"content": []map[string]any{
 			{
 				"type": "text",
 				"text": result,
@@ -399,7 +398,7 @@ func (c *Controller) handleMCPListTools(ctx fiber.Ctx, botName string) error {
 	}
 
 	// Convert tools to MCP format
-	mcpTools := make([]fiber.Map, 0, len(tools))
+	mcpTools := make([]map[string]any, 0, len(tools))
 	for _, t := range tools {
 		info, err := t.Info(context.Background())
 		if err != nil {
@@ -409,7 +408,7 @@ func (c *Controller) handleMCPListTools(ctx fiber.Ctx, botName string) error {
 
 		// Convert tool schema to MCP format
 		inputSchema := convertParamsOneOfToJSONSchema(info.ParamsOneOf)
-		mcpTool := fiber.Map{
+		mcpTool := map[string]any{
 			"name":        info.Name,
 			"description": info.Desc,
 			"inputSchema": inputSchema,
@@ -419,7 +418,7 @@ func (c *Controller) handleMCPListTools(ctx fiber.Ctx, botName string) error {
 	}
 
 	// Return MCP format response
-	return ctx.JSON(fiber.Map{
+	return ctx.JSON(map[string]any{
 		"tools": mcpTools,
 	})
 }
