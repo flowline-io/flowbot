@@ -3,7 +3,7 @@ module github.com/flowline-io/flowbot
 go 1.26.0
 
 require (
-	code.gitea.io/sdk/gitea v0.23.2
+	code.gitea.io/sdk/gitea v0.24.1
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/RealAlexandreAI/json-repair v0.0.15
@@ -97,7 +97,7 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	git.sr.ht/~jackmordaunt/go-toast v1.1.2 // indirect
-	github.com/42wim/httpsig v1.2.3 // indirect
+	github.com/42wim/httpsig v1.2.4 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
