@@ -1,7 +1,9 @@
 package slack
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -334,14 +336,43 @@ func (a *Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, [
 // uploadAndShareFiles uploads files and shares them to the channel.
 // fileIDs here are expected to be file paths or publicly accessible URLs.
 func (a *Action) uploadAndShareFiles(channel string, fileIDs []string) {
+	ctx := context.Background()
 	for _, fileRef := range fileIDs {
-		_, err := a.api.UploadFile(slack.FileUploadParameters{
-			File:     fileRef,
-			Filename: fileRef,
-			Channels: []string{channel},
+		// Get file info for size
+		fileInfo, err := os.Stat(fileRef)
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to stat file %s: %w", fileRef, err))
+			continue
+		}
+
+		// Step 1: Get upload URL
+		getURLResp, err := a.api.GetUploadURLExternalContext(ctx, slack.GetUploadURLExternalParameters{
+			FileName: fileRef,
+			FileSize: int(fileInfo.Size()),
 		})
 		if err != nil {
-			flog.Error(fmt.Errorf("failed to share file %s to %s: %w", fileRef, channel, err))
+			flog.Error(fmt.Errorf("failed to get upload URL for %s: %w", fileRef, err))
+			continue
+		}
+
+		// Step 2: Upload file to the URL
+		err = a.api.UploadToURL(ctx, slack.UploadToURLParameters{
+			UploadURL: getURLResp.UploadURL,
+			File:      fileRef,
+			Filename:  fileRef,
+		})
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to upload file %s: %w", fileRef, err))
+			continue
+		}
+
+		// Step 3: Complete upload and share to channel
+		_, err = a.api.CompleteUploadExternalContext(ctx, slack.CompleteUploadExternalParameters{
+			Files:   []slack.FileSummary{{ID: getURLResp.FileID, Title: fileRef}},
+			Channel: channel,
+		})
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to complete upload for %s to %s: %w", fileRef, channel, err))
 		}
 	}
 }

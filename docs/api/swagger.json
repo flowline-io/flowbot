@@ -1,415 +1,353 @@
 {
-    "schemes": [
-        "http"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Flowbot Chatbot API",
-        "title": "Flowbot API",
-        "contact": {},
-        "license": {
-            "name": "GPL 3.0",
-            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
-        },
-        "version": "1.0"
+  "schemes": ["http"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Flowbot Chatbot API",
+    "title": "Flowbot API",
+    "contact": {},
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
     },
-    "host": "localhost:6060",
-    "basePath": "/service",
-    "paths": {
-        "/dev/example": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "Show example",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
+    "version": "1.0"
+  },
+  "host": "localhost:6060",
+  "basePath": "/service",
+  "paths": {
+    "/dev/example": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "Show example",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
                     }
+                  }
                 }
+              ]
             }
-        },
-        "/search/autocomplete": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "search"
-                ],
-                "summary": "search autocomplete",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/search/query": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "search"
-                ],
-                "summary": "search everything",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/server/stacktrace": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "get server or goroutines stacktrace",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/server/upload": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "upload PicGO upload api",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/bookmark": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user bookmark list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/dashboard": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/kanban": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user kanban list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/metrics": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show metrics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "protocol.Response": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Response data"
+    "/search/autocomplete": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["search"],
+        "summary": "search autocomplete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
                 },
-                "message": {
-                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
-                    "type": "string"
-                },
-                "retcode": {
-                    "description": "The return code, which must conform to the return code rules defined later on this page",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/protocol.ResponseStatus"
-                        }
-                    ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
                 }
+              ]
             }
+          }
         },
-        "protocol.ResponseStatus": {
-            "type": "string",
-            "enum": [
-                "ok",
-                "failed"
-            ],
-            "x-enum-varnames": [
-                "Success",
-                "Failed"
-            ]
-        },
-        "types.KV": {
-            "type": "object",
-            "additionalProperties": {}
-        }
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "description": "access token",
-            "type": "apiKey",
-            "name": "X-AccessToken",
-            "in": "header"
-        }
+    "/search/query": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["search"],
+        "summary": "search everything",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/server/stacktrace": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "get server or goroutines stacktrace",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/server/upload": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "upload PicGO upload api",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/bookmark": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user bookmark list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/dashboard": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/kanban": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user kanban list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/metrics": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show metrics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     }
+  },
+  "definitions": {
+    "protocol.Response": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "Response data"
+        },
+        "message": {
+          "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+          "type": "string"
+        },
+        "retcode": {
+          "description": "The return code, which must conform to the return code rules defined later on this page",
+          "type": "string"
+        },
+        "status": {
+          "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/protocol.ResponseStatus"
+            }
+          ]
+        }
+      }
+    },
+    "protocol.ResponseStatus": {
+      "type": "string",
+      "enum": ["ok", "failed"],
+      "x-enum-varnames": ["Success", "Failed"]
+    },
+    "types.KV": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "description": "access token",
+      "type": "apiKey",
+      "name": "X-AccessToken",
+      "in": "header"
+    }
+  }
 }
