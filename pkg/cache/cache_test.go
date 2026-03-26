@@ -278,7 +278,7 @@ func TestCacheWait(t *testing.T) {
 	require.NotNil(t, cache)
 
 	// Set multiple values
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		cache.Set(string(rune('a'+i%26)), i, 1)
 	}
 

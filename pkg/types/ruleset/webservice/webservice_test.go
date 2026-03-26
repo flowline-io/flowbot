@@ -74,13 +74,13 @@ func TestRule_ID_ComplexPath(t *testing.T) {
 
 func TestRule_AllMethodTypes(t *testing.T) {
 	methods := []struct {
-		create func(string, interface{}, ...interface{}) Rule
+		create func(string, any, ...any) Rule
 		method string
 	}{
-		{func(p string, _ interface{}, _ ...interface{}) Rule { return Get(p, nil) }, "GET"},
-		{func(p string, _ interface{}, _ ...interface{}) Rule { return Post(p, nil) }, "POST"},
-		{func(p string, _ interface{}, _ ...interface{}) Rule { return Put(p, nil) }, "PUT"},
-		{func(p string, _ interface{}, _ ...interface{}) Rule { return Delete(p, nil) }, "DELETE"},
+		{func(p string, _ any, _ ...any) Rule { return Get(p, nil) }, "GET"},
+		{func(p string, _ any, _ ...any) Rule { return Post(p, nil) }, "POST"},
+		{func(p string, _ any, _ ...any) Rule { return Put(p, nil) }, "PUT"},
+		{func(p string, _ any, _ ...any) Rule { return Delete(p, nil) }, "DELETE"},
 	}
 
 	for _, m := range methods {
