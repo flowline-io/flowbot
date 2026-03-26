@@ -3,6 +3,7 @@ package platforms
 import (
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -81,9 +82,7 @@ func MessageConvert(data any) protocol.Message {
 			// Try to extract structured fields from the model
 			switch m := v.Model.(type) {
 			case map[string]any:
-				for k, val := range m {
-					structuredFields[k] = val
-				}
+				maps.Copy(structuredFields, m)
 			case map[string]string:
 				for k, val := range m {
 					structuredFields[k] = val
@@ -191,9 +190,7 @@ func MessageConvert(data any) protocol.Message {
 		}
 		// Rich key-value fields segment
 		fields := make(map[string]any, len(v))
-		for k, val := range v {
-			fields[k] = val
-		}
+		maps.Copy(fields, v)
 		return protocol.Message{
 			{
 				Type: "kv",

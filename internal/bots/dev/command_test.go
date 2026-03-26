@@ -94,7 +94,7 @@ func TestCommandRules_IDHandler(t *testing.T) {
 	tokens, _ := parser.ParseString("id")
 
 	results := make(map[string]bool)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		payload := idRule.Handler(ctx, tokens)
 		require.NotNil(t, payload)
 
