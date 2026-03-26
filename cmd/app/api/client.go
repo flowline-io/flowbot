@@ -53,7 +53,7 @@ type APIResponse struct {
 // ---------------------------------------------------------------------------
 
 // doRequest executes an HTTP request, automatically attaching the token and Content-Type.
-func doRequest(token, method, path string, body interface{}) (json.RawMessage, error) {
+func doRequest(token, method, path string, body any) (json.RawMessage, error) {
 	r := getClient().R().SetHeader("Content-Type", "application/json")
 
 	if token != "" {

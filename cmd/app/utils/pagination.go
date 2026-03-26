@@ -54,10 +54,7 @@ func (p *Pagination) Start() int {
 	if p.TotalPages <= 5 {
 		return 1
 	}
-	start := p.Page - 2
-	if start < 1 {
-		start = 1
-	}
+	start := max(p.Page-2, 1)
 	return start
 }
 
@@ -65,10 +62,7 @@ func (p *Pagination) End() int {
 	if p.TotalPages <= 5 {
 		return p.TotalPages
 	}
-	end := p.Page + 2
-	if end > p.TotalPages {
-		end = p.TotalPages
-	}
+	end := min(p.Page+2, p.TotalPages)
 	return end
 }
 

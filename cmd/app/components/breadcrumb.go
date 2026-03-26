@@ -30,17 +30,18 @@ func buildBreadcrumbFromPath(path string) []BreadcrumbItem {
 	segments := strings.Split(strings.Trim(path, "/"), "/")
 	items := []BreadcrumbItem{{Label: "Home", Href: "/admin"}}
 
-	accumulatedPath := "/admin"
+	var accumulatedPath strings.Builder
+	accumulatedPath.WriteString("/admin")
 	for i, segment := range segments {
 		if segment == "" {
 			continue
 		}
-		accumulatedPath += "/" + segment
+		accumulatedPath.WriteString("/" + segment)
 		label := formatBreadcrumbLabel(segment)
 		if i == len(segments)-1 {
 			items = append(items, BreadcrumbItem{Label: label, Href: ""})
 		} else {
-			items = append(items, BreadcrumbItem{Label: label, Href: accumulatedPath})
+			items = append(items, BreadcrumbItem{Label: label, Href: accumulatedPath.String()})
 		}
 	}
 

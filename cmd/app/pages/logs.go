@@ -233,14 +233,8 @@ func (l *Logs) renderPagination() app.UI {
 			Body(app.Raw(`<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`)),
 	)
 
-	start := l.page - 2
-	if start < 1 {
-		start = 1
-	}
-	end := l.page + 2
-	if end > l.totalPages {
-		end = l.totalPages
-	}
+	start := max(l.page-2, 1)
+	end := min(l.page+2, l.totalPages)
 
 	for i := start; i <= end; i++ {
 		p := i
