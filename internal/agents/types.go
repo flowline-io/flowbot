@@ -63,7 +63,9 @@ func MessageFromGenaiContent(c *genai.Content) *Message {
 	var content strings.Builder
 	for _, part := range c.Parts {
 		if part.Text != "" {
-			content.WriteString(part.Text)
+			if _, err := content.WriteString(part.Text); err != nil {
+				return &Message{}
+			}
 		}
 	}
 	return &Message{
