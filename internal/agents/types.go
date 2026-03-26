@@ -1,6 +1,8 @@
 package agents
 
 import (
+	"strings"
+
 	"google.golang.org/genai"
 )
 
@@ -58,15 +60,15 @@ func MessageFromGenaiContent(c *genai.Content) *Message {
 	if c == nil || len(c.Parts) == 0 {
 		return &Message{}
 	}
-	content := ""
+	var content strings.Builder
 	for _, part := range c.Parts {
 		if part.Text != "" {
-			content += part.Text
+			content.WriteString(part.Text)
 		}
 	}
 	return &Message{
 		Role:    c.Role,
-		Content: content,
+		Content: content.String(),
 	}
 }
 
