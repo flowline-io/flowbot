@@ -2194,8 +2194,8 @@ github.com/riverqueue/river/riverdriver/riversqlite v0.33.0 h1:zNG0dfMZFbo9GC2MO
 github.com/riverqueue/river/riverdriver/riversqlite v0.33.0/go.mod h1:JjI1cS9NOuPgdv4MA+D8rBzh9yIA5C+9+a9XBf0WVSI=
 github.com/riverqueue/river/rivershared v0.33.0 h1:gE19JWgu0RgO78PTb5C1OqrI6T2x65mCDtlXHk+hl3E=
 github.com/riverqueue/river/rivershared v0.33.0/go.mod h1:/wv6gmMJ4yC23Y9FFZaN/3GgctGmzxsGJ1/moYv1AnE=
-github.com/riverqueue/river/rivertype v0.33.0 h1:GIFeAX+JMUL6CaWj7iAUNG86eGSp2KP1NTbTfipsJOo=
-github.com/riverqueue/river/rivertype v0.33.0/go.mod h1:D1Ad+EaZiaXbQbJcJcfeicXJMBKno0n6UcfKI5Q7DIQ=
+github.com/riverqueue/river/rivertype v0.34.0 h1:8NftF6oNlxWHdSpvbv4d6JXY6RlSDi9ZtQE8UC5oF0c=
+github.com/riverqueue/river/rivertype v0.34.0/go.mod h1:D1Ad+EaZiaXbQbJcJcfeicXJMBKno0n6UcfKI5Q7DIQ=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
