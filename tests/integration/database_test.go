@@ -360,7 +360,7 @@ func (s *DatabaseTestSuite) TestBehaviorCRUD() {
 	s.Equal(behavior.Count_, retrievedBehavior.Count_)
 
 	// Update behavior
-	err = s.DB.Model(&retrievedBehavior).Update("count_", 10).Error
+	err = s.DB.Model(&retrievedBehavior).Update("count", 10).Error
 	s.NoError(err)
 
 	// Verify update
@@ -375,7 +375,7 @@ func (s *DatabaseTestSuite) TestBehaviorCRUD() {
 // TestInstructCRUD tests instruct CRUD operations.
 func (s *DatabaseTestSuite) TestInstructCRUD() {
 	instruct := &model.Instruct{
-		No:        uuid.New().String(),
+		No:        uuid.New().String()[:25],
 		UID:       uuid.New().String(),
 		Object:    model.InstructObjectAgent,
 		Bot:       "test-bot",
