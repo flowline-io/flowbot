@@ -79,7 +79,6 @@ func TestRule_AllFields(t *testing.T) {
 	assert.Equal(t, CronScopeUser, r.Scope)
 	assert.Equal(t, "0 9 * * *", r.When)
 
-	// Test action returns results
 	result := r.Action(types.Context{})
 	assert.True(t, called)
 	assert.Len(t, result, 1)
@@ -128,9 +127,48 @@ func TestUn(t *testing.T) {
 
 func TestRuleset_Shutdown(t *testing.T) {
 	rs := NewCronRuleset("test", []Rule{})
-	// Ensure shutdown channel works without blocking
 	go func() {
 		rs.Shutdown()
 	}()
-	<-rs.stop // should receive without deadlock
+	<-rs.stop
+}
+
+func TestRule_ScopeValues(t *testing.T) {
+	assert.Equal(t, CronScope("system"), CronScopeSystem)
+	assert.Equal(t, CronScope("user"), CronScopeUser)
+	assert.NotEqual(t, CronScopeSystem, CronScopeUser)
+}
+
+func TestNewCronRuleset_ChannelCapacity(t *testing.T) {
+	rs := NewCronRuleset("test", []Rule{})
+	assert.Equal(t, 100, cap(rs.outCh))
+}
+
+func TestRule_ActionReturnsEmpty(t *testing.T) {
+	r := Rule{
+		Name:  "empty_action",
+		Scope: CronScopeSystem,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			return nil
+		},
+	}
+	result := r.Action(types.Context{})
+	assert.Nil(t, result)
+}
+
+func TestRule_ActionReturnsMultiple(t *testing.T) {
+	r := Rule{
+		Name:  "multi_action",
+		Scope: CronScopeSystem,
+		When:  "* * * * *",
+		Action: func(ctx types.Context) []types.MsgPayload {
+			return []types.MsgPayload{
+				types.TextMsg{Text: "msg1"},
+				types.TextMsg{Text: "msg2"},
+			}
+		},
+	}
+	result := r.Action(types.Context{})
+	assert.Len(t, result, 2)
 }
