@@ -663,7 +663,7 @@ func (s *AdapterTestSuite) TestAdapter_ParameterOperations() {
 func (s *AdapterTestSuite) TestAdapter_InstructOperations() {
 	uid := types.Uid(uuid.New().String())
 	instruct := &model.Instruct{
-		No:        uuid.New().String(),
+		No:        fmt.Sprintf("NO-%d", time.Now().UnixNano()%1000000000),
 		UID:       string(uid),
 		Object:    model.InstructObjectAgent,
 		Bot:       "test-bot",

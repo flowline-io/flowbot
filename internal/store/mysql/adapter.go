@@ -117,10 +117,15 @@ func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
 }
 
 func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
+	// Convert types.KV to map[string]interface{} for GORM compatibility
+	updates := make(map[string]interface{}, len(update))
+	for k, v := range update {
+		updates[k] = v
+	}
 	return a.db.
 		Model(&model.User{}).
 		Where("flag = ?", uid.String()).
-		Updates(update).Error
+		Updates(updates).Error
 }
 
 func (a *adapter) FileStartUpload(fd *types.FileDef) error {
@@ -387,7 +392,9 @@ func (a *adapter) GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser,
 
 func (a *adapter) UpdatePlatformUser(item *model.PlatformUser) error {
 	q := dao.Q.PlatformUser
-	_, err := q.Updates(item)
+	_, err := q.
+		Where(q.ID.Eq(item.ID)).
+		Updates(item)
 	return err
 }
 

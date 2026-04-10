@@ -131,10 +131,20 @@ tasks:
     cmds:
       - go tool gotestsum --hide-summary=skipped --packages="./..."
 
+  test:short:
+    desc: Run tests in short mode (skip integration tests)
+    cmds:
+      - go test -short ./...
+
   test:utils:
     desc: Run tests in pkg/utils package
     cmds:
       - go tool gotestsum --hide-summary=skipped --packages="./pkg/utils/..."
+
+  test:integration:
+    desc: Run integration tests with Testcontainers (requires Docker)
+    cmds:
+      - go test -v -run Integration ./tests/integration/...
 
   test:coverage:
     desc: Run tests with coverage report
