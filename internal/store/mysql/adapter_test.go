@@ -327,6 +327,7 @@ func (s *AdapterTestSuite) TestAdapter_PlatformUserOperations() {
 	user := &model.User{
 		Flag:      uuid.New().String(),
 		Name:      "Platform Test User",
+		Tags:      "{}",
 		State:     model.UserActive,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -466,7 +467,8 @@ func (s *AdapterTestSuite) TestAdapter_DataOperations() {
 	retrievedValue, err := s.adapter.DataGet(uid, topic, key)
 	require.NoError(s.T(), err, "failed to get data")
 	assert.Equal(s.T(), value["field1"], retrievedValue["field1"], "field1 should match")
-	assert.Equal(s.T(), value["field2"], retrievedValue["field2"], "field2 should match")
+	// JSON unmarshaling converts numbers to float64
+	assert.Equal(s.T(), float64(42), retrievedValue["field2"], "field2 should match")
 
 	// List data
 	filter := types.DataFilter{}
@@ -801,6 +803,7 @@ func (s *AdapterTestSuite) TestAdapter_AgentOperations() {
 		Hostid:         hostid,
 		Hostname:       "test-host",
 		OnlineDuration: 0,
+		LastOnlineAt:   time.Now(),
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}

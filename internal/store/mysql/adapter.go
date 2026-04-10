@@ -117,11 +117,10 @@ func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
 }
 
 func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
-	q := dao.Q.User
-	_, err := q.
-		Where(q.Flag.Eq(uid.String())).
-		UpdateColumns(update)
-	return err
+	return a.db.
+		Model(&model.User{}).
+		Where("flag = ?", uid.String()).
+		Updates(update).Error
 }
 
 func (a *adapter) FileStartUpload(fd *types.FileDef) error {
@@ -765,9 +764,9 @@ func (a *adapter) CreateInstruct(instruct *model.Instruct) (int64, error) {
 		return 0, errors.New("expire time error")
 	}
 	err := a.db.
-		Create(&instruct)
+		Create(instruct).Error
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	return instruct.ID, nil
 }
@@ -857,9 +856,9 @@ func (a *adapter) GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Web
 
 func (a *adapter) CreateCounter(counter *model.Counter) (int64, error) {
 	err := a.db.
-		Create(&counter)
+		Create(counter).Error
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	a.record(counter.ID, counter.Digit)
 	return counter.ID, nil
