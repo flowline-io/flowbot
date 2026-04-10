@@ -91,8 +91,9 @@ func (i *Slash) GetShortcut(id int32) (*Shortcut, error) {
 }
 
 func (i *Slash) ListShortcuts() ([]*Shortcut, error) {
+	var shortcuts []*Shortcut
 	resp, err := i.c.R().
-		SetResult([]*Shortcut{}).
+		SetResult(&shortcuts).
 		Get("/api/v1/shortcuts")
 	if err != nil {
 		return nil, err
@@ -101,5 +102,5 @@ func (i *Slash) ListShortcuts() ([]*Shortcut, error) {
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to list slash shortcut: %s", resp.String())
 	}
-	return resp.Result().([]*Shortcut), nil
+	return shortcuts, nil
 }
