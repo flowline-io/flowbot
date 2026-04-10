@@ -49,3 +49,4 @@ flowbot.log
 # testing
 coverage.out
 coverage.html
+*.test
