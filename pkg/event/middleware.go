@@ -60,11 +60,14 @@ func (r Retry) Middleware(h message.HandlerFunc) message.HandlerFunc {
 		expBackoff.Reset()
 		for {
 			waitTime := expBackoff.NextBackOff()
+			if waitTime == backoff.Stop {
+				return producedMessages, err
+			}
+
 			select {
 			case <-ctx.Done():
 				return producedMessages, err
 			case <-time.After(waitTime):
-				// go on
 			}
 
 			producedMessages, err = h(msg)
@@ -92,7 +95,7 @@ func (r Retry) Middleware(h message.HandlerFunc) message.HandlerFunc {
 					"wait_time":    waitTime,
 					"elapsed_time": expBackoff.GetElapsedTime(),
 				})
-				return nil, nil
+				return nil, err
 			}
 		}
 	}

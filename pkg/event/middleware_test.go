@@ -118,7 +118,7 @@ func TestRetry_Middleware_AllRetriesFail(t *testing.T) {
 	msg := message.NewMessage("test", []byte("payload"))
 
 	result, err := middleware(msg)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, result)
 }
 
