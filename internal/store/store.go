@@ -45,7 +45,6 @@ func openAdapter(jsonConfig config.StoreType) error {
 func RegisterAdapter(a Adapter) {
 	if a == nil {
 		flog.Fatal("store: Register adapter is nil")
-		return
 	}
 
 	name := a.GetName()
@@ -64,7 +63,10 @@ func Migrate() error {
 	if err != nil {
 		return err
 	}
-	driver, _ := mysql.WithInstance(db, &mysql.Config{})
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
+	if err != nil {
+		return fmt.Errorf("store: mysql driver init: %w", err)
+	}
 
 	d, err := iofs.New(storeMigrate.Fs, "migrations")
 	if err != nil {
@@ -108,7 +110,6 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 func UseMediaHandler(name, config string) error {
 	mediaHandler := fileHandlers[name]
 	if mediaHandler == nil {
-		flog.Fatal("UseMediaHandler: unknown handler %s", name)
 		return fmt.Errorf("unknown handler %s", name)
 	}
 	FileSystem = mediaHandler

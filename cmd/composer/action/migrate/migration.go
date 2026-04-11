@@ -26,6 +26,7 @@ func MigrationAction(ctx context.Context, c *cli.Command) error {
 	if err != nil {
 		flog.Panic("%s", err.Error())
 	}
+	reg := regexp.MustCompile(`\d{6}`)
 	maxNo := 0
 	for _, item := range entry {
 		info, err := item.Info()
@@ -36,13 +37,12 @@ func MigrationAction(ctx context.Context, c *cli.Command) error {
 		if info.IsDir() {
 			continue
 		}
-		reg, err := regexp.Compile(`\d{6}`)
-		if err != nil {
-			flog.Panic("%s", err.Error())
-		}
 		str := reg.FindString(info.Name())
 
-		no, _ := strconv.Atoi(str)
+		no, err := strconv.Atoi(str)
+		if err != nil {
+			continue
+		}
 		if no > maxNo {
 			maxNo = no
 		}

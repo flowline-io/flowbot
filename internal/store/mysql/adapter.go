@@ -94,7 +94,7 @@ func (a *adapter) UserGet(uid types.Uid) (*model.User, error) {
 func (a *adapter) UserGetAll(uid ...types.Uid) ([]*model.User, error) {
 	q := dao.Q.User
 	if len(uid) > 0 {
-		s := make([]string, len(uid))
+		s := make([]string, 0, len(uid))
 		for _, u := range uid {
 			s = append(s, u.String())
 		}
@@ -708,7 +708,10 @@ func (a *adapter) ParameterSet(flag string, params types.KV, expiredAt time.Time
 		return a.db.
 			Model(&model.Parameter{}).
 			Where("`flag` = ?", flag).
-			Update("expired_at", expiredAt).Error
+			Updates(map[string]any{
+				"params":     model.JSON(params),
+				"expired_at": expiredAt,
+			}).Error
 	} else {
 		return a.db.Create(&model.Parameter{
 			Flag:      flag,
@@ -784,9 +787,9 @@ func (a *adapter) ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*mode
 		Where("`uid` = ?", uid).
 		Where("state = ?", model.InstructCreate)
 	if isExpire {
-		builder.Where("expire_at < ?", time.Now())
+		builder = builder.Where("expire_at < ?", time.Now())
 	} else {
-		builder.Where("expire_at >= ?", time.Now())
+		builder = builder.Where("expire_at >= ?", time.Now())
 	}
 
 	err := builder.
