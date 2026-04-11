@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	storeMigrate "github.com/flowline-io/flowbot/internal/store/migrate"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/media"
+	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
-	"github.com/golang-migrate/migrate/v4"
+	migrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"gorm.io/gorm"

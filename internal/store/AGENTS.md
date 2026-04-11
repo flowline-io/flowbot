@@ -9,9 +9,7 @@ store/
 ├── store.go         # Adapter pattern, connection management
 ├── dao/             # Data Access Objects (generated + custom)
 ├── model/           # GORM models (generated from DB schema)
-├── mysql/           # MySQL adapter implementation
-└── migrate/         # Database migrations
-    └── migrations/  # SQL migration files
+└── mysql/           # MySQL adapter implementation
 ```
 
 ## Patterns

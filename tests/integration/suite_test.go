@@ -9,19 +9,18 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
+	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/golang-migrate/migrate/v4"
 	migratemysql "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/oops"
 	"github.com/stretchr/testify/suite"
@@ -36,15 +35,14 @@ import (
 // It manages Testcontainers for MySQL and Redis and provides a configured Fiber app.
 type IntegrationTestSuite struct {
 	suite.Suite
-	ctx         context.Context
-	mysqlC      *tcmysql.MySQLContainer
-	redisC      testcontainers.Container
-	App         *fiber.App
-	DB          *gorm.DB
-	Redis       *redis.Client
-	ProjectRoot string
-	MySQLDSN    string
-	RedisAddr   string
+	ctx       context.Context
+	mysqlC    *tcmysql.MySQLContainer
+	redisC    testcontainers.Container
+	App       *fiber.App
+	DB        *gorm.DB
+	Redis     *redis.Client
+	MySQLDSN  string
+	RedisAddr string
 }
 
 // SetupSuite initializes the test environment with Testcontainers.
@@ -57,12 +55,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	// Initialize logging
 	flog.Init(false, false)
-
-	// Get project root directory
-	_, currentFile, _, _ := runtime.Caller(0)
-	s.ProjectRoot = filepath.Join(filepath.Dir(currentFile), "..", "..")
-
-	s.T().Logf("Project root: %s", s.ProjectRoot)
 
 	// Start MySQL container
 	mysqlC, err := tcmysql.Run(s.ctx, "mysql:8.0",
@@ -161,12 +153,10 @@ func (s *IntegrationTestSuite) runMigrations(db *gorm.DB) {
 	driver, err := migratemysql.WithInstance(sqlDB, &migratemysql.Config{})
 	s.Require().NoError(err)
 
-	migrationsPath := filepath.Join(s.ProjectRoot, "internal", "store", "migrate", "migrations")
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationsPath,
-		"mysql",
-		driver,
-	)
+	d, err := iofs.New(storeMigrate.Fs, "migrations")
+	s.Require().NoError(err)
+
+	m, err := migrate.NewWithInstance("iofs", d, "mysql", driver)
 	s.Require().NoError(err)
 
 	err = m.Up()

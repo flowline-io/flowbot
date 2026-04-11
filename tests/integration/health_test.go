@@ -120,5 +120,4 @@ func (s *HealthTestSuite) TestSuiteInheritance() {
 	assert.NotNil(s.T(), s.App, "Fiber app should be initialized")
 	assert.NotEmpty(s.T(), s.MySQLDSN, "MySQL DSN should be set")
 	assert.NotEmpty(s.T(), s.RedisAddr, "Redis address should be set")
-	assert.NotEmpty(s.T(), s.ProjectRoot, "project root should be set")
 }

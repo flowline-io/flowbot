@@ -4,17 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
+	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,10 +34,6 @@ type AdapterTestSuite struct {
 // SetupSuite initializes the test suite with a MySQL container
 func (s *AdapterTestSuite) SetupSuite() {
 	s.ctx = context.Background()
-
-	// Get the project root directory
-	_, currentFile, _, _ := runtime.Caller(0)
-	projectRoot := filepath.Join(filepath.Dir(currentFile), "..", "..", "..")
 
 	// Start MySQL container
 	container, err := tcmysql.Run(s.ctx,
@@ -79,7 +74,7 @@ func (s *AdapterTestSuite) SetupSuite() {
 	require.NoError(s.T(), err, "failed to open adapter")
 
 	// Run migrations
-	err = s.runMigrations(projectRoot)
+	err = s.runMigrations("")
 	require.NoError(s.T(), err, "failed to run migrations")
 }
 
@@ -97,7 +92,7 @@ func (s *AdapterTestSuite) TearDownSuite() {
 }
 
 // runMigrations runs the database migrations
-func (s *AdapterTestSuite) runMigrations(projectRoot string) error {
+func (s *AdapterTestSuite) runMigrations(_ string) error {
 	db, err := s.adapter.GetDB().DB()
 	if err != nil {
 		return fmt.Errorf("failed to get raw DB: %w", err)
@@ -108,12 +103,12 @@ func (s *AdapterTestSuite) runMigrations(projectRoot string) error {
 		return fmt.Errorf("failed to create migration driver: %w", err)
 	}
 
-	migrationsPath := filepath.Join(projectRoot, "internal", "store", "migrate", "migrations")
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationsPath,
-		"mysql",
-		driver,
-	)
+	d, err := iofs.New(storeMigrate.Fs, "migrations")
+	if err != nil {
+		return fmt.Errorf("failed to create migration source: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("iofs", d, "mysql", driver)
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}

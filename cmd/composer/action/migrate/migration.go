@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const path = "./internal/store/migrate/migrations"
+const path = "./pkg/migrate/migrations"
 
 func MigrationAction(ctx context.Context, c *cli.Command) error {
 	name := c.String("name")

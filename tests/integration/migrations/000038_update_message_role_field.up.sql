@@ -1,2 +1,0 @@
-ALTER TABLE `messages`
-	ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT 'user' AFTER `topic`;

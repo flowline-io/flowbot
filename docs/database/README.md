@@ -92,7 +92,7 @@ Flowbot uses MySQL as the primary database. All models are auto-generated via GO
 
 ## Database Migration
 
-Migrations are managed via the Composer CLI and stored in `internal/store/migrate/migrations/` (currently 51 migration files).
+Migrations are managed via the Composer CLI and stored in `pkg/migrate/migrations/` (currently 51 migration files).
 
 ### Run Migrations
 

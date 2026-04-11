@@ -72,9 +72,7 @@ Tests database CRUD operations for all major models:
 tests/integration/
 ├── suite_test.go         # Base IntegrationTestSuite with Testcontainers
 ├── health_test.go        # Health endpoint tests
-├── database_test.go      # Database operation tests
-├── migrations/           # SQL migration files (copied from internal/store/migrate/migrations)
-└── README.md            # This file
+└── database_test.go      # Database operation tests
 ```
 
 ### Base Suite
@@ -167,7 +165,7 @@ Container startup is inherently slow. You can:
 ### Migration failures
 If migrations fail:
 1. Check MySQL container logs: `docker logs <container-id>`
-2. Verify migration files exist: `ls tests/integration/migrations/`
+2. Verify migration files exist: `ls pkg/migrate/migrations/`
 3. Ensure migrations are up to date: `task migration`
 
 ## CI/CD Integration
