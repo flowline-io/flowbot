@@ -1953,8 +1953,8 @@ github.com/mattn/go-sqlite3 v1.14.28 h1:ThEiQrnbtumT+QMknw63Befp/ce/nUPgBPMlRFEu
 github.com/mattn/go-sqlite3 v1.14.28/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/maxence-charriere/go-app/v10 v10.1.11 h1:4JUSlVQ8zVIeL3acFJEpuerP6FLoEQWg6CUTtHcz7Ro=
 github.com/maxence-charriere/go-app/v10 v10.1.11/go.mod h1:FqUW4on4nJewVfBnSkuxQd3fvtK2RdKS/z76OOUDAAY=
-github.com/meilisearch/meilisearch-go v0.36.1 h1:mJTCJE5g7tRvaqKco6DfqOuJEjX+rRltDEnkEC02Y0M=
-github.com/meilisearch/meilisearch-go v0.36.1/go.mod h1:hWcR0MuWLSzHfbz9GGzIr3s9rnXLm1jqkmHkJPbUSvM=
+github.com/meilisearch/meilisearch-go v0.36.2 h1:MYaMPCpdLh2aYPt+zK+19mLoA4dfBY3S1L7T0FADCjU=
+github.com/meilisearch/meilisearch-go v0.36.2/go.mod h1:hWcR0MuWLSzHfbz9GGzIr3s9rnXLm1jqkmHkJPbUSvM=
 github.com/mgechev/dots v1.0.0 h1:o+4OJ3OjWzgQHGJXKfJ8rbH4dqDugu5BiEy84nxg0k4=
 github.com/mgechev/dots v1.0.0/go.mod h1:rykuMydC9t3wfkM+ccYH3U3ss03vZGg6h3hmOznXLH0=
 github.com/mgechev/revive v1.14.0 h1:CC2Ulb3kV7JFYt+izwORoS3VT/+Plb8BvslI/l1yZsc=
