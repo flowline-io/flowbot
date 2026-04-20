@@ -74,7 +74,7 @@ require (
 	gorm.io/plugin/dbresolver v1.6.2
 	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.19
-	modernc.org/sqlite v1.48.2
+	modernc.org/sqlite v1.49.1
 	resty.dev/v3 v3.0.0-beta.6
 )
 
@@ -647,7 +647,7 @@ require (
 	modernc.org/fileutil v1.4.0 // indirect
 	modernc.org/golex v1.0.0 // indirect
 	modernc.org/internal v1.0.0 // indirect
-	modernc.org/libc v1.70.0 // indirect
+	modernc.org/libc v1.72.0 // indirect
 	modernc.org/lldb v1.0.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
