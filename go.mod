@@ -47,7 +47,7 @@ require (
 	github.com/riverqueue/river v0.35.0
 	github.com/riverqueue/river/riverdriver/riversqlite v0.35.0
 	github.com/riverqueue/river/rivertype v0.35.0
-	github.com/rs/zerolog v1.35.0
+	github.com/rs/zerolog v1.35.1
 	github.com/samber/lo v1.53.0
 	github.com/samber/oops v1.21.0
 	github.com/schollz/progressbar/v3 v3.19.0
@@ -67,6 +67,7 @@ require (
 	golang.org/x/crypto v0.50.0
 	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
 	golang.org/x/sys v0.43.0
+	golang.org/x/term v0.42.0
 	google.golang.org/genai v1.54.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
@@ -617,7 +618,6 @@ require (
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa // indirect
-	golang.org/x/term v0.42.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
