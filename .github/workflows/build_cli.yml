@@ -1,0 +1,43 @@
+name: BuildCLI
+
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - cmd/cli/**
+      - pkg/**
+      - go.mod
+      - go.sum
+  pull_request:
+    paths:
+      - cmd/cli/**
+      - pkg/**
+      - go.mod
+      - go.sum
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '^1.26'
+          cache: true
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: Build CLI
+        run: go tool task build:cli

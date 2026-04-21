@@ -36,12 +36,18 @@ tasks:
     cmds:
       - go build -v -o bin/composer ./cmd/composer
 
+  build:cli:
+    desc: Build flowbot CLI
+    cmds:
+      - go build -v -o bin/flowbot-cli ./cmd/cli
+
   build:all:
     desc: Build all binaries
     cmds:
       - task: build
       - task: build:agent
       - task: build:composer
+      - task: build:cli
 
   # Run tasks
   run:
