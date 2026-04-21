@@ -19,20 +19,19 @@ types/
 │   ├── message.go  # Message types
 │   ├── event.go    # Platform events
 │   └── user.go     # User info
-├── ruleset/        # Rule implementations (14 types)
-│   ├── command/    # Slash commands
-│   ├── form/       # Interactive forms
-│   ├── cron/       # Scheduled tasks
-│   ├── event/      # Event handlers
-│   ├── webhook/    # HTTP webhooks
-│   ├── webservice/ # HTTP endpoints
-│   ├── tool/       # MCP tools
-│   ├── instruct/   # LLM instructions
-│   ├── page/       # UI pages
-│   ├── setting/    # Bot settings
-│   ├── collect/    # Data collectors
-│   └── ...
-└── admin/          # Admin types
+└── ruleset/        # Rule implementations (14 types)
+    ├── command/    # Slash commands
+    ├── form/       # Interactive forms
+    ├── cron/       # Scheduled tasks
+    ├── event/      # Event handlers
+    ├── webhook/    # HTTP webhooks
+    ├── webservice/ # HTTP endpoints
+    ├── tool/       # MCP tools
+    ├── instruct/   # LLM instructions
+    ├── page/       # UI pages
+    ├── setting/    # Bot settings
+    ├── collect/    # Data collectors
+    └── ...
 ```
 
 ## Ruleset Types

@@ -407,11 +407,10 @@ func TestRenderPage_NoStore(t *testing.T) {
 
 func TestRouteRegistration(t *testing.T) {
 	// Verify that common routes are present after handleRoutes call
-	// (we can't call handleRoutes directly because it needs admin controller,
-	//  so we verify route patterns manually)
+	// (we verify route patterns manually)
 	app := newTestApp()
 
-	// Register routes the same way as in production (minus admin routes)
+	// Register routes the same way as in production
 	ctl := &Controller{}
 	app.Get("/", func(c fiber.Ctx) error { return nil })
 	app.Get(healthcheck.LivenessEndpoint, healthcheck.New())

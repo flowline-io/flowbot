@@ -14,7 +14,7 @@ Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM a
 | New provider  | `pkg/providers/`   | OAuth + API clients     |
 | Core types    | `pkg/types/`       | Rulesets, protocol, KV  |
 | API routes    | `internal/server/` | Fiber v3 handlers       |
-| Entry points  | `cmd/`             | 4 binaries              |
+| Entry points  | `cmd/`             | 3 binaries              |
 
 ## Structure
 
@@ -23,17 +23,7 @@ flowbot/
 ├── cmd/                  # Entry points
 │   ├── main.go          # Server
 │   ├── agent/           # Background agent
-│   ├── app/             # Admin PWA
 │   └── composer/        # CLI tool
-├── internal/
-│   ├── bots/            # 18 bot modules
-│   ├── store/           # Database layer
-│   ├── server/          # HTTP server
-│   └── platforms/       # Discord, Slack, Tailchat
-├── pkg/
-    ├── providers/       # 17 third-party APIs
-    ├── utils/           # Shared utilities
-    └── types/           # Common types
 ```
 
 ## Build Commands
@@ -42,7 +32,6 @@ flowbot/
 go tool task default       # tidy → swagger → format → lint → test
 go tool task build         # Main server
 go tool task build:agent   # Agent daemon
-go tool task build:app     # Admin PWA
 go tool task test          # All tests
 go tool task lint          # revive + actionlint
 ```
@@ -136,7 +125,6 @@ go tool task gosec     # security scan
 - Go 1.26+ required
 - MySQL + Redis required
 - Uses Fiber v3 for HTTP
-- WebAssembly for admin PWA
 - MCP protocol support per bot
 - Do not use emojis
 - You must run lint after modifying the code.

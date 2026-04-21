@@ -27,7 +27,6 @@ var Modules = fx.Options(
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,
-		newAdminController,
 	),
 	fx.Invoke(
 		handleRoutes,
