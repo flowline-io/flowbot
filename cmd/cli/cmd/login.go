@@ -29,7 +29,7 @@ func LoginCommand() *cli.Command {
 				Required: false,
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 
 			token := cmd.String("token")

@@ -351,10 +351,9 @@ func kanbanColumnDeleteCommand() *cli.Command {
 			found := false
 			for i := range s.Kanbans {
 				if s.Kanbans[i].ID == boardID {
-					columns := s.Kanbans[i].Columns
-					for j, c := range columns {
+					for j, c := range s.Kanbans[i].Columns {
 						if c.ID == columnID {
-							s.Kanbans[i].Columns = append(columns[:j], columns[j+1:]...)
+							s.Kanbans[i].Columns = append(s.Kanbans[i].Columns[:j], s.Kanbans[i].Columns[j+1:]...)
 							found = true
 							break
 						}

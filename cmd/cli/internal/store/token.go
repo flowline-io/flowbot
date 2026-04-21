@@ -21,7 +21,7 @@ func GetConfigDir() (string, error) {
 		return "", fmt.Errorf("get home directory: %w", err)
 	}
 	cfgDir := filepath.Join(home, configDir, appConfig)
-	if err := os.MkdirAll(cfgDir, 0755); err != nil {
+	if err := os.MkdirAll(cfgDir, 0750); err != nil {
 		return "", fmt.Errorf("create config directory: %w", err)
 	}
 	return cfgDir, nil
@@ -41,7 +41,7 @@ func GetTokenPath(profile string) (string, error) {
 }
 
 // SaveToken saves the authentication token
-func SaveToken(token string, profile string) error {
+func SaveToken(token, profile string) error {
 	path, err := GetTokenPath(profile)
 	if err != nil {
 		return fmt.Errorf("get token path: %w", err)

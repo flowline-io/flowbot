@@ -54,7 +54,7 @@ func kanbanCreateCommand() *cli.Command {
 				Value:   []string{"Todo", "In Progress", "Done"},
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 
 			s, err := store.LoadKanbans(profile)
@@ -62,7 +62,7 @@ func kanbanCreateCommand() *cli.Command {
 				return err
 			}
 
-			columns := []model.Column{}
+			columns := make([]model.Column, 0)
 			for i, name := range cmd.StringSlice("columns") {
 				columns = append(columns, model.Column{
 					ID:    utils.GenerateID(),
@@ -106,7 +106,7 @@ func kanbanListCommand() *cli.Command {
 				Value:   "table",
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 
 			s, err := store.LoadKanbans(profile)
@@ -157,7 +157,7 @@ func kanbanGetCommand() *cli.Command {
 				Value:   "table",
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("kanban ID is required")
@@ -216,7 +216,7 @@ func kanbanUpdateCommand() *cli.Command {
 				Usage:   "New description",
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("kanban ID is required")
@@ -270,7 +270,7 @@ func kanbanDeleteCommand() *cli.Command {
 				Usage:   "Skip confirmation",
 			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("kanban ID is required")
