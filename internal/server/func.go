@@ -237,12 +237,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// tool chat
 	if payload == nil && session == "" {
-		tools, err := chatbot.AvailableTools(ctx)
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-		agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), tools)
+		agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), nil)
 		if err != nil {
 			flog.Error(err)
 			return

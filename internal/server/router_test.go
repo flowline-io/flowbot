@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -174,72 +173,6 @@ func TestErrorHandler_NoError(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Bearer token auth middleware
-// ---------------------------------------------------------------------------
-
-func TestBearerTokenAuth_MissingHeader(t *testing.T) {
-	app := newTestApp()
-	app.Get("/protected", bearerTokenAuth(func(c fiber.Ctx) error {
-		return c.JSON(protocol.NewSuccessResponse("ok"))
-	}))
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-
-	r := decodeResponse(t, resp)
-	assert.Equal(t, protocol.Failed, r.Status)
-	assert.Contains(t, r.Message, "missing authorization header")
-}
-
-func TestBearerTokenAuth_InvalidFormat(t *testing.T) {
-	app := newTestApp()
-	app.Get("/protected", bearerTokenAuth(func(c fiber.Ctx) error {
-		return c.JSON(protocol.NewSuccessResponse("ok"))
-	}))
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Basic abc123")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-
-	r := decodeResponse(t, resp)
-	assert.Contains(t, r.Message, "invalid authorization header format")
-}
-
-func TestBearerTokenAuth_EmptyToken(t *testing.T) {
-	app := newTestApp()
-	app.Get("/protected", bearerTokenAuth(func(c fiber.Ctx) error {
-		return c.JSON(protocol.NewSuccessResponse("ok"))
-	}))
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer ")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-}
-
-func TestBearerTokenAuth_ValidToken_NoConfiguredCheck(t *testing.T) {
-	// When config MCP token is empty, any non-empty bearer token should pass.
-	app := newTestApp()
-	app.Get("/protected", bearerTokenAuth(func(c fiber.Ctx) error {
-		token := c.Locals("mcp_token")
-		return c.JSON(protocol.NewSuccessResponse(token))
-	}))
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer my-secret-token")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// When no configured MCP token, it should pass through
-	// (validToken == "" means no check needed)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-// ---------------------------------------------------------------------------
 // Webhook endpoint (param routing)
 // ---------------------------------------------------------------------------
 
@@ -288,33 +221,6 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 
 	r := decodeResponse(t, resp)
 	assert.Contains(t, r.Message, "platform not found")
-}
-
-// ---------------------------------------------------------------------------
-// MCP endpoint (bearer auth + bot routing)
-// ---------------------------------------------------------------------------
-
-func TestMCPEndpoint_NoAuth(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
-
-	req := httptest.NewRequest(http.MethodPost, "/mcp/some-bot", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-}
-
-func TestMCPEndpoint_InvalidAuth(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
-
-	req := httptest.NewRequest(http.MethodPost, "/mcp/some-bot", nil)
-	req.Header.Set("Authorization", "Token abc")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
 // ---------------------------------------------------------------------------
@@ -423,7 +329,6 @@ func TestRouteRegistration(t *testing.T) {
 	app.Post("/agent", ctl.agentData)
 	app.All("/webhook/:flag", ctl.doWebhook)
 	app.All("/chatbot/:platform", ctl.platformCallback)
-	app.All("/mcp/:bot_name", bearerTokenAuth(ctl.mcpHandler))
 
 	routes := app.GetRoutes()
 	routePaths := make(map[string]bool)
@@ -443,7 +348,6 @@ func TestRouteRegistration(t *testing.T) {
 		"/agent",
 		"/webhook/:flag",
 		"/chatbot/:platform",
-		"/mcp/:bot_name",
 	}
 	for _, p := range expectedPaths {
 		assert.True(t, routePaths[p], "expected route %q to be registered", p)
@@ -542,23 +446,4 @@ func TestJSONResponseContentType(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
-}
-
-// ---------------------------------------------------------------------------
-// hasToolRules
-// ---------------------------------------------------------------------------
-
-func TestHasToolRules_UnknownBot(t *testing.T) {
-	result := hasToolRules("nonexistent-bot-xyz")
-	assert.False(t, result)
-}
-
-// ---------------------------------------------------------------------------
-// getBotTools
-// ---------------------------------------------------------------------------
-
-func TestGetBotTools_UnknownBot(t *testing.T) {
-	_, err := getBotTools("nonexistent-bot-xyz", types.Context{})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not found or not ready")
 }
