@@ -7,7 +7,7 @@ import (
 
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
@@ -43,19 +43,19 @@ func extractTags(ctx context.Context, bookmark karakeep.Bookmark) ([]string, err
 	}
 
 	prompt := fmt.Sprintf(tagsPrompt, config.App.Flowbot.Language, content)
-	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentExtractTags))
+	llmClient, err := llm.ChatModel(ctx, llm.AgentModelName(llm.AgentExtractTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
 	}
 
-	messages, err := agents.BaseTemplate().Format(ctx, map[string]any{
+	messages, err := llm.BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
-	resp, err := agents.Generate(ctx, llm, messages)
+	resp, err := llm.Generate(ctx, llmClient, messages)
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, llm generate failed, %w", Name, err)
 	}
@@ -95,19 +95,19 @@ Tag list:
 
 func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, error) {
 	prompt := fmt.Sprintf(similarTagsPrompt, config.App.Flowbot.Language, strings.Join(tags, "\n"))
-	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentSimilarTags))
+	llmClient, err := llm.ChatModel(ctx, llm.AgentModelName(llm.AgentSimilarTags))
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, chat model failed, %w", Name, err)
 	}
 
-	messages, err := agents.BaseTemplate().Format(ctx, map[string]any{
+	messages, err := llm.BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, prompt format failed, %w", Name, err)
 	}
 
-	resp, err := agents.Generate(ctx, llm, messages)
+	resp, err := llm.Generate(ctx, llmClient, messages)
 	if err != nil {
 		return nil, fmt.Errorf("%s bot, llm generate failed, %w", Name, err)
 	}

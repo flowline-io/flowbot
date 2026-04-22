@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/agents"
-
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
@@ -24,7 +23,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "0 2 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			if !agents.AgentEnabled(agents.AgentExtractTags) {
+			if !llm.AgentEnabled(llm.AgentExtractTags) {
 				flog.Info("agent extract tags disabled")
 				return nil
 			}
@@ -173,7 +172,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "0 2 * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			if !agents.AgentEnabled(agents.AgentSimilarTags) {
+			if !llm.AgentEnabled(llm.AgentSimilarTags) {
 				flog.Info("agent similar tags disabled")
 				return nil
 			}
