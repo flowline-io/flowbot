@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -26,7 +26,7 @@ func hookIssueClosed(ctx types.Context, issue *gitea.IssuePayload) error {
 }
 
 func hookPush(ctx types.Context, payload *gitea.RepoPayload) error {
-	if !agents.AgentEnabled(agents.AgentRepoReviewComment) {
+	if !llm.AgentEnabled(llm.AgentRepoReviewComment) {
 		flog.Info("agent repo review comment disabled")
 		return nil
 	}

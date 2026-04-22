@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
@@ -174,7 +174,7 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 		flog.Info("[gitea] Sending request to LLM model with prompt size: %d characters", len(prompt))
 
 		// Call LLM to get response
-		responseText, err := agents.LLMGenerate(ctx, agents.AgentModelName(agents.AgentRepoReviewComment), prompt)
+		responseText, err := llm.LLMGenerate(ctx, llm.AgentModelName(llm.AgentRepoReviewComment), prompt)
 		if err != nil {
 			flog.Error(fmt.Errorf("error calling LLM model: %w", err))
 			return nil, fmt.Errorf("error getting LLM response: %w", err)
