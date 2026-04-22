@@ -36,9 +36,6 @@ type Context struct {
 	// workflow rule id
 	WorkflowRuleId string
 
-	// llm tool rule id
-	ToolRuleId string
-
 	// event rule id
 	EventRuleId string
 
