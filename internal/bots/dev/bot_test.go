@@ -119,7 +119,6 @@ func TestWebhookRules_Defined(t *testing.T) {
 	}
 
 	assert.True(t, ids[ExampleWebhookID])
-	assert.True(t, ids[ChatWebhookID])
 }
 
 func TestWebhookRules_SecretFlags(t *testing.T) {

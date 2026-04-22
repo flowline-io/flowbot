@@ -11,12 +11,11 @@ import (
 )
 
 func TestWebhookRules_Count(t *testing.T) {
-	assert.Len(t, webhookRules, 2)
+	assert.Len(t, webhookRules, 1)
 }
 
 func TestWebhookRules_Constants(t *testing.T) {
 	assert.Equal(t, "example", ExampleWebhookID)
-	assert.Equal(t, "chat", ChatWebhookID)
 }
 
 func TestWebhookRules_IDs(t *testing.T) {
@@ -26,7 +25,6 @@ func TestWebhookRules_IDs(t *testing.T) {
 	}
 
 	assert.True(t, ids[ExampleWebhookID])
-	assert.True(t, ids[ChatWebhookID])
 }
 
 func TestWebhookRules_Secret(t *testing.T) {
@@ -105,82 +103,6 @@ func TestWebhookRules_ExampleHandler(t *testing.T) {
 			require.NotNil(t, payload)
 
 			assert.Equal(t, tt.wantMsgType, types.TypeOf(payload))
-
-			msg, ok := payload.(types.TextMsg)
-			require.True(t, ok)
-			assert.Contains(t, msg.Text, tt.wantContains)
-		})
-	}
-}
-
-func TestWebhookRules_ChatHandler(t *testing.T) {
-	var chatRule *webhook.Rule
-	for i := range webhookRules {
-		if webhookRules[i].Id == ChatWebhookID {
-			chatRule = &webhookRules[i]
-			break
-		}
-	}
-	require.NotNil(t, chatRule)
-	require.NotNil(t, chatRule.Handler)
-
-	ctx := types.Context{
-		Platform: "test",
-		Topic:    "test",
-		AsUser:   types.Uid("test_user"),
-		Method:   http.MethodGet,
-	}
-
-	payload := chatRule.Handler(ctx, []byte(`{}`))
-	require.NotNil(t, payload)
-
-	msg, ok := payload.(types.TextMsg)
-	require.True(t, ok)
-	assert.Contains(t, msg.Text, "error method")
-}
-
-func TestWebhookRules_ChatHandler_AgentDisabled(t *testing.T) {
-	var chatRule *webhook.Rule
-	for i := range webhookRules {
-		if webhookRules[i].Id == ChatWebhookID {
-			chatRule = &webhookRules[i]
-			break
-		}
-	}
-	require.NotNil(t, chatRule)
-	require.NotNil(t, chatRule.Handler)
-
-	tests := []struct {
-		name         string
-		method       string
-		data         []byte
-		wantContains string
-	}{
-		{
-			name:         "wrong method",
-			method:       http.MethodGet,
-			data:         []byte(`{"text":"hello"}`),
-			wantContains: "error method",
-		},
-		{
-			name:         "agent disabled",
-			method:       http.MethodPost,
-			data:         []byte(`{"text":"hello","ip":"127.0.0.1"}`),
-			wantContains: "disabled",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := types.Context{
-				Platform: "test",
-				Topic:    "test",
-				AsUser:   types.Uid("test_user"),
-				Method:   tt.method,
-			}
-
-			payload := chatRule.Handler(ctx, tt.data)
-			require.NotNil(t, payload)
 
 			msg, ok := payload.(types.TextMsg)
 			require.True(t, ok)
