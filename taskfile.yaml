@@ -176,12 +176,6 @@ tasks:
     cmds:
       - go run ./cmd/composer migrate migration -name {{.NAME | default .CLI_ARGS | default "migration"}}
 
-  # Workflow tasks
-  workflow:import:
-    desc: Import workflow configuration (task workflow:import TOKEN=xxx PATH=./path/to/workflow.yaml)
-    cmds:
-      - go run ./cmd/composer workflow import -token {{.TOKEN}} -path {{.PATH}}
-
   # Development tools
   tools:
     desc: Install all development tools
