@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -23,7 +22,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/setting"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/tool"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -206,11 +204,6 @@ func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error 
 func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, data []byte) (types.MsgPayload, error) {
 	rs := webhook.Ruleset(webhookRules)
 	return rs.ProcessRule(ctx, data)
-}
-
-func RunTool(toolRules []tool.Rule, ctx types.Context, argumentsInJSON string) (string, error) {
-	rs := tool.Ruleset(toolRules)
-	return rs.ProcessRule(ctx, argumentsInJSON)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {
@@ -492,25 +485,6 @@ func Shortcut(title, link string) (string, error) {
 	}
 
 	return fmt.Sprintf("%s/s/%s", endpoint, name), nil
-}
-
-func AvailableTools(ctx types.Context) ([]agents.BaseTool, error) {
-	var tools []agents.BaseTool
-	for _, handler := range handlers {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []tool.Rule:
-				for _, rule := range v {
-					t, err := rule(ctx)
-					if err != nil {
-						return nil, fmt.Errorf("failed to create tool: %w", err)
-					}
-					tools = append(tools, t)
-				}
-			}
-		}
-	}
-	return tools, nil
 }
 
 func FindRuleAndHandler[T types.Ruler](flag string, handlers map[string]Handler) (T, Handler) {
