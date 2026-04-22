@@ -30,7 +30,6 @@ const (
 	InstructRule   RulesetType = "instruct"
 	PageRule       RulesetType = "page"
 	SettingRule    RulesetType = "setting"
-	ToolRule       RulesetType = "tool"
 	TriggerRule    RulesetType = "trigger"
 	WebhookRule    RulesetType = "webhook"
 	WebserviceRule RulesetType = "webservice"
