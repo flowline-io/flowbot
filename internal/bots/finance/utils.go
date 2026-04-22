@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func classify(ctx context.Context) {
-	if !agents.AgentEnabled(agents.AgentBillClassify) {
+	if !llm.AgentEnabled(llm.AgentBillClassify) {
 		flog.Info("agent bill classify disabled")
 		return
 	}
 
-	template := agents.BaseTemplate()
+	template := llm.BaseTemplate()
 	_, _ = fmt.Println(template)
 }
 
@@ -31,19 +31,19 @@ The bill text is as follows:
 func billParser(ctx context.Context, billText string) (string, error) {
 	template := billPrompt + billText
 
-	llm, err := agents.ChatModel(ctx, agents.AgentModelName(agents.AgentBillClassify))
+	llmClient, err := llm.ChatModel(ctx, llm.AgentModelName(llm.AgentBillClassify))
 	if err != nil {
 		return "", fmt.Errorf("chat model failed, %w", err)
 	}
 
-	messages, err := agents.BaseTemplate().Format(ctx, map[string]any{
+	messages, err := llm.BaseTemplate().Format(ctx, map[string]any{
 		"content": template,
 	})
 	if err != nil {
 		return "", fmt.Errorf("format prompt failed, %w", err)
 	}
 
-	resp, err := agents.Generate(ctx, llm, messages)
+	resp, err := llm.Generate(ctx, llmClient, messages)
 	if err != nil {
 		return "", fmt.Errorf("generate response failed, %w", err)
 	}

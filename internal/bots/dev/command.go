@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/agents"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -133,22 +133,22 @@ var commandRules = []command.Rule{
 		Define: "llm test",
 		Help:   `[example] LLM example`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			if !agents.AgentEnabled(agents.AgentChat) {
+			if !llm.AgentEnabled(llm.AgentChat) {
 				return types.TextMsg{Text: "agent chat disabled"}
 			}
-			messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
+			messages, err := llm.DefaultTemplate().Format(ctx.Context(), map[string]any{
 				"content": "Who was the first man to walk on the moon?",
 			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			llm, err := agents.ChatModel(ctx.Context(), agents.AgentModelName(agents.AgentChat))
+			llmClient, err := llm.ChatModel(ctx.Context(), llm.AgentModelName(llm.AgentChat))
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
 
-			resp, err := agents.Generate(ctx.Context(), llm, messages)
+			resp, err := llm.Generate(ctx.Context(), llmClient, messages)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
