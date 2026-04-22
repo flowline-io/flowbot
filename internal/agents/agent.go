@@ -42,30 +42,6 @@ func AgentEnabled(name string) bool {
 	return true
 }
 
-// ReactAgent creates a ReAct agent instance with tools
-func ReactAgent(ctx context.Context, modelName string, tools []BaseTool) (*ReactAgentInstance, error) {
-	client, err := ChatModel(ctx, modelName)
-	if err != nil {
-		return nil, fmt.Errorf("chat model failed, %w", err)
-	}
-
-	return &ReactAgentInstance{
-		client: client,
-		tools:  tools,
-	}, nil
-}
-
-// ReactAgentInstance represents an agent that can call tools
-type ReactAgentInstance struct {
-	client *GenaiClient
-	tools  []BaseTool
-}
-
-// Generate runs the agent with messages
-func (a *ReactAgentInstance) Generate(ctx context.Context, messages []*Message) (*Message, error) {
-	return Generate(ctx, a.client, messages)
-}
-
 func LLMGenerate(ctx context.Context, modelName, prompt string) (string, error) {
 	messages, err := BaseTemplate().Format(ctx, map[string]any{
 		"content": prompt,

@@ -24,7 +24,6 @@ const (
 // Agent name constants
 const (
 	AgentChat              = "chat"
-	AgentReact             = "react"
 	AgentBillClassify      = "bill_classify"
 	AgentExtractTags       = "extract_tags"
 	AgentSimilarTags       = "similar_tags"
