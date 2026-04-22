@@ -7,7 +7,6 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/agents"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -60,13 +59,8 @@ var webhookRules = []webhook.Rule{
 
 			// run agent
 			go func() {
-				tools, err := chatbot.AvailableTools(ctx)
-				if err != nil {
-					flog.Error(err)
-					return
-				}
 				ctx.SetTimeout(10 * time.Minute)
-				agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), tools)
+				agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), nil)
 				if err != nil {
 					flog.Error(err)
 					return

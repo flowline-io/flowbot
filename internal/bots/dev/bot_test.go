@@ -155,10 +155,6 @@ func TestWebserviceRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, webserviceRules)
 }
 
-func TestToolRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, toolRules)
-}
-
 func TestCollectRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, collectRules)
 
@@ -174,5 +170,5 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = bot{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 9)
+	assert.Len(t, rules, 8)
 }

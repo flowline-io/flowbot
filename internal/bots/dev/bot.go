@@ -76,7 +76,6 @@ func (bot) Rules() []any {
 		collectRules,
 		webserviceRules,
 		webhookRules,
-		toolRules,
 		eventRules,
 	}
 }
@@ -111,10 +110,6 @@ func (bot) Page(ctx types.Context, flag string, args types.KV) (string, error) {
 
 func (bot) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
 	return chatbot.RunWebhook(webhookRules, ctx, data)
-}
-
-func (bot) Tool(ctx types.Context, argumentsInJSON string) (string, error) {
-	return chatbot.RunTool(toolRules, ctx, argumentsInJSON)
 }
 
 func (bot) Event(ctx types.Context, param types.KV) error {
