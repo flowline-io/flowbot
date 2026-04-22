@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/agents"
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -231,91 +230,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 			if payload != nil {
 				break
-			}
-		}
-	}
-
-	// tool chat
-	if payload == nil && session == "" {
-		agent, err := agents.ReactAgent(ctx.Context(), agents.AgentModelName(agents.AgentReact), nil)
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-
-		messages, err := agents.DefaultTemplate().Format(ctx.Context(), map[string]any{
-			"content": msg.AltMessage,
-		})
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-
-		resp, err := agent.Generate(ctx.Context(), messages)
-		if err != nil {
-			flog.Error(err)
-			return
-		}
-
-		if resp != nil && resp.Content != "" {
-			payload = types.TextMsg{Text: resp.Content}
-		}
-	}
-
-	// multi-turn conversation
-	if payload == nil && session != "" {
-		list, err := store.Database.GetMessagesBySession(session)
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to get history messages: %w", err))
-			return
-		}
-
-		chatHistory := make([]*agents.Message, 0, len(list))
-		for _, item := range list {
-			content, _ := types.KV(item.Content).String("text")
-			chatHistory = append(chatHistory, &agents.Message{
-				Role:    agents.Role(item.Role),
-				Content: content,
-			})
-		}
-
-		messages, err := agents.DefaultMultiChatTemplate().Format(ctx.Context(), map[string]any{
-			"chat_history": chatHistory,
-		})
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to format message: %w", err))
-			return
-		}
-
-		llm, err := agents.ChatModel(ctx.Context(), agents.AgentModelName(agents.AgentChat))
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to get chat model: %w", err))
-			return
-		}
-
-		resp, err := agents.Generate(ctx.Context(), llm, messages)
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to generate response: %w", err))
-			return
-		}
-
-		if resp != nil && resp.Content != "" {
-			payload = types.TextMsg{Text: resp.Content}
-
-			// assistant message
-			err = store.Database.CreateMessage(model.Message{
-				Flag:          types.Id(),
-				PlatformID:    platformId,
-				PlatformMsgID: msg.MessageId,
-				Topic:         topic,
-				Role:          types.Assistant,
-				Session:       session,
-				Content:       model.JSON{"text": resp.Content},
-				State:         model.MessageCreated,
-			})
-			if err != nil {
-				flog.Error(err)
-				return
 			}
 		}
 	}
