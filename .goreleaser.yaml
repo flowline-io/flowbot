@@ -8,7 +8,7 @@
 
 version: 2
 
-project_name: flowbot-agent
+project_name: flowbot
 
 before:
   hooks:
@@ -18,7 +18,24 @@ before:
     - go generate ./...
 
 builds:
-  - main: ./cmd/agent
+  - id: flowbot-agent
+    main: ./cmd/agent
+    binary: flowbot-agent
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w -X github.com/flowline-io/flowbot/version.Buildtags={{.Version}}
+      - -s -w -X github.com/flowline-io/flowbot/version.Buildstamp={{.Date}}
+
+  - id: flowbot-cli
+    main: ./cmd/cli
+    binary: flowbot-cli
     env:
       - CGO_ENABLED=0
     goos:
