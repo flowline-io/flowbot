@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/rdb"

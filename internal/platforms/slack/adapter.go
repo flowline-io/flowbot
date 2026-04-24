@@ -62,6 +62,8 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 				result.DetailType = protocol.MessageGroupEvent
 			}
 
+			setThreadContext(messageEvent.Channel, messageEvent.ThreadTimeStamp)
+
 			result.Data = protocol.MessageEventData{
 				Self: protocol.Self{
 					Platform: ID,
@@ -104,6 +106,8 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 				result.Time = time.Now().UnixMicro()
 				result.Type = protocol.MessageEventType
 				result.DetailType = protocol.MessageDirectEvent
+				setThreadContext(callback.Channel.ID, callback.MessageTs)
+
 				result.Data = protocol.MessageEventData{
 					Self: protocol.Self{
 						Platform: ID,

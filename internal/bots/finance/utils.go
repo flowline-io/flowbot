@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/llm"
 )
 
 func classify(ctx context.Context) {

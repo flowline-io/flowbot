@@ -7,9 +7,9 @@ import (
 
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )

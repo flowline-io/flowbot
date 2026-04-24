@@ -43,7 +43,8 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 		return protocol.NewSuccessResponse(nil)
 	}
 
-	ts, err := a.postRichMessage(channel, content)
+	threadId := getThreadContext(channel)
+	ts, err := a.postRichMessage(channel, threadId, content)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to send message to %s, %w", channel, err))
 		return protocol.NewFailedResponse(protocol.ErrInternalHandler.New("send message error"))
@@ -143,10 +144,14 @@ func (a *Action) RegisterSlashCommands(_ protocol.Request) protocol.Response {
 
 // postRichMessage converts protocol.Message segments into Slack Block Kit blocks
 // and posts them. Returns the message timestamp (used as message_id on Slack).
-func (a *Action) postRichMessage(channel string, content protocol.Message) (string, error) {
+func (a *Action) postRichMessage(channel, threadId string, content protocol.Message) (string, error) {
 	msgOptions, fileIDs := a.buildMsgOptions(content)
 	if len(msgOptions) == 0 {
 		return "", fmt.Errorf("no valid message content")
+	}
+
+	if threadId != "" {
+		msgOptions = append(msgOptions, slack.MsgOptionTS(threadId))
 	}
 
 	_, ts, err := a.api.PostMessage(channel, msgOptions...)

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
