@@ -108,25 +108,27 @@ func bookmarkListCommand() *cli.Command {
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				_, _ = fmt.Printf("%-12s %-30s %-50s\n", "ID", "TITLE", "URL")
-				_, _ = fmt.Println(strings.Repeat("-", 94))
 				for _, b := range result.Bookmarks {
-					id := b.Id
-					if len(id) > 10 {
-						id = id[:8] + ".."
+					status := []string{}
+					if b.Archived {
+						status = append(status, "archived")
 					}
-					title := b.GetTitle()
-					if len(title) > 28 {
-						title = title[:25] + "..."
+					if b.Favourited {
+						status = append(status, "favourited")
 					}
-					url := ""
-					if b.Content.Url != "" {
-						url = b.Content.Url
+					if b.TaggingStatus != nil && *b.TaggingStatus != "" {
+						status = append(status, *b.TaggingStatus)
 					}
-					if len(url) > 48 {
-						url = url[:45] + "..."
+
+					statusStr := "-"
+					if len(status) > 0 {
+						statusStr = strings.Join(status, ", ")
 					}
-					_, _ = fmt.Printf("%-12s %-30s %-50s\n", id, title, url)
+
+					_, _ = fmt.Printf("[%s] %s\n", b.Id, b.GetTitle())
+					_, _ = fmt.Printf("  URL:    %s\n", b.Content.Url)
+					_, _ = fmt.Printf("  Status: %s\n", statusStr)
+					_, _ = fmt.Println()
 				}
 			}
 
