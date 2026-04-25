@@ -176,3 +176,48 @@ func (v *Kanboard) GetColumns(ctx context.Context, projectId int) (columns []typ
 	}
 	return
 }
+
+func (v *Kanboard) SearchTasks(ctx context.Context, projectId int, query string) (tasks []*Task, err error) {
+	err = v.c.CallResult(ctx, "searchTasks", types.KV{"project_id": projectId, "query": query}, &tasks)
+	if err != nil {
+		err = fmt.Errorf("failed to search tasks, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetTaskMetadata(ctx context.Context, taskId int) (metadata []TaskMetadata, err error) {
+	err = v.c.CallResult(ctx, "getTaskMetadata", types.KV{"task_id": taskId}, &metadata)
+	if err != nil {
+		err = fmt.Errorf("failed to get task metadata, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetTaskMetadataByName(ctx context.Context, taskId int, name string) (value string, err error) {
+	err = v.c.CallResult(ctx, "getTaskMetadataByName", types.KV{"task_id": taskId, "name": name}, &value)
+	if err != nil {
+		err = fmt.Errorf("failed to get task metadata by name, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) SaveTaskMetadata(ctx context.Context, taskId int, values TaskMetadata) (result bool, err error) {
+	err = v.c.CallResult(ctx, "saveTaskMetadata", types.KV{"task_id": taskId, "values": values}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to save task metadata, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) RemoveTaskMetadata(ctx context.Context, taskId int, name string) (result bool, err error) {
+	err = v.c.CallResult(ctx, "removeTaskMetadata", types.KV{"task_id": taskId, "name": name}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to remove task metadata, %w", err)
+		return
+	}
+	return
+}

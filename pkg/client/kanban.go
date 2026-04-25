@@ -211,3 +211,109 @@ func (k *KanbanClient) ListColumns(ctx context.Context, projectID int) ([]Kanban
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
+
+// SearchResult contains the result of searching kanban tasks.
+type KanbanSearchResult struct {
+	Tasks []kanboard.Task `json:"tasks"`
+}
+
+// Search searches kanban tasks by query.
+func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) ([]kanboard.Task, error) {
+	if projectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
+	}
+	if query == "" {
+		return nil, fmt.Errorf("query is required")
+	}
+
+	var result []kanboard.Task
+	path := fmt.Sprintf("/service/kanban/search?project_id=%d&query=%s", projectID, query)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// GetMetadataResult contains the result of getting task metadata.
+type KanbanGetMetadataResult struct {
+	Metadata []kanboard.TaskMetadata `json:"metadata"`
+}
+
+// GetMetadata returns all metadata for a task.
+func (k *KanbanClient) GetMetadata(ctx context.Context, taskID int) ([]kanboard.TaskMetadata, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+
+	var result []kanboard.TaskMetadata
+	path := fmt.Sprintf("/service/kanban/%d/metadata", taskID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// GetMetadataByNameResult contains the result of getting a single metadata value.
+type KanbanGetMetadataByNameResult struct {
+	Value string `json:"value"`
+}
+
+// GetMetadataByName returns a specific metadata value by name.
+func (k *KanbanClient) GetMetadataByName(ctx context.Context, taskID int, name string) (string, error) {
+	if taskID <= 0 {
+		return "", fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if name == "" {
+		return "", fmt.Errorf("name is required")
+	}
+
+	var result string
+	path := fmt.Sprintf("/service/kanban/%d/metadata/%s", taskID, name)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// SaveMetadataRequest contains the request for saving task metadata.
+type KanbanSaveMetadataRequest struct {
+	Values kanboard.TaskMetadata `json:"values"`
+}
+
+// SaveMetadataResult contains the result of saving task metadata.
+type KanbanSaveMetadataResult struct {
+	Success bool `json:"success"`
+}
+
+// SaveMetadata saves metadata for a task.
+func (k *KanbanClient) SaveMetadata(ctx context.Context, taskID int, values kanboard.TaskMetadata) (*KanbanSaveMetadataResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+
+	req := KanbanSaveMetadataRequest{Values: values}
+	var result KanbanSaveMetadataResult
+	path := fmt.Sprintf("/service/kanban/%d/metadata", taskID)
+	err := k.c.Post(ctx, path, req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RemoveMetadataResult contains the result of removing task metadata.
+type KanbanRemoveMetadataResult struct {
+	Success bool `json:"success"`
+}
+
+// RemoveMetadata removes a metadata entry from a task.
+func (k *KanbanClient) RemoveMetadata(ctx context.Context, taskID int, name string) (*KanbanRemoveMetadataResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	var result KanbanRemoveMetadataResult
+	path := fmt.Sprintf("/service/kanban/%d/metadata/%s", taskID, name)
+	err := k.c.Delete(ctx, path, nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

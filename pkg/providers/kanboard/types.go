@@ -141,3 +141,5 @@ const (
 	Active   StatusId = 1
 	Inactive StatusId = 0
 )
+
+type TaskMetadata map[string]string
