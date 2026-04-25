@@ -1,11 +1,11 @@
-package cmd
+package command
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	"github.com/flowline-io/flowbot/cmd/cli/internal/store"
+	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/urfave/cli/v3"
 )
 

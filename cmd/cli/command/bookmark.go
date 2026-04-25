@@ -1,4 +1,4 @@
-package cmd
+package command
 
 import (
 	"context"
@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/cmd/cli/internal/store"
-	"github.com/flowline-io/flowbot/cmd/cli/pkg/client"
+	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/urfave/cli/v3"
 )
 
-// BookmarkCommand returns the bookmark parent command.
 func BookmarkCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "bookmark",
@@ -47,14 +46,16 @@ func bookmarkCreateCommand() *cli.Command {
 			}
 
 			urlStr := cmd.String("url")
-			body := map[string]string{"url": urlStr}
-
-			var result bookmarkItem
-			if err := c.Post("/service/bookmark", body, &result); err != nil {
+			bookmark, err := c.Bookmark.Create(ctx, urlStr)
+			if err != nil {
 				return fmt.Errorf("create bookmark: %w", err)
 			}
 
-			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", result.Title, result.ID)
+			title := ""
+			if bookmark.Title != nil {
+				title = *bookmark.Title
+			}
+			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", title, bookmark.Id)
 			return nil
 		},
 	}
@@ -85,11 +86,12 @@ func bookmarkListCommand() *cli.Command {
 				return err
 			}
 
-			limit := int(cmd.Int("limit"))
+			query := &client.ListBookmarksQuery{
+				Limit: int(cmd.Int("limit")),
+			}
 
-			var result bookmarkListResult
-			path := fmt.Sprintf("/service/bookmark?limit=%d", limit)
-			if err := c.Get(path, &result); err != nil {
+			result, err := c.Bookmark.List(ctx, query)
+			if err != nil {
 				return fmt.Errorf("list bookmarks: %w", err)
 			}
 
@@ -109,15 +111,18 @@ func bookmarkListCommand() *cli.Command {
 				_, _ = fmt.Printf("%-12s %-30s %-50s\n", "ID", "TITLE", "URL")
 				_, _ = fmt.Println(strings.Repeat("-", 94))
 				for _, b := range result.Bookmarks {
-					id := b.ID
+					id := b.Id
 					if len(id) > 10 {
 						id = id[:8] + ".."
 					}
-					title := b.Title
+					title := b.GetTitle()
 					if len(title) > 28 {
 						title = title[:25] + "..."
 					}
-					url := b.URL
+					url := ""
+					if b.Content.Url != "" {
+						url = b.Content.Url
+					}
 					if len(url) > 48 {
 						url = url[:45] + "..."
 					}
@@ -155,29 +160,41 @@ func bookmarkGetCommand() *cli.Command {
 				return err
 			}
 
-			var result bookmarkItem
-			if err := c.Get("/service/bookmark/"+id, &result); err != nil {
+			bookmark, err := c.Bookmark.Get(ctx, id)
+			if err != nil {
 				return fmt.Errorf("get bookmark: %w", err)
 			}
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result, "", "  ")
+				data, err := json.MarshalIndent(bookmark, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmark: %w", err)
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				createdAt := result.CreatedAt
-				if t, err := time.Parse(time.RFC3339, result.CreatedAt); err == nil {
+				createdAt := bookmark.CreatedAt
+				if t, err := time.Parse(time.RFC3339, bookmark.CreatedAt); err == nil {
 					createdAt = t.Format(time.RFC3339)
 				}
-				_, _ = fmt.Printf("ID:          %s\n", result.ID)
-				_, _ = fmt.Printf("Title:       %s\n", result.Title)
-				_, _ = fmt.Printf("URL:         %s\n", result.URL)
-				_, _ = fmt.Printf("Description: %s\n", result.Description)
-				_, _ = fmt.Printf("Tags:        %v\n", result.Tags)
-				_, _ = fmt.Printf("Archived:    %v\n", result.Archived)
+				title := ""
+				if bookmark.Title != nil {
+					title = *bookmark.Title
+				}
+				description := ""
+				if bookmark.Summary != nil {
+					description = *bookmark.Summary
+				}
+				_, _ = fmt.Printf("ID:          %s\n", bookmark.Id)
+				_, _ = fmt.Printf("Title:       %s\n", title)
+				_, _ = fmt.Printf("URL:         %s\n", bookmark.Content.Url)
+				_, _ = fmt.Printf("Description: %s\n", description)
+				tagNames := make([]string, 0, len(bookmark.Tags))
+				for _, tag := range bookmark.Tags {
+					tagNames = append(tagNames, tag.Name)
+				}
+				_, _ = fmt.Printf("Tags:        %v\n", tagNames)
+				_, _ = fmt.Printf("Archived:    %v\n", bookmark.Archived)
 				_, _ = fmt.Printf("Created:     %s\n", createdAt)
 			}
 
@@ -222,9 +239,8 @@ func bookmarkDeleteCommand() *cli.Command {
 				return err
 			}
 
-			body := map[string]bool{"archived": true}
-			var result map[string]any
-			if err := c.Patch("/service/bookmark/"+id, body, &result); err != nil {
+			_, err = c.Bookmark.Archive(ctx, id)
+			if err != nil {
 				return fmt.Errorf("delete bookmark: %w", err)
 			}
 
@@ -251,21 +267,4 @@ func newBookmarkClient(cmd *cli.Command) (*client.Client, error) {
 	}
 
 	return client.NewClient(serverURL, token), nil
-}
-
-// Response types for bookmark webservice responses.
-
-type bookmarkListResult struct {
-	Bookmarks  []bookmarkItem `json:"bookmarks"`
-	NextCursor string         `json:"nextCursor"`
-}
-
-type bookmarkItem struct {
-	ID          string   `json:"id"`
-	Title       string   `json:"title"`
-	URL         string   `json:"url"`
-	Description string   `json:"description"`
-	Tags        []string `json:"tags"`
-	CreatedAt   string   `json:"createdAt"`
-	Archived    bool     `json:"archived"`
 }

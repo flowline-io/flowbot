@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/flowline-io/flowbot/cmd/cli/cmd"
+	"github.com/flowline-io/flowbot/cmd/cli/command"
 	"github.com/urfave/cli/v3"
 )
 
@@ -21,11 +21,11 @@ func main() {
 		Usage:   appUsage,
 		Version: version,
 		Commands: []*cli.Command{
-			cmd.LoginCommand(),
-			cmd.BookmarkCommand(),
-			cmd.KanbanCommand(),
-			cmd.ConfigCommand(),
-			cmd.VersionCommand(version),
+			command.LoginCommand(),
+			command.BookmarkCommand(),
+			command.KanbanCommand(),
+			command.ConfigCommand(),
+			command.VersionCommand(version),
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{

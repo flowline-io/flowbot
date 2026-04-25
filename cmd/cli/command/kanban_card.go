@@ -1,11 +1,12 @@
-package cmd
+package command
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 
-	"github.com/flowline-io/flowbot/cmd/cli/internal/store"
-	"github.com/flowline-io/flowbot/cmd/cli/pkg/client"
+	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/urfave/cli/v3"
 )
 
@@ -58,17 +59,15 @@ func kanbanCardAddCommand() *cli.Command {
 				return err
 			}
 
-			body := map[string]any{
-				"title":       cmd.String("title"),
-				"description": cmd.String("description"),
-				"project_id":  int(cmd.Int("project")),
-			}
-			if colId := int(cmd.Int("column")); colId > 0 {
-				body["column_id"] = colId
+			req := client.KanbanCreateRequest{
+				Title:       cmd.String("title"),
+				Description: cmd.String("description"),
+				ProjectID:   int(cmd.Int("project")),
+				ColumnID:    int(cmd.Int("column")),
 			}
 
-			var result kanbanCreateResult
-			if err := c.Post("/service/kanban", body, &result); err != nil {
+			result, err := c.Kanban.Create(ctx, req)
+			if err != nil {
 				return fmt.Errorf("create card: %w", err)
 			}
 
@@ -109,24 +108,28 @@ func kanbanCardMoveCommand() *cli.Command {
 				return fmt.Errorf("card ID is required")
 			}
 			cardID := cmd.Args().Get(0)
+			id, err := strconv.Atoi(cardID)
+			if err != nil {
+				return fmt.Errorf("invalid card ID: %w", err)
+			}
 
 			c, err := newKanbanCardClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			body := map[string]any{
-				"column_id":  int(cmd.Int("column")),
-				"position":   int(cmd.Int("position")),
-				"project_id": int(cmd.Int("project")),
+			req := client.KanbanMoveRequest{
+				ColumnID:  int(cmd.Int("column")),
+				Position:  int(cmd.Int("position")),
+				ProjectID: int(cmd.Int("project")),
 			}
 
-			var result kanbanMoveResult
-			if err := c.Post("/service/kanban/"+cardID+"/move", body, &result); err != nil {
+			_, err = c.Kanban.Move(ctx, id, req)
+			if err != nil {
 				return fmt.Errorf("move card: %w", err)
 			}
 
-			_, _ = fmt.Printf("Card moved: %s -> column %d\n", cardID, int(cmd.Int("column")))
+			_, _ = fmt.Printf("Card moved: %d -> column %d\n", id, req.ColumnID)
 			return nil
 		},
 	}
@@ -150,9 +153,13 @@ func kanbanCardDeleteCommand() *cli.Command {
 				return fmt.Errorf("card ID is required")
 			}
 			cardID := cmd.Args().Get(0)
+			id, err := strconv.Atoi(cardID)
+			if err != nil {
+				return fmt.Errorf("invalid card ID: %w", err)
+			}
 
 			if !cmd.Bool("yes") {
-				_, _ = fmt.Printf("Close card %s? [y/N]: ", cardID)
+				_, _ = fmt.Printf("Close card %d? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
 					return fmt.Errorf("read confirmation: %w", err)
@@ -168,12 +175,12 @@ func kanbanCardDeleteCommand() *cli.Command {
 				return err
 			}
 
-			var result kanbanDeleteResult
-			if err := c.Delete("/service/kanban/"+cardID, nil, &result); err != nil {
+			_, err = c.Kanban.Close(ctx, id)
+			if err != nil {
 				return fmt.Errorf("close card: %w", err)
 			}
 
-			_, _ = fmt.Printf("Card closed: %s\n", cardID)
+			_, _ = fmt.Printf("Card closed: %d\n", id)
 			return nil
 		},
 	}
@@ -211,19 +218,19 @@ func kanbanColumnListCommand() *cli.Command {
 
 			projectId := int(cmd.Int("project"))
 
-			var result []kanbanColumn
-			if err := c.Get(fmt.Sprintf("/service/kanban/columns?project_id=%d", projectId), &result); err != nil {
+			columns, err := c.Kanban.ListColumns(ctx, projectId)
+			if err != nil {
 				return fmt.Errorf("list columns: %w", err)
 			}
 
-			if len(result) == 0 {
+			if len(columns) == 0 {
 				_, _ = fmt.Println("No columns found")
 				return nil
 			}
 
-			_, _ = fmt.Printf("%-8s %-20s %-8s\n", "ID", "TITLE", "POSITION")
-			for _, col := range result {
-				_, _ = fmt.Printf("%-8d %-20s %-8d\n", col.ID, col.Title, col.Position)
+			_, _ = fmt.Printf("%-8s %-20s\n", "ID", "TITLE")
+			for _, col := range columns {
+				_, _ = fmt.Printf("%-8d %-20s\n", col.ID, col.Title)
 			}
 
 			return nil
@@ -248,12 +255,4 @@ func newKanbanCardClient(cmd *cli.Command) (*client.Client, error) {
 	}
 
 	return client.NewClient(serverURL, token), nil
-}
-
-// Response types for kanban card commands
-
-type kanbanColumn struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Position int    `json:"position"`
 }
