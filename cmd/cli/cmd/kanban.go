@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/cmd/cli/internal/model"
 	"github.com/flowline-io/flowbot/cmd/cli/internal/store"
-	"github.com/flowline-io/flowbot/cmd/cli/pkg/utils"
+	"github.com/flowline-io/flowbot/cmd/cli/pkg/client"
 	"github.com/urfave/cli/v3"
 )
 
@@ -17,78 +18,16 @@ func KanbanCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "kanban",
 		Usage:       "Work with kanban boards",
-		Description: "Manage kanban boards locally",
+		Description: "Manage kanban boards via Flowbot server",
 		Commands: []*cli.Command{
-			kanbanCreateCommand(),
 			kanbanListCommand(),
 			kanbanGetCommand(),
+			kanbanCreateCommand(),
 			kanbanUpdateCommand(),
 			kanbanDeleteCommand(),
+			kanbanMoveCommand(),
 			kanbanCardCommand(),
 			kanbanColumnCommand(),
-		},
-	}
-}
-
-func kanbanCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new kanban board",
-		Description: "Add a new kanban board to local storage",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "title",
-				Aliases:  []string{"t"},
-				Usage:    "Board title",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "Board description",
-			},
-			&cli.StringSliceFlag{
-				Name:    "columns",
-				Aliases: []string{"c"},
-				Usage:   "Initial columns (default: Todo, In Progress, Done)",
-				Value:   []string{"Todo", "In Progress", "Done"},
-			},
-		},
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
-
-			s, err := store.LoadKanbans(profile)
-			if err != nil {
-				return err
-			}
-
-			columns := make([]model.Column, 0)
-			for i, name := range cmd.StringSlice("columns") {
-				columns = append(columns, model.Column{
-					ID:    utils.GenerateID(),
-					Name:  name,
-					Order: i,
-					Cards: []model.Card{},
-				})
-			}
-
-			kanban := model.Kanban{
-				ID:          utils.GenerateID(),
-				Title:       cmd.String("title"),
-				Description: cmd.String("description"),
-				Columns:     columns,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
-			}
-
-			s.Kanbans = append(s.Kanbans, kanban)
-
-			if err := store.SaveKanbans(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Kanban board created: %s (%s)\n", kanban.Title, kanban.ID)
-			return nil
 		},
 	}
 }
@@ -96,8 +35,8 @@ func kanbanCreateCommand() *cli.Command {
 func kanbanListCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "list",
-		Usage:       "List all kanban boards",
-		Description: "Display all saved kanban boards",
+		Usage:       "List all kanban tasks",
+		Description: "Display kanban tasks from Flowbot server",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "output",
@@ -105,36 +44,73 @@ func kanbanListCommand() *cli.Command {
 				Usage:   "Output format (table, json)",
 				Value:   "table",
 			},
+			&cli.IntFlag{
+				Name:    "project",
+				Aliases: []string{"p"},
+				Usage:   "Project ID",
+				Value:   1,
+			},
+			&cli.StringFlag{
+				Name:    "status",
+				Aliases: []string{"s"},
+				Usage:   "Status filter (active, inactive, all)",
+				Value:   "active",
+			},
 		},
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
-
-			s, err := store.LoadKanbans(profile)
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c, err := newKanbanClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			if len(s.Kanbans) == 0 {
-				_, _ = fmt.Println("No kanban boards found")
+			projectId := int(cmd.Int("project"))
+			status := cmd.String("status")
+
+			statusId := 1
+			if status == "inactive" {
+				statusId = 0
+			}
+
+			var result []kanbanTask
+			path := fmt.Sprintf("/service/kanban?project_id=%d&status_id=%d", projectId, statusId)
+			if status == "all" {
+				path = fmt.Sprintf("/service/kanban?project_id=%d", projectId)
+			}
+
+			if err := c.Get(path, &result); err != nil {
+				return fmt.Errorf("list kanban tasks: %w", err)
+			}
+
+			if len(result) == 0 {
+				_, _ = fmt.Println("No kanban tasks found")
 				return nil
 			}
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(s.Kanbans, "", "  ")
+				data, err := json.MarshalIndent(result, "", "  ")
 				if err != nil {
-					return fmt.Errorf("marshal kanbans: %w", err)
+					return fmt.Errorf("marshal kanban tasks: %w", err)
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				_, _ = fmt.Printf("%-12s %-30s %-8s\n", "ID", "TITLE", "COLUMNS")
-				_, _ = fmt.Println(string(make([]byte, 52)))
-				for _, k := range s.Kanbans {
-					title := k.Title
+				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "COLUMN", "STATUS")
+				_, _ = fmt.Println(strings.Repeat("-", 65))
+				for _, t := range result {
+					id := strconv.Itoa(t.ID)
+					title := t.Title
 					if len(title) > 28 {
 						title = title[:25] + "..."
 					}
-					_, _ = fmt.Printf("%-12s %-30s %d\n", k.ID, title, len(k.Columns))
+					column := t.ColumnTitle
+					if len(column) > 13 {
+						column = column[:10] + "..."
+					}
+					status := "active"
+					if t.IsActive == 0 {
+						status = "closed"
+					}
+					_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", id, title, column, status)
 				}
 			}
 
@@ -146,9 +122,9 @@ func kanbanListCommand() *cli.Command {
 func kanbanGetCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "get",
-		Usage:       "Get a kanban board by ID",
+		Usage:       "Get a kanban task by ID",
 		ArgsUsage:   "<id>",
-		Description: "Display details of a specific kanban board",
+		Description: "Display details of a specific kanban task",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "output",
@@ -157,42 +133,97 @@ func kanbanGetCommand() *cli.Command {
 				Value:   "table",
 			},
 		},
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
+		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.NArg() == 0 {
-				return fmt.Errorf("kanban ID is required")
+				return fmt.Errorf("task ID is required")
 			}
 			id := cmd.Args().Get(0)
 
-			s, err := store.LoadKanbans(profile)
+			c, err := newKanbanClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			kanban := findKanbanByID(s.Kanbans, id)
-			if kanban == nil {
-				return fmt.Errorf("kanban board not found: %s", id)
+			var result kanbanTask
+			if err := c.Get("/service/kanban/"+id, &result); err != nil {
+				return fmt.Errorf("get kanban task: %w", err)
 			}
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(kanban, "", "  ")
+				data, err := json.MarshalIndent(result, "", "  ")
 				if err != nil {
-					return fmt.Errorf("marshal kanban: %w", err)
+					return fmt.Errorf("marshal kanban task: %w", err)
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				_, _ = fmt.Printf("ID:          %s\n", kanban.ID)
-				_, _ = fmt.Printf("Title:       %s\n", kanban.Title)
-				_, _ = fmt.Printf("Description: %s\n", kanban.Description)
-				_, _ = fmt.Printf("Created:     %s\n", kanban.CreatedAt.Format(time.RFC3339))
-				_, _ = fmt.Printf("Updated:     %s\n", kanban.UpdatedAt.Format(time.RFC3339))
-				_, _ = fmt.Printf("\nColumns (%d):\n", len(kanban.Columns))
-				for _, col := range kanban.Columns {
-					_, _ = fmt.Printf("  [%s] %s (%d cards)\n", col.ID, col.Name, len(col.Cards))
-				}
+				_, _ = fmt.Printf("ID:          %d\n", result.ID)
+				_, _ = fmt.Printf("Title:       %s\n", result.Title)
+				_, _ = fmt.Printf("Description: %s\n", result.Description)
+				_, _ = fmt.Printf("Project:     %s\n", result.ProjectName)
+				_, _ = fmt.Printf("Column:      %s\n", result.ColumnTitle)
+				_, _ = fmt.Printf("Priority:    %d\n", result.Priority)
+				_, _ = fmt.Printf("Status:      %s\n", map[int]string{0: "inactive", 1: "active"}[result.IsActive])
+				_, _ = fmt.Printf("Created:     %s\n", formatTimestamp(result.DateCreation))
+				_, _ = fmt.Printf("Updated:     %s\n", formatTimestamp(result.DateModification))
 			}
 
+			return nil
+		},
+	}
+}
+
+func kanbanCreateCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "create",
+		Usage:       "Create a new kanban task",
+		Description: "Add a new task to the kanban board",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "title",
+				Aliases:  []string{"t"},
+				Usage:    "Task title",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:    "description",
+				Aliases: []string{"d"},
+				Usage:   "Task description",
+			},
+			&cli.IntFlag{
+				Name:    "project",
+				Aliases: []string{"p"},
+				Usage:   "Project ID",
+				Value:   1,
+			},
+			&cli.IntFlag{
+				Name:    "column",
+				Aliases: []string{"c"},
+				Usage:   "Column ID",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c, err := newKanbanClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			body := map[string]any{
+				"title":       cmd.String("title"),
+				"description": cmd.String("description"),
+				"project_id":  int(cmd.Int("project")),
+			}
+			if colId := int(cmd.Int("column")); colId > 0 {
+				body["column_id"] = colId
+			}
+
+			var result kanbanCreateResult
+			if err := c.Post("/service/kanban", body, &result); err != nil {
+				return fmt.Errorf("create kanban task: %w", err)
+			}
+
+			_, _ = fmt.Printf("Task created: ID=%d\n", result.ID)
 			return nil
 		},
 	}
@@ -201,9 +232,9 @@ func kanbanGetCommand() *cli.Command {
 func kanbanUpdateCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "update",
-		Usage:       "Update a kanban board",
+		Usage:       "Update a kanban task",
 		ArgsUsage:   "<id>",
-		Description: "Modify an existing kanban board",
+		Description: "Modify an existing kanban task",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "title",
@@ -216,42 +247,31 @@ func kanbanUpdateCommand() *cli.Command {
 				Usage:   "New description",
 			},
 		},
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
+		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.NArg() == 0 {
-				return fmt.Errorf("kanban ID is required")
+				return fmt.Errorf("task ID is required")
 			}
 			id := cmd.Args().Get(0)
 
-			s, err := store.LoadKanbans(profile)
+			c, err := newKanbanClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			found := false
-			for i := range s.Kanbans {
-				if s.Kanbans[i].ID == id {
-					if cmd.String("title") != "" {
-						s.Kanbans[i].Title = cmd.String("title")
-					}
-					if cmd.String("description") != "" {
-						s.Kanbans[i].Description = cmd.String("description")
-					}
-					s.Kanbans[i].UpdatedAt = time.Now()
-					found = true
-					break
-				}
+			body := map[string]string{}
+			if title := cmd.String("title"); title != "" {
+				body["title"] = title
+			}
+			if desc := cmd.String("description"); desc != "" {
+				body["description"] = desc
 			}
 
-			if !found {
-				return fmt.Errorf("kanban board not found: %s", id)
+			var result kanbanUpdateResult
+			if err := c.Patch("/service/kanban/"+id, body, &result); err != nil {
+				return fmt.Errorf("update kanban task: %w", err)
 			}
 
-			if err := store.SaveKanbans(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Kanban board updated: %s\n", id)
+			_, _ = fmt.Printf("Task updated: %s\n", id)
 			return nil
 		},
 	}
@@ -260,9 +280,9 @@ func kanbanUpdateCommand() *cli.Command {
 func kanbanDeleteCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "delete",
-		Usage:       "Delete a kanban board",
+		Usage:       "Close a kanban task",
 		ArgsUsage:   "<id>",
-		Description: "Remove a kanban board by ID",
+		Description: "Close a task by ID",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "yes",
@@ -270,15 +290,14 @@ func kanbanDeleteCommand() *cli.Command {
 				Usage:   "Skip confirmation",
 			},
 		},
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
+		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.NArg() == 0 {
-				return fmt.Errorf("kanban ID is required")
+				return fmt.Errorf("task ID is required")
 			}
 			id := cmd.Args().Get(0)
 
 			if !cmd.Bool("yes") {
-				_, _ = fmt.Printf("Delete kanban board %s? [y/N]: ", id)
+				_, _ = fmt.Printf("Close task %s? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
 					return fmt.Errorf("read confirmation: %w", err)
@@ -289,39 +308,129 @@ func kanbanDeleteCommand() *cli.Command {
 				}
 			}
 
-			s, err := store.LoadKanbans(profile)
+			c, err := newKanbanClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			found := false
-			for i := range s.Kanbans {
-				if s.Kanbans[i].ID == id {
-					s.Kanbans = append(s.Kanbans[:i], s.Kanbans[i+1:]...)
-					found = true
-					break
-				}
+			var result kanbanDeleteResult
+			if err := c.Delete("/service/kanban/"+id, nil, &result); err != nil {
+				return fmt.Errorf("close kanban task: %w", err)
 			}
 
-			if !found {
-				return fmt.Errorf("kanban board not found: %s", id)
-			}
-
-			if err := store.SaveKanbans(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Kanban board deleted: %s\n", id)
+			_, _ = fmt.Printf("Task closed: %s\n", id)
 			return nil
 		},
 	}
 }
 
-func findKanbanByID(kanbans []model.Kanban, id string) *model.Kanban {
-	for i := range kanbans {
-		if kanbans[i].ID == id {
-			return &kanbans[i]
-		}
+func kanbanMoveCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "move",
+		Usage:       "Move a kanban task to another column",
+		ArgsUsage:   "<id>",
+		Description: "Move a task to a different column",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:     "column",
+				Aliases:  []string{"c"},
+				Usage:    "Destination column ID",
+				Required: true,
+			},
+			&cli.IntFlag{
+				Name:    "position",
+				Aliases: []string{"p"},
+				Usage:   "Position in column (0 = first)",
+				Value:   0,
+			},
+			&cli.IntFlag{
+				Name:    "project",
+				Aliases: []string{"r"},
+				Usage:   "Project ID",
+				Value:   1,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("task ID is required")
+			}
+			id := cmd.Args().Get(0)
+
+			c, err := newKanbanClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			body := map[string]any{
+				"column_id":  int(cmd.Int("column")),
+				"position":   int(cmd.Int("position")),
+				"project_id": int(cmd.Int("project")),
+			}
+
+			var result kanbanMoveResult
+			if err := c.Post("/service/kanban/"+id+"/move", body, &result); err != nil {
+				return fmt.Errorf("move kanban task: %w", err)
+			}
+
+			_, _ = fmt.Printf("Task moved: %s -> column %d\n", id, int(cmd.Int("column")))
+			return nil
+		},
 	}
-	return nil
+}
+
+func newKanbanClient(cmd *cli.Command) (*client.Client, error) {
+	profile := cmd.String("profile")
+
+	serverURL := cmd.String("server-url")
+	if serverURL == "" {
+		return nil, fmt.Errorf("server URL is required (use --server-url or FLOWBOT_SERVER_URL)")
+	}
+
+	token, err := store.LoadToken(profile)
+	if err != nil {
+		return nil, fmt.Errorf("load token: %w", err)
+	}
+	if token == "" {
+		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
+	}
+
+	return client.NewClient(serverURL, token), nil
+}
+
+func formatTimestamp(ts int) string {
+	if ts == 0 {
+		return "N/A"
+	}
+	t := time.Unix(int64(ts), 0)
+	return t.Format(time.RFC3339)
+}
+
+// Response types for kanban webservice responses
+
+type kanbanTask struct {
+	ID               int    `json:"id"`
+	Title            string `json:"title"`
+	Description      string `json:"description"`
+	ProjectName      string `json:"project_name"`
+	ColumnTitle      string `json:"column_title"`
+	Priority         int    `json:"priority"`
+	IsActive         int    `json:"is_active"`
+	DateCreation     int    `json:"date_creation"`
+	DateModification int    `json:"date_modification"`
+}
+
+type kanbanCreateResult struct {
+	ID int64 `json:"id"`
+}
+
+type kanbanUpdateResult struct {
+	Success bool `json:"success"`
+}
+
+type kanbanDeleteResult struct {
+	Success bool `json:"success"`
+}
+
+type kanbanMoveResult struct {
+	Success bool `json:"success"`
 }

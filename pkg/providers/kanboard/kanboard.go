@@ -99,3 +99,80 @@ func (v *Kanboard) GetAllTasks(ctx context.Context, projectId int, status Status
 	}
 	return
 }
+
+func (v *Kanboard) GetTask(ctx context.Context, taskId int) (task *Task, err error) {
+	err = v.c.CallResult(ctx, "getTask", types.KV{"task_id": taskId}, &task)
+	if err != nil {
+		err = fmt.Errorf("failed to get task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) UpdateTask(ctx context.Context, taskId int, task *Task) (result bool, err error) {
+	params := types.KV{"id": taskId}
+	if task.Title != "" {
+		params["title"] = task.Title
+	}
+	if task.Description != "" {
+		params["description"] = task.Description
+	}
+	err = v.c.CallResult(ctx, "updateTask", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to update task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) CloseTask(ctx context.Context, taskId int) (result bool, err error) {
+	err = v.c.CallResult(ctx, "closeTask", types.KV{"task_id": taskId}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to close task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) OpenTask(ctx context.Context, taskId int) (result bool, err error) {
+	err = v.c.CallResult(ctx, "openTask", types.KV{"task_id": taskId}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to open task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) RemoveTask(ctx context.Context, taskId int) (result bool, err error) {
+	err = v.c.CallResult(ctx, "removeTask", types.KV{"task_id": taskId}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to remove task, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) MoveTaskPosition(ctx context.Context, projectId int, taskId int, columnId int, position int, swimlaneId int) (result bool, err error) {
+	params := types.KV{
+		"project_id":  projectId,
+		"task_id":     taskId,
+		"column_id":   columnId,
+		"position":    position,
+		"swimlane_id": swimlaneId,
+	}
+	err = v.c.CallResult(ctx, "moveTaskPosition", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to move task position, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetColumns(ctx context.Context, projectId int) (columns []types.KV, err error) {
+	err = v.c.CallResult(ctx, "getColumns", types.KV{"project_id": projectId}, &columns)
+	if err != nil {
+		err = fmt.Errorf("failed to get columns, %w", err)
+		return
+	}
+	return
+}

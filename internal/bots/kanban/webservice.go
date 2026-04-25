@@ -1,0 +1,319 @@
+package kanban
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/gofiber/fiber/v3"
+)
+
+var webserviceRules = []webservice.Rule{
+	webservice.Get("/kanban", listTasks),
+	webservice.Get("/kanban/:id", getTask),
+	webservice.Post("/kanban", createTask),
+	webservice.Patch("/kanban/:id", updateTask),
+	webservice.Delete("/kanban/:id", deleteTask),
+	webservice.Post("/kanban/:id/move", moveTask),
+	webservice.Get("/kanban/columns", listColumns),
+}
+
+// list tasks
+//
+//	@Summary	List kanban tasks
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		project_id	query		int		false	"project ID"
+//	@Param		status_id	query		int		false	"status ID (1=active, 0=inactive)"
+//	@Success	200			{object}	protocol.Response{data=[]kanboard.Task}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban [get]
+func listTasks(ctx fiber.Ctx) error {
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	projectId := kanboard.DefaultProjectId
+	if v := ctx.Query("project_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			projectId = n
+		}
+	}
+
+	status := kanboard.Active
+	if v := ctx.Query("status_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			status = kanboard.StatusId(n)
+		}
+	}
+
+	tasks, err := client.GetAllTasks(ctx.RequestCtx(), projectId, status)
+	if err != nil {
+		return fmt.Errorf("failed to get tasks: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(tasks))
+}
+
+// get single task
+//
+//	@Summary	Get task by ID
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string	true	"task ID"
+//	@Success	200	{object}	protocol.Response{data=kanboard.Task}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban/{id} [get]
+func getTask(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	task, err := client.GetTask(ctx.RequestCtx(), id)
+	if err != nil {
+		return fmt.Errorf("failed to get task: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(task))
+}
+
+// create task
+//
+//	@Summary	Create a new task
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		object{title=string,description=string,project_id=int,column_id=int}	true	"task data"
+//	@Success	200		{object}	protocol.Response{data=map[string]int64}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban [post]
+func createTask(ctx fiber.Ctx) error {
+	var body struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		ProjectID   int    `json:"project_id"`
+		ColumnID    int    `json:"column_id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.New("invalid request body")
+	}
+
+	if body.Title == "" {
+		return protocol.ErrBadParam.New("title is required")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	projectId := body.ProjectID
+	if projectId == 0 {
+		projectId = kanboard.DefaultProjectId
+	}
+
+	task := &kanboard.Task{
+		Title:       body.Title,
+		Description: body.Description,
+		ProjectID:   projectId,
+		Priority:    kanboard.DefaultPriority,
+	}
+	if body.ColumnID > 0 {
+		task.ColumnID = body.ColumnID
+	}
+
+	taskId, err := client.CreateTask(ctx.RequestCtx(), task)
+	if err != nil {
+		return fmt.Errorf("failed to create task: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": taskId}))
+}
+
+// update task
+//
+//	@Summary	Update a task
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string						true	"task ID"
+//	@Param		body	body		object{title=string,description=string}	true	"task data"
+//	@Success	200		{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban/{id} [patch]
+func updateTask(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	var body struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.New("invalid request body")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	task := &kanboard.Task{
+		Title:       body.Title,
+		Description: body.Description,
+	}
+
+	result, err := client.UpdateTask(ctx.RequestCtx(), id, task)
+	if err != nil {
+		return fmt.Errorf("failed to update task: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// delete task (close)
+//
+//	@Summary	Close a task
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string	true	"task ID"
+//	@Success	200	{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban/{id} [delete]
+func deleteTask(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.CloseTask(ctx.RequestCtx(), id)
+	if err != nil {
+		return fmt.Errorf("failed to close task: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// move task to another column/position
+//
+//	@Summary	Move task to another column/position
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string	true	"task ID"
+//	@Param		body	body		object{column_id=int,position=int,swimlane_id=int,project_id=int}	true	"move parameters"
+//	@Success	200		{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban/{id}/move [post]
+func moveTask(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	taskId, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	var body struct {
+		ColumnID   int `json:"column_id"`
+		Position   int `json:"position"`
+		SwimlaneID int `json:"swimlane_id"`
+		ProjectID  int `json:"project_id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.New("invalid request body")
+	}
+
+	if body.ColumnID == 0 {
+		return protocol.ErrBadParam.New("column_id is required")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	projectId := body.ProjectID
+	if projectId == 0 {
+		projectId = kanboard.DefaultProjectId
+	}
+
+	swimlaneId := body.SwimlaneID
+	if swimlaneId == 0 {
+		swimlaneId = 1
+	}
+
+	result, err := client.MoveTaskPosition(ctx.RequestCtx(), projectId, taskId, body.ColumnID, body.Position, swimlaneId)
+	if err != nil {
+		return fmt.Errorf("failed to move task: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// list columns
+//
+//	@Summary	List kanban columns
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		project_id	query		int		false	"project ID"
+//	@Success	200			{object}	protocol.Response{data=[]map[string]any}
+//	@Security	ApiKeyAuth
+//	@Router		/kanban/columns [get]
+func listColumns(ctx fiber.Ctx) error {
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	projectId := kanboard.DefaultProjectId
+	if v := ctx.Query("project_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			projectId = n
+		}
+	}
+
+	columns, err := client.GetColumns(ctx.RequestCtx(), projectId)
+	if err != nil {
+		return fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(columns))
+}

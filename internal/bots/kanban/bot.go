@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/gofiber/fiber/v3"
 )
 
 const Name = "kanban"
@@ -63,7 +64,12 @@ func (bot) Rules() []any {
 		cronRules,
 		webhookRules,
 		eventRules,
+		webserviceRules,
 	}
+}
+
+func (bot) Webservice(app *fiber.App) {
+	chatbot.Webservice(app, Name, webserviceRules)
 }
 
 func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
