@@ -37,6 +37,12 @@ func main() {
 				Usage:   "Flowbot server URL",
 				Sources: cli.EnvVars("FLOWBOT_SERVER_URL"),
 			},
+			&cli.BoolFlag{
+				Name:    "debug",
+				Aliases: []string{"d"},
+				Usage:   "Enable debug mode (prints HTTP request/response logs)",
+				Sources: cli.EnvVars("FLOWBOT_DEBUG"),
+			},
 		},
 	}
 

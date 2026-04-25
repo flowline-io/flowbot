@@ -31,5 +31,16 @@ func NewClient(cmd *cli.Command) (*client.Client, error) {
 		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
 	}
 
-	return client.NewClient(serverURL, token), nil
+	cl := client.NewClient(serverURL, token)
+
+	debug := cmd.Bool("debug")
+	if !debug {
+		stored, _ := store.LoadDebug(profile)
+		debug = stored
+	}
+	if debug {
+		cl.SetDebug(true)
+	}
+
+	return cl, nil
 }

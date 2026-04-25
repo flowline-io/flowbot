@@ -52,6 +52,16 @@ func configGetCommand() *cli.Command {
 					}
 				}
 				_, _ = fmt.Println(val)
+			case "debug":
+				val := cmd.Bool("debug")
+				if !val {
+					stored, err := store.LoadDebug(profile)
+					if err != nil {
+						return fmt.Errorf("load debug: %w", err)
+					}
+					val = stored
+				}
+				_, _ = fmt.Println(formatBool(val))
 			case "profile":
 				val := cmd.String("profile")
 				if val == "" {
@@ -87,6 +97,12 @@ func configSetCommand() *cli.Command {
 					return fmt.Errorf("save server URL: %w", err)
 				}
 				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
+			case "debug":
+				enabled := value == "on" || value == "true" || value == "1"
+				if err := store.SaveDebug(enabled, profile); err != nil {
+					return fmt.Errorf("save debug: %w", err)
+				}
+				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, formatBool(enabled))
 			default:
 				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
 				_, _ = fmt.Println("Note: Set environment variable FLOWBOT_" + toEnvKey(key) + "=" + value)
@@ -131,6 +147,9 @@ func configListCommand() *cli.Command {
 				_, _ = fmt.Println("token: [stored]")
 			}
 
+			debug, _ := store.LoadDebug(profile)
+			_, _ = fmt.Printf("debug: %s\n", formatBool(debug))
+
 			return nil
 		},
 	}
@@ -138,6 +157,13 @@ func configListCommand() *cli.Command {
 
 func toEnvKey(key string) string {
 	return strings.ToUpper(strings.ReplaceAll(key, "-", "_"))
+}
+
+func formatBool(b bool) string {
+	if b {
+		return "on"
+	}
+	return "off"
 }
 
 // VersionCommand returns the version command

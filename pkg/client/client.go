@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -27,8 +28,9 @@ import (
 
 // Client is the main client for the Flowbot API.
 type Client struct {
-	baseURL string
-	rc      *resty.Client
+	baseURL           string
+	rc                *resty.Client
+	debugErrorHookSet bool
 
 	// Resource clients
 	Kanban   *KanbanClient
@@ -70,8 +72,20 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 }
 
 // SetDebug enables or disables debug mode for the underlying HTTP client.
+// Debug mode prints full HTTP request and response details to stderr.
+// An OnError hook is also registered to print request info on connection failures.
 func (c *Client) SetDebug(debug bool) {
 	c.rc.SetDebug(debug)
+	if debug && !c.debugErrorHookSet {
+		c.debugErrorHookSet = true
+		c.rc.OnError(func(req *resty.Request, err error) {
+			fmt.Fprintf(os.Stderr, "\n==============================================================================\n")
+			fmt.Fprintf(os.Stderr, "~~~ REQUEST (FAILED) ~~~\n")
+			fmt.Fprintf(os.Stderr, "%s  %s\n", req.Method, req.URL)
+			fmt.Fprintf(os.Stderr, "ERROR  : %v\n", err)
+			fmt.Fprintf(os.Stderr, "==============================================================================\n")
+		})
+	}
 }
 
 // Get performs a GET request and unmarshals the response data into result.
