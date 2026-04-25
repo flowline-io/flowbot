@@ -659,6 +659,7 @@ func kanbanSubtaskCommand() *cli.Command {
 			kanbanSubtaskCreateCommand(),
 			kanbanSubtaskUpdateCommand(),
 			kanbanSubtaskDeleteCommand(),
+			kanbanSubtaskTimerCommand(),
 		},
 	}
 }
@@ -1009,6 +1010,216 @@ func kanbanSubtaskDeleteCommand() *cli.Command {
 			} else {
 				_, _ = fmt.Println("Failed to delete subtask")
 			}
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskTimerCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "timer",
+		Usage:       "Manage subtask timer",
+		Description: "Check, start, stop timer and get time spent for subtasks",
+		Commands: []*cli.Command{
+			kanbanSubtaskTimerCheckCommand(),
+			kanbanSubtaskTimerStartCommand(),
+			kanbanSubtaskTimerStopCommand(),
+			kanbanSubtaskTimerSpentCommand(),
+		},
+	}
+}
+
+func kanbanSubtaskTimerCheckCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "check",
+		Usage:       "Check if timer is active",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Check if a timer is started for the given subtask and user",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			userId := int(cmd.Int("user"))
+			result, err := c.Kanban.HasSubtaskTimer(ctx, taskId, subtaskId, userId)
+			if err != nil {
+				return fmt.Errorf("check subtask timer: %w", err)
+			}
+
+			if result.Result {
+				_, _ = fmt.Println("Timer is active")
+			} else {
+				_, _ = fmt.Println("Timer is not active")
+			}
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskTimerStartCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "start",
+		Usage:       "Start subtask timer",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Start subtask timer for a user",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			userId := int(cmd.Int("user"))
+			result, err := c.Kanban.SetSubtaskStartTime(ctx, taskId, subtaskId, userId)
+			if err != nil {
+				return fmt.Errorf("start subtask timer: %w", err)
+			}
+
+			if result.Result {
+				_, _ = fmt.Println("Timer started successfully")
+			} else {
+				_, _ = fmt.Println("Failed to start timer")
+			}
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskTimerStopCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "stop",
+		Usage:       "Stop subtask timer",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Stop subtask timer for a user",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			userId := int(cmd.Int("user"))
+			result, err := c.Kanban.SetSubtaskEndTime(ctx, taskId, subtaskId, userId)
+			if err != nil {
+				return fmt.Errorf("stop subtask timer: %w", err)
+			}
+
+			if result.Result {
+				_, _ = fmt.Println("Timer stopped successfully")
+			} else {
+				_, _ = fmt.Println("Failed to stop timer")
+			}
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskTimerSpentCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "spent",
+		Usage:       "Get time spent",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Get time spent on a subtask for a user (in hours)",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			userId := int(cmd.Int("user"))
+			result, err := c.Kanban.GetSubtaskTimeSpent(ctx, taskId, subtaskId, userId)
+			if err != nil {
+				return fmt.Errorf("get subtask time spent: %w", err)
+			}
+
+			_, _ = fmt.Printf("Time spent: %.2f hours\n", result.Result)
 			return nil
 		},
 	}

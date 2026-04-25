@@ -36,6 +36,10 @@ var webserviceRules = []webservice.Rule{
 	webservice.Post("/:id/subtasks", createSubtask),
 	webservice.Patch("/:id/subtasks/:subtaskId", updateSubtask),
 	webservice.Delete("/:id/subtasks/:subtaskId", deleteSubtask),
+	webservice.Get("/:id/subtasks/:subtaskId/timer", hasSubtaskTimer),
+	webservice.Post("/:id/subtasks/:subtaskId/timer/start", setSubtaskStartTime),
+	webservice.Post("/:id/subtasks/:subtaskId/timer/stop", setSubtaskEndTime),
+	webservice.Get("/:id/subtasks/:subtaskId/timer/spent", getSubtaskTimeSpent),
 }
 
 type createTaskRequest struct {
@@ -1044,4 +1048,176 @@ func deleteSubtask(ctx fiber.Ctx) error {
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// has subtask timer
+//
+//	@Summary	Check if a timer is started for the subtask
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id			path		string	true	"task ID"
+//	@Param		subtaskId	path		string	true	"subtask ID"
+//	@Param		user_id		query		int		false	"user ID"
+//	@Success	200			{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer [get]
+func hasSubtaskTimer(ctx fiber.Ctx) error {
+	subtaskIdStr := ctx.Params("subtaskId")
+	if subtaskIdStr == "" {
+		return protocol.ErrBadParam.New("subtask_id is required")
+	}
+
+	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid subtask ID")
+	}
+
+	userId := 0
+	if v := ctx.Query("user_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			userId = n
+		}
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.HasSubtaskTimer(ctx.RequestCtx(), subtaskId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to check subtask timer: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+}
+
+// set subtask start time
+//
+//	@Summary	Start subtask timer for a user
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id			path		string	true	"task ID"
+//	@Param		subtaskId	path		string	true	"subtask ID"
+//	@Param		user_id		query		int		false	"user ID"
+//	@Success	200			{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/start [post]
+func setSubtaskStartTime(ctx fiber.Ctx) error {
+	subtaskIdStr := ctx.Params("subtaskId")
+	if subtaskIdStr == "" {
+		return protocol.ErrBadParam.New("subtask_id is required")
+	}
+
+	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid subtask ID")
+	}
+
+	userId := 0
+	if v := ctx.Query("user_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			userId = n
+		}
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.SetSubtaskStartTime(ctx.RequestCtx(), subtaskId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to start subtask timer: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+}
+
+// set subtask end time
+//
+//	@Summary	Stop subtask timer for a user
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id			path		string	true	"task ID"
+//	@Param		subtaskId	path		string	true	"subtask ID"
+//	@Param		user_id		query		int		false	"user ID"
+//	@Success	200			{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/stop [post]
+func setSubtaskEndTime(ctx fiber.Ctx) error {
+	subtaskIdStr := ctx.Params("subtaskId")
+	if subtaskIdStr == "" {
+		return protocol.ErrBadParam.New("subtask_id is required")
+	}
+
+	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid subtask ID")
+	}
+
+	userId := 0
+	if v := ctx.Query("user_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			userId = n
+		}
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.SetSubtaskEndTime(ctx.RequestCtx(), subtaskId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to stop subtask timer: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+}
+
+// get subtask time spent
+//
+//	@Summary	Get time spent on a subtask for a user
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id			path		string	true	"task ID"
+//	@Param		subtaskId	path		string	true	"subtask ID"
+//	@Param		user_id		query		int		false	"user ID"
+//	@Success	200			{object}	protocol.Response{data=map[string]float64}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/spent [get]
+func getSubtaskTimeSpent(ctx fiber.Ctx) error {
+	subtaskIdStr := ctx.Params("subtaskId")
+	if subtaskIdStr == "" {
+		return protocol.ErrBadParam.New("subtask_id is required")
+	}
+
+	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid subtask ID")
+	}
+
+	userId := 0
+	if v := ctx.Query("user_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			userId = n
+		}
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.GetSubtaskTimeSpent(ctx.RequestCtx(), subtaskId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to get subtask time spent: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]float64{"result": result}))
 }

@@ -584,3 +584,107 @@ func (k *KanbanClient) RemoveSubtask(ctx context.Context, taskID int, subtaskID 
 	}
 	return &result, nil
 }
+
+// HasSubtaskTimerResult contains the result of checking if a subtask timer is active.
+type HasSubtaskTimerResult struct {
+	Result bool `json:"result"`
+}
+
+// HasSubtaskTimer checks if a timer is started for the given subtask and user.
+func (k *KanbanClient) HasSubtaskTimer(ctx context.Context, taskID int, subtaskID int, userID int) (*HasSubtaskTimerResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result HasSubtaskTimerResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer", taskID, subtaskID)
+	if userID > 0 {
+		path = fmt.Sprintf("%s?user_id=%d", path, userID)
+	}
+	err := k.c.Get(ctx, path, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// SetSubtaskStartTimeResult contains the result of starting a subtask timer.
+type SetSubtaskStartTimeResult struct {
+	Result bool `json:"result"`
+}
+
+// SetSubtaskStartTime starts the subtask timer for a user.
+func (k *KanbanClient) SetSubtaskStartTime(ctx context.Context, taskID int, subtaskID int, userID int) (*SetSubtaskStartTimeResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result SetSubtaskStartTimeResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/start", taskID, subtaskID)
+	if userID > 0 {
+		path = fmt.Sprintf("%s?user_id=%d", path, userID)
+	}
+	err := k.c.Post(ctx, path, nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// SetSubtaskEndTimeResult contains the result of stopping a subtask timer.
+type SetSubtaskEndTimeResult struct {
+	Result bool `json:"result"`
+}
+
+// SetSubtaskEndTime stops the subtask timer for a user.
+func (k *KanbanClient) SetSubtaskEndTime(ctx context.Context, taskID int, subtaskID int, userID int) (*SetSubtaskEndTimeResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result SetSubtaskEndTimeResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/stop", taskID, subtaskID)
+	if userID > 0 {
+		path = fmt.Sprintf("%s?user_id=%d", path, userID)
+	}
+	err := k.c.Post(ctx, path, nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// GetSubtaskTimeSpentResult contains the result of getting time spent on a subtask.
+type GetSubtaskTimeSpentResult struct {
+	Result float64 `json:"result"`
+}
+
+// GetSubtaskTimeSpent gets the time spent on a subtask for a user (in hours).
+func (k *KanbanClient) GetSubtaskTimeSpent(ctx context.Context, taskID int, subtaskID int, userID int) (*GetSubtaskTimeSpentResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result GetSubtaskTimeSpentResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/spent", taskID, subtaskID)
+	if userID > 0 {
+		path = fmt.Sprintf("%s?user_id=%d", path, userID)
+	}
+	err := k.c.Get(ctx, path, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

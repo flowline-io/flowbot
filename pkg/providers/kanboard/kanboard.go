@@ -366,3 +366,55 @@ func (v *Kanboard) RemoveSubtask(ctx context.Context, subtaskId int) (result boo
 	}
 	return
 }
+
+func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+	params := []any{subtaskId}
+	if userId > 0 {
+		params = append(params, userId)
+	}
+	err = v.c.CallResult(ctx, "hasSubtaskTimer", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to check subtask timer, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+	params := []any{subtaskId}
+	if userId > 0 {
+		params = append(params, userId)
+	}
+	err = v.c.CallResult(ctx, "setSubtaskStartTime", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to start subtask timer, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+	params := []any{subtaskId}
+	if userId > 0 {
+		params = append(params, userId)
+	}
+	err = v.c.CallResult(ctx, "setSubtaskEndTime", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to stop subtask timer, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetSubtaskTimeSpent(ctx context.Context, subtaskId int, userId int) (result float64, err error) {
+	params := []any{subtaskId}
+	if userId > 0 {
+		params = append(params, userId)
+	}
+	err = v.c.CallResult(ctx, "getSubtaskTimeSpent", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to get subtask time spent, %w", err)
+		return
+	}
+	return
+}
