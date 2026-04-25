@@ -23,6 +23,7 @@ import (
 	formRule "github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
@@ -199,8 +200,19 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 
 func (c *Controller) postForm(ctx fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
+	if formId == "" {
+		return protocol.ErrBadParam.New("form_id is required")
+	}
+
 	uid := ctx.FormValue("x-uid")
+	if uid == "" {
+		return protocol.ErrBadParam.New("uid is required")
+	}
+
 	topic := ctx.FormValue("x-topic")
+	if topic == "" {
+		return protocol.ErrBadParam.New("topic is required")
+	}
 
 	formData, err := store.Database.FormGet(formId)
 	if err != nil {
@@ -327,8 +339,11 @@ func (c *Controller) agentData(ctx fiber.Ctx) error {
 	}
 
 	var data types.AgentData
-	err := sonic.Unmarshal(ctx.Body(), &data)
-	if err != nil {
+	if err := sonic.Unmarshal(ctx.Body(), &data); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if err := validate.Validate.Struct(data); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
@@ -366,6 +381,13 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 
 func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 	flag := ctx.Params("flag")
+	if flag == "" {
+		return protocol.ErrBadParam.New("flag is required")
+	}
+	if len(flag) > 100 {
+		return protocol.ErrBadParam.New("flag too long")
+	}
+
 	method := ctx.Method()
 
 	flog.Info("[webhook] incoming %s flag: %s", method, flag)
