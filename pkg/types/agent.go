@@ -18,8 +18,8 @@ const (
 )
 
 type AgentData struct {
-	Action  Action `json:"action"`
-	Version int    `json:"version"`
+	Action  Action `json:"action" validate:"required,oneof=pull collect ack online offline message"`
+	Version int    `json:"version" validate:"gte=0"`
 	Content KV     `json:"content"`
 }
 
