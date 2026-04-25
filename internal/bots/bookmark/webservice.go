@@ -11,12 +11,12 @@ import (
 )
 
 var webserviceRules = []webservice.Rule{
-	webservice.Get("/bookmark", listBookmarks),
-	webservice.Get("/bookmark/:id", getBookmark),
-	webservice.Post("/bookmark", createBookmark),
-	webservice.Patch("/bookmark/:id", updateBookmark),
-	webservice.Post("/bookmark/:id/tags", attachTags),
-	webservice.Delete("/bookmark/:id/tags", detachTags),
+	webservice.Get("/", listBookmarks),
+	webservice.Get("/:id", getBookmark),
+	webservice.Post("/", createBookmark),
+	webservice.Patch("/:id", updateBookmark),
+	webservice.Post("/:id/tags", attachTags),
+	webservice.Delete("/:id/tags", detachTags),
 }
 
 type createBookmarkRequest struct {
@@ -39,7 +39,7 @@ type tagsRequest struct {
 //	@Param		favourited	query		bool	false	"favourited only"
 //	@Success	200			{object}	protocol.Response{data=karakeep.BookmarksResponse}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark [get]
+//	@Router		/service/bookmark [get]
 func listBookmarks(ctx fiber.Ctx) error {
 	client := karakeep.GetClient()
 
@@ -76,7 +76,7 @@ func listBookmarks(ctx fiber.Ctx) error {
 //	@Param		id	path		string	true	"bookmark ID"
 //	@Success	200	{object}	protocol.Response{data=karakeep.Bookmark}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark/{id} [get]
+//	@Router		/service/bookmark/{id} [get]
 func getBookmark(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
@@ -101,7 +101,7 @@ func getBookmark(ctx fiber.Ctx) error {
 //	@Param		body	body		object{url=string}	true	"bookmark URL"
 //	@Success	200		{object}	protocol.Response{data=karakeep.Bookmark}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark [post]
+//	@Router		/service/bookmark [post]
 func createBookmark(ctx fiber.Ctx) error {
 	var body createBookmarkRequest
 	if err := ctx.Bind().Body(&body); err != nil {
@@ -131,7 +131,7 @@ func createBookmark(ctx fiber.Ctx) error {
 //	@Param		body	body		object{archived=bool}	true	"archive status"
 //	@Success	200		{object}	protocol.Response{data=karakeep.ArchiveResponse}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark/{id} [patch]
+//	@Router		/service/bookmark/{id} [patch]
 func updateBookmark(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
@@ -157,7 +157,7 @@ func updateBookmark(ctx fiber.Ctx) error {
 //	@Param		body	body		[]string	true	"tag names"
 //	@Success	200		{object}	protocol.Response{data=karakeep.AttachTagsResponse}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark/{id}/tags [post]
+//	@Router		/service/bookmark/{id}/tags [post]
 func attachTags(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
@@ -200,7 +200,7 @@ func attachTags(ctx fiber.Ctx) error {
 //	@Param		body	body		[]string	true	"tag names"
 //	@Success	200		{object}	protocol.Response{data=karakeep.DetachTagsResponse}
 //	@Security	ApiKeyAuth
-//	@Router		/bookmark/{id}/tags [delete]
+//	@Router		/service/bookmark/{id}/tags [delete]
 func detachTags(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {

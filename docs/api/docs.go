@@ -19,7 +19,119 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bookmark": {
+        "/dev/example": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "Show example",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/server/stacktrace": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "get server or goroutines stacktrace",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/server/upload": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dev"
+                ],
+                "summary": "upload PicGO upload api",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/service/bookmark": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -137,7 +249,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/bookmark/{id}": {
+        "/service/bookmark/{id}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -245,7 +357,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/bookmark/{id}/tags": {
+        "/service/bookmark/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -363,41 +475,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/dev/example": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "Show example",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/kanban": {
+        "/service/kanban": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -519,7 +597,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/kanban/columns": {
+        "/service/kanban/columns": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -570,7 +648,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/kanban/{id}": {
+        "/service/kanban/{id}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -733,7 +811,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/kanban/{id}/move": {
+        "/service/kanban/{id}/move": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -793,84 +871,6 @@ const docTemplate = `{
                                             "additionalProperties": {
                                                 "type": "boolean"
                                             }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/server/stacktrace": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "get server or goroutines stacktrace",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/server/upload": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "upload PicGO upload api",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
                                         }
                                     }
                                 }

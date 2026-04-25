@@ -236,7 +236,68 @@ info:
   title: Flowbot API
   version: "1.0"
 paths:
-  /bookmark:
+  /dev/example:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      summary: Show example
+      tags:
+      - dev
+  /server/stacktrace:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: get server or goroutines stacktrace
+      tags:
+      - dev
+  /server/upload:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.KV'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: upload PicGO upload api
+      tags:
+      - dev
+  /service/bookmark:
     get:
       consumes:
       - application/json
@@ -304,7 +365,7 @@ paths:
       summary: Create a new bookmark
       tags:
       - bookmark
-  /bookmark/{id}:
+  /service/bookmark/{id}:
     get:
       consumes:
       - application/json
@@ -366,7 +427,7 @@ paths:
       summary: Update bookmark (archive/unarchive)
       tags:
       - bookmark
-  /bookmark/{id}/tags:
+  /service/bookmark/{id}/tags:
     delete:
       consumes:
       - application/json
@@ -435,26 +496,7 @@ paths:
       summary: Attach tags to a bookmark
       tags:
       - bookmark
-  /dev/example:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
-      summary: Show example
-      tags:
-      - dev
-  /kanban:
+  /service/kanban:
     get:
       consumes:
       - application/json
@@ -525,7 +567,7 @@ paths:
       summary: Create a new task
       tags:
       - kanban
-  /kanban/{id}:
+  /service/kanban/{id}:
     delete:
       consumes:
       - application/json
@@ -619,7 +661,7 @@ paths:
       summary: Update a task
       tags:
       - kanban
-  /kanban/{id}/move:
+  /service/kanban/{id}/move:
     post:
       consumes:
       - application/json
@@ -663,7 +705,7 @@ paths:
       summary: Move task to another column/position
       tags:
       - kanban
-  /kanban/columns:
+  /service/kanban/columns:
     get:
       consumes:
       - application/json
@@ -692,48 +734,6 @@ paths:
       summary: List kanban columns
       tags:
       - kanban
-  /server/stacktrace:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: get server or goroutines stacktrace
-      tags:
-      - dev
-  /server/upload:
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: upload PicGO upload api
-      tags:
-      - dev
   /user/bookmark:
     get:
       consumes:

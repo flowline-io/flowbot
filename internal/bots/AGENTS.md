@@ -66,6 +66,41 @@ func init() {
 - Use table-driven tests with `require`/`assert`
 - Mock external dependencies
 
+## Webservice
+
+Bots can expose HTTP endpoints via `webservice.go`:
+
+```go
+var webserviceRules = []webservice.Rule{
+    webservice.Get("/", listHandler),
+    webservice.Post("/", createHandler),
+    webservice.Get("/:id", getHandler),
+}
+```
+
+Routes are automatically prefixed with `/service/{bot_name}`. For example, the bookmark bot's `/` route becomes `/service/bookmark`.
+
+### Swagger Documentation
+
+When adding Swagger comments to webservice handlers, the `@Router` path must include the full `/service/{bot_name}` prefix:
+
+```go
+// list bookmarks
+//
+//	@Summary	List bookmarks
+//	@Tags		bookmark
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response
+//	@Security	ApiKeyAuth
+//	@Router		/service/bookmark [get]
+func listBookmarks(ctx fiber.Ctx) error {
+    // handler implementation
+}
+```
+
+**Correct pattern:** `//	@Router		/service/{bot_name}/{path} [method]`
+
 ## Anti-Patterns
 
 - **Never** import bot packages directly (use registration)

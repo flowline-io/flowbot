@@ -12,13 +12,13 @@ import (
 )
 
 var webserviceRules = []webservice.Rule{
-	webservice.Get("/kanban", listTasks),
-	webservice.Get("/kanban/:id", getTask),
-	webservice.Post("/kanban", createTask),
-	webservice.Patch("/kanban/:id", updateTask),
-	webservice.Delete("/kanban/:id", deleteTask),
-	webservice.Post("/kanban/:id/move", moveTask),
-	webservice.Get("/kanban/columns", listColumns),
+	webservice.Get("/", listTasks),
+	webservice.Get("/:id", getTask),
+	webservice.Post("/", createTask),
+	webservice.Patch("/:id", updateTask),
+	webservice.Delete("/:id", deleteTask),
+	webservice.Post("/:id/move", moveTask),
+	webservice.Get("/columns", listColumns),
 }
 
 type createTaskRequest struct {
@@ -50,7 +50,7 @@ type moveTaskRequest struct {
 //	@Param		status_id	query		int	false	"status ID (1=active, 0=inactive)"
 //	@Success	200			{object}	protocol.Response{data=[]kanboard.Task}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban [get]
+//	@Router		/service/kanban [get]
 func listTasks(ctx fiber.Ctx) error {
 	client, err := kanboard.GetClient()
 	if err != nil {
@@ -88,7 +88,7 @@ func listTasks(ctx fiber.Ctx) error {
 //	@Param		id	path		string	true	"task ID"
 //	@Success	200	{object}	protocol.Response{data=kanboard.Task}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban/{id} [get]
+//	@Router		/service/kanban/{id} [get]
 func getTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
@@ -122,7 +122,7 @@ func getTask(ctx fiber.Ctx) error {
 //	@Param		body	body		object{title=string,description=string,project_id=int,column_id=int}	true	"task data"
 //	@Success	200		{object}	protocol.Response{data=map[string]int64}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban [post]
+//	@Router		/service/kanban [post]
 func createTask(ctx fiber.Ctx) error {
 	var body createTaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
@@ -171,7 +171,7 @@ func createTask(ctx fiber.Ctx) error {
 //	@Param		body	body		object{title=string,description=string}	true	"task data"
 //	@Success	200		{object}	protocol.Response{data=map[string]bool}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban/{id} [patch]
+//	@Router		/service/kanban/{id} [patch]
 func updateTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
@@ -219,7 +219,7 @@ func updateTask(ctx fiber.Ctx) error {
 //	@Param		id	path		string	true	"task ID"
 //	@Success	200	{object}	protocol.Response{data=map[string]bool}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban/{id} [delete]
+//	@Router		/service/kanban/{id} [delete]
 func deleteTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
@@ -254,7 +254,7 @@ func deleteTask(ctx fiber.Ctx) error {
 //	@Param		body	body		object{column_id=int,position=int,swimlane_id=int,project_id=int}	true	"move parameters"
 //	@Success	200		{object}	protocol.Response{data=map[string]bool}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban/{id}/move [post]
+//	@Router		/service/kanban/{id}/move [post]
 func moveTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
@@ -307,7 +307,7 @@ func moveTask(ctx fiber.Ctx) error {
 //	@Param		project_id	query		int	false	"project ID"
 //	@Success	200			{object}	protocol.Response{data=[]map[string]any}
 //	@Security	ApiKeyAuth
-//	@Router		/kanban/columns [get]
+//	@Router		/service/kanban/columns [get]
 func listColumns(ctx fiber.Ctx) error {
 	client, err := kanboard.GetClient()
 	if err != nil {
