@@ -173,12 +173,10 @@ func TestFlowbot(t *testing.T) {
 		URL:         "https://flowbot.example.com",
 		ChannelPath: "/channels",
 		Language:    "en",
-		MCPToken:    "token123",
 	}
 	assert.Equal(t, "https://flowbot.example.com", flowbot.URL)
 	assert.Equal(t, "/channels", flowbot.ChannelPath)
 	assert.Equal(t, "en", flowbot.Language)
-	assert.Equal(t, "token123", flowbot.MCPToken)
 }
 
 func TestAlarm(t *testing.T) {
