@@ -222,6 +222,47 @@ func TestBookmarksQuery_WithValues(t *testing.T) {
 	assert.Equal(t, "abc", q.Cursor)
 }
 
+func TestSearchBookmarksQuery_Defaults(t *testing.T) {
+	q := SearchBookmarksQuery{}
+	assert.Empty(t, q.Q)
+	assert.Empty(t, q.SortOrder)
+	assert.Equal(t, 0, q.Limit)
+	assert.Empty(t, q.Cursor)
+	assert.False(t, q.IncludeContent)
+}
+
+func TestSearchBookmarksQuery_WithValues(t *testing.T) {
+	q := SearchBookmarksQuery{
+		Q:              "golang tutorials",
+		SortOrder:      "relevance",
+		Limit:          20,
+		Cursor:         "cursor123",
+		IncludeContent: true,
+	}
+	assert.Equal(t, "golang tutorials", q.Q)
+	assert.Equal(t, "relevance", q.SortOrder)
+	assert.Equal(t, 20, q.Limit)
+	assert.Equal(t, "cursor123", q.Cursor)
+	assert.True(t, q.IncludeContent)
+}
+
+func TestCheckUrlResponse_Unmarshal_WithBookmarkId(t *testing.T) {
+	data := `{"bookmarkId": "abc123"}`
+	var resp CheckUrlResponse
+	err := json.Unmarshal([]byte(data), &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.BookmarkId)
+	assert.Equal(t, "abc123", *resp.BookmarkId)
+}
+
+func TestCheckUrlResponse_Unmarshal_NotFound(t *testing.T) {
+	data := `{"bookmarkId": null}`
+	var resp CheckUrlResponse
+	err := json.Unmarshal([]byte(data), &resp)
+	require.NoError(t, err)
+	assert.Nil(t, resp.BookmarkId)
+}
+
 func TestBookmarkTagsInner_Unmarshal(t *testing.T) {
 	data := `{"id":"t1","name":"go","attachedBy":"ai"}`
 	var tag BookmarkTagsInner

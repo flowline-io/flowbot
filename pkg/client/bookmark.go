@@ -157,3 +157,81 @@ func (b *BookmarkClient) DetachTags(ctx context.Context, id string, tags []strin
 	}
 	return &result, nil
 }
+
+// CheckUrlResult contains the result of checking if a URL exists.
+type CheckUrlResult struct {
+	BookmarkId *string `json:"bookmarkId"`
+}
+
+// CheckUrl checks if a URL is already bookmarked.
+func (b *BookmarkClient) CheckUrl(ctx context.Context, url string) (*CheckUrlResult, error) {
+	if _, err := validate.ValidateVar(url, validate.TagURL); err != nil {
+		return nil, fmt.Errorf("invalid url: %w", err)
+	}
+
+	var result CheckUrlResult
+	path := fmt.Sprintf("/service/bookmark/check-url?url=%s", url)
+	err := b.c.Get(ctx, path, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// SearchBookmarksQuery contains query parameters for searching bookmarks.
+type SearchBookmarksQuery struct {
+	Q              string
+	SortOrder      string
+	Limit          int
+	Cursor         string
+	IncludeContent bool
+}
+
+// Search searches bookmarks with the given query.
+func (b *BookmarkClient) Search(ctx context.Context, query *SearchBookmarksQuery) (*karakeep.BookmarksResponse, error) {
+	if query != nil {
+		if err := validateSearchBookmarksQuery(query); err != nil {
+			return nil, err
+		}
+	}
+
+	path := "/service/bookmark/search"
+	if query != nil {
+		path = fmt.Sprintf("/service/bookmark/search?q=%s", query.Q)
+		if query.SortOrder != "" {
+			path += fmt.Sprintf("&sortOrder=%s", query.SortOrder)
+		}
+		if query.Limit > 0 {
+			path += fmt.Sprintf("&limit=%d", query.Limit)
+		}
+		if query.Cursor != "" {
+			path += fmt.Sprintf("&cursor=%s", query.Cursor)
+		}
+		if query.IncludeContent {
+			path += "&includeContent=true"
+		}
+	}
+
+	var result karakeep.BookmarksResponse
+	err := b.c.Get(ctx, path, &result)
+	return &result, err
+}
+
+func validateSearchBookmarksQuery(query *SearchBookmarksQuery) error {
+	if query.Q == "" {
+		return fmt.Errorf("search query is required")
+	}
+	if len(query.Q) > validate.QueryMaxLen {
+		return fmt.Errorf("query exceeds maximum length of %d", validate.QueryMaxLen)
+	}
+	if query.Limit < 0 {
+		return fmt.Errorf("limit must be non-negative, got %d", query.Limit)
+	}
+	if query.Limit > validate.MaxSearchLimit {
+		return fmt.Errorf("limit exceeds maximum of %d", validate.MaxSearchLimit)
+	}
+	if len(query.Cursor) > validate.QueryMaxLen {
+		return fmt.Errorf("cursor exceeds maximum length of %d", validate.QueryMaxLen)
+	}
+	return nil
+}

@@ -13,6 +13,8 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/", listBookmarks),
+	webservice.Get("/check-url", checkUrlExists),
+	webservice.Get("/search", searchBookmarks),
 	webservice.Get("/:id", getBookmark),
 	webservice.Post("/", createBookmark),
 	webservice.Patch("/:id", updateBookmark),
@@ -65,6 +67,77 @@ func listBookmarks(ctx fiber.Ctx) error {
 	resp, err := client.GetAllBookmarks(query)
 	if err != nil {
 		return fmt.Errorf("failed to get bookmarks: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(resp))
+}
+
+// check if URL exists in bookmarks
+//
+//	@Summary	Check if URL exists in bookmarks
+//	@Tags		bookmark
+//	@Accept		json
+//	@Produce	json
+//	@Param		url	query		string	true	"URL to check"
+//	@Success	200	{object}	protocol.Response{data=karakeep.CheckUrlResponse}
+//	@Security	ApiKeyAuth
+//	@Router		/service/bookmark/check-url [get]
+func checkUrlExists(ctx fiber.Ctx) error {
+	url := ctx.Query("url")
+	if url == "" {
+		return protocol.ErrBadParam.New("url is required")
+	}
+
+	client := karakeep.GetClient()
+	bookmarkId, err := client.CheckUrlExists(url)
+	if err != nil {
+		return fmt.Errorf("failed to check URL: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(karakeep.CheckUrlResponse{BookmarkId: bookmarkId}))
+}
+
+// search bookmarks
+//
+//	@Summary	Search bookmarks
+//	@Tags		bookmark
+//	@Accept		json
+//	@Produce	json
+//	@Param		q				query		string	true	"search query"
+//	@Param		sortOrder		query		string	false	"sort order (asc, desc, relevance)"
+//	@Param		limit			query		int		false	"page size"
+//	@Param		cursor			query		string	false	"pagination cursor"
+//	@Param		includeContent	query		bool	false	"include full content"
+//	@Success	200				{object}	protocol.Response{data=karakeep.BookmarksResponse}
+//	@Security	ApiKeyAuth
+//	@Router		/service/bookmark/search [get]
+func searchBookmarks(ctx fiber.Ctx) error {
+	client := karakeep.GetClient()
+
+	query := &karakeep.SearchBookmarksQuery{}
+	if v := ctx.Query("q"); v != "" {
+		query.Q = v
+	}
+	if v := ctx.Query("sortOrder"); v != "" {
+		query.SortOrder = v
+	}
+	if v := ctx.Query("limit"); v != "" {
+		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				query.Limit = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		query.Cursor = v
+	}
+	if v := ctx.Query("includeContent"); v == "true" {
+		query.IncludeContent = true
+	}
+
+	resp, err := client.SearchBookmarks(query)
+	if err != nil {
+		return fmt.Errorf("failed to search bookmarks: %w", err)
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(resp))

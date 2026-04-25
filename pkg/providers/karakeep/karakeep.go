@@ -167,3 +167,51 @@ func (i *Karakeep) GetBookmark(id string) (*Bookmark, error) {
 	result := resp.Result().(*Bookmark)
 	return result, nil
 }
+
+func (i *Karakeep) CheckUrlExists(url string) (*string, error) {
+	resp, err := i.c.R().
+		SetResult(&CheckUrlResponse{}).
+		SetQueryParam("url", url).
+		Get("/bookmarks/check-url")
+	if err != nil {
+		return nil, fmt.Errorf("failed to check URL existence: %w", err)
+	}
+
+	result := resp.Result().(*CheckUrlResponse)
+	return result.BookmarkId, nil
+}
+
+func (i *Karakeep) SearchBookmarks(query *SearchBookmarksQuery) (*BookmarksResponse, error) {
+	request := i.c.R().SetResult(&BookmarksResponse{})
+
+	if query == nil {
+		query = &SearchBookmarksQuery{}
+	}
+
+	if query.Q != "" {
+		request.SetQueryParam("q", query.Q)
+	}
+	if query.SortOrder != "" {
+		request.SetQueryParam("sortOrder", query.SortOrder)
+	}
+	if query.Limit > 0 {
+		request.SetQueryParam("limit", fmt.Sprintf("%d", query.Limit))
+	}
+	if query.Cursor != "" {
+		request.SetQueryParam("cursor", query.Cursor)
+	}
+	if query.IncludeContent {
+		request.SetQueryParam("includeContent", "true")
+	}
+
+	resp, err := request.Get("/bookmarks/search")
+	if err != nil {
+		return nil, fmt.Errorf("failed to search bookmarks: %w", err)
+	}
+
+	result := resp.Result().(*BookmarksResponse)
+	if result == nil {
+		result = &BookmarksResponse{Bookmarks: make([]Bookmark, 0)}
+	}
+	return result, nil
+}

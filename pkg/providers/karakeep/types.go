@@ -25,6 +25,10 @@ type ArchiveResponse struct {
 	Archived bool `json:"archived"`
 }
 
+type CheckUrlResponse struct {
+	BookmarkId *string `json:"bookmarkId"`
+}
+
 type BookmarkTagRequest struct {
 	TagName string `json:"tag_name"`
 }
@@ -110,4 +114,12 @@ type BookmarksQuery struct {
 	Archived   bool   `json:"archived"`
 	Favourited bool   `json:"favourited"`
 	Cursor     string `json:"cursor"`
+}
+
+type SearchBookmarksQuery struct {
+	Q              string `json:"q"`
+	SortOrder      string `json:"sortOrder"`
+	Limit          int    `json:"limit"`
+	Cursor         string `json:"cursor"`
+	IncludeContent bool   `json:"includeContent"`
 }
