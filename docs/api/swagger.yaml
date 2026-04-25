@@ -1,5 +1,200 @@
 basePath: /service
 definitions:
+  kanboard.Task:
+    properties:
+      assignee_name: {}
+      assignee_username:
+        type: string
+      category_description: {}
+      category_id:
+        type: integer
+      category_name: {}
+      color_id:
+        type: string
+      column_id:
+        type: integer
+      column_position:
+        type: integer
+      column_title:
+        type: string
+      creator_id:
+        type: integer
+      creator_name: {}
+      creator_username:
+        type: string
+      date_completed: {}
+      date_creation:
+        type: integer
+      date_due:
+        type: integer
+      date_modification:
+        type: integer
+      date_moved:
+        type: integer
+      date_started:
+        type: integer
+      description:
+        type: string
+      external_provider: {}
+      external_uri: {}
+      id:
+        type: integer
+      is_active:
+        type: integer
+      owner_id:
+        type: integer
+      position:
+        type: integer
+      priority:
+        type: integer
+      project_id:
+        type: integer
+      project_name:
+        type: string
+      recurrence_basedate:
+        type: integer
+      recurrence_child: {}
+      recurrence_factor:
+        type: integer
+      recurrence_parent: {}
+      recurrence_status:
+        type: integer
+      recurrence_timeframe: {}
+      recurrence_trigger:
+        type: integer
+      reference:
+        type: string
+      score:
+        type: integer
+      swimlane_id:
+        type: integer
+      swimlane_name:
+        type: string
+      tags:
+        items: {}
+        type: array
+      time_estimated: {}
+      time_spent: {}
+      title:
+        type: string
+    type: object
+  karakeep.ArchiveResponse:
+    properties:
+      archived:
+        type: boolean
+    type: object
+  karakeep.AttachTagsResponse:
+    properties:
+      attached:
+        items:
+          type: string
+        type: array
+    type: object
+  karakeep.Bookmark:
+    properties:
+      archived:
+        type: boolean
+      assets:
+        items:
+          $ref: "#/definitions/karakeep.BookmarksBookmarkIdAssets"
+        type: array
+      content:
+        $ref: "#/definitions/karakeep.BookmarkContent"
+      createdAt:
+        type: string
+      favourited:
+        type: boolean
+      id:
+        type: string
+      modifiedAt:
+        type: string
+      note:
+        type: string
+      source:
+        type: string
+      summarizationStatus:
+        description: |-
+          summarization status was added in API responses starting
+          with the new /bookmarks/:id endpoint and is not returned
+          by the older list call.  Use a pointer to distinguish
+          missing values.
+        type: string
+      summary:
+        type: string
+      taggingStatus:
+        type: string
+      tags:
+        items:
+          $ref: "#/definitions/karakeep.BookmarkTagsInner"
+        type: array
+      title:
+        type: string
+      userId:
+        type: string
+    type: object
+  karakeep.BookmarkContent:
+    properties:
+      crawledAt:
+        type: string
+      description:
+        type: string
+      favicon:
+        type: string
+      fullPageArchiveAssetId:
+        type: string
+      htmlContent:
+        type: string
+      imageAssetId:
+        type: string
+      imageUrl:
+        type: string
+      precrawledArchiveAssetId:
+        type: string
+      screenshotAssetId:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      url:
+        type: string
+      videoAssetId:
+        type: string
+    type: object
+  karakeep.BookmarkTagsInner:
+    properties:
+      attachedBy:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  karakeep.BookmarksBookmarkIdAssets:
+    properties:
+      assetType:
+        type: string
+      fileName:
+        type: string
+      id:
+        type: string
+    type: object
+  karakeep.BookmarksResponse:
+    properties:
+      bookmarks:
+        items:
+          $ref: "#/definitions/karakeep.Bookmark"
+        type: array
+      nextCursor:
+        type: string
+    type: object
+  karakeep.DetachTagsResponse:
+    properties:
+      detached:
+        items:
+          type: string
+        type: array
+    type: object
   protocol.Response:
     properties:
       data:
@@ -10,24 +205,25 @@ definitions:
           or an empty string when it succeeds.
         type: string
       retcode:
-        description: The return code, which must conform to the return code rules
+        description:
+          The return code, which must conform to the return code rules
           defined later on this page
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/protocol.ResponseStatus'
+          - $ref: "#/definitions/protocol.ResponseStatus"
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
     type: object
   protocol.ResponseStatus:
     enum:
-    - ok
-    - failed
+      - ok
+      - failed
     type: string
     x-enum-varnames:
-    - Success
-    - Failed
+      - Success
+      - Failed
   types.KV:
     additionalProperties: {}
     type: object
@@ -41,195 +237,590 @@ info:
   title: Flowbot API
   version: "1.0"
 paths:
+  /bookmark:
+    get:
+      consumes:
+        - application/json
+      parameters:
+        - description: page size
+          in: query
+          name: limit
+          type: integer
+        - description: pagination cursor
+          in: query
+          name: cursor
+          type: string
+        - description: include archived
+          in: query
+          name: archived
+          type: boolean
+        - description: favourited only
+          in: query
+          name: favourited
+          type: boolean
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.BookmarksResponse"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: List bookmarks
+      tags:
+        - bookmark
+    post:
+      consumes:
+        - application/json
+      parameters:
+        - description: bookmark URL
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              url:
+                type: string
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.Bookmark"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Create a new bookmark
+      tags:
+        - bookmark
+  /bookmark/{id}:
+    get:
+      consumes:
+        - application/json
+      parameters:
+        - description: bookmark ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.Bookmark"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Get bookmark by ID
+      tags:
+        - bookmark
+    patch:
+      consumes:
+        - application/json
+      parameters:
+        - description: bookmark ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: archive status
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              archived:
+                type: boolean
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.ArchiveResponse"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Update bookmark (archive/unarchive)
+      tags:
+        - bookmark
+  /bookmark/{id}/tags:
+    delete:
+      consumes:
+        - application/json
+      parameters:
+        - description: bookmark ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: tag names
+          in: body
+          name: body
+          required: true
+          schema:
+            items:
+              type: string
+            type: array
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.DetachTagsResponse"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Detach tags from a bookmark
+      tags:
+        - bookmark
+    post:
+      consumes:
+        - application/json
+      parameters:
+        - description: bookmark ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: tag names
+          in: body
+          name: body
+          required: true
+          schema:
+            items:
+              type: string
+            type: array
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/karakeep.AttachTagsResponse"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Attach tags to a bookmark
+      tags:
+        - bookmark
   /dev/example:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       summary: Show example
       tags:
-      - dev
-  /search/autocomplete:
+        - dev
+  /kanban:
     get:
       consumes:
-      - application/json
+        - application/json
+      parameters:
+        - description: project ID
+          in: query
+          name: project_id
+          type: integer
+        - description: status ID (1=active, 0=inactive)
+          in: query
+          name: status_id
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      $ref: "#/definitions/kanboard.Task"
+                    type: array
+                type: object
       security:
-      - ApiKeyAuth: []
-      summary: search autocomplete
+        - ApiKeyAuth: []
+      summary: List kanban tasks
       tags:
-      - search
-  /search/query:
-    get:
+        - kanban
+    post:
       consumes:
-      - application/json
+        - application/json
+      parameters:
+        - description: task data
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              column_id:
+                type: integer
+              description:
+                type: string
+              project_id:
+                type: integer
+              title:
+                type: string
+            type: object
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    additionalProperties:
+                      format: int64
+                      type: integer
+                    type: object
+                type: object
       security:
-      - ApiKeyAuth: []
-      summary: search everything
+        - ApiKeyAuth: []
+      summary: Create a new task
       tags:
-      - search
+        - kanban
+  /kanban/{id}:
+    delete:
+      consumes:
+        - application/json
+      parameters:
+        - description: task ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    additionalProperties:
+                      type: boolean
+                    type: object
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Close a task
+      tags:
+        - kanban
+    get:
+      consumes:
+        - application/json
+      parameters:
+        - description: task ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/kanboard.Task"
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Get task by ID
+      tags:
+        - kanban
+    patch:
+      consumes:
+        - application/json
+      parameters:
+        - description: task ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: task data
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              description:
+                type: string
+              title:
+                type: string
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    additionalProperties:
+                      type: boolean
+                    type: object
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Update a task
+      tags:
+        - kanban
+  /kanban/{id}/move:
+    post:
+      consumes:
+        - application/json
+      parameters:
+        - description: task ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: move parameters
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              column_id:
+                type: integer
+              position:
+                type: integer
+              project_id:
+                type: integer
+              swimlane_id:
+                type: integer
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    additionalProperties:
+                      type: boolean
+                    type: object
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: Move task to another column/position
+      tags:
+        - kanban
+  /kanban/columns:
+    get:
+      consumes:
+        - application/json
+      parameters:
+        - description: project ID
+          in: query
+          name: project_id
+          type: integer
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    items:
+                      additionalProperties: true
+                      type: object
+                    type: array
+                type: object
+      security:
+        - ApiKeyAuth: []
+      summary: List kanban columns
+      tags:
+        - kanban
   /server/stacktrace:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get server or goroutines stacktrace
       tags:
-      - dev
+        - dev
   /server/upload:
     post:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: upload PicGO upload api
       tags:
-      - dev
+        - dev
   /user/bookmark:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user bookmark list
       tags:
-      - user
+        - user
   /user/dashboard:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show dashboard
       tags:
-      - user
+        - user
   /user/kanban:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: get user kanban list
       tags:
-      - user
+        - user
   /user/metrics:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/types.KV'
-              type: object
+              - $ref: "#/definitions/protocol.Response"
+              - properties:
+                  data:
+                    $ref: "#/definitions/types.KV"
+                type: object
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Show metrics
       tags:
-      - user
+        - user
 schemes:
-- http
+  - http
 securityDefinitions:
   ApiKeyAuth:
     description: access token

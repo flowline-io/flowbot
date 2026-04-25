@@ -46,8 +46,8 @@ type moveTaskRequest struct {
 //	@Tags		kanban
 //	@Accept		json
 //	@Produce	json
-//	@Param		project_id	query		int		false	"project ID"
-//	@Param		status_id	query		int		false	"status ID (1=active, 0=inactive)"
+//	@Param		project_id	query		int	false	"project ID"
+//	@Param		status_id	query		int	false	"status ID (1=active, 0=inactive)"
 //	@Success	200			{object}	protocol.Response{data=[]kanboard.Task}
 //	@Security	ApiKeyAuth
 //	@Router		/kanban [get]
@@ -250,7 +250,7 @@ func deleteTask(ctx fiber.Ctx) error {
 //	@Tags		kanban
 //	@Accept		json
 //	@Produce	json
-//	@Param		id		path		string	true	"task ID"
+//	@Param		id		path		string																true	"task ID"
 //	@Param		body	body		object{column_id=int,position=int,swimlane_id=int,project_id=int}	true	"move parameters"
 //	@Success	200		{object}	protocol.Response{data=map[string]bool}
 //	@Security	ApiKeyAuth
@@ -304,7 +304,7 @@ func moveTask(ctx fiber.Ctx) error {
 //	@Tags		kanban
 //	@Accept		json
 //	@Produce	json
-//	@Param		project_id	query		int		false	"project ID"
+//	@Param		project_id	query		int	false	"project ID"
 //	@Success	200			{object}	protocol.Response{data=[]map[string]any}
 //	@Security	ApiKeyAuth
 //	@Router		/kanban/columns [get]

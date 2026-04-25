@@ -65,18 +65,18 @@ X-AccessToken: <your-token>
 
 ### Server Routes
 
-| Route                    | Method | Description                        |
-| ------------------------ | ------ | ---------------------------------- |
-| `/livez`                 | GET    | Liveness probe                     |
-| `/readyz`                | GET    | Readiness probe                    |
-| `/startupz`              | GET    | Startup probe                      |
-| `/metrics`               | GET    | Prometheus metrics                 |
-| `/oauth/:provider/:flag` | ALL    | OAuth callbacks                    |
-| `/webhook/:flag`         | ALL    | Webhook handler                    |
-| `/chatbot/:platform`     | ALL    | Platform callbacks                 |
-| `/form`                  | POST   | Form submissions                   |
-| `/p/:id`                 | GET    | Page rendering                     |
-| `/agent`                 | POST   | Agent data endpoint                |
+| Route                    | Method | Description         |
+| ------------------------ | ------ | ------------------- |
+| `/livez`                 | GET    | Liveness probe      |
+| `/readyz`                | GET    | Readiness probe     |
+| `/startupz`              | GET    | Startup probe       |
+| `/metrics`               | GET    | Prometheus metrics  |
+| `/oauth/:provider/:flag` | ALL    | OAuth callbacks     |
+| `/webhook/:flag`         | ALL    | Webhook handler     |
+| `/chatbot/:platform`     | ALL    | Platform callbacks  |
+| `/form`                  | POST   | Form submissions    |
+| `/p/:id`                 | GET    | Page rendering      |
+| `/agent`                 | POST   | Agent data endpoint |
 
 ### Admin PWA API
 

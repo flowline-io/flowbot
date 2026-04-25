@@ -76,42 +76,42 @@ type StacktraceResult struct {
 
 // Process contains process-level information.
 type Process struct {
-	Name           string  `json:"name"`
-	PID            int     `json:"pid"`
-	CreateTime     string  `json:"create_time"`
-	UptimeSeconds  float64 `json:"uptime_seconds"`
-	Memory         Memory  `json:"memory"`
-	CPUPercent     float64 `json:"cpu_percent"`
-	NumThreads     int32   `json:"num_threads"`
+	Name          string  `json:"name"`
+	PID           int     `json:"pid"`
+	CreateTime    string  `json:"create_time"`
+	UptimeSeconds float64 `json:"uptime_seconds"`
+	Memory        Memory  `json:"memory"`
+	CPUPercent    float64 `json:"cpu_percent"`
+	NumThreads    int32   `json:"num_threads"`
 }
 
 // Memory contains memory statistics.
 type Memory struct {
-	RSSBytes int64   `json:"rss_bytes"`
-	VMSBytes int64   `json:"vms_bytes"`
-	SwapBytes int64  `json:"swap_bytes"`
-	RSSMB    float64 `json:"rss_mb"`
-	VMSMB    float64 `json:"vms_mb"`
+	RSSBytes  int64   `json:"rss_bytes"`
+	VMSBytes  int64   `json:"vms_bytes"`
+	SwapBytes int64   `json:"swap_bytes"`
+	RSSMB     float64 `json:"rss_mb"`
+	VMSMB     float64 `json:"vms_mb"`
 }
 
 // Runtime contains Go runtime information.
 type Runtime struct {
-	GoVersion    string  `json:"go_version"`
-	NumCPU       int     `json:"num_cpu"`
-	NumGoroutine int     `json:"num_goroutine"`
+	GoVersion    string        `json:"go_version"`
+	NumCPU       int           `json:"num_cpu"`
+	NumGoroutine int           `json:"num_goroutine"`
 	Memory       RuntimeMemory `json:"memory"`
 	GC           GC            `json:"gc"`
 }
 
 // RuntimeMemory contains Go runtime memory statistics.
 type RuntimeMemory struct {
-	AllocBytes       uint64  `json:"alloc_bytes"`
-	TotalAllocBytes  uint64  `json:"total_alloc_bytes"`
-	SysBytes         uint64  `json:"sys_bytes"`
-	HeapAllocBytes   uint64  `json:"heap_alloc_bytes"`
-	HeapSysBytes     uint64  `json:"heap_sys_bytes"`
-	AllocMB          float64 `json:"alloc_mb"`
-	SysMB            float64 `json:"sys_mb"`
+	AllocBytes      uint64  `json:"alloc_bytes"`
+	TotalAllocBytes uint64  `json:"total_alloc_bytes"`
+	SysBytes        uint64  `json:"sys_bytes"`
+	HeapAllocBytes  uint64  `json:"heap_alloc_bytes"`
+	HeapSysBytes    uint64  `json:"heap_sys_bytes"`
+	AllocMB         float64 `json:"alloc_mb"`
+	SysMB           float64 `json:"sys_mb"`
 }
 
 // GC contains garbage collection statistics.
@@ -123,9 +123,9 @@ type GC struct {
 
 // BuildInfo contains build information.
 type BuildInfo struct {
-	GoVersion   string    `json:"go_version"`
-	MainModule  string    `json:"main_module"`
-	MainVersion string    `json:"main_version,omitempty"`
+	GoVersion   string   `json:"go_version"`
+	MainModule  string   `json:"main_module"`
+	MainVersion string   `json:"main_version,omitempty"`
 	Settings    types.KV `json:"settings"`
 }
 
@@ -161,7 +161,7 @@ func convertStacktraceResult(data types.KV) *StacktraceResult {
 
 func convertProcess(data map[string]any) Process {
 	p := Process{
-		Name:      getStringFromMap(data, "name"),
+		Name:       getStringFromMap(data, "name"),
 		CreateTime: getStringFromMap(data, "create_time"),
 	}
 	if v, ok := data["pid"].(float64); ok {

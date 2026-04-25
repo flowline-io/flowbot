@@ -29,7 +29,7 @@ var webserviceRules = []webservice.Rule{
 //	@Tags		dev
 //	@Accept		json
 //	@Produce	json
-//	@Success	200			{object}	protocol.Response{data=types.KV}
+//	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/server/upload [post]
 func upload(ctx fiber.Ctx) error {
@@ -94,7 +94,7 @@ func upload(ctx fiber.Ctx) error {
 //	@Tags		dev
 //	@Accept		json
 //	@Produce	json
-//	@Success	200			{object}	protocol.Response{data=types.KV}
+//	@Success	200	{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/server/stacktrace [get]
 func stacktrace(ctx fiber.Ctx) error {

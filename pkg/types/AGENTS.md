@@ -38,22 +38,22 @@ types/
 
 14 rule types defined in `types.go`:
 
-| Type           | Purpose            |
-| -------------- | ------------------ |
-| ActionRule     | Generic actions    |
-| CommandRule    | Slash commands     |
-| FormRule       | Interactive forms  |
-| CronRule       | Scheduled tasks    |
-| EventRule      | Event handlers     |
-| WebhookRule    | HTTP webhooks      |
-| WebserviceRule | HTTP endpoints     |
-| ToolRule       | Tools |
-| InstructRule   | LLM instructions   |
-| PageRule       | UI pages           |
-| SettingRule    | Bot configuration  |
-| CollectRule    | Data collection    |
-| TriggerRule    | Workflow triggers  |
-| WorkflowRule   | Workflow actions   |
+| Type           | Purpose           |
+| -------------- | ----------------- |
+| ActionRule     | Generic actions   |
+| CommandRule    | Slash commands    |
+| FormRule       | Interactive forms |
+| CronRule       | Scheduled tasks   |
+| EventRule      | Event handlers    |
+| WebhookRule    | HTTP webhooks     |
+| WebserviceRule | HTTP endpoints    |
+| ToolRule       | Tools             |
+| InstructRule   | LLM instructions  |
+| PageRule       | UI pages          |
+| SettingRule    | Bot configuration |
+| CollectRule    | Data collection   |
+| TriggerRule    | Workflow triggers |
+| WorkflowRule   | Workflow actions  |
 
 ## Message Types
 

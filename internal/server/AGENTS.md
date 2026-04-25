@@ -50,7 +50,6 @@ g.Get("/:id", ctl.handler)
 g.Post("/", ctl.create)
 ```
 
-
 - Returns protocol Response
 
 ## Anti-Patterns

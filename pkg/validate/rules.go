@@ -14,9 +14,9 @@ const (
 	URLMaxLen = 2048
 
 	// Tag limits
-	TagMaxLen      = 50
-	MaxTagsCount   = 50
-	MinTagLen      = 1
+	TagMaxLen    = 50
+	MaxTagsCount = 50
+	MinTagLen    = 1
 
 	// Query limits
 	QueryMaxLen    = 100

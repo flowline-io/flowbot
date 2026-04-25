@@ -11,27 +11,32 @@ This directory contains full integration tests using Testcontainers. These tests
 ## Running Tests
 
 ### Run all integration tests
+
 ```bash
 task test:integration
 ```
 
 Or directly with go:
+
 ```bash
 go test -v ./tests/integration/...
 ```
 
 ### Run specific test suite
+
 ```bash
 go test -v -run TestHealthTestSuite ./tests/integration/...
 go test -v -run TestDatabaseTestSuite ./tests/integration/...
 ```
 
 ### Run with short mode (skip integration tests)
+
 ```bash
 go test -short ./...
 ```
 
 ### Skip integration tests
+
 ```bash
 SKIP_INTEGRATION_TESTS=true go test ./...
 ```
@@ -39,7 +44,9 @@ SKIP_INTEGRATION_TESTS=true go test ./...
 ## Test Suites
 
 ### HealthTestSuite
+
 Tests basic health endpoints and container connectivity:
+
 - Liveness endpoint (`/livez`)
 - Readiness endpoint (`/readyz`)
 - Startup endpoint (`/startupz`)
@@ -48,7 +55,9 @@ Tests basic health endpoints and container connectivity:
 - Container states
 
 ### DatabaseTestSuite
+
 Tests database CRUD operations for all major models:
+
 - User CRUD
 - Bot CRUD
 - Platform CRUD
@@ -141,13 +150,17 @@ Integration tests take significantly longer than unit tests due to container sta
 ## Troubleshooting
 
 ### Docker not running
+
 ```
 Error: Cannot connect to the Docker daemon
 ```
+
 Start Docker Desktop or Docker daemon.
 
 ### Port conflicts
+
 Tests use random port mappings to avoid conflicts. If you encounter issues:
+
 ```bash
 # Check for running containers
 docker ps
@@ -157,13 +170,17 @@ docker container prune
 ```
 
 ### Slow tests
+
 Container startup is inherently slow. You can:
+
 1. Use `-short` flag to skip integration tests during development
 2. Run specific test suites with `-run TestSuiteName`
 3. Use `SKIP_INTEGRATION_TESTS=true` to skip entirely
 
 ### Migration failures
+
 If migrations fail:
+
 1. Check MySQL container logs: `docker logs <container-id>`
 2. Verify migration files exist: `ls pkg/migrate/migrations/`
 3. Ensure migrations are up to date: `task migration`
@@ -182,8 +199,8 @@ The tests will automatically pull required images and clean up after execution.
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SKIP_INTEGRATION_TESTS` | Skip all integration tests | `false` |
-| `MYSQL_IMAGE` | MySQL container image | `mysql:8.0` |
-| `REDIS_IMAGE` | Redis container image | `redis:7-alpine` |
+| Variable                 | Description                | Default          |
+| ------------------------ | -------------------------- | ---------------- |
+| `SKIP_INTEGRATION_TESTS` | Skip all integration tests | `false`          |
+| `MYSQL_IMAGE`            | MySQL container image      | `mysql:8.0`      |
+| `REDIS_IMAGE`            | Redis container image      | `redis:7-alpine` |

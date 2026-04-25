@@ -83,7 +83,7 @@ go test -run ^TestFoo$ ./pkg/utils
 | ---------- | ---------------- | ----------------------------- |
 | DAO        | `task dao`       | `internal/store/dao/*.gen.go` |
 | Swagger    | `task swagger`   | `docs/api/`                   |
-| Migrations | `task migration` | `pkg/migrate/migrations/`    |
+| Migrations | `task migration` | `pkg/migrate/migrations/`     |
 
 **Never** edit `.gen.go` files directly.
 

@@ -127,7 +127,7 @@ func createBookmark(ctx fiber.Ctx) error {
 //	@Tags		bookmark
 //	@Accept		json
 //	@Produce	json
-//	@Param		id		path		string							true	"bookmark ID"
+//	@Param		id		path		string					true	"bookmark ID"
 //	@Param		body	body		object{archived=bool}	true	"archive status"
 //	@Success	200		{object}	protocol.Response{data=karakeep.ArchiveResponse}
 //	@Security	ApiKeyAuth
