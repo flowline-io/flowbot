@@ -317,3 +317,153 @@ func (k *KanbanClient) RemoveMetadata(ctx context.Context, taskID int, name stri
 	}
 	return &result, nil
 }
+
+// Tag represents a kanban tag.
+type KanbanTag struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ProjectID string `json:"project_id"`
+}
+
+// ListTags returns all tags.
+func (k *KanbanClient) ListTags(ctx context.Context) ([]KanbanTag, error) {
+	var result []KanbanTag
+	err := k.c.Get(ctx, "/service/kanban/tags", &result)
+	return result, err
+}
+
+// ListTagsByProject returns all tags for a given project.
+func (k *KanbanClient) ListTagsByProject(ctx context.Context, projectID int) ([]KanbanTag, error) {
+	if projectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
+	}
+
+	var result []KanbanTag
+	path := fmt.Sprintf("/service/kanban/tags/project?project_id=%d", projectID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// CreateTagRequest contains the data needed to create a new tag.
+type KanbanCreateTagRequest struct {
+	ProjectID int    `json:"project_id"`
+	Name      string `json:"name"`
+	ColorID   string `json:"color_id,omitempty"`
+}
+
+// CreateTagResult contains the result of creating a tag.
+type KanbanCreateTagResult struct {
+	ID int64 `json:"id"`
+}
+
+// CreateTag creates a new tag.
+func (k *KanbanClient) CreateTag(ctx context.Context, req KanbanCreateTagRequest) (*KanbanCreateTagResult, error) {
+	if req.ProjectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", req.ProjectID)
+	}
+	if req.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	var result KanbanCreateTagResult
+	err := k.c.Post(ctx, "/service/kanban/tags", req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// UpdateTagRequest contains the data for updating a tag.
+type KanbanUpdateTagRequest struct {
+	Name    string `json:"name"`
+	ColorID string `json:"color_id,omitempty"`
+}
+
+// UpdateTagResult contains the result of updating a tag.
+type KanbanUpdateTagResult struct {
+	Success bool `json:"success"`
+}
+
+// UpdateTag updates an existing tag.
+func (k *KanbanClient) UpdateTag(ctx context.Context, id int, req KanbanUpdateTagRequest) (*KanbanUpdateTagResult, error) {
+	if id <= 0 {
+		return nil, fmt.Errorf("id must be positive, got %d", id)
+	}
+	if req.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	var result KanbanUpdateTagResult
+	path := fmt.Sprintf("/service/kanban/tags/%d", id)
+	err := k.c.Patch(ctx, path, req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RemoveTagResult contains the result of removing a tag.
+type KanbanRemoveTagResult struct {
+	Success bool `json:"success"`
+}
+
+// RemoveTag removes a tag.
+func (k *KanbanClient) RemoveTag(ctx context.Context, id int) (*KanbanRemoveTagResult, error) {
+	if id <= 0 {
+		return nil, fmt.Errorf("id must be positive, got %d", id)
+	}
+
+	var result KanbanRemoveTagResult
+	path := fmt.Sprintf("/service/kanban/tags/%d", id)
+	err := k.c.Delete(ctx, path, nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// GetTaskTagsResult contains the result of getting task tags.
+type KanbanGetTaskTagsResult struct {
+	Tags map[string]string `json:"tags"`
+}
+
+// GetTaskTags returns all tags assigned to a task.
+func (k *KanbanClient) GetTaskTags(ctx context.Context, taskID int) (map[string]string, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+
+	var result map[string]string
+	path := fmt.Sprintf("/service/kanban/%d/tags", taskID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// SetTaskTagsRequest contains the request for setting task tags.
+type KanbanSetTaskTagsRequest struct {
+	ProjectID int      `json:"project_id"`
+	Tags      []string `json:"tags"`
+}
+
+// SetTaskTagsResult contains the result of setting task tags.
+type KanbanSetTaskTagsResult struct {
+	Success bool `json:"success"`
+}
+
+// SetTaskTags sets tags for a task.
+func (k *KanbanClient) SetTaskTags(ctx context.Context, taskID int, req KanbanSetTaskTagsRequest) (*KanbanSetTaskTagsResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if req.ProjectID <= 0 {
+		return nil, fmt.Errorf("project_id must be positive, got %d", req.ProjectID)
+	}
+
+	var result KanbanSetTaskTagsResult
+	path := fmt.Sprintf("/service/kanban/%d/tags", taskID)
+	err := k.c.Post(ctx, path, req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

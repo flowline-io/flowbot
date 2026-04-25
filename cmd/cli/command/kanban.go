@@ -30,6 +30,7 @@ func KanbanCommand() *cli.Command {
 			kanbanCardCommand(),
 			kanbanColumnCommand(),
 			kanbanMetadataCommand(),
+			kanbanTagCommand(),
 		},
 	}
 }
@@ -644,4 +645,359 @@ func formatTimestamp(ts int) string {
 	}
 	t := time.Unix(int64(ts), 0)
 	return t.Format(time.RFC3339)
+}
+
+func kanbanTagCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "tag",
+		Usage:       "Manage kanban tags",
+		Description: "Create, update, list and manage kanban tags",
+		Commands: []*cli.Command{
+			kanbanTagListCommand(),
+			kanbanTagCreateCommand(),
+			kanbanTagUpdateCommand(),
+			kanbanTagDeleteCommand(),
+			kanbanTagTaskCommand(),
+		},
+	}
+}
+
+func kanbanTagListCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "list",
+		Usage:       "List all tags",
+		Description: "Display kanban tags",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output format (table, json)",
+				Value:   "table",
+			},
+			&cli.IntFlag{
+				Name:    "project",
+				Aliases: []string{"p"},
+				Usage:   "Project ID (if specified, list tags for this project)",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			projectId := int(cmd.Int("project"))
+			var tags []client.KanbanTag
+			if projectId > 0 {
+				tags, err = c.Kanban.ListTagsByProject(ctx, projectId)
+			} else {
+				tags, err = c.Kanban.ListTags(ctx)
+			}
+			if err != nil {
+				return fmt.Errorf("list tags: %w", err)
+			}
+
+			if len(tags) == 0 {
+				_, _ = fmt.Println("No tags found")
+				return nil
+			}
+
+			output := cmd.String("output")
+			if output == "json" {
+				data, err := json.MarshalIndent(tags, "", "  ")
+				if err != nil {
+					return fmt.Errorf("marshal tags: %w", err)
+				}
+				_, _ = fmt.Println(string(data))
+			} else {
+				_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
+				_, _ = fmt.Println(strings.Repeat("-", 50))
+				for _, t := range tags {
+					name := t.Name
+					if len(name) > 28 {
+						name = name[:25] + "..."
+					}
+					_, _ = fmt.Printf("%-8s %-30s %-10s\n", t.ID, name, t.ProjectID)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func kanbanTagCreateCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "create",
+		Usage:       "Create a new tag",
+		Description: "Add a new tag to the kanban board",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Usage:    "Tag name",
+				Required: true,
+			},
+			&cli.IntFlag{
+				Name:    "project",
+				Aliases: []string{"p"},
+				Usage:   "Project ID",
+				Value:   1,
+			},
+			&cli.StringFlag{
+				Name:    "color",
+				Aliases: []string{"c"},
+				Usage:   "Color ID",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := client.KanbanCreateTagRequest{
+				ProjectID: int(cmd.Int("project")),
+				Name:      cmd.String("name"),
+				ColorID:   cmd.String("color"),
+			}
+
+			result, err := c.Kanban.CreateTag(ctx, req)
+			if err != nil {
+				return fmt.Errorf("create tag: %w", err)
+			}
+
+			_, _ = fmt.Printf("Tag created: ID=%d\n", result.ID)
+			return nil
+		},
+	}
+}
+
+func kanbanTagUpdateCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "update",
+		Usage:       "Update a tag",
+		ArgsUsage:   "<id>",
+		Description: "Modify an existing tag",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Usage:    "New tag name",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:    "color",
+				Aliases: []string{"c"},
+				Usage:   "Color ID",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("tag ID is required")
+			}
+			idStr := cmd.Args().Get(0)
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				return fmt.Errorf("invalid tag ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := client.KanbanUpdateTagRequest{
+				Name:    cmd.String("name"),
+				ColorID: cmd.String("color"),
+			}
+
+			_, err = c.Kanban.UpdateTag(ctx, id, req)
+			if err != nil {
+				return fmt.Errorf("update tag: %w", err)
+			}
+
+			_, _ = fmt.Printf("Tag updated: %d\n", id)
+			return nil
+		},
+	}
+}
+
+func kanbanTagDeleteCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "delete",
+		Usage:       "Delete a tag",
+		ArgsUsage:   "<id>",
+		Description: "Remove a tag by ID",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "yes",
+				Aliases: []string{"y"},
+				Usage:   "Skip confirmation",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("tag ID is required")
+			}
+			idStr := cmd.Args().Get(0)
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				return fmt.Errorf("invalid tag ID: %w", err)
+			}
+
+			if !cmd.Bool("yes") {
+				_, _ = fmt.Printf("Delete tag %d? [y/N]: ", id)
+				var response string
+				if _, err := fmt.Scanln(&response); err != nil {
+					return fmt.Errorf("read confirmation: %w", err)
+				}
+				if response != "y" && response != "Y" {
+					_, _ = fmt.Println("Cancelled")
+					return nil
+				}
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			_, err = c.Kanban.RemoveTag(ctx, id)
+			if err != nil {
+				return fmt.Errorf("delete tag: %w", err)
+			}
+
+			_, _ = fmt.Printf("Tag deleted: %d\n", id)
+			return nil
+		},
+	}
+}
+
+func kanbanTagTaskCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "task",
+		Usage:       "Manage task tags",
+		Description: "Get or set tags for a task",
+		Commands: []*cli.Command{
+			kanbanTagTaskGetCommand(),
+			kanbanTagTaskSetCommand(),
+		},
+	}
+}
+
+func kanbanTagTaskGetCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "get",
+		Usage:       "Get tags for a task",
+		ArgsUsage:   "<task_id>",
+		Description: "Display tags assigned to a task",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output format (json, table)",
+				Value:   "table",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("task ID is required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			tags, err := c.Kanban.GetTaskTags(ctx, taskId)
+			if err != nil {
+				return fmt.Errorf("get task tags: %w", err)
+			}
+
+			if len(tags) == 0 {
+				_, _ = fmt.Println("No tags assigned to this task")
+				return nil
+			}
+
+			output := cmd.String("output")
+			if output == "json" {
+				data, err := json.MarshalIndent(tags, "", "  ")
+				if err != nil {
+					return fmt.Errorf("marshal tags: %w", err)
+				}
+				_, _ = fmt.Println(string(data))
+			} else {
+				_, _ = fmt.Printf("%-8s %-30s\n", "ID", "NAME")
+				_, _ = fmt.Println(strings.Repeat("-", 40))
+				for id, name := range tags {
+					_, _ = fmt.Printf("%-8s %-30s\n", id, name)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func kanbanTagTaskSetCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "set",
+		Usage:       "Set tags for a task",
+		ArgsUsage:   "<task_id>",
+		Description: "Assign tags to a task",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:     "project",
+				Aliases:  []string{"p"},
+				Usage:    "Project ID",
+				Required: true,
+			},
+			&cli.StringSliceFlag{
+				Name:     "tags",
+				Aliases:  []string{"t"},
+				Usage:    "Tag names (can be specified multiple times)",
+				Required: true,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("task ID is required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := client.KanbanSetTaskTagsRequest{
+				ProjectID: int(cmd.Int("project")),
+				Tags:      cmd.StringSlice("tags"),
+			}
+
+			result, err := c.Kanban.SetTaskTags(ctx, taskId, req)
+			if err != nil {
+				return fmt.Errorf("set task tags: %w", err)
+			}
+
+			if result.Success {
+				_, _ = fmt.Println("Task tags updated successfully")
+			} else {
+				_, _ = fmt.Println("Failed to update task tags")
+			}
+
+			return nil
+		},
+	}
 }

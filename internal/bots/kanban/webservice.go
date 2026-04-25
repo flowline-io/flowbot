@@ -24,6 +24,13 @@ var webserviceRules = []webservice.Rule{
 	webservice.Get("/:id/metadata/:name", getTaskMetadataByName),
 	webservice.Post("/:id/metadata", saveTaskMetadata),
 	webservice.Delete("/:id/metadata/:name", removeTaskMetadata),
+	webservice.Get("/tags", getAllTags),
+	webservice.Get("/tags/project", getTagsByProject),
+	webservice.Post("/tags", createTag),
+	webservice.Patch("/tags/:id", updateTag),
+	webservice.Delete("/tags/:id", removeTag),
+	webservice.Get("/:id/tags", getTaskTags),
+	webservice.Post("/:id/tags", setTaskTags),
 }
 
 type createTaskRequest struct {
@@ -47,6 +54,22 @@ type moveTaskRequest struct {
 
 type saveMetadataRequest struct {
 	Values kanboard.TaskMetadata `json:"values" validate:"required"`
+}
+
+type createTagRequest struct {
+	ProjectID int    `json:"project_id" validate:"required,gte=1"`
+	Name      string `json:"name" validate:"required,min=1,max=100"`
+	ColorID   string `json:"color_id" validate:"max=50"`
+}
+
+type updateTagRequest struct {
+	Name    string `json:"name" validate:"required,min=1,max=100"`
+	ColorID string `json:"color_id" validate:"max=50"`
+}
+
+type setTaskTagsRequest struct {
+	ProjectID int      `json:"project_id" validate:"required,gte=1"`
+	Tags      []string `json:"tags" validate:"required"`
 }
 
 // list tasks
@@ -531,6 +554,252 @@ func removeTaskMetadata(ctx fiber.Ctx) error {
 	result, err := client.RemoveTaskMetadata(ctx.RequestCtx(), id, name)
 	if err != nil {
 		return fmt.Errorf("failed to remove task metadata: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// get all tags
+//
+//	@Summary	Get all tags
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	protocol.Response{data=[]kanboard.Tag}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/tags [get]
+func getAllTags(ctx fiber.Ctx) error {
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	tags, err := client.GetAllTags(ctx.RequestCtx())
+	if err != nil {
+		return fmt.Errorf("failed to get all tags: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(tags))
+}
+
+// get tags by project
+//
+//	@Summary	Get tags by project
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		project_id	query		int	true	"project ID"
+//	@Success	200			{object}	protocol.Response{data=[]kanboard.Tag}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/tags/project [get]
+func getTagsByProject(ctx fiber.Ctx) error {
+	projectIdStr := ctx.Query("project_id")
+	if projectIdStr == "" {
+		return protocol.ErrBadParam.New("project_id is required")
+	}
+
+	projectId, err := strconv.Atoi(projectIdStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid project_id")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	tags, err := client.GetTagsByProject(ctx.RequestCtx(), projectId)
+	if err != nil {
+		return fmt.Errorf("failed to get tags by project: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(tags))
+}
+
+// create tag
+//
+//	@Summary	Create a new tag
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		object{project_id=int,name=string,color_id=string}	true	"tag data"
+//	@Success	200		{object}	protocol.Response{data=map[string]int64}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/tags [post]
+func createTag(ctx fiber.Ctx) error {
+	var body createTagRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	tagId, err := client.CreateTag(ctx.RequestCtx(), body.ProjectID, body.Name, body.ColorID)
+	if err != nil {
+		return fmt.Errorf("failed to create tag: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": tagId}))
+}
+
+// update tag
+//
+//	@Summary	Update a tag
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string								true	"tag ID"
+//	@Param		body	body		object{name=string,color_id=string}	true	"tag data"
+//	@Success	200		{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/tags/{id} [patch]
+func updateTag(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid tag ID")
+	}
+
+	var body updateTagRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.UpdateTag(ctx.RequestCtx(), id, body.Name, body.ColorID)
+	if err != nil {
+		return fmt.Errorf("failed to update tag: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// remove tag
+//
+//	@Summary	Remove a tag
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string	true	"tag ID"
+//	@Success	200	{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/tags/{id} [delete]
+func removeTag(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid tag ID")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.RemoveTag(ctx.RequestCtx(), id)
+	if err != nil {
+		return fmt.Errorf("failed to remove tag: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+}
+
+// get task tags
+//
+//	@Summary	Get tags assigned to a task
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string	true	"task ID"
+//	@Success	200	{object}	protocol.Response{data=map[string]string}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/tags [get]
+func getTaskTags(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	tags, err := client.GetTaskTags(ctx.RequestCtx(), id)
+	if err != nil {
+		return fmt.Errorf("failed to get task tags: %w", err)
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse(tags))
+}
+
+// set task tags
+//
+//	@Summary	Set tags for a task
+//	@Tags		kanban
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string									true	"task ID"
+//	@Param		body	body		object{project_id=int,tags=[]string}	true	"tags data"
+//	@Success	200		{object}	protocol.Response{data=map[string]bool}
+//	@Security	ApiKeyAuth
+//	@Router		/service/kanban/{id}/tags [post]
+func setTaskTags(ctx fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	if idStr == "" {
+		return protocol.ErrBadParam.New("id is required")
+	}
+
+	taskId, err := strconv.Atoi(idStr)
+	if err != nil {
+		return protocol.ErrBadParam.New("invalid task ID")
+	}
+
+	var body setTaskTagsRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	client, err := kanboard.GetClient()
+	if err != nil {
+		return fmt.Errorf("failed to get client: %w", err)
+	}
+
+	result, err := client.SetTaskTags(ctx.RequestCtx(), body.ProjectID, taskId, body.Tags)
+	if err != nil {
+		return fmt.Errorf("failed to set task tags: %w", err)
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))

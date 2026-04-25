@@ -143,3 +143,9 @@ const (
 )
 
 type TaskMetadata map[string]string
+
+type Tag struct {
+	ID        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	ProjectID string `json:"project_id,omitempty"`
+}

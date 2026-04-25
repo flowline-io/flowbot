@@ -221,3 +221,74 @@ func (v *Kanboard) RemoveTaskMetadata(ctx context.Context, taskId int, name stri
 	}
 	return
 }
+
+func (v *Kanboard) GetAllTags(ctx context.Context) (tags []Tag, err error) {
+	err = v.c.CallResult(ctx, "getAllTags", nil, &tags)
+	if err != nil {
+		err = fmt.Errorf("failed to get all tags, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetTagsByProject(ctx context.Context, projectId int) (tags []Tag, err error) {
+	err = v.c.CallResult(ctx, "getTagsByProject", []any{projectId}, &tags)
+	if err != nil {
+		err = fmt.Errorf("failed to get tags by project, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag string, colorId string) (tagId int64, err error) {
+	params := []any{projectId, tag}
+	if colorId != "" {
+		params = append(params, colorId)
+	}
+	err = v.c.CallResult(ctx, "createTag", params, &tagId)
+	if err != nil {
+		err = fmt.Errorf("failed to create tag, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) UpdateTag(ctx context.Context, tagId int, tag string, colorId string) (result bool, err error) {
+	params := []any{tagId, tag}
+	if colorId != "" {
+		params = append(params, colorId)
+	}
+	err = v.c.CallResult(ctx, "updateTag", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to update tag, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) RemoveTag(ctx context.Context, tagId int) (result bool, err error) {
+	err = v.c.CallResult(ctx, "removeTag", []any{tagId}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to remove tag, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) SetTaskTags(ctx context.Context, projectId int, taskId int, tags []string) (result bool, err error) {
+	err = v.c.CallResult(ctx, "setTaskTags", []any{projectId, taskId, tags}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to set task tags, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetTaskTags(ctx context.Context, taskId int) (tags map[string]string, err error) {
+	err = v.c.CallResult(ctx, "getTaskTags", []any{taskId}, &tags)
+	if err != nil {
+		err = fmt.Errorf("failed to get task tags, %w", err)
+		return
+	}
+	return
+}
