@@ -2,6 +2,7 @@ package bookmark
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -45,8 +46,10 @@ func listBookmarks(ctx fiber.Ctx) error {
 
 	query := &karakeep.BookmarksQuery{Limit: karakeep.MaxPageSize}
 	if v := ctx.Query("limit"); v != "" {
-		if n, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil && n != nil {
-			query.Limit = int(n.(int64))
+		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				query.Limit = n
+			}
 		}
 	}
 	if v := ctx.Query("cursor"); v != "" {
