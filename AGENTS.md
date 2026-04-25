@@ -2,7 +2,9 @@
 
 Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM agents.
 
-**Generated:** 2026-03-11
+**Generated:** 2026-04-25
+**Commit:** 954313f9
+**Branch:** master
 **Go Version:** 1.26
 
 ## Quick Reference
@@ -14,16 +16,35 @@ Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM a
 | New provider  | `pkg/providers/`   | OAuth + API clients     |
 | Core types    | `pkg/types/`       | Rulesets, protocol, KV  |
 | API routes    | `internal/server/` | Fiber v3 handlers       |
-| Entry points  | `cmd/`             | 3 binaries              |
+| Entry points  | `cmd/`             | 4 binaries              |
+| Frontend/PWA  | `pkg/page/`        | go-app WASM components  |
+| Utilities     | `pkg/utils/`       | Must have unit tests    |
 
 ## Structure
 
 ```
 flowbot/
 ├── cmd/                  # Entry points
-│   ├── main.go          # Server
-│   ├── agent/           # Background agent
-│   └── composer/        # CLI tool
+│   ├── main.go          # HTTP server (Fiber)
+│   ├── agent/           # Background agent daemon
+│   ├── composer/        # CLI: code gen, migration
+│   └── cli/             # CLI: admin commands
+├── internal/
+│   ├── bots/            # 18 bot modules
+│   ├── server/          # Fiber v3 HTTP layer
+│   ├── store/           # GORM DAO/models
+│   └── platforms/       # Discord, Slack, Tailchat
+├── pkg/
+│   ├── types/           # Core type system
+│   ├── providers/       # 17 third-party integrations
+│   ├── page/            # PWA frontend (go-app/WASM)
+│   ├── utils/           # Common utilities
+│   ├── event/           # Redis Stream pub/sub
+│   ├── executor/        # Workflow runtime (Docker)
+│   ├── llm/             # LLM agent system
+│   ├── chatbot/         # Platform chat interface
+│   ├── migrate/         # Migration runner
+│   └── ...              # config, flog, media, etc.
 ```
 
 ## Build Commands
