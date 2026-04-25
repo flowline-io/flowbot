@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -58,7 +59,12 @@ func (bot) Rules() []any {
 		commandRules,
 		cronRules,
 		eventRules,
+		webserviceRules,
 	}
+}
+
+func (bot) Webservice(app *fiber.App) {
+	chatbot.Webservice(app, Name, webserviceRules)
 }
 
 func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
