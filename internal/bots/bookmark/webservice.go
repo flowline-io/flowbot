@@ -2,11 +2,11 @@ package bookmark
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -17,6 +17,14 @@ var webserviceRules = []webservice.Rule{
 	webservice.Patch("/bookmark/:id", updateBookmark),
 	webservice.Post("/bookmark/:id/tags", attachTags),
 	webservice.Delete("/bookmark/:id/tags", detachTags),
+}
+
+type createBookmarkRequest struct {
+	URL string `json:"url" validate:"required,url,max=2048"`
+}
+
+type tagsRequest struct {
+	Tags []string `json:"tags" validate:"required,dive,min=1,max=50"`
 }
 
 // list bookmarks
@@ -37,8 +45,8 @@ func listBookmarks(ctx fiber.Ctx) error {
 
 	query := &karakeep.BookmarksQuery{Limit: karakeep.MaxPageSize}
 	if v := ctx.Query("limit"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			query.Limit = n
+		if n, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil && n != nil {
+			query.Limit = int(n.(int64))
 		}
 	}
 	if v := ctx.Query("cursor"); v != "" {
@@ -95,15 +103,13 @@ func getBookmark(ctx fiber.Ctx) error {
 //	@Security	ApiKeyAuth
 //	@Router		/bookmark [post]
 func createBookmark(ctx fiber.Ctx) error {
-	var body struct {
-		URL string `json:"url"`
-	}
+	var body createBookmarkRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if body.URL == "" {
-		return protocol.ErrBadParam.New("url is required")
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	client := karakeep.GetClient()
@@ -121,7 +127,7 @@ func createBookmark(ctx fiber.Ctx) error {
 //	@Tags		bookmark
 //	@Accept		json
 //	@Produce	json
-//	@Param		id		path		string					true	"bookmark ID"
+//	@Param		id		path		string							true	"bookmark ID"
 //	@Param		body	body		object{archived=bool}	true	"archive status"
 //	@Success	200		{object}	protocol.Response{data=karakeep.ArchiveResponse}
 //	@Security	ApiKeyAuth
@@ -158,17 +164,25 @@ func attachTags(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("id is required")
 	}
 
-	var tags []string
-	if err := ctx.Bind().Body(&tags); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+	var body tagsRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if len(tags) == 0 {
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if len(body.Tags) == 0 {
 		return protocol.ErrBadParam.New("tags are required")
 	}
 
+	if len(body.Tags) > validate.MaxTagsCount {
+		return protocol.ErrBadParam.New("too many tags")
+	}
+
 	client := karakeep.GetClient()
-	attached, err := client.AttachTagsToBookmark(id, tags)
+	attached, err := client.AttachTagsToBookmark(id, body.Tags)
 	if err != nil {
 		return fmt.Errorf("failed to attach tags: %w", err)
 	}
@@ -193,17 +207,25 @@ func detachTags(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("id is required")
 	}
 
-	var tags []string
-	if err := ctx.Bind().Body(&tags); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+	var body tagsRequest
+	if err := ctx.Bind().Body(&body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if len(tags) == 0 {
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if len(body.Tags) == 0 {
 		return protocol.ErrBadParam.New("tags are required")
 	}
 
+	if len(body.Tags) > validate.MaxTagsCount {
+		return protocol.ErrBadParam.New("too many tags")
+	}
+
 	client := karakeep.GetClient()
-	detached, err := client.DetachTagsToBookmark(id, tags)
+	detached, err := client.DetachTagsToBookmark(id, body.Tags)
 	if err != nil {
 		return fmt.Errorf("failed to detach tags: %w", err)
 	}

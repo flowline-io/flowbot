@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -18,6 +19,25 @@ var webserviceRules = []webservice.Rule{
 	webservice.Delete("/kanban/:id", deleteTask),
 	webservice.Post("/kanban/:id/move", moveTask),
 	webservice.Get("/kanban/columns", listColumns),
+}
+
+type createTaskRequest struct {
+	Title       string `json:"title" validate:"required,min=1,max=200"`
+	Description string `json:"description" validate:"max=2000"`
+	ProjectID   int    `json:"project_id" validate:"gte=0"`
+	ColumnID    int    `json:"column_id" validate:"gte=0"`
+}
+
+type updateTaskRequest struct {
+	Title       string `json:"title" validate:"omitempty,min=1,max=200"`
+	Description string `json:"description" validate:"max=2000"`
+}
+
+type moveTaskRequest struct {
+	ColumnID   int `json:"column_id" validate:"required,gte=1"`
+	Position   int `json:"position" validate:"gte=0"`
+	SwimlaneID int `json:"swimlane_id" validate:"gte=0"`
+	ProjectID  int `json:"project_id" validate:"gte=0"`
 }
 
 // list tasks
@@ -104,18 +124,13 @@ func getTask(ctx fiber.Ctx) error {
 //	@Security	ApiKeyAuth
 //	@Router		/kanban [post]
 func createTask(ctx fiber.Ctx) error {
-	var body struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		ProjectID   int    `json:"project_id"`
-		ColumnID    int    `json:"column_id"`
-	}
+	var body createTaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if body.Title == "" {
-		return protocol.ErrBadParam.New("title is required")
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	client, err := kanboard.GetClient()
@@ -152,7 +167,7 @@ func createTask(ctx fiber.Ctx) error {
 //	@Tags		kanban
 //	@Accept		json
 //	@Produce	json
-//	@Param		id		path		string						true	"task ID"
+//	@Param		id		path		string									true	"task ID"
 //	@Param		body	body		object{title=string,description=string}	true	"task data"
 //	@Success	200		{object}	protocol.Response{data=map[string]bool}
 //	@Security	ApiKeyAuth
@@ -168,12 +183,13 @@ func updateTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	var body struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-	}
+	var body updateTaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	client, err := kanboard.GetClient()
@@ -250,18 +266,13 @@ func moveTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	var body struct {
-		ColumnID   int `json:"column_id"`
-		Position   int `json:"position"`
-		SwimlaneID int `json:"swimlane_id"`
-		ProjectID  int `json:"project_id"`
-	}
+	var body moveTaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.New("invalid request body")
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	if body.ColumnID == 0 {
-		return protocol.ErrBadParam.New("column_id is required")
+	if err := validate.Validate.Struct(body); err != nil {
+		return protocol.ErrBadParam.Wrap(err)
 	}
 
 	client, err := kanboard.GetClient()

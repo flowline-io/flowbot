@@ -10,8 +10,10 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
 	"github.com/shirou/gopsutil/v4/process"
 )
@@ -27,14 +29,28 @@ var webserviceRules = []webservice.Rule{
 //	@Tags		dev
 //	@Accept		json
 //	@Produce	json
-//	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Success	200			{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/server/upload [post]
 func upload(ctx fiber.Ctx) error {
 	result := make([]string, 0)
 	if form, err := ctx.MultipartForm(); err == nil {
+		fileCount := 0
+		for _, file := range form.File {
+			fileCount += len(file)
+		}
+
+		if fileCount > validate.MaxFileCount {
+			return protocol.ErrBadParam.New("too many files")
+		}
+
 		for _, file := range form.File {
 			for _, part := range file {
+				if part.Size > validate.MaxFileSizeBytes {
+					flog.Warn("file too large: %s (%d bytes)", part.Filename, part.Size)
+					continue
+				}
+
 				mimeType := part.Header.Get("Content-Type")
 				if !utils.ValidImageContentType(mimeType) {
 					continue
@@ -55,6 +71,7 @@ func upload(ctx fiber.Ctx) error {
 					Size:     part.Size,
 					Location: "/image",
 				}, f)
+				f.Close()
 				if err != nil {
 					flog.Error(fmt.Errorf("error uploading file: %s, %w", part.Filename, err))
 					continue
@@ -77,7 +94,7 @@ func upload(ctx fiber.Ctx) error {
 //	@Tags		dev
 //	@Accept		json
 //	@Produce	json
-//	@Success	200	{object}	protocol.Response{data=types.KV}
+//	@Success	200			{object}	protocol.Response{data=types.KV}
 //	@Security	ApiKeyAuth
 //	@Router		/server/stacktrace [get]
 func stacktrace(ctx fiber.Ctx) error {
@@ -88,7 +105,6 @@ func stacktrace(ctx fiber.Ctx) error {
 		return ctx.JSON(types.KV{"error": "failed to get process info"})
 	}
 
-	// Gather basic process information
 	processInfo := types.KV{}
 
 	if name, err := proc.Name(); err == nil {
@@ -120,7 +136,6 @@ func stacktrace(ctx fiber.Ctx) error {
 		processInfo["num_threads"] = numThreads
 	}
 
-	// Gather Go runtime information
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
@@ -148,12 +163,10 @@ func stacktrace(ctx fiber.Ctx) error {
 		},
 	}
 
-	// Capture goroutines stack traces
-	stackBuf := make([]byte, 1024*1024*10) // 10MB buffer
+	stackBuf := make([]byte, 1024*1024*10)
 	stackSize := runtime.Stack(stackBuf, true)
 	stackTrace := string(stackBuf[:stackSize])
 
-	// Gather build information
 	buildInfo := types.KV{}
 	if info, ok := debug.ReadBuildInfo(); ok {
 		buildInfo["go_version"] = info.GoVersion
