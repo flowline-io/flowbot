@@ -11,7 +11,6 @@ server/
 ├── event.go        # Event handling
 ├── http.go         # HTTP helpers
 ├── func.go         # Server functions
-├── mcp.go          # MCP protocol handler
 ├── chatbot.go      # Chatbot integration
 ├── modules.go      # Module registration
 ├── admin.go        # Admin routes
@@ -36,7 +35,6 @@ server/
 | `/agent`                 | Agent data         |
 | `/webhook/:flag`         | Webhook handler    |
 | `/chatbot/:platform`     | Platform callback  |
-| `/mcp/:bot_name`         | MCP protocol       |
 
 ## Fiber v3 Patterns
 
@@ -52,12 +50,7 @@ g.Get("/:id", ctl.handler)
 g.Post("/", ctl.create)
 ```
 
-## MCP Handler
 
-Model Context Protocol at `/mcp/:bot_name`:
-
-- Bearer token auth required
-- Routes to bot-specific MCP tools
 - Returns protocol Response
 
 ## Anti-Patterns

@@ -30,7 +30,6 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 1. **Flowbot Server** (`internal/server/`)
    - RESTful API with Swagger docs
    - Platform callbacks (Discord, Slack, Tailchat)
-   - MCP (Model Context Protocol) handler
    - OAuth, webhook, media, and event routing
    - Health probes (`/livez`, `/readyz`, `/startupz`)
    - Prometheus metrics (`/metrics`)

@@ -74,7 +74,6 @@ X-AccessToken: <your-token>
 | `/oauth/:provider/:flag` | ALL    | OAuth callbacks                    |
 | `/webhook/:flag`         | ALL    | Webhook handler                    |
 | `/chatbot/:platform`     | ALL    | Platform callbacks                 |
-| `/mcp/:bot_name`         | ALL    | MCP protocol handler (bearer auth) |
 | `/form`                  | POST   | Form submissions                   |
 | `/p/:id`                 | GET    | Page rendering                     |
 | `/agent`                 | POST   | Agent data endpoint                |

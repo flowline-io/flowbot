@@ -11,7 +11,6 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 - **Multi-Platform Chatbot** - Discord, Slack, Tailchat
 - **LLM Agent System** - OpenAI-compatible model support, multiple agent types
 - **Workflow Engine** - DAG-based execution with 8+ built-in actions
-- **MCP Protocol** - Model Context Protocol handler per bot module
 - **Message Hub** - Redis Stream pub/sub messaging
 - **Scheduling** - Cron jobs, triggers, automated tasks
 - **18 Bot Modules** - Extensible module system

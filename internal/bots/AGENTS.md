@@ -16,7 +16,6 @@ bots/<name>/
 ├── webhook.go          # HTTP webhooks (optional)
 ├── webservice.go       # HTTP handlers (optional)
 ├── page.go             # UI pages (optional)
-├── tool.go             # MCP tools (optional)
 ├── instruct.go         # LLM instructions (optional)
 ├── setting.go          # Bot settings (optional)
 ├── collect.go          # Data collectors (optional)

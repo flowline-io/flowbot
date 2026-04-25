@@ -26,7 +26,7 @@ types/
     ├── event/      # Event handlers
     ├── webhook/    # HTTP webhooks
     ├── webservice/ # HTTP endpoints
-    ├── tool/       # MCP tools
+    ├── tool/       # Tools
     ├── instruct/   # LLM instructions
     ├── page/       # UI pages
     ├── setting/    # Bot settings
@@ -47,7 +47,7 @@ types/
 | EventRule      | Event handlers     |
 | WebhookRule    | HTTP webhooks      |
 | WebserviceRule | HTTP endpoints     |
-| ToolRule       | MCP protocol tools |
+| ToolRule       | Tools |
 | InstructRule   | LLM instructions   |
 | PageRule       | UI pages           |
 | SettingRule    | Bot configuration  |
