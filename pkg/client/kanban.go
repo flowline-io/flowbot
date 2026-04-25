@@ -467,3 +467,120 @@ func (k *KanbanClient) SetTaskTags(ctx context.Context, taskID int, req KanbanSe
 	}
 	return &result, nil
 }
+
+// ListSubtasks returns all subtasks for a task.
+func (k *KanbanClient) ListSubtasks(ctx context.Context, taskID int) ([]kanboard.Subtask, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+
+	var result []kanboard.Subtask
+	path := fmt.Sprintf("/service/kanban/%d/subtasks", taskID)
+	err := k.c.Get(ctx, path, &result)
+	return result, err
+}
+
+// GetSubtask returns a single subtask by ID.
+func (k *KanbanClient) GetSubtask(ctx context.Context, taskID int, subtaskID int) (*kanboard.Subtask, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result kanboard.Subtask
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	err := k.c.Get(ctx, path, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// CreateSubtaskRequest contains the data needed to create a new subtask.
+type KanbanCreateSubtaskRequest struct {
+	Title         string `json:"title"`
+	UserID        int    `json:"user_id,omitempty"`
+	TimeEstimated int    `json:"time_estimated,omitempty"`
+	TimeSpent     int    `json:"time_spent,omitempty"`
+	Status        int    `json:"status,omitempty"`
+}
+
+// CreateSubtaskResult contains the result of creating a subtask.
+type KanbanCreateSubtaskResult struct {
+	ID int64 `json:"id"`
+}
+
+// CreateSubtask creates a new subtask for a task.
+func (k *KanbanClient) CreateSubtask(ctx context.Context, taskID int, req KanbanCreateSubtaskRequest) (*KanbanCreateSubtaskResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if req.Title == "" {
+		return nil, fmt.Errorf("title is required")
+	}
+
+	var result KanbanCreateSubtaskResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks", taskID)
+	err := k.c.Post(ctx, path, req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// UpdateSubtaskRequest contains the data for updating a subtask.
+type KanbanUpdateSubtaskRequest struct {
+	Title         string `json:"title,omitempty"`
+	UserID        int    `json:"user_id,omitempty"`
+	TimeEstimated int    `json:"time_estimated,omitempty"`
+	TimeSpent     int    `json:"time_spent,omitempty"`
+	Status        int    `json:"status,omitempty"`
+}
+
+// UpdateSubtaskResult contains the result of updating a subtask.
+type KanbanUpdateSubtaskResult struct {
+	Success bool `json:"success"`
+}
+
+// UpdateSubtask updates an existing subtask.
+func (k *KanbanClient) UpdateSubtask(ctx context.Context, taskID int, subtaskID int, req KanbanUpdateSubtaskRequest) (*KanbanUpdateSubtaskResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result KanbanUpdateSubtaskResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	err := k.c.Patch(ctx, path, req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RemoveSubtaskResult contains the result of removing a subtask.
+type KanbanRemoveSubtaskResult struct {
+	Success bool `json:"success"`
+}
+
+// RemoveSubtask removes a subtask.
+func (k *KanbanClient) RemoveSubtask(ctx context.Context, taskID int, subtaskID int) (*KanbanRemoveSubtaskResult, error) {
+	if taskID <= 0 {
+		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
+	}
+	if subtaskID <= 0 {
+		return nil, fmt.Errorf("subtask_id must be positive, got %d", subtaskID)
+	}
+
+	var result KanbanRemoveSubtaskResult
+	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	err := k.c.Delete(ctx, path, nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

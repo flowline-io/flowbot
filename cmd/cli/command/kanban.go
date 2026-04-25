@@ -31,6 +31,7 @@ func KanbanCommand() *cli.Command {
 			kanbanColumnCommand(),
 			kanbanMetadataCommand(),
 			kanbanTagCommand(),
+			kanbanSubtaskCommand(),
 		},
 	}
 }
@@ -645,6 +646,372 @@ func formatTimestamp(ts int) string {
 	}
 	t := time.Unix(int64(ts), 0)
 	return t.Format(time.RFC3339)
+}
+
+func kanbanSubtaskCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "subtask",
+		Usage:       "Manage kanban subtasks",
+		Description: "Create, update, list and delete subtasks for kanban tasks",
+		Commands: []*cli.Command{
+			kanbanSubtaskListCommand(),
+			kanbanSubtaskGetCommand(),
+			kanbanSubtaskCreateCommand(),
+			kanbanSubtaskUpdateCommand(),
+			kanbanSubtaskDeleteCommand(),
+		},
+	}
+}
+
+func kanbanSubtaskListCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "list",
+		Usage:       "List subtasks for a task",
+		ArgsUsage:   "<task_id>",
+		Description: "Display all subtasks for a given task",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output format (table, json)",
+				Value:   "table",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("task ID is required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			subtasks, err := c.Kanban.ListSubtasks(ctx, taskId)
+			if err != nil {
+				return fmt.Errorf("list subtasks: %w", err)
+			}
+
+			if len(subtasks) == 0 {
+				_, _ = fmt.Println("No subtasks found for this task")
+				return nil
+			}
+
+			output := cmd.String("output")
+			if output == "json" {
+				data, err := json.MarshalIndent(subtasks, "", "  ")
+				if err != nil {
+					return fmt.Errorf("marshal subtasks: %w", err)
+				}
+				_, _ = fmt.Println(string(data))
+			} else {
+				_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", "ID", "TITLE", "STATUS", "ESTIMATED", "SPENT")
+				_, _ = fmt.Println(strings.Repeat("-", 80))
+				for _, s := range subtasks {
+					title := s.Title
+					if len(title) > 28 {
+						title = title[:25] + "..."
+					}
+					status := s.StatusName
+					if status == "" {
+						status = "Todo"
+					}
+					_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", s.ID, title, status, s.TimeEstimated, s.TimeSpent)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskGetCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "get",
+		Usage:       "Get a subtask by ID",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Display details of a specific subtask",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "Output format (table, json)",
+				Value:   "table",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			subtask, err := c.Kanban.GetSubtask(ctx, taskId, subtaskId)
+			if err != nil {
+				return fmt.Errorf("get subtask: %w", err)
+			}
+
+			output := cmd.String("output")
+			if output == "json" {
+				data, err := json.MarshalIndent(subtask, "", "  ")
+				if err != nil {
+					return fmt.Errorf("marshal subtask: %w", err)
+				}
+				_, _ = fmt.Println(string(data))
+			} else {
+				_, _ = fmt.Printf("ID:          %s\n", subtask.ID)
+				_, _ = fmt.Printf("Title:       %s\n", subtask.Title)
+				_, _ = fmt.Printf("Task ID:     %s\n", subtask.TaskID)
+				_, _ = fmt.Printf("Status:      %s\n", subtask.StatusName)
+				_, _ = fmt.Printf("Time Estimated: %v\n", subtask.TimeEstimated)
+				_, _ = fmt.Printf("Time Spent:  %v\n", subtask.TimeSpent)
+				if subtask.Username != "" {
+					_, _ = fmt.Printf("Assignee:    %s\n", subtask.Username)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskCreateCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "create",
+		Usage:       "Create a new subtask",
+		ArgsUsage:   "<task_id>",
+		Description: "Add a subtask to a kanban task",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "title",
+				Aliases:  []string{"t"},
+				Usage:    "Subtask title",
+				Required: true,
+			},
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID to assign",
+				Value:   0,
+			},
+			&cli.IntFlag{
+				Name:    "time-estimated",
+				Aliases: []string{"e"},
+				Usage:   "Estimated time (minutes)",
+				Value:   0,
+			},
+			&cli.IntFlag{
+				Name:    "time-spent",
+				Aliases: []string{"s"},
+				Usage:   "Time spent (minutes)",
+				Value:   0,
+			},
+			&cli.IntFlag{
+				Name:    "status",
+				Aliases: []string{"S"},
+				Usage:   "Status (0=Todo, 1=In progress, 2=Done)",
+				Value:   0,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("task ID is required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := client.KanbanCreateSubtaskRequest{
+				Title:         cmd.String("title"),
+				UserID:        int(cmd.Int("user")),
+				TimeEstimated: int(cmd.Int("time-estimated")),
+				TimeSpent:     int(cmd.Int("time-spent")),
+				Status:        int(cmd.Int("status")),
+			}
+
+			result, err := c.Kanban.CreateSubtask(ctx, taskId, req)
+			if err != nil {
+				return fmt.Errorf("create subtask: %w", err)
+			}
+
+			_, _ = fmt.Printf("Subtask created: ID=%d\n", result.ID)
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskUpdateCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "update",
+		Usage:       "Update a subtask",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Modify an existing subtask",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "title",
+				Aliases: []string{"t"},
+				Usage:   "New title",
+			},
+			&cli.IntFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "User ID to assign (-1 to unassign)",
+				Value:   -1,
+			},
+			&cli.IntFlag{
+				Name:    "time-estimated",
+				Aliases: []string{"e"},
+				Usage:   "Estimated time (minutes, -1 to clear)",
+				Value:   -1,
+			},
+			&cli.IntFlag{
+				Name:    "time-spent",
+				Aliases: []string{"s"},
+				Usage:   "Time spent (minutes, -1 to clear)",
+				Value:   -1,
+			},
+			&cli.IntFlag{
+				Name:    "status",
+				Aliases: []string{"S"},
+				Usage:   "Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged)",
+				Value:   -1,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			req := client.KanbanUpdateSubtaskRequest{}
+			if title := cmd.String("title"); title != "" {
+				req.Title = title
+			}
+			if user := int(cmd.Int("user")); user >= 0 {
+				req.UserID = user
+			}
+			if te := int(cmd.Int("time-estimated")); te >= 0 {
+				req.TimeEstimated = te
+			}
+			if ts := int(cmd.Int("time-spent")); ts >= 0 {
+				req.TimeSpent = ts
+			}
+			if st := int(cmd.Int("status")); st >= 0 {
+				req.Status = st
+			}
+
+			result, err := c.Kanban.UpdateSubtask(ctx, taskId, subtaskId, req)
+			if err != nil {
+				return fmt.Errorf("update subtask: %w", err)
+			}
+
+			if result.Success {
+				_, _ = fmt.Printf("Subtask updated: %d\n", subtaskId)
+			} else {
+				_, _ = fmt.Println("Failed to update subtask")
+			}
+			return nil
+		},
+	}
+}
+
+func kanbanSubtaskDeleteCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "delete",
+		Usage:       "Delete a subtask",
+		ArgsUsage:   "<task_id> <subtask_id>",
+		Description: "Remove a subtask by ID",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "yes",
+				Aliases: []string{"y"},
+				Usage:   "Skip confirmation",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return fmt.Errorf("task ID and subtask ID are required")
+			}
+			taskIdStr := cmd.Args().Get(0)
+			taskId, err := strconv.Atoi(taskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid task ID: %w", err)
+			}
+			subtaskIdStr := cmd.Args().Get(1)
+			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid subtask ID: %w", err)
+			}
+
+			if !cmd.Bool("yes") {
+				_, _ = fmt.Printf("Delete subtask %d? [y/N]: ", subtaskId)
+				var response string
+				if _, err := fmt.Scanln(&response); err != nil {
+					return fmt.Errorf("read confirmation: %w", err)
+				}
+				if response != "y" && response != "Y" {
+					_, _ = fmt.Println("Cancelled")
+					return nil
+				}
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
+			}
+
+			result, err := c.Kanban.RemoveSubtask(ctx, taskId, subtaskId)
+			if err != nil {
+				return fmt.Errorf("delete subtask: %w", err)
+			}
+
+			if result.Success {
+				_, _ = fmt.Printf("Subtask deleted: %d\n", subtaskId)
+			} else {
+				_, _ = fmt.Println("Failed to delete subtask")
+			}
+			return nil
+		},
+	}
 }
 
 func kanbanTagCommand() *cli.Command {

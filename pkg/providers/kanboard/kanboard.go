@@ -292,3 +292,77 @@ func (v *Kanboard) GetTaskTags(ctx context.Context, taskId int) (tags map[string
 	}
 	return
 }
+
+func (v *Kanboard) CreateSubtask(ctx context.Context, taskId int, title string, userId int, timeEstimated int, timeSpent int, status int) (subtaskId int64, err error) {
+	params := types.KV{"task_id": taskId, "title": title}
+	if userId > 0 {
+		params["user_id"] = userId
+	}
+	if timeEstimated > 0 {
+		params["time_estimated"] = timeEstimated
+	}
+	if timeSpent > 0 {
+		params["time_spent"] = timeSpent
+	}
+	if status > 0 {
+		params["status"] = status
+	}
+	err = v.c.CallResult(ctx, "createSubtask", params, &subtaskId)
+	if err != nil {
+		err = fmt.Errorf("failed to create subtask, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetSubtask(ctx context.Context, subtaskId int) (subtask *Subtask, err error) {
+	err = v.c.CallResult(ctx, "getSubtask", types.KV{"subtask_id": subtaskId}, &subtask)
+	if err != nil {
+		err = fmt.Errorf("failed to get subtask, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) GetAllSubtasks(ctx context.Context, taskId int) (subtasks []*Subtask, err error) {
+	err = v.c.CallResult(ctx, "getAllSubtasks", types.KV{"task_id": taskId}, &subtasks)
+	if err != nil {
+		err = fmt.Errorf("failed to get all subtasks, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) UpdateSubtask(ctx context.Context, subtaskId int, taskId int, title string, userId int, timeEstimated int, timeSpent int, status int) (result bool, err error) {
+	params := types.KV{"id": subtaskId, "task_id": taskId}
+	if title != "" {
+		params["title"] = title
+	}
+	if userId >= 0 {
+		params["user_id"] = userId
+	}
+	if timeEstimated >= 0 {
+		params["time_estimated"] = timeEstimated
+	}
+	if timeSpent >= 0 {
+		params["time_spent"] = timeSpent
+	}
+	if status >= 0 {
+		params["status"] = status
+	}
+	err = v.c.CallResult(ctx, "updateSubtask", params, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to update subtask, %w", err)
+		return
+	}
+	return
+}
+
+func (v *Kanboard) RemoveSubtask(ctx context.Context, subtaskId int) (result bool, err error) {
+	err = v.c.CallResult(ctx, "removeSubtask", types.KV{"subtask_id": subtaskId}, &result)
+	if err != nil {
+		err = fmt.Errorf("failed to remove subtask, %w", err)
+		return
+	}
+	return
+}
