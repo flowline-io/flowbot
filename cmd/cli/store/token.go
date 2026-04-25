@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	configDir  = ".config"
-	appConfig  = "flowbot"
-	tokenFile  = "token"
-	profileSep = "."
+	configDir     = ".config"
+	appConfig     = "flowbot"
+	tokenFile     = "token"
+	serverURLFile = "server_url"
+	profileSep    = "."
 )
 
 // GetConfigDir returns the configuration directory path
@@ -40,6 +41,19 @@ func GetTokenPath(profile string) (string, error) {
 	return filepath.Join(cfgDir, filename), nil
 }
 
+// GetServerURLPath returns the path to the server URL file
+func GetServerURLPath(profile string) (string, error) {
+	cfgDir, err := GetConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("get config dir: %w", err)
+	}
+	filename := serverURLFile
+	if profile != "" {
+		filename = serverURLFile + profileSep + profile
+	}
+	return filepath.Join(cfgDir, filename), nil
+}
+
 // SaveToken saves the authentication token
 func SaveToken(token, profile string) error {
 	path, err := GetTokenPath(profile)
@@ -64,6 +78,34 @@ func LoadToken(profile string) (string, error) {
 			return "", nil
 		}
 		return "", fmt.Errorf("read token: %w", err)
+	}
+	return string(data), nil
+}
+
+// SaveServerURL saves the server URL
+func SaveServerURL(serverURL, profile string) error {
+	path, err := GetServerURLPath(profile)
+	if err != nil {
+		return fmt.Errorf("get server URL path: %w", err)
+	}
+	if err := os.WriteFile(path, []byte(serverURL), 0600); err != nil {
+		return fmt.Errorf("save server URL: %w", err)
+	}
+	return nil
+}
+
+// LoadServerURL loads the server URL
+func LoadServerURL(profile string) (string, error) {
+	path, err := GetServerURLPath(profile)
+	if err != nil {
+		return "", fmt.Errorf("get server URL path: %w", err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", fmt.Errorf("read server URL: %w", err)
 	}
 	return string(data), nil
 }

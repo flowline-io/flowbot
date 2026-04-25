@@ -60,6 +60,11 @@ tasks:
     cmds:
       - go run ./cmd/agent
 
+  run:cli:
+    desc: Run flowbot CLI (task run:cli -- --help)
+    cmds:
+      - go run ./cmd/cli {{.CLI_ARGS}}
+
   # Code quality tasks
   cloc:
     desc: Count lines of code using cloc

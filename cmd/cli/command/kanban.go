@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/urfave/cli/v3"
@@ -58,7 +58,7 @@ func kanbanListCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -142,7 +142,7 @@ func kanbanGetCommand() *cli.Command {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func kanbanCreateCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -258,7 +258,7 @@ func kanbanUpdateCommand() *cli.Command {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -317,7 +317,7 @@ func kanbanDeleteCommand() *cli.Command {
 				}
 			}
 
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -369,7 +369,7 @@ func kanbanMoveCommand() *cli.Command {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
-			c, err := newKanbanClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -389,25 +389,6 @@ func kanbanMoveCommand() *cli.Command {
 			return nil
 		},
 	}
-}
-
-func newKanbanClient(cmd *cli.Command) (*client.Client, error) {
-	profile := cmd.String("profile")
-
-	serverURL := cmd.String("server-url")
-	if serverURL == "" {
-		return nil, fmt.Errorf("server URL is required (use --server-url or FLOWBOT_SERVER_URL)")
-	}
-
-	token, err := store.LoadToken(profile)
-	if err != nil {
-		return nil, fmt.Errorf("load token: %w", err)
-	}
-	if token == "" {
-		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
-	}
-
-	return client.NewClient(serverURL, token), nil
 }
 
 func formatTimestamp(ts int) string {

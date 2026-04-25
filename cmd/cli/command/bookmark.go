@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/cmd/cli/store"
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/urfave/cli/v3"
 )
@@ -40,7 +40,7 @@ func bookmarkCreateCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c, err := newBookmarkClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func bookmarkListCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c, err := newBookmarkClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -155,7 +155,7 @@ func bookmarkGetCommand() *cli.Command {
 			}
 			id := cmd.Args().Get(0)
 
-			c, err := newBookmarkClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -234,7 +234,7 @@ func bookmarkDeleteCommand() *cli.Command {
 				}
 			}
 
-			c, err := newBookmarkClient(cmd)
+			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -248,23 +248,4 @@ func bookmarkDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
-}
-
-func newBookmarkClient(cmd *cli.Command) (*client.Client, error) {
-	profile := cmd.String("profile")
-
-	serverURL := cmd.String("server-url")
-	if serverURL == "" {
-		return nil, fmt.Errorf("server URL is required (use --server-url or FLOWBOT_SERVER_URL)")
-	}
-
-	token, err := store.LoadToken(profile)
-	if err != nil {
-		return nil, fmt.Errorf("load token: %w", err)
-	}
-	if token == "" {
-		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
-	}
-
-	return client.NewClient(serverURL, token), nil
 }

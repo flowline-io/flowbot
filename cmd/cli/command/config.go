@@ -35,11 +35,21 @@ func configGetCommand() *cli.Command {
 			}
 			key := cmd.Args().Get(0)
 
+			profile := cmd.String("profile")
+
 			switch key {
 			case "server-url":
 				val := cmd.String("server-url")
 				if val == "" {
-					val = "not set"
+					stored, err := store.LoadServerURL(profile)
+					if err != nil {
+						return fmt.Errorf("load server URL: %w", err)
+					}
+					if stored != "" {
+						val = stored
+					} else {
+						val = "not set"
+					}
 				}
 				_, _ = fmt.Println(val)
 			case "profile":
@@ -69,8 +79,18 @@ func configSetCommand() *cli.Command {
 			key := cmd.Args().Get(0)
 			value := cmd.Args().Get(1)
 
-			_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
-			_, _ = fmt.Println("Note: Set environment variable FLOWBOT_" + toEnvKey(key) + "=" + value)
+			profile := cmd.String("profile")
+
+			switch key {
+			case "server-url":
+				if err := store.SaveServerURL(value, profile); err != nil {
+					return fmt.Errorf("save server URL: %w", err)
+				}
+				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
+			default:
+				_, _ = fmt.Printf("Configuration '%s' set to '%s'\n", key, value)
+				_, _ = fmt.Println("Note: Set environment variable FLOWBOT_" + toEnvKey(key) + "=" + value)
+			}
 			return nil
 		},
 	}
@@ -85,19 +105,26 @@ func configListCommand() *cli.Command {
 			_, _ = fmt.Println("Current Configuration:")
 			_, _ = fmt.Println("----------------------")
 
+			profile := cmd.String("profile")
+
 			serverURL := cmd.String("server-url")
 			if serverURL == "" {
-				serverURL = "not set (use --server-url or FLOWBOT_SERVER_URL)"
+				stored, err := store.LoadServerURL(profile)
+				if err == nil && stored != "" {
+					serverURL = stored
+				} else {
+					serverURL = "not set (use 'config set server-url <url>' or FLOWBOT_SERVER_URL)"
+				}
 			}
 			_, _ = fmt.Printf("server-url: %s\n", serverURL)
 
-			profile := cmd.String("profile")
-			if profile == "" {
-				profile = "default"
+			displayProfile := profile
+			if displayProfile == "" {
+				displayProfile = "default"
 			}
-			_, _ = fmt.Printf("profile: %s\n", profile)
+			_, _ = fmt.Printf("profile: %s\n", displayProfile)
 
-			token, _ := store.LoadToken(cmd.String("profile"))
+			token, _ := store.LoadToken(profile)
 			if token == "" {
 				_, _ = fmt.Println("token: not logged in")
 			} else {

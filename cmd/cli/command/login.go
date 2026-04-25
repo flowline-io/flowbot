@@ -32,6 +32,14 @@ func LoginCommand() *cli.Command {
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			profile := cmd.String("profile")
 
+			serverURL := cmd.String("server-url")
+			if serverURL != "" {
+				if err := store.SaveServerURL(serverURL, profile); err != nil {
+					return fmt.Errorf("save server URL: %w", err)
+				}
+				_, _ = fmt.Printf("Server URL saved: %s\n", serverURL)
+			}
+
 			token := cmd.String("token")
 			if token == "" {
 				_, _ = fmt.Print("Enter your API token: ")
