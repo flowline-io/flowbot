@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // ServerClient provides access to the server management API.
@@ -23,6 +24,10 @@ type UploadResult struct {
 // Upload uploads files to the server.
 // files should be a map of field name to file content.
 func (s *ServerClient) Upload(ctx context.Context, files map[string]io.Reader, filenames map[string]string) (*UploadResult, error) {
+	if err := validateUploadFiles(files, filenames); err != nil {
+		return nil, err
+	}
+
 	req := s.c.RawRequest().SetContext(ctx)
 
 	for fieldName, file := range files {
@@ -44,6 +49,29 @@ func (s *ServerClient) Upload(ctx context.Context, files map[string]io.Reader, f
 	}
 
 	return &result, nil
+}
+
+func validateUploadFiles(files map[string]io.Reader, filenames map[string]string) error {
+	if len(files) == 0 {
+		return fmt.Errorf("at least one file is required")
+	}
+	if len(files) > validate.MaxFileCount {
+		return fmt.Errorf("file count exceeds maximum of %d", validate.MaxFileCount)
+	}
+	for fieldName := range files {
+		if fieldName == "" {
+			return fmt.Errorf("field name cannot be empty")
+		}
+		if len(fieldName) > validate.NameMaxLen {
+			return fmt.Errorf("field name exceeds maximum length of %d", validate.NameMaxLen)
+		}
+		if filename, ok := filenames[fieldName]; ok {
+			if len(filename) > validate.NameMaxLen {
+				return fmt.Errorf("filename exceeds maximum length of %d", validate.NameMaxLen)
+			}
+		}
+	}
+	return nil
 }
 
 // UploadMultipart uploads files using multipart form data.

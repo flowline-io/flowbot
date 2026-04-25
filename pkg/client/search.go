@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // SearchClient provides access to the search API.
@@ -24,6 +25,10 @@ type SearchResult struct {
 // Search performs a full-text search.
 // The source parameter filters by data source (optional).
 func (s *SearchClient) Search(ctx context.Context, query string, source string) ([]SearchResult, error) {
+	if err := validateSearchQuery(query); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/service/search/query?q=%s", query)
 	if source != "" {
 		path += fmt.Sprintf("&source=%s", source)
@@ -38,9 +43,23 @@ func (s *SearchClient) Search(ctx context.Context, query string, source string) 
 	return extractSearchResults(result), nil
 }
 
+func validateSearchQuery(query string) error {
+	if query == "" {
+		return fmt.Errorf("query is required")
+	}
+	if len(query) > validate.QueryMaxLen {
+		return fmt.Errorf("query exceeds maximum length of %d", validate.QueryMaxLen)
+	}
+	return nil
+}
+
 // Autocomplete performs a search autocomplete query.
 // The source parameter filters by data source (optional).
 func (s *SearchClient) Autocomplete(ctx context.Context, query string, source string) ([]SearchResult, error) {
+	if err := validateSearchQuery(query); err != nil {
+		return nil, err
+	}
+
 	path := fmt.Sprintf("/service/search/autocomplete?q=%s", query)
 	if source != "" {
 		path += fmt.Sprintf("&source=%s", source)
