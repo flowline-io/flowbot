@@ -4,25 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/cmd/cli/internal/model"
 	"github.com/flowline-io/flowbot/cmd/cli/internal/store"
-	"github.com/flowline-io/flowbot/cmd/cli/pkg/utils"
+	"github.com/flowline-io/flowbot/cmd/cli/pkg/client"
 	"github.com/urfave/cli/v3"
 )
 
-// BookmarkCommand returns the bookmark parent command
+// BookmarkCommand returns the bookmark parent command.
 func BookmarkCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "bookmark",
 		Usage:       "Work with bookmarks",
-		Description: "Manage bookmarks locally",
+		Description: "Manage bookmarks via Flowbot server",
 		Commands: []*cli.Command{
 			bookmarkCreateCommand(),
 			bookmarkListCommand(),
 			bookmarkGetCommand(),
-			bookmarkUpdateCommand(),
 			bookmarkDeleteCommand(),
 		},
 	}
@@ -32,62 +31,30 @@ func bookmarkCreateCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "create",
 		Usage:       "Create a new bookmark",
-		Description: "Add a new bookmark to local storage",
+		Description: "Add a new bookmark to the Flowbot server",
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "title",
-				Aliases:  []string{"t"},
-				Usage:    "Bookmark title",
-				Required: true,
-			},
 			&cli.StringFlag{
 				Name:     "url",
 				Aliases:  []string{"u"},
 				Usage:    "Bookmark URL",
 				Required: true,
 			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "Bookmark description",
-			},
-			&cli.StringSliceFlag{
-				Name:  "tags",
-				Usage: "Tags for the bookmark",
-			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
-			title := cmd.String("title")
-			urlStr := cmd.String("url")
-			description := cmd.String("description")
-
-			if err := store.ValidateBookmark(title, urlStr, description); err != nil {
-				return err
-			}
-
-			s, err := store.LoadBookmarks(profile)
+			c, err := newBookmarkClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			bookmark := model.Bookmark{
-				ID:          utils.GenerateID(),
-				Title:       title,
-				URL:         urlStr,
-				Description: description,
-				Tags:        cmd.StringSlice("tags"),
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
+			urlStr := cmd.String("url")
+			body := map[string]string{"url": urlStr}
+
+			var result bookmarkItem
+			if err := c.Post("/service/bookmark", body, &result); err != nil {
+				return fmt.Errorf("create bookmark: %w", err)
 			}
 
-			s.Bookmarks = append(s.Bookmarks, bookmark)
-
-			if err := store.SaveBookmarks(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", bookmark.Title, bookmark.ID)
+			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", result.Title, result.ID)
 			return nil
 		},
 	}
@@ -97,7 +64,7 @@ func bookmarkListCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "list",
 		Usage:       "List all bookmarks",
-		Description: "Display all saved bookmarks",
+		Description: "Display bookmarks from the Flowbot server",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "output",
@@ -105,38 +72,47 @@ func bookmarkListCommand() *cli.Command {
 				Usage:   "Output format (table, json)",
 				Value:   "table",
 			},
-			&cli.StringSliceFlag{
-				Name:  "tag",
-				Usage: "Filter by tag",
+			&cli.IntFlag{
+				Name:    "limit",
+				Aliases: []string{"n"},
+				Usage:   "Maximum number of bookmarks",
+				Value:   20,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
-
-			s, err := store.LoadBookmarks(profile)
+			c, err := newBookmarkClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			filters := cmd.StringSlice("tag")
-			bookmarks := filterBookmarksByTags(s.Bookmarks, filters)
+			limit := int(cmd.Int("limit"))
 
-			if len(bookmarks) == 0 {
+			var result bookmarkListResult
+			path := fmt.Sprintf("/service/bookmark?limit=%d", limit)
+			if err := c.Get(path, &result); err != nil {
+				return fmt.Errorf("list bookmarks: %w", err)
+			}
+
+			if len(result.Bookmarks) == 0 {
 				_, _ = fmt.Println("No bookmarks found")
 				return nil
 			}
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(bookmarks, "", "  ")
+				data, err := json.MarshalIndent(result.Bookmarks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmarks: %w", err)
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
 				_, _ = fmt.Printf("%-12s %-30s %-50s\n", "ID", "TITLE", "URL")
-				_, _ = fmt.Println(string(make([]byte, 94)))
-				for _, b := range bookmarks {
+				_, _ = fmt.Println(strings.Repeat("-", 94))
+				for _, b := range result.Bookmarks {
+					id := b.ID
+					if len(id) > 10 {
+						id = id[:8] + ".."
+					}
 					title := b.Title
 					if len(title) > 28 {
 						title = title[:25] + "..."
@@ -145,7 +121,7 @@ func bookmarkListCommand() *cli.Command {
 					if len(url) > 48 {
 						url = url[:45] + "..."
 					}
-					_, _ = fmt.Printf("%-12s %-30s %-50s\n", b.ID, title, url)
+					_, _ = fmt.Printf("%-12s %-30s %-50s\n", id, title, url)
 				}
 			}
 
@@ -169,125 +145,42 @@ func bookmarkGetCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("bookmark ID is required")
 			}
 			id := cmd.Args().Get(0)
 
-			s, err := store.LoadBookmarks(profile)
+			c, err := newBookmarkClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			bookmark := findBookmarkByID(s.Bookmarks, id)
-			if bookmark == nil {
-				return fmt.Errorf("bookmark not found: %s", id)
+			var result bookmarkItem
+			if err := c.Get("/service/bookmark/"+id, &result); err != nil {
+				return fmt.Errorf("get bookmark: %w", err)
 			}
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(bookmark, "", "  ")
+				data, err := json.MarshalIndent(result, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmark: %w", err)
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				_, _ = fmt.Printf("ID:          %s\n", bookmark.ID)
-				_, _ = fmt.Printf("Title:       %s\n", bookmark.Title)
-				_, _ = fmt.Printf("URL:         %s\n", bookmark.URL)
-				_, _ = fmt.Printf("Description: %s\n", bookmark.Description)
-				_, _ = fmt.Printf("Tags:        %v\n", bookmark.Tags)
-				_, _ = fmt.Printf("Created:     %s\n", bookmark.CreatedAt.Format(time.RFC3339))
-				_, _ = fmt.Printf("Updated:     %s\n", bookmark.UpdatedAt.Format(time.RFC3339))
-			}
-
-			return nil
-		},
-	}
-}
-
-func bookmarkUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update",
-		Usage:       "Update a bookmark",
-		ArgsUsage:   "<id>",
-		Description: "Modify an existing bookmark",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "title",
-				Aliases: []string{"t"},
-				Usage:   "New title",
-			},
-			&cli.StringFlag{
-				Name:    "url",
-				Aliases: []string{"u"},
-				Usage:   "New URL",
-			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "New description",
-			},
-			&cli.StringSliceFlag{
-				Name:  "tags",
-				Usage: "New tags (replaces existing)",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
-			if cmd.NArg() == 0 {
-				return fmt.Errorf("bookmark ID is required")
-			}
-			id := cmd.Args().Get(0)
-
-			s, err := store.LoadBookmarks(profile)
-			if err != nil {
-				return err
-			}
-
-			found := false
-			for i, b := range s.Bookmarks {
-				if b.ID == id {
-					newTitle := b.Title
-					newURL := b.URL
-					newDesc := b.Description
-
-					if cmd.String("title") != "" {
-						newTitle = cmd.String("title")
-					}
-					if cmd.String("url") != "" {
-						newURL = cmd.String("url")
-					}
-					if cmd.String("description") != "" {
-						newDesc = cmd.String("description")
-					}
-
-					if err := store.ValidateBookmark(newTitle, newURL, newDesc); err != nil {
-						return err
-					}
-
-					s.Bookmarks[i].Title = newTitle
-					s.Bookmarks[i].URL = newURL
-					s.Bookmarks[i].Description = newDesc
-					if len(cmd.StringSlice("tags")) > 0 {
-						s.Bookmarks[i].Tags = cmd.StringSlice("tags")
-					}
-					s.Bookmarks[i].UpdatedAt = time.Now()
-					found = true
-					break
+				createdAt := result.CreatedAt
+				if t, err := time.Parse(time.RFC3339, result.CreatedAt); err == nil {
+					createdAt = t.Format(time.RFC3339)
 				}
+				_, _ = fmt.Printf("ID:          %s\n", result.ID)
+				_, _ = fmt.Printf("Title:       %s\n", result.Title)
+				_, _ = fmt.Printf("URL:         %s\n", result.URL)
+				_, _ = fmt.Printf("Description: %s\n", result.Description)
+				_, _ = fmt.Printf("Tags:        %v\n", result.Tags)
+				_, _ = fmt.Printf("Archived:    %v\n", result.Archived)
+				_, _ = fmt.Printf("Created:     %s\n", createdAt)
 			}
 
-			if !found {
-				return fmt.Errorf("bookmark not found: %s", id)
-			}
-
-			if err := store.SaveBookmarks(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Bookmark updated: %s\n", id)
 			return nil
 		},
 	}
@@ -296,9 +189,9 @@ func bookmarkUpdateCommand() *cli.Command {
 func bookmarkDeleteCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "delete",
-		Usage:       "Delete a bookmark",
+		Usage:       "Delete (archive) a bookmark",
 		ArgsUsage:   "<id>",
-		Description: "Remove a bookmark by ID",
+		Description: "Archive a bookmark by ID",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "yes",
@@ -307,14 +200,13 @@ func bookmarkDeleteCommand() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			profile := cmd.String("profile")
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("bookmark ID is required")
 			}
 			id := cmd.Args().Get(0)
 
 			if !cmd.Bool("yes") {
-				_, _ = fmt.Printf("Delete bookmark %s? [y/N]: ", id)
+				_, _ = fmt.Printf("Archive bookmark %s? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
 					return fmt.Errorf("read confirmation: %w", err)
@@ -325,66 +217,55 @@ func bookmarkDeleteCommand() *cli.Command {
 				}
 			}
 
-			s, err := store.LoadBookmarks(profile)
+			c, err := newBookmarkClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			found := false
-			for i, b := range s.Bookmarks {
-				if b.ID == id {
-					s.Bookmarks = append(s.Bookmarks[:i], s.Bookmarks[i+1:]...)
-					found = true
-					break
-				}
+			body := map[string]bool{"archived": true}
+			var result map[string]any
+			if err := c.Patch("/service/bookmark/"+id, body, &result); err != nil {
+				return fmt.Errorf("delete bookmark: %w", err)
 			}
 
-			if !found {
-				return fmt.Errorf("bookmark not found: %s", id)
-			}
-
-			if err := store.SaveBookmarks(s, profile); err != nil {
-				return err
-			}
-
-			_, _ = fmt.Printf("Bookmark deleted: %s\n", id)
+			_, _ = fmt.Printf("Bookmark archived: %s\n", id)
 			return nil
 		},
 	}
 }
 
-func filterBookmarksByTags(bookmarks []model.Bookmark, tags []string) []model.Bookmark {
-	if len(tags) == 0 {
-		return bookmarks
+func newBookmarkClient(cmd *cli.Command) (*client.Client, error) {
+	profile := cmd.String("profile")
+
+	serverURL := cmd.String("server-url")
+	if serverURL == "" {
+		return nil, fmt.Errorf("server URL is required (use --server-url or FLOWBOT_SERVER_URL)")
 	}
 
-	var filtered []model.Bookmark
-	for _, b := range bookmarks {
-		if hasAllTags(b.Tags, tags) {
-			filtered = append(filtered, b)
-		}
+	token, err := store.LoadToken(profile)
+	if err != nil {
+		return nil, fmt.Errorf("load token: %w", err)
 	}
-	return filtered
+	if token == "" {
+		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
+	}
+
+	return client.NewClient(serverURL, token), nil
 }
 
-func hasAllTags(bookmarkTags, filterTags []string) bool {
-	tagSet := make(map[string]bool)
-	for _, t := range bookmarkTags {
-		tagSet[t] = true
-	}
-	for _, t := range filterTags {
-		if !tagSet[t] {
-			return false
-		}
-	}
-	return true
+// Response types for bookmark webservice responses.
+
+type bookmarkListResult struct {
+	Bookmarks  []bookmarkItem `json:"bookmarks"`
+	NextCursor string         `json:"nextCursor"`
 }
 
-func findBookmarkByID(bookmarks []model.Bookmark, id string) *model.Bookmark {
-	for i := range bookmarks {
-		if bookmarks[i].ID == id {
-			return &bookmarks[i]
-		}
-	}
-	return nil
+type bookmarkItem struct {
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	URL         string   `json:"url"`
+	Description string   `json:"description"`
+	Tags        []string `json:"tags"`
+	CreatedAt   string   `json:"createdAt"`
+	Archived    bool     `json:"archived"`
 }

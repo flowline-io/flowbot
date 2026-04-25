@@ -14,13 +14,13 @@ import (
 func LoginCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "login",
-		Usage:       "Authenticate flowbot with Flowbot server",
-		Description: "Authenticate and save credentials locally",
+		Usage:       "Save access token for Flowbot server communication",
+		Description: "Save the access token used to authenticate with the Flowbot server API. The token is sent as X-AccessToken header in all API requests.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "token",
 				Aliases:  []string{"t"},
-				Usage:    "API token for authentication",
+				Usage:    "Access token for Flowbot server API",
 				Required: false,
 			},
 			&cli.StringFlag{
