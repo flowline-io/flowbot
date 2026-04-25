@@ -42,6 +42,12 @@ func TestPut(t *testing.T) {
 	assert.Equal(t, "/api/update", r.Path)
 }
 
+func TestPatch(t *testing.T) {
+	r := Patch("/api/archive", nil)
+	assert.Equal(t, "PATCH", r.Method)
+	assert.Equal(t, "/api/archive", r.Path)
+}
+
 func TestDelete(t *testing.T) {
 	r := Delete("/api/remove", nil)
 	assert.Equal(t, "DELETE", r.Method)
@@ -53,13 +59,15 @@ func TestRuleset_Creation(t *testing.T) {
 		Get("/query", nil),
 		Post("/submit", nil),
 		Put("/update", nil),
+		Patch("/patch", nil),
 		Delete("/delete", nil),
 	}
-	assert.Len(t, rules, 4)
+	assert.Len(t, rules, 5)
 	assert.Equal(t, "GET_/query", rules[0].ID())
 	assert.Equal(t, "POST_/submit", rules[1].ID())
 	assert.Equal(t, "PUT_/update", rules[2].ID())
-	assert.Equal(t, "DELETE_/delete", rules[3].ID())
+	assert.Equal(t, "PATCH_/patch", rules[3].ID())
+	assert.Equal(t, "DELETE_/delete", rules[4].ID())
 }
 
 func TestRuleset_Empty(t *testing.T) {
@@ -80,6 +88,7 @@ func TestRule_AllMethodTypes(t *testing.T) {
 		{func(p string, _ any, _ ...any) Rule { return Get(p, nil) }, "GET"},
 		{func(p string, _ any, _ ...any) Rule { return Post(p, nil) }, "POST"},
 		{func(p string, _ any, _ ...any) Rule { return Put(p, nil) }, "PUT"},
+		{func(p string, _ any, _ ...any) Rule { return Patch(p, nil) }, "PATCH"},
 		{func(p string, _ any, _ ...any) Rule { return Delete(p, nil) }, "DELETE"},
 	}
 

@@ -52,6 +52,15 @@ func Put(path string, function fiber.Handler, option ...route.Option) Rule {
 	}
 }
 
+func Patch(path string, function fiber.Handler, option ...route.Option) Rule {
+	return Rule{
+		Method:   "PATCH",
+		Path:     path,
+		Function: function,
+		Option:   option,
+	}
+}
+
 func Delete(path string, function fiber.Handler, option ...route.Option) Rule {
 	return Rule{
 		Method:   "DELETE",
