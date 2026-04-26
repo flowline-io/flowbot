@@ -66,3 +66,51 @@ func (v *Miniflux) MarkAllAsRead() error {
 
 	return nil
 }
+
+func (v *Miniflux) GetFeed(feedID int64) (*rssClient.Feed, error) {
+	feed, err := v.c.Feed(feedID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get feed, %w", err)
+	}
+	return feed, nil
+}
+
+func (v *Miniflux) CreateFeed(req *rssClient.FeedCreationRequest) (int64, error) {
+	feedID, err := v.c.CreateFeed(req)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create feed, %w", err)
+	}
+	return feedID, nil
+}
+
+func (v *Miniflux) UpdateFeed(feedID int64, req *rssClient.FeedModificationRequest) (*rssClient.Feed, error) {
+	feed, err := v.c.UpdateFeed(feedID, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update feed, %w", err)
+	}
+	return feed, nil
+}
+
+func (v *Miniflux) RefreshFeed(feedID int64) error {
+	err := v.c.RefreshFeed(feedID)
+	if err != nil {
+		return fmt.Errorf("failed to refresh feed, %w", err)
+	}
+	return nil
+}
+
+func (v *Miniflux) UpdateEntries(entryIDs []int64, status string) error {
+	err := v.c.UpdateEntries(entryIDs, status)
+	if err != nil {
+		return fmt.Errorf("failed to update entries, %w", err)
+	}
+	return nil
+}
+
+func (v *Miniflux) GetFeedEntries(feedID int64, filter *rssClient.Filter) (*rssClient.EntryResultSet, error) {
+	entries, err := v.c.FeedEntries(feedID, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get feed entries, %w", err)
+	}
+	return entries, nil
+}
