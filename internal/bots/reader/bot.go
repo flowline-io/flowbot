@@ -62,6 +62,7 @@ func (bot) Rules() []any {
 		commandRules,
 		cronRules,
 		webhookRules,
+		webserviceRules,
 	}
 }
 
