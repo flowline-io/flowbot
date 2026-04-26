@@ -35,6 +35,7 @@ type Client struct {
 	// Resource clients
 	Kanban   *KanbanClient
 	Bookmark *BookmarkClient
+	Reader   *ReaderClient
 	User     *UserClient
 	Search   *SearchClient
 	Dev      *DevClient
@@ -58,6 +59,7 @@ func NewClient(serverURL, token string) *Client {
 	// Initialize resource clients
 	c.Kanban = &KanbanClient{c: c}
 	c.Bookmark = &BookmarkClient{c: c}
+	c.Reader = &ReaderClient{c: c}
 	c.User = &UserClient{c: c}
 	c.Search = &SearchClient{c: c}
 	c.Dev = &DevClient{c: c}
