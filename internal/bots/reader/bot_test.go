@@ -99,5 +99,5 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = bot{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 3) // commandRules, cronRules, webhookRules
+	assert.Len(t, rules, 4) // commandRules, cronRules, webhookRules, webserviceRules
 }
