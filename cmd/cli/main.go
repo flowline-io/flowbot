@@ -24,6 +24,7 @@ func main() {
 			command.LoginCommand(),
 			command.BookmarkCommand(),
 			command.KanbanCommand(),
+			command.ReaderCommand(),
 			command.ConfigCommand(),
 			command.VersionCommand(version),
 		},
