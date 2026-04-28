@@ -6,27 +6,27 @@ import (
 	"os"
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
+	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v3"
 )
 
 const (
 	appName  = "flowbot"
 	appUsage = "Work seamlessly with Flowbot from the command line"
-	version  = "1.0.0"
 )
 
 func main() {
 	rootCmd := &cli.Command{
 		Name:    appName,
 		Usage:   appUsage,
-		Version: version,
+		Version: version.Buildtags,
 		Commands: []*cli.Command{
 			command.LoginCommand(),
 			command.BookmarkCommand(),
 			command.KanbanCommand(),
 			command.ReaderCommand(),
 			command.ConfigCommand(),
-			command.VersionCommand(version),
+			command.VersionCommand(version.Buildtags),
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
