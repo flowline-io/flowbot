@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	code.gitea.io/sdk/gitea v0.24.1
-	github.com/Masterminds/semver/v3 v3.4.0
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/RealAlexandreAI/json-repair v0.0.15
 	github.com/ThreeDotsLabs/watermill v1.5.1
