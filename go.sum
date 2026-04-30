@@ -749,8 +749,8 @@ github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2/go.mod h1:bBOAhwG1umN6
 github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/godbus/dbus/v5 v5.2.2 h1:TUR3TgtSVDmjiXOgAAyaZbYmIeP3DPkld3jgKGV8mXQ=
 github.com/godbus/dbus/v5 v5.2.2/go.mod h1:3AAv2+hPq5rdnr5txxxRwiGjPXamgoIHgz9FPBfOp3c=
-github.com/gofiber/contrib/v3/swaggo v1.0.3 h1:su1hkDzXZUYdHnedMcZaxoutgIp897qtwxPRiQN3uW8=
-github.com/gofiber/contrib/v3/swaggo v1.0.3/go.mod h1:HwSUoHIVFiA0A81qw45mU2eClZ9VC/r20THOueiQLOo=
+github.com/gofiber/contrib/v3/swaggo v1.0.4 h1:12chRTXI2TdSfbmJ7PTqgc4XWa+pivPohpP/TvMaQBA=
+github.com/gofiber/contrib/v3/swaggo v1.0.4/go.mod h1:oDvgG3V6e3/ORcPBEGIySw+piVwZEfRvpx751/pQMK4=
 github.com/gofiber/contrib/v3/zerolog v1.0.4 h1:oXVqn9gChxnDYDU9VQSJHggRSP8vLVI0MMdJt7saTf8=
 github.com/gofiber/contrib/v3/zerolog v1.0.4/go.mod h1:7TWyNqBe4drslUqZsr7o3u+PqcYMg2waSgFCPhxtqGA=
 github.com/gofiber/fiber/v3 v3.2.0 h1:g9+09D320foINPpCnR3ibQ5oBEFHjAWRRfDG1te54u8=
