@@ -67,7 +67,7 @@ require (
 	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
 	golang.org/x/sys v0.43.0
 	golang.org/x/term v0.42.0
-	google.golang.org/genai v1.54.0
+	google.golang.org/genai v1.55.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
 	gorm.io/gorm v1.31.1
