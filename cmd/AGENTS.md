@@ -1,6 +1,6 @@
 # Entry Points Guide
 
-4 binaries serving distinct roles. All use `go.uber.org/fx` for dependency injection.
+3 binaries serving distinct roles. All use `go.uber.org/fx` for dependency injection.
 
 **Go Version:** 1.26
 
@@ -14,9 +14,9 @@ cmd/
 │   ├── modules.go      # fx wiring
 │   ├── daemon.go       # Core loop
 │   └── config/ script/ startup/ ruleset/ client/ updater/
-├── composer/           # Code generation CLI (cli/v3)
+├── composer/           # Dev tool CLI (cli/v3)
 │   ├── main.go
-│   └── action/         # Subcommands: migrate, generator, dao, doc
+│   └── action/         # Subcommands: dao, doc
 └── cli/                # Admin CLI
 ```
 
@@ -26,7 +26,7 @@ cmd/
 | --------- | ------------------ | -------------------------------- | -- |
 | server    | `main.go`          | HTTP API server (Fiber v3)       | fx |
 | agent     | `agent/main.go`    | Background daemon (cron, events) | fx |
-| composer  | `composer/main.go` | Code gen, migrations, schema doc | —  |
+| composer  | `composer/main.go` | Dev tools (dao gen, schema doc)  | —  |
 | cli       | `cli/main.go`      | Admin CLI commands               | —  |
 
 ## Dependency Injection
@@ -47,11 +47,8 @@ var Modules = fx.Options(
 
 ## Composer CLI
 
-Code generation tool (`cli/v3`). Key subcommands:
+Dev tools. Key subcommands:
 ```bash
-composer migrate migration --name add_feature
-composer generator bot --name mybot --rule command,form
-composer generator vendor --name myvendor
 composer dao --config ./flowbot.yaml
 composer doc --config ./flowbot.yaml
 ```

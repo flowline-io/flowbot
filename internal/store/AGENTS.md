@@ -30,10 +30,10 @@ Create non-generated DAOs for complex queries:
 
 ### Migrations
 
-- Location: `migrate/migrations/`
+- Location: `pkg/migrate/migrations/`
 - Naming: `<timestamp>_<name>.up.sql` / `<timestamp>_<name>.down.sql`
-- Use `task migration NAME=feature` to create new migration
-- Run with `task migrate`
+- Create new migration files manually
+- Migrations run automatically on server startup
 
 ## Key Types
 
@@ -54,8 +54,6 @@ Create non-generated DAOs for complex queries:
 
 ```bash
 go tool task dao        # Regenerate DAOs from schema
-go tool task migrate    # Run migrations
-go tool task migration NAME=feature  # Create new migration
 go tool task doc        # Generate schema docs
 ```
 

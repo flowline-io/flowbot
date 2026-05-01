@@ -27,7 +27,7 @@ flowbot/
 ├── cmd/                  # Entry points
 │   ├── main.go          # HTTP server (Fiber)
 │   ├── agent/           # Background agent daemon
-│   ├── composer/        # CLI: code gen, migration
+│   ├── composer/        # CLI: dao gen, schema doc
 │   └── cli/             # CLI: admin commands
 ├── internal/
 │   ├── bots/            # 18 bot modules
@@ -104,7 +104,7 @@ go test -run ^TestFoo$ ./pkg/utils
 | ---------- | ---------------- | ----------------------------- |
 | DAO        | `task dao`       | `internal/store/dao/*.gen.go` |
 | Swagger    | `task swagger`   | `docs/api/`                   |
-| Migrations | `task migration` | `pkg/migrate/migrations/`     |
+| Migrations | `task migrate`   | `pkg/migrate/migrations/`     |
 
 **Never** edit `.gen.go` files directly.
 

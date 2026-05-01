@@ -7,8 +7,6 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
-	"github.com/flowline-io/flowbot/cmd/composer/action/generator"
-	"github.com/flowline-io/flowbot/cmd/composer/action/migrate"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v3"
@@ -31,59 +29,6 @@ func NewCommand() *cli.Command {
 		EnableShellCompletion: true,
 		Version:               version.Buildtags,
 		Commands: []*cli.Command{
-			{
-				Name:  "migrate",
-				Usage: "migrate tool",
-				Commands: []*cli.Command{
-					{
-						Name:  "migration",
-						Usage: "generate migration files",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "name",
-								Value: "",
-								Usage: "migration name",
-							},
-						},
-						Action: migrate.MigrationAction,
-					},
-				},
-			},
-			{
-				Name:  "generator",
-				Usage: "code generator",
-				Commands: []*cli.Command{
-					{
-						Name:  "bot",
-						Usage: "generate bot code files",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "name",
-								Value: "",
-								Usage: "bot package name",
-							},
-							&cli.StringSliceFlag{
-								Name:  "rule",
-								Value: []string{"command"},
-								Usage: "rule type",
-							},
-						},
-						Action: generator.ModuleAction,
-					},
-					{
-						Name:  "vendor",
-						Usage: "generate vendor api files",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "name",
-								Value: "",
-								Usage: "vendor name",
-							},
-						},
-						Action: generator.VendorAction,
-					},
-				},
-			},
 			{
 				Name:  "dao",
 				Usage: "dao generator",

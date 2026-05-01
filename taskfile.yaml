@@ -160,27 +160,6 @@ tasks:
     cmds:
       - go run ./cmd/composer dao
 
-  generator:bot:
-    desc: Generate bot code (task generator:bot NAME=botname RULE=command,form)
-    cmds:
-      - go run ./cmd/composer generator bot -name {{.NAME | default "example"}} -rule {{.RULE | default "command"}}
-
-  generator:vendor:
-    desc: Generate vendor API code (task generator:vendor NAME=vendorname)
-    cmds:
-      - go run ./cmd/composer generator vendor -name {{.NAME | default "example"}}
-
-  # Database migration tasks
-  migrate:
-    desc: Import database migrations
-    cmds:
-      - go run ./cmd/composer migrate import
-
-  migration:
-    desc: Create new migration file (task migration NAME=migration_name)
-    cmds:
-      - go run ./cmd/composer migrate migration -name {{.NAME | default .CLI_ARGS | default "migration"}}
-
   # Development tools
   tools:
     desc: Install all development tools
