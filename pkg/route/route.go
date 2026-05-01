@@ -3,9 +3,9 @@ package route
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/fiber/v3"
@@ -131,8 +131,7 @@ func GetAccessToken(req *http.Request) string {
 		return apikey
 	}
 	authorization := req.Header.Get("Authorization")
-	authorization = strings.TrimSpace(authorization)
-	apikey = strings.ReplaceAll(authorization, "Bearer ", "")
+	apikey = auth.ExtractBearerToken(authorization)
 	if apikey != "" {
 		return apikey
 	}

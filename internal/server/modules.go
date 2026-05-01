@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/internal/bots"
+	"github.com/flowline-io/flowbot/internal/modules"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -12,7 +12,7 @@ import (
 )
 
 var Modules = fx.Options(
-	bots.Modules,
+	modules.Modules,
 	NotifyModules,
 	MediaModules,
 	fx.Provide(

@@ -41,6 +41,13 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 		bot.Webservice(a)
 	}
 
+	// hub management plane
+	a.Get("/hub/apps", route.Authorize(0, ctl.hubApps))
+	a.Get("/hub/apps/:name", route.Authorize(0, ctl.hubApp))
+	a.Get("/hub/capabilities", route.Authorize(0, ctl.hubCapabilities))
+	a.Get("/hub/capabilities/:type", route.Authorize(0, ctl.hubCapability))
+	a.Get("/hub/health", route.Authorize(0, ctl.hubHealth))
+
 	// common
 	a.Get("/", func(c fiber.Ctx) error { return nil })
 	a.Get(healthcheck.LivenessEndpoint, healthcheck.New())

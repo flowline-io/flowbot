@@ -38,6 +38,14 @@ func newHTTPServer() *fiber.App {
 		StructValidator: &structValidator{validate: validator.New()},
 		// error handler
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
+			if err == nil {
+				return nil
+			}
+			if status, ok := domainErrorStatus(err); ok {
+				return ctx.Status(status).
+					JSON(protocol.NewFailedResponse(err))
+			}
+
 			// custom error
 			var e oops.OopsError
 			if errors.As(err, &e) {
@@ -49,14 +57,8 @@ func newHTTPServer() *fiber.App {
 					JSON(protocol.NewFailedResponse(e))
 			}
 
-			// other error
-			if err != nil {
-				return ctx.Status(fiber.StatusBadRequest).
-					JSON(protocol.NewFailedResponse(protocol.ErrBadRequest.Wrap(err)))
-			}
-
-			// Return from handler
-			return nil
+			return ctx.Status(fiber.StatusInternalServerError).
+				JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError.Wrap(err)))
 		},
 	})
 	// recover
@@ -68,8 +70,18 @@ func newHTTPServer() *fiber.App {
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-		AllowMethods:     []string{fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete, fiber.MethodPatch, fiber.MethodOptions},
-		AllowHeaders:     []string{fiber.HeaderOrigin, fiber.HeaderContentType, fiber.HeaderAccept, fiber.HeaderAuthorization},
+		AllowMethods: []string{fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete, fiber.MethodPatch, fiber.MethodOptions},
+		AllowHeaders: []string{
+			fiber.HeaderOrigin,
+			fiber.HeaderContentType,
+			fiber.HeaderAccept,
+			fiber.HeaderAuthorization,
+			"X-AccessToken",
+			"X-Webhook-Signature",
+			"X-Webhook-Timestamp",
+			"X-Webhook-ID",
+			"X-Request-ID",
+		},
 		AllowCredentials: true,
 	}))
 	// limiter

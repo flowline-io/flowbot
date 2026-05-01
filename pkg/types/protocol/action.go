@@ -194,6 +194,6 @@ func NewFailedResponse(err error) Response {
 	return Response{
 		Status:  Failed,
 		RetCode: "10000",
-		Message: e.Error(),
+		Message: err.Error(),
 	}
 }

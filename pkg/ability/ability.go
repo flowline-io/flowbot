@@ -1,0 +1,78 @@
+package ability
+
+import (
+	"time"
+
+	"github.com/flowline-io/flowbot/pkg/hub"
+)
+
+type Bookmark struct {
+	ID         string    `json:"id"`
+	URL        string    `json:"url"`
+	Title      string    `json:"title,omitempty"`
+	Summary    string    `json:"summary,omitempty"`
+	Tags       []string  `json:"tags,omitempty"`
+	Archived   bool      `json:"archived"`
+	Favourited bool      `json:"favourited"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type ArchiveItem struct {
+	ID        string    `json:"id"`
+	URL       string    `json:"url"`
+	Title     string    `json:"title,omitempty"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type Feed struct {
+	ID       int64  `json:"id"`
+	Title    string `json:"title"`
+	FeedURL  string `json:"feed_url"`
+	SiteURL  string `json:"site_url,omitempty"`
+	Category string `json:"category,omitempty"`
+}
+
+type Entry struct {
+	ID          int64     `json:"id"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
+	Content     string    `json:"content,omitempty"`
+	Status      string    `json:"status"`
+	Starred     bool      `json:"starred"`
+	PublishedAt time.Time `json:"published_at"`
+	FeedTitle   string    `json:"feed_title,omitempty"`
+}
+
+type Task struct {
+	ID          int      `json:"id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description,omitempty"`
+	ProjectID   int      `json:"project_id"`
+	ColumnID    int      `json:"column_id"`
+	Tags        []string `json:"tags,omitempty"`
+	Reference   string   `json:"reference,omitempty"`
+}
+
+type Host struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Address string `json:"address,omitempty"`
+	Status  string `json:"status"`
+}
+
+type InvokeResult struct {
+	Capability hub.CapabilityType `json:"capability"`
+	Operation  string             `json:"operation"`
+	Data       any                `json:"data,omitempty"`
+	Page       *PageInfo          `json:"page,omitempty"`
+	Text       string             `json:"text,omitempty"`
+	Meta       map[string]any     `json:"meta,omitempty"`
+	Events     []EventRef         `json:"events,omitempty"`
+}
+
+type EventRef struct {
+	EventID   string `json:"event_id"`
+	EventType string `json:"event_type"`
+	EntityID  string `json:"entity_id,omitempty"`
+}
