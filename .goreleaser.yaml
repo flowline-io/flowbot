@@ -18,9 +18,9 @@ before:
     - go generate ./...
 
 builds:
-  - id: flowbot-agent
-    main: ./cmd/agent
-    binary: flowbot-agent
+  - id: flowbot
+    main: ./cmd
+    binary: flowbot
     env:
       - CGO_ENABLED=0
     goos:
