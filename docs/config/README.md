@@ -22,13 +22,9 @@ Main application configuration file template for the Flowbot server. Covers:
 - Bot module settings
 - Third-party vendor configurations
 
-### `examples/`
+### Workflow Examples
 
-Workflow configuration examples:
-
-- `docker_example.yaml` - Docker container execution workflow
-- `example.yaml` - Rule chain with JS filter/transform/log
-- `func_example.yaml` - Custom function chain workflow
+See `docs/examples/workflows/` for workflow configuration examples.
 
 ## Quick Start
 

@@ -1,0 +1,15 @@
+[Unit]
+Description = flowbot
+After = network.target
+
+[Service]
+Type = simple
+ExecStart = /opt/app/flowbot
+WorkingDirectory = /opt/app
+Restart = always
+StandardOutput = append:/var/log/flowbot.log
+StandardError = append:/var/log/flowbot.log
+EnvironmentFile = /opt/app/flowbot.env
+
+[Install]
+WantedBy = multi-user.target

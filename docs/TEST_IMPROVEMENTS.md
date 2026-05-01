@@ -155,9 +155,8 @@ The following areas still need test coverage:
 
 4. **Entry Points** (`cmd/`)
    - Main server
-   - Agent daemon
+   - Admin CLI
    - Composer CLI
-   - Admin PWA
 
 5. **Core Infrastructure**
    - `pkg/cache`
@@ -240,17 +239,10 @@ func TestBotWorkflow(t *testing.T) {
 
 ## CI/CD Integration
 
-Ensure tests run in CI:
+Tests run in CI via `.github/workflows/testing.yml`:
 
-```yaml
-# .github/workflows/test.yml
-- name: Run Tests
-  run: go test -v -race -coverprofile=coverage.out ./...
-
-- name: Upload Coverage
-  uses: codecov/codecov-action@v3
-  with:
-    file: ./coverage.out
+```bash
+go tool task test
 ```
 
 ## Conclusion

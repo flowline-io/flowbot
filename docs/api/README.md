@@ -78,22 +78,6 @@ X-AccessToken: <your-token>
 | `/p/:id`                 | GET    | Page rendering      |
 | `/agent`                 | POST   | Agent data endpoint |
 
-### Admin PWA API
-
-The admin panel (`cmd/app`) has its own API endpoints served at `/admin/api/`:
-
-| Route                      | Method         | Description           |
-| -------------------------- | -------------- | --------------------- |
-| `/login/dev`               | POST           | Dev mode login        |
-| `/login/slack/url`         | GET            | Slack OAuth URL       |
-| `/login/slack/exchange`    | POST           | Exchange OAuth code   |
-| `/me`                      | GET            | Current user info     |
-| `/settings`                | GET/PUT        | System settings       |
-| `/dashboard/stats`         | GET            | Dashboard statistics  |
-| `/containers`              | GET/POST       | Container list/create |
-| `/containers/:id`          | GET/PUT/DELETE | Container CRUD        |
-| `/containers/batch-delete` | POST           | Batch delete          |
-
 ### Bot Webservice Routes
 
-Each bot module can register its own webservice routes via `bot.Webservice()`. These are mounted dynamically at runtime.
+Each module can register webservice routes via the module handler interface. These are mounted dynamically at runtime.

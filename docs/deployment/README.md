@@ -1,124 +1,80 @@
 # Deployment Documentation
 
-This directory contains deployment-related documentation and configuration files for Flowbot.
-
-## File Descriptions
-
-### `flowbot-agent.service`
-
-Systemd service configuration file for running Flowbot Agent as a system service on Linux.
-
 ## Build
 
 All binaries are built using [Task](https://taskfile.dev):
 
 ```bash
-# Build main server
-task build
-
-# Build agent
-task build:agent
-
-# Build admin PWA (Wasm + server)
-task build:app
-
-# Build all
-task build:all
+task build           # Main server (bin/flowbot)
+task build:composer  # Composer CLI (bin/composer)
+task build:cli       # Admin CLI (bin/flowbot-cli)
+task build:all       # All binaries
 ```
 
 ## Deployment Methods
 
-### 1. Docker Deployment (Recommended)
-
-Two Dockerfiles are available in the `deployments/` directory:
-
-| File             | Image         | Description                                      |
-| ---------------- | ------------- | ------------------------------------------------ |
-| `Dockerfile`     | `flowbot`     | Main server (single binary)                      |
-| `Dockerfile.app` | `flowbot-app` | Admin PWA (multi-stage: Wasm + server on Alpine) |
-
-#### Build Docker Images
+### 1. Binary Deployment
 
 ```bash
-# Main server
+task build
+./bin/flowbot                      # Start server
+./bin/flowbot-cli -- server-url http://localhost:6060  # Admin CLI
+```
+
+### 2. Docker Deployment
+
+```bash
 docker build -f deployments/Dockerfile -t flowbot .
-
-# Admin PWA
-docker build -f deployments/Dockerfile.app -t flowbot-app .
-```
-
-#### Run
-
-```bash
-# Main server
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
-
-# Admin PWA
-docker run -p 8090:8090 flowbot-app
 ```
 
-### 2. Systemd Service Deployment
+### 3. Systemd Service (Desktop Agent)
 
-#### Agent Service
+The desktop agent is embedded in the main server. For headless setups, use the systemd service:
 
 1. Copy binary and service file:
 
 ```bash
-sudo cp bin/flowbot-agent /opt/app/
-sudo chmod +x /opt/app/flowbot-agent
-sudo cp docs/deployment/flowbot-agent.service /etc/systemd/system/
+sudo cp bin/flowbot /opt/app/
+sudo chmod +x /opt/app/flowbot
+sudo cp docs/deployment/flowbot.service /etc/systemd/system/
 ```
 
 2. Create environment file:
 
 ```bash
-sudo vi /opt/app/flowbot-agent.env
+sudo cp docs/config/agent.yaml /opt/app/agent.yaml
 ```
 
 3. Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable flowbot-agent
-sudo systemctl start flowbot-agent
+sudo systemctl enable flowbot
+sudo systemctl start flowbot
 ```
 
 #### Service Management
 
 ```bash
-sudo systemctl status flowbot-agent
-sudo systemctl restart flowbot-agent
-sudo journalctl -u flowbot-agent -f
-```
-
-### 3. Manual Deployment
-
-```bash
-# Server
-./bin/flowbot
-
-# Agent
-./bin/flowbot-agent
-
-# Admin PWA
-./bin/flowbot-app
+sudo systemctl status flowbot
+sudo systemctl restart flowbot
+sudo journalctl -u flowbot -f
 ```
 
 ## CI/CD
 
 GitHub Actions workflows (`.github/workflows/`):
 
-| Workflow          | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| `build.yml`       | Build main server                                      |
-| `build_agent.yml` | Build agent                                            |
-| `build_app.yml`   | Build admin PWA + Docker image (uses `task build:app`) |
-| `docker.yml`      | Docker image publishing                                |
-| `release.yml`     | Release pipeline                                       |
+| Workflow          | Description        |
+| ----------------- | ------------------ |
+| `build.yml`       | Lint + Build       |
+| `testing.yml`     | Run all tests      |
+| `build_cli.yml`   | Build CLI tools    |
+| `docker.yml`      | Build Docker image |
+| `release.yml`     | Release pipeline   |
 
 ## Health Checks
-
-The main server exposes health check endpoints:
 
 ```bash
 curl http://localhost:6060/livez    # Liveness
@@ -131,6 +87,5 @@ curl http://localhost:6060/startupz # Startup
 - [ ] Configuration file (`flowbot.yaml`) is set up
 - [ ] MySQL database is accessible
 - [ ] Redis server is running
-- [ ] Required ports are open (default: 6060 for server, 8090 for PWA)
-- [ ] Log directory has write permissions
+- [ ] Required ports are open (default: 6060)
 - [ ] Service starts and health checks pass

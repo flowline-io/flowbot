@@ -63,7 +63,7 @@ node "Host Machine (Linux)" as Host {
 
   ' --- Systemd ---
   node "systemd" as Systemd {
-    [flowbot-agent.service]
+    [flowbot.service]
   }
 
   ' --- Filesystem ---

@@ -1,155 +1,102 @@
 # Flowbot Documentation
 
-Flowbot is an advanced multi-platform chatbot framework that provides intelligent conversation, workflow automation, and comprehensive LLM agent capabilities.
+Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers self-hosted apps, abstracts their capabilities, exposes unified interfaces, and orchestrates cross-service automation.
 
 ## Directory Structure
 
-- 📁 [`api/`](./api/) - API documentation and interface definitions
-  - `swagger.json` - OpenAPI 3.0 specification file (JSON format)
-  - `swagger.yaml` - OpenAPI 3.0 specification file (YAML format)
-  - `docs.go` - Auto-generated API documentation code
-  - `api.http` - HTTP request examples collection
+- [api/](./api/) — API documentation
+  - `swagger.json` / `swagger.yaml` — OpenAPI 3.0 spec
+  - `docs.go` — Auto-generated swagger embedding
+  - `api.http` — HTTP request examples
 
-- 📁 [`config/`](./config/) - Configuration files and examples
-  - `config.yaml` - Main configuration file template
-  - `agent.yaml` - Agent configuration file template
-  - [`examples/`](./config/examples/) - Workflow configuration examples
+- [architecture/](./architecture/) — System architecture (PlantUML)
+  - `architecture.puml` — Component diagram
+  - `layers.puml` — Layered architecture
+  - `dataflow.puml` — Data flow sequences
+  - `deployment.puml` — Deployment diagram
 
-- 📁 [`deployment/`](./deployment/) - Deployment-related documentation
-  - `flowbot-agent.service` - Systemd service configuration file
+- [config/](./config/) — Configuration templates
+  - `config.yaml` — Main server config
+  - `agent.yaml` — Desktop agent config
 
-- 📁 [`database/`](./database/) - Database-related documentation
-  - `schema.md` - Database table structure documentation
+- [database/](./database/) — Database documentation
+  - `schema.md` — Full table schema reference
 
-- 📁 [`architecture/`](./architecture/) - System architecture documentation
-  - `architecture.png` - System architecture diagram
-  - `flowchart.mermaid` - Workflow flowchart (Mermaid)
+- [deployment/](./deployment/) — Deployment guides
+  - `flowbot.service` — systemd unit
 
-- 📄 [`notify.md`](./notify.md) - Notification configuration guide
-- 📄 [`schema.md`](./schema.md) - Database schema reference
+- [examples/workflows/](./examples/workflows/) — Workflow examples
+  - `save_and_track.yaml` — Capability pipeline example
 
-## Quick Start
-
-1. **Configuration**: Refer to configuration files in the [`config/`](./config/) directory
-2. **Deployment**: Check deployment guides in the [`deployment/`](./deployment/) directory
-3. **API**: View API documentation in the [`api/`](./api/) directory
-4. **Architecture**: Review system design in the [`architecture/`](./architecture/) directory
+- [notify.md](./notify.md) — Notification configuration
+- [TEST_IMPROVEMENTS.md](./TEST_IMPROVEMENTS.md) — Test coverage report
 
 ## Development Tools
 
-All development tools are managed as Go tools (via `go get -tool`) or through [Task](https://taskfile.dev) runner.
+All tools are managed as Go tools (`go get -tool`) or through [Task](https://taskfile.dev).
 
 ### Task Runner
 
-```shell
-# View all available tasks
-task -a
-
-# Run common checks (tidy → swagger → format → lint → scc)
-task default
-
-# Build all binaries
-task build:all
+```bash
+task -a              # List all tasks
+task default         # tidy → swagger → format → lint → test
+task build:all       # Build all binaries
 ```
 
 ### Build Commands
 
-```shell
-# Build main server
-go tool task build
-
-# Build agent
-go tool task build:agent
-
-# Build admin PWA (Wasm + server)
-go tool task build:app
-
-# Build composer CLI
-go tool task build:composer
-
-# Run with live reload
-go tool task air
+```bash
+go tool task build           # Main server
+go tool task build:composer  # Composer CLI
+go tool task build:cli       # Admin CLI
+go tool task build:all       # All binaries
+go tool task air             # Live reload
 ```
 
 ### Code Generation
 
-```shell
-# Generate DAO code from database
-go tool task dao
-
-# Generate Swagger/OpenAPI docs
-go tool task swagger
-
-# Generate database schema docs
-go tool task doc
+```bash
+go tool task dao       # Generate DAO from database
+go tool task swagger   # Generate Swagger/OpenAPI docs
+go tool task doc       # Generate database schema docs
 ```
-
-### Database Migration
-
-Migrations run automatically at server startup. See `pkg/migrate/`.
 
 ### Workflow CLI
 
-```shell
-# Run a workflow YAML file
-go run ./cmd/cli workflow run ./docs/config/examples/docker_example.yaml
+```bash
+go run ./cmd/cli workflow run ./docs/examples/workflows/save_and_track.yaml
 ```
 
 ### Code Quality
 
-```shell
-# Lint (revive + actionlint)
-go tool task lint
-
-# Format code (go fmt + prettier)
-go tool task format
-
-# Tidy Go modules
-go tool task tidy
+```bash
+go tool task lint      # revive + actionlint
+go tool task format    # go fmt + prettier
+go tool task tidy      # go mod tidy
 ```
 
 ### Security
 
-```shell
-# Vulnerability check
-go tool task secure
-
-# Secret leak detection
-go tool task leak
-
-# Go security checker
-go tool task gosec
-
-# Run all security & quality checks
-go tool task check
+```bash
+go tool task secure    # govulncheck
+go tool task leak      # gitleaks
+go tool task gosec     # security scan
+go tool task check     # all security & quality
 ```
 
 ### Testing
 
-```shell
-# Run unit tests
-go tool task test
-
-# Run all tests
-go tool task test:all
-
-# Generate coverage report
-go tool task test:coverage
-```
-
-### API Documentation
-
-```shell
-# Generate Swagger docs
-go tool task swagger
-
-# Generate database schema docs
-go tool task doc
+```bash
+go tool task test            # All unit tests
+go tool task test:short      # Short mode (skip integration)
+go tool task test:utils      # pkg/utils only
+go tool task test:integration # Integration tests (Docker)
+go tool task test:coverage   # Coverage report
 ```
 
 ### Add Go Tool Dependency
 
-```shell
+```bash
 go get -tool import_path@version
 ```
 
@@ -162,4 +109,4 @@ go get -tool import_path@version
 
 ## License
 
-This project is licensed under the GPL 3.0 License. See the [LICENSE](../LICENSE) file for details.
+GPL 3.0 — see [LICENSE](../LICENSE).
