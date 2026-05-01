@@ -4,218 +4,213 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/flowline-io/flowbot)](https://goreportcard.com/report/github.com/flowline-io/flowbot)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 
-Flowbot is an advanced multi-platform chatbot framework that provides intelligent conversation, workflow automation, and comprehensive LLM agent capabilities with extensive third-party integrations.
+**Homelab Data Hub & Capability Orchestration Center**
 
-## Key Features
+Flowbot discovers self-hosted apps, abstracts their capabilities, exposes unified interfaces, and orchestrates cross-service automation via declarative Pipelines and Workflows.
 
-- **Multi-Platform Chatbot** - Discord, Slack, Tailchat
-- **LLM Agent System** - OpenAI-compatible model support, multiple agent types
-- **Workflow Engine** - DAG-based execution with 8+ built-in actions
-- **Message Hub** - Redis Stream pub/sub messaging
-- **Scheduling** - Cron jobs, triggers, automated tasks
-- **20 Bot Modules** - Extensible module system
-- **Admin PWA** - WebAssembly frontend with Fiber v3 backend (go-app/v10)
-- **Monitoring** - Prometheus metrics, health probes
-- **Security** - OAuth 2.0, API key auth, RBAC
+## What Flowbot Solves
+
+In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab/apps/`. Each has its own API, auth model, pagination convention, and data format. Flowbot answers a single question:
+
+> How do I make all these apps work together?
+
+| Problem | Flowbot Solution |
+| ------- | ---------------- |
+| App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps |
+| Capability abstraction | **Ability Layer** maps apps to unified capabilities (`bookmark`, `archive`, `reader`, ...) |
+| Unified interfaces | REST, CLI, Chat, Form, Webhook, Cron, Workflow |
+| Cross-service data flow | **Declarative Pipeline** — event-driven, idempotent, auditable |
+| Composable automation | **Workflow Capability Step** — DAG of capability invocations |
+| Auth boundary | **AuthContext** spans REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow |
+| Audit trail | Durable events, execution history, audit logs — traceable, recoverable, replayable |
+| Provider differences | Standard errors (`ErrNotFound`, `ErrForbidden`, `ErrProvider`) + unified pagination (limit + opaque cursor) |
+
+**Flowbot is not a chatbot.** It uses chat as one of many interaction surfaces. At its core, it is a data hub and orchestration engine for your homelab.
 
 ## Architecture
 
-<img src="./docs/architecture/architecture.png" alt="Architecture" align="center" width="100%" />
+```
+/home/<user>/homelab/apps
+        |                          Module (20 interaction surfaces)
+        | scan apps/*/docker-compose.yaml        |
+        v                                       v
++-------------------+                  +--------------------+
+| Homelab Registry  |  bind app →      | Capability Registry |
+| archivebox,atuin, |  capability      | bookmark, archive,  |
+| beszel,karakeep...| ---------------> | reader, kanban,     |
++-------------------+                  | infra, shellhistory |
+        |                              +---------+----------+
+        | register apps                          |
+        v                              ability.Invoke()
++-------------------+                          |
+|       Hub         |                          v
+| /hub/apps         |                  +--------------------+
+| /hub/capabilities |                  |  Ability Layer     |
+| /hub/health       |                  |  bookmark.Service  |
++-------------------+                  |  archive.Service   |
+                                       |  reader.Service    |
+                                       |  kanban.Service    |
+                                       |  infra.Service     |
+                                       +---------+----------+
+                                                 | adapter
+                                                 v
+                                       +--------------------+
+                                       |  Provider Layer    |
+                                       |  karakeep, archivebox,
+                                       |  miniflux, kanboard,
+                                       |  fireflyiii, beszel,
+                                       |  atuin, ...
+                                       +--------------------+
+```
 
-The system follows a modular architecture:
+See [architecture diagrams](docs/architecture/README.md) for full PlantUML component, layer, dataflow, and deployment diagrams.
 
-- **Entry Points**: Server (`cmd`), Composer CLI (`cmd/composer`), Admin CLI (`cmd/cli`)
-- **Bot Modules**: 20 specialized handlers (`internal/modules/`)
-- **Platform Layer**: Discord, Slack, Tailchat (`internal/platforms/`)
-- **Workflow Engine**: DAG execution with step tracking (`internal/modules/workflow/`)
-- **Storage**: MySQL + Redis (`internal/store/`)
-- **Providers**: 17 third-party integrations (`pkg/providers/`)
+## Capabilities
+
+| Capability | Apps Mapped | Interfaces |
+| ---------- | ----------- | ---------- |
+| **bookmark** | karakeep, linkwarden | REST, CLI, Chat, Workflow |
+| **archive** | archivebox | REST, CLI, Chat, Workflow |
+| **reader** | miniflux | REST, CLI, Chat, Webhook, Cron |
+| **kanban** | kanboard | REST, CLI, Chat, Webhook |
+| **finance** | fireflyiii | REST, CLI, Chat, Webhook |
+| **infra** | beszel, uptime-kuma, adguard, cloudflare | REST, CLI |
+| **shell_history** | atuin | REST, CLI |
+
+All capabilities share the same invocation pattern:
+
+```go
+result, err := ability.Invoke(ctx, "bookmark", ability.OpList, ability.Params{Limit: 20})
+```
+
+Standard errors, unified pagination, provider-agnostic.
+
+## Pipeline & Workflow
+
+### Declarative Pipeline
+
+Cross-service data flows defined in YAML, triggered by durable events:
+
+```yaml
+# When a new bookmark is saved, archive it and notify
+trigger:
+  event: "bookmark.created"
+steps:
+  - action: archive.submit
+    input: $.event.url
+  - action: notify.send
+    input:
+      channel: slack
+      message: "Archived: $.event.url"
+```
+
+Every pipeline run is persisted, idempotent, and audited.
+
+### Workflow Capability Step
+
+Composable automation DAG where each step invokes a capability:
+
+```
+[cron trigger] → [reader.fetch] → [llm.summarize] → [notify.send]
+```
+
+Built-in step types: Capability, Message, Fetch, Feed, LLM, Docker, Grep, Unique, Torrent.
 
 ## Quick Start
 
 ### Requirements
 
 - Go 1.26+
-- MySQL database
-- Redis server
+- MySQL + Redis
 - [Task](https://taskfile.dev) runner
-- Docker (optional)
+- Docker
 
-### Installation
-
-#### Build from Source
+### Install
 
 ```bash
 git clone https://github.com/flowline-io/flowbot.git
 cd flowbot
-
-# Configure
 cp docs/config/config.yaml flowbot.yaml
-# Edit flowbot.yaml with your settings
-
-# Build and run
+# Edit flowbot.yaml
 task build
 ./bin/flowbot
 ```
 
-#### Docker
+### Docker
 
 ```bash
 docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
-### Initial Setup
+## Module Surface
 
-1. **Database**: Configure MySQL DSN in `flowbot.yaml`
-2. **Redis**: Set Redis connection details
-3. **Migrations**: Run `task migrate`
-4. **Platform**: Add bot tokens for Discord/Slack/Tailchat
-5. **LLM Models**: Configure OpenAI-compatible API endpoint
-6. **Start**: Launch server and access Swagger UI at `http://localhost:6060/swagger/`
+20 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.
 
-## Bot Modules
-
-| Module         | Description         | Features                              |
-| -------------- | ------------------- | ------------------------------------- |
-| **Agent**      | LLM-powered AI      | Multiple models, context management   |
-| **Workflow**   | Workflow automation | DAG execution, 8+ actions             |
-| **Archive**    | Web archiving       | ArchiveBox / Karakeep integration     |
-| **Bookmark**   | Link management     | URL organization, tagging             |
-| **Finance**    | Financial tracking  | Bill tracking, categorization         |
-| **Hub**        | App management      | Service discovery, lifecycle          |
-| **Kanban**     | Project management  | Task boards                           |
-| **Notify**     | Notifications       | Slack, Pushover, ntfy, Message Pusher |
-| **Reader**     | RSS/Feed reader     | Content aggregation                   |
-| **GitHub**     | GitHub integration  | Issues, PRs                           |
-| **Gitea**      | Gitea integration   | Repository management                 |
-| **Cloudflare** | Cloudflare          | DNS, analytics                        |
-| **Torrent**    | Downloads           | Transmission integration              |
-| **Search**     | Full-text search    | MeiliSearch                           |
-| **Clipboard**  | Clipboard sync      | Cross-platform sync                   |
-| **Anki**       | Flashcards          | Spaced repetition                     |
-| **Server**     | Server management   | System operations                     |
-| **Dev**        | Developer tools     | Debugging, testing                    |
-| **User**       | User management     | Profiles, settings                    |
-| **Webhook**    | Webhooks            | Inbound/outbound hooks                |
+| Module | Surface |
+| ------ | ------- |
+| **agent** | LLM agent with tool use |
+| **workflow** | DAG execution, job scheduling |
+| **bookmark** | URL management via capability |
+| **archive** | Web archiving via capability |
+| **reader** | RSS/feed aggregation via capability |
+| **kanban** | Task boards via capability |
+| **finance** | Bill tracking via capability |
+| **hub** | App lifecycle management |
+| **notify** | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
+| **cloudflare** | DNS, analytics |
+| **dev** | Debugging, testing, forms |
+| **github** | Issues, PRs |
+| **gitea** | Repository management |
+| **torrent** | Transmission integration |
+| **search** | MeiliSearch |
+| **clipboard** | Cross-platform sync |
+| **anki** | Spaced repetition |
+| **server** | System operations |
+| **user** | Profiles, settings |
+| **webhook** | Inbound/outbound hooks |
 
 ## Development
 
-### Task Runner
-
 ```bash
-# List all tasks
-task -a
-
-# Common checks (tidy → swagger → format → lint → scc)
-task default
-
-# Build all binaries
-task build:all
-
-# Run with live reload
-task air
-```
-
-### Build Commands
-
-```bash
-go tool task build           # Main server
-go tool task build:composer  # Composer CLI
+task default              # tidy → swagger → format → lint → test
+task build                # Main server
+task test                 # Unit tests
+task lint                 # revive + actionlint
+task air                  # Live reload
 ```
 
 ### Code Generation
 
 ```bash
-go tool task generator:bot NAME=mybot RULE=command,form  # Generate bot
-go tool task generator:vendor NAME=myvendor              # Generate vendor
-go tool task dao                                         # Generate DAO from DB
-go tool task swagger                                     # Generate Swagger docs
-go tool task doc                                         # Generate schema docs
-```
-
-### Testing & Quality
-
-```bash
-go tool task test           # Run unit tests
-go tool task test:all       # Run all tests
-go tool task test:coverage  # Coverage report
-go tool task lint           # Lint (revive + actionlint)
-go tool task check          # All security & quality checks
+task dao       # Generate DAO from database
+task swagger   # Generate Swagger/OpenAPI docs
+task doc       # Generate database schema docs
 ```
 
 ### API
 
-- **Base URL**: `http://localhost:6060/service`
-- **Auth**: `X-AccessToken` header
-- **Swagger**: `http://localhost:6060/swagger/`
-- **Health**: `/livez`, `/readyz`, `/startupz`
-- **Metrics**: `/metrics` (Prometheus)
+| Endpoint | Description |
+| -------- | ----------- |
+| `/service/{capability}/*` | Capability plane |
+| `/hub/*` | Management plane |
+| `/swagger/` | OpenAPI docs |
+| `/livez` `/readyz` `/startupz` | Health probes |
+| `/metrics` | Prometheus |
 
-### CLI Tools
-
-```bash
-# Composer — code generation & migrations
-go tool task generator:bot NAME=mybot RULE=command
-go tool task migrate
-go tool task migration NAME=add_feature
-go tool task workflow:import TOKEN=xxx PATH=./workflow.yaml
-```
-
-### Workflow Actions
-
-Built-in actions: **Message**, **Fetch**, **Feed**, **LLM**, **Docker**, **Grep**, **Unique**, **Torrent**
-
-### Third-party Integrations
-
-| Category       | Services                                     |
-| -------------- | -------------------------------------------- |
-| Communication  | Discord, Slack, Tailchat                     |
-| Development    | GitHub, Gitea, Drone CI                      |
-| Productivity   | Kanboard, n8n                                |
-| Finance        | Firefly III                                  |
-| Infrastructure | AdGuard, Cloudflare, Uptime Kuma             |
-| Media          | Transmission, Miniflux, ArchiveBox, Karakeep |
-| Storage        | Dropbox                                      |
-| Other          | Slash, Email                                 |
-
-## Deployment
-
-```bash
-# Docker — main server
-docker build -f deployments/Dockerfile -t flowbot .
-
-# Docker — admin PWA (multi-stage)
-docker build -f deployments/Dockerfile.app -t flowbot-app .
-
-# Systemd service
-sudo cp docs/deployment/flowbot.service /etc/systemd/system/
-sudo systemctl enable flowbot
-```
+Auth: `X-AccessToken` header or OAuth 2.0.
 
 ## Configuration
 
-Key sections in `flowbot.yaml`:
-
 ```yaml
 listen: ":6060"
-api_path: "/"
-
 store_config:
   use_adapter: mysql
   adapters:
     mysql:
       dsn: "root:password@tcp(localhost)/flowbot?parseTime=True"
-
 redis:
   addr: "localhost:6379"
-
-models:
-  - provider: openai
-    base_url: "https://api.openai.com/v1"
-    api_key: "your-key"
-    model_names: ["gpt-4"]
-
 platform:
   slack:
     enabled: true
@@ -227,22 +222,13 @@ platform:
 
 ## Documentation
 
-- [Project Documentation](docs/README.md)
-- [Architecture Guide](docs/architecture/README.md)
+- [Architecture](docs/architecture/README.md)
 - [API Reference](docs/api/README.md)
 - [Configuration](docs/config/README.md)
 - [Database Schema](docs/database/README.md)
-- [Deployment Guide](docs/deployment/README.md)
-- [Notification Setup](docs/notify.md)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- [Deployment](docs/deployment/README.md)
+- [Notifications](docs/notify.md)
 
 ## License
 
-This project is licensed under the [GPL-3.0](LICENSE) License.
+[GPL-3.0](LICENSE)

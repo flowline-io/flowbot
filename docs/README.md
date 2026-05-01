@@ -74,27 +74,25 @@ go tool task air
 ### Code Generation
 
 ```shell
-# Generate bot scaffolding
-go tool task generator:bot NAME=example RULE=command,form
-
-# Generate vendor API code
-go tool task generator:vendor NAME=example
-
 # Generate DAO code from database
 go tool task dao
+
+# Generate Swagger/OpenAPI docs
+go tool task swagger
+
+# Generate database schema docs
+go tool task doc
 ```
 
 ### Database Migration
 
+Migrations run automatically at server startup. See `pkg/migrate/`.
+
+### Workflow CLI
+
 ```shell
-# Import migrations
-go tool task migrate
-
-# Create new migration file
-go tool task migration NAME=add_new_feature
-
-# Import workflow configuration
-go tool task workflow:import TOKEN=xxx PATH=./docs/config/examples/docker_example.yaml
+# Run a workflow YAML file
+go run ./cmd/cli workflow run ./docs/config/examples/docker_example.yaml
 ```
 
 ### Code Quality
