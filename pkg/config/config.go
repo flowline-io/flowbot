@@ -79,6 +79,9 @@ type Type struct {
 
 	// Homelab app registry and lifecycle configuration
 	Homelab Homelab `json:"homelab" yaml:"homelab" mapstructure:"homelab"`
+
+	// Pipeline definitions for cross-service event-driven automation
+	Pipelines []Pipeline `json:"pipelines" yaml:"pipelines" mapstructure:"pipelines"`
 }
 
 // Large file handler config.
@@ -276,6 +279,25 @@ type HomelabPermissions struct {
 	Pull    bool `json:"pull" yaml:"pull" mapstructure:"pull"`
 	Update  bool `json:"update" yaml:"update" mapstructure:"update"`
 	Exec    bool `json:"exec" yaml:"exec" mapstructure:"exec"`
+}
+
+type Pipeline struct {
+	Name        string         `json:"name" yaml:"name" mapstructure:"name"`
+	Description string         `json:"description" yaml:"description" mapstructure:"description"`
+	Enabled     bool           `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Trigger     PipelineTrigger `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
+	Steps       []PipelineStep `json:"steps" yaml:"steps" mapstructure:"steps"`
+}
+
+type PipelineTrigger struct {
+	Event string `json:"event" yaml:"event" mapstructure:"event"`
+}
+
+type PipelineStep struct {
+	Name       string         `json:"name" yaml:"name" mapstructure:"name"`
+	Capability string         `json:"capability" yaml:"capability" mapstructure:"capability"`
+	Operation  string         `json:"operation" yaml:"operation" mapstructure:"operation"`
+	Params     map[string]any `json:"params" yaml:"params" mapstructure:"params"`
 }
 
 type Alarm struct {

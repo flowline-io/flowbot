@@ -119,6 +119,8 @@ var cronRules = []cron.Rule{
 		Name:  "bookmarks_task",
 		Scope: cron.CronScopeUser,
 		When:  "* * * * *",
+		Description: "Creates kanban tasks for new bookmarks. " +
+			"Prefer using a pipeline config (trigger: bookmark.created) for this cross-service behavior.",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {

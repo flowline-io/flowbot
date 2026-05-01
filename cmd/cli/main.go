@@ -23,6 +23,7 @@ func main() {
 		Commands: []*cli.Command{
 			command.LoginCommand(),
 			command.HubCommand(),
+			command.PipelineCommand(),
 			command.BookmarkCommand(),
 			command.KanbanCommand(),
 			command.ReaderCommand(),

@@ -33,6 +33,7 @@ var Modules = fx.Options(
 		handleEvents,
 		handleChatbot,
 		handlePlatform,
+		initPipeline,
 		RunServer,
 	),
 )

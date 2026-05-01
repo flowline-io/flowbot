@@ -13,12 +13,21 @@ type Invoker func(ctx context.Context, params map[string]any) (*InvokeResult, er
 type Registry struct {
 	mu       sync.RWMutex
 	handlers map[hub.CapabilityType]map[string]Invoker
+	emitter  EventEmitter
 }
+
+type EventEmitter func(ctx context.Context, result *InvokeResult)
 
 var DefaultRegistry = NewRegistry()
 
 func NewRegistry() *Registry {
 	return &Registry{handlers: make(map[hub.CapabilityType]map[string]Invoker)}
+}
+
+func SetEventEmitter(emitter EventEmitter) {
+	DefaultRegistry.mu.Lock()
+	defer DefaultRegistry.mu.Unlock()
+	DefaultRegistry.emitter = emitter
 }
 
 func RegisterInvoker(capability hub.CapabilityType, operation string, invoker Invoker) error {
@@ -72,5 +81,13 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	}
 	result.Capability = capability
 	result.Operation = operation
+
+	r.mu.RLock()
+	emitter := r.emitter
+	r.mu.RUnlock()
+	if emitter != nil && len(result.Events) > 0 {
+		emitter(ctx, result)
+	}
+
 	return result, nil
 }

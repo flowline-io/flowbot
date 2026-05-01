@@ -41,6 +41,7 @@ type Client struct {
 	Dev      *DevClient
 	Server   *ServerClient
 	Hub      *HubClient
+	Pipeline *PipelineClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -66,6 +67,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Dev = &DevClient{c: c}
 	c.Server = &ServerClient{c: c}
 	c.Hub = &HubClient{c: c}
+	c.Pipeline = &PipelineClient{c: c}
 
 	return c
 }
