@@ -1,4 +1,4 @@
-name: Build
+name: Testing
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -28,22 +28,5 @@ jobs:
       - name: Go mod download
         run: go mod download
 
-      - name: Lint
-        run: go tool task lint
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: '^1.26'
-          cache: true
-
-      - name: Go mod download
-        run: go mod download
-
-      - name: Build server
-        run: go tool task build
+      - name: Test
+        run: go tool task test
