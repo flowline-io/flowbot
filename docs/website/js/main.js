@@ -41,13 +41,20 @@
   // Active link for subpages
   (function () {
     const path = window.location.pathname;
+    // Extract current page filename from path (e.g. "design.html" from "/design.html")
+    var currentPage = path.split('/').filter(Boolean).pop() || 'index.html';
+    // Directory path (e.g. /flowbot/) => homepage
+    if (currentPage.indexOf('.html') === -1) currentPage = 'index.html';
     document.querySelectorAll('.nav-links a[href]').forEach(function (link) {
-      const href = link.getAttribute('href');
-      if (href === path || (href !== '/' && href !== '/#' && path.indexOf(href) === 0)) {
+      var href = link.getAttribute('href');
+      // Skip anchor-only links (those are handled by scroll)
+      if (href.charAt(0) === '#') return;
+      if (href === currentPage) {
         link.classList.add('active');
       }
     });
   })();
+
 
   // --- Terminal Typing Effect ---
   (function () {
@@ -224,118 +231,199 @@
       const cx = W / 2;
       const cy = H / 2;
       const time = Date.now() / 1000;
+      const D = Math.min(W, H);
 
       ctx.clearRect(0, 0, W, H);
 
-      // Outer ring of scattered nodes
-      const outerNodes = [];
-      for (let i = 0; i < 14; i++) {
-        const angle = (Math.PI * 2 / 14) * i + Math.sin(time + i) * 0.15;
-        const radius = Math.min(W, H) * 0.38 + Math.sin(time * 0.7 + i) * 18;
-        outerNodes.push({
-          x: cx + Math.cos(angle) * radius,
-          y: cy + Math.sin(angle) * radius,
-          r: 5 + Math.sin(time + i) * 1.5,
-        });
-      }
+      // ---- Orbital rings ----
+      const orbits = [
+        { r: D * 0.38, nodes: 6, speed: 0.12, offset: 0 },
+        { r: D * 0.30, nodes: 5, speed: 0.20, offset: Math.PI / 5 },
+        { r: D * 0.20, nodes: 4, speed: 0.32, offset: Math.PI / 3 },
+      ];
 
-      // Draw outer nodes
-      outerNodes.forEach(function (n, i) {
+      // App labels shown near outer orbit nodes
+      var appLabels = [
+        'karakeep', 'archivebox', 'miniflux', 'kanboard',
+        'fireflyiii', 'atuin', 'beszel', 'uptimekuma',
+        'adguard', 'cloudflare', 'gitea', 'linkwarden',
+      ];
+
+      orbits.forEach(function (orbit, oi) {
+        // Draw faint orbital path
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(136, 136, 160, 0.5)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(136, 136, 160, 0.2)';
-        ctx.lineWidth = 1;
+        ctx.arc(cx, cy, orbit.r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.07)';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([3, 12]);
         ctx.stroke();
+        ctx.setLineDash([]);
 
-        // Label
-        const labels = ['archivebox', 'atuin', 'beszel', 'karakeep', 'linkwarden',
-          'miniflux', 'kanboard', 'fireflyiii', 'transmission', 'uptimekuma',
-          'gitea', 'adguard', 'cloudflare', 'pushover'];
-        ctx.font = '7px ' + getComputedStyle(document.body).fontFamily;
-        ctx.fillStyle = 'rgba(136, 136, 160, 0.4)';
-        ctx.textAlign = 'center';
-        ctx.fillText(labels[i % labels.length], n.x, n.y - 12);
+        // Draw orbiting nodes
+        for (let i = 0; i < orbit.nodes; i++) {
+          const angle = (Math.PI * 2 / orbit.nodes) * i + time * orbit.speed + orbit.offset;
+          const x = cx + Math.cos(angle) * orbit.r;
+          const y = cy + Math.sin(angle) * orbit.r;
+          const pulse = 1 + Math.sin(time * 3 + i * 1.7) * 0.3;
+          const nodeR = 3 * pulse;
+
+          // Glow halo
+          var grd = ctx.createRadialGradient(x, y, 0, x, y, nodeR * 4);
+          grd.addColorStop(0, 'rgba(0, 229, 255, 0.35)');
+          grd.addColorStop(0.5, 'rgba(0, 229, 255, 0.08)');
+          grd.addColorStop(1, 'rgba(0, 229, 255, 0)');
+          ctx.beginPath();
+          ctx.arc(x, y, nodeR * 4, 0, Math.PI * 2);
+          ctx.fillStyle = grd;
+          ctx.fill();
+
+          // Core dot
+          ctx.beginPath();
+          ctx.arc(x, y, nodeR, 0, Math.PI * 2);
+          ctx.fillStyle = '#00e5ff';
+          ctx.fill();
+
+          // Label for outer orbit only
+          if (oi === 0) {
+            var labelIdx = i % appLabels.length;
+            const labelAngle = angle;
+            const labelR = orbit.r + 15;
+            const lx = cx + Math.cos(labelAngle) * labelR;
+            const ly = cy + Math.sin(labelAngle) * labelR;
+            ctx.font = "500 9px 'JetBrains Mono', 'Fira Code', monospace";
+            ctx.fillStyle = 'rgba(136, 136, 160, 0.55)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(appLabels[labelIdx], lx, ly);
+          }
+        }
       });
 
-      // Center hub ring
-      const hubRadius = Math.min(W, H) * 0.14;
+      // ---- Data particles flowing inward ----
+      const particleCount = 18;
+      for (let i = 0; i < particleCount; i++) {
+        const seed = i * 0.37;
+        const t = (time * 0.5 + seed) % 1;
+        // Ease-in curve for acceleration toward center
+        const et = t * t;
+        const startAngle = seed * Math.PI * 2;
+        const startR = D * 0.42;
+        const sx = cx + Math.cos(startAngle) * startR;
+        const sy = cy + Math.sin(startAngle) * startR;
+        const ex = cx + Math.cos(startAngle + 0.3) * D * 0.06;
+        const ey = cy + Math.sin(startAngle + 0.3) * D * 0.06;
+        const px = sx + (ex - sx) * et;
+        const py = sy + (ey - sy) * et;
+
+        // Trail line
+        var startT = Math.max(0, t - 0.12);
+        var trailSx = sx + (ex - sx) * (startT * startT);
+        var trailSy = sy + (ey - sy) * (startT * startT);
+        ctx.beginPath();
+        ctx.moveTo(trailSx, trailSy);
+        ctx.lineTo(px, py);
+        ctx.strokeStyle = 'rgba(0, 229, 255, ' + (0.15 * (1 - t)) + ')';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Particle dot
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 229, 255, ' + (0.7 * (1 - t * 0.5)) + ')';
+        ctx.fill();
+      }
+
+      // ---- Center Hub ----
+      const hubR = D * 0.1;
+
+      // Outer glow ring
+      var ringGrd = ctx.createRadialGradient(cx, cy, hubR * 0.6, cx, cy, hubR * 1.4);
+      ringGrd.addColorStop(0, 'rgba(0, 229, 255, 0)');
+      ringGrd.addColorStop(0.7, 'rgba(0, 229, 255, 0.15)');
+      ringGrd.addColorStop(1, 'rgba(0, 229, 255, 0)');
       ctx.beginPath();
-      ctx.arc(cx, cy, hubRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.6)';
+      ctx.arc(cx, cy, hubR * 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = ringGrd;
+      ctx.fill();
+
+      // Hub border ring
+      ctx.beginPath();
+      ctx.arc(cx, cy, hubR, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Inner ring
+      // Hub inner fill
+      var hubGrd = ctx.createRadialGradient(cx, cy, 0, cx, cy, hubR);
+      hubGrd.addColorStop(0, 'rgba(0, 229, 255, 0.2)');
+      hubGrd.addColorStop(1, 'rgba(0, 229, 255, 0.04)');
       ctx.beginPath();
-      ctx.arc(cx, cy, hubRadius * 0.55, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0, 255, 65, 0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Center dot
-      ctx.beginPath();
-      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#00e5ff';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 229, 255, 0.18)';
+      ctx.arc(cx, cy, hubR, 0, Math.PI * 2);
+      ctx.fillStyle = hubGrd;
       ctx.fill();
 
-      // Flow lines from outer to center (data flowing in)
-      outerNodes.forEach(function (n, i) {
-        const t = (time * 0.6 + i * 0.3) % 1;
-        const midX = n.x + (cx - n.x) * t;
-        const midY = n.y + (cy - n.y) * t;
+      // Pulsing inner dot
+      var corePulse = 1 + Math.sin(time * 2.5) * 0.25;
+      var coreGrd = ctx.createRadialGradient(cx, cy, 0, cx, cy, hubR * 0.45 * corePulse);
+      coreGrd.addColorStop(0, '#00e5ff');
+      coreGrd.addColorStop(0.4, 'rgba(0, 229, 255, 0.6)');
+      coreGrd.addColorStop(1, 'rgba(0, 229, 255, 0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, hubR * 0.45 * corePulse, 0, Math.PI * 2);
+      ctx.fillStyle = coreGrd;
+      ctx.fill();
 
-        // Line from outer to center
+      // ---- Outgoing data streams (right side, beam-like) ----
+      var outStartX = cx + hubR + 4;
+      var outEndX = W * 0.92;
+      var beams = 4;
+
+      for (var b = 0; b < beams; b++) {
+        var by = cy + (b - (beams - 1) / 2) * (hubR * 0.9);
+        var lineAlpha = 0.25 + Math.sin(time * 1.5 + b) * 0.1;
+
+        // Beam line
         ctx.beginPath();
-        ctx.moveTo(n.x, n.y);
-        ctx.lineTo(cx, cy);
-        ctx.strokeStyle = 'rgba(0, 229, 255, 0.06)';
-        ctx.lineWidth = 0.8;
+        ctx.moveTo(outStartX, by);
+        ctx.lineTo(outEndX, by);
+        ctx.strokeStyle = 'rgba(0, 255, 65, ' + lineAlpha + ')';
+        ctx.lineWidth = 1.2;
         ctx.stroke();
 
-        // Flowing dot
+        // Beam glow
         ctx.beginPath();
-        ctx.arc(midX, midY, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 229, 255, 0.7)';
-        ctx.fill();
-      });
-
-      // Outgoing parallel lines (bottom right)
-      const outStartX = cx + hubRadius * 1.1;
-      const outStartY = cy;
-      for (let i = -2; i <= 2; i++) {
-        const yOff = i * 8;
-        ctx.beginPath();
-        const endX = W * 0.85;
-        ctx.moveTo(outStartX, outStartY + yOff);
-        ctx.lineTo(endX, outStartY + yOff);
-        ctx.strokeStyle = 'rgba(0, 255, 65, 0.3)';
-        ctx.lineWidth = 1;
+        ctx.moveTo(outStartX, by);
+        ctx.lineTo(outEndX, by);
+        ctx.strokeStyle = 'rgba(0, 255, 65, ' + (lineAlpha * 0.4) + ')';
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Pulsing dot on outgoing line
-        const t = (time * 0.8 + i * 0.5) % 1;
-        const px = outStartX + (endX - outStartX) * t;
-        ctx.beginPath();
-        ctx.arc(px, outStartY + yOff, 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 255, 65, 0.6)';
-        ctx.fill();
+        // Traveling pulses
+        var pulseCount = 2;
+        for (var p = 0; p < pulseCount; p++) {
+          var pt = (time * 0.6 + b * 0.25 + p * 0.5) % 1;
+          var ppx = outStartX + (outEndX - outStartX) * pt;
+          ctx.beginPath();
+          ctx.arc(ppx, by, 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0, 255, 65, 0.8)';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(ppx, by, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0, 255, 65, 0.2)';
+          ctx.fill();
+        }
       }
 
-      // Outgoing labels
-      ctx.font = '6px ' + getComputedStyle(document.body).fontFamily;
-      ctx.fillStyle = 'rgba(0, 255, 65, 0.5)';
+      // ---- Interface labels under beams ----
+      var ifaceLabels = ['REST', 'CLI', 'Chat', 'Webhook'];
+      ctx.font = "600 10px 'Inter', 'Helvetica Neue', sans-serif";
       ctx.textAlign = 'left';
-      ctx.fillText('REST', W * 0.76, outStartY - 16);
-      ctx.fillText('CLI', W * 0.80, outStartY - 6);
-      ctx.fillText('Chat', W * 0.82, outStartY + 4);
-      ctx.fillText('Form', W * 0.79, outStartY + 14);
-      ctx.fillText('Webhook', W * 0.77, outStartY + 24);
+      var labelX = outEndX - 60;
+      ifaceLabels.forEach(function (lbl, i) {
+        var ly = cy + (i - (ifaceLabels.length - 1) / 2) * (hubR * 0.9);
+        ctx.fillStyle = 'rgba(0, 255, 65, ' + (0.4 + Math.sin(time + i) * 0.1) + ')';
+        ctx.fillText(lbl, labelX, ly + 3);
+      });
 
       animFrame = requestAnimationFrame(draw);
     }
