@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Design — Flowbot</title>
+  <meta name="description" content="Flowbot technical architecture: six-layer stack, capability abstraction, declarative pipeline engine, workflow runtime, and durable event system.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2300e5ff' stroke-width='3'/><circle cx='50' cy='50' r='15' fill='%2300e5ff'/></svg>">
+</head>
+<body>
+
+<div class="bg-grid"><canvas id="bg-canvas"></canvas></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">flowbot<span>.io</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#overview">Overview</a></li>
+      <li><a href="index.html#problem">Problem</a></li>
+      <li><a href="index.html#capabilities">Capabilities</a></li>
+      <li><a href="index.html#workflow">Workflow</a></li>
+      <li><a href="design.html">Design</a></li>
+      <li><a href="api.html">API</a></li>
+      <li><a href="tutorials.html">Tutorials</a></li>
+    </ul>
+    <a href="https://github.com/flowline-io/flowbot" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+    <button class="nav-toggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-hero">
+    <h1>Technical <em>Design</em></h1>
+    <p>Architecture, data flows, design rules, and engineering decisions behind Flowbot.</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Architecture Overview -->
+    <h2>Architecture Overview</h2>
+    <p>
+      Flowbot follows a strict six-layer architecture with a side management plane. Every layer has a single responsibility; no layer leaks into its neighbors.
+    </p>
+
+    <h3>Layer Stack</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Name</th><th>Components</th></tr></thead>
+      <tbody>
+        <tr><td><code>6</code></td><td>External</td><td>Users, Discord/Slack/Tailchat, Third-Party APIs</td></tr>
+        <tr><td><code>5</code></td><td>Platform</td><td>Chat platform protocol adapters</td></tr>
+        <tr><td><code>4</code></td><td>HTTP Gateway</td><td>Fiber v3 server, REST API routing, auth middleware, rate limiting</td></tr>
+        <tr><td><code>3</code></td><td>Business Logic</td><td>20 bot modules, Workflow Engine, Pipeline Engine, LLM Agent</td></tr>
+        <tr><td><code>2</code></td><td>Capability</td><td><code>ability.Invoke()</code> — unified abstraction over all providers</td></tr>
+        <tr><td><code>1</code></td><td>Providers</td><td>17 service integrations: archivebox, karakeep, miniflux, kanboard, ...</td></tr>
+        <tr><td><code>0</code></td><td>Infrastructure</td><td>MySQL (GORM), Redis (Streams), Docker (executor)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Management Plane (Side Plane)</h3>
+    <pre>Homelab Scanner &rarr; App Registry &rarr; Hub Manager &rarr; Capability Binding &rarr; Ability Layer</pre>
+    <p>
+      The Homelab Scanner discovers apps by scanning <code>docker-compose.yaml</code> files under
+      <code>/home/&lt;user&gt;/homelab/apps/</code>. Discovered apps are registered in the Hub, then
+      bound to capabilities (e.g., <code>archivebox</code> &rarr; <code>archive</code>).
+    </p>
+
+    <!-- Capability Abstraction -->
+    <h2>Capability Abstraction Layer</h2>
+    <p>
+      The core of Flowbot's design. Modules never import providers directly — everything goes through
+      <code>ability.Invoke()</code>. This decouples business logic from provider implementation details.
+    </p>
+
+    <h3>Standard Invocation Pattern</h3>
+    <pre>result, err := ability.Invoke(ctx, "bookmark", ability.OpList, ability.Params{
+    Limit:  20,
+    Cursor: "opaque_cursor_string",
+})</pre>
+
+    <h3>Capability Registry</h3>
+    <table>
+      <thead><tr><th>Capability</th><th>Mapped Apps</th><th>Interfaces</th></tr></thead>
+      <tbody>
+        <tr><td><code>bookmark</code></td><td>karakeep, linkwarden</td><td>REST, CLI, Chat, Workflow</td></tr>
+        <tr><td><code>archive</code></td><td>archivebox</td><td>REST, CLI, Chat, Workflow</td></tr>
+        <tr><td><code>reader</code></td><td>miniflux</td><td>REST, CLI, Chat, Webhook, Cron</td></tr>
+        <tr><td><code>kanban</code></td><td>kanboard</td><td>REST, CLI, Chat, Webhook</td></tr>
+        <tr><td><code>finance</code></td><td>fireflyiii</td><td>REST, CLI, Chat, Webhook</td></tr>
+        <tr><td><code>infra</code></td><td>beszel, uptime-kuma, adguard, cloudflare</td><td>REST, CLI</td></tr>
+        <tr><td><code>shell_history</code></td><td>atuin</td><td>REST, CLI</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Standard Errors</h3>
+    <p>Provider-specific errors are wrapped into three standard error types:</p>
+    <table>
+      <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>types.ErrNotFound</code></td><td>Resource does not exist</td></tr>
+        <tr><td><code>types.ErrForbidden</code></td><td>Access denied or auth failure</td></tr>
+        <tr><td><code>types.ErrProvider</code></td><td>Provider-level error (wraps original)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Standard Pagination</h3>
+    <p>
+      All list operations use <code>limit</code> + opaque <code>cursor</code>. Provider-specific
+      page/offset/token internals are hidden in adapters and never exposed to API callers or modules.
+    </p>
+
+    <!-- Pipeline Engine -->
+    <h2>Declarative Pipeline Engine</h2>
+    <p>
+      Cross-service data flows are defined in YAML, triggered by durable events.
+      Every pipeline run is persisted, idempotent, and fully audited.
+    </p>
+
+    <h3>Pipeline YAML Structure</h3>
+    <pre>trigger:
+  event: "bookmark.created"          # or: cron, webhook, manual
+
+steps:
+  - action: archive.submit
+    input: $.event.url
+    idempotency_key: "archive-{{.event.id}}"
+
+  - action: notify.send
+    input:
+      channel: slack
+      message: "Archived: {{.steps.archive-submit.url}}"
+    condition: "{{.steps.archive-submit.status}} == 'success'"</pre>
+
+    <h3>Durable Event Flow</h3>
+    <pre>DataEvent &rarr; MySQL (data_events table) &rarr; Redis Stream (outbox) &rarr; Pipeline Engine &rarr; Actions</pre>
+    <p>
+      Events are written to MySQL first for durability, then published to Redis Stream for real-time
+      consumption. On restart, all unprocessed events are replayed from the database.
+    </p>
+
+    <h3>Pipeline Guarantees</h3>
+    <ul>
+      <li><strong>Idempotency</strong>: Every step has a unique key; re-running is safe.</li>
+      <li><strong>Atomicity</strong>: A pipeline completes all steps or records the failure point.</li>
+      <li><strong>Auditability</strong>: Every run, step result, and error is written to the database.</li>
+      <li><strong>Recoverability</strong>: Failed pipelines can be replayed from any step.</li>
+    </ul>
+
+    <!-- Workflow Engine -->
+    <h2>Workflow Engine</h2>
+    <p>
+      Composes capability invocations into a DAG (Directed Acyclic Graph). Each node is a step type;
+      edges define execution order and data dependencies.
+    </p>
+
+    <h3>Step Types</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>Capability</code></td><td>Invokes a capability operation via <code>ability.Invoke()</code></td></tr>
+        <tr><td><code>Message</code></td><td>Sends a notification through the notify dispatcher</td></tr>
+        <tr><td><code>Fetch</code></td><td>HTTP request to an external URL</td></tr>
+        <tr><td><code>Feed</code></td><td>Parse and process RSS/Atom feeds</td></tr>
+        <tr><td><code>LLM</code></td><td>Text generation, summarization, or tool use</td></tr>
+        <tr><td><code>Docker</code></td><td>Execute a command inside a Docker container</td></tr>
+        <tr><td><code>Grep</code></td><td>Pattern matching on previous step output</td></tr>
+        <tr><td><code>Unique</code></td><td>Deduplicates items from a previous step</td></tr>
+        <tr><td><code>Torrent</code></td><td>Torrent download management</td></tr>
+      </tbody>
+    </table>
+
+    <!-- AuthContext -->
+    <h2>AuthContext</h2>
+    <p>
+      A single <code>AuthContext</code> spans every interaction surface: REST, CLI, Chat, Form,
+      Webhook, Cron, Pipeline, and Workflow. This ensures consistent identity propagation regardless
+      of how a request enters the system.
+    </p>
+    <pre>type AuthContext struct {
+    UserID    string
+    Roles     []string
+    Platform  string   // "discord", "slack", "rest", "webhook", ...
+    Interface string   // "chat", "cli", "web", ...
+    Token     string
+    SessionID string
+}</pre>
+
+    <!-- Data Flows -->
+    <h2>Data Flows</h2>
+    <table>
+      <thead><tr><th>Flow</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td>Chat Message</td><td>User &rarr; Platform &rarr; Adapter &rarr; Server &rarr; Module &rarr; <code>ability.Invoke()</code> &rarr; Provider</td></tr>
+        <tr><td>Workflow</td><td>Trigger &rarr; Workflow Engine &rarr; Executor (Docker) &rarr; Pipeline &rarr; Notifications</td></tr>
+        <tr><td>Durable Events</td><td>DataEvent &rarr; MySQL &rarr; Redis Stream &rarr; Pipeline &rarr; Actions</td></tr>
+        <tr><td>Hub Management</td><td>Homelab Scan &rarr; App Registry &rarr; Hub &rarr; Capability Binding &rarr; Ability Registry</td></tr>
+        <tr><td>Notifications</td><td>Module &rarr; Dispatcher &rarr; [Slack | Pushover | ntfy | Message Pusher]</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Entry Points -->
+    <h2>Entry Points</h2>
+    <table>
+      <thead><tr><th>Binary</th><th>Path</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>flowbot</code></td><td><code>cmd/main.go</code></td><td>HTTP server (Fiber v3 + Uber fx DI)</td></tr>
+        <tr><td><code>flowbot-cli</code></td><td><code>cmd/cli/</code></td><td>Admin CLI: user/token management, config, pipeline admin</td></tr>
+        <tr><td><code>flowbot-composer</code></td><td><code>cmd/composer/</code></td><td>Code generation: DAO, schema docs, Swagger</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Design Rules -->
+    <h2>Design Rules (Anti-Patterns)</h2>
+    <p>The architecture enforces strict boundaries. Violating these is a design error:</p>
+    <ul>
+      <li>Never import <code>pkg/providers/*</code> directly from <code>internal/modules/*</code> — use <code>ability.Invoke()</code></li>
+      <li>Never call provider clients directly in modules</li>
+      <li>Never access local filesystem paths from modules</li>
+      <li>Never call Hub or Pipeline from inside a provider</li>
+      <li>Never emit <code>DataEvent</code> from inside a provider</li>
+      <li>Never write cross-service logic in cron/event handlers — use Pipeline</li>
+      <li>Never expose provider pagination internals to API callers</li>
+      <li>Never expose cursor/offset/page internal structure in API responses</li>
+      <li>Never use Redis Stream as sole long-term event store</li>
+    </ul>
+
+    <!-- Shared Packages -->
+    <h2>Shared Packages</h2>
+    <p>31 shared packages in <code>pkg/</code> provide cross-cutting utilities:</p>
+    <p style="font-family: var(--mono); font-size: 0.82rem; color: var(--white-muted);">
+      ability, alarm, auth, cache, chatbot, client, config, crawler, event, executor,
+      flog, homelab, hub, llm, locker, media, migrate, module, notify, page, parser,
+      pipeline, providers, rdb, route, search, stats, types, utils, validate, workflow
+    </p>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-left">
+    <a href="https://github.com/flowline-io/flowbot" target="_blank" rel="noopener">GitHub</a>
+    <a href="design.html">Design</a>
+    <a href="api.html">API</a>
+    <a href="tutorials.html">Tutorials</a>
+    <span style="color: var(--white-muted); font-size: 0.82rem;">GPL-3.0</span>
+  </div>
+  <div class="footer-right">Built for the Homelabbers, by the Homelabbers.</div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
