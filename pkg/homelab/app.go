@@ -55,6 +55,11 @@ type Config struct {
 type RuntimeConfig struct {
 	Mode         RuntimeMode
 	DockerSocket string
+	SSHHost      string
+	SSHPort      int
+	SSHUser      string
+	SSHPassword  string
+	SSHKey       string
 }
 
 type RuntimeMode string

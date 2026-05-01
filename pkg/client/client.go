@@ -42,6 +42,7 @@ type Client struct {
 	Server   *ServerClient
 	Hub      *HubClient
 	Pipeline *PipelineClient
+	Workflow *WorkflowClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -68,6 +69,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Server = &ServerClient{c: c}
 	c.Hub = &HubClient{c: c}
 	c.Pipeline = &PipelineClient{c: c}
+	c.Workflow = &WorkflowClient{c: c}
 
 	return c
 }

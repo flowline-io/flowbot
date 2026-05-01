@@ -1,0 +1,30 @@
+name: save_and_track
+describe: "Save a URL as a bookmark, archive it, and create a kanban task"
+
+pipeline:
+  - save_bookmark
+  - archive_url
+  - create_task
+
+tasks:
+  - id: save_bookmark
+    action: capability:bookmark.create
+    describe: "Save the URL as a bookmark"
+    params:
+      url: "{{input.url}}"
+
+  - id: archive_url
+    action: capability:archive.add
+    describe: "Archive the URL in ArchiveBox"
+    params:
+      url: "{{input.url}}"
+
+  - id: create_task
+    action: capability:kanban.create_task
+    describe: "Create a follow-up task"
+    params:
+      title: "Read: {{input.title}}"
+      description: "Bookmark reference: {{save_bookmark.result}}"
+      tags:
+        - reading
+        - bookmark

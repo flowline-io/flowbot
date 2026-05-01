@@ -24,6 +24,7 @@ func main() {
 			command.LoginCommand(),
 			command.HubCommand(),
 			command.PipelineCommand(),
+			command.WorkflowCommand(),
 			command.BookmarkCommand(),
 			command.KanbanCommand(),
 			command.ReaderCommand(),

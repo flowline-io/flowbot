@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	Docker  = "docker"
-	Shell   = "shell"
-	Machine = "machine"
+	Docker     = "docker"
+	Shell      = "shell"
+	Machine    = "machine"
+	Capability = "capability"
 )
 
 // Runtime is the actual runtime environment that executes a task.

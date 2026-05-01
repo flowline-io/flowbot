@@ -13,7 +13,7 @@ var homelabRuntime homelab.Runtime = homelab.NoopRuntime{}
 
 func initHomelabRegistry(cfg config.Homelab) error {
 	homeConfig := homelabConfig(cfg)
-	homelabRuntime = homelab.NewRuntime(homeConfig.Runtime)
+	homelabRuntime = homelab.NewRuntime(homeConfig.Runtime, homeConfig.AppsDir)
 	if homeConfig.AppsDir == "" {
 		flog.Info("homelab app registry disabled: homelab.apps_dir is empty")
 		return nil
@@ -52,6 +52,11 @@ func homelabConfig(cfg config.Homelab) homelab.Config {
 		Runtime: homelab.RuntimeConfig{
 			Mode:         homelab.RuntimeMode(cfg.Runtime.Mode),
 			DockerSocket: cfg.Runtime.DockerSocket,
+			SSHHost:      cfg.Runtime.SSHHost,
+			SSHPort:      cfg.Runtime.SSHPort,
+			SSHUser:      cfg.Runtime.SSHUser,
+			SSHPassword:  cfg.Runtime.SSHPassword,
+			SSHKey:       cfg.Runtime.SSHKey,
 		},
 		Permissions: permissions,
 	}

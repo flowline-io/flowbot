@@ -8,6 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
+	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/docker"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/machine"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
@@ -123,6 +124,8 @@ func (e *Engine) initRuntime() (runtime.Runtime, error) {
 			return nil, fmt.Errorf("failed to new machine runtime: %w", err)
 		}
 		e.runtime = rt
+	case runtime.Capability:
+		e.runtime = capabilityruntime.New()
 	default:
 		return nil, fmt.Errorf("unknown runtime type: %s", e.runtimeType)
 	}

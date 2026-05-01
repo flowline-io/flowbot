@@ -268,6 +268,11 @@ type Homelab struct {
 type HomelabRuntime struct {
 	Mode         string `json:"mode" yaml:"mode" mapstructure:"mode"`
 	DockerSocket string `json:"docker_socket" yaml:"docker_socket" mapstructure:"docker_socket"`
+	SSHHost      string `json:"ssh_host" yaml:"ssh_host" mapstructure:"ssh_host"`
+	SSHPort      int    `json:"ssh_port" yaml:"ssh_port" mapstructure:"ssh_port"`
+	SSHUser      string `json:"ssh_user" yaml:"ssh_user" mapstructure:"ssh_user"`
+	SSHPassword  string `json:"ssh_password" yaml:"ssh_password" mapstructure:"ssh_password"`
+	SSHKey       string `json:"ssh_key" yaml:"ssh_key" mapstructure:"ssh_key"`
 }
 
 type HomelabPermissions struct {

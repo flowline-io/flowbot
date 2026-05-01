@@ -18,10 +18,12 @@ type Runtime interface {
 
 type NoopRuntime struct{}
 
-func NewRuntime(config RuntimeConfig) Runtime {
+func NewRuntime(config RuntimeConfig, appsDir string) Runtime {
 	switch config.Mode {
-	case RuntimeModeDockerSocket, RuntimeModeSSH:
-		return NoopRuntime{}
+	case RuntimeModeDockerSocket:
+		return NewDockerComposeRuntime(config, appsDir)
+	case RuntimeModeSSH:
+		return NewSSHRuntime(config)
 	default:
 		return NoopRuntime{}
 	}

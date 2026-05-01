@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/gofiber/fiber/v3"
 )
 
 const Name = "workflow"
@@ -57,6 +58,7 @@ func (bot) Rules() []any {
 	return []any{
 		commandRules,
 		cronRules,
+		webserviceRules,
 	}
 }
 
@@ -66,4 +68,8 @@ func (bot) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 
 func (bot) Cron() (*cron.Ruleset, error) {
 	return chatbot.RunCron(cronRules, Name)
+}
+
+func (bot) Webservice(app *fiber.App) {
+	chatbot.Webservice(app, Name, webserviceRules)
 }
