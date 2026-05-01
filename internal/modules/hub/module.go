@@ -1,0 +1,60 @@
+package hub
+
+import (
+	"encoding/json"
+	"errors"
+
+	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/chatbot"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+const Name = "hub"
+
+var handler moduleHandler
+
+func Register() {
+	chatbot.Register(Name, &handler)
+}
+
+type moduleHandler struct {
+	initialized bool
+	chatbot.Base
+}
+
+type configType struct {
+	Enabled bool `json:"enabled"`
+}
+
+func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	if handler.initialized {
+		return errors.New("already initialized")
+	}
+
+	var config configType
+	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
+		return errors.New("failed to parse config: " + err.Error())
+	}
+
+	if !config.Enabled {
+		flog.Info("module %s disabled", Name)
+		return nil
+	}
+
+	handler.initialized = true
+
+	return nil
+}
+
+func (moduleHandler) IsReady() bool {
+	return handler.initialized
+}
+
+func (moduleHandler) Rules() []any {
+	return []any{}
+}
+
+func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
+	return nil, nil
+}

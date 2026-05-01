@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/bots/user"
 	"github.com/flowline-io/flowbot/internal/bots/webhook"
 	"github.com/flowline-io/flowbot/internal/bots/workflow"
+	modulehub "github.com/flowline-io/flowbot/internal/modules/hub"
 	"go.uber.org/fx"
 )
 
@@ -34,6 +35,7 @@ var Modules = fx.Options(
 		gitea.Register,
 		github.Register,
 		kanban.Register,
+		modulehub.Register,
 		notify.Register,
 		reader.Register,
 		search.Register,

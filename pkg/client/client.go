@@ -40,6 +40,7 @@ type Client struct {
 	Search   *SearchClient
 	Dev      *DevClient
 	Server   *ServerClient
+	Hub      *HubClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -64,6 +65,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Search = &SearchClient{c: c}
 	c.Dev = &DevClient{c: c}
 	c.Server = &ServerClient{c: c}
+	c.Hub = &HubClient{c: c}
 
 	return c
 }

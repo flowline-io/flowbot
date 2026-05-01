@@ -6,8 +6,9 @@ import (
 )
 
 type Registry struct {
-	mu   sync.RWMutex
-	apps map[string]App
+	mu          sync.RWMutex
+	apps        map[string]App
+	permissions Permissions
 }
 
 var DefaultRegistry = NewRegistry()
@@ -44,4 +45,16 @@ func (r *Registry) Get(name string) (App, bool) {
 	defer r.mu.RUnlock()
 	app, ok := r.apps[name]
 	return app, ok
+}
+
+func (r *Registry) SetPermissions(p Permissions) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.permissions = p
+}
+
+func (r *Registry) Permissions() Permissions {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.permissions
 }

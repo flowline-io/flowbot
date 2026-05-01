@@ -81,6 +81,7 @@ const (
 	topicKey       = "topic"
 	paramKey       = "param"
 	accessTokenKey = "accessToken"
+	scopesKey      = "scopes"
 )
 
 func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
@@ -114,10 +115,27 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return protocol.ErrNotAuthorized.New("uid empty")
 		}
 
-		// Set uid and topic
+		// Extract scopes from parameter
+		paramKV := types.KV(p.Params)
+		var scopes []string
+		if raw, ok := paramKV[scopesKey]; ok {
+			switch v := raw.(type) {
+			case []any:
+				for _, item := range v {
+					if s, ok := item.(string); ok {
+						scopes = append(scopes, s)
+					}
+				}
+			case []string:
+				scopes = v
+			}
+		}
+
+		// Set uid, topic, scopes, param
 		ctx.Locals(uidKey, uid)
 		ctx.Locals(topicKey, topic)
-		ctx.Locals(paramKey, types.KV(p.Params))
+		ctx.Locals(paramKey, paramKV)
+		ctx.Locals(scopesKey, scopes)
 
 		return handler(ctx)
 	}
@@ -189,4 +207,35 @@ func GetIntParam(ctx fiber.Ctx, name string) int64 {
 	s := ctx.Params(name)
 	i, _ := strconv.ParseInt(s, 10, 64)
 	return i
+}
+
+// GetScopes returns the scopes associated with the current request.
+func GetScopes(ctx fiber.Ctx) []string {
+	scopes, _ := ctx.Locals(scopesKey).([]string)
+	return scopes
+}
+
+// GetParam returns the full parameter KV from the current request context.
+func GetParam(ctx fiber.Ctx) types.KV {
+	param, _ := ctx.Locals(paramKey).(types.KV)
+	return param
+}
+
+// RequireScope returns middleware that checks whether the current request
+// has the required scope. Must be chained after Authorize.
+func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
+	return func(ctx fiber.Ctx) error {
+		scopes := GetScopes(ctx)
+		if !auth.HasScope(scopes, scope) {
+			return protocol.ErrAccessDenied.New("insufficient scope: " + scope)
+		}
+		return handler(ctx)
+	}
+}
+
+// ScopeHandler wraps a handler with scope check.
+// Use when you need to check scope inside an already-authorized handler.
+func ScopeHandler(ctx fiber.Ctx, scope string) bool {
+	scopes := GetScopes(ctx)
+	return auth.HasScope(scopes, scope)
 }

@@ -23,6 +23,7 @@ func initHomelabRegistry(cfg config.Homelab) error {
 		return fmt.Errorf("scan homelab apps: %w", err)
 	}
 	homelab.DefaultRegistry.Replace(apps)
+	homelab.DefaultRegistry.SetPermissions(homeConfig.Permissions)
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if err := store.NewHubStore(store.Database.GetDB()).SaveHomelabApps(apps); err != nil {
 			return fmt.Errorf("persist homelab apps: %w", err)
@@ -33,6 +34,16 @@ func initHomelabRegistry(cfg config.Homelab) error {
 }
 
 func homelabConfig(cfg config.Homelab) homelab.Config {
+	permissions := homelab.Permissions{
+		Status:  cfg.Permissions.Status,
+		Logs:    cfg.Permissions.Logs,
+		Start:   cfg.Permissions.Start,
+		Stop:    cfg.Permissions.Stop,
+		Restart: cfg.Permissions.Restart,
+		Pull:    cfg.Permissions.Pull,
+		Update:  cfg.Permissions.Update,
+		Exec:    cfg.Permissions.Exec,
+	}
 	return homelab.Config{
 		Root:        cfg.Root,
 		AppsDir:     cfg.AppsDir,
@@ -42,15 +53,6 @@ func homelabConfig(cfg config.Homelab) homelab.Config {
 			Mode:         homelab.RuntimeMode(cfg.Runtime.Mode),
 			DockerSocket: cfg.Runtime.DockerSocket,
 		},
-		Permissions: homelab.Permissions{
-			Status:  cfg.Permissions.Status,
-			Logs:    cfg.Permissions.Logs,
-			Start:   cfg.Permissions.Start,
-			Stop:    cfg.Permissions.Stop,
-			Restart: cfg.Permissions.Restart,
-			Pull:    cfg.Permissions.Pull,
-			Update:  cfg.Permissions.Update,
-			Exec:    cfg.Permissions.Exec,
-		},
+		Permissions: permissions,
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/chatbot"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -42,13 +43,18 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	}
 
 	// hub management plane
-	a.Get("/hub/apps", route.Authorize(0, ctl.hubApps))
-	a.Get("/hub/apps/:name", route.Authorize(0, ctl.hubApp))
-	a.Get("/hub/apps/:name/status", route.Authorize(0, ctl.hubAppStatus))
-	a.Get("/hub/apps/:name/logs", route.Authorize(0, ctl.hubAppLogs))
-	a.Get("/hub/capabilities", route.Authorize(0, ctl.hubCapabilities))
-	a.Get("/hub/capabilities/:type", route.Authorize(0, ctl.hubCapability))
-	a.Get("/hub/health", route.Authorize(0, ctl.hubHealth))
+	a.Get("/hub/apps", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApps)))
+	a.Get("/hub/apps/:name", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApp)))
+	a.Get("/hub/apps/:name/status", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStatus, ctl.hubAppStatus)))
+	a.Get("/hub/apps/:name/logs", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsLogs, ctl.hubAppLogs)))
+	a.Post("/hub/apps/:name/start", route.Authorize(0, ctl.hubAppStart))
+	a.Post("/hub/apps/:name/stop", route.Authorize(0, ctl.hubAppStop))
+	a.Post("/hub/apps/:name/restart", route.Authorize(0, ctl.hubAppRestart))
+	a.Post("/hub/apps/:name/pull", route.Authorize(0, ctl.hubAppPull))
+	a.Post("/hub/apps/:name/update", route.Authorize(0, ctl.hubAppUpdate))
+	a.Get("/hub/capabilities", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapabilities)))
+	a.Get("/hub/capabilities/:type", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapability)))
+	a.Get("/hub/health", route.Authorize(0, route.RequireScope(auth.ScopeHubHealthRead, ctl.hubHealth)))
 
 	// common
 	a.Get("/", func(c fiber.Ctx) error { return nil })

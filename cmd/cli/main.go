@@ -22,6 +22,7 @@ func main() {
 		Version: version.Buildtags,
 		Commands: []*cli.Command{
 			command.LoginCommand(),
+			command.HubCommand(),
 			command.BookmarkCommand(),
 			command.KanbanCommand(),
 			command.ReaderCommand(),

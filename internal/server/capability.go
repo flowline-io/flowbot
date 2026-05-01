@@ -11,8 +11,5 @@ func initCapabilityHub() error {
 	if err := abookmark.RegisterService("karakeep", "karakeep", bookmarkkarakeep.New()); err != nil {
 		return err
 	}
-	if err := archive.RegisterService("archivebox", "archivebox", archiveboxadapter.New()); err != nil {
-		return err
-	}
-	return nil
+	return archive.RegisterService("archivebox", "archivebox", archiveboxadapter.New())
 }
