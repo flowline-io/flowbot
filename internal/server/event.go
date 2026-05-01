@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/chatbot"
+	"github.com/flowline-io/flowbot/pkg/module"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
@@ -129,7 +129,7 @@ func onBotRunEventHandler(msg *message.Message) error {
 	}
 	ctx.SetTimeout(10 * time.Minute)
 
-	for name, handle := range chatbot.List() {
+	for name, handle := range module.List() {
 		err = handle.Event(ctx, be.Param)
 		if err != nil {
 			return fmt.Errorf("bot %s event %s error %w", name, be.EventName, err)

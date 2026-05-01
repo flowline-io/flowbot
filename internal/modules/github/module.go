@@ -1,4 +1,4 @@
-package hub
+package github
 
 import (
 	"encoding/json"
@@ -8,11 +8,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
-const Name = "hub"
+const Name = "github"
 
 var handler moduleHandler
+var Config configType
 
 func Register() {
 	module.Register(Name, &handler)
@@ -28,16 +30,16 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
 
-	var config configType
-	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
+	if err := sonic.Unmarshal(jsonconf, &Config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
-	if !config.Enabled {
+	if !Config.Enabled {
 		flog.Info("module %s disabled", Name)
 		return nil
 	}
@@ -51,10 +53,33 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
+func (moduleHandler) Bootstrap() error {
+	// load setting rule
+	formRules = append(formRules, module.SettingCovertForm(Name, settingRules))
+
+	return nil
+}
+
 func (moduleHandler) Rules() []any {
-	return []any{}
+	return []any{
+		commandRules,
+		formRules,
+		webhookRules,
+	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
+}
+
+func (moduleHandler) Cron() (*cron.Ruleset, error) {
+	return module.RunCron(cronRules, Name)
+}
+
+func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
+	return module.RunForm(formRules, ctx, values)
+}
+
+func (moduleHandler) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
+	return module.RunWebhook(webhookRules, ctx, data)
 }

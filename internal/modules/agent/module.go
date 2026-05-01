@@ -1,4 +1,4 @@
-package hub
+package agent
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-const Name = "hub"
+const Name = "agent"
 
 var handler moduleHandler
 
@@ -28,6 +28,7 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
@@ -51,10 +52,6 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
-func (moduleHandler) Rules() []any {
-	return []any{}
-}
-
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
 }

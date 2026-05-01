@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
+	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -125,7 +125,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	}
 
 	// behavior
-	chatbot.Behavior(uid, chatbot.MessageBotIncomingBehavior, 1)
+	module.Behavior(uid, module.MessageBotIncomingBehavior, 1)
 
 	// user auth record todo
 
@@ -184,7 +184,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// help command
 	if strings.ToLower(msg.AltMessage) == "help" {
 		m := make(types.KV)
-		for name, handle := range chatbot.List() {
+		for name, handle := range module.List() {
 			for _, item := range handle.Rules() {
 				switch v := item.(type) {
 				case []command.Rule:
@@ -204,7 +204,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// rule chat
 	if session == "" {
-		for name, handle := range chatbot.List() {
+		for name, handle := range module.List() {
 			if !handle.IsReady() {
 				flog.Info("bot %s unavailable", name)
 				continue
@@ -285,13 +285,13 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	_, _ = fmt.Println(ctx)
 
 	// behavior
-	chatbot.Behavior(uid, chatbot.MessageGroupIncomingBehavior, 1)
+	module.Behavior(uid, module.MessageGroupIncomingBehavior, 1)
 
 	// user auth record todo
 
 	var payload types.MsgPayload
 
-	for name, handle := range chatbot.List() {
+	for name, handle := range module.List() {
 		if !handle.IsReady() {
 			flog.Info("bot %s unavailable", name)
 			continue
@@ -372,7 +372,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			return nil, errors.New("error collect id")
 		}
 
-		for name, handle := range chatbot.List() {
+		for name, handle := range module.List() {
 			if !handle.IsReady() {
 				flog.Info("bot %s unavailable", name)
 				continue

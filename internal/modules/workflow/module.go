@@ -1,4 +1,4 @@
-package hub
+package workflow
 
 import (
 	"encoding/json"
@@ -8,9 +8,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/gofiber/fiber/v3"
 )
 
-const Name = "hub"
+const Name = "workflow"
 
 var handler moduleHandler
 
@@ -28,6 +30,7 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
@@ -52,9 +55,21 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{}
+	return []any{
+		commandRules,
+		cronRules,
+		webserviceRules,
+	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
+}
+
+func (moduleHandler) Cron() (*cron.Ruleset, error) {
+	return module.RunCron(cronRules, Name)
+}
+
+func (moduleHandler) Webservice(app *fiber.App) {
+	module.Webservice(app, Name, webserviceRules)
 }

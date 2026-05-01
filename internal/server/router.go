@@ -12,7 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/chatbot"
+	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page"
@@ -38,7 +38,7 @@ import (
 
 func handleRoutes(a *fiber.App, ctl *Controller) {
 	// Webservice
-	for _, bot := range chatbot.List() {
+	for _, bot := range module.List() {
 		bot.Webservice(a)
 	}
 
@@ -47,11 +47,11 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get("/hub/apps/:name", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApp)))
 	a.Get("/hub/apps/:name/status", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStatus, ctl.hubAppStatus)))
 	a.Get("/hub/apps/:name/logs", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsLogs, ctl.hubAppLogs)))
-	a.Post("/hub/apps/:name/start", route.Authorize(0, ctl.hubAppStart))
-	a.Post("/hub/apps/:name/stop", route.Authorize(0, ctl.hubAppStop))
-	a.Post("/hub/apps/:name/restart", route.Authorize(0, ctl.hubAppRestart))
-	a.Post("/hub/apps/:name/pull", route.Authorize(0, ctl.hubAppPull))
-	a.Post("/hub/apps/:name/update", route.Authorize(0, ctl.hubAppUpdate))
+	a.Post("/hub/apps/:name/start", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStart, ctl.hubAppStart)))
+	a.Post("/hub/apps/:name/stop", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStop, ctl.hubAppStop)))
+	a.Post("/hub/apps/:name/restart", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRestart, ctl.hubAppRestart)))
+	a.Post("/hub/apps/:name/pull", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsPull, ctl.hubAppPull)))
+	a.Post("/hub/apps/:name/update", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsUpdate, ctl.hubAppUpdate)))
 	a.Get("/hub/capabilities", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapabilities)))
 	a.Get("/hub/capabilities/:type", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapability)))
 	a.Get("/hub/health", route.Authorize(0, route.RequireScope(auth.ScopeHubHealthRead, ctl.hubHealth)))
@@ -196,7 +196,7 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 		PageRuleId: pageRuleId,
 	}
 
-	_, botHandler := chatbot.FindRuleAndHandler[pageRule.Rule](pageRuleId, chatbot.List())
+	_, botHandler := module.FindRuleAndHandler[pageRule.Rule](pageRuleId, module.List())
 
 	if botHandler == nil {
 		return protocol.ErrNotFound.New("bot not found")
@@ -316,7 +316,7 @@ func (c *Controller) postForm(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")
 	}
 
-	_, botHandler := chatbot.FindRuleAndHandler[formRule.Rule](formRuleId, chatbot.List())
+	_, botHandler := module.FindRuleAndHandler[formRule.Rule](formRuleId, module.List())
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
@@ -407,7 +407,7 @@ func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 
 	flog.Info("[webhook] incoming %s flag: %s", method, flag)
 
-	webhookRule, botHandler := chatbot.FindRuleAndHandler[webhook.Rule](flag, chatbot.List())
+	webhookRule, botHandler := module.FindRuleAndHandler[webhook.Rule](flag, module.List())
 
 	if botHandler == nil {
 		return protocol.ErrNotFound.New("bot not found")

@@ -68,7 +68,7 @@ func NewCommand() *cli.Command {
 								Usage: "rule type",
 							},
 						},
-						Action: generator.BotAction,
+						Action: generator.ModuleAction,
 					},
 					{
 						Name:  "vendor",

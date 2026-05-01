@@ -1,4 +1,4 @@
-package hub
+package bookmark
 
 import (
 	"encoding/json"
@@ -8,11 +8,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/gofiber/fiber/v3"
 )
 
-const Name = "hub"
+const Name = "bookmark"
 
 var handler moduleHandler
+var Config configType
 
 func Register() {
 	module.Register(Name, &handler)
@@ -28,16 +31,16 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
 
-	var config configType
-	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
+	if err := sonic.Unmarshal(jsonconf, &Config); err != nil {
 		return errors.New("failed to parse config: " + err.Error())
 	}
 
-	if !config.Enabled {
+	if !Config.Enabled {
 		flog.Info("module %s disabled", Name)
 		return nil
 	}
@@ -52,9 +55,26 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{}
+	return []any{
+		commandRules,
+		cronRules,
+		eventRules,
+		webserviceRules,
+	}
+}
+
+func (moduleHandler) Webservice(app *fiber.App) {
+	module.Webservice(app, Name, webserviceRules)
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
+}
+
+func (moduleHandler) Cron() (*cron.Ruleset, error) {
+	return module.RunCron(cronRules, Name)
+}
+
+func (moduleHandler) Event(ctx types.Context, param types.KV) error {
+	return module.RunEvent(eventRules, ctx, param)
 }

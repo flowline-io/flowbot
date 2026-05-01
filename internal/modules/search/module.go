@@ -1,4 +1,4 @@
-package hub
+package search
 
 import (
 	"encoding/json"
@@ -8,9 +8,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
+	"github.com/gofiber/fiber/v3"
 )
 
-const Name = "hub"
+const Name = "search"
 
 var handler moduleHandler
 
@@ -28,6 +30,7 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
+	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
@@ -51,10 +54,36 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
+func (moduleHandler) Bootstrap() error {
+	return nil
+}
+
 func (moduleHandler) Rules() []any {
-	return []any{}
+	return []any{
+		commandRules,
+		cronRules,
+		collectRules,
+		webserviceRules,
+		pageRules,
+	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
+}
+
+func (moduleHandler) Cron() (*cron.Ruleset, error) {
+	return module.RunCron(cronRules, Name)
+}
+
+func (moduleHandler) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
+	return module.RunCollect(collectRules, ctx, content)
+}
+
+func (moduleHandler) Webservice(app *fiber.App) {
+	module.Webservice(app, Name, webserviceRules)
+}
+
+func (moduleHandler) Page(ctx types.Context, flag string, args types.KV) (string, error) {
+	return module.RunPage(pageRules, ctx, flag, args)
 }

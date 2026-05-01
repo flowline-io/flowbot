@@ -8,7 +8,7 @@ Each module follows a consistent pattern:
 
 ```text
 modules/<name>/
-├── module.go           # Module state + interface implementation
+├── module.go          # Module state + module.Handler implementation
 ├── command.go          # Slash/chat commands (optional)
 ├── form.go             # Interactive forms (optional)
 ├── cron.go             # Scheduled tasks (optional)
@@ -41,10 +41,3 @@ New code should use `pkg/module`. The legacy `pkg/chatbot` package is kept only 
 - Each component has a `*_test.go` counterpart.
 - Use table-driven tests with `require`/`assert`.
 - Mock external dependencies.
-
-## Commands
-
-```text
-go test ./internal/modules/dev/...
-go test ./internal/bots/dev/... # legacy path until directory migration is complete
-```
