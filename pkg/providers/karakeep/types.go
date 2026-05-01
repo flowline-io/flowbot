@@ -36,20 +36,20 @@ type BookmarkTagRequest struct {
 type Bookmark struct {
 	Id            string  `json:"id"`
 	CreatedAt     string  `json:"createdAt"`
-	ModifiedAt    *string `json:"modifiedAt"`
-	Title         *string `json:"title,omitempty"`
+	ModifiedAt    *string `json:"modifiedAt,omitzero"`
+	Title         *string `json:"title,omitzero"`
 	Archived      bool    `json:"archived"`
 	Favourited    bool    `json:"favourited"`
-	TaggingStatus *string `json:"taggingStatus,omitempty"`
+	TaggingStatus *string `json:"taggingStatus,omitzero"`
 	// summarization status was added in API responses starting
 	// with the new /bookmarks/:id endpoint and is not returned
 	// by the older list call.  Use a pointer to distinguish
 	// missing values.
-	SummarizationStatus *string                     `json:"summarizationStatus,omitempty"`
-	Source              *string                     `json:"source,omitempty"`
-	UserId              *string                     `json:"userId,omitempty"`
-	Note                *string                     `json:"note,omitempty"`
-	Summary             *string                     `json:"summary,omitempty"`
+	SummarizationStatus *string                     `json:"summarizationStatus,omitzero"`
+	Source              *string                     `json:"source,omitzero"`
+	UserId              *string                     `json:"userId,omitzero"`
+	Note                *string                     `json:"note,omitzero"`
+	Summary             *string                     `json:"summary,omitzero"`
 	Tags                []BookmarkTagsInner         `json:"tags"`
 	Assets              []BookmarksBookmarkIdAssets `json:"assets"`
 	Content             BookmarkContent             `json:"content"`
@@ -72,17 +72,17 @@ func (b Bookmark) GetSummary() string {
 type BookmarkContent struct {
 	Type                     string  `json:"type"`
 	Url                      string  `json:"url"`
-	Title                    *string `json:"title,omitempty"`
-	Description              *string `json:"description,omitempty"`
-	ImageUrl                 *string `json:"imageUrl,omitempty"`
-	ImageAssetId             *string `json:"imageAssetId,omitempty"`
-	ScreenshotAssetId        *string `json:"screenshotAssetId,omitempty"`
-	FullPageArchiveAssetId   *string `json:"fullPageArchiveAssetId,omitempty"`
-	PrecrawledArchiveAssetId *string `json:"precrawledArchiveAssetId,omitempty"`
-	VideoAssetId             *string `json:"videoAssetId,omitempty"`
-	Favicon                  *string `json:"favicon,omitempty"`
-	HtmlContent              *string `json:"htmlContent,omitempty"`
-	CrawledAt                *string `json:"crawledAt,omitempty"`
+	Title                    *string `json:"title,omitzero"`
+	Description              *string `json:"description,omitzero"`
+	ImageUrl                 *string `json:"imageUrl,omitzero"`
+	ImageAssetId             *string `json:"imageAssetId,omitzero"`
+	ScreenshotAssetId        *string `json:"screenshotAssetId,omitzero"`
+	FullPageArchiveAssetId   *string `json:"fullPageArchiveAssetId,omitzero"`
+	PrecrawledArchiveAssetId *string `json:"precrawledArchiveAssetId,omitzero"`
+	VideoAssetId             *string `json:"videoAssetId,omitzero"`
+	Favicon                  *string `json:"favicon,omitzero"`
+	HtmlContent              *string `json:"htmlContent,omitzero"`
+	CrawledAt                *string `json:"crawledAt,omitzero"`
 }
 
 type BookmarkTagsInner struct {
@@ -105,8 +105,8 @@ type Tag struct {
 }
 
 type TagNumBookmarksByAttachedType struct {
-	Ai    *float32 `json:"ai,omitempty"`
-	Human *float32 `json:"human,omitempty"`
+	Ai    *float32 `json:"ai,omitzero"`
+	Human *float32 `json:"human,omitzero"`
 }
 
 type BookmarksQuery struct {

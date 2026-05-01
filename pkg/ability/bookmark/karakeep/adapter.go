@@ -6,6 +6,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	bm "github.com/flowline-io/flowbot/pkg/ability/bookmark"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	provider "github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -31,6 +32,10 @@ type Adapter struct {
 
 func New() bm.Service {
 	return NewWithClient(provider.GetClient())
+}
+
+func (a *Adapter) SetCursorSecret(secret []byte) {
+	a.cursorSecret = secret
 }
 
 func NewWithClient(client client) bm.Service {
@@ -250,7 +255,10 @@ func toBookmark(item *provider.Bookmark) *ability.Bookmark {
 	if item == nil {
 		return nil
 	}
-	createdAt, _ := time.Parse(time.RFC3339, item.CreatedAt)
+	createdAt, err := time.Parse(time.RFC3339, item.CreatedAt)
+	if err != nil {
+		flog.Warn("karakeep adapter: parse bookmark created_at: %v", err)
+	}
 	tags := make([]string, 0, len(item.Tags))
 	for _, tag := range item.Tags {
 		if tag.Name != "" {

@@ -86,7 +86,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	emitter := r.emitter
 	r.mu.RUnlock()
 	if emitter != nil && len(result.Events) > 0 {
-		go emitter(ctx, result)
+		go emitter(context.WithoutCancel(ctx), result)
 	}
 
 	return result, nil

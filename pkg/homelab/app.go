@@ -4,26 +4,26 @@ type App struct {
 	Name        string            `json:"name"`
 	Path        string            `json:"path"`
 	ComposeFile string            `json:"compose_file"`
-	Services    []ComposeService  `json:"services,omitempty"`
-	Networks    []string          `json:"networks,omitempty"`
-	Ports       []PortMapping     `json:"ports,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
+	Services    []ComposeService  `json:"services,omitzero"`
+	Networks    []string          `json:"networks,omitzero"`
+	Ports       []PortMapping     `json:"ports,omitzero"`
+	Labels      map[string]string `json:"labels,omitzero"`
 	Status      AppStatus         `json:"status"`
 	Health      HealthStatus      `json:"health"`
 }
 
 type ComposeService struct {
 	Name      string        `json:"name"`
-	Image     string        `json:"image,omitempty"`
-	Container string        `json:"container,omitempty"`
-	Ports     []PortMapping `json:"ports,omitempty"`
+	Image     string        `json:"image,omitzero"`
+	Container string        `json:"container,omitzero"`
+	Ports     []PortMapping `json:"ports,omitzero"`
 }
 
 type PortMapping struct {
-	Host      string `json:"host,omitempty"`
-	HostPort  string `json:"host_port,omitempty"`
-	Container string `json:"container,omitempty"`
-	Protocol  string `json:"protocol,omitempty"`
+	Host      string `json:"host,omitzero"`
+	HostPort  string `json:"host_port,omitzero"`
+	Container string `json:"container,omitzero"`
+	Protocol  string `json:"protocol,omitzero"`
 }
 
 type AppStatus string

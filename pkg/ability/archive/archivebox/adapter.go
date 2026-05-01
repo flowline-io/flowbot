@@ -2,7 +2,6 @@ package archivebox
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
@@ -48,7 +47,7 @@ func (a *Adapter) Add(ctx context.Context, req archive.AddRequest) (*ability.Arc
 		return nil, types.Errorf(types.ErrProvider, "archivebox returned empty response")
 	}
 	if !resp.Success {
-		return nil, types.Errorf(types.ErrProvider, "archivebox add failed: %s", strings.Join(resp.Errors, "; "))
+		return nil, types.Errorf(types.ErrProvider, "archivebox add failed")
 	}
 	return &ability.ArchiveItem{
 		ID:        firstResult(resp.Result, req.URL),

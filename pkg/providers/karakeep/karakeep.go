@@ -3,6 +3,7 @@ package karakeep
 import (
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"resty.dev/v3"
@@ -19,8 +20,14 @@ type Karakeep struct {
 }
 
 func GetClient() *Karakeep {
-	endpoint, _ := providers.GetConfig(ID, EndpointKey)
-	apiKey, _ := providers.GetConfig(ID, ApikeyKey)
+	endpoint, err := providers.GetConfig(ID, EndpointKey)
+	if err != nil {
+		flog.Warn("karakeep provider config error: %v", err)
+	}
+	apiKey, err := providers.GetConfig(ID, ApikeyKey)
+	if err != nil {
+		flog.Warn("karakeep provider config error: %v", err)
+	}
 
 	return NewKarakeep(endpoint.String(), apiKey.String())
 }

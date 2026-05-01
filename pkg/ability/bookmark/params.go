@@ -2,92 +2,13 @@ package bookmark
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func pageRequestFromParams(params map[string]any) ability.PageRequest {
-	limit, _ := intParam(params, "limit")
-	cursor, _ := stringParam(params, "cursor")
-	sortBy, _ := stringParam(params, "sort_by")
-	sortOrder, _ := stringParam(params, "sort_order")
-	return ability.PageRequest{
-		Limit:     limit,
-		Cursor:    cursor,
-		SortBy:    sortBy,
-		SortOrder: sortOrder,
-	}
-}
-
-func requiredString(params map[string]any, key string) (string, error) {
-	value, ok := stringParam(params, key)
-	if !ok || value == "" {
-		return "", types.Errorf(types.ErrInvalidArgument, "%s is required", key)
-	}
-	return value, nil
-}
-
-func stringParam(params map[string]any, key string) (string, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return "", false
-	}
-	switch v := value.(type) {
-	case string:
-		return v, true
-	case fmt.Stringer:
-		return v.String(), true
-	default:
-		return fmt.Sprintf("%v", value), true
-	}
-}
-
-func intParam(params map[string]any, key string) (int, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return 0, false
-	}
-	switch v := value.(type) {
-	case int:
-		return v, true
-	case int64:
-		return int(v), true
-	case float64:
-		return int(v), true
-	case string:
-		parsed, err := strconv.Atoi(v)
-		if err != nil {
-			return 0, false
-		}
-		return parsed, true
-	default:
-		return 0, false
-	}
-}
-
-func boolParam(params map[string]any, key string) (bool, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return false, false
-	}
-	switch v := value.(type) {
-	case bool:
-		return v, true
-	case string:
-		parsed, err := strconv.ParseBool(v)
-		if err != nil {
-			return false, false
-		}
-		return parsed, true
-	default:
-		return false, false
-	}
-}
-
 func idAndTags(params map[string]any) (string, []string, error) {
-	id, err := requiredString(params, "id")
+	id, err := ability.RequiredString(params, "id")
 	if err != nil {
 		return "", nil, err
 	}
@@ -121,4 +42,11 @@ func tagsParam(params map[string]any) ([]string, error) {
 	default:
 		return nil, types.Errorf(types.ErrInvalidArgument, "tags must be an array")
 	}
+}
+
+func listInvokeResult(operation string, result *ability.ListResult[ability.Bookmark]) *ability.InvokeResult {
+	if result == nil {
+		result = &ability.ListResult[ability.Bookmark]{Items: []*ability.Bookmark{}, Page: &ability.PageInfo{}}
+	}
+	return &ability.InvokeResult{Operation: operation, Data: result.Items, Page: result.Page}
 }

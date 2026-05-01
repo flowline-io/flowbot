@@ -15,24 +15,24 @@ const (
 type ParamDef struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
-	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required,omitempty"`
+	Description string `json:"description,omitzero"`
+	Required    bool   `json:"required,omitzero"`
 }
 
 type Operation struct {
 	Name        string     `json:"name"`
-	Description string     `json:"description,omitempty"`
-	Input       []ParamDef `json:"input,omitempty"`
-	Output      []ParamDef `json:"output,omitempty"`
-	Scopes      []string   `json:"scopes,omitempty"`
+	Description string     `json:"description,omitzero"`
+	Input       []ParamDef `json:"input,omitzero"`
+	Output      []ParamDef `json:"output,omitzero"`
+	Scopes      []string   `json:"scopes,omitzero"`
 }
 
 type Descriptor struct {
 	Type        CapabilityType `json:"type"`
 	Backend     string         `json:"backend"`
 	App         string         `json:"app"`
-	Description string         `json:"description,omitempty"`
-	Operations  []Operation    `json:"operations,omitempty"`
+	Description string         `json:"description,omitzero"`
+	Operations  []Operation    `json:"operations,omitzero"`
 	Instance    any            `json:"-"`
 	Healthy     bool           `json:"healthy"`
 }

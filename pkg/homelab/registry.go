@@ -1,7 +1,8 @@
 package homelab
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"sync"
 )
 
@@ -34,8 +35,8 @@ func (r *Registry) List() []App {
 	for _, app := range r.apps {
 		apps = append(apps, app)
 	}
-	sort.Slice(apps, func(i, j int) bool {
-		return apps[i].Name < apps[j].Name
+	slices.SortFunc(apps, func(a, b App) int {
+		return cmp.Compare(a.Name, b.Name)
 	})
 	return apps
 }

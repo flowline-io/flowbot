@@ -50,7 +50,7 @@ func RegisterService(backend, app string, svc Service) error {
 
 func invokeAdd(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		url, err := requiredString(params, "url")
+		url, err := ability.RequiredString(params, "url")
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func invokeAdd(svc Service) ability.Invoker {
 
 func invokeSearch(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q, _ := stringParam(params, "q")
+		q, _ := ability.StringParam(params, "q")
 		result, err := svc.Search(ctx, &SearchQuery{Q: q})
 		if err != nil {
 			return nil, err
@@ -85,7 +85,7 @@ func invokeSearch(svc Service) ability.Invoker {
 
 func invokeGet(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredString(params, "id")
+		id, err := ability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -95,20 +95,4 @@ func invokeGet(svc Service) ability.Invoker {
 		}
 		return &ability.InvokeResult{Data: item, Text: item.Title}, nil
 	}
-}
-
-func requiredString(params map[string]any, key string) (string, error) {
-	value, ok := stringParam(params, key)
-	if !ok || value == "" {
-		return "", types.Errorf(types.ErrInvalidArgument, "%s is required", key)
-	}
-	return value, nil
-}
-
-func stringParam(params map[string]any, key string) (string, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return "", false
-	}
-	return fmt.Sprintf("%v", value), true
 }

@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"context"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -20,7 +19,7 @@ func TestChecker_CheckEmptyRegistry(t *testing.T) {
 	defer homelab.DefaultRegistry.SetPermissions(old)
 
 	checker := NewChecker(NewRegistry())
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	assert.Equal(t, HealthDegraded, result.Status)
@@ -37,7 +36,7 @@ func TestChecker_CheckHealthyDescriptors(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapArchive, Backend: "archivebox", App: "archivebox", Description: "archive service", Healthy: true, Instance: "ok"}))
 
 	checker := NewChecker(r)
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	assert.Equal(t, HealthHealthy, result.Status)
@@ -60,7 +59,7 @@ func TestChecker_CheckUnhealthyDescriptor(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: false, Instance: "ok"}))
 
 	checker := NewChecker(r)
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	assert.Equal(t, HealthDegraded, result.Status)
@@ -76,7 +75,7 @@ func TestChecker_CheckDegradedDescriptorNilInstance(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true, Instance: nil}))
 
 	checker := NewChecker(r)
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	assert.Equal(t, HealthDegraded, result.Status)
@@ -94,7 +93,7 @@ func TestChecker_CheckMixedHealth(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapReader, Backend: "miniflux", App: "miniflux", Healthy: true, Instance: nil}))
 
 	checker := NewChecker(r)
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	assert.Equal(t, HealthDegraded, result.Status)
@@ -123,7 +122,7 @@ func TestChecker_CheckIncludesAppStatuses(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapArchive, Backend: "archivebox", App: "archivebox", Healthy: true, Instance: "ok"}))
 
 	checker := NewChecker(r)
-	result := checker.Check(context.Background())
+	result := checker.Check(t.Context())
 
 	require.NotNil(t, result)
 	require.Len(t, result.AppStatuses, 2)
@@ -142,7 +141,7 @@ func TestChecker_CheckCapabilityFound(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Description: "bookmark service", Healthy: true, Instance: "ok"}))
 
 	checker := NewChecker(r)
-	ch, err := checker.CheckCapability(context.Background(), CapBookmark)
+	ch, err := checker.CheckCapability(t.Context(), CapBookmark)
 
 	require.NoError(t, err)
 	require.NotNil(t, ch)
@@ -157,7 +156,7 @@ func TestChecker_CheckCapabilityNotFound(t *testing.T) {
 	r := NewRegistry()
 	checker := NewChecker(r)
 
-	ch, err := checker.CheckCapability(context.Background(), CapBookmark)
+	ch, err := checker.CheckCapability(t.Context(), CapBookmark)
 
 	require.Error(t, err)
 	assert.Nil(t, ch)
@@ -169,7 +168,7 @@ func TestChecker_CheckCapabilityUnhealthy(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: false, Instance: "ok"}))
 
 	checker := NewChecker(r)
-	ch, err := checker.CheckCapability(context.Background(), CapBookmark)
+	ch, err := checker.CheckCapability(t.Context(), CapBookmark)
 
 	require.NoError(t, err)
 	require.NotNil(t, ch)
@@ -181,7 +180,7 @@ func TestChecker_CheckCapabilityDegradedNilInstance(t *testing.T) {
 	require.NoError(t, r.Register(Descriptor{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true, Instance: nil}))
 
 	checker := NewChecker(r)
-	ch, err := checker.CheckCapability(context.Background(), CapBookmark)
+	ch, err := checker.CheckCapability(t.Context(), CapBookmark)
 
 	require.NoError(t, err)
 	require.NotNil(t, ch)

@@ -1,7 +1,6 @@
 package karakeep
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -69,7 +68,7 @@ func TestListConvertsBookmarksAndCursor(t *testing.T) {
 	adapter := NewWithClient(client).(*Adapter)
 	adapter.now = func() time.Time { return time.Unix(1700000000, 0) }
 
-	result, err := adapter.List(context.Background(), &bm.ListQuery{Page: ability.PageRequest{Limit: 20}})
+	result, err := 	adapter.List(t.Context(), &bm.ListQuery{Page: ability.PageRequest{Limit: 20}})
 	require.NoError(t, err)
 	require.Len(t, result.Items, 1)
 	require.Equal(t, "1", result.Items[0].ID)
@@ -84,7 +83,7 @@ func TestListDecodesOpaqueCursor(t *testing.T) {
 	cursor, err := ability.EncodeCursor(adapter.cursorSecret, ability.CursorPayload{ProviderCursor: "provider-current"})
 	require.NoError(t, err)
 
-	_, err = adapter.List(context.Background(), &bm.ListQuery{Page: ability.PageRequest{Cursor: cursor}})
+	_, err = 	adapter.List(t.Context(), &bm.ListQuery{Page: ability.PageRequest{Cursor: cursor}})
 	require.NoError(t, err)
 	require.Equal(t, "provider-current", client.listQuery.Cursor)
 }
@@ -92,7 +91,7 @@ func TestListDecodesOpaqueCursor(t *testing.T) {
 func TestCreateWrapsProviderError(t *testing.T) {
 	adapter := NewWithClient(&fakeClient{createErr: errors.New("boom")})
 
-	_, err := adapter.Create(context.Background(), "https://example.com")
+	_, err := 	adapter.Create(t.Context(), "https://example.com")
 	require.Error(t, err)
 	require.True(t, errors.Is(err, types.ErrProvider))
 }

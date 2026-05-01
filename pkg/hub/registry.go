@@ -1,7 +1,8 @@
 package hub
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -42,8 +43,8 @@ func (r *Registry) List() []Descriptor {
 	for _, desc := range r.descriptors {
 		result = append(result, desc)
 	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Type < result[j].Type
+	slices.SortFunc(result, func(a, b Descriptor) int {
+		return cmp.Compare(a.Type, b.Type)
 	})
 	return result
 }

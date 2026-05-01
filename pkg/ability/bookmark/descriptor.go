@@ -62,12 +62,12 @@ func RegisterService(backend, app string, svc Service) error {
 
 func invokeList(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &ListQuery{Page: pageRequestFromParams(params)}
-		if value, ok := boolParam(params, "archived"); ok {
-			q.Archived = &value
+		q := &ListQuery{Page: ability.PageRequestFromParams(params)}
+		if value, ok := ability.BoolParam(params, "archived"); ok {
+			q.Archived = new(value)
 		}
-		if value, ok := boolParam(params, "favourited"); ok {
-			q.Favourited = &value
+		if value, ok := ability.BoolParam(params, "favourited"); ok {
+			q.Favourited = new(value)
 		}
 		result, err := svc.List(ctx, q)
 		if err != nil {
@@ -79,7 +79,7 @@ func invokeList(svc Service) ability.Invoker {
 
 func invokeGet(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredString(params, "id")
+		id, err := ability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func invokeGet(svc Service) ability.Invoker {
 
 func invokeCreate(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		url, err := requiredString(params, "url")
+		url, err := ability.RequiredString(params, "url")
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +114,7 @@ func invokeCreate(svc Service) ability.Invoker {
 
 func invokeDelete(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredString(params, "id")
+		id, err := ability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,7 @@ func invokeDelete(svc Service) ability.Invoker {
 
 func invokeArchive(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredString(params, "id")
+		id, err := ability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -148,8 +148,8 @@ func invokeArchive(svc Service) ability.Invoker {
 
 func invokeSearch(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &SearchQuery{Page: pageRequestFromParams(params)}
-		q.Q, _ = stringParam(params, "q")
+		q := &SearchQuery{Page: ability.PageRequestFromParams(params)}
+		q.Q, _ = ability.StringParam(params, "q")
 		result, err := svc.Search(ctx, q)
 		if err != nil {
 			return nil, err
@@ -186,7 +186,7 @@ func invokeDetachTags(svc Service) ability.Invoker {
 
 func invokeCheckURL(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		url, err := requiredString(params, "url")
+		url, err := ability.RequiredString(params, "url")
 		if err != nil {
 			return nil, err
 		}
@@ -196,11 +196,4 @@ func invokeCheckURL(svc Service) ability.Invoker {
 		}
 		return &ability.InvokeResult{Data: map[string]any{"exists": exists, "id": id}}, nil
 	}
-}
-
-func listInvokeResult(operation string, result *ability.ListResult[ability.Bookmark]) *ability.InvokeResult {
-	if result == nil {
-		result = &ability.ListResult[ability.Bookmark]{Items: []*ability.Bookmark{}, Page: &ability.PageInfo{}}
-	}
-	return &ability.InvokeResult{Operation: operation, Data: result.Items, Page: result.Page}
 }

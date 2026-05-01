@@ -62,7 +62,7 @@ func TestDockerComposeRuntime_StatusNoDocker(t *testing.T) {
 	r := NewDockerComposeRuntime(RuntimeConfig{Mode: RuntimeModeDockerSocket}, tmpDir)
 	app := App{Name: "testapp", Path: appDir, ComposeFile: "docker-compose.yaml"}
 
-	status, err := r.Status(context.Background(), app)
+	status, err := r.Status(t.Context(), app)
 	if err != nil {
 		t.Logf("expected error (no docker daemon): %v", err)
 	} else {
@@ -72,7 +72,7 @@ func TestDockerComposeRuntime_StatusNoDocker(t *testing.T) {
 
 func TestNoopRuntime_AllOperations(t *testing.T) {
 	r := NoopRuntime{}
-	ctx := context.Background()
+	ctx := t.Context()
 	app := App{Name: "testapp", Path: "/fake/path", Status: AppStatusUnknown}
 
 	status, err := r.Status(ctx, app)
@@ -124,7 +124,7 @@ func getRuntimeTypeName(rt Runtime) string {
 
 func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 	r := NewSSHRuntime(RuntimeConfig{
-		Mode: RuntimeModeSSH,
+		Mode:    RuntimeModeSSH,
 		SSHHost: "example.com",
 		SSHUser: "root",
 		SSHPassword: "test",
@@ -132,4 +132,73 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 	assert.Equal(t, "example.com", r.host)
 	assert.Equal(t, 22, r.port)
 	assert.Equal(t, "root", r.user)
+}
+
+func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:    RuntimeModeSSH,
+		SSHHost: "example.com",
+		SSHUser: "root",
+	})
+	_, err := r.clientConfig()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "key or password")
+}
+
+func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
+		SSHPassword: "test",
+	})
+	cfg, err := r.clientConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "root", cfg.User)
+	require.Len(t, cfg.Auth, 1)
+}
+
+func TestSSHRuntime_DefaultPort(t *testing.T) {
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:    RuntimeModeSSH,
+		SSHHost: "example.com",
+		SSHUser: "root",
+		SSHPassword: "test",
+		SSHPort: 0,
+	})
+	assert.Equal(t, 22, r.port)
+
+	r2 := NewSSHRuntime(RuntimeConfig{
+		Mode:    RuntimeModeSSH,
+		SSHHost: "example.com",
+		SSHUser: "root",
+		SSHPassword: "test",
+		SSHPort: 2222,
+	})
+	assert.Equal(t, 2222, r2.port)
+}
+
+func TestSSHRuntime_ContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:    RuntimeModeSSH,
+		SSHHost: "example.com",
+		SSHUser: "root",
+		SSHPassword: "test",
+	})
+	app := App{Name: "test", Path: "/test"}
+
+	_, err := r.Status(ctx, app)
+	require.Error(t, err)
+
+	_, err = r.Logs(ctx, app, 10)
+	require.Error(t, err)
+
+	require.Error(t, r.Start(ctx, app))
+	require.Error(t, r.Stop(ctx, app))
+	require.Error(t, r.Restart(ctx, app))
+	require.Error(t, r.Pull(ctx, app))
+	require.Error(t, r.Update(ctx, app))
 }

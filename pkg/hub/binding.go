@@ -1,6 +1,9 @@
 package hub
 
-import "sort"
+import (
+	"cmp"
+	"slices"
+)
 
 type Binding struct {
 	Capability CapabilityType `json:"capability"`
@@ -21,8 +24,8 @@ func (r *Registry) Bindings() []Binding {
 			Healthy:    desc.Healthy,
 		})
 	}
-	sort.Slice(bindings, func(i, j int) bool {
-		return bindings[i].Capability < bindings[j].Capability
+	slices.SortFunc(bindings, func(a, b Binding) int {
+		return cmp.Compare(a.Capability, b.Capability)
 	})
 	return bindings
 }
