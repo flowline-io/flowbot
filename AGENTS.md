@@ -24,7 +24,7 @@ Multi-platform chatbot framework with 20 bot modules, workflow engine, and LLM a
 | Notifications    | `pkg/notify/`        | Multi-channel notify    |
 | Core types       | `pkg/types/`         | Rulesets, protocol, KV  |
 | API routes       | `internal/server/`   | Fiber v3 handlers       |
-| Entry points     | `cmd/`               | 4 binaries              |
+| Entry points  | `cmd/`               | 3 binaries              |
 | Frontend/PWA     | `pkg/page/`          | go-app WASM components  |
 | Utilities        | `pkg/utils/`         | Must have unit tests    |
 
@@ -34,7 +34,6 @@ Multi-platform chatbot framework with 20 bot modules, workflow engine, and LLM a
 flowbot/
 ├── cmd/                  # Entry points
 │   ├── main.go          # HTTP server (Fiber)
-│   ├── agent/           # Background agent daemon
 │   ├── composer/        # CLI: dao gen, schema doc
 │   └── cli/             # CLI: admin commands
 ├── internal/
@@ -81,7 +80,6 @@ flowbot/
 ```bash
 go tool task default       # tidy → swagger → format → lint → test
 go tool task build         # Main server
-go tool task build:agent   # Agent daemon
 go tool task build:composer # Composer CLI
 go tool task build:cli     # Admin CLI
 go tool task build:all     # All binaries
@@ -278,9 +276,7 @@ go tool task gosec     # security scan
 
 - Go 1.26+ required
 - MySQL + Redis required
-- Uses Fiber v3 for HTTP
-- MCP protocol support per bot
 - Do not use emojis
 - You must run lint after modifying the code.
 - Code comments, documentation, Git commit messages, and other text should all be written in English.
-- The code in the utils directory must have unit tests.
+- The code must have unit tests.

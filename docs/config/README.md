@@ -22,17 +22,6 @@ Main application configuration file template for the Flowbot server. Covers:
 - Bot module settings
 - Third-party vendor configurations
 
-### `agent.yaml`
-
-Dedicated configuration for the Flowbot Agent (`cmd/agent`). Settings include:
-
-- Log level
-- Enabled bot modules
-- API connection (URL + token)
-- GitHub updater token
-- Script engine (paths, UID/GID, watch exclusions)
-- Prometheus metrics endpoint
-
 ### `examples/`
 
 Workflow configuration examples:
@@ -48,9 +37,6 @@ Workflow configuration examples:
    ```bash
    # Server configuration
    cp docs/config/config.yaml flowbot.yaml
-
-   # Agent configuration
-   cp docs/config/agent.yaml flowbot-agent.yaml
    ```
 
 2. Edit configuration values for your environment
@@ -58,14 +44,7 @@ Workflow configuration examples:
 3. Start the service:
 
    ```bash
-   # Server
    task run
-
-   # Agent
-   task run:agent
-
-   # Admin PWA
-   task run:app
    ```
 
 ## Environment Variables

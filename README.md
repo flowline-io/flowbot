@@ -13,7 +13,7 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 - **Workflow Engine** - DAG-based execution with 8+ built-in actions
 - **Message Hub** - Redis Stream pub/sub messaging
 - **Scheduling** - Cron jobs, triggers, automated tasks
-- **18 Bot Modules** - Extensible module system
+- **20 Bot Modules** - Extensible module system
 - **Admin PWA** - WebAssembly frontend with Fiber v3 backend (go-app/v10)
 - **Monitoring** - Prometheus metrics, health probes
 - **Security** - OAuth 2.0, API key auth, RBAC
@@ -24,10 +24,10 @@ Flowbot is an advanced multi-platform chatbot framework that provides intelligen
 
 The system follows a modular architecture:
 
-- **Entry Points**: Server (`cmd`), Agent (`cmd/agent`), Admin PWA (`cmd/app`), Composer CLI (`cmd/composer`)
-- **Bot Modules**: 18 specialized handlers (`internal/bots/`)
+- **Entry Points**: Server (`cmd`), Composer CLI (`cmd/composer`), Admin CLI (`cmd/cli`)
+- **Bot Modules**: 20 specialized handlers (`internal/modules/`)
 - **Platform Layer**: Discord, Slack, Tailchat (`internal/platforms/`)
-- **Workflow Engine**: DAG execution with step tracking (`internal/bots/workflow/`)
+- **Workflow Engine**: DAG execution with step tracking (`internal/modules/workflow/`)
 - **Storage**: MySQL + Redis (`internal/store/`)
 - **Providers**: 17 third-party integrations (`pkg/providers/`)
 
@@ -80,7 +80,10 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 | -------------- | ------------------- | ------------------------------------- |
 | **Agent**      | LLM-powered AI      | Multiple models, context management   |
 | **Workflow**   | Workflow automation | DAG execution, 8+ actions             |
+| **Archive**    | Web archiving       | ArchiveBox / Karakeep integration     |
+| **Bookmark**   | Link management     | URL organization, tagging             |
 | **Finance**    | Financial tracking  | Bill tracking, categorization         |
+| **Hub**        | App management      | Service discovery, lifecycle          |
 | **Kanban**     | Project management  | Task boards                           |
 | **Notify**     | Notifications       | Slack, Pushover, ntfy, Message Pusher |
 | **Reader**     | RSS/Feed reader     | Content aggregation                   |
@@ -88,7 +91,6 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 | **Gitea**      | Gitea integration   | Repository management                 |
 | **Cloudflare** | Cloudflare          | DNS, analytics                        |
 | **Torrent**    | Downloads           | Transmission integration              |
-| **Bookmark**   | Link management     | URL organization, tagging             |
 | **Search**     | Full-text search    | MeiliSearch                           |
 | **Clipboard**  | Clipboard sync      | Cross-platform sync                   |
 | **Anki**       | Flashcards          | Spaced repetition                     |
@@ -119,8 +121,6 @@ task air
 
 ```bash
 go tool task build           # Main server
-go tool task build:agent     # Agent
-go tool task build:app       # Admin PWA (Wasm + server)
 go tool task build:composer  # Composer CLI
 ```
 
@@ -188,9 +188,9 @@ docker build -f deployments/Dockerfile -t flowbot .
 # Docker — admin PWA (multi-stage)
 docker build -f deployments/Dockerfile.app -t flowbot-app .
 
-# Systemd agent service
-sudo cp docs/deployment/flowbot-agent.service /etc/systemd/system/
-sudo systemctl enable flowbot-agent
+# Systemd service
+sudo cp docs/deployment/flowbot.service /etc/systemd/system/
+sudo systemctl enable flowbot
 ```
 
 ## Configuration

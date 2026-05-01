@@ -26,11 +26,6 @@ tasks:
     cmds:
       - GOEXPERIMENT=goroutineleakprofile go build -v -o bin/flowbot ./cmd
 
-  build:agent:
-    desc: Build flowbot agent
-    cmds:
-      - go build -v -o bin/flowbot-agent ./cmd/agent
-
   build:composer:
     desc: Build composer tool
     cmds:
@@ -45,7 +40,6 @@ tasks:
     desc: Build all binaries
     cmds:
       - task: build
-      - task: build:agent
       - task: build:composer
       - task: build:cli
 
@@ -54,11 +48,6 @@ tasks:
     desc: Run flowbot server
     cmds:
       - go run -tags swagger ./cmd
-
-  run:agent:
-    desc: Run flowbot agent
-    cmds:
-      - go run ./cmd/agent
 
   run:cli:
     desc: Run flowbot CLI (task run:cli -- --help)

@@ -21,9 +21,8 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
 | Binary          | Description                                                    |
 | --------------- | -------------------------------------------------------------- |
 | `cmd/main.go`   | Main server — API, chatbot, workflow engine (Fiber v3 + fx DI) |
-| `cmd/agent/`    | Desktop agent — background tasks, script engine, system tray   |
-| `cmd/app/`      | Admin PWA — WebAssembly frontend + Fiber server (go-app/v10)   |
 | `cmd/composer/` | CLI tool — code generation, migration, workflow import         |
+| `cmd/cli/`      | Admin CLI — user/token management, platform setup              |
 
 ### Core Components
 
@@ -34,24 +33,17 @@ Flowbot uses a modular architecture with multiple entry points and shared librar
    - Health probes (`/livez`, `/readyz`, `/startupz`)
    - Prometheus metrics (`/metrics`)
 
-2. **Bot Modules** (`internal/bots/`)
-   - 18 specialized bot modules (agent, anki, bookmark, clipboard, cloudflare, dev, finance, gitea, github, kanban, notify, reader, search, server, torrent, user, webhook, workflow)
+2. **Bot Modules** (`internal/modules/`)
+   - 20 specialized bot modules (agent, anki, archive, bookmark, clipboard, cloudflare, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow)
    - Each bot registers its own rules, commands, and webservice routes
 
-3. **Flowbot Agent** (`cmd/agent/`)
-   - Desktop automation and background tasks
-   - Script engine with file system watching
-   - System metrics collection
-   - Auto-updater
-   - Communicates with server via API
-
-4. **Admin PWA** (`cmd/app/`)
+3. **Composer CLI** (`cmd/composer/`)
    - WebAssembly frontend built with go-app/v10
    - DaisyUI + Tailwind CSS styling
    - Pages: Dashboard, Containers, Settings, Login
    - Separate Dockerfile for deployment (`deployments/Dockerfile.app`)
 
-5. **Workflow Engine** (`internal/bots/workflow/`)
+4. **Workflow Engine** (`internal/modules/workflow/`)
    - DAG-based workflow execution
    - Built-in actions: Message, Fetch, Feed, LLM, Docker, Grep, Unique, Torrent
    - Trigger types: manual, webhook, cron
@@ -128,7 +120,6 @@ graph TB
     S --> WF[Workflow Engine]
     WF --> EX[Executor]
     EX --> D[Docker/Shell]
-    AG[Agent] -->|API| S
     PWA[Admin PWA] -->|API| S
 ```
 
@@ -139,16 +130,12 @@ graph TB
 | Image         | Dockerfile                   | Description                            |
 | ------------- | ---------------------------- | -------------------------------------- |
 | `flowbot`     | `deployments/Dockerfile`     | Main server                            |
-| `flowbot-app` | `deployments/Dockerfile.app` | Admin PWA (multi-stage: Wasm + server) |
 
 ### CI/CD Workflows (`.github/workflows/`)
 
 | Workflow          | Description                    |
 | ----------------- | ------------------------------ |
 | `build.yml`       | Build main server              |
-| `build_agent.yml` | Build agent                    |
-| `build_app.yml`   | Build admin PWA + Docker image |
-| `docker.yml`      | Docker image publishing        |
 | `release.yml`     | Release pipeline               |
 
 ### Systemd Service
