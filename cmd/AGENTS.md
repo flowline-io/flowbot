@@ -13,7 +13,7 @@ cmd/
 │   ├── main.go         # Entry + reexec
 │   ├── modules.go      # fx wiring
 │   ├── daemon.go       # Core loop
-│   └── config/ script/ startup/ ruleset/ client/ updater/
+│   └── config/ script/ startup/ client/ updater/
 ├── composer/           # Dev tool CLI (cli/v3)
 │   ├── main.go
 │   └── action/         # Subcommands: dao, doc

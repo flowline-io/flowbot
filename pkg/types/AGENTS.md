@@ -19,40 +19,31 @@ types/
 │   ├── message.go  # Message types
 │   ├── event.go    # Platform events
 │   └── user.go     # User info
-└── ruleset/        # Rule implementations (14 types)
+└── ruleset/        # Rule implementations (7 types)
     ├── command/    # Slash commands
-    ├── form/       # Interactive forms
     ├── cron/       # Scheduled tasks
     ├── event/      # Event handlers
-    ├── webhook/    # HTTP webhooks
-    ├── webservice/ # HTTP endpoints
-    ├── tool/       # Tools
-    ├── instruct/   # LLM instructions
+    ├── form/       # Interactive forms
     ├── page/       # UI pages
-    ├── setting/    # Bot settings
-    ├── collect/    # Data collectors
-    └── ...
+    ├── webhook/    # HTTP webhooks
+    └── webservice/ # HTTP endpoints
 ```
 
 ## Ruleset Types
 
-14 rule types defined in `types.go`:
+7 rule types defined in `types.go`:
 
 | Type           | Purpose           |
 | -------------- | ----------------- |
 | ActionRule     | Generic actions   |
 | CommandRule    | Slash commands    |
-| FormRule       | Interactive forms |
 | CronRule       | Scheduled tasks   |
 | EventRule      | Event handlers    |
+| FormRule       | Interactive forms |
+| PageRule       | UI pages          |
+| TriggerRule    | Workflow triggers |
 | WebhookRule    | HTTP webhooks     |
 | WebserviceRule | HTTP endpoints    |
-| ToolRule       | Tools             |
-| InstructRule   | LLM instructions  |
-| PageRule       | UI pages          |
-| SettingRule    | Bot configuration |
-| CollectRule    | Data collection   |
-| TriggerRule    | Workflow triggers |
 | WorkflowRule   | Workflow actions  |
 
 ## Message Types

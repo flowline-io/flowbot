@@ -1,24 +1,32 @@
 # Agents Guide for Flowbot
 
-Multi-platform chatbot framework with 18 bot modules, workflow engine, and LLM agents.
+Multi-platform chatbot framework with 20 bot modules, workflow engine, and LLM agents.
 
-**Generated:** 2026-04-25
-**Commit:** 954313f9
-**Branch:** master
+**Generated:** 2026-05-01
+**Commit:** 0586801
+**Branch:** hub
 **Go Version:** 1.26
 
 ## Quick Reference
 
-| Task          | Location           | Notes                   |
-| ------------- | ------------------ | ----------------------- |
-| Add new bot   | `internal/bots/`   | See `AGENTS.md` there   |
-| Database work | `internal/store/`  | DAO pattern, migrations |
-| New provider  | `pkg/providers/`   | OAuth + API clients     |
-| Core types    | `pkg/types/`       | Rulesets, protocol, KV  |
-| API routes    | `internal/server/` | Fiber v3 handlers       |
-| Entry points  | `cmd/`             | 4 binaries              |
-| Frontend/PWA  | `pkg/page/`        | go-app WASM components  |
-| Utilities     | `pkg/utils/`       | Must have unit tests    |
+| Task             | Location             | Notes                   |
+| ---------------- | -------------------- | ----------------------- |
+| Add new bot      | `internal/modules/`  | See `AGENTS.md` there   |
+| Module framework | `pkg/module/`        | Handler interface       |
+| Database work    | `internal/store/`    | DAO pattern, migrations |
+| New provider     | `pkg/providers/`     | OAuth + API clients     |
+| Capability layer | `pkg/ability/`       | ability.Invoke()        |
+| Pipeline engine  | `pkg/pipeline/`      | Event-driven pipelines  |
+| Workflow engine  | `pkg/workflow/`      | Workflow runtime        |
+| Hub management   | `pkg/hub/`           | App lifecycle           |
+| Homelab registry | `pkg/homelab/`       | App scanning            |
+| Authentication   | `pkg/auth/`          | AuthContext helpers     |
+| Notifications    | `pkg/notify/`        | Multi-channel notify    |
+| Core types       | `pkg/types/`         | Rulesets, protocol, KV  |
+| API routes       | `internal/server/`   | Fiber v3 handlers       |
+| Entry points     | `cmd/`               | 4 binaries              |
+| Frontend/PWA     | `pkg/page/`          | go-app WASM components  |
+| Utilities        | `pkg/utils/`         | Must have unit tests    |
 
 ## Structure
 
@@ -30,7 +38,7 @@ flowbot/
 │   ├── composer/        # CLI: dao gen, schema doc
 │   └── cli/             # CLI: admin commands
 ├── internal/
-│   ├── bots/            # 18 bot modules
+│   ├── modules/         # 20 bot modules
 │   ├── server/          # Fiber v3 HTTP layer
 │   ├── store/           # GORM DAO/models
 │   └── platforms/       # Discord, Slack, Tailchat
@@ -44,7 +52,28 @@ flowbot/
 │   ├── llm/             # LLM agent system
 │   ├── chatbot/         # Platform chat interface
 │   ├── migrate/         # Migration runner
-│   └── ...              # config, flog, media, etc.
+│   ├── ability/         # Capability abstraction layer
+│   ├── pipeline/        # Event-driven pipelines
+│   ├── workflow/        # Workflow engine
+│   ├── hub/             # Hub management
+│   ├── homelab/         # Homelab app registry
+│   ├── module/          # Module framework
+│   ├── auth/            # Authentication helpers
+│   ├── notify/          # Multi-channel notifications
+│   ├── config/          # Configuration
+│   ├── flog/            # Structured logging
+│   ├── rdb/             # Redis helpers
+│   ├── stats/           # Metrics
+│   ├── route/           # HTTP routing utilities
+│   ├── parser/          # Command parser
+│   ├── locker/          # Distributed locking
+│   ├── cache/           # Caching layer
+│   ├── media/           # Media handling
+│   ├── client/          # API clients
+│   ├── alarm/           # Alarm/scheduling
+│   ├── crawler/         # Web crawler
+│   ├── search/          # Search utilities
+│   └── validate/        # Validation
 ```
 
 ## Build Commands
@@ -53,8 +82,14 @@ flowbot/
 go tool task default       # tidy → swagger → format → lint → test
 go tool task build         # Main server
 go tool task build:agent   # Agent daemon
+go tool task build:composer # Composer CLI
+go tool task build:cli     # Admin CLI
+go tool task build:all     # All binaries
 go tool task test          # All tests
+go tool task test:coverage # Coverage report
+go tool task test:integration # Integration tests (requires Docker)
 go tool task lint          # revive + actionlint
+go tool task air           # Live reload (server)
 ```
 
 ## Code Style
@@ -72,15 +107,84 @@ severity = "error"
 enabled: blank-imports, dot-imports, error-naming, import-shadowing
 ```
 
+## Architecture
+
+```
+/home/<user>/homelab/apps
+        |
+        | scan apps/*/docker-compose.yaml
+        v
++--------------------------------------------------+
+|                  Homelab App Registry            |
+|  archivebox | atuin | beszel | flowbot | ...     |
++-------------------------+------------------------+
+                          |
+                          | bind app -> capability
+                          v
++--------------------------------------------------+
+|                  Hub                             |
+|  /hub/apps                                       |
+|  /hub/capabilities                               |
+|  /hub/health                                     |
+|  /hub/apps/:name/restart                         |
++-------------------------+------------------------+
+                          |
+                          | register capabilities
+                          v
++--------------------------------------------------+
+|              Capability Registry                 |
+|  bookmark | archive | reader | kanban | infra    |
++-------------------------+------------------------+
+                          |
+                          | ability.Invoke()
+                          v
++--------------------------------------------------+
+|              Ability Layer                       |
+|  bookmark.Service                                |
+|  archive.Service                                 |
+|  reader.Service                                  |
+|  kanban.Service                                  |
+|  infra.Service                                   |
++-------------------------+------------------------+
+                          |
+                          | adapter
+                          v
++--------------------------------------------------+
+|              Provider Layer                      |
+|  karakeep | linkwarden | archivebox | miniflux   |
+|  kanboard | fireflyiii | beszel | atuin | ...    |
++--------------------------------------------------+
+```
+
+### Cross-cutting
+
+**AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
+
+**Standard Error**:
+```go
+errors.Is(err, types.ErrNotFound)
+errors.Is(err, types.ErrForbidden)
+errors.Is(err, types.ErrProvider)
+```
+
+**Standard Pagination**: limit + opaque cursor, provider page/offset/token hidden in adapter
+
+**Durable Event**:
+```
+DataEvent → MySQL data_events
+EventOutbox → Redis Stream
+Pipeline Engine → pipeline_runs
+```
+
+**Store**: `internal/store` → MySQL, migrations, GORM Gen
+
 ## Key Patterns
 
-### Bot Module
+### Routing
 
-```go
-type Bot struct{}
-func (b *Bot) Info() types.BotInfo
-func (b *Bot) Rules() []types.Rule
-func (b *Bot) HandleEvent(evt types.Event) error
+```
+/service/{capability}/*  # Business capability plane
+/hub/*                    # Management plane
 ```
 
 ### Error Handling
@@ -123,6 +227,35 @@ go test -run ^TestFoo$ ./pkg/utils
 - **Never** block in event handlers
 - **Always** check `err != nil` immediately
 - **Always** wrap errors when propagating
+
+### Architecture Violations
+
+- **Never** import `pkg/providers/*` directly from `internal/modules/*` — use `ability.Invoke`
+- **Never** call provider clients directly in modules (e.g. `karakeep.GetClient()`)
+- **Never** access local filesystem paths (e.g. `/home/<user>/homelab/apps/<app>/data`) from modules
+- **Never** call hub or pipeline from inside a provider
+- **Never** emit `DataEvent` from inside a provider
+- **Never** return provider-private types from an adapter
+- **Never** write cross-service logic in cron handlers — use Pipeline
+- **Never** write cross-service logic in event handlers — use Pipeline
+- **Never** mount routes under `/service/hub/*` — use `/hub/*` for management plane
+- **Never** allow arbitrary shell execution in Hub lifecycle
+- **Never** access paths outside `apps_dir` in Hub
+- **Never** enable exec/update/pull by default
+- **Never** hardcode provider names in workflow definitions
+- **Never** hardcode provider names in pipeline definitions
+- **Never** use app name instead of capability name for `/service` routes
+- **Never** return 500 for all errors — use appropriate status codes
+- **Never** return 400 for all errors — use appropriate status codes
+- **Never** leak provider raw errors to HTTP layer — wrap with adapter standard errors
+- **Never** expose provider pagination internals to API callers
+- **Never** expose cursor/offset/page internal structure in API responses
+- **Never** use Redis Stream as sole long-term event store — persist to MySQL `data_events` table
+- **Never** discard Pipeline execution history — write to database
+- **Never** skip delivery record on webhook triggers — save delivery log
+- **Never** store API tokens in plaintext
+- **Never** skip audit log on Hub lifecycle operations
+- **Never** skip idempotency checks in Pipeline steps
 
 ## CI/Quality
 
