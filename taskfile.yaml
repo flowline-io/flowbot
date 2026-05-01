@@ -122,7 +122,7 @@ tasks:
   test:integration:
     desc: Run integration tests with Testcontainers (requires Docker)
     cmds:
-      - go test -v -run Integration ./tests/integration/...
+      - go test -v -tags integration -run Integration ./tests/integration/...
 
   test:coverage:
     desc: Run tests with coverage report

@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Package integration provides full integration tests using Testcontainers.
 // These tests require Docker to be running.
 package integration
@@ -57,7 +60,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	flog.Init(false, false)
 
 	// Start MySQL container
-	mysqlC, err := tcmysql.Run(s.ctx, "mysql:8.0",
+	mysqlImage := os.Getenv("MYSQL_IMAGE")
+	if mysqlImage == "" {
+		mysqlImage = "mysql:8.0"
+	}
+	mysqlC, err := tcmysql.Run(s.ctx, mysqlImage,
 		tcmysql.WithDatabase("flowbot_test"),
 		tcmysql.WithUsername("test"),
 		tcmysql.WithPassword("test"),
@@ -74,9 +81,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.MySQLDSN = mysqlConnStr + "?charset=utf8mb4&parseTime=True&loc=Local"
 
 	// Start Redis container
+	redisImage := os.Getenv("REDIS_IMAGE")
+	if redisImage == "" {
+		redisImage = "redis:7-alpine"
+	}
 	redisC, err := testcontainers.GenericContainer(s.ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "redis:7-alpine",
+			Image:        redisImage,
 			ExposedPorts: []string{"6379/tcp"},
 			WaitingFor:   wait.ForListeningPort("6379/tcp"),
 		},
@@ -269,8 +280,8 @@ func (s *IntegrationTestSuite) AssertSuccessResponse(resp *http.Response) {
 
 // ReadBody reads and returns the response body.
 func (s *IntegrationTestSuite) ReadBody(resp *http.Response) []byte {
+	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	s.Require().NoError(err)
-	defer resp.Body.Close()
 	return body
 }

@@ -56,7 +56,7 @@ Tests basic health endpoints and container connectivity:
 
 ### DatabaseTestSuite
 
-Tests database CRUD operations for all major models:
+Tests database CRUD operations for core models:
 
 - User CRUD
 - Bot CRUD
@@ -74,6 +74,20 @@ Tests database CRUD operations for all major models:
 - Agent CRUD
 - Transaction support
 - Transaction rollback
+
+### DatabaseExtTestSuite
+
+Additional CRUD tests for extended models:
+
+- Topic CRUD
+- Fileupload CRUD
+- Url CRUD
+- App CRUD
+- CapabilityBinding CRUD
+- AuditLog CRUD
+- Parameter CRUD
+- Connection CRUD
+- File state transitions
 
 ## Architecture
 

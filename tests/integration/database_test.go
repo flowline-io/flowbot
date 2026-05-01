@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package integration
 
 import (
@@ -116,6 +119,7 @@ func (s *DatabaseTestSuite) TestPlatformCRUD() {
 func (s *DatabaseTestSuite) TestChannelCRUD() {
 	channel := &model.Channel{
 		Name:      "integration-test-channel",
+		Flag:      "integration-test-channel-flag",
 		State:     model.ChannelActive,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -142,6 +146,7 @@ func (s *DatabaseTestSuite) TestMessageCRUD() {
 		Flag:          uuid.New().String(),
 		PlatformID:    1,
 		PlatformMsgID: "test-msg-id",
+		Topic:         "test-topic",
 		Session:       "test-session",
 		State:         model.MessageCreated,
 		CreatedAt:     time.Now(),
@@ -199,6 +204,7 @@ func (s *DatabaseTestSuite) TestCounterCRUD() {
 		Topic:     "test-topic",
 		Flag:      "integration-test-counter",
 		Digit:     100,
+		Status:    1,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
