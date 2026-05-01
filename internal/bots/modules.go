@@ -3,6 +3,7 @@ package bots
 import (
 	"github.com/flowline-io/flowbot/internal/bots/agent"
 	"github.com/flowline-io/flowbot/internal/bots/anki"
+	"github.com/flowline-io/flowbot/internal/bots/archive"
 	"github.com/flowline-io/flowbot/internal/bots/bookmark"
 	"github.com/flowline-io/flowbot/internal/bots/clipboard"
 	"github.com/flowline-io/flowbot/internal/bots/cloudflare"
@@ -27,6 +28,7 @@ var Modules = fx.Options(
 	fx.Invoke(
 		agent.Register,
 		anki.Register,
+		archive.Register,
 		bookmark.Register,
 		clipboard.Register,
 		cloudflare.Register,

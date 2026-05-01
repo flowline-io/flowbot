@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/fireflyiii"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -38,7 +39,6 @@ var formRules = []form.Rule{
 				return types.TextMsg{Text: "bill text is empty"}
 			}
 
-			// extract bill records
 			ctx.SetTimeout(10 * time.Minute)
 			content, err := billParser(ctx.Context(), billText)
 			if err != nil {
@@ -46,12 +46,6 @@ var formRules = []form.Rule{
 				return types.TextMsg{Text: "failed to parse bill"}
 			}
 
-			client := fireflyiii.GetClient()
-			if client == nil {
-				return types.TextMsg{Text: "failed to get firefly client"}
-			}
-
-			// create transaction records
 			var result struct {
 				Records []struct {
 					Date        string  `json:"date"`
@@ -61,7 +55,6 @@ var formRules = []form.Rule{
 				} `json:"records"`
 			}
 
-			// Extract JSON content
 			start := strings.Index(content, "{")
 			end := strings.LastIndex(content, "}") + 1
 			if start >= 0 && end > start {
@@ -77,37 +70,23 @@ var formRules = []form.Rule{
 			utils.PrettyPrintJsonStyle(result)
 
 			for _, record := range result.Records {
-				// Validate date format
 				_, err := time.Parse("2006-01-02 15:04:05", record.Date)
 				if err != nil {
 					continue
 				}
 
-				// Create transaction
-				transaction := fireflyiii.Transaction{
-					ApplyRules:   true,
-					FireWebhooks: true,
-					Transactions: []fireflyiii.TransactionRecord{
-						{
-							Type:            string(fireflyiii.Withdrawal),
-							Date:            record.Date,
-							Amount:          fmt.Sprintf("%.2f", record.Amount),
-							Description:     record.Merchant,
-							SourceId:        "1", // Default account ID
-							SourceName:      "",
-							DestinationId:   0,
-							DestinationName: "",
-						},
-					},
-				}
-
-				transactionResult, err := client.CreateTransaction(transaction)
+				res, err := ability.Invoke(ctx.Context(), hub.CapFinance, "create_transaction", map[string]any{
+					"description": record.Merchant,
+					"amount":      fmt.Sprintf("%.2f", record.Amount),
+					"date":        record.Date,
+					"source_id":   "1",
+				})
 				if err != nil {
 					flog.Error(err)
 					return types.TextMsg{Text: "failed to create transactions"}
 				}
 
-				flog.Info("Successfully imported %+v", transactionResult)
+				flog.Info("Successfully imported %+v", res.Data)
 			}
 
 			return types.TextMsg{Text: "Successfully imported"}

@@ -1,8 +1,9 @@
 package kanban
 
 import (
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -15,18 +16,14 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			client, err := kanboard.GetClient()
+			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "list_tasks", map[string]any{})
 			if err != nil {
 				flog.Warn("%s", err.Error())
 				return nil
 			}
-			list, err := client.GetAllTasks(ctx.Context(), kanboard.DefaultProjectId, kanboard.Active)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
 
-			taskTotal := len(list)
+			tasks, _ := res.Data.([]*ability.Task)
+			taskTotal := len(tasks)
 
 			stats.KanbanTaskTotalCounter().Set(uint64(taskTotal))
 			rdb.SetMetricsInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))

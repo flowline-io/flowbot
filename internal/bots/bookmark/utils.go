@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/llm"
-	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -32,12 +31,8 @@ CONTENT END HERE
 You must respond in JSON with the key "tags" and the value is an array of string tags.
 `
 
-func extractTags(ctx context.Context, bookmark karakeep.Bookmark) ([]string, error) {
-	var content string
-	title := bookmark.Content.Title
-	if title != nil {
-		content = *title
-	}
+func extractTags(ctx context.Context, url, title string) ([]string, error) {
+	content := title
 	if content == "" {
 		return nil, nil
 	}
@@ -119,7 +114,7 @@ func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, 
 			continue
 		}
 
-		parts := strings.Split(line, "->")
+		parts := strings.SplitN(line, "->", 2)
 		if len(parts) != 2 {
 			continue
 		}
@@ -166,30 +161,4 @@ func sliceEqual(a, b []string) bool {
 		}
 	}
 	return true
-}
-
-func convertTagsToStrings(tags []karakeep.Tag) []string {
-	result := make([]string, len(tags))
-	for i, tag := range tags {
-		result[i] = tag.Name
-	}
-	return result
-}
-
-func convertBookmarkTagsToStrings(tags []karakeep.BookmarkTagsInner) []string {
-	result := make([]string, len(tags))
-	for i, tag := range tags {
-		result[i] = tag.Name
-	}
-	return result
-}
-
-func convertStringsToBookmarkTags(tags []string) []karakeep.BookmarkTagsInner {
-	result := make([]karakeep.BookmarkTagsInner, len(tags))
-	for i, tag := range tags {
-		result[i] = karakeep.BookmarkTagsInner{
-			Name: tag,
-		}
-	}
-	return result
 }

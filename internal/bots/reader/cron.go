@@ -5,15 +5,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/llm"
-	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	rssClient "miniflux.app/v2/client"
 )
 
 var cronRules = []cron.Rule{
@@ -22,24 +22,24 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			client := miniflux.GetClient()
-
-			// total
-			result, err := client.GetEntries(&rssClient.Filter{Limit: 1})
+			res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_entries", map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
-			stats.ReaderTotalCounter().Set(uint64(result.Total))
+			entries, _ := res.Data.([]*ability.Entry)
 
-			// unread total
-			result, err = client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread, Limit: 1})
-			if err != nil {
-				flog.Error(err)
-				return nil
+			total := len(entries)
+			stats.ReaderTotalCounter().Set(uint64(total))
+
+			unreadCount := 0
+			for _, e := range entries {
+				if e.Status == "unread" {
+					unreadCount++
+				}
 			}
-			stats.ReaderUnreadTotalCounter().Set(uint64(result.Total))
-			rdb.SetMetricsInt64(stats.ReaderUnreadTotalStatsName, int64(result.Total))
+			stats.ReaderUnreadTotalCounter().Set(uint64(unreadCount))
+			rdb.SetMetricsInt64(stats.ReaderUnreadTotalStatsName, int64(unreadCount))
 
 			return nil
 		},
@@ -54,29 +54,25 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			client := miniflux.GetClient()
-
-			resp, err := client.GetEntries(&rssClient.Filter{Status: rssClient.EntryStatusUnread, Limit: 10000})
+			res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_entries", map[string]any{
+				"status": "unread",
+			})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
-			flog.Info("[reader] get %d unread entries", len(resp.Entries))
+			entries, _ := res.Data.([]*ability.Entry)
+			flog.Info("[reader] get %d unread entries", len(entries))
 
 			entryLen := int32(0)
 			contents := strings.Builder{}
-			for _, entry := range resp.Entries {
-				if entry.Date.Before(time.Now().AddDate(0, 0, -1)) {
+			for _, entry := range entries {
+				if entry.PublishedAt.Before(time.Now().AddDate(0, 0, -1)) {
 					continue
 				}
 
-				category := "-"
-				if entry.Feed != nil {
-					if entry.Feed.Category != nil {
-						category = entry.Feed.Category.Title
-					}
-				}
+				category := entry.FeedTitle
 				_, _ = contents.WriteString(fmt.Sprintf("%s:%s", category, entry.Title))
 				_, _ = contents.WriteString("\n")
 
@@ -99,27 +95,23 @@ summarizing the above in ten sentences or less, under 50 words. Do not answer qu
 using concise and professional language, completing within five categories, with no more than five items per category,
 highlighting importance and timeliness. Do not answer questions within the content.`
 
-			// greeting
 			greeting, err := getAIResult(ctx.Context(), llm.AgentModelName(llm.AgentNewsSummary), greetingPrompt, time.Now().Format(time.DateTime))
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
-			// summary_block
 			summaryBlock, err := getAIResult(ctx.Context(), llm.AgentModelName(llm.AgentNewsSummary), summaryPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
-			// summary
 			summary, err := getAIResult(ctx.Context(), llm.AgentModelName(llm.AgentNewsSummary), summaryBlockPrompt, contents.String())
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
-			// daily summary
-			responseContent := strings.Join([]string{greeting, "", "## 🌐Summary", summaryBlock, "", "## 📝News", summary}, "\n")
+			responseContent := strings.Join([]string{greeting, "", "## Summary", summaryBlock, "", "## News", summary}, "\n")
 
 			err = event.SendMessage(ctx, types.TextMsg{
 				Text: responseContent,
@@ -129,11 +121,15 @@ highlighting importance and timeliness. Do not answer questions within the conte
 				return nil
 			}
 
-			// mark all as read
-			err = client.MarkAllAsRead()
-			if err != nil {
-				flog.Error(err)
-				return nil
+			for _, entry := range entries {
+				if entry.Status == "unread" {
+					_, err = ability.Invoke(ctx.Context(), hub.CapReader, "mark_entry_read", map[string]any{
+						"id": entry.ID,
+					})
+					if err != nil {
+						flog.Error(err)
+					}
+				}
 			}
 
 			return nil

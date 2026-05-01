@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/llm"
-	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
-	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -28,18 +28,18 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			client := karakeep.GetClient()
-			resp, err := client.GetAllBookmarks(nil)
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
-			for _, bookmark := range resp.Bookmarks {
+			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			for _, bookmark := range bookmarks {
 				if len(bookmark.Tags) > 0 {
 					continue
 				}
-				tags, err := extractTags(ctx.Context(), bookmark)
+				tags, err := extractTags(ctx.Context(), bookmark.URL, bookmark.Title)
 				if err != nil {
 					flog.Error(err)
 				}
@@ -47,12 +47,15 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
-				resp, err := client.AttachTagsToBookmark(bookmark.Id, tags)
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "attach_tags", map[string]any{
+					"id":   bookmark.ID,
+					"tags": tags,
+				})
 				if err != nil {
 					flog.Error(err)
 					continue
 				}
-				flog.Info("[bookmark] bookmark %s attach tags %v, result %v", bookmark.Id, tags, resp)
+				flog.Info("[bookmark] bookmark %s attach tags %v", bookmark.ID, tags)
 			}
 
 			return nil
@@ -63,15 +66,15 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			client := karakeep.GetClient()
-			resp, err := client.GetAllBookmarks(nil)
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
 			bookmarkTotal := 0
-			for _, bookmark := range resp.Bookmarks {
+			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			for _, bookmark := range bookmarks {
 				if bookmark.Archived {
 					continue
 				}
@@ -88,22 +91,20 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "*/5 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			client := karakeep.GetClient()
-			resp, err := client.GetAllBookmarks(nil)
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
-			for _, bookmark := range resp.Bookmarks {
-				title := bookmark.GetTitle()
-				summary := bookmark.GetSummary()
+			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			for _, bookmark := range bookmarks {
 				err := search.Instance.AddDocument(types.Document{
-					SourceId:    bookmark.Id,
-					Source:      karakeep.ID,
-					Title:       title,
-					Description: summary,
-					Url:         fmt.Sprintf("/dashboard/preview/%s", bookmark.Id),
+					SourceId:    bookmark.ID,
+					Source:      "karakeep",
+					Title:       bookmark.Title,
+					Description: bookmark.Summary,
+					Url:         fmt.Sprintf("/dashboard/preview/%s", bookmark.ID),
 					Timestamp:   time.Now().Unix(),
 				})
 				if err != nil {
@@ -119,25 +120,22 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeUser,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			client := karakeep.GetClient()
-			resp, err := client.GetAllBookmarks(nil)
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
 			}
 
-			for _, bookmark := range resp.Bookmarks {
+			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			for _, bookmark := range bookmarks {
 				if bookmark.Archived {
 					continue
 				}
-
-				title := bookmark.Content.Title
-				if title == nil {
+				if bookmark.Title == "" {
 					continue
 				}
 
-				// filter
-				ok, err := rdb.BloomUniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.Id)
+				ok, err := rdb.BloomUniqueString(ctx.Context(), "bookmarks:task:filter", bookmark.ID)
 				if err != nil {
 					flog.Error(fmt.Errorf("cron bookmarks_task unique error %w", err))
 					continue
@@ -146,16 +144,15 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
-				// create task
 				err = event.BotEventFire(ctx, types.TaskCreateBotEventID, types.KV{
-					"title":       title,
-					"project_id":  kanboard.DefaultProjectId,
-					"priority":    kanboard.DefaultPriority,
-					"reference":   fmt.Sprintf("%s:%s", karakeep.ID, bookmark.Id),
-					"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap[karakeep.ID], bookmark.Id),
+					"title":       bookmark.Title,
+					"project_id":  int64(1),
+					"priority":    int64(2),
+					"reference":   fmt.Sprintf("karakeep:%s", bookmark.ID),
+					"description": fmt.Sprintf("%s/dashboard/preview/%s", config.App.Search.UrlBaseMap["karakeep"], bookmark.ID),
 					"tags": []string{
 						Name,
-						karakeep.ID,
+						"karakeep",
 					},
 				})
 				if err != nil {
@@ -177,59 +174,57 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			// Get all tags
-			client := karakeep.GetClient()
-			tags, err := client.GetAllTags()
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
 			if err != nil {
-				flog.Error(fmt.Errorf("get all tags error: %w", err))
+				flog.Error(fmt.Errorf("get all bookmarks error: %w", err))
 				return nil
 			}
 
-			// Analyze similar tags using a large model
-			tagStrings := convertTagsToStrings(tags)
+			bookmarks, _ := res.Data.([]*ability.Bookmark)
+
+			tagSet := make(map[string]struct{})
+			for _, bookmark := range bookmarks {
+				for _, tag := range bookmark.Tags {
+					tagSet[tag] = struct{}{}
+				}
+			}
+			tagList := make([]string, 0, len(tagSet))
+			for tag := range tagSet {
+				tagList = append(tagList, tag)
+			}
+
 			ctx.SetTimeout(10 * time.Minute)
-			similarTags, err := analyzeSimilarTags(ctx.Context(), tagStrings)
+			similarTags, err := analyzeSimilarTags(ctx.Context(), tagList)
 			if err != nil {
 				flog.Error(fmt.Errorf("analyze similar tags error: %w", err))
 				return nil
 			}
 
-			var nextCursor string
-			for {
-				// Get all bookmarks
-				resp, err := client.GetAllBookmarks(&karakeep.BookmarksQuery{Limit: karakeep.MaxPageSize, Cursor: nextCursor})
+			for _, bookmark := range bookmarks {
+				oldTags := bookmark.Tags
+				newTags := replaceSimilarTags(oldTags, similarTags)
+				if len(newTags) == 0 || sliceEqual(oldTags, newTags) {
+					continue
+				}
+
+				flog.Info("[bookmark] %s update tags from %v to %v", bookmark.ID, oldTags, newTags)
+
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "detach_tags", map[string]any{
+					"id":   bookmark.ID,
+					"tags": oldTags,
+				})
 				if err != nil {
-					flog.Error(fmt.Errorf("get all bookmarks error: %w", err))
-					return nil
+					flog.Error(fmt.Errorf("detach bookmark %s tags error: %w", bookmark.ID, err))
+					continue
 				}
 
-				// Replace tags in bookmarks
-				for _, bookmark := range resp.Bookmarks {
-					oldTagStrings := convertBookmarkTagsToStrings(bookmark.Tags)
-					newTagStrings := replaceSimilarTags(oldTagStrings, similarTags)
-					if len(newTagStrings) == 0 || sliceEqual(oldTagStrings, newTagStrings) {
-						continue
-					}
-
-					flog.Info("[bookmark] %s update tags from %v to %v", bookmark.Id, oldTagStrings, newTagStrings)
-
-					// remove all old tags
-					_, err = client.DetachTagsToBookmark(bookmark.Id, oldTagStrings)
-					if err != nil {
-						flog.Error(fmt.Errorf("detach bookmark %s tags error: %w", bookmark.Id, err))
-						continue
-					}
-
-					// add new tags
-					_, err = client.AttachTagsToBookmark(bookmark.Id, newTagStrings)
-					if err != nil {
-						flog.Error(fmt.Errorf("attach bookmark %s tags error: %w", bookmark.Id, err))
-						continue
-					}
-				}
-				nextCursor = resp.NextCursor
-				if nextCursor == "" {
-					break
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "attach_tags", map[string]any{
+					"id":   bookmark.ID,
+					"tags": newTags,
+				})
+				if err != nil {
+					flog.Error(fmt.Errorf("attach bookmark %s tags error: %w", bookmark.ID, err))
+					continue
 				}
 			}
 

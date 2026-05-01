@@ -3,7 +3,6 @@ package bookmark
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,35 +45,4 @@ func TestSliceEqual_DifferentLengths(t *testing.T) {
 
 func TestSliceEqual_Empty(t *testing.T) {
 	assert.True(t, sliceEqual([]string{}, []string{}))
-}
-
-func TestConvertTagsToStrings(t *testing.T) {
-	tags := []karakeep.Tag{
-		{Name: "foo"},
-		{Name: "bar"},
-	}
-	result := convertTagsToStrings(tags)
-	assert.Equal(t, []string{"foo", "bar"}, result)
-}
-
-func TestConvertTagsToStrings_Empty(t *testing.T) {
-	result := convertTagsToStrings([]karakeep.Tag{})
-	assert.Empty(t, result)
-}
-
-func TestConvertBookmarkTagsToStrings(t *testing.T) {
-	tags := []karakeep.BookmarkTagsInner{
-		{Name: "alpha"},
-		{Name: "beta"},
-	}
-	result := convertBookmarkTagsToStrings(tags)
-	assert.Equal(t, []string{"alpha", "beta"}, result)
-}
-
-func TestConvertStringsToBookmarkTags(t *testing.T) {
-	tags := []string{"alpha", "beta"}
-	result := convertStringsToBookmarkTags(tags)
-	assert.Len(t, result, 2)
-	assert.Equal(t, "alpha", result[0].Name)
-	assert.Equal(t, "beta", result[1].Name)
 }

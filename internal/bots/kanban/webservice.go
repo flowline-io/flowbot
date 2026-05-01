@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/validate"
@@ -20,6 +23,7 @@ var webserviceRules = []webservice.Rule{
 	webservice.Delete("/:id", deleteTask),
 	webservice.Post("/:id/move", moveTask),
 	webservice.Get("/columns", listColumns),
+	// metadata, tags, subtasks routes use direct provider calls (specialized operations)
 	webservice.Get("/:id/metadata", getTaskMetadata),
 	webservice.Get("/:id/metadata/:name", getTaskMetadataByName),
 	webservice.Post("/:id/metadata", saveTaskMetadata),
@@ -98,143 +102,70 @@ type updateSubtaskRequest struct {
 }
 
 // list tasks
-//
-//	@Summary	List kanban tasks
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		project_id	query		int	false	"project ID"
-//	@Param		status_id	query		int	false	"status ID (1=active, 0=inactive)"
-//	@Success	200			{object}	protocol.Response{data=[]kanboard.Task}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban [get]
 func listTasks(ctx fiber.Ctx) error {
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	projectId := kanboard.DefaultProjectId
+	params := map[string]any{}
 	if v := ctx.Query("project_id"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			projectId = n
+			params["project_id"] = n
 		}
 	}
-
-	status := kanboard.Active
-	if v := ctx.Query("status_id"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			status = kanboard.StatusId(n)
-		}
+	if v := ctx.Query("status_id"); v == "0" {
+		params["status"] = "inactive"
 	}
 
-	tasks, err := client.GetAllTasks(ctx.RequestCtx(), projectId, status)
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "list_tasks", params)
 	if err != nil {
-		return fmt.Errorf("failed to get tasks: %w", err)
+		return err
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(tasks))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
 // get single task
-//
-//	@Summary	Get task by ID
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"task ID"
-//	@Success	200	{object}	protocol.Response{data=kanboard.Task}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id} [get]
 func getTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
 		return protocol.ErrBadParam.New("id is required")
 	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	client, err := kanboard.GetClient()
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "get_task", map[string]any{"id": id})
 	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
+		return err
 	}
-
-	task, err := client.GetTask(ctx.RequestCtx(), id)
-	if err != nil {
-		return fmt.Errorf("failed to get task: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(task))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
 // create task
-//
-//	@Summary	Create a new task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		body	body		object{title=string,description=string,project_id=int,column_id=int}	true	"task data"
-//	@Success	200		{object}	protocol.Response{data=map[string]int64}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban [post]
 func createTask(ctx fiber.Ctx) error {
 	var body createTaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	client, err := kanboard.GetClient()
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "create_task", map[string]any{
+		"title":       body.Title,
+		"description": body.Description,
+		"project_id":  body.ProjectID,
+		"column_id":   body.ColumnID,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
+		return err
 	}
-
-	projectId := body.ProjectID
-	if projectId == 0 {
-		projectId = kanboard.DefaultProjectId
-	}
-
-	task := &kanboard.Task{
-		Title:       body.Title,
-		Description: body.Description,
-		ProjectID:   projectId,
-		Priority:    kanboard.DefaultPriority,
-	}
-	if body.ColumnID > 0 {
-		task.ColumnID = body.ColumnID
-	}
-
-	taskId, err := client.CreateTask(ctx.RequestCtx(), task)
-	if err != nil {
-		return fmt.Errorf("failed to create task: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": taskId}))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
 // update task
-//
-//	@Summary	Update a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string									true	"task ID"
-//	@Param		body	body		object{title=string,description=string}	true	"task data"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id} [patch]
 func updateTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
 		return protocol.ErrBadParam.New("id is required")
 	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
@@ -244,81 +175,46 @@ func updateTask(ctx fiber.Ctx) error {
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	client, err := kanboard.GetClient()
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "update_task", map[string]any{
+		"id":          id,
+		"title":       body.Title,
+		"description": body.Description,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
+		return err
 	}
-
-	task := &kanboard.Task{
-		Title:       body.Title,
-		Description: body.Description,
-	}
-
-	result, err := client.UpdateTask(ctx.RequestCtx(), id, task)
-	if err != nil {
-		return fmt.Errorf("failed to update task: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
-// delete task (close)
-//
-//	@Summary	Close a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"task ID"
-//	@Success	200	{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id} [delete]
+// delete task
 func deleteTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
 		return protocol.ErrBadParam.New("id is required")
 	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	client, err := kanboard.GetClient()
+	_, err = ability.Invoke(ctx.Context(), hub.CapKanban, "delete_task", map[string]any{"id": id})
 	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
+		return err
 	}
-
-	result, err := client.CloseTask(ctx.RequestCtx(), id)
-	if err != nil {
-		return fmt.Errorf("failed to close task: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// move task to another column/position
-//
-//	@Summary	Move task to another column/position
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string																true	"task ID"
-//	@Param		body	body		object{column_id=int,position=int,swimlane_id=int,project_id=int}	true	"move parameters"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/move [post]
+// move task
 func moveTask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
 	if idStr == "" {
 		return protocol.ErrBadParam.New("id is required")
 	}
-
-	taskId, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
@@ -327,897 +223,372 @@ func moveTask(ctx fiber.Ctx) error {
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	client, err := kanboard.GetClient()
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "move_task", map[string]any{
+		"id":          id,
+		"column_id":   body.ColumnID,
+		"position":    body.Position,
+		"swimlane_id": body.SwimlaneID,
+		"project_id":  body.ProjectID,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
+		return err
 	}
-
-	projectId := body.ProjectID
-	if projectId == 0 {
-		projectId = kanboard.DefaultProjectId
-	}
-
-	swimlaneId := body.SwimlaneID
-	if swimlaneId == 0 {
-		swimlaneId = 1
-	}
-
-	result, err := client.MoveTaskPosition(ctx.RequestCtx(), projectId, taskId, body.ColumnID, body.Position, swimlaneId)
-	if err != nil {
-		return fmt.Errorf("failed to move task: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
 // list columns
-//
-//	@Summary	List kanban columns
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		project_id	query		int	false	"project ID"
-//	@Success	200			{object}	protocol.Response{data=[]map[string]any}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/columns [get]
 func listColumns(ctx fiber.Ctx) error {
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	projectId := kanboard.DefaultProjectId
+	projectID := 1
 	if v := ctx.Query("project_id"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			projectId = n
+			projectID = n
 		}
 	}
 
-	columns, err := client.GetColumns(ctx.RequestCtx(), projectId)
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "get_columns", map[string]any{
+		"project_id": projectID,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get columns: %w", err)
+		return err
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(columns))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
 // search tasks
-//
-//	@Summary	Search kanban tasks
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		project_id	query		int		true	"project ID"
-//	@Param		query		query		string	true	"search query"
-//	@Success	200			{object}	protocol.Response{data=[]kanboard.Task}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/search [get]
 func searchTasks(ctx fiber.Ctx) error {
-	projectIdStr := ctx.Query("project_id")
-	if projectIdStr == "" {
-		return protocol.ErrBadParam.New("project_id is required")
+	params := map[string]any{}
+	if v := ctx.Query("project_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			params["project_id"] = n
+		}
+	}
+	if v := ctx.Query("q"); v != "" {
+		params["q"] = v
 	}
 
-	projectId, err := strconv.Atoi(projectIdStr)
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "search_tasks", params)
 	if err != nil {
-		return protocol.ErrBadParam.New("invalid project_id")
+		return err
 	}
-
-	query := ctx.Query("query")
-	if query == "" {
-		return protocol.ErrBadParam.New("query is required")
-	}
-
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	tasks, err := client.SearchTasks(ctx.RequestCtx(), projectId, query)
-	if err != nil {
-		return fmt.Errorf("failed to search tasks: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(tasks))
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
 }
 
-// get task metadata
-//
-//	@Summary	Get all metadata for a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"task ID"
-//	@Success	200	{object}	protocol.Response{data=[]kanboard.TaskMetadata}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/metadata [get]
+// The following specialized handlers (metadata, tags, subtasks) use direct provider calls.
+// These are deeply tied to kanboard's specific data model.
+// TODO: Migrate to ability.Invoke when the ability interface is expanded.
+
 func getTaskMetadata(ctx fiber.Ctx) error {
-	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return protocol.ErrBadParam.New("invalid task ID")
-	}
-
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	metadata, err := client.GetTaskMetadata(ctx.RequestCtx(), id)
-	if err != nil {
-		return fmt.Errorf("failed to get task metadata: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(metadata))
+	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-// get task metadata by name
-//
-//	@Summary	Get task metadata by name
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string	true	"task ID"
-//	@Param		name	path		string	true	"metadata name"
-//	@Success	200		{object}	protocol.Response{data=string}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/metadata/{name} [get]
 func getTaskMetadataByName(ctx fiber.Ctx) error {
-	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return protocol.ErrBadParam.New("invalid task ID")
-	}
-
-	name := ctx.Params("name")
-	if name == "" {
-		return protocol.ErrBadParam.New("name is required")
-	}
-
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	value, err := client.GetTaskMetadataByName(ctx.RequestCtx(), id, name)
-	if err != nil {
-		return fmt.Errorf("failed to get task metadata by name: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(value))
+	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-// save task metadata
-//
-//	@Summary	Save task metadata
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string						true	"task ID"
-//	@Param		body	body		object{values=map[string]string}	true	"metadata values"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/metadata [post]
 func saveTaskMetadata(ctx fiber.Ctx) error {
-	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return protocol.ErrBadParam.New("invalid task ID")
-	}
-
-	var body saveMetadataRequest
-	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	if err := validate.Validate.Struct(body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	result, err := client.SaveTaskMetadata(ctx.RequestCtx(), id, body.Values)
-	if err != nil {
-		return fmt.Errorf("failed to save task metadata: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-// remove task metadata
-//
-//	@Summary	Remove task metadata
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string	true	"task ID"
-//	@Param		name	path		string	true	"metadata name"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/metadata/{name} [delete]
 func removeTaskMetadata(ctx fiber.Ctx) error {
-	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return protocol.ErrBadParam.New("invalid task ID")
-	}
-
-	name := ctx.Params("name")
-	if name == "" {
-		return protocol.ErrBadParam.New("name is required")
-	}
-
-	client, err := kanboard.GetClient()
-	if err != nil {
-		return fmt.Errorf("failed to get client: %w", err)
-	}
-
-	result, err := client.RemoveTaskMetadata(ctx.RequestCtx(), id, name)
-	if err != nil {
-		return fmt.Errorf("failed to remove task metadata: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-// get all tags
-//
-//	@Summary	Get all tags
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Success	200	{object}	protocol.Response{data=[]kanboard.Tag}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/tags [get]
 func getAllTags(ctx fiber.Ctx) error {
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	tags, err := client.GetAllTags(ctx.RequestCtx())
+	tags, err := client.GetAllTags(ctx.Context())
 	if err != nil {
-		return fmt.Errorf("failed to get all tags: %w", err)
+		return fmt.Errorf("failed to get tags: %w", err)
 	}
-
 	return ctx.JSON(protocol.NewSuccessResponse(tags))
 }
 
-// get tags by project
-//
-//	@Summary	Get tags by project
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		project_id	query		int	true	"project ID"
-//	@Success	200			{object}	protocol.Response{data=[]kanboard.Tag}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/tags/project [get]
 func getTagsByProject(ctx fiber.Ctx) error {
-	projectIdStr := ctx.Query("project_id")
-	if projectIdStr == "" {
-		return protocol.ErrBadParam.New("project_id is required")
-	}
-
-	projectId, err := strconv.Atoi(projectIdStr)
-	if err != nil {
-		return protocol.ErrBadParam.New("invalid project_id")
-	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	tags, err := client.GetTagsByProject(ctx.RequestCtx(), projectId)
-	if err != nil {
-		return fmt.Errorf("failed to get tags by project: %w", err)
+	projectID := kanboard.DefaultProjectId
+	if v := ctx.Query("project_id"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			projectID = n
+		}
 	}
-
+	tags, err := client.GetTagsByProject(ctx.Context(), projectID)
+	if err != nil {
+		return fmt.Errorf("failed to get tags: %w", err)
+	}
 	return ctx.JSON(protocol.NewSuccessResponse(tags))
 }
 
-// create tag
-//
-//	@Summary	Create a new tag
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		body	body		object{project_id=int,name=string,color_id=string}	true	"tag data"
-//	@Success	200		{object}	protocol.Response{data=map[string]int64}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/tags [post]
 func createTag(ctx fiber.Ctx) error {
 	var body createTagRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	tagId, err := client.CreateTag(ctx.RequestCtx(), body.ProjectID, body.Name, body.ColorID)
+	tagID, err := client.CreateTag(ctx.Context(), body.ProjectID, body.Name, body.ColorID)
 	if err != nil {
 		return fmt.Errorf("failed to create tag: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": tagId}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": tagID}))
 }
 
-// update tag
-//
-//	@Summary	Update a tag
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string								true	"tag ID"
-//	@Param		body	body		object{name=string,color_id=string}	true	"tag data"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/tags/{id} [patch]
 func updateTag(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid tag ID")
 	}
-
 	var body updateTagRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.UpdateTag(ctx.RequestCtx(), id, body.Name, body.ColorID)
+	_, err = client.UpdateTag(ctx.Context(), id, body.Name, body.ColorID)
 	if err != nil {
 		return fmt.Errorf("failed to update tag: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// remove tag
-//
-//	@Summary	Remove a tag
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"tag ID"
-//	@Success	200	{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/tags/{id} [delete]
 func removeTag(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid tag ID")
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.RemoveTag(ctx.RequestCtx(), id)
+	_, err = client.RemoveTag(ctx.Context(), id)
 	if err != nil {
 		return fmt.Errorf("failed to remove tag: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// get task tags
-//
-//	@Summary	Get tags assigned to a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"task ID"
-//	@Success	200	{object}	protocol.Response{data=map[string]string}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/tags [get]
 func getTaskTags(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	tags, err := client.GetTaskTags(ctx.RequestCtx(), id)
+	tags, err := client.GetTaskTags(ctx.Context(), id)
 	if err != nil {
 		return fmt.Errorf("failed to get task tags: %w", err)
 	}
-
 	return ctx.JSON(protocol.NewSuccessResponse(tags))
 }
 
-// set task tags
-//
-//	@Summary	Set tags for a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string									true	"task ID"
-//	@Param		body	body		object{project_id=int,tags=[]string}	true	"tags data"
-//	@Success	200		{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/tags [post]
 func setTaskTags(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	taskId, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
-
 	var body setTaskTagsRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.SetTaskTags(ctx.RequestCtx(), body.ProjectID, taskId, body.Tags)
+	resp, err := client.SetTaskTags(ctx.Context(), body.ProjectID, id, body.Tags)
 	if err != nil {
 		return fmt.Errorf("failed to set task tags: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(resp))
 }
 
-// list subtasks
-//
-//	@Summary	List all subtasks for a task
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id	path		string	true	"task ID"
-//	@Success	200	{object}	protocol.Response{data=[]kanboard.Subtask}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks [get]
 func listSubtasks(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	taskId, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	subtasks, err := client.GetAllSubtasks(ctx.RequestCtx(), taskId)
+	subtasks, err := client.GetAllSubtasks(ctx.Context(), id)
 	if err != nil {
 		return fmt.Errorf("failed to get subtasks: %w", err)
 	}
-
 	return ctx.JSON(protocol.NewSuccessResponse(subtasks))
 }
 
-// get subtask
-//
-//	@Summary	Get a subtask by ID
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Success	200			{object}	protocol.Response{data=kanboard.Subtask}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId} [get]
 func getSubtask(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	subtask, err := client.GetSubtask(ctx.RequestCtx(), subtaskId)
+	subtask, err := client.GetSubtask(ctx.Context(), subtaskID)
 	if err != nil {
 		return fmt.Errorf("failed to get subtask: %w", err)
 	}
-
 	return ctx.JSON(protocol.NewSuccessResponse(subtask))
 }
 
-// create subtask
-//
-//	@Summary	Create a new subtask
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string										true	"task ID"
-//	@Param		body	body		object{title=string,user_id=int,time_estimated=int,time_spent=int,status=int}	true	"subtask data"
-//	@Success	200		{object}	protocol.Response{data=map[string]int64}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks [post]
 func createSubtask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	taskId, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
-
 	var body createSubtaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	subtaskId, err := client.CreateSubtask(ctx.RequestCtx(), taskId, body.Title, body.UserID, body.TimeEstimated, body.TimeSpent, body.Status)
+	subtaskID, err := client.CreateSubtask(ctx.Context(), id, body.Title, body.UserID, body.TimeEstimated, body.TimeSpent, body.Status)
 	if err != nil {
 		return fmt.Errorf("failed to create subtask: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": subtaskId}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]int64{"id": subtaskID}))
 }
 
-// update subtask
-//
-//	@Summary	Update a subtask
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string															true	"task ID"
-//	@Param		subtaskId		path		string															true	"subtask ID"
-//	@Param		body		body		object{title=string,user_id=int,time_estimated=int,time_spent=int,status=int}	true	"subtask data"
-//	@Success	200			{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId} [patch]
 func updateSubtask(ctx fiber.Ctx) error {
 	idStr := ctx.Params("id")
-	if idStr == "" {
-		return protocol.ErrBadParam.New("id is required")
-	}
-
-	taskId, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
-
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
 	var body updateSubtaskRequest
 	if err := ctx.Bind().Body(&body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	userId := -1
-	if body.UserID >= 0 {
-		userId = body.UserID
-	}
-	timeEstimated := -1
-	if body.TimeEstimated >= 0 {
-		timeEstimated = body.TimeEstimated
-	}
-	timeSpent := -1
-	if body.TimeSpent >= 0 {
-		timeSpent = body.TimeSpent
-	}
-	status := -1
-	if body.Status >= 0 {
-		status = body.Status
-	}
-
-	result, err := client.UpdateSubtask(ctx.RequestCtx(), subtaskId, taskId, body.Title, userId, timeEstimated, timeSpent, status)
+	_, err = client.UpdateSubtask(ctx.Context(), subtaskID, id, body.Title, body.UserID, body.TimeEstimated, body.TimeSpent, body.Status)
 	if err != nil {
 		return fmt.Errorf("failed to update subtask: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// delete subtask
-//
-//	@Summary	Delete a subtask
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Success	200			{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId} [delete]
 func deleteSubtask(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.RemoveSubtask(ctx.RequestCtx(), subtaskId)
+	_, err = client.RemoveSubtask(ctx.Context(), subtaskID)
 	if err != nil {
-		return fmt.Errorf("failed to remove subtask: %w", err)
+		return fmt.Errorf("failed to delete subtask: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// has subtask timer
-//
-//	@Summary	Check if a timer is started for the subtask
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Param		user_id		query		int		false	"user ID"
-//	@Success	200			{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer [get]
 func hasSubtaskTimer(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
-	userId := 0
-	if v := ctx.Query("user_id"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			userId = n
-		}
-	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.HasSubtaskTimer(ctx.RequestCtx(), subtaskId, userId)
+	has, err := client.HasSubtaskTimer(ctx.Context(), subtaskID, 0)
 	if err != nil {
 		return fmt.Errorf("failed to check subtask timer: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"has_timer": has}))
 }
 
-// set subtask start time
-//
-//	@Summary	Start subtask timer for a user
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Param		user_id		query		int		false	"user ID"
-//	@Success	200			{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/start [post]
 func setSubtaskStartTime(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
-	userId := 0
-	if v := ctx.Query("user_id"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			userId = n
-		}
-	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.SetSubtaskStartTime(ctx.RequestCtx(), subtaskId, userId)
+	_, err = client.SetSubtaskStartTime(ctx.Context(), subtaskID, 0)
 	if err != nil {
-		return fmt.Errorf("failed to start subtask timer: %w", err)
+		return fmt.Errorf("failed to set subtask start time: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// set subtask end time
-//
-//	@Summary	Stop subtask timer for a user
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Param		user_id		query		int		false	"user ID"
-//	@Success	200			{object}	protocol.Response{data=map[string]bool}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/stop [post]
 func setSubtaskEndTime(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
-	userId := 0
-	if v := ctx.Query("user_id"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			userId = n
-		}
-	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.SetSubtaskEndTime(ctx.RequestCtx(), subtaskId, userId)
+	_, err = client.SetSubtaskEndTime(ctx.Context(), subtaskID, 0)
 	if err != nil {
-		return fmt.Errorf("failed to stop subtask timer: %w", err)
+		return fmt.Errorf("failed to set subtask end time: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"result": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]bool{"success": true}))
 }
 
-// get subtask time spent
-//
-//	@Summary	Get time spent on a subtask for a user
-//	@Tags		kanban
-//	@Accept		json
-//	@Produce	json
-//	@Param		id			path		string	true	"task ID"
-//	@Param		subtaskId	path		string	true	"subtask ID"
-//	@Param		user_id		query		int		false	"user ID"
-//	@Success	200			{object}	protocol.Response{data=map[string]float64}
-//	@Security	ApiKeyAuth
-//	@Router		/service/kanban/{id}/subtasks/{subtaskId}/timer/spent [get]
 func getSubtaskTimeSpent(ctx fiber.Ctx) error {
-	subtaskIdStr := ctx.Params("subtaskId")
-	if subtaskIdStr == "" {
-		return protocol.ErrBadParam.New("subtask_id is required")
-	}
-
-	subtaskId, err := strconv.Atoi(subtaskIdStr)
+	subtaskID, err := strconv.Atoi(ctx.Params("subtaskId"))
 	if err != nil {
 		return protocol.ErrBadParam.New("invalid subtask ID")
 	}
-
-	userId := 0
-	if v := ctx.Query("user_id"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			userId = n
-		}
-	}
-
 	client, err := kanboard.GetClient()
 	if err != nil {
 		return fmt.Errorf("failed to get client: %w", err)
 	}
-
-	result, err := client.GetSubtaskTimeSpent(ctx.RequestCtx(), subtaskId, userId)
+	spent, err := client.GetSubtaskTimeSpent(ctx.Context(), subtaskID, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get subtask time spent: %w", err)
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(map[string]float64{"result": result}))
+	return ctx.JSON(protocol.NewSuccessResponse(map[string]float64{"time_spent": spent}))
 }

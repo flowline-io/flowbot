@@ -3,9 +3,10 @@ package kanban
 import (
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
-	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 )
@@ -14,13 +15,8 @@ var eventRules = []event.Rule{
 	{
 		Id: types.TaskCreateBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
-			client, err := kanboard.GetClient()
-			if err != nil {
-				return fmt.Errorf("failed to new client %w", err)
-			}
-
 			title, _ := param.String("title")
-			projectId, _ := param.Int64("project_id")
+			projectID, _ := param.Int64("project_id")
 			priority, _ := param.Int64("priority")
 			reference, _ := param.String("reference")
 			description, _ := param.String("description")
@@ -29,30 +25,30 @@ var eventRules = []event.Rule{
 			if title == "" {
 				return fmt.Errorf("title is empty")
 			}
-			if projectId == 0 {
+			if projectID == 0 {
 				return fmt.Errorf("project_id is empty")
 			}
 
-			task := &kanboard.Task{
-				Title:       title,
-				ProjectID:   int(projectId),
-				Priority:    int(priority),
-				Reference:   reference,
-				Description: description,
-				Tags:        tags,
-			}
-			taskId, err := client.CreateTask(ctx.Context(), task)
+			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "create_task", map[string]any{
+				"title":       title,
+				"project_id":  int(projectID),
+				"description": description,
+				"reference":   reference,
+				"tags":        tags,
+			})
 			if err != nil {
-				return fmt.Errorf("failed to create task %#v, error %w", task, err)
+				return fmt.Errorf("failed to create task: %w", err)
 			}
 
+			_ = priority
+
 			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("Task created: [%s](%s/task/%d)\n\n*Title:* %s\n*Project ID:* %d",
+				Text: fmt.Sprintf("Task created: [%s](%s/task/%v)\n\n*Title:* %s\n*Project ID:* %d",
 					title,
-					config.App.Search.UrlBaseMap[kanboard.ID],
-					taskId,
+					config.App.Search.UrlBaseMap["kanboard"],
+					res.Text,
 					title,
-					projectId,
+					projectID,
 				),
 			})
 			if err != nil {
