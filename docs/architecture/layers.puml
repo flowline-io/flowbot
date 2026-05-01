@@ -1,0 +1,196 @@
+@startuml Layered Architecture
+' =============================================================================
+' Flowbot Layered Architecture Diagram
+' Shows the abstraction layers and their relationships
+' =============================================================================
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Flowbot — Layered Architecture
+
+' =============================================================================
+' Layer 6: External
+' =============================================================================
+package "Layer 6 — External" as L6 #ECEFF1 {
+  actor Users
+  cloud "Discord / Slack / Tailchat" as Chat
+  cloud "Third-Party APIs\n(GitHub, FireflyIII, ...)" as APIs
+}
+
+' =============================================================================
+' Layer 5: Platform Adapters
+' =============================================================================
+package "Layer 5 — Platform Adapters\ninternal/platforms/" as L5 #E8EAF6 {
+  [Discord Driver] as DiscordDrv
+  [Slack Driver] as SlackDrv
+  [Tailchat Driver] as TailchatDrv
+}
+
+' =============================================================================
+' Layer 4: HTTP / API Gateway
+' =============================================================================
+package "Layer 4 — HTTP Gateway\ninternal/server/ (Fiber v3)" as L4 #E3F2FD {
+  [REST API\n/service/{cap}/*] as REST
+  [Hub API\n/hub/*] as HubAPI
+  [Platform Callbacks] as Callbacks
+  [Auth Middleware] as AuthMW
+  [Swagger] as Swagger
+}
+
+' =============================================================================
+' Layer 3: Module / Business Logic
+' =============================================================================
+package "Layer 3 — Bot Modules\ninternal/modules/ (20 modules)" as L3 #F3E5F5 {
+  [Module Framework\npkg/module/] as ModuleFW
+  [Bot Modules] as BotMods
+  [Workflow Engine\npkg/workflow/] as WF
+  [Pipeline Engine\npkg/pipeline/] as Pipeline
+  [LLM Agents\npkg/llm/] as LLM
+}
+
+' =============================================================================
+' Layer 2: Capability Abstraction
+' =============================================================================
+package "Layer 2 — Capability Abstraction\npkg/ability/" as L2 #FFF9C4 {
+  [Bookmark] as BookmarkAb
+  [Archive] as ArchiveAb
+  [Reader] as ReaderAb
+  [Kanban] as KanbanAb
+  [Finance] as FinanceAb
+  [Infra] as InfraAb
+  [ShellHistory] as ShellAb
+  note right
+    ability.Invoke(capability, operation, params)
+    Returns standard pagination (limit + opaque cursor)
+    Wraps provider-specific errors to standard types
+  end note
+}
+
+' =============================================================================
+' Layer 1: Provider Adapters
+' =============================================================================
+package "Layer 1 — Provider Adapters\npkg/providers/ (17 providers)" as L1 #E8F5E9 {
+  [GitHub / Gitea / Drone] as DevGroup
+  [Karakeep / LinkWarden] as BmGroup
+  [ArchiveBox] as ArchGroup
+  [Miniflux] as ReaderGroup
+  [Kanboard] as KanbanGroup
+  [Firefly III] as FinanceGroup
+  [AdGuard / Cloudflare / Uptime Kuma] as InfraGroup
+  [Transmission] as TorrentGroup
+  [n8n] as N8NGroup
+  [Dropbox] as DropboxGroup
+  [Slack] as SlackGroup
+  [Email] as EmailGroup
+  [Atuin / Slash] as ShellGroup
+}
+
+' =============================================================================
+' Layer 0: Infrastructure
+' =============================================================================
+package "Layer 0 — Infrastructure" as L0 #FFEBEE {
+  database "MySQL" as MySQL {
+    [Data Events]
+    [Audit Logs]
+    [Users / Tokens]
+    [Workflow / Pipeline State]
+  }
+  database "Redis" as Redis {
+    [Sessions]
+    [Pub/Sub (Streams)]
+    [Distributed Locks]
+    [Cache]
+  }
+  [Docker\n(pkg/executor/)] as Docker
+}
+
+' =============================================================================
+' Hub / Homelab (Side Plane)
+' =============================================================================
+package "Management Plane — Hub & Homelab" as HubPlane #BBDEFB {
+  [Homelab Scanner\npkg/homelab/] as Scanner
+  [App Registry\ndocker-compose.yaml] as Registry
+  [Hub Manager\npkg/hub/] as Hub
+  [Capability Binding] as Binding
+}
+
+' =============================================================================
+' Cross-Cutting
+' =============================================================================
+package "Cross-Cutting Concerns" as Cross #FFE0B2 {
+  [AuthContext\npkg/auth/] as AuthCtx
+  [Notifications\npkg/notify/] as Notify
+  [Event System\npkg/event/] as EventSys
+  [Structured Logging\npkg/flog/] as Flog
+  [Metrics\npkg/stats/] as Metrics
+}
+
+' =============================================================================
+' Connections — Top to Bottom
+' =============================================================================
+Users --> Chat
+Chat --> DiscordDrv
+Chat --> SlackDrv
+Chat --> TailchatDrv
+
+DiscordDrv --> Callbacks
+SlackDrv --> Callbacks
+TailchatDrv --> Callbacks
+
+REST --> BotMods : dispatch to modules
+HubAPI --> Hub : management
+Callbacks --> BotMods : platform events
+
+BotMods --> BookmarkAb : ability.Invoke()
+BotMods --> ArchiveAb
+BotMods --> ReaderAb
+BotMods --> KanbanAb
+BotMods --> FinanceAb
+BotMods --> InfraAb
+BotMods --> ShellAb
+
+BookmarkAb --> BmGroup : adapter
+ArchiveAb --> ArchGroup : adapter
+ReaderAb --> ReaderGroup : adapter
+KanbanAb --> KanbanGroup : adapter
+FinanceAb --> FinanceGroup : adapter
+InfraAb --> InfraGroup : adapter
+ShellAb --> ShellGroup : adapter
+
+BotMods --> WF : trigger workflows
+WF --> Pipeline : orchestrate
+Pipeline --> BotMods : invoke actions
+WF --> Docker : execute steps
+
+REST --> MySQL : persist
+REST --> Redis : cache / lock
+
+' =============================================================================
+' Hub Plane
+' =============================================================================
+Scanner --> Registry : scan docker-compose.yaml
+Registry --> Hub : register apps
+Hub --> Binding : bind capability
+Binding --> BookmarkAb : register
+Binding --> ArchiveAb : register
+
+' =============================================================================
+' Cross-Cutting reaches all layers
+' =============================================================================
+AuthCtx -[hidden]-> REST
+AuthCtx -[hidden]-> BotMods
+Notify -[hidden]-> BotMods
+EventSys -[hidden]-> BotMods
+
+note bottom of L3
+  <b>Architecture Rules:</b>
+  1. Modules never import providers directly — use ability.Invoke()
+  2. Providers never emit DataEvents or call Hub/Pipeline
+  3. Never return provider-private types from adapters
+  4. Durable events: DataEvent → MySQL → Redis Stream → Pipeline
+  5. Standard pagination: limit + opaque cursor
+end note
+
+@enduml

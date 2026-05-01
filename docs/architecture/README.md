@@ -1,158 +1,93 @@
 # System Architecture
 
-This directory contains system architecture design documentation and diagrams for Flowbot.
+PlantUML diagrams for Flowbot system architecture. Render with any PlantUML-compatible tool (VS Code extension, plantuml.com, CLI, etc.).
 
-## File Descriptions
+## Diagrams
 
-### `architecture.png`
+| File               | Type                | Description                                      |
+| ------------------ | ------------------- | ------------------------------------------------ |
+| `architecture.puml` | Component Diagram   | Overall system architecture and component relationships |
+| `layers.puml`       | Layered Diagram     | Abstraction layers from infrastructure to entry points |
+| `dataflow.puml`     | Sequence Diagrams   | Key data flows: chat message, workflow, events, hub, notifications |
+| `deployment.puml`   | Deployment Diagram  | Docker containers, CI/CD pipelines, external services |
 
-Overall system architecture diagram showing relationships between components and data flow.
+## Rendering
 
-### `flowchart.mermaid`
+```bash
+# CLI (install plantuml)
+plantuml docs/architecture/*.puml
 
-Workflow flowchart described using Mermaid syntax, can be rendered in Mermaid-supported editors.
-
-## System Architecture Overview
-
-Flowbot uses a modular architecture with multiple entry points and shared libraries.
-
-### Entry Points (`cmd/`)
-
-| Binary          | Description                                                    |
-| --------------- | -------------------------------------------------------------- |
-| `cmd/main.go`   | Main server — API, chatbot, workflow engine (Fiber v3 + fx DI) |
-| `cmd/composer/` | CLI tool — code generation, migration, workflow import         |
-| `cmd/cli/`      | Admin CLI — user/token management, platform setup              |
-
-### Core Components
-
-1. **Flowbot Server** (`internal/server/`)
-   - RESTful API with Swagger docs
-   - Platform callbacks (Discord, Slack, Tailchat)
-   - OAuth, webhook, media, and event routing
-   - Health probes (`/livez`, `/readyz`, `/startupz`)
-   - Prometheus metrics (`/metrics`)
-
-2. **Bot Modules** (`internal/modules/`)
-   - 20 specialized bot modules (agent, anki, archive, bookmark, clipboard, cloudflare, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow)
-   - Each bot registers its own rules, commands, and webservice routes
-
-3. **Composer CLI** (`cmd/composer/`)
-   - WebAssembly frontend built with go-app/v10
-   - DaisyUI + Tailwind CSS styling
-   - Pages: Dashboard, Containers, Settings, Login
-   - Separate Dockerfile for deployment (`deployments/Dockerfile.app`)
-
-4. **Workflow Engine** (`internal/modules/workflow/`)
-   - DAG-based workflow execution
-   - Built-in actions: Message, Fetch, Feed, LLM, Docker, Grep, Unique, Torrent
-   - Trigger types: manual, webhook, cron
-   - Job scheduling and step tracking
-
-### Platform Layer (`internal/platforms/`)
-
-| Platform | Directory   |
-| -------- | ----------- |
-| Discord  | `discord/`  |
-| Slack    | `slack/`    |
-| Tailchat | `tailchat/` |
-
-### Storage Layer (`internal/store/`)
-
-- **Database**: MySQL (primary), with migration support (51 migrations)
-- **Cache**: Redis (sessions, pub/sub, locking)
-- **Media**: File system or MinIO object storage
-- **Models**: Auto-generated DAO via GORM Gen
-
-### Provider Integrations (`pkg/providers/`)
-
-17 third-party service integrations:
-
-| Category       | Providers                                    |
-| -------------- | -------------------------------------------- |
-| Development    | GitHub, Gitea, Drone CI                      |
-| Communication  | Slack, Email                                 |
-| Infrastructure | AdGuard, Cloudflare, Uptime Kuma             |
-| Productivity   | Kanboard, n8n                                |
-| Finance        | Firefly III                                  |
-| Media          | Transmission, Miniflux, ArchiveBox, Karakeep |
-| Storage        | Dropbox                                      |
-| Other          | Slash                                        |
-
-### Notification System (`pkg/notify/`)
-
-| Provider       | Description                    |
-| -------------- | ------------------------------ |
-| Slack          | Channel/user notifications     |
-| Pushover       | Mobile push notifications      |
-| ntfy           | Self-hosted push notifications |
-| Message Pusher | Custom internal notifications  |
-
-### Shared Packages (`pkg/`)
-
-| Package    | Purpose                          |
-| ---------- | -------------------------------- |
-| `chatbot`  | Bot interface and registration   |
-| `config`   | Configuration loading            |
-| `crawler`  | Web crawling and scraping        |
-| `event`    | Redis-based pub/sub event system |
-| `executor` | Docker/shell execution runtime   |
-| `flows`    | Flow validation and ingredients  |
-| `flog`     | Structured logging (Zerolog)     |
-| `media`    | File storage abstraction         |
-| `parser`   | Command/syntax lexer and parser  |
-| `route`    | Bot route definitions            |
-| `search`   | MeiliSearch integration          |
-| `types`    | Shared type definitions          |
-| `utils`    | Common utilities                 |
-
-## Data Flow
-
-```mermaid
-graph TB
-    U[Users] --> P[Chat Platforms]
-    P --> S[Flowbot Server]
-    S --> DB[(MySQL)]
-    S --> R[(Redis)]
-    S --> B[Bot Modules]
-    B --> PR[Providers]
-    B --> N[Notifications]
-    S --> WF[Workflow Engine]
-    WF --> EX[Executor]
-    EX --> D[Docker/Shell]
-    PWA[Admin PWA] -->|API| S
+# VS Code: install "PlantUML" extension and preview in-editor
+# Online: https://www.plantuml.com/plantuml/uml/
 ```
 
-## Deployment
+## Architecture Overview
 
-### Docker Images
+### Layers (top to bottom)
 
-| Image         | Dockerfile                   | Description                            |
-| ------------- | ---------------------------- | -------------------------------------- |
-| `flowbot`     | `deployments/Dockerfile`     | Main server                            |
+```
+Layer 6 — External:        Users, Chat Platforms, Third-Party APIs
+Layer 5 — Platform:        Discord/Slack/Tailchat adapters
+Layer 4 — HTTP Gateway:    Fiber v3 server, REST API, auth middleware
+Layer 3 — Business Logic:  20 bot modules, workflow engine, pipeline engine, LLM
+Layer 2 — Capability:      ability.Invoke() abstraction over providers
+Layer 1 — Providers:       17 third-party service integrations
+Layer 0 — Infrastructure:  MySQL, Redis, Docker executor
+```
 
-### CI/CD Workflows (`.github/workflows/`)
+### Management Plane (side plane)
 
-| Workflow          | Description                    |
-| ----------------- | ------------------------------ |
-| `build.yml`       | Build main server              |
-| `release.yml`     | Release pipeline               |
+```
+Homelab Scanner → App Registry → Hub Manager → Capability Binding → Ability Layer
+```
 
-### Systemd Service
+### Key Design Rules
 
-Agent can be deployed as a systemd service — see `docs/deployment/flowbot-agent.service`.
+- Modules never import providers directly — use `ability.Invoke()`
+- Providers never emit DataEvents, call Hub, or call Pipeline
+- Standard pagination: limit + opaque cursor (provider internals hidden)
+- Durable events: DataEvent → MySQL data_events → Redis Stream → Pipeline
+- All Hub lifecycle operations are audited
+- AuthContext spans REST, CLI, Chat, Webhook, Cron, Pipeline, Workflow
 
-## Security
+### Data Flows
 
-- OAuth 2.0 integration (Slack, etc.)
-- API key authentication (`X-AccessToken` header)
-- JWT token-based admin panel auth
-- HTTPS/TLS support
-- Sensitive data encrypted storage
+1. **Chat Message**: User → Platform → Adapter → Server → Bot Module → ability.Invoke() → Provider → API
+2. **Workflow**: Trigger → Workflow Engine → Executor (Docker) → Pipeline Engine → Notifications
+3. **Durable Events**: DataEvent → MySQL (data_events) → Redis Stream Outbox → Pipeline → Actions
+4. **Hub Management**: Homelab Scan → App Registry → Hub → Capability Binding → Ability Registry
+5. **Notifications**: Module → Dispatcher → [Slack, Pushover, ntfy, Message Pusher]
 
-## Monitoring
+### Entry Points
 
-- Prometheus metrics at `/metrics`
-- Structured logging with Zerolog
-- Health check probes (`/livez`, `/readyz`, `/startupz`)
-- Automatic GOMAXPROCS tuning (`automaxprocs`)
+| Binary             | Path             | Description                                   |
+| ------------------ | ---------------- | --------------------------------------------- |
+| Server             | `cmd/main.go`    | HTTP server (Fiber v3 + fx DI)                |
+| Admin CLI          | `cmd/cli/`       | User/token management, config, pipeline admin  |
+| Composer CLI       | `cmd/composer/`  | Code generation, schema docs, DAO generation   |
+
+### Bot Modules (20)
+
+agent, anki, archive, bookmark, clipboard, cloudflare, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow
+
+### Providers (17)
+
+adguard, archivebox, cloudflare, drone, dropbox, email, fireflyiii, gitea, github, kanboard, karakeep, miniflux, n8n, slack, slash, transmission, uptimekuma
+
+### Notifications (4 channels)
+
+Slack, Pushover, ntfy, Message Pusher
+
+### Shared Packages (31)
+
+ability, alarm, auth, cache, chatbot, client, config, crawler, event, executor, flog, homelab, hub, llm, locker, media, migrate, module, notify, page, parser, pipeline, providers, rdb, route, search, stats, types, utils, validate, workflow
+
+### CI/CD (`.github/workflows/`)
+
+| Workflow          | Description        |
+| ----------------- | ------------------ |
+| `build.yml`       | Lint + Build       |
+| `testing.yml`     | Run all tests      |
+| `build_cli.yml`   | Build CLI tools    |
+| `docker.yml`      | Build Docker image |
+| `release.yml`     | Release pipeline   |

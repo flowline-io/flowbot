@@ -1,0 +1,279 @@
+@startuml Data Flow — Chat Message to Capability
+' =============================================================================
+' Flow 1: Chat Message → Bot Module → Ability → Provider
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Data Flow 1 — Chat Message to Capability Invocation
+
+actor User
+participant "Chat Platform\n(Discord/Slack)" as Platform
+participant "Platform Adapter\n(internal/platforms/)" as Adapter
+participant "Server Router\n(internal/server/)" as Router
+participant "Bot Module\n(internal/modules/)" as Module
+participant "ability.Invoke()\n(pkg/ability/)" as Ability
+participant "Provider Adapter\n(pkg/providers/)" as Provider
+participant "Third-Party API" as API
+database MySQL
+database Redis
+
+== Message Ingestion ==
+User -> Platform : sends chat message
+Platform -> Adapter : webhook / event callback
+Adapter -> Router : normalized message event
+Router -> Module : dispatch to matching module
+
+== Command Parsing ==
+Module -> Module : parse command (pkg/parser/)
+Module -> Module : validate auth context (pkg/auth/)
+Module -> Module : check ruleset (pkg/types/)
+
+== Capability Invocation ==
+Module -> Ability : ability.Invoke(capability, operation, params)
+note right
+  Standard interface:
+  - Authentication scoped
+  - Pagination: limit + opaque cursor
+  - Error wrapping: types.ErrNotFound etc.
+end note
+
+Ability -> Provider : adapter.List(params)
+Provider -> API : HTTP request
+API --> Provider : response
+Provider --> Ability : domain objects
+Ability --> Module : standard result
+
+== Response ==
+Module -> Module : format response
+Module --> Router : reply message
+Router --> Adapter : send to platform
+Adapter --> Platform : platform API call
+Platform --> User : display message
+
+== Side Effects ==
+Module -> MySQL : persist data event
+Module -> Redis : publish event (optional)
+
+@enduml
+
+
+
+@startuml Data Flow — Workflow Execution
+' =============================================================================
+' Flow 2: Workflow Trigger → Execution → Pipeline
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Data Flow 2 — Workflow Execution Pipeline
+
+actor "Trigger Source\n(Webhook/Cron/Manual)" as Trigger
+participant "Workflow Module\n(internal/modules/workflow/)" as WFModule
+participant "Workflow Engine\n(pkg/workflow/)" as Engine
+participant "Executor\n(pkg/executor/)" as Executor
+participant "Pipeline Engine\n(pkg/pipeline/)" as Pipeline
+database MySQL
+database Redis
+
+== Trigger ==
+Trigger -> WFModule : trigger workflow
+WFModule -> MySQL : load workflow definition (DAG)
+WFModule -> Engine : execute(workflow, params)
+
+== DAG Execution ==
+Engine -> Engine : resolve DAG dependencies
+Engine -> Executor : run step (Docker container)
+
+group Docker Step
+  Executor -> Executor : pull image
+  Executor -> Executor : run container
+  Executor -> Executor : capture output
+end group
+
+Executor --> Engine : step result
+Engine -> MySQL : save step status
+
+== Pipeline Orchestration ==
+Engine -> Pipeline : run post-execution pipeline
+Pipeline -> Pipeline : evaluate conditions
+Pipeline -> Pipeline : invoke module actions
+Pipeline -> MySQL : save pipeline run history
+
+Engine -> MySQL : update workflow state
+Engine -> Redis : publish completion event
+
+== Notification ==
+Engine -> WFModule : workflow result
+WFModule -> Engine : send notification (pkg/notify/)
+
+@enduml
+
+
+
+@startuml Data Flow — Durable Event System
+' =============================================================================
+' Flow 3: DataEvent → MySQL → Redis Stream → Pipeline
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Data Flow 3 — Durable Event System
+
+participant "Data Source\n(Bot Module / Webhook)" as Source
+participant "Event Store\n(internal/store/)" as EventStore
+database "MySQL\ndata_events table" as MySQL
+participant "Event Outbox\n(Redis Stream)" as Outbox
+participant "Pipeline Engine\n(pkg/pipeline/)" as Pipeline
+participant "Action Handlers" as Actions
+
+== Event Creation ==
+Source -> EventStore : create DataEvent
+EventStore -> MySQL : INSERT INTO data_events
+note right: Durable persistence first
+
+MySQL --> EventStore : event persisted
+
+== Event Publication ==
+EventStore -> Outbox : XADD to Redis Stream
+note right: At-least-once delivery
+
+== Event Consumption ==
+Outbox -> Pipeline : XREADGROUP (consumer group)
+Pipeline -> Pipeline : match pipeline rules
+Pipeline -> Pipeline : check idempotency (event ID)
+
+== Pipeline Execution ==
+Pipeline -> MySQL : INSERT INTO pipeline_runs
+Pipeline -> Actions : invoke action 1
+Actions --> Pipeline : result
+Pipeline -> MySQL : UPDATE step status
+
+Pipeline -> Actions : invoke action 2
+Actions --> Pipeline : result
+Pipeline -> MySQL : UPDATE step status
+
+Pipeline -> MySQL : UPDATE pipeline_run (complete)
+Pipeline -> Outbox : XACK (acknowledge)
+
+== Audit ==
+Pipeline -> MySQL : INSERT audit log
+note right
+  Every event and pipeline run
+  is fully audited
+end note
+
+@enduml
+
+
+
+@startuml Data Flow — Hub & Homelab Management
+' =============================================================================
+' Flow 4: Homelab Scan → App Registry → Hub → Capability Binding
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Data Flow 4 — Hub & Homelab App Management
+
+participant "Homelab Scanner\n(pkg/homelab/)" as Scanner
+participant "App Registry\n(/home/user/homelab/apps/)" as Registry
+participant "Hub Manager\n(pkg/hub/)" as Hub
+participant "Capability Registry\n(pkg/ability/)" as CapRegistry
+database MySQL
+
+== Startup Scan ==
+Scanner -> Registry : scan apps/*/docker-compose.yaml
+note right: Discover all deployed apps
+
+Registry --> Scanner : app definitions (name, image, ports)
+
+== App Registration ==
+Scanner -> Hub : register app
+Hub -> MySQL : save app binding
+
+== Health Monitoring ==
+Hub -> Scanner : check health
+Scanner -> Registry : docker ps / health endpoint
+Registry --> Scanner : status
+Scanner --> Hub : health report
+
+== Capability Binding ==
+Hub -> CapRegistry : bind app to capability
+note right
+  Example:
+  archivebox → archive capability
+  karakeep → bookmark capability
+  miniflux → reader capability
+end note
+
+CapRegistry -> CapRegistry : register ability descriptor
+Hub -> MySQL : save capability binding
+
+== Lifecycle Operations ==
+Hub -> Registry : restart / stop / start (opt-in)
+Hub -> Scanner : update runtime state
+
+== Audit ==
+Hub -> MySQL : INSERT audit_log
+note right: All lifecycle operations are audited
+
+@enduml
+
+
+
+@startuml Data Flow — Notification Dispatch
+' =============================================================================
+' Flow 5: Multi-Channel Notification Dispatch
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Data Flow 5 — Multi-Channel Notification Dispatch
+
+participant "Bot Module / Pipeline" as Source
+participant "Notify Dispatcher\n(pkg/notify/)" as Dispatcher
+participant "Slack Notifier" as SlackN
+participant "Pushover Notifier" as PushoverN
+participant "ntfy Notifier" as NtfyN
+participant "Message Pusher" as MsgPusherN
+participant "Slack API" as SlackAPI
+participant "Pushover API" as PushoverAPI
+participant "ntfy Server" as NtfyAPI
+participant "Message Pusher API" as MsgPusherAPI
+
+== Notification Request ==
+Source -> Dispatcher : notify.Send(ctx, channels, message)
+note right
+  Channels: ["slack", "pushover", "ntfy", "message-pusher"]
+end note
+
+== Multi-Channel Dispatch ==
+Dispatcher -> SlackN : send (if slack in channels)
+Dispatcher -> PushoverN : send (if pushover in channels)
+Dispatcher -> NtfyN : send (if ntfy in channels)
+Dispatcher -> MsgPusherN : send (if message-pusher in channels)
+
+SlackN -> SlackAPI : chat.postMessage
+PushoverN -> PushoverAPI : push notification
+NtfyN -> NtfyAPI : HTTP POST
+MsgPusherN -> MsgPusherAPI : HTTP POST
+
+SlackAPI --> SlackN : OK
+PushoverAPI --> PushoverN : OK
+NtfyAPI --> NtfyN : OK
+MsgPusherAPI --> MsgPusherN : OK
+
+SlackN --> Dispatcher : result
+PushoverN --> Dispatcher : result
+NtfyN --> Dispatcher : result
+MsgPusherN --> Dispatcher : result
+
+Dispatcher --> Source : aggregated result
+
+@enduml

@@ -1,0 +1,270 @@
+@startuml Flowbot Architecture
+' =============================================================================
+' Flowbot System Architecture — Component Diagram
+' =============================================================================
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 12
+
+title Flowbot System Architecture
+
+' =============================================================================
+' External
+' =============================================================================
+actor "Users" as Users
+cloud "Chat Platforms\n(Discord / Slack / Tailchat)" as ChatCloud
+
+package "MySQL" as MySQL #E8F5E9
+package "Redis" as Redis #FFEBEE
+
+' =============================================================================
+' Entry Points
+' =============================================================================
+package "cmd/ — Entry Points" as EntryPoints #FFF3E0 {
+  [Server\ncmd/main.go] as ServerEntry
+  [Admin CLI\ncmd/cli/] as AdminCLI
+  [Composer CLI\ncmd/composer/] as ComposerCLI
+}
+
+' =============================================================================
+' Server Layer
+' =============================================================================
+package "internal/server/ — HTTP Layer (Fiber v3)" as ServerLayer #E3F2FD {
+  [Router] as Router
+  [Capability Routes\n/service/{cap}/*] as CapRoutes
+  [Hub Routes\n/hub/*] as HubRoutes
+  [Platform Callbacks] as PlatformRoutes
+  [Swagger / OpenAPI] as Swagger
+  [Media Routes] as MediaRoutes
+  [Event Routes] as EventRoutes
+}
+
+' =============================================================================
+' Platform Layer
+' =============================================================================
+package "internal/platforms/ — Chat Platform Adapters" as PlatformLayer #E8EAF6 {
+  [Discord Adapter] as Discord
+  [Slack Adapter] as SlackAdapter
+  [Tailchat Adapter] as TailchatAdapter
+}
+
+' =============================================================================
+' Bot Modules
+' =============================================================================
+package "internal/modules/ — 20 Bot Modules" as BotModules #F3E5F5 {
+  [agent] as AgentMod
+  [anki] as AnkiMod
+  [archive] as ArchiveMod
+  [bookmark] as BookmarkMod
+  [clipboard] as ClipboardMod
+  [cloudflare] as CloudflareMod
+  [dev] as DevMod
+  [finance] as FinanceMod
+  [gitea] as GiteaMod
+  [github] as GitHubMod
+  [hub] as HubMod
+  [kanban] as KanbanMod
+  [notify] as NotifyMod
+  [reader] as ReaderMod
+  [search] as SearchMod
+  [server] as ServerMod
+  [torrent] as TorrentMod
+  [user] as UserMod
+  [webhook] as WebhookMod
+  [workflow] as WorkflowMod
+}
+
+' =============================================================================
+' Capability / Ability Layer
+' =============================================================================
+package "pkg/ability/ — Capability Abstraction" as AbilityLayer #FFF9C4 {
+  [bookmark.Service] as BookmarkAbility
+  [archive.Service] as ArchiveAbility
+  [reader.Service] as ReaderAbility
+  [kanban.Service] as KanbanAbility
+  [finance.Service] as FinanceAbility
+  [infra.Service] as InfraAbility
+  [shellhistory.Service] as ShellAbility
+  [Invoke Dispatcher] as Invoke
+}
+
+' =============================================================================
+' Provider Layer
+' =============================================================================
+package "pkg/providers/ — 17 Third-Party Integrations" as ProviderLayer #E8F5E9 {
+  [adguard] as AdGuardP
+  [archivebox] as ArchiveBox
+  [cloudflare] as CloudflareP
+  [drone] as DroneCI
+  [dropbox] as Dropbox
+  [email] as Email
+  [fireflyiii] as FireflyIII
+  [gitea] as GiteaP
+  [github] as GitHubP
+  [kanboard] as Kanboard
+  [karakeep] as Karakeep
+  [miniflux] as Miniflux
+  [n8n] as N8N
+  [slack] as SlackP
+  [slash] as Slash
+  [transmission] as Transmission
+  [uptimekuma] as UptimeKuma
+}
+
+' =============================================================================
+' Workflow / Pipeline
+' =============================================================================
+package "pkg/workflow/ + pkg/pipeline/" as WorkflowPipeline #FFCDD2 {
+  [Workflow Engine\npkg/workflow/] as WorkflowEngine
+  [Pipeline Engine\npkg/pipeline/] as PipelineEngine
+  [Executor\npkg/executor/] as Executor
+}
+
+' =============================================================================
+' Hub / Homelab
+' =============================================================================
+package "pkg/hub/ + pkg/homelab/" as HubHomelab #BBDEFB {
+  [Homelab Scanner\npkg/homelab/] as HomelabScanner
+  [App Registry\npkg/homelab/] as AppRegistry
+  [Hub Manager\npkg/hub/] as HubManager
+  [Health Checks\npkg/hub/] as HealthChecks
+  [Capability Binding\npkg/hub/] as CapBinding
+}
+
+' =============================================================================
+' Cross-Cutting
+' =============================================================================
+package "Cross-Cutting Packages" as CrossCutting #ECEFF1 {
+  [auth\npkg/auth/] as Auth
+  [notify\npkg/notify/] as Notify
+  [event\npkg/event/] as Event
+  [parser\npkg/parser/] as Parser
+  [config\npkg/config/] as Config
+  [flog\npkg/flog/] as Flog
+  [types\npkg/types/] as Types
+  [cache\npkg/cache/] as Cache
+  [locker\npkg/locker/] as Locker
+  [media\npkg/media/] as Media
+  [search\npkg/search/] as Search
+  [stats\npkg/stats/] as Stats
+}
+
+' =============================================================================
+' Frontend
+' =============================================================================
+package "pkg/page/ — PWA (go-app/WASM)" as Frontend #FCE4EC {
+  [UI Kit\n(40 components)] as UIKit
+  [Pages\nDashboard / Settings] as Pages
+  [Form Builder] as FormBuilder
+}
+
+' =============================================================================
+' Storage
+' =============================================================================
+package "internal/store/ — Data Layer" as StoreLayer #E0F2F1 {
+  [DAO (GORM Gen)\n39 tables] as DAO
+  [Models\n56 models] as Models
+  [Event Store] as EventStore
+  [Audit Store] as AuditStore
+}
+
+' =============================================================================
+' Connections — User → Platform → Server
+' =============================================================================
+Users --> ChatCloud : interacts via
+ChatCloud --> Discord : webhooks
+ChatCloud --> SlackAdapter : events
+ChatCloud --> TailchatAdapter : messages
+Discord --> Router
+SlackAdapter --> Router
+TailchatAdapter --> Router
+
+' =============================================================================
+' Connections — Server → Modules
+' =============================================================================
+Router --> AgentMod
+Router --> AnkiMod
+Router --> ArchiveMod
+Router --> BookmarkMod
+Router --> ClipboardMod
+Router --> CloudflareMod
+Router --> DevMod
+Router --> FinanceMod
+Router --> GiteaMod
+Router --> GitHubMod
+Router --> HubMod
+Router --> KanbanMod
+Router --> NotifyMod
+Router --> ReaderMod
+Router --> SearchMod
+Router --> ServerMod
+Router --> TorrentMod
+Router --> UserMod
+Router --> WebhookMod
+Router --> WorkflowMod
+
+' =============================================================================
+' Connections — Module → Ability → Provider
+' =============================================================================
+BookmarkMod --> BookmarkAbility : ability.Invoke()
+ArchiveMod --> ArchiveAbility : ability.Invoke()
+ReaderMod --> ReaderAbility : ability.Invoke()
+KanbanMod --> KanbanAbility : ability.Invoke()
+FinanceMod --> FinanceAbility : ability.Invoke()
+
+BookmarkAbility --> Karakeep : adapter
+ArchiveAbility --> ArchiveBox : adapter
+ReaderAbility --> Miniflux : adapter
+KanbanAbility --> Kanboard : adapter
+FinanceAbility --> FireflyIII : adapter
+
+' =============================================================================
+' Connections — Workflow / Pipeline
+' =============================================================================
+WorkflowMod --> WorkflowEngine : triggers
+WorkflowEngine --> Executor : Docker / Shell
+PipelineEngine --> WorkflowEngine : orchestrates
+Event --> PipelineEngine : Redis Stream
+
+' =============================================================================
+' Connections — Hub / Homelab
+' =============================================================================
+HomelabScanner --> AppRegistry : scan docker-compose
+AppRegistry --> HubManager : register apps
+HubManager --> CapBinding : bind to capability
+CapBinding --> AbilityLayer : register
+HubMod --> HubManager : commands
+HubRoutes --> HubManager : /hub/*
+
+' =============================================================================
+' Connections — Storage
+' =============================================================================
+Router --> DAO : CRUD
+Router --> EventStore : persist events
+Router --> AuditStore : audit log
+EventStore --> MySQL
+EventStore --> Redis : Redis Stream outbox
+DAO --> MySQL
+AuditStore --> MySQL
+Event --> Redis : pub/sub
+Cache --> Redis
+Locker --> Redis
+
+' =============================================================================
+' Cross-cutting
+' =============================================================================
+Router --> Auth : auth context
+Router --> Notify : notifications
+Router --> Config : load config
+Router --> Flog : logging
+Router --> Stats : metrics
+Router --> Media : file storage
+
+' =============================================================================
+' Frontend
+' =============================================================================
+Frontend --> Router : API calls (WASM)
+FormBuilder --> Pages
+
+@enduml

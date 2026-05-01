@@ -1,0 +1,170 @@
+@startuml Deployment
+' =============================================================================
+' Flowbot Deployment Diagram
+' =============================================================================
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Flowbot — Deployment Architecture
+
+' =============================================================================
+' Nodes
+' =============================================================================
+
+node "Host Machine (Linux)" as Host {
+
+  node "Docker Engine" as DockerEngine {
+
+    ' --- Flowbot Server ---
+    node "flowbot (Main Server)" as FlowbotContainer {
+      [Fiber HTTP Server :8080] as FiberServer
+      [Workflow Engine] as WFEngine
+      [Pipeline Engine] as PipelineEngine
+      [Bot Modules (20)] as BotModules
+      [LLM Agents] as LLMAgents
+      [PWA Frontend (WASM)] as PWA
+    }
+
+    ' --- MySQL ---
+    database "MySQL 8" as MySQLContainer {
+      [data_events]
+      [audit_logs]
+      [users / tokens]
+      [workflow state]
+      [pipeline runs]
+    }
+
+    ' --- Redis ---
+    database "Redis 7" as RedisContainer {
+      [Sessions]
+      [Pub/Sub Streams]
+      [Cache]
+      [Distributed Locks]
+      [Event Outbox]
+    }
+
+    ' --- Homelab Apps ---
+    node "Homelab Apps" as HomelabApps {
+      [archivebox]
+      [karakeep]
+      [miniflux]
+      [kanboard]
+      [fireflyiii]
+      [uptime-kuma]
+      [adguard]
+      [transmission]
+      [n8n]
+      [gitea]
+      [beszel]
+      [atuin]
+    }
+  }
+
+  ' --- Systemd ---
+  node "systemd" as Systemd {
+    [flowbot-agent.service]
+  }
+
+  ' --- Filesystem ---
+  folder "/home/user/homelab/" as HomelabFS {
+    folder "apps/" as AppsDir {
+      folder "archivebox/" as ABDir
+      folder "karakeep/" as KKDir
+      folder "miniflux/" as MFDir
+    }
+    folder "data/" as DataDir
+  }
+}
+
+' =============================================================================
+' External Services
+' =============================================================================
+cloud "External Services" as External {
+  [Discord API] as DiscordAPI
+  [Slack API] as SlackAPI
+  [GitHub API] as GitHubAPI
+  [Firefly III API] as FireflyAPI
+  [Pushover] as PushoverAPI
+  [Cloudflare API] as CloudflareAPI
+  [Email (SMTP)] as SMTP
+}
+
+' =============================================================================
+' CI/CD (GitHub Actions)
+' =============================================================================
+cloud "GitHub Actions" as GHA {
+  [Build\n(build.yml)] as BuildCI
+  [Testing\n(testing.yml)] as TestingCI
+  [Build CLI\n(build_cli.yml)] as BuildCLICI
+  [Docker\n(docker.yml)] as DockerCI
+  [Release\n(release.yml)] as ReleaseCI
+}
+
+node "GitHub Container Registry" as GHCR {
+  [flowbot:latest]
+  [flowbot:v*]
+}
+
+' =============================================================================
+' User Access
+' =============================================================================
+actor "Users" as Users
+actor "Admin" as Admin
+
+' =============================================================================
+' Connections
+' =============================================================================
+
+' --- Users ---
+Users --> DiscordAPI : chat
+Users --> SlackAPI : chat
+Admin --> FiberServer : HTTPS :8080
+
+' --- Server → Infrastructure ---
+FiberServer --> MySQLContainer : TCP :3306
+FiberServer --> RedisContainer : TCP :6379
+FlowbotContainer --> HomelabApps : Docker socket (read-only)
+
+' --- Server → External APIs ---
+FiberServer --> DiscordAPI : REST
+FiberServer --> SlackAPI : REST
+FiberServer --> GitHubAPI : REST
+FiberServer --> FireflyAPI : REST
+FiberServer --> PushoverAPI : push
+FiberServer --> CloudflareAPI : REST
+FiberServer --> SMTP : SMTP
+
+' --- Homelab Scanner ---
+FlowbotContainer --> HomelabFS : read docker-compose.yaml
+FlowbotContainer --> HomelabApps : docker ps / inspect
+
+' --- CI/CD → Registry ---
+BuildCI --> GHCR : push image
+DockerCI --> GHCR : push image
+ReleaseCI --> GHCR : push tagged image
+
+' --- Deployment ---
+GHCR --> DockerEngine : pull image
+Systemd --> FlowbotContainer : manage lifecycle
+
+' =============================================================================
+' Notes
+' =============================================================================
+note right of HomelabApps
+  <b>Homelab Registry:</b>
+  Scanned from /home/user/homelab/apps/*/docker-compose.yaml
+  Each app bound to a capability via Hub
+  Health checks: Docker health + HTTP endpoints
+end note
+
+note bottom of GHA
+  <b>CI/CD Pipelines (.github/workflows/):</b>
+  - build.yml: Lint + Build server
+  - testing.yml: Run all tests
+  - build_cli.yml: Build CLI tools
+  - docker.yml: Build Docker image
+  - release.yml: Tag and release
+end note
+
+@enduml
