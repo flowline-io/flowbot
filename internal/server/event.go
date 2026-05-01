@@ -44,10 +44,10 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 		onInstructPushEventHandler,
 	)
 	router.AddNoPublisherHandler(
-		"onBotRunEventHandler",
+		"onModuleRunEventHandler",
 		types.BotRunEvent,
 		subscriber,
-		onBotRunEventHandler,
+		onModuleRunEventHandler,
 	)
 
 	lc.Append(fx.Hook{
@@ -113,7 +113,7 @@ func onInstructPushEventHandler(msg *message.Message) error {
 }
 
 // run bot event
-func onBotRunEventHandler(msg *message.Message) error {
+func onModuleRunEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
 	var be types.BotEvent
@@ -132,7 +132,7 @@ func onBotRunEventHandler(msg *message.Message) error {
 	for name, handle := range module.List() {
 		err = handle.Event(ctx, be.Param)
 		if err != nil {
-			return fmt.Errorf("bot %s event %s error %w", name, be.EventName, err)
+			return fmt.Errorf("module %s event %s error %w", name, be.EventName, err)
 		}
 	}
 

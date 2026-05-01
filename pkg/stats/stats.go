@@ -15,6 +15,8 @@ import (
 const (
 	BotTotalStatsName                     = "bot_total"
 	BotRunTotalStatsName                  = "bot_run_total"
+	ModuleTotalStatsName                  = "module_total"
+	ModuleRunTotalStatsName               = "module_run_total"
 	BookmarkTotalStatsName                = "bookmark_total"
 	SearchTotalStatsName                  = "search_total"
 	SearchProcessedDocumentTotalStatsName = "search_processed_document_total"
@@ -228,8 +230,20 @@ func BotTotalCounter() MetricInterface {
 	return getOrCreateMetric(BotTotalStatsName, prometheus.Labels{})
 }
 
+// ModuleTotalCounter is an alias for BotTotalCounter using the new module naming.
+func ModuleTotalCounter() MetricInterface {
+	return getOrCreateMetric(ModuleTotalStatsName, prometheus.Labels{})
+}
+
 func BotRunTotalCounter(rulesetLabel RulesetLabel) MetricInterface {
 	return getOrCreateMetric(BotRunTotalStatsName, prometheus.Labels{
+		"ruleset": string(rulesetLabel),
+	})
+}
+
+// ModuleRunTotalCounter is an alias for BotRunTotalCounter using the new module naming.
+func ModuleRunTotalCounter(rulesetLabel RulesetLabel) MetricInterface {
+	return getOrCreateMetric(ModuleRunTotalStatsName, prometheus.Labels{
 		"ruleset": string(rulesetLabel),
 	})
 }

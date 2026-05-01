@@ -83,8 +83,8 @@ func initializeModules(modulesConfig any, vendorsConfig any) {
 		flog.Fatal("Failed to bot cron: %v", err)
 	}
 
-	stats.BotTotalCounter().Set(uint64(len(module.List())))
-	rdb.SetMetricsInt64(stats.BotTotalStatsName, int64(len(module.List())))
+	stats.ModuleTotalCounter().Set(uint64(len(module.List())))
+	rdb.SetMetricsInt64(stats.ModuleTotalStatsName, int64(len(module.List())))
 }
 
 // register bots

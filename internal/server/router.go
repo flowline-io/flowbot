@@ -199,7 +199,7 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 	_, botHandler := module.FindRuleAndHandler[pageRule.Rule](pageRuleId, module.List())
 
 	if botHandler == nil {
-		return protocol.ErrNotFound.New("bot not found")
+		return protocol.ErrNotFound.New("module not found")
 	}
 
 	html, err := botHandler.Page(typesCtx, flag, args)
@@ -320,7 +320,7 @@ func (c *Controller) postForm(ctx fiber.Ctx) error {
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
-			return protocol.ErrBadParam.Errorf("bot %s unavailable", topic)
+			return protocol.ErrBadParam.Errorf("module %s unavailable", topic)
 		}
 
 		// form message
@@ -330,7 +330,7 @@ func (c *Controller) postForm(ctx fiber.Ctx) error {
 		}
 
 		// stats
-		stats.BotRunTotalCounter(stats.FormRuleset).Inc()
+		stats.ModuleRunTotalCounter(stats.FormRuleset).Inc()
 
 		if payload == nil {
 			return ctx.JSON(protocol.NewSuccessResponse("empty message"))
@@ -410,7 +410,7 @@ func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 	webhookRule, botHandler := module.FindRuleAndHandler[webhook.Rule](flag, module.List())
 
 	if botHandler == nil {
-		return protocol.ErrNotFound.New("bot not found")
+		return protocol.ErrNotFound.New("module not found")
 	}
 
 	typesCtx := types.Context{}

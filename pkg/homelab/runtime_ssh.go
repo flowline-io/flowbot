@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -119,36 +118,7 @@ func (r *SSHRuntime) Status(ctx context.Context, app App) (AppStatus, error) {
 		return AppStatusUnknown, types.WrapError(types.ErrProvider, "docker compose ps via ssh", err)
 	}
 
-	trimmed := strings.TrimSpace(output)
-	if trimmed == "" || trimmed == "[]" || trimmed == "null" {
-		return AppStatusStopped, nil
-	}
-
-	lines := strings.Split(trimmed, "\n")
-	exitedCount := 0
-	runningCount := 0
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		if strings.Contains(line, `"exited"`) || strings.Contains(line, `"EXITED"`) {
-			exitedCount++
-		} else {
-			runningCount++
-		}
-	}
-
-	if runningCount > 0 && exitedCount == 0 {
-		return AppStatusRunning, nil
-	}
-	if runningCount > 0 {
-		return AppStatusPartial, nil
-	}
-	if exitedCount > 0 {
-		return AppStatusStopped, nil
-	}
-	return AppStatusUnknown, nil
+	return parseComposePSStatus(output), nil
 }
 
 func (r *SSHRuntime) Logs(ctx context.Context, app App, tail int) ([]string, error) {
@@ -230,5 +200,3 @@ func (r *SSHRuntime) Update(ctx context.Context, app App) error {
 	}
 	return nil
 }
-
-var _ = os.Getenv

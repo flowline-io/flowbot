@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
@@ -80,7 +81,9 @@ func initPipeline(lc fx.Lifecycle, cfg config.Type, router *message.Router, subs
 			if err := sonic.Unmarshal(msg.Payload, &dataEvent); err != nil {
 				return fmt.Errorf("unmarshal data event: %w", err)
 			}
-			return engine.Handler()(context.Background(), dataEvent)
+			ctx, cancel := context.WithTimeout(msg.Context(), 10*time.Minute)
+			defer cancel()
+			return engine.Handler()(ctx, dataEvent)
 		},
 	)
 

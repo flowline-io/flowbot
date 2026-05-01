@@ -206,7 +206,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	if session == "" {
 		for name, handle := range module.List() {
 			if !handle.IsReady() {
-				flog.Info("bot %s unavailable", name)
+				flog.Info("module %s unavailable", name)
 				continue
 			}
 
@@ -224,7 +224,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 				// stats
 				if payload != nil {
-					stats.BotRunTotalCounter(stats.CommandRuleset).Inc()
+					stats.ModuleRunTotalCounter(stats.CommandRuleset).Inc()
 				}
 			}
 
@@ -293,7 +293,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	for name, handle := range module.List() {
 		if !handle.IsReady() {
-			flog.Info("bot %s unavailable", name)
+			flog.Info("module %s unavailable", name)
 			continue
 		}
 	}
@@ -374,7 +374,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 
 		for name, handle := range module.List() {
 			if !handle.IsReady() {
-				flog.Info("bot %s unavailable", name)
+				flog.Info("module %s unavailable", name)
 				continue
 			}
 
@@ -388,12 +388,12 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			content, _ := data.Content.Map("content")
 			payload, err := handle.Collect(ctx, content)
 			if err != nil {
-				flog.Warn("bot[%s]: failed to agent bot: %v", name, err)
+				flog.Warn("module[%s]: failed to agent module: %v", name, err)
 				continue
 			}
 
 			// stats
-			stats.BotRunTotalCounter(stats.AgentRuleset).Inc()
+			stats.ModuleRunTotalCounter(stats.AgentRuleset).Inc()
 
 			// send message
 			if payload == nil {

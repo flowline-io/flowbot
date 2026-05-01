@@ -17,7 +17,6 @@ const prefix = "service"
 func WebService(app *fiber.App, group string, rs ...*Router) {
 	path := "/" + prefix + "/" + group
 	for _, router := range rs {
-		// method
 		switch router.Method {
 		case "GET":
 			app.Get(path+router.Path, Authorize(router.AuthLevel, router.Function))
@@ -32,8 +31,6 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 		default:
 			continue
 		}
-		// funcName := utils.GetFunctionName(router.Function)
-		// flog.Info("WebService %s \t%s%s \t-> %s", router.Method, path, router.Path, funcName)
 	}
 }
 
@@ -76,22 +73,27 @@ func ErrorResponse(ctx fiber.Ctx, text string) error {
 	return ctx.SendString(text)
 }
 
+// RequestContext is a typed struct stored in fiber.Locals after authorization.
+// It carries the authenticated user identity, request metadata, and scopes.
+type RequestContext struct {
+	UID    types.Uid
+	Topic  string
+	Param  types.KV
+	Scopes []string
+}
+
+const requestContextKey = "route:ctx"
+
 const (
-	uidKey         = "uid"
-	topicKey       = "topic"
-	paramKey       = "param"
 	accessTokenKey = "accessToken"
-	scopesKey      = "scopes"
 )
 
 func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		// Check if authentication can be skipped
 		if authLevel == NoAuth {
 			return handler(ctx)
 		}
 
-		// Check API flag
 		var r http.Request
 		if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
 			return protocol.ErrNotAuthorized.Wrap(err)
@@ -107,18 +109,17 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return protocol.ErrNotAuthorized.New("parameter error")
 		}
 
-		topic, _ := types.KV(p.Params).String(topicKey)
-		u, _ := types.KV(p.Params).String(uidKey)
-		uid := types.Uid(u)
+		paramKV := types.KV(p.Params)
+		topic, _ := paramKV.String("topic")
+		uidStr, _ := paramKV.String("uid")
+		uid := types.Uid(uidStr)
 
 		if uid.IsZero() {
 			return protocol.ErrNotAuthorized.New("uid empty")
 		}
 
-		// Extract scopes from parameter
-		paramKV := types.KV(p.Params)
 		var scopes []string
-		if raw, ok := paramKV[scopesKey]; ok {
+		if raw, ok := paramKV["scopes"]; ok {
 			switch v := raw.(type) {
 			case []any:
 				for _, item := range v {
@@ -131,19 +132,26 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			}
 		}
 
-		// Set uid, topic, scopes, param
-		ctx.Locals(uidKey, uid)
-		ctx.Locals(topicKey, topic)
-		ctx.Locals(paramKey, paramKV)
-		ctx.Locals(scopesKey, scopes)
+		ctx.Locals(requestContextKey, &RequestContext{
+			UID:    uid,
+			Topic:  topic,
+			Param:  paramKV,
+			Scopes: scopes,
+		})
 
 		return handler(ctx)
 	}
 }
 
-// GetAccessToken Get API key from an HTTP request.
+// GetRequestContext returns the typed RequestContext from fiber.Locals.
+// Returns nil if the request was not authorized.
+func GetRequestContext(ctx fiber.Ctx) *RequestContext {
+	rc, _ := ctx.Locals(requestContextKey).(*RequestContext)
+	return rc
+}
+
+// GetAccessToken extracts the API key from an HTTP request.
 func GetAccessToken(req *http.Request) string {
-	// Check header.
 	apikey := req.Header.Get("X-AccessToken")
 	if apikey != "" {
 		return apikey
@@ -153,28 +161,20 @@ func GetAccessToken(req *http.Request) string {
 	if apikey != "" {
 		return apikey
 	}
-
-	// Check URL query parameters.
 	apikey = req.URL.Query().Get(accessTokenKey)
 	if apikey != "" {
 		return apikey
 	}
-
-	// Check form values.
 	apikey = req.FormValue(accessTokenKey)
 	if apikey != "" {
 		return apikey
 	}
-
-	// Check cookies.
 	if c, err := req.Cookie(accessTokenKey); err == nil {
 		apikey = c.Value
 	}
-
 	return apikey
 }
 
-// CheckAccessToken check access token valid
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	p, err := store.Database.ParameterGet(accessToken)
 	if err != nil {
@@ -183,8 +183,7 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	if p.ID <= 0 || p.IsExpired() {
 		return
 	}
-
-	u, _ := types.KV(p.Params).String(uidKey)
+	u, _ := types.KV(p.Params).String("uid")
 	uid = types.Uid(u)
 	if uid.IsZero() {
 		return
@@ -194,13 +193,19 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 }
 
 func GetUid(ctx fiber.Ctx) types.Uid {
-	uid, _ := ctx.Locals(uidKey).(types.Uid)
-	return uid
+	rc := GetRequestContext(ctx)
+	if rc == nil {
+		return ""
+	}
+	return rc.UID
 }
 
 func GetTopic(ctx fiber.Ctx) string {
-	topic, _ := ctx.Locals(topicKey).(string)
-	return topic
+	rc := GetRequestContext(ctx)
+	if rc == nil {
+		return ""
+	}
+	return rc.Topic
 }
 
 func GetIntParam(ctx fiber.Ctx, name string) int64 {
@@ -209,20 +214,22 @@ func GetIntParam(ctx fiber.Ctx, name string) int64 {
 	return i
 }
 
-// GetScopes returns the scopes associated with the current request.
 func GetScopes(ctx fiber.Ctx) []string {
-	scopes, _ := ctx.Locals(scopesKey).([]string)
-	return scopes
+	rc := GetRequestContext(ctx)
+	if rc == nil {
+		return nil
+	}
+	return rc.Scopes
 }
 
-// GetParam returns the full parameter KV from the current request context.
 func GetParam(ctx fiber.Ctx) types.KV {
-	param, _ := ctx.Locals(paramKey).(types.KV)
-	return param
+	rc := GetRequestContext(ctx)
+	if rc == nil {
+		return nil
+	}
+	return rc.Param
 }
 
-// RequireScope returns middleware that checks whether the current request
-// has the required scope. Must be chained after Authorize.
 func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		scopes := GetScopes(ctx)
@@ -233,8 +240,6 @@ func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
 	}
 }
 
-// ScopeHandler wraps a handler with scope check.
-// Use when you need to check scope inside an already-authorized handler.
 func ScopeHandler(ctx fiber.Ctx, scope string) bool {
 	scopes := GetScopes(ctx)
 	return auth.HasScope(scopes, scope)
