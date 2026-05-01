@@ -14,11 +14,11 @@ import (
 )
 
 type ActionInfo struct {
-	Type     string
-	Details  string
+	Type         string
+	Details      string
 	IsCapability bool
-	CapType  string
-	Operation string
+	CapType      string
+	Operation    string
 }
 
 func ParseAction(action string) ActionInfo {
@@ -52,8 +52,8 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 	info := ParseAction(wt.Action)
 
 	task := &types.Task{
-		Run:  wt.Action,
-		Env:  make(map[string]string),
+		Run: wt.Action,
+		Env: make(map[string]string),
 	}
 
 	if info.IsCapability {

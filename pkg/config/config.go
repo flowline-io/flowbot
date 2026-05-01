@@ -287,11 +287,11 @@ type HomelabPermissions struct {
 }
 
 type Pipeline struct {
-	Name        string         `json:"name" yaml:"name" mapstructure:"name"`
-	Description string         `json:"description" yaml:"description" mapstructure:"description"`
-	Enabled     bool           `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Name        string          `json:"name" yaml:"name" mapstructure:"name"`
+	Description string          `json:"description" yaml:"description" mapstructure:"description"`
+	Enabled     bool            `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Trigger     PipelineTrigger `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
-	Steps       []PipelineStep `json:"steps" yaml:"steps" mapstructure:"steps"`
+	Steps       []PipelineStep  `json:"steps" yaml:"steps" mapstructure:"steps"`
 }
 
 type PipelineTrigger struct {

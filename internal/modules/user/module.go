@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v3"
 )

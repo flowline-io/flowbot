@@ -17,15 +17,16 @@ cmd/
 
 ## Binaries
 
-| Binary    | Main file          | Purpose                          | DI |
-| --------- | ------------------ | -------------------------------- | -- |
-| server    | `main.go`          | HTTP API server (Fiber v3)       | fx |
-| composer  | `composer/main.go` | Dev tools (dao gen, schema doc)  | —  |
-| cli       | `cli/main.go`      | Admin CLI commands               | —  |
+| Binary   | Main file          | Purpose                         | DI  |
+| -------- | ------------------ | ------------------------------- | --- |
+| server   | `main.go`          | HTTP API server (Fiber v3)      | fx  |
+| composer | `composer/main.go` | Dev tools (dao gen, schema doc) | —   |
+| cli      | `cli/main.go`      | Admin CLI commands              | —   |
 
 ## Dependency Injection
 
 Server uses `go.uber.org/fx` modules pattern:
+
 ```go
 fx.New(server.Modules).Run()    // cmd/main.go
 ```
@@ -33,6 +34,7 @@ fx.New(server.Modules).Run()    // cmd/main.go
 ## Composer CLI
 
 Dev tools. Key subcommands:
+
 ```bash
 composer dao --config ./flowbot.yaml
 composer doc --config ./flowbot.yaml

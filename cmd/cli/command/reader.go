@@ -311,9 +311,9 @@ func readerEntryListCommand() *cli.Command {
 				Value:   20,
 			},
 			&cli.IntFlag{
-				Name:    "offset",
-				Usage:   "Pagination offset",
-				Value:   0,
+				Name:  "offset",
+				Usage: "Pagination offset",
+				Value: 0,
 			},
 			&cli.BoolFlag{
 				Name:  "starred",
@@ -438,9 +438,9 @@ func readerFeedEntriesCommand() *cli.Command {
 				Value:   20,
 			},
 			&cli.IntFlag{
-				Name:    "offset",
-				Usage:   "Pagination offset",
-				Value:   0,
+				Name:  "offset",
+				Usage: "Pagination offset",
+				Value: 0,
 			},
 			&cli.BoolFlag{
 				Name:  "starred",

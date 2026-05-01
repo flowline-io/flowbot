@@ -124,12 +124,12 @@ services:
 
 func TestParseCompose_PortStringFormats(t *testing.T) {
 	tests := []struct {
-		name     string
-		yaml     string
-		hostPort string
+		name      string
+		yaml      string
+		hostPort  string
 		container string
-		host     string
-		protocol string
+		host      string
+		protocol  string
 	}{
 		{
 			name:      "container only",

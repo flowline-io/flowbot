@@ -2,7 +2,6 @@ package providers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -21,9 +20,11 @@ func RedirectURI(name string, flag string) string {
 
 var Configs json.RawMessage
 
+var ErrMissingConfig = fmt.Errorf("provider configs are empty")
+
 func GetConfig(name, key string) (gjson.Result, error) {
 	if len(Configs) == 0 {
-		return gjson.Result{}, errors.New("error configs")
+		return gjson.Result{}, ErrMissingConfig
 	}
 	value := gjson.GetBytes(Configs, fmt.Sprintf("%s.%s", name, key))
 	return value, nil

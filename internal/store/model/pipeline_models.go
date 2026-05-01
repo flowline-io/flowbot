@@ -22,15 +22,15 @@ func (*PipelineDefinition) TableName() string {
 const TableNamePipelineRun = "pipeline_runs"
 
 type PipelineRun struct {
-	ID             int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	PipelineName   string        `gorm:"column:pipeline_name;not null;index" json:"pipeline_name"`
-	EventID        string        `gorm:"column:event_id;not null;uniqueIndex" json:"event_id"`
-	EventType      string        `gorm:"column:event_type;not null;default:''" json:"event_type"`
-	Status         PipelineState `gorm:"column:status;not null;default:0" json:"status"`
-	Error          string        `gorm:"column:error" json:"error,omitempty"`
-	StartedAt      time.Time     `gorm:"column:started_at" json:"started_at"`
-	CompletedAt    *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
-	CreatedAt      time.Time     `gorm:"column:created_at;not null" json:"created_at"`
+	ID           int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	PipelineName string        `gorm:"column:pipeline_name;not null;index" json:"pipeline_name"`
+	EventID      string        `gorm:"column:event_id;not null;uniqueIndex" json:"event_id"`
+	EventType    string        `gorm:"column:event_type;not null;default:''" json:"event_type"`
+	Status       PipelineState `gorm:"column:status;not null;default:0" json:"status"`
+	Error        string        `gorm:"column:error" json:"error,omitempty"`
+	StartedAt    time.Time     `gorm:"column:started_at" json:"started_at"`
+	CompletedAt  *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
+	CreatedAt    time.Time     `gorm:"column:created_at;not null" json:"created_at"`
 }
 
 func (*PipelineRun) TableName() string {
@@ -40,18 +40,18 @@ func (*PipelineRun) TableName() string {
 const TableNamePipelineStepRun = "pipeline_step_runs"
 
 type PipelineStepRun struct {
-	ID           int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	PipelineRunID int64        `gorm:"column:pipeline_run_id;not null;index" json:"pipeline_run_id"`
-	StepName     string        `gorm:"column:step_name;not null" json:"step_name"`
-	Capability   string        `gorm:"column:capability;not null;default:''" json:"capability"`
-	Operation    string        `gorm:"column:operation;not null;default:''" json:"operation"`
-	Params       JSON          `gorm:"column:params" json:"params"`
-	Result       JSON          `gorm:"column:result" json:"result"`
-	Status       PipelineState `gorm:"column:status;not null;default:0" json:"status"`
-	Error        string        `gorm:"column:error" json:"error,omitempty"`
-	StartedAt    time.Time     `gorm:"column:started_at" json:"started_at"`
-	CompletedAt  *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
-	CreatedAt    time.Time     `gorm:"column:created_at;not null" json:"created_at"`
+	ID            int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	PipelineRunID int64         `gorm:"column:pipeline_run_id;not null;index" json:"pipeline_run_id"`
+	StepName      string        `gorm:"column:step_name;not null" json:"step_name"`
+	Capability    string        `gorm:"column:capability;not null;default:''" json:"capability"`
+	Operation     string        `gorm:"column:operation;not null;default:''" json:"operation"`
+	Params        JSON          `gorm:"column:params" json:"params"`
+	Result        JSON          `gorm:"column:result" json:"result"`
+	Status        PipelineState `gorm:"column:status;not null;default:0" json:"status"`
+	Error         string        `gorm:"column:error" json:"error,omitempty"`
+	StartedAt     time.Time     `gorm:"column:started_at" json:"started_at"`
+	CompletedAt   *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
+	CreatedAt     time.Time     `gorm:"column:created_at;not null" json:"created_at"`
 }
 
 func (*PipelineStepRun) TableName() string {

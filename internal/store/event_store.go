@@ -147,13 +147,13 @@ func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operati
 	now := time.Now()
 	sr := model.PipelineStepRun{
 		PipelineRunID: runID,
-		StepName:     stepName,
-		Capability:   capability,
-		Operation:    operation,
-		Params:       params,
-		Status:       model.PipelineStart,
-		StartedAt:    now,
-		CreatedAt:    now,
+		StepName:      stepName,
+		Capability:    capability,
+		Operation:     operation,
+		Params:        params,
+		Status:        model.PipelineStart,
+		StartedAt:     now,
+		CreatedAt:     now,
 	}
 	if err := s.db.Create(&sr).Error; err != nil {
 		return nil, err

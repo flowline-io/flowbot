@@ -66,13 +66,13 @@ sudo journalctl -u flowbot -f
 
 GitHub Actions workflows (`.github/workflows/`):
 
-| Workflow          | Description        |
-| ----------------- | ------------------ |
-| `build.yml`       | Lint + Build       |
-| `testing.yml`     | Run all tests      |
-| `build_cli.yml`   | Build CLI tools    |
-| `docker.yml`      | Build Docker image |
-| `release.yml`     | Release pipeline   |
+| Workflow        | Description        |
+| --------------- | ------------------ |
+| `build.yml`     | Lint + Build       |
+| `testing.yml`   | Run all tests      |
+| `build_cli.yml` | Build CLI tools    |
+| `docker.yml`    | Build Docker image |
+| `release.yml`   | Release pipeline   |
 
 ## Health Checks
 

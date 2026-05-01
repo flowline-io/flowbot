@@ -80,9 +80,9 @@ func createFeed(ctx fiber.Ctx) error {
 //	@Tags		reader
 //	@Accept		json
 //	@Produce	json
-//	@Param		status		query		string	false	"status filter (read, unread, removed)"
-//	@Param		feed_id		query		int		false	"filter by feed ID"
-//	@Success	200			{object}	protocol.Response
+//	@Param		status	query		string	false	"status filter (read, unread, removed)"
+//	@Param		feed_id	query		int		false	"filter by feed ID"
+//	@Success	200		{object}	protocol.Response
 //	@Security	ApiKeyAuth
 //	@Router		/service/reader/entries [get]
 func listEntries(ctx fiber.Ctx) error {

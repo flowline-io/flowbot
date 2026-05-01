@@ -11,17 +11,17 @@ type HubClient struct {
 
 // HubApp represents a homelab app returned by the hub API.
 type HubApp struct {
-	Name    string   `json:"name"`
-	Path    string   `json:"path"`
-	Status  string   `json:"status"`
-	Health  string   `json:"health"`
-	Labels  map[string]any `json:"labels,omitempty"`
+	Name   string         `json:"name"`
+	Path   string         `json:"path"`
+	Status string         `json:"status"`
+	Health string         `json:"health"`
+	Labels map[string]any `json:"labels,omitempty"`
 }
 
 // HubAppStatus represents the status of a homelab app.
 type HubAppStatus struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name   string   `json:"name"`
+	Status string   `json:"status"`
 	Logs   []string `json:"logs,omitempty"`
 }
 

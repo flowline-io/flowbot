@@ -67,8 +67,8 @@ func (i *Karakeep) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, e
 		return nil, fmt.Errorf("failed to get all bookmarks: %w", err)
 	}
 
-	result := resp.Result().(*BookmarksResponse)
-	if result == nil {
+	result, ok := resp.Result().(*BookmarksResponse)
+	if !ok || result == nil {
 		result = &BookmarksResponse{Bookmarks: make([]Bookmark, 0)}
 	}
 	return result, nil
@@ -82,7 +82,10 @@ func (i *Karakeep) GetAllTags() ([]Tag, error) {
 		return nil, fmt.Errorf("failed to get all tags: %w", err)
 	}
 
-	result := resp.Result().(*TagsResponse)
+	result, ok := resp.Result().(*TagsResponse)
+	if !ok || result == nil {
+		return nil, fmt.Errorf("unexpected tags response type")
+	}
 	return result.Tags, nil
 }
 
@@ -102,7 +105,10 @@ func (i *Karakeep) AttachTagsToBookmark(bookmarkId string, tags []string) ([]str
 		return nil, fmt.Errorf("failed to attach tags to bookmark: %w", err)
 	}
 
-	result := resp.Result().(*AttachTagsResponse)
+	result, ok := resp.Result().(*AttachTagsResponse)
+	if !ok || result == nil {
+		return nil, fmt.Errorf("unexpected attach tags response type")
+	}
 	return result.Attached, nil
 }
 
@@ -122,7 +128,10 @@ func (i *Karakeep) DetachTagsToBookmark(bookmarkId string, tags []string) ([]str
 		return nil, fmt.Errorf("failed to detach tags to bookmark: %w", err)
 	}
 
-	result := resp.Result().(*DetachTagsResponse)
+	result, ok := resp.Result().(*DetachTagsResponse)
+	if !ok || result == nil {
+		return nil, fmt.Errorf("unexpected detach tags response type")
+	}
 	return result.Detached, nil
 }
 
@@ -137,7 +146,10 @@ func (i *Karakeep) ArchiveBookmark(id string) (bool, error) {
 		return false, fmt.Errorf("failed to archive bookmark: %w", err)
 	}
 
-	result := resp.Result().(*ArchiveResponse)
+	result, ok := resp.Result().(*ArchiveResponse)
+	if !ok || result == nil {
+		return false, fmt.Errorf("unexpected archive response type")
+	}
 	return result.Archived, nil
 }
 
@@ -153,7 +165,11 @@ func (i *Karakeep) CreateBookmark(url string) (*Bookmark, error) {
 		return nil, fmt.Errorf("failed to create bookmark: %w", err)
 	}
 
-	return resp.Result().(*Bookmark), nil
+	result, ok := resp.Result().(*Bookmark)
+	if !ok || result == nil {
+		return nil, fmt.Errorf("unexpected create bookmark response type")
+	}
+	return result, nil
 }
 
 // GetBookmark retrieves a single bookmark by its ID.  This corresponds
@@ -171,7 +187,10 @@ func (i *Karakeep) GetBookmark(id string) (*Bookmark, error) {
 		return nil, fmt.Errorf("failed to get bookmark %s: %w", id, err)
 	}
 
-	result := resp.Result().(*Bookmark)
+	result, ok := resp.Result().(*Bookmark)
+	if !ok {
+		return nil, fmt.Errorf("unexpected get bookmark response type for %s", id)
+	}
 	return result, nil
 }
 
@@ -184,7 +203,10 @@ func (i *Karakeep) CheckUrlExists(url string) (*string, error) {
 		return nil, fmt.Errorf("failed to check URL existence: %w", err)
 	}
 
-	result := resp.Result().(*CheckUrlResponse)
+	result, ok := resp.Result().(*CheckUrlResponse)
+	if !ok || result == nil {
+		return nil, fmt.Errorf("unexpected check url response type")
+	}
 	return result.BookmarkId, nil
 }
 
@@ -216,8 +238,8 @@ func (i *Karakeep) SearchBookmarks(query *SearchBookmarksQuery) (*BookmarksRespo
 		return nil, fmt.Errorf("failed to search bookmarks: %w", err)
 	}
 
-	result := resp.Result().(*BookmarksResponse)
-	if result == nil {
+	result, ok := resp.Result().(*BookmarksResponse)
+	if !ok || result == nil {
 		result = &BookmarksResponse{Bookmarks: make([]Bookmark, 0)}
 	}
 	return result, nil

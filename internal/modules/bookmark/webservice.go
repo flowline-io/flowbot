@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
-
 )
 
 var webserviceRules = []webservice.Rule{

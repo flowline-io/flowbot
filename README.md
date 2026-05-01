@@ -14,16 +14,16 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 
 > How do I make all these apps work together?
 
-| Problem | Flowbot Solution |
-| ------- | ---------------- |
-| App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps |
-| Capability abstraction | **Ability Layer** maps apps to unified capabilities (`bookmark`, `archive`, `reader`, ...) |
-| Unified interfaces | REST, CLI, Chat, Form, Webhook, Cron, Workflow |
-| Cross-service data flow | **Declarative Pipeline** — event-driven, idempotent, auditable |
-| Composable automation | **Workflow Capability Step** — DAG of capability invocations |
-| Auth boundary | **AuthContext** spans REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow |
-| Audit trail | Durable events, execution history, audit logs — traceable, recoverable, replayable |
-| Provider differences | Standard errors (`ErrNotFound`, `ErrForbidden`, `ErrProvider`) + unified pagination (limit + opaque cursor) |
+| Problem                   | Flowbot Solution                                                                                            |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps                                             |
+| Capability abstraction    | **Ability Layer** maps apps to unified capabilities (`bookmark`, `archive`, `reader`, ...)                  |
+| Unified interfaces        | REST, CLI, Chat, Form, Webhook, Cron, Workflow                                                              |
+| Cross-service data flow   | **Declarative Pipeline** — event-driven, idempotent, auditable                                              |
+| Composable automation     | **Workflow Capability Step** — DAG of capability invocations                                                |
+| Auth boundary             | **AuthContext** spans REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow                              |
+| Audit trail               | Durable events, execution history, audit logs — traceable, recoverable, replayable                          |
+| Provider differences      | Standard errors (`ErrNotFound`, `ErrForbidden`, `ErrProvider`) + unified pagination (limit + opaque cursor) |
 
 **Flowbot is not a chatbot.** It uses chat as one of many interaction surfaces. At its core, it is a data hub and orchestration engine for your homelab.
 
@@ -67,15 +67,15 @@ See [architecture diagrams](docs/architecture/README.md) for full PlantUML compo
 
 ## Capabilities
 
-| Capability | Apps Mapped | Interfaces |
-| ---------- | ----------- | ---------- |
-| **bookmark** | karakeep, linkwarden | REST, CLI, Chat, Workflow |
-| **archive** | archivebox | REST, CLI, Chat, Workflow |
-| **reader** | miniflux | REST, CLI, Chat, Webhook, Cron |
-| **kanban** | kanboard | REST, CLI, Chat, Webhook |
-| **finance** | fireflyiii | REST, CLI, Chat, Webhook |
-| **infra** | beszel, uptime-kuma, adguard, cloudflare | REST, CLI |
-| **shell_history** | atuin | REST, CLI |
+| Capability        | Apps Mapped                              | Interfaces                     |
+| ----------------- | ---------------------------------------- | ------------------------------ |
+| **bookmark**      | karakeep, linkwarden                     | REST, CLI, Chat, Workflow      |
+| **archive**       | archivebox                               | REST, CLI, Chat, Workflow      |
+| **reader**        | miniflux                                 | REST, CLI, Chat, Webhook, Cron |
+| **kanban**        | kanboard                                 | REST, CLI, Chat, Webhook       |
+| **finance**       | fireflyiii                               | REST, CLI, Chat, Webhook       |
+| **infra**         | beszel, uptime-kuma, adguard, cloudflare | REST, CLI                      |
+| **shell_history** | atuin                                    | REST, CLI                      |
 
 All capabilities share the same invocation pattern:
 
@@ -147,28 +147,28 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 
 20 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.
 
-| Module | Surface |
-| ------ | ------- |
-| **agent** | LLM agent with tool use |
-| **workflow** | DAG execution, job scheduling |
-| **bookmark** | URL management via capability |
-| **archive** | Web archiving via capability |
-| **reader** | RSS/feed aggregation via capability |
-| **kanban** | Task boards via capability |
-| **finance** | Bill tracking via capability |
-| **hub** | App lifecycle management |
-| **notify** | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
-| **cloudflare** | DNS, analytics |
-| **dev** | Debugging, testing, forms |
-| **github** | Issues, PRs |
-| **gitea** | Repository management |
-| **torrent** | Transmission integration |
-| **search** | MeiliSearch |
-| **clipboard** | Cross-platform sync |
-| **anki** | Spaced repetition |
-| **server** | System operations |
-| **user** | Profiles, settings |
-| **webhook** | Inbound/outbound hooks |
+| Module         | Surface                                                        |
+| -------------- | -------------------------------------------------------------- |
+| **agent**      | LLM agent with tool use                                        |
+| **workflow**   | DAG execution, job scheduling                                  |
+| **bookmark**   | URL management via capability                                  |
+| **archive**    | Web archiving via capability                                   |
+| **reader**     | RSS/feed aggregation via capability                            |
+| **kanban**     | Task boards via capability                                     |
+| **finance**    | Bill tracking via capability                                   |
+| **hub**        | App lifecycle management                                       |
+| **notify**     | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
+| **cloudflare** | DNS, analytics                                                 |
+| **dev**        | Debugging, testing, forms                                      |
+| **github**     | Issues, PRs                                                    |
+| **gitea**      | Repository management                                          |
+| **torrent**    | Transmission integration                                       |
+| **search**     | MeiliSearch                                                    |
+| **clipboard**  | Cross-platform sync                                            |
+| **anki**       | Spaced repetition                                              |
+| **server**     | System operations                                              |
+| **user**       | Profiles, settings                                             |
+| **webhook**    | Inbound/outbound hooks                                         |
 
 ## Development
 
@@ -190,13 +190,13 @@ task doc       # Generate database schema docs
 
 ### API
 
-| Endpoint | Description |
-| -------- | ----------- |
-| `/service/{capability}/*` | Capability plane |
-| `/hub/*` | Management plane |
-| `/swagger/` | OpenAPI docs |
-| `/livez` `/readyz` `/startupz` | Health probes |
-| `/metrics` | Prometheus |
+| Endpoint                       | Description      |
+| ------------------------------ | ---------------- |
+| `/service/{capability}/*`      | Capability plane |
+| `/hub/*`                       | Management plane |
+| `/swagger/`                    | OpenAPI docs     |
+| `/livez` `/readyz` `/startupz` | Health probes    |
+| `/metrics`                     | Prometheus       |
 
 Auth: `X-AccessToken` header or OAuth 2.0.
 

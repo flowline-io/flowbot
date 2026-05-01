@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -86,7 +87,14 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	emitter := r.emitter
 	r.mu.RUnlock()
 	if emitter != nil && len(result.Events) > 0 {
-		go emitter(context.WithoutCancel(ctx), result)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					flog.Warn("ability(%s.%s): event emitter panicked: %v", capability, operation, r)
+				}
+			}()
+			emitter(context.WithoutCancel(ctx), result)
+		}()
 	}
 
 	return result, nil

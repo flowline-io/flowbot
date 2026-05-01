@@ -223,7 +223,7 @@ func TestRegistry_InvokeNoEmitWithoutEvents(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = 	r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+	_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
 	require.NoError(t, err)
 
 	time.Sleep(20 * time.Millisecond)
@@ -266,7 +266,7 @@ func TestRegisterInvoker(t *testing.T) {
 	err := RegisterInvoker(hub.CapBookmark, "test_op", invoker)
 	require.NoError(t, err)
 
-	result, err := 	Invoke(t.Context(), hub.CapBookmark, "test_op", nil)
+	result, err := Invoke(t.Context(), hub.CapBookmark, "test_op", nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, "via convenience", result.Data)
@@ -283,7 +283,7 @@ func TestRegistry_InvokeResultHasCapabilityAndOperation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result, err := 	r.Invoke(t.Context(), hub.CapArchive, "add", nil)
+	result, err := r.Invoke(t.Context(), hub.CapArchive, "add", nil)
 	require.NoError(t, err)
 	assert.Equal(t, hub.CapArchive, result.Capability)
 	assert.Equal(t, "add", result.Operation)

@@ -4,12 +4,12 @@ PlantUML diagrams for Flowbot system architecture. Render with any PlantUML-comp
 
 ## Diagrams
 
-| File               | Type                | Description                                      |
-| ------------------ | ------------------- | ------------------------------------------------ |
-| `architecture.puml` | Component Diagram   | Overall system architecture and component relationships |
-| `layers.puml`       | Layered Diagram     | Abstraction layers from infrastructure to entry points |
-| `dataflow.puml`     | Sequence Diagrams   | Key data flows: chat message, workflow, events, hub, notifications |
-| `deployment.puml`   | Deployment Diagram  | Docker containers, CI/CD pipelines, external services |
+| File                | Type               | Description                                                        |
+| ------------------- | ------------------ | ------------------------------------------------------------------ |
+| `architecture.puml` | Component Diagram  | Overall system architecture and component relationships            |
+| `layers.puml`       | Layered Diagram    | Abstraction layers from infrastructure to entry points             |
+| `dataflow.puml`     | Sequence Diagrams  | Key data flows: chat message, workflow, events, hub, notifications |
+| `deployment.puml`   | Deployment Diagram | Docker containers, CI/CD pipelines, external services              |
 
 ## Rendering
 
@@ -60,11 +60,11 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 
 ### Entry Points
 
-| Binary             | Path             | Description                                   |
-| ------------------ | ---------------- | --------------------------------------------- |
-| Server             | `cmd/main.go`    | HTTP server (Fiber v3 + fx DI)                |
-| Admin CLI          | `cmd/cli/`       | User/token management, config, pipeline admin  |
-| Composer CLI       | `cmd/composer/`  | Code generation, schema docs, DAO generation   |
+| Binary       | Path            | Description                                   |
+| ------------ | --------------- | --------------------------------------------- |
+| Server       | `cmd/main.go`   | HTTP server (Fiber v3 + fx DI)                |
+| Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin |
+| Composer CLI | `cmd/composer/` | Code generation, schema docs, DAO generation  |
 
 ### Bot Modules (20)
 
@@ -84,10 +84,10 @@ ability, alarm, auth, cache, chatbot, client, config, crawler, event, executor, 
 
 ### CI/CD (`.github/workflows/`)
 
-| Workflow          | Description        |
-| ----------------- | ------------------ |
-| `build.yml`       | Lint + Build       |
-| `testing.yml`     | Run all tests      |
-| `build_cli.yml`   | Build CLI tools    |
-| `docker.yml`      | Build Docker image |
-| `release.yml`     | Release pipeline   |
+| Workflow        | Description        |
+| --------------- | ------------------ |
+| `build.yml`     | Lint + Build       |
+| `testing.yml`   | Run all tests      |
+| `build_cli.yml` | Build CLI tools    |
+| `docker.yml`    | Build Docker image |
+| `release.yml`   | Release pipeline   |

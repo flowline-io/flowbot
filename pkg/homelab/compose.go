@@ -26,7 +26,7 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 		return nil, nil, nil, nil, fmt.Errorf("parse compose: %w", err)
 	}
 	services := make([]ComposeService, 0, len(doc.Services))
-	ports := make([]PortMapping, 0)
+	ports := make([]PortMapping, 0, len(doc.Services)*2)
 	labels := make(map[string]string)
 	for name, svc := range doc.Services {
 		servicePorts := parsePorts(svc.Ports)

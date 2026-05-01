@@ -282,4 +282,3 @@ func TestWorkflowTaskToTask_SliceCmdMixedTypes(t *testing.T) {
 	// json.Unmarshal converts numbers to float64, so test with string slice
 	assert.Equal(t, []string{"echo", "hello"}, task.CMD)
 }
-

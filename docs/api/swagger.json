@@ -1,1375 +1,913 @@
 {
-    "schemes": [
-        "http"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Flowbot Chatbot API",
-        "title": "Flowbot API",
-        "contact": {},
-        "license": {
-            "name": "GPL 3.0",
-            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
-        },
-        "version": "1.0"
+  "schemes": ["http"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Flowbot Chatbot API",
+    "title": "Flowbot API",
+    "contact": {},
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
     },
-    "host": "localhost:6060",
-    "basePath": "/service",
-    "paths": {
-        "/dev/example": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "Show example",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
+    "version": "1.0"
+  },
+  "host": "localhost:6060",
+  "basePath": "/service",
+  "paths": {
+    "/dev/example": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "Show example",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
                     }
+                  }
                 }
+              ]
             }
-        },
-        "/server/stacktrace": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "get server or goroutines stacktrace",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/server/upload": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "upload PicGO upload api",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/bookmark": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "List bookmarks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pagination cursor",
-                        "name": "cursor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "include archived",
-                        "name": "archived",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "favourited only",
-                        "name": "favourited",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.BookmarksResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Create a new bookmark",
-                "parameters": [
-                    {
-                        "description": "bookmark URL",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "url": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.Bookmark"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/bookmark/{id}": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Get bookmark by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.Bookmark"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "patch": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Update bookmark (archive/unarchive)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "archive status",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "archived": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.ArchiveResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/bookmark/{id}/tags": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Attach tags to a bookmark",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "tag names",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.AttachTagsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Detach tags from a bookmark",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "tag names",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/karakeep.DetachTagsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "List kanban tasks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "project ID",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "status ID (1=active, 0=inactive)",
-                        "name": "status_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/kanboard.Task"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Create a new task",
-                "parameters": [
-                    {
-                        "description": "task data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "column_id": {
-                                    "type": "integer"
-                                },
-                                "description": {
-                                    "type": "string"
-                                },
-                                "project_id": {
-                                    "type": "integer"
-                                },
-                                "title": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "integer",
-                                                "format": "int64"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban/columns": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "List kanban columns",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "project ID",
-                        "name": "project_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "additionalProperties": true
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban/{id}": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Get task by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/kanboard.Task"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Close a task",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "patch": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Update a task",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "task data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "description": {
-                                    "type": "string"
-                                },
-                                "title": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban/{id}/move": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Move task to another column/position",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "move parameters",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "column_id": {
-                                    "type": "integer"
-                                },
-                                "position": {
-                                    "type": "integer"
-                                },
-                                "project_id": {
-                                    "type": "integer"
-                                },
-                                "swimlane_id": {
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/bookmark": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user bookmark list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/dashboard": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/kanban": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "get user kanban list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/user/metrics": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Show metrics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "kanboard.Task": {
-            "type": "object",
-            "properties": {
-                "assignee_name": {},
-                "assignee_username": {
-                    "type": "string"
+    "/server/stacktrace": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "get server or goroutines stacktrace",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
                 },
-                "category_description": {},
-                "category_id": {
-                    "type": "integer"
-                },
-                "category_name": {},
-                "color_id": {
-                    "type": "string"
-                },
-                "column_id": {
-                    "type": "integer"
-                },
-                "column_position": {
-                    "type": "integer"
-                },
-                "column_title": {
-                    "type": "string"
-                },
-                "creator_id": {
-                    "type": "integer"
-                },
-                "creator_name": {},
-                "creator_username": {
-                    "type": "string"
-                },
-                "date_completed": {},
-                "date_creation": {
-                    "type": "integer"
-                },
-                "date_due": {
-                    "type": "integer"
-                },
-                "date_modification": {
-                    "type": "integer"
-                },
-                "date_moved": {
-                    "type": "integer"
-                },
-                "date_started": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "external_provider": {},
-                "external_uri": {},
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "integer"
-                },
-                "owner_id": {
-                    "type": "integer"
-                },
-                "position": {
-                    "type": "integer"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "project_id": {
-                    "type": "integer"
-                },
-                "project_name": {
-                    "type": "string"
-                },
-                "recurrence_basedate": {
-                    "type": "integer"
-                },
-                "recurrence_child": {},
-                "recurrence_factor": {
-                    "type": "integer"
-                },
-                "recurrence_parent": {},
-                "recurrence_status": {
-                    "type": "integer"
-                },
-                "recurrence_timeframe": {},
-                "recurrence_trigger": {
-                    "type": "integer"
-                },
-                "reference": {
-                    "type": "string"
-                },
-                "score": {
-                    "type": "integer"
-                },
-                "swimlane_id": {
-                    "type": "integer"
-                },
-                "swimlane_name": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {}
-                },
-                "time_estimated": {},
-                "time_spent": {},
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.ArchiveResponse": {
-            "type": "object",
-            "properties": {
-                "archived": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "karakeep.AttachTagsResponse": {
-            "type": "object",
-            "properties": {
-                "attached": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
                     }
+                  }
                 }
+              ]
             }
+          }
         },
-        "karakeep.Bookmark": {
-            "type": "object",
-            "properties": {
-                "archived": {
-                    "type": "boolean"
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/server/upload": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "upload PicGO upload api",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
                 },
-                "assets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.BookmarksBookmarkIdAssets"
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
                     }
-                },
-                "content": {
-                    "$ref": "#/definitions/karakeep.BookmarkContent"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "favourited": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "note": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "summarizationStatus": {
-                    "description": "summarization status was added in API responses starting\nwith the new /bookmarks/:id endpoint and is not returned\nby the older list call.  Use a pointer to distinguish\nmissing values.",
-                    "type": "string"
-                },
-                "summary": {
-                    "type": "string"
-                },
-                "taggingStatus": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.BookmarkTagsInner"
-                    }
-                },
-                "title": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
+                  }
                 }
+              ]
             }
+          }
         },
-        "karakeep.BookmarkContent": {
-            "type": "object",
-            "properties": {
-                "crawledAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "favicon": {
-                    "type": "string"
-                },
-                "fullPageArchiveAssetId": {
-                    "type": "string"
-                },
-                "htmlContent": {
-                    "type": "string"
-                },
-                "imageAssetId": {
-                    "type": "string"
-                },
-                "imageUrl": {
-                    "type": "string"
-                },
-                "precrawledArchiveAssetId": {
-                    "type": "string"
-                },
-                "screenshotAssetId": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                },
-                "videoAssetId": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarkTagsInner": {
-            "type": "object",
-            "properties": {
-                "attachedBy": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarksBookmarkIdAssets": {
-            "type": "object",
-            "properties": {
-                "assetType": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarksResponse": {
-            "type": "object",
-            "properties": {
-                "bookmarks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.Bookmark"
-                    }
-                },
-                "nextCursor": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.DetachTagsResponse": {
-            "type": "object",
-            "properties": {
-                "detached": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "protocol.Response": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Response data"
-                },
-                "message": {
-                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
-                    "type": "string"
-                },
-                "retcode": {
-                    "description": "The return code, which must conform to the return code rules defined later on this page",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/protocol.ResponseStatus"
-                        }
-                    ]
-                }
-            }
-        },
-        "protocol.ResponseStatus": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "List bookmarks",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "page size",
+            "name": "limit",
+            "in": "query"
+          },
+          {
             "type": "string",
-            "enum": [
-                "ok",
-                "failed"
-            ],
-            "x-enum-varnames": [
-                "Success",
-                "Failed"
-            ]
+            "description": "pagination cursor",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "include archived",
+            "name": "archived",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "favourited only",
+            "name": "favourited",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         },
-        "types.KV": {
-            "type": "object",
-            "additionalProperties": {}
-        }
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Create a new bookmark",
+        "parameters": [
+          {
+            "description": "bookmark URL",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "description": "access token",
-            "type": "apiKey",
-            "name": "X-AccessToken",
-            "in": "header"
-        }
+    "/service/bookmark/check-url": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Check if URL exists in bookmarks",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "URL to check",
+            "name": "url",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/search": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Search bookmarks",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search query",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "sort order",
+            "name": "sort_order",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "page size",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "pagination cursor",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/{id}": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Get bookmark by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Archive bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/{id}/tags": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Attach tags to a bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "tag names",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Detach tags from a bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "tag names",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/reader": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "List all feeds",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "Create a new feed",
+        "parameters": [
+          {
+            "description": "feed data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reader.createFeedRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/reader/entries": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "List entries",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "status filter (read, unread, removed)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "filter by feed ID",
+            "name": "feed_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "Update entries status",
+        "parameters": [
+          {
+            "description": "entry IDs and status",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reader.updateEntriesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/bookmark": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user bookmark list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/dashboard": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/kanban": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "get user kanban list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/metrics": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["user"],
+        "summary": "Show metrics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     }
+  },
+  "definitions": {
+    "ability.EventRef": {
+      "type": "object",
+      "properties": {
+        "entity_id": {
+          "type": "string"
+        },
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        }
+      }
+    },
+    "ability.InvokeResult": {
+      "type": "object",
+      "properties": {
+        "capability": {
+          "$ref": "#/definitions/hub.CapabilityType"
+        },
+        "data": {},
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ability.EventRef"
+          }
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "operation": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/ability.PageInfo"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "ability.PageInfo": {
+      "type": "object",
+      "properties": {
+        "has_more": {
+          "type": "boolean"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "next_cursor": {
+          "type": "string"
+        },
+        "prev_cursor": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "hub.CapabilityType": {
+      "type": "string",
+      "enum": [
+        "bookmark",
+        "archive",
+        "reader",
+        "kanban",
+        "finance",
+        "infra",
+        "shell_history"
+      ],
+      "x-enum-varnames": [
+        "CapBookmark",
+        "CapArchive",
+        "CapReader",
+        "CapKanban",
+        "CapFinance",
+        "CapInfra",
+        "CapShellHistory"
+      ]
+    },
+    "protocol.Response": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "Response data"
+        },
+        "message": {
+          "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+          "type": "string"
+        },
+        "retcode": {
+          "description": "The return code, which must conform to the return code rules defined later on this page",
+          "type": "string"
+        },
+        "status": {
+          "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/protocol.ResponseStatus"
+            }
+          ]
+        }
+      }
+    },
+    "protocol.ResponseStatus": {
+      "type": "string",
+      "enum": ["ok", "failed"],
+      "x-enum-varnames": ["Success", "Failed"]
+    },
+    "reader.createFeedRequest": {
+      "type": "object",
+      "required": ["feed_url"],
+      "properties": {
+        "category_id": {
+          "type": "integer"
+        },
+        "feed_url": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      }
+    },
+    "reader.updateEntriesRequest": {
+      "type": "object",
+      "required": ["entry_ids", "status"],
+      "properties": {
+        "entry_ids": {
+          "type": "array",
+          "maxItems": 1000,
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["read", "unread", "removed"]
+        }
+      }
+    },
+    "types.KV": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "description": "access token",
+      "type": "apiKey",
+      "name": "X-AccessToken",
+      "in": "header"
+    }
+  }
 }

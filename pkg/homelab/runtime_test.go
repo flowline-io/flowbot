@@ -91,7 +91,7 @@ func TestNoopRuntime_AllOperations(t *testing.T) {
 
 func TestNewRuntime_ReturnsCorrectType(t *testing.T) {
 	tests := []struct {
-		mode    RuntimeMode
+		mode     RuntimeMode
 		wantType string
 	}{
 		{RuntimeModeNone, "*homelab.NoopRuntime"},
@@ -124,9 +124,9 @@ func getRuntimeTypeName(rt Runtime) string {
 
 func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 	r := NewSSHRuntime(RuntimeConfig{
-		Mode:    RuntimeModeSSH,
-		SSHHost: "example.com",
-		SSHUser: "root",
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
 		SSHPassword: "test",
 	})
 	assert.Equal(t, "example.com", r.host)
@@ -160,20 +160,20 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 
 func TestSSHRuntime_DefaultPort(t *testing.T) {
 	r := NewSSHRuntime(RuntimeConfig{
-		Mode:    RuntimeModeSSH,
-		SSHHost: "example.com",
-		SSHUser: "root",
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
 		SSHPassword: "test",
-		SSHPort: 0,
+		SSHPort:     0,
 	})
 	assert.Equal(t, 22, r.port)
 
 	r2 := NewSSHRuntime(RuntimeConfig{
-		Mode:    RuntimeModeSSH,
-		SSHHost: "example.com",
-		SSHUser: "root",
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
 		SSHPassword: "test",
-		SSHPort: 2222,
+		SSHPort:     2222,
 	})
 	assert.Equal(t, 2222, r2.port)
 }
@@ -183,9 +183,9 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 	cancel()
 
 	r := NewSSHRuntime(RuntimeConfig{
-		Mode:    RuntimeModeSSH,
-		SSHHost: "example.com",
-		SSHUser: "root",
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
 		SSHPassword: "test",
 	})
 	app := App{Name: "test", Path: "/test"}

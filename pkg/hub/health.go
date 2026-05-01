@@ -2,17 +2,17 @@ package hub
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type HealthResult struct {
-	Status      HealthStatus         `json:"status"`
-	Timestamp   time.Time            `json:"timestamp"`
-	Details     []CapabilityHealth   `json:"details,omitempty"`
-	AppStatuses []AppHealth          `json:"app_statuses,omitempty"`
+	Status      HealthStatus       `json:"status"`
+	Timestamp   time.Time          `json:"timestamp"`
+	Details     []CapabilityHealth `json:"details,omitempty"`
+	AppStatuses []AppHealth        `json:"app_statuses,omitempty"`
 }
 
 type HealthStatus string
@@ -94,7 +94,7 @@ func (c *Checker) Check(ctx context.Context) *HealthResult {
 func (c *Checker) CheckCapability(ctx context.Context, capType CapabilityType) (*CapabilityHealth, error) {
 	desc, ok := c.registry.Get(capType)
 	if !ok {
-		return nil, fmt.Errorf("capability %s not found", capType)
+		return nil, types.Errorf(types.ErrNotFound, "capability %s not found", capType)
 	}
 
 	ch := &CapabilityHealth{

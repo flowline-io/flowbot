@@ -181,7 +181,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.BookmarksResponse"
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -234,7 +234,121 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.Bookmark"
+                                            "$ref": "#/definitions/ability.InvokeResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/service/bookmark/check-url": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookmark"
+                ],
+                "summary": "Check if URL exists in bookmarks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL to check",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ability.InvokeResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/service/bookmark/search": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookmark"
+                ],
+                "summary": "Search bookmarks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sort order",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -282,7 +396,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.Bookmark"
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -306,7 +420,7 @@ const docTemplate = `{
                 "tags": [
                     "bookmark"
                 ],
-                "summary": "Update bookmark (archive/unarchive)",
+                "summary": "Archive bookmark",
                 "parameters": [
                     {
                         "type": "string",
@@ -314,20 +428,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "archive status",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "archived": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
                     }
                 ],
                 "responses": {
@@ -342,7 +442,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.ArchiveResponse"
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -402,7 +502,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.AttachTagsResponse"
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -460,7 +560,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/karakeep.DetachTagsResponse"
+                                            "$ref": "#/definitions/ability.InvokeResult"
                                         }
                                     }
                                 }
@@ -475,7 +575,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/service/kanban": {
+        "/service/reader": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -484,43 +584,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kanban"
+                    "reader"
                 ],
-                "summary": "List kanban tasks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "project ID",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "status ID (1=active, 0=inactive)",
-                        "name": "status_id",
-                        "in": "query"
-                    }
-                ],
+                "summary": "List all feeds",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/kanboard.Task"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 },
@@ -538,31 +609,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kanban"
+                    "reader"
                 ],
-                "summary": "Create a new task",
+                "summary": "Create a new feed",
                 "parameters": [
                     {
-                        "description": "task data",
+                        "description": "feed data",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "column_id": {
-                                    "type": "integer"
-                                },
-                                "description": {
-                                    "type": "string"
-                                },
-                                "project_id": {
-                                    "type": "integer"
-                                },
-                                "title": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/reader.createFeedRequest"
                         }
                     }
                 ],
@@ -570,23 +627,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "integer",
-                                                "format": "int64"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 },
@@ -597,7 +638,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/service/kanban/columns": {
+        "/service/reader/entries": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -606,14 +647,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kanban"
+                    "reader"
                 ],
-                "summary": "List kanban columns",
+                "summary": "List entries",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "status filter (read, unread, removed)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "project ID",
-                        "name": "project_id",
+                        "description": "filter by feed ID",
+                        "name": "feed_id",
                         "in": "query"
                     }
                 ],
@@ -621,120 +668,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "additionalProperties": true
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban/{id}": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Get task by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/kanboard.Task"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Close a task",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 },
@@ -752,32 +686,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "kanban"
+                    "reader"
                 ],
-                "summary": "Update a task",
+                "summary": "Update entries status",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "task data",
+                        "description": "entry IDs and status",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "description": {
-                                    "type": "string"
-                                },
-                                "title": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/reader.updateEntriesRequest"
                         }
                     }
                 ],
@@ -785,96 +704,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            }
-        },
-        "/service/kanban/{id}/move": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "kanban"
-                ],
-                "summary": "Move task to another column/position",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "task ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "move parameters",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "column_id": {
-                                    "type": "integer"
-                                },
-                                "position": {
-                                    "type": "integer"
-                                },
-                                "project_id": {
-                                    "type": "integer"
-                                },
-                                "swimlane_id": {
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "boolean"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/protocol.Response"
                         }
                     }
                 },
@@ -1043,289 +873,88 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "kanboard.Task": {
+        "ability.EventRef": {
             "type": "object",
             "properties": {
-                "assignee_name": {},
-                "assignee_username": {
+                "entity_id": {
                     "type": "string"
                 },
-                "category_description": {},
-                "category_id": {
-                    "type": "integer"
-                },
-                "category_name": {},
-                "color_id": {
+                "event_id": {
                     "type": "string"
                 },
-                "column_id": {
-                    "type": "integer"
-                },
-                "column_position": {
-                    "type": "integer"
-                },
-                "column_title": {
-                    "type": "string"
-                },
-                "creator_id": {
-                    "type": "integer"
-                },
-                "creator_name": {},
-                "creator_username": {
-                    "type": "string"
-                },
-                "date_completed": {},
-                "date_creation": {
-                    "type": "integer"
-                },
-                "date_due": {
-                    "type": "integer"
-                },
-                "date_modification": {
-                    "type": "integer"
-                },
-                "date_moved": {
-                    "type": "integer"
-                },
-                "date_started": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "external_provider": {},
-                "external_uri": {},
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "integer"
-                },
-                "owner_id": {
-                    "type": "integer"
-                },
-                "position": {
-                    "type": "integer"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "project_id": {
-                    "type": "integer"
-                },
-                "project_name": {
-                    "type": "string"
-                },
-                "recurrence_basedate": {
-                    "type": "integer"
-                },
-                "recurrence_child": {},
-                "recurrence_factor": {
-                    "type": "integer"
-                },
-                "recurrence_parent": {},
-                "recurrence_status": {
-                    "type": "integer"
-                },
-                "recurrence_timeframe": {},
-                "recurrence_trigger": {
-                    "type": "integer"
-                },
-                "reference": {
-                    "type": "string"
-                },
-                "score": {
-                    "type": "integer"
-                },
-                "swimlane_id": {
-                    "type": "integer"
-                },
-                "swimlane_name": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {}
-                },
-                "time_estimated": {},
-                "time_spent": {},
-                "title": {
+                "event_type": {
                     "type": "string"
                 }
             }
         },
-        "karakeep.ArchiveResponse": {
+        "ability.InvokeResult": {
             "type": "object",
             "properties": {
-                "archived": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "karakeep.AttachTagsResponse": {
-            "type": "object",
-            "properties": {
-                "attached": {
+                "capability": {
+                    "$ref": "#/definitions/hub.CapabilityType"
+                },
+                "data": {},
+                "events": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/ability.EventRef"
                     }
+                },
+                "meta": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "operation": {
+                    "type": "string"
+                },
+                "page": {
+                    "$ref": "#/definitions/ability.PageInfo"
+                },
+                "text": {
+                    "type": "string"
                 }
             }
         },
-        "karakeep.Bookmark": {
+        "ability.PageInfo": {
             "type": "object",
             "properties": {
-                "archived": {
+                "has_more": {
                     "type": "boolean"
                 },
-                "assets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.BookmarksBookmarkIdAssets"
-                    }
+                "limit": {
+                    "type": "integer"
                 },
-                "content": {
-                    "$ref": "#/definitions/karakeep.BookmarkContent"
-                },
-                "createdAt": {
+                "next_cursor": {
                     "type": "string"
                 },
-                "favourited": {
-                    "type": "boolean"
-                },
-                "id": {
+                "prev_cursor": {
                     "type": "string"
                 },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "note": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "summarizationStatus": {
-                    "description": "summarization status was added in API responses starting\nwith the new /bookmarks/:id endpoint and is not returned\nby the older list call.  Use a pointer to distinguish\nmissing values.",
-                    "type": "string"
-                },
-                "summary": {
-                    "type": "string"
-                },
-                "taggingStatus": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.BookmarkTagsInner"
-                    }
-                },
-                "title": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
+                "total": {
+                    "type": "integer"
                 }
             }
         },
-        "karakeep.BookmarkContent": {
-            "type": "object",
-            "properties": {
-                "crawledAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "favicon": {
-                    "type": "string"
-                },
-                "fullPageArchiveAssetId": {
-                    "type": "string"
-                },
-                "htmlContent": {
-                    "type": "string"
-                },
-                "imageAssetId": {
-                    "type": "string"
-                },
-                "imageUrl": {
-                    "type": "string"
-                },
-                "precrawledArchiveAssetId": {
-                    "type": "string"
-                },
-                "screenshotAssetId": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                },
-                "videoAssetId": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarkTagsInner": {
-            "type": "object",
-            "properties": {
-                "attachedBy": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarksBookmarkIdAssets": {
-            "type": "object",
-            "properties": {
-                "assetType": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.BookmarksResponse": {
-            "type": "object",
-            "properties": {
-                "bookmarks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/karakeep.Bookmark"
-                    }
-                },
-                "nextCursor": {
-                    "type": "string"
-                }
-            }
-        },
-        "karakeep.DetachTagsResponse": {
-            "type": "object",
-            "properties": {
-                "detached": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
+        "hub.CapabilityType": {
+            "type": "string",
+            "enum": [
+                "bookmark",
+                "archive",
+                "reader",
+                "kanban",
+                "finance",
+                "infra",
+                "shell_history"
+            ],
+            "x-enum-varnames": [
+                "CapBookmark",
+                "CapArchive",
+                "CapReader",
+                "CapKanban",
+                "CapFinance",
+                "CapInfra",
+                "CapShellHistory"
+            ]
         },
         "protocol.Response": {
             "type": "object",
@@ -1361,6 +990,46 @@ const docTemplate = `{
                 "Success",
                 "Failed"
             ]
+        },
+        "reader.createFeedRequest": {
+            "type": "object",
+            "required": [
+                "feed_url"
+            ],
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "feed_url": {
+                    "type": "string",
+                    "maxLength": 2048
+                }
+            }
+        },
+        "reader.updateEntriesRequest": {
+            "type": "object",
+            "required": [
+                "entry_ids",
+                "status"
+            ],
+            "properties": {
+                "entry_ids": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "read",
+                        "unread",
+                        "removed"
+                    ]
+                }
+            }
         },
         "types.KV": {
             "type": "object",

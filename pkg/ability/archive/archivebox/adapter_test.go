@@ -25,7 +25,7 @@ func TestAddCreatesArchiveItem(t *testing.T) {
 	client := &fakeClient{resp: &provider.Response{Success: true, Result: []string{"snapshot-id"}}}
 	adapter := NewWithClient(client)
 
-	item, err := 	adapter.Add(t.Context(), archive.AddRequest{URL: "https://example.com"})
+	item, err := adapter.Add(t.Context(), archive.AddRequest{URL: "https://example.com"})
 	require.NoError(t, err)
 	require.Equal(t, "snapshot-id", item.ID)
 	require.Equal(t, "https://example.com", item.URL)
@@ -35,7 +35,7 @@ func TestAddCreatesArchiveItem(t *testing.T) {
 func TestAddWrapsProviderError(t *testing.T) {
 	adapter := NewWithClient(&fakeClient{err: errors.New("boom")})
 
-	_, err := 	adapter.Add(t.Context(), archive.AddRequest{URL: "https://example.com"})
+	_, err := adapter.Add(t.Context(), archive.AddRequest{URL: "https://example.com"})
 	require.Error(t, err)
 	require.True(t, errors.Is(err, types.ErrProvider))
 }
@@ -43,7 +43,7 @@ func TestAddWrapsProviderError(t *testing.T) {
 func TestAddRejectsEmptyURL(t *testing.T) {
 	adapter := NewWithClient(&fakeClient{})
 
-	_, err := 	adapter.Add(t.Context(), archive.AddRequest{})
+	_, err := adapter.Add(t.Context(), archive.AddRequest{})
 	require.Error(t, err)
 	require.True(t, errors.Is(err, types.ErrInvalidArgument))
 }

@@ -41,7 +41,6 @@ func (c *Button) Render() app.UI { return app.Button().Body(app.Text(c.Text)) }
 
 **Form Builder** (`form/builder.go`): Dynamic forms driven by `FormRule` definitions. Validates server-side.
 
-
 ## Anti-Patterns
 
 - **Never** use raw HTML strings — use go-app components

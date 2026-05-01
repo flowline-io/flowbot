@@ -2,6 +2,7 @@ package homelab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+type composePSEntry struct {
+	State string `json:"State"`
+}
+
 // parseComposePSStatus parses docker compose ps --format json output into an AppStatus.
 func parseComposePSStatus(output string) AppStatus {
 	trimmed := strings.TrimSpace(output)
@@ -19,17 +24,20 @@ func parseComposePSStatus(output string) AppStatus {
 		return AppStatusStopped
 	}
 
-	lines := strings.Split(trimmed, "\n")
+	var entries []composePSEntry
+	if err := json.Unmarshal([]byte(trimmed), &entries); err != nil {
+		return AppStatusUnknown
+	}
+
 	exitedCount := 0
 	runningCount := 0
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		if strings.Contains(line, `"exited"`) || strings.Contains(line, `"EXITED"`) {
+	for _, entry := range entries {
+		switch strings.ToLower(entry.State) {
+		case "exited":
 			exitedCount++
-		} else {
+		case "running":
+			runningCount++
+		default:
 			runningCount++
 		}
 	}

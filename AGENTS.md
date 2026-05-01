@@ -9,24 +9,24 @@ Multi-platform chatbot framework with 20 bot modules, workflow engine, and LLM a
 
 ## Quick Reference
 
-| Task             | Location             | Notes                   |
-| ---------------- | -------------------- | ----------------------- |
-| Add new bot      | `internal/modules/`  | See `AGENTS.md` there   |
-| Module framework | `pkg/module/`        | Handler interface       |
-| Database work    | `internal/store/`    | DAO pattern, migrations |
-| New provider     | `pkg/providers/`     | OAuth + API clients     |
-| Capability layer | `pkg/ability/`       | ability.Invoke()        |
-| Pipeline engine  | `pkg/pipeline/`      | Event-driven pipelines  |
-| Workflow engine  | `pkg/workflow/`      | Workflow runtime        |
-| Hub management   | `pkg/hub/`           | App lifecycle           |
-| Homelab registry | `pkg/homelab/`       | App scanning            |
-| Authentication   | `pkg/auth/`          | AuthContext helpers     |
-| Notifications    | `pkg/notify/`        | Multi-channel notify    |
-| Core types       | `pkg/types/`         | Rulesets, protocol, KV  |
-| API routes       | `internal/server/`   | Fiber v3 handlers       |
-| Entry points  | `cmd/`               | 3 binaries              |
-| Frontend/PWA     | `pkg/page/`          | go-app WASM components  |
-| Utilities        | `pkg/utils/`         | Must have unit tests    |
+| Task             | Location            | Notes                   |
+| ---------------- | ------------------- | ----------------------- |
+| Add new bot      | `internal/modules/` | See `AGENTS.md` there   |
+| Module framework | `pkg/module/`       | Handler interface       |
+| Database work    | `internal/store/`   | DAO pattern, migrations |
+| New provider     | `pkg/providers/`    | OAuth + API clients     |
+| Capability layer | `pkg/ability/`      | ability.Invoke()        |
+| Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines  |
+| Workflow engine  | `pkg/workflow/`     | Workflow runtime        |
+| Hub management   | `pkg/hub/`          | App lifecycle           |
+| Homelab registry | `pkg/homelab/`      | App scanning            |
+| Authentication   | `pkg/auth/`         | AuthContext helpers     |
+| Notifications    | `pkg/notify/`       | Multi-channel notify    |
+| Core types       | `pkg/types/`        | Rulesets, protocol, KV  |
+| API routes       | `internal/server/`  | Fiber v3 handlers       |
+| Entry points     | `cmd/`              | 3 binaries              |
+| Frontend/PWA     | `pkg/page/`         | go-app WASM components  |
+| Utilities        | `pkg/utils/`        | Must have unit tests    |
 
 ## Structure
 
@@ -159,6 +159,7 @@ enabled: blank-imports, dot-imports, error-naming, import-shadowing
 **AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
 
 **Standard Error**:
+
 ```go
 errors.Is(err, types.ErrNotFound)
 errors.Is(err, types.ErrForbidden)
@@ -168,6 +169,7 @@ errors.Is(err, types.ErrProvider)
 **Standard Pagination**: limit + opaque cursor, provider page/offset/token hidden in adapter
 
 **Durable Event**:
+
 ```
 DataEvent → MySQL data_events
 EventOutbox → Redis Stream
@@ -202,11 +204,11 @@ go test -run ^TestFoo$ ./pkg/utils
 
 ## Generated Code
 
-| Type       | Command          | Location                      |
-| ---------- | ---------------- | ----------------------------- |
-| DAO        | `task dao`       | `internal/store/dao/*.gen.go` |
-| Swagger    | `task swagger`   | `docs/api/`                   |
-| Migrations | `task migrate`   | `pkg/migrate/migrations/`     |
+| Type       | Command        | Location                      |
+| ---------- | -------------- | ----------------------------- |
+| DAO        | `task dao`     | `internal/store/dao/*.gen.go` |
+| Swagger    | `task swagger` | `docs/api/`                   |
+| Migrations | `task migrate` | `pkg/migrate/migrations/`     |
 
 **Never** edit `.gen.go` files directly.
 
