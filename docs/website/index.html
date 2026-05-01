@@ -1,134 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flowbot — The Orchestration Engine for Your Homelab</title>
-  <meta name="description" content="Homelab Data Hub & Capability Orchestration Center. Discover self-hosted apps, abstract capabilities, expose unified interfaces, and orchestrate cross-service automation.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2300e5ff' stroke-width='3'/><circle cx='50' cy='50' r='15' fill='%2300e5ff'/></svg>">
-</head>
-<body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Flowbot — The Orchestration Engine for Your Homelab</title>
+		<meta
+			name="description"
+			content="Homelab Data Hub & Capability Orchestration Center. Discover self-hosted apps, abstract capabilities, expose unified interfaces, and orchestrate cross-service automation."
+		/>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="css/style.css" />
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2300e5ff' stroke-width='3'/><circle cx='50' cy='50' r='15' fill='%2300e5ff'/></svg>"
+		/>
+	</head>
+	<body>
+		<!-- Background Grid -->
+		<div class="bg-grid"><canvas id="bg-canvas"></canvas></div>
 
-<!-- Background Grid -->
-<div class="bg-grid"><canvas id="bg-canvas"></canvas></div>
+		<!-- Navigation -->
+		<nav class="nav">
+			<div class="nav-inner">
+				<a href="/" class="nav-logo">flowbot<span>.io</span></a>
+				<ul class="nav-links">
+					<li><a href="#overview">Overview</a></li>
+					<li><a href="#problem">Problem</a></li>
+					<li><a href="#capabilities">Capabilities</a></li>
+					<li><a href="#workflow">Workflow</a></li>
+					<li><a href="design.html">Design</a></li>
+					<li><a href="api.html">API</a></li>
+					<li><a href="tutorials.html">Tutorials</a></li>
+				</ul>
+				<a
+					href="https://github.com/flowline-io/flowbot"
+					class="nav-cta"
+					target="_blank"
+					rel="noopener"
+					>GitHub</a
+				>
+				<button class="nav-toggle" aria-label="Menu">
+					<span></span><span></span><span></span>
+				</button>
+			</div>
+		</nav>
 
-<!-- Navigation -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="nav-logo">flowbot<span>.io</span></a>
-    <ul class="nav-links">
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#problem">Problem</a></li>
-      <li><a href="#capabilities">Capabilities</a></li>
-      <li><a href="#workflow">Workflow</a></li>
-      <li><a href="design.html">Design</a></li>
-      <li><a href="api.html">API</a></li>
-      <li><a href="tutorials.html">Tutorials</a></li>
-    </ul>
-    <a href="https://github.com/flowline-io/flowbot" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
-    <button class="nav-toggle" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</nav>
-
-<div class="page">
-
-  <!-- ============================================================
+		<div class="page">
+			<!-- ============================================================
        SECTION 1: Hero — The Declaration
        ============================================================ -->
-  <section class="hero section" id="overview">
-    <div class="hero-grid">
-      <div class="hero-text">
-        <h1 class="hero-title">
-          The <em>Orchestration Engine</em> for Your Homelab
-        </h1>
-        <p class="hero-desc">
-          Not just a data hub — an orchestration center that connects isolated self-hosted apps into a unified, programmable data stream.
-        </p>
-        <div class="hero-actions">
-          <a href="tutorials.html" class="btn btn-primary">Get Started &#8627;</a>
-          <a href="https://github.com/flowline-io/flowbot" class="btn btn-secondary" target="_blank" rel="noopener">View Source &#8599;</a>
-        </div>
+			<section class="hero section" id="overview">
+				<div class="hero-grid">
+					<div class="hero-text">
+						<h1 class="hero-title">
+							The <em>Orchestration Engine</em> for Your Homelab
+						</h1>
+						<p class="hero-desc">
+							Not just a data hub — an orchestration center that
+							connects isolated self-hosted apps into a unified,
+							programmable data stream.
+						</p>
+						<div class="hero-actions">
+							<a href="tutorials.html" class="btn btn-primary"
+								>Get Started &#8627;</a
+							>
+							<a
+								href="https://github.com/flowline-io/flowbot"
+								class="btn btn-secondary"
+								target="_blank"
+								rel="noopener"
+								>View Source &#8599;</a
+							>
+						</div>
 
-        <!-- Terminal Typing Block -->
-        <div class="terminal-block" id="typing-terminal">
-          <div class="terminal-dots"><span></span><span></span><span></span></div>
-          <div class="terminal-lines"></div>
-          <div class="terminal-cursor"></div>
-        </div>
-      </div>
+						<!-- Terminal Typing Block -->
+						<div class="terminal-block" id="typing-terminal">
+							<div class="terminal-dots">
+								<span></span><span></span><span></span>
+							</div>
+							<div class="terminal-lines"></div>
+							<div class="terminal-cursor"></div>
+						</div>
+					</div>
 
-      <div class="hero-visual">
-        <canvas id="hero-canvas"></canvas>
-      </div>
-    </div>
-  </section>
+					<div class="hero-visual">
+						<canvas id="hero-canvas"></canvas>
+					</div>
+				</div>
+			</section>
 
-  <!-- ============================================================
+			<!-- ============================================================
        SECTION 2: Problem — Chaos vs. Order
        ============================================================ -->
-  <section class="section" id="problem">
-    <div class="section-label">The Problem</div>
-    <h2 class="section-title">Chaos to <em>Order</em></h2>
-    <p class="section-subtitle">
-      In a typical homelab, dozens of self-hosted apps run independently. Each has its own API, auth model, pagination convention, and data format.
-    </p>
+			<section class="section" id="problem">
+				<div class="section-label">The Problem</div>
+				<h2 class="section-title">Chaos to <em>Order</em></h2>
+				<p class="section-subtitle">
+					In a typical homelab, dozens of self-hosted apps run
+					independently. Each has its own API, auth model, pagination
+					convention, and data format.
+				</p>
 
-    <div class="problem-grid">
-      <div class="problem-panel before">
-        <h3>Before Flowbot</h3>
-        <ul class="problem-items">
-          <li>Dozens of independent apps under <code>/home/</code></li>
-          <li>Fragmented APIs with no unified interface</li>
-          <li>Different authentication models per app</li>
-          <li>Inconsistent pagination: offset, page, cursor, token</li>
-          <li>No cross-service automation</li>
-          <li>No audit trail for data operations</li>
-        </ul>
-      </div>
+				<div class="problem-grid">
+					<div class="problem-panel before">
+						<h3>Before Flowbot</h3>
+						<ul class="problem-items">
+							<li>
+								Dozens of independent apps under
+								<code>/home/</code>
+							</li>
+							<li>Fragmented APIs with no unified interface</li>
+							<li>Different authentication models per app</li>
+							<li>
+								Inconsistent pagination: offset, page, cursor,
+								token
+							</li>
+							<li>No cross-service automation</li>
+							<li>No audit trail for data operations</li>
+						</ul>
+					</div>
 
-      <div class="problem-divider">
-        <div class="problem-divider-line"></div>
-        <div class="problem-question">How do I make all these apps work together?</div>
-      </div>
+					<div class="problem-divider">
+						<div class="problem-divider-line"></div>
+						<div class="problem-question">
+							How do I make all these apps work together?
+						</div>
+					</div>
 
-      <div class="problem-panel after">
-        <h3>With Flowbot</h3>
-        <ul class="problem-items">
-          <li>Auto-discovery of apps via Homelab Scanner</li>
-          <li>Unified capability abstraction (<code>bookmark</code>, <code>archive</code>, <code>reader</code>, ...)</li>
-          <li>Single AuthContext across all surfaces</li>
-          <li>Standard pagination: limit + opaque cursor</li>
-          <li>Declarative Pipelines for cross-service data flow</li>
-          <li>Durable events, execution history, full audit trail</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+					<div class="problem-panel after">
+						<h3>With Flowbot</h3>
+						<ul class="problem-items">
+							<li>Auto-discovery of apps via Homelab Scanner</li>
+							<li>
+								Unified capability abstraction
+								(<code>bookmark</code>, <code>archive</code>,
+								<code>reader</code>, ...)
+							</li>
+							<li>Single AuthContext across all surfaces</li>
+							<li>Standard pagination: limit + opaque cursor</li>
+							<li>
+								Declarative Pipelines for cross-service data
+								flow
+							</li>
+							<li>
+								Durable events, execution history, full audit
+								trail
+							</li>
+						</ul>
+					</div>
+				</div>
+			</section>
 
-  <!-- ============================================================
+			<!-- ============================================================
        SECTION 3: Capabilities — Bento Box
        ============================================================ -->
-  <section class="section" id="capabilities">
-    <div class="section-label">Capabilities</div>
-    <h2 class="section-title">Modular. <em>Orthogonal.</em> Composable.</h2>
-    <p class="section-subtitle">
-      Each capability abstracts over one or more providers, exposing a unified invocation pattern regardless of the underlying app.
-    </p>
+			<section class="section" id="capabilities">
+				<div class="section-label">Capabilities</div>
+				<h2 class="section-title">
+					Modular. <em>Orthogonal.</em> Composable.
+				</h2>
+				<p class="section-subtitle">
+					Each capability abstracts over one or more providers,
+					exposing a unified invocation pattern regardless of the
+					underlying app.
+				</p>
 
-    <div class="bento">
-      <!-- Large card: Declarative Pipeline -->
-      <div class="bento-card col-2 row-2">
-        <div class="bento-icon">&#9655;</div>
-        <h4>Declarative Pipeline</h4>
-        <p>Event-driven, idempotent, auditable cross-service data flows defined in YAML.</p>
-        <div class="code-preview">
-<pre><span class="cmt"># When a new bookmark is saved, archive it &amp; notify</span>
+				<div class="bento">
+					<!-- Large card: Declarative Pipeline -->
+					<div class="bento-card col-2 row-2">
+						<div class="bento-icon">&#9655;</div>
+						<h4>Declarative Pipeline</h4>
+						<p>
+							Event-driven, idempotent, auditable cross-service
+							data flows defined in YAML.
+						</p>
+						<div class="code-preview">
+							<pre><span class="cmt"># When a new bookmark is saved, archive it &amp; notify</span>
 <span class="kw">trigger</span>:
   event: <span class="str">"bookmark.created"</span>
 <span class="kw">steps</span>:
@@ -138,113 +191,194 @@
     input:
       channel: slack
       message: <span class="str">"Archived: $.event.url"</span></pre>
-        </div>
-      </div>
+						</div>
+					</div>
 
-      <!-- App Discovery -->
-      <div class="bento-card">
-        <div class="bento-icon">&#9741;</div>
-        <h4>App Discovery</h4>
-        <p>Homelab Scanner automatically scans <code>docker-compose.yaml</code> and registers apps. Bind apps to capabilities with one command.</p>
-      </div>
+					<!-- App Discovery -->
+					<div class="bento-card">
+						<div class="bento-icon">&#9741;</div>
+						<h4>App Discovery</h4>
+						<p>
+							Homelab Scanner automatically scans
+							<code>docker-compose.yaml</code> and registers apps.
+							Bind apps to capabilities with one command.
+						</p>
+					</div>
 
-      <!-- Unified Interfaces -->
-      <div class="bento-card">
-        <div class="bento-icon">&#9783;</div>
-        <h4>Unified Interfaces</h4>
-        <p>Every capability is accessible through every interaction surface. Chat is just one of many.</p>
-        <div class="iface-grid">
-          <span class="iface-tag">REST</span>
-          <span class="iface-tag">CLI</span>
-          <span class="iface-tag">Chat</span>
-          <span class="iface-tag">Form</span>
-          <span class="iface-tag">Webhook</span>
-          <span class="iface-tag">Cron</span>
-          <span class="iface-tag">Workflow</span>
-        </div>
-      </div>
+					<!-- Unified Interfaces -->
+					<div class="bento-card">
+						<div class="bento-icon">&#9783;</div>
+						<h4>Unified Interfaces</h4>
+						<p>
+							Every capability is accessible through every
+							interaction surface. Chat is just one of many.
+						</p>
+						<div class="iface-grid">
+							<span class="iface-tag">REST</span>
+							<span class="iface-tag">CLI</span>
+							<span class="iface-tag">Chat</span>
+							<span class="iface-tag">Form</span>
+							<span class="iface-tag">Webhook</span>
+							<span class="iface-tag">Cron</span>
+							<span class="iface-tag">Workflow</span>
+						</div>
+					</div>
 
-      <!-- Auth Boundary -->
-      <div class="bento-card">
-        <div class="bento-icon">&#9901;</div>
-        <h4>AuthContext</h4>
-        <p>Single authentication context that spans REST, CLI, Chat, Webhook, Cron, Pipeline, and Workflow. No per-app auth fragmentation.</p>
-      </div>
+					<!-- Auth Boundary -->
+					<div class="bento-card">
+						<div class="bento-icon">&#9901;</div>
+						<h4>AuthContext</h4>
+						<p>
+							Single authentication context that spans REST, CLI,
+							Chat, Webhook, Cron, Pipeline, and Workflow. No
+							per-app auth fragmentation.
+						</p>
+					</div>
 
-      <!-- Standard Errors -->
-      <div class="bento-card">
-        <div class="bento-icon">&#9888;</div>
-        <h4>Standard Errors &amp; Pagination</h4>
-        <p>All providers wrapped in adapter layer with <code>ErrNotFound</code>, <code>ErrForbidden</code>, <code>ErrProvider</code>. Pagination unified as limit + opaque cursor.</p>
-      </div>
+					<!-- Standard Errors -->
+					<div class="bento-card">
+						<div class="bento-icon">&#9888;</div>
+						<h4>Standard Errors &amp; Pagination</h4>
+						<p>
+							All providers wrapped in adapter layer with
+							<code>ErrNotFound</code>, <code>ErrForbidden</code>,
+							<code>ErrProvider</code>. Pagination unified as
+							limit + opaque cursor.
+						</p>
+					</div>
 
-      <!-- Audit Trail — horizontal long card -->
-      <div class="bento-card col-2">
-        <div class="bento-icon">&#9989;</div>
-        <h4>Audit Trail &amp; Replay</h4>
-        <p>Every event, pipeline run, and operation is persisted. Traceable, recoverable, and replayable.</p>
-        <div class="audit-log">
-          <div><span class="ts">2026-04-30T22:14:03Z</span> <span class="ev">[pipeline:archive-on-bookmark]</span> <span class="st">triggered</span> by bookmark.created</div>
-          <div><span class="ts">2026-04-30T22:14:03Z</span> <span class="ev">[pipeline:archive-on-bookmark]</span> <span class="st">step 1/2</span> archive.submit -&gt; OK</div>
-          <div><span class="ts">2026-04-30T22:14:04Z</span> <span class="ev">[pipeline:archive-on-bookmark]</span> <span class="st">step 2/2</span> notify.send -&gt; OK</div>
-          <div><span class="ts">2026-04-30T22:14:04Z</span> <span class="ev">[pipeline:archive-on-bookmark]</span> <span class="st">completed</span> in 1.2s</div>
-          <div><span class="ts">2026-04-30T22:15:00Z</span> <span class="ev">[pipeline:backup-weekly]</span> <span class="er">step 4/5</span> archive.create -&gt; ERR_PROVIDER</div>
-        </div>
-      </div>
-    </div>
-  </section>
+					<!-- Audit Trail — horizontal long card -->
+					<div class="bento-card col-2">
+						<div class="bento-icon">&#9989;</div>
+						<h4>Audit Trail &amp; Replay</h4>
+						<p>
+							Every event, pipeline run, and operation is
+							persisted. Traceable, recoverable, and replayable.
+						</p>
+						<div class="audit-log">
+							<div>
+								<span class="ts">2026-04-30T22:14:03Z</span>
+								<span class="ev"
+									>[pipeline:archive-on-bookmark]</span
+								>
+								<span class="st">triggered</span> by
+								bookmark.created
+							</div>
+							<div>
+								<span class="ts">2026-04-30T22:14:03Z</span>
+								<span class="ev"
+									>[pipeline:archive-on-bookmark]</span
+								>
+								<span class="st">step 1/2</span> archive.submit
+								-&gt; OK
+							</div>
+							<div>
+								<span class="ts">2026-04-30T22:14:04Z</span>
+								<span class="ev"
+									>[pipeline:archive-on-bookmark]</span
+								>
+								<span class="st">step 2/2</span> notify.send
+								-&gt; OK
+							</div>
+							<div>
+								<span class="ts">2026-04-30T22:14:04Z</span>
+								<span class="ev"
+									>[pipeline:archive-on-bookmark]</span
+								>
+								<span class="st">completed</span> in 1.2s
+							</div>
+							<div>
+								<span class="ts">2026-04-30T22:15:00Z</span>
+								<span class="ev">[pipeline:backup-weekly]</span>
+								<span class="er">step 4/5</span> archive.create
+								-&gt; ERR_PROVIDER
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
 
-  <!-- ============================================================
+			<!-- ============================================================
        SECTION 4: Workflow Engine — DAG
        ============================================================ -->
-  <section class="section workflow" id="workflow">
-    <div class="workflow-bg"><canvas id="workflow-canvas"></canvas></div>
-    <div class="workflow-content">
-      <div class="section-label">Workflow Engine</div>
-      <h2 class="section-title">Composable <em>Automation</em></h2>
-      <p class="section-subtitle" style="margin: 0 auto;">
-        Connect capabilities like building blocks. Each step invokes a capability through the unified ability layer. The DAG execution engine handles parallelism, error recovery, and idempotency.
-      </p>
+			<section class="section workflow" id="workflow">
+				<div class="workflow-bg">
+					<canvas id="workflow-canvas"></canvas>
+				</div>
+				<div class="workflow-content">
+					<div class="section-label">Workflow Engine</div>
+					<h2 class="section-title">
+						Composable <em>Automation</em>
+					</h2>
+					<p class="section-subtitle" style="margin: 0 auto">
+						Connect capabilities like building blocks. Each step
+						invokes a capability through the unified ability layer.
+						The DAG execution engine handles parallelism, error
+						recovery, and idempotency.
+					</p>
 
-      <div class="workflow-dag">
-        <div class="dag-node trigger">cron trigger</div>
-        <div class="dag-node">reader.fetch</div>
-        <div class="dag-node">llm.summarize</div>
-        <div class="dag-node">bookmark.create</div>
-        <div class="dag-node end">notify.send</div>
-      </div>
+					<div class="workflow-dag">
+						<div class="dag-node trigger">cron trigger</div>
+						<div class="dag-node">reader.fetch</div>
+						<div class="dag-node">llm.summarize</div>
+						<div class="dag-node">bookmark.create</div>
+						<div class="dag-node end">notify.send</div>
+					</div>
 
-      <p style="margin-top: 28px; color: var(--white-muted); font-size: 0.88rem;">
-        Built-in step types: <code>Capability</code>, <code>Message</code>, <code>Fetch</code>, <code>Feed</code>, <code>LLM</code>, <code>Docker</code>, <code>Grep</code>, <code>Unique</code>, <code>Torrent</code>
-      </p>
+					<p
+						style="
+							margin-top: 28px;
+							color: var(--white-muted);
+							font-size: 0.88rem;
+						"
+					>
+						Built-in step types: <code>Capability</code>,
+						<code>Message</code>, <code>Fetch</code>,
+						<code>Feed</code>, <code>LLM</code>,
+						<code>Docker</code>, <code>Grep</code>,
+						<code>Unique</code>, <code>Torrent</code>
+					</p>
 
-      <div class="code-preview" style="max-width: 620px; margin: 24px auto 0; text-align: left;">
-<pre><span class="cmt">// Every step invokes through the same pattern</span>
+					<div
+						class="code-preview"
+						style="
+							max-width: 620px;
+							margin: 24px auto 0;
+							text-align: left;
+						"
+					>
+						<pre><span class="cmt">// Every step invokes through the same pattern</span>
 <span class="kw">result</span>, err := <span class="fn">ability.Invoke</span>(ctx, <span class="str">"bookmark"</span>,
     ability.OpList,
     ability.Params{Limit: <span class="str">20</span>})</pre>
-      </div>
-    </div>
-  </section>
+					</div>
+				</div>
+			</section>
 
-  <!-- ============================================================
+			<!-- ============================================================
        SECTION 5: Footer
        ============================================================ -->
-  <footer class="footer">
-    <div class="footer-left">
-      <a href="https://github.com/flowline-io/flowbot" target="_blank" rel="noopener">GitHub</a>
-      <a href="design.html">Design</a>
-      <a href="api.html">API</a>
-      <a href="tutorials.html">Tutorials</a>
-      <span style="color: var(--white-muted); font-size: 0.82rem;">GPL-3.0</span>
-    </div>
-    <div class="footer-right">
-      Built for the Homelabbers, by the Homelabbers.
-    </div>
-  </footer>
+			<footer class="footer">
+				<div class="footer-left">
+					<a
+						href="https://github.com/flowline-io/flowbot"
+						target="_blank"
+						rel="noopener"
+						>GitHub</a
+					>
+					<a href="design.html">Design</a>
+					<a href="api.html">API</a>
+					<a href="tutorials.html">Tutorials</a>
+					<span style="color: var(--white-muted); font-size: 0.82rem"
+						>GPL-3.0</span
+					>
+				</div>
+				<div class="footer-right">
+					Built for the Homelabbers, by the Homelabbers.
+				</div>
+			</footer>
+		</div>
 
-</div>
-
-<script src="js/main.js"></script>
-</body>
+		<script src="js/main.js"></script>
+	</body>
 </html>
