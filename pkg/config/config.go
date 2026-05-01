@@ -76,6 +76,9 @@ type Type struct {
 
 	// Agents
 	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
+
+	// Homelab app registry and lifecycle configuration
+	Homelab Homelab `json:"homelab" yaml:"homelab" mapstructure:"homelab"`
 }
 
 // Large file handler config.
@@ -248,6 +251,31 @@ type Flowbot struct {
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 	// language
 	Language string `json:"language" yaml:"language" mapstructure:"language"`
+}
+
+type Homelab struct {
+	Root        string             `json:"root" yaml:"root" mapstructure:"root"`
+	AppsDir     string             `json:"apps_dir" yaml:"apps_dir" mapstructure:"apps_dir"`
+	ComposeFile string             `json:"compose_file" yaml:"compose_file" mapstructure:"compose_file"`
+	Runtime     HomelabRuntime     `json:"runtime" yaml:"runtime" mapstructure:"runtime"`
+	Allowlist   []string           `json:"allowlist" yaml:"allowlist" mapstructure:"allowlist"`
+	Permissions HomelabPermissions `json:"permissions" yaml:"permissions" mapstructure:"permissions"`
+}
+
+type HomelabRuntime struct {
+	Mode         string `json:"mode" yaml:"mode" mapstructure:"mode"`
+	DockerSocket string `json:"docker_socket" yaml:"docker_socket" mapstructure:"docker_socket"`
+}
+
+type HomelabPermissions struct {
+	Status  bool `json:"status" yaml:"status" mapstructure:"status"`
+	Logs    bool `json:"logs" yaml:"logs" mapstructure:"logs"`
+	Start   bool `json:"start" yaml:"start" mapstructure:"start"`
+	Stop    bool `json:"stop" yaml:"stop" mapstructure:"stop"`
+	Restart bool `json:"restart" yaml:"restart" mapstructure:"restart"`
+	Pull    bool `json:"pull" yaml:"pull" mapstructure:"pull"`
+	Update  bool `json:"update" yaml:"update" mapstructure:"update"`
+	Exec    bool `json:"exec" yaml:"exec" mapstructure:"exec"`
 }
 
 type Alarm struct {

@@ -52,6 +52,16 @@ func initializeBot(botsConfig any, vendorsConfig any) {
 	// set vendors configs
 	providers.Configs = v
 
+	// init homelab app registry
+	if err := initHomelabRegistry(config.App.Homelab); err != nil {
+		flog.Fatal("Failed to initialize homelab registry: %v", err)
+	}
+
+	// init capability hub
+	if err := initCapabilityHub(); err != nil {
+		flog.Fatal("Failed to initialize capability hub: %v", err)
+	}
+
 	// init bots
 	err = chatbot.Init(b)
 	if err != nil {

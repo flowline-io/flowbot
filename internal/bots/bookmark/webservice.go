@@ -1,10 +1,12 @@
 package bookmark
 
 import (
-	"fmt"
+	"context"
 	"strconv"
 
-	"github.com/flowline-io/flowbot/pkg/providers/karakeep"
+	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/validate"
@@ -13,11 +15,11 @@ import (
 
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/", listBookmarks),
-	webservice.Get("/check-url", checkUrlExists),
+	webservice.Get("/check-url", checkURLExists),
 	webservice.Get("/search", searchBookmarks),
 	webservice.Get("/:id", getBookmark),
 	webservice.Post("/", createBookmark),
-	webservice.Patch("/:id", updateBookmark),
+	webservice.Patch("/:id", archiveBookmark),
 	webservice.Post("/:id/tags", attachTags),
 	webservice.Delete("/:id/tags", detachTags),
 }
@@ -40,36 +42,18 @@ type tagsRequest struct {
 //	@Param		cursor		query		string	false	"pagination cursor"
 //	@Param		archived	query		bool	false	"include archived"
 //	@Param		favourited	query		bool	false	"favourited only"
-//	@Success	200			{object}	protocol.Response{data=karakeep.BookmarksResponse}
+//	@Success	200			{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark [get]
 func listBookmarks(ctx fiber.Ctx) error {
-	client := karakeep.GetClient()
-
-	query := &karakeep.BookmarksQuery{Limit: karakeep.MaxPageSize}
-	if v := ctx.Query("limit"); v != "" {
-		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
-			if n, err := strconv.Atoi(v); err == nil {
-				query.Limit = n
-			}
-		}
+	params := pageParams(ctx)
+	if v := ctx.Query("archived"); v != "" {
+		params["archived"] = v
 	}
-	if v := ctx.Query("cursor"); v != "" {
-		query.Cursor = v
+	if v := ctx.Query("favourited"); v != "" {
+		params["favourited"] = v
 	}
-	if v := ctx.Query("archived"); v == "true" {
-		query.Archived = true
-	}
-	if v := ctx.Query("favourited"); v == "true" {
-		query.Favourited = true
-	}
-
-	resp, err := client.GetAllBookmarks(query)
-	if err != nil {
-		return fmt.Errorf("failed to get bookmarks: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(resp))
+	return invokeBookmark(ctx, "list", params)
 }
 
 // check if URL exists in bookmarks
@@ -79,22 +63,15 @@ func listBookmarks(ctx fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Param		url	query		string	true	"URL to check"
-//	@Success	200	{object}	protocol.Response{data=karakeep.CheckUrlResponse}
+//	@Success	200	{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/check-url [get]
-func checkUrlExists(ctx fiber.Ctx) error {
+func checkURLExists(ctx fiber.Ctx) error {
 	url := ctx.Query("url")
 	if url == "" {
-		return protocol.ErrBadParam.New("url is required")
+		return types.Errorf(types.ErrInvalidArgument, "url is required")
 	}
-
-	client := karakeep.GetClient()
-	bookmarkId, err := client.CheckUrlExists(url)
-	if err != nil {
-		return fmt.Errorf("failed to check URL: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(karakeep.CheckUrlResponse{BookmarkId: bookmarkId}))
+	return invokeBookmark(ctx, "check_url", map[string]any{"url": url})
 }
 
 // search bookmarks
@@ -103,44 +80,22 @@ func checkUrlExists(ctx fiber.Ctx) error {
 //	@Tags		bookmark
 //	@Accept		json
 //	@Produce	json
-//	@Param		q				query		string	true	"search query"
-//	@Param		sortOrder		query		string	false	"sort order (asc, desc, relevance)"
-//	@Param		limit			query		int		false	"page size"
-//	@Param		cursor			query		string	false	"pagination cursor"
-//	@Param		includeContent	query		bool	false	"include full content"
-//	@Success	200				{object}	protocol.Response{data=karakeep.BookmarksResponse}
+//	@Param		q			query		string	true	"search query"
+//	@Param		sort_order	query		string	false	"sort order"
+//	@Param		limit		query		int		false	"page size"
+//	@Param		cursor		query		string	false	"pagination cursor"
+//	@Success	200			{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/search [get]
 func searchBookmarks(ctx fiber.Ctx) error {
-	client := karakeep.GetClient()
-
-	query := &karakeep.SearchBookmarksQuery{}
+	params := pageParams(ctx)
 	if v := ctx.Query("q"); v != "" {
-		query.Q = v
+		params["q"] = v
 	}
-	if v := ctx.Query("sortOrder"); v != "" {
-		query.SortOrder = v
+	if v := ctx.Query("sort_order"); v != "" {
+		params["sort_order"] = v
 	}
-	if v := ctx.Query("limit"); v != "" {
-		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
-			if n, err := strconv.Atoi(v); err == nil {
-				query.Limit = n
-			}
-		}
-	}
-	if v := ctx.Query("cursor"); v != "" {
-		query.Cursor = v
-	}
-	if v := ctx.Query("includeContent"); v == "true" {
-		query.IncludeContent = true
-	}
-
-	resp, err := client.SearchBookmarks(query)
-	if err != nil {
-		return fmt.Errorf("failed to search bookmarks: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(resp))
+	return invokeBookmark(ctx, "search", params)
 }
 
 // get single bookmark
@@ -150,22 +105,15 @@ func searchBookmarks(ctx fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Param		id	path		string	true	"bookmark ID"
-//	@Success	200	{object}	protocol.Response{data=karakeep.Bookmark}
+//	@Success	200	{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/{id} [get]
 func getBookmark(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
-		return protocol.ErrBadParam.New("id is required")
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-
-	client := karakeep.GetClient()
-	bookmark, err := client.GetBookmark(id)
-	if err != nil {
-		return fmt.Errorf("failed to get bookmark: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(bookmark))
+	return invokeBookmark(ctx, "get", map[string]any{"id": id})
 }
 
 // create bookmark
@@ -175,52 +123,36 @@ func getBookmark(ctx fiber.Ctx) error {
 //	@Accept		json
 //	@Produce	json
 //	@Param		body	body		object{url=string}	true	"bookmark URL"
-//	@Success	200		{object}	protocol.Response{data=karakeep.Bookmark}
+//	@Success	200		{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark [post]
 func createBookmark(ctx fiber.Ctx) error {
 	var body createBookmarkRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
+		return types.WrapError(types.ErrInvalidArgument, "decode create bookmark request", err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
+		return types.WrapError(types.ErrInvalidArgument, "validate create bookmark request", err)
 	}
-
-	client := karakeep.GetClient()
-	bookmark, err := client.CreateBookmark(body.URL)
-	if err != nil {
-		return fmt.Errorf("failed to create bookmark: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(bookmark))
+	return invokeBookmark(ctx, "create", map[string]any{"url": body.URL})
 }
 
-// update bookmark (archive/unarchive)
+// archive bookmark
 //
-//	@Summary	Update bookmark (archive/unarchive)
+//	@Summary	Archive bookmark
 //	@Tags		bookmark
 //	@Accept		json
 //	@Produce	json
-//	@Param		id		path		string					true	"bookmark ID"
-//	@Param		body	body		object{archived=bool}	true	"archive status"
-//	@Success	200		{object}	protocol.Response{data=karakeep.ArchiveResponse}
+//	@Param		id	path		string	true	"bookmark ID"
+//	@Success	200	{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/{id} [patch]
-func updateBookmark(ctx fiber.Ctx) error {
+func archiveBookmark(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
-		return protocol.ErrBadParam.New("id is required")
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-
-	client := karakeep.GetClient()
-	archived, err := client.ArchiveBookmark(id)
-	if err != nil {
-		return fmt.Errorf("failed to archive bookmark: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(karakeep.ArchiveResponse{Archived: archived}))
+	return invokeBookmark(ctx, "archive", map[string]any{"id": id})
 }
 
 // attach tags to bookmark
@@ -231,42 +163,22 @@ func updateBookmark(ctx fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id		path		string		true	"bookmark ID"
 //	@Param		body	body		[]string	true	"tag names"
-//	@Success	200		{object}	protocol.Response{data=karakeep.AttachTagsResponse}
+//	@Success	200		{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/{id}/tags [post]
 func attachTags(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
-		return protocol.ErrBadParam.New("id is required")
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-
-	var body tagsRequest
-	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	if err := validate.Validate.Struct(body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
-
-	if len(body.Tags) == 0 {
-		return protocol.ErrBadParam.New("tags are required")
-	}
-
-	if len(body.Tags) > validate.MaxTagsCount {
-		return protocol.ErrBadParam.New("too many tags")
-	}
-
-	client := karakeep.GetClient()
-	attached, err := client.AttachTagsToBookmark(id, body.Tags)
+	body, err := bindTags(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to attach tags: %w", err)
+		return err
 	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(karakeep.AttachTagsResponse{Attached: attached}))
+	return invokeBookmark(ctx, "attach_tags", map[string]any{"id": id, "tags": body.Tags})
 }
 
-// detach tags from bookmark
+// detach tags from a bookmark
 //
 //	@Summary	Detach tags from a bookmark
 //	@Tags		bookmark
@@ -274,37 +186,57 @@ func attachTags(ctx fiber.Ctx) error {
 //	@Produce	json
 //	@Param		id		path		string		true	"bookmark ID"
 //	@Param		body	body		[]string	true	"tag names"
-//	@Success	200		{object}	protocol.Response{data=karakeep.DetachTagsResponse}
+//	@Success	200		{object}	protocol.Response{data=ability.InvokeResult}
 //	@Security	ApiKeyAuth
 //	@Router		/service/bookmark/{id}/tags [delete]
 func detachTags(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
-		return protocol.ErrBadParam.New("id is required")
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
+	body, err := bindTags(ctx)
+	if err != nil {
+		return err
+	}
+	return invokeBookmark(ctx, "detach_tags", map[string]any{"id": id, "tags": body.Tags})
+}
 
+func invokeBookmark(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := ability.Invoke(context.Background(), hub.CapBookmark, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
+func pageParams(ctx fiber.Ctx) map[string]any {
+	params := map[string]any{}
+	if v := ctx.Query("limit"); v != "" {
+		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				params["limit"] = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+	return params
+}
+
+func bindTags(ctx fiber.Ctx) (tagsRequest, error) {
 	var body tagsRequest
 	if err := ctx.Bind().Body(&body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
+		return body, types.WrapError(types.ErrInvalidArgument, "decode tags request", err)
 	}
-
 	if err := validate.Validate.Struct(body); err != nil {
-		return protocol.ErrBadParam.Wrap(err)
+		return body, types.WrapError(types.ErrInvalidArgument, "validate tags request", err)
 	}
-
 	if len(body.Tags) == 0 {
-		return protocol.ErrBadParam.New("tags are required")
+		return body, types.Errorf(types.ErrInvalidArgument, "tags are required")
 	}
-
 	if len(body.Tags) > validate.MaxTagsCount {
-		return protocol.ErrBadParam.New("too many tags")
+		return body, types.Errorf(types.ErrInvalidArgument, "too many tags")
 	}
-
-	client := karakeep.GetClient()
-	detached, err := client.DetachTagsToBookmark(id, body.Tags)
-	if err != nil {
-		return fmt.Errorf("failed to detach tags: %w", err)
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse(karakeep.DetachTagsResponse{Detached: detached}))
+	return body, nil
 }

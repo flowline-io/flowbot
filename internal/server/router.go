@@ -44,6 +44,8 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	// hub management plane
 	a.Get("/hub/apps", route.Authorize(0, ctl.hubApps))
 	a.Get("/hub/apps/:name", route.Authorize(0, ctl.hubApp))
+	a.Get("/hub/apps/:name/status", route.Authorize(0, ctl.hubAppStatus))
+	a.Get("/hub/apps/:name/logs", route.Authorize(0, ctl.hubAppLogs))
 	a.Get("/hub/capabilities", route.Authorize(0, ctl.hubCapabilities))
 	a.Get("/hub/capabilities/:type", route.Authorize(0, ctl.hubCapability))
 	a.Get("/hub/health", route.Authorize(0, ctl.hubHealth))
