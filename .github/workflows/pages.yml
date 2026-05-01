@@ -3,12 +3,12 @@ name: Deploy Website to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'docs/website/**'
   pull_request:
     branches:
-      - main
+      - master
     paths:
       - 'docs/website/**'
   workflow_dispatch:
