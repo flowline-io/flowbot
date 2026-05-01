@@ -75,7 +75,7 @@ var formRules = []form.Rule{
 					continue
 				}
 
-				res, err := ability.Invoke(ctx.Context(), hub.CapFinance, "create_transaction", map[string]any{
+				res, err := ability.Invoke(ctx.Context(), hub.CapFinance, ability.OpFinanceCreateTransaction, map[string]any{
 					"description": record.Merchant,
 					"amount":      fmt.Sprintf("%.2f", record.Amount),
 					"date":        record.Date,

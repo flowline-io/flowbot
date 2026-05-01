@@ -19,15 +19,15 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: "list_tasks", Description: "List tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: "get_task", Description: "Get a task", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: "create_task", Description: "Create a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: "update_task", Description: "Update a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: "delete_task", Description: "Delete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: "move_task", Description: "Move a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: "complete_task", Description: "Complete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: "get_columns", Description: "Get columns", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: "search_tasks", Description: "Search tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
+			{Name: ability.OpKanbanListTasks, Description: "List tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
+			{Name: ability.OpKanbanGetTask, Description: "Get a task", Scopes: []string{auth.ScopeServiceKanbanRead}},
+			{Name: ability.OpKanbanCreateTask, Description: "Create a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
+			{Name: ability.OpKanbanUpdateTask, Description: "Update a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
+			{Name: ability.OpKanbanDeleteTask, Description: "Delete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
+			{Name: ability.OpKanbanMoveTask, Description: "Move a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
+			{Name: ability.OpKanbanCompleteTask, Description: "Complete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
+			{Name: ability.OpKanbanGetColumns, Description: "Get columns", Scopes: []string{auth.ScopeServiceKanbanRead}},
+			{Name: ability.OpKanbanSearchTasks, Description: "Search tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
 		},
 	}
 }
@@ -43,15 +43,15 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: "list_tasks", invoker: invokeListTasks(svc)},
-		{operation: "get_task", invoker: invokeGetTask(svc)},
-		{operation: "create_task", invoker: invokeCreateTask(svc)},
-		{operation: "update_task", invoker: invokeUpdateTask(svc)},
-		{operation: "delete_task", invoker: invokeDeleteTask(svc)},
-		{operation: "move_task", invoker: invokeMoveTask(svc)},
-		{operation: "complete_task", invoker: invokeCompleteTask(svc)},
-		{operation: "get_columns", invoker: invokeGetColumns(svc)},
-		{operation: "search_tasks", invoker: invokeSearchTasks(svc)},
+		{operation: ability.OpKanbanListTasks, invoker: invokeListTasks(svc)},
+		{operation: ability.OpKanbanGetTask, invoker: invokeGetTask(svc)},
+		{operation: ability.OpKanbanCreateTask, invoker: invokeCreateTask(svc)},
+		{operation: ability.OpKanbanUpdateTask, invoker: invokeUpdateTask(svc)},
+		{operation: ability.OpKanbanDeleteTask, invoker: invokeDeleteTask(svc)},
+		{operation: ability.OpKanbanMoveTask, invoker: invokeMoveTask(svc)},
+		{operation: ability.OpKanbanCompleteTask, invoker: invokeCompleteTask(svc)},
+		{operation: ability.OpKanbanGetColumns, invoker: invokeGetColumns(svc)},
+		{operation: ability.OpKanbanSearchTasks, invoker: invokeSearchTasks(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapKanban, item.operation, item.invoker); err != nil {
 			return err

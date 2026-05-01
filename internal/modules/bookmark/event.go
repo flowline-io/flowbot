@@ -18,7 +18,7 @@ var eventRules = []event.Rule{
 		Handler: func(ctx types.Context, param types.KV) error {
 			id, _ := param.String("id")
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "archive", map[string]any{"id": id})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkArchive, map[string]any{"id": id})
 			if err != nil {
 				return fmt.Errorf("failed to archive bookmark: %w", err)
 			}
@@ -37,7 +37,7 @@ var eventRules = []event.Rule{
 		Id: types.BookmarkCreateBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
 			url, _ := param.String("url")
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "create", map[string]any{"url": url})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkCreate, map[string]any{"url": url})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -57,7 +57,7 @@ var eventRules = []event.Rule{
 		Id: types.ArchiveBoxAddBotEventID,
 		Handler: func(ctx types.Context, param types.KV) error {
 			url, _ := param.String("url")
-			res, err := ability.Invoke(ctx.Context(), hub.CapArchive, "add", map[string]any{"url": url})
+			res, err := ability.Invoke(ctx.Context(), hub.CapArchive, ability.OpArchiveAdd, map[string]any{"url": url})
 			if err != nil {
 				flog.Error(err)
 				return nil

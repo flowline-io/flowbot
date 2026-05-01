@@ -19,15 +19,15 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: "list", Description: "List bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: "get", Description: "Get a bookmark", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: "create", Description: "Create a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: "delete", Description: "Delete a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: "archive", Description: "Archive a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: "search", Description: "Search bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: "attach_tags", Description: "Attach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: "detach_tags", Description: "Detach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: "check_url", Description: "Check whether a URL exists", Scopes: []string{auth.ScopeServiceBookmarkRead}},
+			{Name: ability.OpBookmarkList, Description: "List bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
+			{Name: ability.OpBookmarkGet, Description: "Get a bookmark", Scopes: []string{auth.ScopeServiceBookmarkRead}},
+			{Name: ability.OpBookmarkCreate, Description: "Create a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
+			{Name: ability.OpBookmarkDelete, Description: "Delete a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
+			{Name: ability.OpBookmarkArchive, Description: "Archive a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
+			{Name: ability.OpBookmarkSearch, Description: "Search bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
+			{Name: ability.OpBookmarkAttachTags, Description: "Attach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
+			{Name: ability.OpBookmarkDetachTags, Description: "Detach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
+			{Name: ability.OpBookmarkCheckURL, Description: "Check whether a URL exists", Scopes: []string{auth.ScopeServiceBookmarkRead}},
 		},
 	}
 }
@@ -43,15 +43,15 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: "list", invoker: invokeList(svc)},
-		{operation: "get", invoker: invokeGet(svc)},
-		{operation: "create", invoker: invokeCreate(svc)},
-		{operation: "delete", invoker: invokeDelete(svc)},
-		{operation: "archive", invoker: invokeArchive(svc)},
-		{operation: "search", invoker: invokeSearch(svc)},
-		{operation: "attach_tags", invoker: invokeAttachTags(svc)},
-		{operation: "detach_tags", invoker: invokeDetachTags(svc)},
-		{operation: "check_url", invoker: invokeCheckURL(svc)},
+		{operation: ability.OpBookmarkList, invoker: invokeList(svc)},
+		{operation: ability.OpBookmarkGet, invoker: invokeGet(svc)},
+		{operation: ability.OpBookmarkCreate, invoker: invokeCreate(svc)},
+		{operation: ability.OpBookmarkDelete, invoker: invokeDelete(svc)},
+		{operation: ability.OpBookmarkArchive, invoker: invokeArchive(svc)},
+		{operation: ability.OpBookmarkSearch, invoker: invokeSearch(svc)},
+		{operation: ability.OpBookmarkAttachTags, invoker: invokeAttachTags(svc)},
+		{operation: ability.OpBookmarkDetachTags, invoker: invokeDetachTags(svc)},
+		{operation: ability.OpBookmarkCheckURL, invoker: invokeCheckURL(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapBookmark, item.operation, item.invoker); err != nil {
 			return err
@@ -73,7 +73,7 @@ func invokeList(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return listInvokeResult("list", result), nil
+		return listInvokeResult(ability.OpBookmarkList, result), nil
 	}
 }
 
@@ -154,7 +154,7 @@ func invokeSearch(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return listInvokeResult("search", result), nil
+		return listInvokeResult(ability.OpBookmarkSearch, result), nil
 	}
 }
 

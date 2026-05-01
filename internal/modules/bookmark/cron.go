@@ -28,7 +28,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -47,7 +47,7 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
-				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "attach_tags", map[string]any{
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkAttachTags, map[string]any{
 					"id":   bookmark.ID,
 					"tags": tags,
 				})
@@ -66,7 +66,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -91,7 +91,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "*/5 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -121,7 +121,7 @@ var cronRules = []cron.Rule{
 		When:  "* * * * *",
 		Help:  "Creates kanban tasks for new bookmarks. Prefer using a pipeline config (trigger: bookmark.created) for this cross-service behavior.",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -175,7 +175,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{})
 			if err != nil {
 				flog.Error(fmt.Errorf("get all bookmarks error: %w", err))
 				return nil
@@ -210,7 +210,7 @@ var cronRules = []cron.Rule{
 
 				flog.Info("[bookmark] %s update tags from %v to %v", bookmark.ID, oldTags, newTags)
 
-				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "detach_tags", map[string]any{
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkDetachTags, map[string]any{
 					"id":   bookmark.ID,
 					"tags": oldTags,
 				})
@@ -219,7 +219,7 @@ var cronRules = []cron.Rule{
 					continue
 				}
 
-				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, "attach_tags", map[string]any{
+				_, err = ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkAttachTags, map[string]any{
 					"id":   bookmark.ID,
 					"tags": newTags,
 				})

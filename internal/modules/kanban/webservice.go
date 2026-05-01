@@ -113,7 +113,7 @@ func listTasks(ctx fiber.Ctx) error {
 		params["status"] = "inactive"
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "list_tasks", params)
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanListTasks, params)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func getTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "get_task", map[string]any{"id": id})
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanGetTask, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func createTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "create_task", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanCreateTask, map[string]any{
 		"title":       body.Title,
 		"description": body.Description,
 		"project_id":  body.ProjectID,
@@ -179,7 +179,7 @@ func updateTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "update_task", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanUpdateTask, map[string]any{
 		"id":          id,
 		"title":       body.Title,
 		"description": body.Description,
@@ -201,7 +201,7 @@ func deleteTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	_, err = ability.Invoke(ctx.Context(), hub.CapKanban, "delete_task", map[string]any{"id": id})
+	_, err = ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanDeleteTask, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func moveTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "move_task", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanMoveTask, map[string]any{
 		"id":          id,
 		"column_id":   body.ColumnID,
 		"position":    body.Position,
@@ -249,7 +249,7 @@ func listColumns(ctx fiber.Ctx) error {
 		}
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "get_columns", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanGetColumns, map[string]any{
 		"project_id": projectID,
 	})
 	if err != nil {
@@ -270,7 +270,7 @@ func searchTasks(ctx fiber.Ctx) error {
 		params["q"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "search_tasks", params)
+	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanSearchTasks, params)
 	if err != nil {
 		return err
 	}

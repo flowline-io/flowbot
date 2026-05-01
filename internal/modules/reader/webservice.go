@@ -37,7 +37,7 @@ type updateEntriesRequest struct {
 //	@Security	ApiKeyAuth
 //	@Router		/service/reader [get]
 func listFeeds(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_feeds", nil)
+	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListFeeds, nil)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func createFeed(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, "create_feed", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderCreateFeed, map[string]any{
 		"feed_url": body.FeedURL,
 	})
 	if err != nil {
@@ -94,7 +94,7 @@ func listEntries(ctx fiber.Ctx) error {
 		params["feed_id"] = parseQueryInt(v)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_entries", params)
+	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListEntries, params)
 	if err != nil {
 		return err
 	}
@@ -125,9 +125,9 @@ func updateEntriesStatus(ctx fiber.Ctx) error {
 		var operation string
 		switch body.Status {
 		case "read":
-			operation = "mark_entry_read"
+			operation = ability.OpReaderMarkEntryRead
 		default:
-			operation = "mark_entry_unread"
+			operation = ability.OpReaderMarkEntryUnread
 		}
 		_, err := ability.Invoke(ctx.Context(), hub.CapReader, operation, map[string]any{
 			"id": entryID,

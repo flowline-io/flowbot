@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/validate"
 	"github.com/gofiber/fiber/v3"
+
 )
 
 var webserviceRules = []webservice.Rule{
@@ -53,7 +54,7 @@ func listBookmarks(ctx fiber.Ctx) error {
 	if v := ctx.Query("favourited"); v != "" {
 		params["favourited"] = v
 	}
-	return invokeBookmark(ctx, "list", params)
+	return invokeBookmark(ctx, ability.OpBookmarkList, params)
 }
 
 // check if URL exists in bookmarks
@@ -71,7 +72,7 @@ func checkURLExists(ctx fiber.Ctx) error {
 	if url == "" {
 		return types.Errorf(types.ErrInvalidArgument, "url is required")
 	}
-	return invokeBookmark(ctx, "check_url", map[string]any{"url": url})
+	return invokeBookmark(ctx, ability.OpBookmarkCheckURL, map[string]any{"url": url})
 }
 
 // search bookmarks
@@ -95,7 +96,7 @@ func searchBookmarks(ctx fiber.Ctx) error {
 	if v := ctx.Query("sort_order"); v != "" {
 		params["sort_order"] = v
 	}
-	return invokeBookmark(ctx, "search", params)
+	return invokeBookmark(ctx, ability.OpBookmarkSearch, params)
 }
 
 // get single bookmark
@@ -113,7 +114,7 @@ func getBookmark(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	return invokeBookmark(ctx, "get", map[string]any{"id": id})
+	return invokeBookmark(ctx, ability.OpBookmarkGet, map[string]any{"id": id})
 }
 
 // create bookmark
@@ -134,7 +135,7 @@ func createBookmark(ctx fiber.Ctx) error {
 	if err := validate.Validate.Struct(body); err != nil {
 		return types.WrapError(types.ErrInvalidArgument, "validate create bookmark request", err)
 	}
-	return invokeBookmark(ctx, "create", map[string]any{"url": body.URL})
+	return invokeBookmark(ctx, ability.OpBookmarkCreate, map[string]any{"url": body.URL})
 }
 
 // archive bookmark
@@ -152,7 +153,7 @@ func archiveBookmark(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	return invokeBookmark(ctx, "archive", map[string]any{"id": id})
+	return invokeBookmark(ctx, ability.OpBookmarkArchive, map[string]any{"id": id})
 }
 
 // attach tags to bookmark
@@ -175,7 +176,7 @@ func attachTags(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return invokeBookmark(ctx, "attach_tags", map[string]any{"id": id, "tags": body.Tags})
+	return invokeBookmark(ctx, ability.OpBookmarkAttachTags, map[string]any{"id": id, "tags": body.Tags})
 }
 
 // detach tags from a bookmark
@@ -198,7 +199,7 @@ func detachTags(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return invokeBookmark(ctx, "detach_tags", map[string]any{"id": id, "tags": body.Tags})
+	return invokeBookmark(ctx, ability.OpBookmarkDetachTags, map[string]any{"id": id, "tags": body.Tags})
 }
 
 func invokeBookmark(ctx fiber.Ctx, operation string, params map[string]any) error {

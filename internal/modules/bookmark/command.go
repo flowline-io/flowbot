@@ -15,7 +15,7 @@ var commandRules = []command.Rule{
 		Define: "bookmark list",
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, "list", map[string]any{"limit": 10})
+			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{"limit": 10})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

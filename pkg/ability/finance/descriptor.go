@@ -17,7 +17,7 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: "create_transaction", Description: "Create a transaction", Scopes: []string{}},
+			{Name: ability.OpFinanceCreateTransaction, Description: "Create a transaction", Scopes: []string{}},
 		},
 	}
 }
@@ -33,7 +33,7 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: "create_transaction", invoker: invokeCreateTransaction(svc)},
+		{operation: ability.OpFinanceCreateTransaction, invoker: invokeCreateTransaction(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapFinance, item.operation, item.invoker); err != nil {
 			return err

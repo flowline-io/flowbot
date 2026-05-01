@@ -29,7 +29,7 @@ var eventRules = []event.Rule{
 				return fmt.Errorf("project_id is empty")
 			}
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "create_task", map[string]any{
+			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanCreateTask, map[string]any{
 				"title":       title,
 				"project_id":  int(projectID),
 				"description": description,

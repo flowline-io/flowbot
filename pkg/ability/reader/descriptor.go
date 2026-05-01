@@ -18,13 +18,13 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: "list_feeds", Description: "List feeds", Scopes: []string{auth.ScopeServiceReaderRead}},
-			{Name: "create_feed", Description: "Create a feed", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: "list_entries", Description: "List entries", Scopes: []string{auth.ScopeServiceReaderRead}},
-			{Name: "mark_entry_read", Description: "Mark entry as read", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: "mark_entry_unread", Description: "Mark entry as unread", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: "star_entry", Description: "Star an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: "unstar_entry", Description: "Unstar an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{Name: ability.OpReaderListFeeds, Description: "List feeds", Scopes: []string{auth.ScopeServiceReaderRead}},
+			{Name: ability.OpReaderCreateFeed, Description: "Create a feed", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{Name: ability.OpReaderListEntries, Description: "List entries", Scopes: []string{auth.ScopeServiceReaderRead}},
+			{Name: ability.OpReaderMarkEntryRead, Description: "Mark entry as read", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{Name: ability.OpReaderMarkEntryUnread, Description: "Mark entry as unread", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{Name: ability.OpReaderStarEntry, Description: "Star an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{Name: ability.OpReaderUnstarEntry, Description: "Unstar an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
 		},
 	}
 }
@@ -40,13 +40,13 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: "list_feeds", invoker: invokeListFeeds(svc)},
-		{operation: "create_feed", invoker: invokeCreateFeed(svc)},
-		{operation: "list_entries", invoker: invokeListEntries(svc)},
-		{operation: "mark_entry_read", invoker: invokeMarkEntryRead(svc)},
-		{operation: "mark_entry_unread", invoker: invokeMarkEntryUnread(svc)},
-		{operation: "star_entry", invoker: invokeStarEntry(svc)},
-		{operation: "unstar_entry", invoker: invokeUnstarEntry(svc)},
+		{operation: ability.OpReaderListFeeds, invoker: invokeListFeeds(svc)},
+		{operation: ability.OpReaderCreateFeed, invoker: invokeCreateFeed(svc)},
+		{operation: ability.OpReaderListEntries, invoker: invokeListEntries(svc)},
+		{operation: ability.OpReaderMarkEntryRead, invoker: invokeMarkEntryRead(svc)},
+		{operation: ability.OpReaderMarkEntryUnread, invoker: invokeMarkEntryUnread(svc)},
+		{operation: ability.OpReaderStarEntry, invoker: invokeStarEntry(svc)},
+		{operation: ability.OpReaderUnstarEntry, invoker: invokeUnstarEntry(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapReader, item.operation, item.invoker); err != nil {
 			return err

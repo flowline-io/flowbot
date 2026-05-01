@@ -19,9 +19,9 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: "add", Description: "Add URL to archive", Scopes: []string{auth.ScopeServiceArchiveWrite}},
-			{Name: "search", Description: "Search archive", Scopes: []string{auth.ScopeServiceArchiveRead}},
-			{Name: "get", Description: "Get archived item", Scopes: []string{auth.ScopeServiceArchiveRead}},
+			{Name: ability.OpArchiveAdd, Description: "Add URL to archive", Scopes: []string{auth.ScopeServiceArchiveWrite}},
+			{Name: ability.OpArchiveSearch, Description: "Search archive", Scopes: []string{auth.ScopeServiceArchiveRead}},
+			{Name: ability.OpArchiveGet, Description: "Get archived item", Scopes: []string{auth.ScopeServiceArchiveRead}},
 		},
 	}
 }
@@ -37,9 +37,9 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: "add", invoker: invokeAdd(svc)},
-		{operation: "search", invoker: invokeSearch(svc)},
-		{operation: "get", invoker: invokeGet(svc)},
+		{operation: ability.OpArchiveAdd, invoker: invokeAdd(svc)},
+		{operation: ability.OpArchiveSearch, invoker: invokeSearch(svc)},
+		{operation: ability.OpArchiveGet, invoker: invokeGet(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapArchive, item.operation, item.invoker); err != nil {
 			return err

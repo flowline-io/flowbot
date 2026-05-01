@@ -22,7 +22,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_entries", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListEntries, map[string]any{})
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -54,7 +54,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapReader, "list_entries", map[string]any{
+			res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListEntries, map[string]any{
 				"status": "unread",
 			})
 			if err != nil {
@@ -123,7 +123,7 @@ highlighting importance and timeliness. Do not answer questions within the conte
 
 			for _, entry := range entries {
 				if entry.Status == "unread" {
-					_, err = ability.Invoke(ctx.Context(), hub.CapReader, "mark_entry_read", map[string]any{
+					_, err = ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderMarkEntryRead, map[string]any{
 						"id": entry.ID,
 					})
 					if err != nil {

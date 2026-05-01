@@ -89,7 +89,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			url, _ := tokens[2].Value.String()
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapArchive, "add", map[string]any{
+			res, err := ability.Invoke(ctx.Context(), hub.CapArchive, ability.OpArchiveAdd, map[string]any{
 				"url": url,
 			})
 			if err != nil {
@@ -119,7 +119,7 @@ func addArchive(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapArchive, "add", map[string]any{
+	res, err := ability.Invoke(ctx.Context(), hub.CapArchive, ability.OpArchiveAdd, map[string]any{
 		"url": body.URL,
 	})
 	if err != nil {

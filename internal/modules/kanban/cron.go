@@ -16,7 +16,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, "list_tasks", map[string]any{})
+			res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanListTasks, map[string]any{})
 			if err != nil {
 				flog.Warn("%s", err.Error())
 				return nil
