@@ -51,26 +51,12 @@ func TestCommandRules_Defined(t *testing.T) {
 	}
 
 	assert.Contains(t, defines, "cloudflare setting")
-	assert.Contains(t, defines, "cloudflare test")
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
 	for _, r := range commandRules {
 		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 	}
-}
-
-func TestSettingRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, settingRules)
-
-	keys := make(map[string]bool)
-	for _, r := range settingRules {
-		keys[r.Key] = true
-	}
-
-	assert.True(t, keys[tokenSettingKey])
-	assert.True(t, keys[zoneIdSettingKey])
-	assert.True(t, keys[accountIdSettingKey])
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {

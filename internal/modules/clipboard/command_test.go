@@ -16,7 +16,7 @@ func TestCommandRules_Count(t *testing.T) {
 
 func TestCommandRules_Defines(t *testing.T) {
 	assert.Equal(t, "share [string]", commandRules[0].Define)
-	assert.Equal(t, "share clipboard to agent", commandRules[0].Help)
+	assert.Equal(t, "share clipboard", commandRules[0].Help)
 }
 
 func TestCommandRules_Handlers(t *testing.T) {

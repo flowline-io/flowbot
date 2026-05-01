@@ -55,7 +55,6 @@ func TestCommandRules_Defined(t *testing.T) {
 	assert.Contains(t, defines, "id")
 	assert.Contains(t, defines, "form test")
 	assert.Contains(t, defines, "queue test")
-	assert.Contains(t, defines, "instruct test")
 	assert.Contains(t, defines, "page test")
 	assert.Contains(t, defines, "docker test")
 	assert.Contains(t, defines, "torrent test")
@@ -88,17 +87,6 @@ func TestFormRules_Defined(t *testing.T) {
 	assert.True(t, found, "dev_form rule should be defined")
 }
 
-func TestInstructRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, instructRules)
-
-	ids := make(map[string]bool)
-	for _, r := range instructRules {
-		ids[r.Id] = true
-	}
-
-	assert.True(t, ids[ExampleInstructID])
-}
-
 func TestEventRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, eventRules)
 
@@ -127,18 +115,6 @@ func TestWebhookRules_SecretFlags(t *testing.T) {
 	}
 }
 
-func TestSettingRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, settingRules)
-
-	keys := make(map[string]bool)
-	for _, r := range settingRules {
-		keys[r.Key] = true
-	}
-
-	assert.True(t, keys[secretSettingKey])
-	assert.True(t, keys[numberSettingKey])
-}
-
 func TestPageRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, pageRules)
 
@@ -154,20 +130,9 @@ func TestWebserviceRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, webserviceRules)
 }
 
-func TestCollectRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, collectRules)
-
-	ids := make(map[string]bool)
-	for _, r := range collectRules {
-		ids[r.Id] = true
-	}
-
-	assert.True(t, ids["import_collect"])
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = moduleHandler{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 8)
+	assert.Len(t, rules, 6) // commandRules, formRules, pageRules, webserviceRules, webhookRules, eventRules
 }

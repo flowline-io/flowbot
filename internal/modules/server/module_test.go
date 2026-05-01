@@ -55,7 +55,6 @@ func TestCommandRules_Defined(t *testing.T) {
 	assert.Contains(t, defines, "golang stats")
 	assert.Contains(t, defines, "server stats")
 	assert.Contains(t, defines, "online stats")
-	assert.Contains(t, defines, "instruct list")
 	assert.Contains(t, defines, "adguard status")
 	assert.Contains(t, defines, "adguard stats")
 	assert.Contains(t, defines, "queue stats")
@@ -83,23 +82,6 @@ func TestCronRules_Defined(t *testing.T) {
 	assert.True(t, names["online_agent_checker"])
 }
 
-func TestCollectRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, collectRules)
-
-	ids := make(map[string]bool)
-	for _, r := range collectRules {
-		ids[r.Id] = true
-	}
-
-	assert.True(t, ids["stats_collect"])
-}
-
-func TestCollectRules_HaveHandlers(t *testing.T) {
-	for _, r := range collectRules {
-		assert.NotNil(t, r.Handler, "handler for collect %q should not be nil", r.Id)
-	}
-}
-
 func TestWebserviceRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, webserviceRules)
 	assert.GreaterOrEqual(t, len(webserviceRules), 2)
@@ -109,5 +91,5 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = moduleHandler{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 3) // commandRules, collectRules, webserviceRules
+	assert.Len(t, rules, 2) // commandRules, cronRules, webserviceRules
 }

@@ -73,27 +73,6 @@ func TestCommandRules_GolangStatsHandler_Content(t *testing.T) {
 	assert.Equal(t, "Golang stats", msg.Title)
 }
 
-func TestCommandRules_InstructListHandler_Content(t *testing.T) {
-	var instructRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "instruct list" {
-			instructRule = &commandRules[i]
-			break
-		}
-	}
-	require.NotNil(t, instructRule)
-
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("instruct list")
-
-	payload := instructRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
-
-	msg, ok := payload.(types.InfoMsg)
-	require.True(t, ok)
-	assert.Equal(t, "Instruct", msg.Title)
-}
-
 func TestCommandRules_QueueStatsHandler_Content(t *testing.T) {
 	var queueRule *command.Rule
 	for i := range commandRules {
@@ -163,12 +142,6 @@ func TestCronWhenPatterns(t *testing.T) {
 	assert.Equal(t, "* * * * *", whenMap["docker_metrics"])
 	assert.Equal(t, "* * * * *", whenMap["monitor_metrics"])
 	assert.Equal(t, "*/2 * * * *", whenMap["online_agent_checker"])
-}
-
-func TestCollectHandlerNotNil(t *testing.T) {
-	for _, r := range collectRules {
-		assert.NotNil(t, r.Handler, "handler for collect %q should not be nil", r.Id)
-	}
 }
 
 func TestWebserviceRulesEndpoints(t *testing.T) {

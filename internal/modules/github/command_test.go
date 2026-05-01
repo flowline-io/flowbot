@@ -11,7 +11,7 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 8)
+	assert.Len(t, commandRules, 7)
 }
 
 func TestCommandRules_Defines(t *testing.T) {
@@ -23,7 +23,6 @@ func TestCommandRules_Defines(t *testing.T) {
 	assert.Contains(t, defines, "github setting")
 	assert.Contains(t, defines, "github oauth")
 	assert.Contains(t, defines, "github user")
-	assert.Contains(t, defines, "github issue [string]")
 	assert.Contains(t, defines, "github card [string]")
 	assert.Contains(t, defines, "github repo [string]")
 	assert.Contains(t, defines, "github user [string]")
@@ -45,7 +44,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		{"github setting", "github setting", true},
 		{"github oauth", "github oauth", true},
 		{"github user", "github user", true},
-		{"github issue [string]", "github issue [title]", true},
 		{"github card [string]", "github card [text]", true},
 		{"github repo [string]", "github repo [owner/repo]", true},
 		{"github user [string]", "github user [username]", true},
@@ -157,28 +155,6 @@ func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 		require.True(t, ok)
 		assert.Contains(t, msg.Text, "unauthorized")
 	}
-}
-
-func TestCommandRules_GithubIssueHandler(t *testing.T) {
-	t.Skip("requires database connection")
-
-	var issueRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "github issue [string]" {
-			issueRule = &commandRules[i]
-			break
-		}
-	}
-	require.NotNil(t, issueRule)
-
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("github issue [some issue]")
-
-	payload := issueRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
-
-	msgType := types.TypeOf(payload)
-	assert.Contains(t, []string{"TextMsg", "LinkMsg"}, msgType)
 }
 
 func TestCommandRules_GithubCardHandler(t *testing.T) {

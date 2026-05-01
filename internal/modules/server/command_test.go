@@ -11,7 +11,7 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 10)
+	assert.Len(t, commandRules, 9)
 }
 
 func TestCommandRules_Defines(t *testing.T) {
@@ -25,7 +25,6 @@ func TestCommandRules_Defines(t *testing.T) {
 	assert.Contains(t, defines, "golang stats")
 	assert.Contains(t, defines, "server stats")
 	assert.Contains(t, defines, "online stats")
-	assert.Contains(t, defines, "instruct list")
 	assert.Contains(t, defines, "adguard status")
 	assert.Contains(t, defines, "adguard stats")
 	assert.Contains(t, defines, "queue stats")
@@ -49,7 +48,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		{"golang stats", "golang stats", true},
 		{"server stats", "server stats", true},
 		{"online stats", "online stats", true},
-		{"instruct list", "instruct list", true},
 		{"adguard status", "adguard status", true},
 		{"adguard stats", "adguard stats", true},
 		{"queue stats", "queue stats", true},
@@ -185,27 +183,6 @@ func TestCommandRules_OnlineStatsHandler(t *testing.T) {
 
 	msgType := types.TypeOf(payload)
 	assert.Contains(t, []string{"TextMsg", "KVMsg"}, msgType)
-}
-
-func TestCommandRules_InstructListHandler(t *testing.T) {
-	var instructRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "instruct list" {
-			instructRule = &commandRules[i]
-			break
-		}
-	}
-	require.NotNil(t, instructRule)
-
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("instruct list")
-
-	payload := instructRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
-
-	msg, ok := payload.(types.InfoMsg)
-	require.True(t, ok)
-	assert.NotEmpty(t, msg.Title)
 }
 
 func TestCommandRules_AdguardStatusHandler(t *testing.T) {

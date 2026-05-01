@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `data_events` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(64) NOT NULL,
+  `event_type` varchar(128) NOT NULL,
+  `source` varchar(64) NOT NULL DEFAULT '',
+  `capability` varchar(64) NOT NULL DEFAULT '',
+  `operation` varchar(64) NOT NULL DEFAULT '',
+  `backend` varchar(64) NOT NULL DEFAULT '',
+  `app` varchar(64) NOT NULL DEFAULT '',
+  `entity_id` varchar(128) NOT NULL DEFAULT '',
+  `idempotency_key` varchar(128) NOT NULL DEFAULT '',
+  `uid` varchar(64) NOT NULL DEFAULT '',
+  `topic` varchar(64) NOT NULL DEFAULT '',
+  `data` json DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_event_id` (`event_id`),
+  KEY `idx_event_type` (`event_type`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

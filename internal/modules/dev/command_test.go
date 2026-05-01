@@ -11,13 +11,13 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 14)
+	assert.Len(t, commandRules, 13)
 }
 
 func TestCommandRules_AllDefines(t *testing.T) {
 	expected := []string{
 		"dev setting", "id", "form test", "queue test",
-		"instruct test", "page test", "docker test", "torrent test",
+		"page test", "docker test", "torrent test",
 		"slash test", "llm test", "notify test", "fs test",
 		"event test", "test",
 	}
@@ -52,7 +52,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		{"dev setting", "dev setting", true},
 		{"form test", "form test", true},
 		{"queue test", "queue test", true},
-		{"instruct test", "instruct test", true},
 		{"page test", "page test", true},
 		{"docker test", "docker test", true},
 		{"torrent test", "torrent test", true},

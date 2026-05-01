@@ -11,7 +11,7 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 2)
+	assert.Len(t, commandRules, 1)
 }
 
 func TestCommandRules_Defines(t *testing.T) {
@@ -21,7 +21,6 @@ func TestCommandRules_Defines(t *testing.T) {
 	}
 
 	assert.Contains(t, defines, "cloudflare setting")
-	assert.Contains(t, defines, "cloudflare test")
 }
 
 func TestCommandRules_Handlers(t *testing.T) {
@@ -37,9 +36,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		want   bool
 	}{
 		{"cloudflare setting", "cloudflare setting", true},
-		{"cloudflare test", "cloudflare test", true},
-		{"cloudflare setting", "cloudflare test", false},
-		{"cloudflare test", "cloudflare setting", false},
+		{"cloudflare setting", "unrelated", false},
 	}
 
 	for _, tt := range tests {
@@ -83,27 +80,4 @@ func TestCommandRules_SettingHandler(t *testing.T) {
 
 	msgType := types.TypeOf(payload)
 	assert.Contains(t, []string{"LinkMsg", "TextMsg"}, msgType)
-}
-
-func TestCommandRules_TestHandler_NoConfig(t *testing.T) {
-	t.Skip("requires database connection")
-
-	var testRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "cloudflare test" {
-			testRule = &commandRules[i]
-			break
-		}
-	}
-	require.NotNil(t, testRule)
-
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("cloudflare test")
-
-	payload := testRule.Handler(ctx, tokens)
-	if payload != nil {
-		msg, ok := payload.(types.TextMsg)
-		require.True(t, ok)
-		assert.Contains(t, msg.Text, "config error")
-	}
 }

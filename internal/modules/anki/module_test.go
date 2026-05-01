@@ -60,24 +60,6 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestCollectRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, collectRules)
-
-	ids := make(map[string]bool)
-	for _, r := range collectRules {
-		ids[r.Id] = true
-	}
-
-	assert.True(t, ids["stats_collect"])
-	assert.True(t, ids["review_collect"])
-}
-
-func TestCollectRules_HaveHandlers(t *testing.T) {
-	for _, r := range collectRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
-	}
-}
-
 func TestCronRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, cronRules)
 

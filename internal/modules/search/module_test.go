@@ -63,10 +63,6 @@ func TestCronRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, cronRules)
 }
 
-func TestCollectRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, collectRules)
-}
-
 func TestPageRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, pageRules)
 
@@ -87,5 +83,5 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = moduleHandler{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 5) // commandRules, cronRules, collectRules, webserviceRules, pageRules
+	assert.Len(t, rules, 4) // commandRules, cronRules, webserviceRules, pageRules
 }

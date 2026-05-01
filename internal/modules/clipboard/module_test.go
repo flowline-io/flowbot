@@ -59,28 +59,9 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestInstructRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, instructRules)
-
-	ids := make(map[string]bool)
-	for _, r := range instructRules {
-		ids[r.Id] = true
-	}
-
-	assert.True(t, ids[ShareInstruct])
-}
-
-func TestInstructRules_Args(t *testing.T) {
-	for _, r := range instructRules {
-		if r.Id == ShareInstruct {
-			assert.Contains(t, r.Args, "txt")
-		}
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	handler = moduleHandler{initialized: true}
 	rules := handler.Rules()
 	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 2) // commandRules, instructRules
+	assert.Len(t, rules, 1) // commandRules
 }

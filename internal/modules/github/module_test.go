@@ -78,17 +78,6 @@ func TestWebhookRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestSettingRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, settingRules)
-
-	keys := make(map[string]bool)
-	for _, r := range settingRules {
-		keys[r.Key] = true
-	}
-
-	assert.True(t, keys[repoSettingKey])
-}
-
 func TestCronRules_Defined(t *testing.T) {
 	assert.NotEmpty(t, cronRules)
 
