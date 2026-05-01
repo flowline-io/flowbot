@@ -1,7 +1,6 @@
 package clipboard
 
 import (
-	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -10,12 +9,10 @@ import (
 var commandRules = []command.Rule{
 	{
 		Define: "share [string]",
-		Help:   `share clipboard to agent`,
+		Help:   `share clipboard`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			txt, _ := tokens[1].Value.String()
-			data := types.KV{}
-			data["txt"] = txt
-			return module.InstructMsg(ctx, ShareInstruct, data)
+			return types.TextMsg{Text: txt}
 		},
 	},
 }

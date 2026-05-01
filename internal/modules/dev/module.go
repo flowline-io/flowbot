@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -57,9 +56,6 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Bootstrap() error {
-	// load setting rule
-	formRules = append(formRules, module.SettingCovertForm(Name, settingRules))
-
 	return nil
 }
 
@@ -71,9 +67,7 @@ func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
 		formRules,
-		instructRules,
 		pageRules,
-		collectRules,
 		webserviceRules,
 		webhookRules,
 		eventRules,
@@ -94,14 +88,6 @@ func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload,
 
 func (moduleHandler) Cron() (*cron.Ruleset, error) {
 	return module.RunCron(cronRules, Name)
-}
-
-func (moduleHandler) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return module.RunCollect(collectRules, ctx, content)
-}
-
-func (moduleHandler) Instruct() (instruct.Ruleset, error) {
-	return instructRules, nil
 }
 
 func (moduleHandler) Page(ctx types.Context, flag string, args types.KV) (string, error) {

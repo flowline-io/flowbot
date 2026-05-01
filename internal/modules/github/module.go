@@ -53,13 +53,6 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
-func (moduleHandler) Bootstrap() error {
-	// load setting rule
-	formRules = append(formRules, module.SettingCovertForm(Name, settingRules))
-
-	return nil
-}
-
 func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,

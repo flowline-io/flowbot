@@ -25,11 +25,6 @@ type Context struct {
 	// form id
 	FormId string
 
-	// agent rule id
-	CollectRuleId string
-	// agent
-	AgentVersion int
-
 	// page rule id
 	PageRuleId string
 

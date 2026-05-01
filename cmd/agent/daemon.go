@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/cmd/agent/client"
-	"github.com/flowline-io/flowbot/cmd/agent/ruleset/collect"
-	"github.com/flowline-io/flowbot/cmd/agent/ruleset/instruct"
 	"github.com/flowline-io/flowbot/cmd/agent/script"
 	"github.com/flowline-io/flowbot/cmd/agent/startup"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -48,10 +46,6 @@ func RunDaemon(lc fx.Lifecycle, _ *startup.Startup, _ *script.Engine) {
 					}
 				}
 			}()
-
-			// cron
-			instruct.Cron()
-			collect.Cron()
 
 			return nil
 		},

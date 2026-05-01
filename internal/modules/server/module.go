@@ -58,17 +58,12 @@ func (moduleHandler) IsReady() bool {
 func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
-		collectRules,
 		webserviceRules,
 	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 	return module.RunCommand(commandRules, ctx, content)
-}
-
-func (moduleHandler) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return module.RunCollect(collectRules, ctx, content)
 }
 
 func (moduleHandler) Cron() (*cron.Ruleset, error) {

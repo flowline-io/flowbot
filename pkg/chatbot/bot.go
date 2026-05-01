@@ -10,13 +10,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 	modulepkg "github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/collect"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/setting"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/gofiber/fiber/v3"
@@ -74,11 +72,6 @@ func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 	return modulepkg.RunCron(cronRules, name)
 }
 
-// Deprecated: use module.RunCollect.
-func RunCollect(collectRules []collect.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return modulepkg.RunCollect(collectRules, ctx, content)
-}
-
 // Deprecated: use module.RunEvent.
 func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
 	return modulepkg.RunEvent(eventRules, ctx, param)
@@ -107,21 +100,6 @@ func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 // Deprecated: use module.StorePage.
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
 	return modulepkg.StorePage(ctx, category, title, payload)
-}
-
-// Deprecated: use module.InstructMsg.
-func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
-	return modulepkg.InstructMsg(ctx, id, data)
-}
-
-// Deprecated: use module.StoreInstruct.
-func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
-	return modulepkg.StoreInstruct(ctx, payload)
-}
-
-// Deprecated: use module.SettingCovertForm.
-func SettingCovertForm(id string, rule setting.Rule) form.Rule {
-	return modulepkg.SettingCovertForm(id, rule)
 }
 
 // Deprecated: use module.SettingGet.

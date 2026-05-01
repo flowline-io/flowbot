@@ -88,56 +88,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "github issue [string]",
-		Help:   `create issue`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			text, _ := tokens[1].Value.String()
-
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, github.ID)
-			if err != nil {
-				return nil
-			}
-			if oauth.Token == "" {
-				return types.TextMsg{Text: "oauth error"}
-			}
-
-			// get user
-			client := github.NewGithub("", "", "", oauth.Token)
-			user, err := client.GetAuthenticatedUser()
-			if err != nil {
-				return nil
-			}
-			if *user.Login == "" {
-				return nil
-			}
-
-			// repo value
-			j, err := module.SettingGet(ctx, Name, repoSettingKey)
-			if err != nil {
-				return nil
-			}
-			repo, _ := j.StringValue()
-			if repo == "" {
-				return types.TextMsg{Text: "set repo [string]"}
-			}
-
-			// create issue
-			issue, err := client.CreateIssue(*user.Login, repo, github.Issue{Title: &text})
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			if *issue.ID == 0 {
-				return nil
-			}
-
-			return types.LinkMsg{
-				Title: fmt.Sprintf("Issue #%d", *issue.Number),
-				Url:   *issue.HTMLURL,
-			}
-		},
-	},
-	{
 		Define: "github card [string]",
 		Help:   `create project card`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

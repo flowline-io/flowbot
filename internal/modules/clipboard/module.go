@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 )
 
 const Name = "clipboard"
@@ -56,14 +55,9 @@ func (moduleHandler) IsReady() bool {
 func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
-		instructRules,
 	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
 	return module.RunCommand(commandRules, ctx, content)
-}
-
-func (moduleHandler) Instruct() (instruct.Ruleset, error) {
-	return instructRules, nil
 }

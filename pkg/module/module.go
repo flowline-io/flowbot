@@ -14,14 +14,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/collect"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/setting"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -64,15 +61,6 @@ func Help(rules []any) (map[string][]string, error) {
 			}
 			if len(rows) > 0 {
 				result["command"] = rows
-			}
-		case []collect.Rule:
-			rs := collect.Ruleset(v)
-			var rows []string
-			for _, rule := range rs {
-				rows = append(rows, fmt.Sprintf("%s : %s", rule.Id, rule.Help))
-			}
-			if len(rows) > 0 {
-				result["collect"] = rows
 			}
 		case []cron.Rule:
 			rs := v
@@ -189,11 +177,6 @@ func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 	ruleset := cron.NewCronRuleset(name, cronRules)
 	ruleset.Daemon()
 	return ruleset, nil
-}
-
-func RunCollect(collectRules []collect.Rule, ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	rs := collect.Ruleset(collectRules)
-	return rs.ProcessAgent(ctx, content)
 }
 
 func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
@@ -348,86 +331,6 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		Title: title,
 		Url:   fmt.Sprintf("%s/p/%s", types.AppUrl(), pageId),
 	}
-}
-
-func InstructMsg(ctx types.Context, id string, data types.KV) types.MsgPayload {
-	var botName string
-	for name, handler := range List() {
-		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []instruct.Rule:
-				for _, rule := range v {
-					if rule.Id == id {
-						botName = name
-					}
-				}
-			}
-		}
-	}
-
-	return StoreInstruct(ctx, types.InstructMsg{
-		No:       types.Id(),
-		Object:   model.InstructObjectAgent,
-		Bot:      botName,
-		Flag:     id,
-		Content:  data,
-		Priority: model.InstructPriorityDefault,
-		State:    model.InstructCreate,
-		ExpireAt: time.Now().Add(time.Hour),
-	})
-}
-
-func StoreInstruct(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
-	msg, ok := payload.(types.InstructMsg)
-	if !ok {
-		return types.TextMsg{Text: "error instruct msg type"}
-	}
-
-	_, err := store.Database.CreateInstruct(&model.Instruct{
-		UID:      ctx.AsUser.String(),
-		No:       msg.No,
-		Object:   msg.Object,
-		Bot:      msg.Bot,
-		Flag:     msg.Flag,
-		Content:  model.JSON(msg.Content),
-		Priority: msg.Priority,
-		State:    msg.State,
-		ExpireAt: msg.ExpireAt,
-	})
-	if err != nil {
-		return types.TextMsg{Text: "store instruct error"}
-	}
-
-	return types.TextMsg{Text: fmt.Sprintf("Instruct[%s:%s]", msg.Flag, msg.No)}
-}
-
-func SettingCovertForm(id string, rule setting.Rule) form.Rule {
-	var result form.Rule
-	result.Id = fmt.Sprintf("%s_setting", id)
-	result.Title = fmt.Sprintf("%s Module Setting", utils.FirstUpper(id))
-	result.Field = []types.FormField{}
-
-	for _, row := range rule {
-		result.Field = append(result.Field, types.FormField{
-			Key:   row.Key,
-			Type:  row.Type,
-			Label: row.Title,
-		})
-	}
-
-	result.Handler = func(ctx types.Context, values types.KV) types.MsgPayload {
-		for key, value := range values {
-			err := store.Database.ConfigSet(ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key), types.KV{
-				"value": value,
-			})
-			if err != nil {
-				return types.TextMsg{Text: fmt.Sprintf("setting [%s] %s error", ctx.FormId, key)}
-			}
-		}
-		return types.TextMsg{Text: fmt.Sprintf("ok, setting [%s]", ctx.FormId)}
-	}
-
-	return result
 }
 
 func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {

@@ -79,18 +79,6 @@ type Instruct struct {
 	ExpireAt string `json:"expire_at"`
 }
 
-func Collect(content types.CollectData) error {
-	v := newFlowbot()
-	_, err := v.fetcher(types.CollectAction, types.KV{
-		"id":      content.Id,
-		"content": content.Content,
-	})
-	if err != nil {
-		return err
-	}
-	return err
-}
-
 func Ack(no string) error {
 	v := newFlowbot()
 	_, err := v.fetcher(types.AckAction, types.KV{

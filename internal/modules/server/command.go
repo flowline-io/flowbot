@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -99,23 +97,6 @@ var commandRules = []command.Rule{
 
 			return types.KVMsg{
 				"list": texts,
-			}
-		},
-	},
-	{
-		Define: "instruct list",
-		Help:   `all bot instruct`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			models := make(types.KV)
-			for name, bot := range module.List() {
-				ruleset, _ := bot.Instruct()
-				for _, rule := range ruleset {
-					models[fmt.Sprintf("(%s) %s", name, rule.Id)] = fmt.Sprintf("[%s]", strings.Join(rule.Args, ","))
-				}
-			}
-			return types.InfoMsg{
-				Title: "Instruct",
-				Model: models,
 			}
 		},
 	},

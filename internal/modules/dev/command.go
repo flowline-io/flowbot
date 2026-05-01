@@ -57,15 +57,6 @@ var commandRules = []command.Rule{
 		},
 	},
 	{
-		Define: "instruct test",
-		Help:   `[example] create instruct`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			data := types.KV{}
-			data["txt"] = "example"
-			return module.InstructMsg(ctx, ExampleInstructID, data)
-		},
-	},
-	{
 		Define: "page test",
 		Help:   `[example] dev page`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {

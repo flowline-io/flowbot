@@ -22,14 +22,11 @@ type RulesetType string
 
 const (
 	ActionRule     RulesetType = "action"
-	CollectRule    RulesetType = "collect"
 	CommandRule    RulesetType = "command"
 	CronRule       RulesetType = "cron"
 	EventRule      RulesetType = "event"
 	FormRule       RulesetType = "form"
-	InstructRule   RulesetType = "instruct"
 	PageRule       RulesetType = "page"
-	SettingRule    RulesetType = "setting"
 	TriggerRule    RulesetType = "trigger"
 	WebhookRule    RulesetType = "webhook"
 	WebserviceRule RulesetType = "webservice"

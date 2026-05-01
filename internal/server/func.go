@@ -366,46 +366,6 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 		AsUser: uid,
 	}
 	switch data.Action {
-	case types.CollectAction:
-		id, ok := data.Content.String("id")
-		if !ok {
-			return nil, errors.New("error collect id")
-		}
-
-		for name, handle := range module.List() {
-			if !handle.IsReady() {
-				flog.Info("module %s unavailable", name)
-				continue
-			}
-
-			ctx := types.Context{
-				Platform:      "",
-				Topic:         "",
-				AsUser:        uid,
-				CollectRuleId: id,
-				AgentVersion:  data.Version,
-			}
-			content, _ := data.Content.Map("content")
-			payload, err := handle.Collect(ctx, content)
-			if err != nil {
-				flog.Warn("module[%s]: failed to agent module: %v", name, err)
-				continue
-			}
-
-			// stats
-			stats.ModuleRunTotalCounter(stats.AgentRuleset).Inc()
-
-			// send message
-			if payload == nil {
-				continue
-			}
-
-			err = event.SendMessage(ctx, payload)
-			if err != nil {
-				flog.Error(fmt.Errorf("send message error %w", err))
-				continue
-			}
-		}
 	case types.PullAction:
 		list, err := store.Database.ListInstruct(uid, false, 10)
 		if err != nil {

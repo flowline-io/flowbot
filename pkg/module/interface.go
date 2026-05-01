@@ -5,7 +5,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/instruct"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -36,12 +35,6 @@ type Handler interface {
 
 	// Cron cron script daemon
 	Cron() (*cron.Ruleset, error)
-
-	// Collect return collect result
-	Collect(ctx types.Context, content types.KV) (types.MsgPayload, error)
-
-	// Instruct return instruct list
-	Instruct() (instruct.Ruleset, error)
 
 	// Page return page
 	Page(ctx types.Context, flag string, args types.KV) (string, error)
@@ -83,14 +76,6 @@ func (Base) Form(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 }
 
 func (Base) Cron() (*cron.Ruleset, error) {
-	return nil, nil
-}
-
-func (Base) Collect(_ types.Context, _ types.KV) (types.MsgPayload, error) {
-	return nil, nil
-}
-
-func (Base) Instruct() (instruct.Ruleset, error) {
 	return nil, nil
 }
 

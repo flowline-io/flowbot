@@ -1,16 +1,11 @@
 package types
 
-import (
-	"fmt"
-)
-
 const ApiVersion = 1
 
 type Action string
 
 const (
 	PullAction    Action = "pull"
-	CollectAction Action = "collect"
 	AckAction     Action = "ack"
 	OnlineAction  Action = "online"
 	OfflineAction Action = "offline"
@@ -18,13 +13,8 @@ const (
 )
 
 type AgentData struct {
-	Action  Action `json:"action" validate:"required,oneof=pull collect ack online offline message"`
+	Action  Action `json:"action" validate:"required,oneof=pull ack online offline message"`
 	Version int    `json:"version" validate:"gte=0"`
-	Content KV     `json:"content"`
-}
-
-type CollectData struct {
-	Id      string `json:"id"`
 	Content KV     `json:"content"`
 }
 
@@ -42,16 +32,4 @@ const (
 type Executor struct {
 	Flag string
 	Run  func(data KV) error
-}
-
-var DoInstruct = map[string][]Executor{}
-
-func InstructRegister(name string, list []Executor) {
-	if DoInstruct == nil {
-		DoInstruct = make(map[string][]Executor)
-	}
-	if _, dup := DoInstruct[name]; dup {
-		panic(fmt.Sprintf("Register: called twice for instruct bot %s", name))
-	}
-	DoInstruct[name] = list
 }

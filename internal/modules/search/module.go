@@ -62,7 +62,6 @@ func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
 		cronRules,
-		collectRules,
 		webserviceRules,
 		pageRules,
 	}
@@ -74,10 +73,6 @@ func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, 
 
 func (moduleHandler) Cron() (*cron.Ruleset, error) {
 	return module.RunCron(cronRules, Name)
-}
-
-func (moduleHandler) Collect(ctx types.Context, content types.KV) (types.MsgPayload, error) {
-	return module.RunCollect(collectRules, ctx, content)
 }
 
 func (moduleHandler) Webservice(app *fiber.App) {
