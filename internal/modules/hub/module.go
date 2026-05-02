@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 const Name = "hub"
@@ -52,9 +53,16 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{}
+	return []any{
+		commandRules,
+		cronRules,
+	}
 }
 
 func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, error) {
-	return nil, nil
+	return module.RunCommand(commandRules, ctx, content)
+}
+
+func (moduleHandler) Cron() (*cron.Ruleset, error) {
+	return module.RunCron(cronRules, Name)
 }

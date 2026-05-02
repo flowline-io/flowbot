@@ -16,6 +16,8 @@ type Runtime interface {
 	Update(ctx context.Context, app App) error
 }
 
+var DefaultRuntime Runtime = NoopRuntime{}
+
 type NoopRuntime struct{}
 
 func NewRuntime(config RuntimeConfig, appsDir string) Runtime {

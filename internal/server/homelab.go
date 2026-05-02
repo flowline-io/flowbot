@@ -14,6 +14,7 @@ var homelabRuntime homelab.Runtime = homelab.NoopRuntime{}
 func initHomelabRegistry(cfg config.Homelab) error {
 	homeConfig := homelabConfig(cfg)
 	homelabRuntime = homelab.NewRuntime(homeConfig.Runtime, homeConfig.AppsDir)
+	homelab.DefaultRuntime = homelabRuntime
 	if homeConfig.AppsDir == "" {
 		flog.Info("homelab app registry disabled: homelab.apps_dir is empty")
 		return nil
