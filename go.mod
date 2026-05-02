@@ -68,6 +68,7 @@ require (
 	golang.org/x/sys v0.43.0
 	golang.org/x/term v0.42.0
 	google.golang.org/genai v1.55.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27

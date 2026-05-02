@@ -40,7 +40,14 @@ func (g *GormLogger) Warn(_ context.Context, s string, i ...any) {
 }
 
 func (g *GormLogger) Error(_ context.Context, s string, i ...any) {
-	l.Error().Caller(1).Stack().Msgf(s, i...)
+	evt := l.Error()
+	if mustCaller() {
+		evt = evt.Caller(1)
+	}
+	if mustStack() {
+		evt = evt.Stack()
+	}
+	evt.Msgf(s, i...)
 }
 
 func (g *GormLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {

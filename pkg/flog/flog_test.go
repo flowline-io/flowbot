@@ -1,6 +1,7 @@
 package flog
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/rs/zerolog"
@@ -73,87 +74,191 @@ func TestLevelConstants(t *testing.T) {
 }
 
 func TestGetLogger(t *testing.T) {
-	// Initialize with disabled file log and alarm
-	Init(false, false)
+	Init(Config{Level: "info"})
 
 	logger := GetLogger()
 	assert.NotNil(t, logger)
 }
 
 func TestInit(t *testing.T) {
-	// Test initialization without file logging
 	assert.NotPanics(t, func() {
-		Init(false, false)
+		Init(Config{Level: "info"})
 	})
 
-	// Test initialization with file logging
 	assert.NotPanics(t, func() {
-		Init(true, false)
+		Init(Config{Level: "debug", FileLog: true, AlarmEnabled: true})
 	})
 
-	// Test initialization with alarm enabled
 	assert.NotPanics(t, func() {
-		Init(false, true)
+		Init(Config{Level: "info", JSONOutput: true})
+	})
+
+	assert.NotPanics(t, func() {
+		Init(Config{
+			Level:   "info",
+			FileLog: true,
+			Rotation: &RotationConfig{
+				MaxSize:    1,
+				MaxAge:     7,
+				MaxBackups: 3,
+				Compress:   false,
+			},
+		})
+	})
+
+	assert.NotPanics(t, func() {
+		Init(Config{
+			Level: "info",
+			Sampling: &SamplingConfig{
+				Burst:  5,
+				Period: 0,
+			},
+		})
+	})
+
+	assert.NotPanics(t, func() {
+		Init(Config{
+			Level: "info",
+			ModuleLevel: map[string]string{
+				"pipeline": "debug",
+			},
+		})
 	})
 }
 
 func TestDebug(t *testing.T) {
-	Init(false, false)
+	Init(Config{Level: DebugLevel})
 	SetLevel(DebugLevel)
 
-	// Should not panic
 	assert.NotPanics(t, func() {
 		Debug("test debug message: %s", "arg")
 	})
 }
 
 func TestInfo(t *testing.T) {
-	Init(false, false)
+	Init(Config{Level: InfoLevel})
 	SetLevel(InfoLevel)
 
-	// Should not panic
 	assert.NotPanics(t, func() {
 		Info("test info message: %s", "arg")
 	})
 }
 
 func TestWarn(t *testing.T) {
-	Init(false, false)
+	Init(Config{Level: WarnLevel})
 	SetLevel(WarnLevel)
 
-	// Should not panic
 	assert.NotPanics(t, func() {
 		Warn("test warn message: %s", "arg")
 	})
 }
 
 func TestError(t *testing.T) {
-	Init(false, false)
+	Init(Config{Level: ErrorLevel})
 	SetLevel(ErrorLevel)
 
-	// Should not panic
 	assert.NotPanics(t, func() {
 		Error(assert.AnError)
 	})
 }
 
-func TestFatal(t *testing.T) {
-	Init(false, false)
+func TestErr(t *testing.T) {
+	Init(Config{Level: ErrorLevel})
+	SetLevel(ErrorLevel)
 
-	// Note: Fatal would exit the program, so we just verify it exists
-	// In real tests, you might use a custom exit function
 	assert.NotPanics(t, func() {
-		// We can't actually test Fatal as it calls os.Exit
-		// Just verify the function signature is correct
+		Err(errors.New("test error without alarm"))
+	})
+}
+
+func TestFatal(t *testing.T) {
+	Init(Config{Level: InfoLevel})
+
+	assert.NotPanics(t, func() {
 		_ = Fatal
 	})
 }
 
 func TestPanic(t *testing.T) {
-	Init(false, false)
+	Init(Config{Level: InfoLevel})
 
-	// Note: Panic would panic, so we recover from it
 	assert.Panics(t, func() {
 		Panic("test panic message: %s", "arg")
 	})
+}
+
+func TestStructuredFields(t *testing.T) {
+	Init(Config{Level: DebugLevel})
+
+	assert.NotPanics(t, func() {
+		DebugFields("debug with fields", map[string]any{"key": "value"})
+		InfoFields("info with fields", map[string]any{"key": "value"})
+		WarnFields("warn with fields", map[string]any{"key": "value"})
+	})
+}
+
+func TestErrFields(t *testing.T) {
+	Init(Config{Level: ErrorLevel})
+
+	assert.NotPanics(t, func() {
+		ErrFields(errors.New("test"), "error with fields", map[string]any{"key": "value"})
+	})
+}
+
+func TestEventHelpers(t *testing.T) {
+	Init(Config{Level: DebugLevel})
+
+	assert.NotPanics(t, func() {
+		DebugEvt().Str("key", "val").Msg("debug event")
+		InfoEvt().Str("key", "val").Msg("info event")
+		WarnEvt().Str("key", "val").Msg("warn event")
+	})
+}
+
+func TestErrorEvt(t *testing.T) {
+	Init(Config{Level: ErrorLevel})
+
+	assert.NotPanics(t, func() {
+		ErrorEvt().Err(errors.New("test")).Str("key", "val").Msg("error event")
+	})
+}
+
+func TestModule(t *testing.T) {
+	Init(Config{
+		Level: DebugLevel,
+		ModuleLevel: map[string]string{
+			"testmodule": "warn",
+		},
+	})
+
+	m := Module("testmodule")
+	assert.NotNil(t, m)
+
+	m2 := Module("nonexistent")
+	assert.NotNil(t, m2)
+}
+
+func TestSampled(t *testing.T) {
+	Init(Config{
+		Level: InfoLevel,
+		Sampling: &SamplingConfig{
+			Burst:  3,
+			Period: 0,
+		},
+	})
+
+	s := Sampled()
+	assert.NotNil(t, s)
+
+	assert.NotPanics(t, func() {
+		s.Info().Msg("sampled info")
+	})
+}
+
+func TestSetModuleLevel(t *testing.T) {
+	Init(Config{Level: InfoLevel})
+
+	SetModuleLevel("m1", "debug")
+	m := Module("m1")
+	assert.NotNil(t, m)
 }

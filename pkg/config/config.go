@@ -127,6 +127,42 @@ type StoreType struct {
 type Log struct {
 	// Log level: debug, info, warn, error, fatal, panic
 	Level string `json:"level" yaml:"level" mapstructure:"level"`
+	// Caller enables caller (file:line) info in all log levels
+	Caller bool `json:"caller" yaml:"caller" mapstructure:"caller"`
+	// StackTrace enables full stack traces on errors
+	StackTrace bool `json:"stackTrace" yaml:"stackTrace" mapstructure:"stackTrace"`
+	// JSONOutput writes JSON to stdout instead of human-readable console format
+	JSONOutput bool `json:"jsonOutput" yaml:"jsonOutput" mapstructure:"jsonOutput"`
+	// FileLog enables file logging (defaults to XDG config dir)
+	FileLog bool `json:"fileLog" yaml:"fileLog" mapstructure:"fileLog"`
+	// FileLogPath overrides the default log file path
+	FileLogPath string `json:"fileLogPath" yaml:"fileLogPath" mapstructure:"fileLogPath"`
+	// ModuleLevel sets per-module log levels, e.g. {"pipeline": "debug"}
+	ModuleLevel map[string]string `json:"moduleLevel" yaml:"moduleLevel" mapstructure:"moduleLevel"`
+	// Sampling configures burst sampling for high-frequency log points
+	Sampling *LogSampling `json:"sampling" yaml:"sampling" mapstructure:"sampling"`
+	// Rotation configures log file rotation
+	Rotation *LogRotation `json:"rotation" yaml:"rotation" mapstructure:"rotation"`
+}
+
+// LogSampling configures burst sampling to reduce noise from high-frequency log points.
+type LogSampling struct {
+	// Burst allows this many events in the period before sampling kicks in
+	Burst int `json:"burst" yaml:"burst" mapstructure:"burst"`
+	// Period is the sampling window in seconds
+	Period int `json:"period" yaml:"period" mapstructure:"period"`
+}
+
+// LogRotation configures log file rotation using lumberjack.
+type LogRotation struct {
+	// MaxSize is the maximum size in megabytes before rotation
+	MaxSize int `json:"maxSize" yaml:"maxSize" mapstructure:"maxSize"`
+	// MaxAge is the maximum number of days to retain old log files
+	MaxAge int `json:"maxAge" yaml:"maxAge" mapstructure:"maxAge"`
+	// MaxBackups is the maximum number of old log files to retain
+	MaxBackups int `json:"maxBackups" yaml:"maxBackups" mapstructure:"maxBackups"`
+	// Compress determines if rotated log files are gzipped
+	Compress bool `json:"compress" yaml:"compress" mapstructure:"compress"`
 }
 
 type Redis struct {

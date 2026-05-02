@@ -45,7 +45,7 @@ func Register(name string, module Handler) {
 		flog.Fatal("Register: called twice for module %s", name)
 	}
 	handlers[name] = module
-	_, _ = fmt.Printf("%s info %s [module] %s registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
+	flog.Info("[module] %s registered", name)
 }
 
 func Help(rules []any) (map[string][]string, error) {

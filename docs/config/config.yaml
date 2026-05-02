@@ -60,6 +60,30 @@ redis:
 log:
   # Log level: debug, info, warn, error, fatal, panic
   level: info
+  # Enable caller (file:line) info at all levels (always on at debug level)
+  caller: false
+  # Enable full stack traces on error logs
+  stackTrace: false
+  # Write JSON to stdout instead of human-readable console format
+  jsonOutput: false
+  # Enable file logging (writes to XDG config home by default)
+  fileLog: false
+  # Override default log file path
+  # fileLogPath: /var/log/flowbot/flowbot.log
+  # Per-module log levels
+  # moduleLevel:
+  #   pipeline: debug
+  #   workflow: debug
+  # Burst sampling for high-frequency log points
+  # sampling:
+  #   burst: 5
+  #   period: 1
+  # Log file rotation
+  # rotation:
+  #   maxSize: 100
+  #   maxAge: 30
+  #   maxBackups: 10
+  #   compress: true
 
 # Executor configuration
 executor:

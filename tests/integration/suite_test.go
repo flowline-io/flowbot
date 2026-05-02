@@ -57,7 +57,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 
 	// Initialize logging
-	flog.Init(false, false)
+	flog.Init(flog.Config{Level: "info"})
 
 	// Start MySQL container
 	mysqlImage := os.Getenv("MYSQL_IMAGE")

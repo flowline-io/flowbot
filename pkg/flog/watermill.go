@@ -10,7 +10,13 @@ var WatermillLogger = &watermillLogger{}
 type watermillLogger struct{}
 
 func (w *watermillLogger) Error(msg string, err error, fields watermill.LogFields) {
-	t := l.Error().Caller(1).Err(err)
+	t := l.Error().Err(err)
+	if mustCaller() {
+		t = t.Caller(1)
+	}
+	if mustStack() {
+		t = t.Stack()
+	}
 	if fields != nil {
 		addWatermillFieldsData(t, fields)
 	}
@@ -18,7 +24,10 @@ func (w *watermillLogger) Error(msg string, err error, fields watermill.LogField
 }
 
 func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
-	t := l.Info().Caller(1)
+	t := l.Info()
+	if mustCaller() {
+		t = t.Caller(1)
+	}
 	if fields != nil {
 		addWatermillFieldsData(t, fields)
 	}
@@ -26,7 +35,10 @@ func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
 }
 
 func (w *watermillLogger) Debug(msg string, fields watermill.LogFields) {
-	t := l.Debug().Caller(1)
+	t := l.Debug()
+	if mustCaller() {
+		t = t.Caller(1)
+	}
 	if fields != nil {
 		addWatermillFieldsData(t, fields)
 	}
@@ -34,7 +46,10 @@ func (w *watermillLogger) Debug(msg string, fields watermill.LogFields) {
 }
 
 func (w *watermillLogger) Trace(msg string, fields watermill.LogFields) {
-	t := l.Trace().Caller(1)
+	t := l.Trace()
+	if mustCaller() {
+		t = t.Caller(1)
+	}
 	if fields != nil {
 		addWatermillFieldsData(t, fields)
 	}

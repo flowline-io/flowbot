@@ -282,7 +282,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Topic:  topic,
 		AsUser: uid,
 	}
-	_, _ = fmt.Println(ctx)
+	flog.Debug("context: %+v", ctx)
 
 	// behavior
 	module.Behavior(uid, module.MessageGroupIncomingBehavior, 1)

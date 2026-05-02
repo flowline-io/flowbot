@@ -18,8 +18,32 @@ var (
 )
 
 func initializeLog() error {
-	flog.Init(false, config.App.Alarm.Enabled)
-	flog.SetLevel(config.App.Log.Level)
+	cfg := config.App.Log
+	fc := flog.Config{
+		Level:        cfg.Level,
+		Caller:       cfg.Caller,
+		StackTrace:   cfg.StackTrace,
+		JSONOutput:   cfg.JSONOutput,
+		FileLog:      cfg.FileLog,
+		FileLogPath:  cfg.FileLogPath,
+		AlarmEnabled: config.App.Alarm.Enabled,
+		ModuleLevel:  cfg.ModuleLevel,
+	}
+	if cfg.Sampling != nil {
+		fc.Sampling = &flog.SamplingConfig{
+			Burst:  cfg.Sampling.Burst,
+			Period: time.Duration(cfg.Sampling.Period) * time.Second,
+		}
+	}
+	if cfg.Rotation != nil {
+		fc.Rotation = &flog.RotationConfig{
+			MaxSize:    cfg.Rotation.MaxSize,
+			MaxAge:     cfg.Rotation.MaxAge,
+			MaxBackups: cfg.Rotation.MaxBackups,
+			Compress:   cfg.Rotation.Compress,
+		}
+	}
+	flog.Init(fc)
 	return nil
 }
 

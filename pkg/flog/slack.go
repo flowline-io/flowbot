@@ -5,6 +5,10 @@ var SlackLogger = &slackLogger{}
 type slackLogger struct{}
 
 func (s *slackLogger) Output(i int, s2 string) error {
-	l.Debug().Caller(i).Msg(s2)
+	evt := l.Debug()
+	if mustCaller() {
+		evt = evt.Caller(i)
+	}
+	evt.Msg(s2)
 	return nil
 }

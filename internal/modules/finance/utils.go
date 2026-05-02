@@ -15,7 +15,7 @@ func classify(ctx context.Context) {
 	}
 
 	template := llm.BaseTemplate()
-	_, _ = fmt.Println(template)
+	flog.Debug("bill template: %s", template)
 }
 
 const billPrompt = `You are a bill parsing assistant. Please help me extract each transaction record from the following text. Requirements:

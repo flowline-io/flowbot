@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/media"
 	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/utils"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	migrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -103,7 +102,7 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 		flog.Fatal("RegisterMediaHandler: called twice for handler %s", name)
 	}
 	fileHandlers[name] = mh
-	fmt.Printf("%s info %s media: handler '%s' registered\n", time.Now().Format(time.DateTime), utils.FileAndLine(), name)
+	flog.Info("media: handler '%s' registered", name)
 }
 
 // UseMediaHandler sets specified media handler as default.
