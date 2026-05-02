@@ -223,33 +223,172 @@ func TestParseYAML_InvalidYAML(t *testing.T) {
 	assert.Contains(t, err.Error(), "parse workflow")
 }
 
+func TestParseYAML_ConnCycle(t *testing.T) {
+	data := []byte(`
+name: test
+pipeline:
+  - a
+tasks:
+  - id: a
+    action: echo
+    conn: [b]
+  - id: b
+    action: echo
+    conn: [a]
+`)
+	_, err := ParseYAML(data)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
 func TestResolveParams_SimpleReplacement(t *testing.T) {
 	params := types.KV{"ref": "{{step1.id}}"}
 	results := map[string]string{"step1": "abc123"}
-	resolved := resolveParams(params, results)
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
 	assert.Equal(t, "abc123", resolved["ref"])
 }
 
 func TestResolveParams_NoMatch(t *testing.T) {
 	params := types.KV{"ref": "hello world"}
 	results := map[string]string{"step1": "abc"}
-	resolved := resolveParams(params, results)
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
 	assert.Equal(t, "hello world", resolved["ref"])
 }
 
 func TestResolveParams_NonStringValue(t *testing.T) {
 	params := types.KV{"count": 42}
 	results := map[string]string{"step1": "abc"}
-	resolved := resolveParams(params, results)
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
 	assert.Equal(t, 42, resolved["count"])
 }
 
 func TestResolveParams_MultipleKeys(t *testing.T) {
 	params := types.KV{"a": "{{step1.id}}", "b": "{{step2.id}}"}
 	results := map[string]string{"step1": "r1", "step2": "r2"}
-	resolved := resolveParams(params, results)
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
 	assert.Equal(t, "r1", resolved["a"])
 	assert.Equal(t, "r2", resolved["b"])
+}
+
+func TestResolveParams_ConditionInParams(t *testing.T) {
+	params := types.KV{
+		"action": "{{if eq (step \"step1\" \"result\") \"success\"}}proceed{{else}}retry{{end}}",
+	}
+	results := map[string]string{"step1": "success"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "proceed", resolved["action"])
+}
+
+func TestResolveParams_ConditionElse(t *testing.T) {
+	params := types.KV{
+		"action": "{{if eq (step \"step1\" \"result\") \"success\"}}proceed{{else}}retry{{end}}",
+	}
+	results := map[string]string{"step1": "failed"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "retry", resolved["action"])
+}
+
+func TestResolveParams_OldSyntaxStepResult(t *testing.T) {
+	params := types.KV{"output": "{{steps.step1.result}}"}
+	results := map[string]string{"step1": "my-output"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "my-output", resolved["output"])
+}
+
+func TestResolveParams_NewSyntaxStep(t *testing.T) {
+	params := types.KV{"output": "{{step \"step1\" \"id\"}}"}
+	results := map[string]string{"step1": "id-value"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "id-value", resolved["output"])
+}
+
+func TestResolveParams_DefaultWhenMissing(t *testing.T) {
+	params := types.KV{
+		"label": "{{default \"no-result\" .Steps.noexist.id}}",
+	}
+	results := map[string]string{}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "no-result", resolved["label"])
+}
+
+func TestResolveParams_JoinStepResults(t *testing.T) {
+	params := types.KV{
+		"out": "{{step \"s1\" \"result\"}}|{{step \"s2\" \"result\"}}",
+	}
+	results := map[string]string{"s1": "a", "s2": "b"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "a|b", resolved["out"])
+}
+
+func TestResolveParams_InvalidTemplate(t *testing.T) {
+	params := types.KV{"bad": "{{if xxx}}"}
+	results := map[string]string{}
+	_, err := resolveParams(params, results)
+	require.Error(t, err)
+}
+
+func TestResolveParams_ContainsCheck(t *testing.T) {
+	params := types.KV{
+		"match": "{{if contains (step \"step1\" \"result\") \"ok\"}}yes{{else}}no{{end}}",
+	}
+	results := map[string]string{"step1": "all-ok-done"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "yes", resolved["match"])
+}
+
+func TestResolveParams_LoopOverSteps(t *testing.T) {
+	params := types.KV{
+		"all": "{{range $k, $v := .Steps}}{{$k}}={{index $v \"id\"}};{{end}}",
+	}
+	results := map[string]string{"a": "r1", "b": "r2"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Contains(t, resolved["all"], "a=r1")
+	assert.Contains(t, resolved["all"], "b=r2")
+}
+
+func TestResolveParams_NestedMapValue(t *testing.T) {
+	params := types.KV{
+		"inner": map[string]any{
+			"ref": "{{step \"step1\" \"id\"}}",
+		},
+	}
+	results := map[string]string{"step1": "nested-id"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	inner := resolved["inner"].(map[string]any)
+	assert.Equal(t, "nested-id", inner["ref"])
+}
+
+func TestResolveParams_StringSliceValue(t *testing.T) {
+	params := types.KV{
+		"items": []any{"{{step \"a\" \"result\"}}", "{{step \"b\" \"result\"}}"},
+	}
+	results := map[string]string{"a": "x", "b": "y"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	items := resolved["items"].([]any)
+	assert.Equal(t, "x", items[0])
+	assert.Equal(t, "y", items[1])
+}
+
+func TestResolveParams_EmptyResults(t *testing.T) {
+	params := types.KV{"ref": "{{step \"nonexist\" \"id\"}}"}
+	results := map[string]string{}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "", resolved["ref"])
 }
 
 func TestNewRunner_HasEngines(t *testing.T) {
@@ -269,6 +408,97 @@ func TestWorkflowTaskToTask_MarshalError(t *testing.T) {
 	_, err := WorkflowTaskToTask(wt)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "marshal params")
+}
+
+func TestValidateDAG_NoCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_DirectCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_IndirectCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_SelfCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_EmptyConn(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a"},
+		{ID: "b"},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_UnknownDependency(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"nonexistent"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "references unknown dependency")
+}
+
+func TestValidateDAG_MultipleRoots(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"c"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_Diamond(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b", "c"}},
+		{ID: "b", Conn: []string{"d"}},
+		{ID: "c", Conn: []string{"d"}},
+		{ID: "d"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_DisconnectedWithCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"a"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
 }
 
 func TestWorkflowTaskToTask_SliceCmdMixedTypes(t *testing.T) {

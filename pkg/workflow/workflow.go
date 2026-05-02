@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -57,38 +58,41 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 	}
 
 	if info.IsCapability {
-		task.Run = wt.Action
-		if len(wt.Params) > 0 {
-			paramsJSON, err := json.Marshal(wt.Params)
-			if err != nil {
-				return nil, fmt.Errorf("marshal params: %w", err)
-			}
-			task.Env["CAPABILITY_PARAMS"] = string(paramsJSON)
+		if err := marshalCapabilityParams(task, wt.Params); err != nil {
+			return nil, err
 		}
 		return task, nil
 	}
 
+	applyActionParams(task, info, wt.Params)
+	return task, nil
+}
+
+func marshalCapabilityParams(task *types.Task, params types.KV) error {
+	if len(params) == 0 {
+		return nil
+	}
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("marshal params: %w", err)
+	}
+	task.Env["CAPABILITY_PARAMS"] = string(paramsJSON)
+	return nil
+}
+
+func applyActionParams(task *types.Task, info ActionInfo, params types.KV) {
 	switch info.Type {
 	case "docker":
 		task.Image = info.Details
-		if len(wt.Params) > 0 {
-			if cmd, ok := wt.Params["cmd"]; ok {
-				switch v := cmd.(type) {
-				case string:
-					task.CMD = []string{v}
-				case []any:
-					for _, item := range v {
-						if s, ok := item.(string); ok {
-							task.CMD = append(task.CMD, s)
-						}
-					}
-				}
+		if len(params) > 0 {
+			if cmd, ok := params["cmd"]; ok {
+				task.CMD = extractCMDSlice(cmd)
 			}
 		}
 	case "shell":
 		task.Run = info.Details
-		if len(wt.Params) > 0 {
-			if cmd, ok := wt.Params["cmd"]; ok {
+		if len(params) > 0 {
+			if cmd, ok := params["cmd"]; ok {
 				if s, ok := cmd.(string); ok {
 					task.Run = s
 				}
@@ -101,8 +105,23 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 			task.Run = info.Details
 		}
 	}
+}
 
-	return task, nil
+func extractCMDSlice(cmd any) []string {
+	switch v := cmd.(type) {
+	case string:
+		return []string{v}
+	case []any:
+		result := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				result = append(result, s)
+			}
+		}
+		return result
+	default:
+		return nil
+	}
 }
 
 func DetermineRuntimeType(t *types.Task) string {
@@ -153,7 +172,10 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 			return fmt.Errorf("task %s not found in workflow", stepID)
 		}
 
-		params := resolveParams(wt.Params, results)
+		params, err := resolveParams(wt.Params, results)
+		if err != nil {
+			return fmt.Errorf("resolve params step %s: %w", stepID, err)
+		}
 
 		wtWithParams := wt
 		wtWithParams.Params = params
@@ -179,20 +201,76 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 	return nil
 }
 
-func resolveParams(params types.KV, results map[string]string) types.KV {
-	resolved := make(types.KV, len(params))
-	for k, v := range params {
-		if s, ok := v.(string); ok && strings.Contains(s, "{{") {
-			for stepID, result := range results {
-				s = strings.ReplaceAll(s, "{{"+stepID+".id}}", result)
-				if result != "" {
-					s = strings.ReplaceAll(s, "{{"+stepID+".result}}", result)
-				}
+func ValidateDAG(tasks []types.WorkflowTask) error {
+	adj := make(map[string][]string)
+	for _, t := range tasks {
+		adj[t.ID] = t.Conn
+	}
+
+	taskIDs := make(map[string]bool)
+	for _, t := range tasks {
+		taskIDs[t.ID] = true
+	}
+
+	for _, t := range tasks {
+		for _, dep := range t.Conn {
+			if !taskIDs[dep] {
+				return fmt.Errorf("task %s references unknown dependency %s", t.ID, dep)
 			}
-			resolved[k] = s
-		} else {
-			resolved[k] = v
 		}
 	}
-	return resolved
+
+	visited := make(map[string]bool)
+	inStack := make(map[string]bool)
+
+	var dfs func(id string) error
+	dfs = func(id string) error {
+		if inStack[id] {
+			return fmt.Errorf("cycle detected: task %s", id)
+		}
+		if visited[id] {
+			return nil
+		}
+		inStack[id] = true
+		for _, dep := range adj[id] {
+			if err := dfs(dep); err != nil {
+				return err
+			}
+		}
+		inStack[id] = false
+		visited[id] = true
+		return nil
+	}
+
+	for _, t := range tasks {
+		if !visited[t.ID] {
+			if err := dfs(t.ID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+var workflowEngine = template.New()
+
+func resolveParams(params types.KV, results map[string]string) (types.KV, error) {
+	steps := make(map[string]map[string]any, len(results))
+	for stepID, result := range results {
+		steps[stepID] = map[string]any{
+			"id":     result,
+			"result": result,
+		}
+	}
+
+	data := &template.TemplateData{
+		Steps: steps,
+	}
+
+	rendered, err := workflowEngine.Render(map[string]any(params), data)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.KV(rendered), nil
 }

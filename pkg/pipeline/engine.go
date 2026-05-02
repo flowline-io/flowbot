@@ -70,13 +70,9 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		}
 	}
 
-	var runID int64
-	if e.store != nil {
-		run, err := e.store.CreateRun(def.Name, event.EventID, event.EventType)
-		if err != nil {
-			return fmt.Errorf("create run: %w", err)
-		}
-		runID = run.ID
+	runID, err := e.createRunRecord(ctx, def.Name, event.EventID, event.EventType)
+	if err != nil {
+		return err
 	}
 
 	rc := NewRenderContext(event)
@@ -84,68 +80,108 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	var finalErr error
 
 	for _, step := range def.Steps {
-		renderedParams := rc.RenderParams(step.Params)
-
-		var stepRunID int64
-		if e.store != nil {
-			paramsJSON := model.JSON{}
-			_ = paramsJSON.Scan(convertToTypesKV(renderedParams))
-			sr, err := e.store.CreateStepRun(runID, step.Name, string(step.Capability), step.Operation, paramsJSON)
-			if err != nil {
-				failed = true
-				finalErr = fmt.Errorf("create step run %s: %w", step.Name, err)
-				break
-			}
-			stepRunID = sr.ID
-		}
-
-		res, err := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
-		if err != nil {
+		if err := e.executeStep(ctx, rc, step, runID, def.Name); err != nil {
 			failed = true
-			finalErr = fmt.Errorf("step %s: %w", step.Name, err)
-			if e.store != nil {
-				_ = e.store.UpdateStepRun(stepRunID, model.PipelineCancel, nil, err.Error())
-			}
+			finalErr = err
 			break
 		}
-
-		stepResult := map[string]any{}
-		if res.Data != nil {
-			if m, ok := res.Data.(map[string]any); ok {
-				stepResult = m
-			} else {
-				dataJSON, _ := sonic.Marshal(res.Data)
-				_ = sonic.Unmarshal(dataJSON, &stepResult)
-			}
-		}
-		rc.RecordStepResult(step.Name, stepResult)
-
-		if e.store != nil {
-			resultJSON := model.JSON{}
-			_ = resultJSON.Scan(convertToTypesKV(stepResult))
-			_ = e.store.UpdateStepRun(stepRunID, model.PipelineDone, resultJSON, "")
-		}
-
-		flog.Info("pipeline %s step %s completed", def.Name, step.Name)
 	}
 
-	if e.store != nil {
-		status := model.PipelineDone
-		errMsg := ""
-		if failed {
-			status = model.PipelineCancel
-			if finalErr != nil {
-				errMsg = finalErr.Error()
-			}
-		}
-		_ = e.store.UpdateRunStatus(runID, status, errMsg)
-	}
+	e.finishRunRecord(runID, failed, finalErr)
 
-	if failed && finalErr != nil {
+	if finalErr != nil {
 		return finalErr
 	}
-
 	return nil
+}
+
+func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string) error {
+	renderedParams, err := rc.RenderParams(step.Params)
+	if err != nil {
+		return fmt.Errorf("render params step %s: %w", step.Name, err)
+	}
+
+	stepRunID, err := e.createStepRunRecord(ctx, runID, step.Name, string(step.Capability), step.Operation, renderedParams)
+	if err != nil {
+		return err
+	}
+
+	res, err := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+	if err != nil {
+		e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error())
+		return fmt.Errorf("step %s: %w", step.Name, err)
+	}
+
+	stepResult := extractResult(res)
+	rc.RecordStepResult(step.Name, stepResult)
+
+	e.updateStepRunRecord(stepRunID, model.PipelineDone, stepResult, "")
+
+	flog.Info("pipeline %s step %s completed", pipelineName, step.Name)
+	return nil
+}
+
+func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType string) (int64, error) {
+	if e.store == nil {
+		return 0, nil
+	}
+	run, err := e.store.CreateRun(name, eventID, eventType)
+	if err != nil {
+		return 0, fmt.Errorf("create run: %w", err)
+	}
+	return run.ID, nil
+}
+
+func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any) (int64, error) {
+	if e.store == nil {
+		return 0, nil
+	}
+	paramsJSON := model.JSON{}
+	_ = paramsJSON.Scan(convertToTypesKV(params))
+	sr, err := e.store.CreateStepRun(runID, stepName, capability, operation, paramsJSON)
+	if err != nil {
+		return 0, fmt.Errorf("create step run %s: %w", stepName, err)
+	}
+	return sr.ID, nil
+}
+
+func (e *Engine) updateStepRunRecord(stepRunID int64, status model.PipelineState, result map[string]any, errMsg string) {
+	if e.store == nil || stepRunID == 0 {
+		return
+	}
+	var resultJSON model.JSON
+	if result != nil {
+		_ = resultJSON.Scan(convertToTypesKV(result))
+	}
+	_ = e.store.UpdateStepRun(stepRunID, status, resultJSON, errMsg)
+}
+
+func (e *Engine) finishRunRecord(runID int64, failed bool, finalErr error) {
+	if e.store == nil || runID == 0 {
+		return
+	}
+	status := model.PipelineDone
+	errMsg := ""
+	if failed {
+		status = model.PipelineCancel
+		if finalErr != nil {
+			errMsg = finalErr.Error()
+		}
+	}
+	_ = e.store.UpdateRunStatus(runID, status, errMsg)
+}
+
+func extractResult(res *ability.InvokeResult) map[string]any {
+	stepResult := map[string]any{}
+	if res.Data == nil {
+		return stepResult
+	}
+	if m, ok := res.Data.(map[string]any); ok {
+		return m
+	}
+	dataJSON, _ := sonic.Marshal(res.Data)
+	_ = sonic.Unmarshal(dataJSON, &stepResult)
+	return stepResult
 }
 
 func convertToTypesKV(m map[string]any) types.KV {
