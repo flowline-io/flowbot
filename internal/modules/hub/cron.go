@@ -21,15 +21,14 @@ var cronRules = []cron.Rule{
 			checker := hub.NewChecker(hub.Default)
 			result := checker.Check(context.Background())
 
-			switch result.Status {
-			case hub.HealthHealthy:
-			case hub.HealthDegraded, hub.HealthUnhealthy:
+			if result.Status != hub.HealthHealthy {
 				msg := notify.Message{
-					Title: "Hub Health Alert",
-					Body:  fmt.Sprintf("Hub status is %s at %s", result.Status, result.Timestamp.Format("15:04:05")),
+					Title:    "Hub Health Alert",
+					Body:     fmt.Sprintf("Hub status is %s at %s", result.Status, result.Timestamp.Format("15:04:05")),
+					Priority: notify.High,
 				}
 
-				if err := notify.Send(fmt.Sprintf("slack://%s/%s", "channel", "hub"), msg); err != nil {
+				if err := notify.ChannelSend(types.Uid("system"), "hub_health", msg); err != nil {
 					flog.Error(fmt.Errorf("hub health notify: %w", err))
 				}
 			}
