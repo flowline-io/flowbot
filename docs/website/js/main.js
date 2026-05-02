@@ -268,7 +268,6 @@
         "beszel",
         "uptimekuma",
         "adguard",
-        "cloudflare",
         "gitea",
         "linkwarden",
       ];

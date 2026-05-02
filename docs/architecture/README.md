@@ -29,9 +29,9 @@ plantuml docs/architecture/*.puml
 Layer 6 — External:        Users, Chat Platforms, Third-Party APIs
 Layer 5 — Platform:        Discord/Slack/Tailchat adapters
 Layer 4 — HTTP Gateway:    Fiber v3 server, REST API, auth middleware
-Layer 3 — Business Logic:  20 bot modules, workflow engine, pipeline engine, LLM
+Layer 3 — Business Logic:  16 bot modules, workflow engine, pipeline engine, LLM
 Layer 2 — Capability:      ability.Invoke() abstraction over providers
-Layer 1 — Providers:       17 third-party service integrations
+Layer 1 — Providers:       16 third-party service integrations
 Layer 0 — Infrastructure:  MySQL, Redis, Docker executor
 ```
 
@@ -66,13 +66,13 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 | Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin |
 | Composer CLI | `cmd/composer/` | Code generation, schema docs, DAO generation  |
 
-### Bot Modules (20)
+### Bot Modules (16)
 
-agent, anki, archive, bookmark, clipboard, cloudflare, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow
+archive, bookmark, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow
 
-### Providers (17)
+### Providers (16)
 
-adguard, archivebox, cloudflare, drone, dropbox, email, fireflyiii, gitea, github, kanboard, karakeep, miniflux, n8n, slack, slash, transmission, uptimekuma
+adguard, archivebox, drone, dropbox, email, fireflyiii, gitea, github, kanboard, karakeep, miniflux, n8n, slack, slash, transmission, uptimekuma
 
 ### Notifications (4 channels)
 

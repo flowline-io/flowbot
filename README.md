@@ -30,7 +30,7 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 
 ```
 /home/<user>/homelab/apps
-        |                          Module (20 interaction surfaces)
+        |                          Module (16 interaction surfaces)
         | scan apps/*/docker-compose.yaml        |
         v                                        v
 +-------------------+                  +---------------------+
@@ -73,7 +73,7 @@ See [architecture diagrams](docs/architecture/README.md) for full PlantUML compo
 | **reader**        | miniflux                                 | REST, CLI, Chat, Webhook, Cron |
 | **kanban**        | kanboard                                 | REST, CLI, Chat, Webhook       |
 | **finance**       | fireflyiii                               | REST, CLI, Chat, Webhook       |
-| **infra**         | beszel, uptime-kuma, adguard, cloudflare | REST, CLI                      |
+| **infra**         | beszel, uptime-kuma, adguard             | REST, CLI                      |
 | **shell_history** | atuin                                    | REST, CLI                      |
 
 All capabilities share the same invocation pattern:
@@ -144,11 +144,10 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 
 ## Module Surface
 
-20 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.
+16 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.
 
 | Module         | Surface                                                        |
 | -------------- | -------------------------------------------------------------- |
-| **agent**      | LLM agent with tool use                                        |
 | **workflow**   | DAG execution, job scheduling                                  |
 | **bookmark**   | URL management via capability                                  |
 | **archive**    | Web archiving via capability                                   |
@@ -157,14 +156,11 @@ docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 | **finance**    | Bill tracking via capability                                   |
 | **hub**        | App lifecycle management                                       |
 | **notify**     | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
-| **cloudflare** | DNS, analytics                                                 |
 | **dev**        | Debugging, testing, forms                                      |
 | **github**     | Issues, PRs                                                    |
 | **gitea**      | Repository management                                          |
 | **torrent**    | Transmission integration                                       |
 | **search**     | MeiliSearch                                                    |
-| **clipboard**  | Cross-platform sync                                            |
-| **anki**       | Spaced repetition                                              |
 | **server**     | System operations                                              |
 | **user**       | Profiles, settings                                             |
 | **webhook**    | Inbound/outbound hooks                                         |
