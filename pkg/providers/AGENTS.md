@@ -13,19 +13,6 @@ providers/
 │   └── client.go     # API client (optional)
 ```
 
-## Provider Types
-
-| Category       | Providers                                    |
-| -------------- | -------------------------------------------- |
-| Communication  | slack, email                                 |
-| Development    | github, gitea, drone                         |
-| Productivity   | kanboard, n8n                                |
-| Finance        | fireflyiii                                   |
-| Infrastructure | cloudflare, adguard, uptimekuma              |
-| Media          | transmission, miniflux, archivebox, karakeep |
-| Storage        | dropbox                                      |
-| Other          | slash                                        |
-
 ## OAuth Pattern
 
 Providers implementing OAuth:

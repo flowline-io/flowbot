@@ -2,8 +2,6 @@
 
 General-purpose utility functions with required unit test coverage.
 
-**Rule**: Every `.go` file in this directory (and subdirectories) MUST have a corresponding `_test.go` file.
-
 ## Structure
 
 ```
@@ -32,16 +30,9 @@ utils/
     └── map.go            # Generic sync.Map wrapper
 ```
 
-## Testing Rule
-
-**Mandatory**: Every `.go` file must have a corresponding `_test.go` file with `require`/`assert` from testify.
-
-```bash
-go test ./pkg/utils/...     # All utils tests (must pass)
-go test -run ^TestFoo$ ./pkg/utils  # Specific test
-```
-
 ## Key Patterns
+
+**Rule**: Every `.go` file in this directory (and subdirectories) MUST have a corresponding `_test.go` file.
 
 **Singleton**: `utils.NewSingleton(func() (any, error) { ... })` — thread-safe single init.
 
@@ -52,18 +43,3 @@ go test -run ^TestFoo$ ./pkg/utils  # Specific test
 **Sets**: `sets.NewInt()` / `sets.NewString()` — generic set types with Add/Has/Remove.
 
 **Syncx**: `syncx.NewMap[K, V]()` — generic wrapper around `sync.Map`.
-
-## Anti-Patterns
-
-- **Never** add a `.go` file without a corresponding `_test.go`
-- **Never** use `panic` — return errors
-- **Never** import from `internal/` packages
-- **Always** use `require`/`assert` from testify in tests
-
-## Commands
-
-```bash
-go test ./pkg/utils/...
-go test -cover ./pkg/utils/...
-go tool task test:coverage   # Full coverage report
-```

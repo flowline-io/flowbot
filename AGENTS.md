@@ -1,17 +1,14 @@
 # Agents Guide for Flowbot
 
-Multi-platform chatbot framework with 20 bot modules, workflow engine, and LLM agents.
+Flowbot is Homelab Data Hub & Capability Orchestration Center
 
 **Generated:** 2026-05-01
-**Commit:** 0586801
-**Branch:** hub
-**Go Version:** 1.26
 
 ## Quick Reference
 
 | Task             | Location            | Notes                   |
 | ---------------- | ------------------- | ----------------------- |
-| Add new bot      | `internal/modules/` | See `AGENTS.md` there   |
+| Add new module   | `internal/modules/` | See `AGENTS.md` there   |
 | Module framework | `pkg/module/`       | Handler interface       |
 | Database work    | `internal/store/`   | DAO pattern, migrations |
 | New provider     | `pkg/providers/`    | OAuth + API clients     |
@@ -48,7 +45,7 @@ flowbot/
 │   ├── utils/           # Common utilities
 │   ├── event/           # Redis Stream pub/sub
 │   ├── executor/        # Workflow runtime (Docker)
-│   ├── llm/             # LLM agent system
+│   ├── llm/             # LLM functinon
 │   ├── chatbot/         # Platform chat interface
 │   ├── migrate/         # Migration runner
 │   ├── ability/         # Capability abstraction layer
@@ -73,36 +70,6 @@ flowbot/
 │   ├── crawler/         # Web crawler
 │   ├── search/          # Search utilities
 │   └── validate/        # Validation
-```
-
-## Build Commands
-
-```bash
-go tool task default       # tidy → swagger → format → lint → test
-go tool task build         # Main server
-go tool task build:composer # Composer CLI
-go tool task build:cli     # Admin CLI
-go tool task build:all     # All binaries
-go tool task test          # All tests
-go tool task test:coverage # Coverage report
-go tool task test:integration # Integration tests (requires Docker)
-go tool task lint          # revive + actionlint
-go tool task air           # Live reload (server)
-```
-
-## Code Style
-
-- **Format**: `go fmt` + `npx prettier`
-- **Lint**: `revive` (strict, see `revive.toml`)
-- **Imports**: stdlib → third-party → internal
-- **Naming**: packages lowercase, types CamelCase
-- **Errors**: Wrap with `%w`, use `errors.New` for sentinels
-
-### Lint Rules (Key)
-
-```toml
-severity = "error"
-enabled: blank-imports, dot-imports, error-naming, import-shadowing
 ```
 
 ## Architecture
@@ -180,6 +147,14 @@ Pipeline Engine → pipeline_runs
 
 ## Key Patterns
 
+### Code Style
+
+- **Format**: `go fmt` + `npx prettier`
+- **Lint**: `revive` (strict, see `revive.toml`)
+- **Imports**: stdlib → third-party → internal
+- **Naming**: packages lowercase, types CamelCase
+- **Errors**: Wrap with `%w`, use `errors.New` for sentinels
+
 ### Routing
 
 ```
@@ -187,32 +162,15 @@ Pipeline Engine → pipeline_runs
 /hub/*                    # Management plane
 ```
 
-### Error Handling
-
-```go
-if err != nil {
-    return fmt.Errorf("context: %w", err)
-}
-```
-
 ### Testing
 
 ```bash
 go test ./pkg/utils
 go test -run ^TestFoo$ ./pkg/utils
+
+go tool task test          # All tests
+go tool task test:integration # Integration tests (requires Docker)
 ```
-
-## Generated Code
-
-| Type       | Command        | Location                      |
-| ---------- | -------------- | ----------------------------- |
-| DAO        | `task dao`     | `internal/store/dao/*.gen.go` |
-| Swagger    | `task swagger` | `docs/api/`                   |
-| Migrations | `task migrate` | `pkg/migrate/migrations/`     |
-
-**Never** edit `.gen.go` files directly.
-
-## Testing
 
 - Tests live next to code: `*_test.go`
 - Use `require`/`assert` from testify
@@ -227,9 +185,6 @@ go test -run ^TestFoo$ ./pkg/utils
 - **Never** block in event handlers
 - **Always** check `err != nil` immediately
 - **Always** wrap errors when propagating
-
-### Architecture Violations
-
 - **Never** import `pkg/providers/*` directly from `internal/modules/*` — use `ability.Invoke`
 - **Never** call provider clients directly in modules (e.g. `karakeep.GetClient()`)
 - **Never** access local filesystem paths (e.g. `/home/<user>/homelab/apps/<app>/data`) from modules
@@ -257,14 +212,16 @@ go test -run ^TestFoo$ ./pkg/utils
 - **Never** skip audit log on Hub lifecycle operations
 - **Never** skip idempotency checks in Pipeline steps
 
+## Build Commands
+
+```bash
+go tool task build         # Main server
+```
+
 ## CI/Quality
 
 ```bash
-go tool task link      # code lint
-go tool task check     # lint + secure + leak + gosec
-go tool task secure    # govulncheck
-go tool task leak      # gitleaks
-go tool task gosec     # security scan
+go tool task lint      # code lint
 ```
 
 ## Configuration

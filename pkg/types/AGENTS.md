@@ -29,41 +29,6 @@ types/
     └── webservice/ # HTTP endpoints
 ```
 
-## Ruleset Types
-
-7 rule types defined in `types.go`:
-
-| Type           | Purpose           |
-| -------------- | ----------------- |
-| ActionRule     | Generic actions   |
-| CommandRule    | Slash commands    |
-| CronRule       | Scheduled tasks   |
-| EventRule      | Event handlers    |
-| FormRule       | Interactive forms |
-| PageRule       | UI pages          |
-| TriggerRule    | Workflow triggers |
-| WebhookRule    | HTTP webhooks     |
-| WebserviceRule | HTTP endpoints    |
-| WorkflowRule   | Workflow actions  |
-
-## Message Types
-
-All implement `MsgPayload` interface:
-
-| Type        | Usage             |
-| ----------- | ----------------- |
-| TextMsg     | Plain text        |
-| FormMsg     | Interactive forms |
-| LinkMsg     | URL previews      |
-| TableMsg    | Tabular data      |
-| InfoMsg     | Info display      |
-| ChartMsg    | Chart data        |
-| MarkdownMsg | Markdown content  |
-| HtmlMsg     | Raw HTML          |
-| InstructMsg | LLM instructions  |
-| KVMsg       | Key-value data    |
-| EmptyMsg    | No content        |
-
 ## KV Type
 
 `type KV map[string]any` with helpers:
