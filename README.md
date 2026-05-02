@@ -32,17 +32,17 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 /home/<user>/homelab/apps
         |                          Module (20 interaction surfaces)
         | scan apps/*/docker-compose.yaml        |
-        v                                       v
-+-------------------+                  +--------------------+
+        v                                        v
++-------------------+                  +---------------------+
 | Homelab Registry  |  bind app →      | Capability Registry |
 | archivebox,atuin, |  capability      | bookmark, archive,  |
 | beszel,karakeep...| ---------------> | reader, kanban,     |
 +-------------------+                  | infra, shellhistory |
-        |                              +---------+----------+
+        |                              +---------+-----------+
         | register apps                          |
-        v                              ability.Invoke()
-+-------------------+                          |
-|       Hub         |                          v
+        v                                ability.Invoke()
++-------------------+                            |
+|       Hub         |                            v
 | /hub/apps         |                  +--------------------+
 | /hub/capabilities |                  |  Ability Layer     |
 | /hub/health       |                  |  bookmark.Service  |
@@ -53,13 +53,13 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
                                        +---------+----------+
                                                  | adapter
                                                  v
-                                       +--------------------+
-                                       |  Provider Layer    |
-                                       |  karakeep, archivebox,
-                                       |  miniflux, kanboard,
-                                       |  fireflyiii, beszel,
-                                       |  atuin, ...
-                                       +--------------------+
+                                       +-----------------------+
+                                       |  Provider Layer       |
+                                       |  karakeep, archivebox,|
+                                       |  miniflux, kanboard,  |
+                                       |  fireflyiii, beszel,  |
+                                       |  atuin, ...           |
+                                       +-----------------------+
 ```
 
 See [architecture diagrams](docs/architecture/README.md) for full PlantUML component, layer, dataflow, and deployment diagrams.
