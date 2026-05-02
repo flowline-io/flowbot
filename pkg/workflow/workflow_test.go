@@ -271,6 +271,86 @@ func TestWorkflowTaskToTask_MarshalError(t *testing.T) {
 	assert.Contains(t, err.Error(), "marshal params")
 }
 
+func TestValidateDAG_NoCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_DirectCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_IndirectCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_SelfCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"a"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
+func TestValidateDAG_EmptyConn(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a"},
+		{ID: "b"},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_UnknownDependency(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"nonexistent"}},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "references unknown dependency")
+}
+
+func TestValidateDAG_MultipleRoots(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"c"}},
+		{ID: "b", Conn: []string{"c"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
+func TestValidateDAG_Diamond(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b", "c"}},
+		{ID: "b", Conn: []string{"d"}},
+		{ID: "c", Conn: []string{"d"}},
+		{ID: "d"},
+	}
+	err := ValidateDAG(tasks)
+	assert.NoError(t, err)
+}
+
 func TestWorkflowTaskToTask_SliceCmdMixedTypes(t *testing.T) {
 	wt := types.WorkflowTask{
 		ID:     "step1",

@@ -179,6 +179,57 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 	return nil
 }
 
+func ValidateDAG(tasks []types.WorkflowTask) error {
+	adj := make(map[string][]string)
+	for _, t := range tasks {
+		adj[t.ID] = t.Conn
+	}
+
+	taskIDs := make(map[string]bool)
+	for _, t := range tasks {
+		taskIDs[t.ID] = true
+	}
+
+	for _, t := range tasks {
+		for _, dep := range t.Conn {
+			if !taskIDs[dep] {
+				return fmt.Errorf("task %s references unknown dependency %s", t.ID, dep)
+			}
+		}
+	}
+
+	visited := make(map[string]bool)
+	inStack := make(map[string]bool)
+
+	var dfs func(id string) error
+	dfs = func(id string) error {
+		if inStack[id] {
+			return fmt.Errorf("cycle detected: task %s", id)
+		}
+		if visited[id] {
+			return nil
+		}
+		inStack[id] = true
+		for _, dep := range adj[id] {
+			if err := dfs(dep); err != nil {
+				return err
+			}
+		}
+		inStack[id] = false
+		visited[id] = true
+		return nil
+	}
+
+	for _, t := range tasks {
+		if !visited[t.ID] {
+			if err := dfs(t.ID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func resolveParams(params types.KV, results map[string]string) types.KV {
 	resolved := make(types.KV, len(params))
 	for k, v := range params {

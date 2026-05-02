@@ -30,5 +30,8 @@ func ParseYAML(data []byte) (*types.WorkflowMetadata, error) {
 	if len(wf.Tasks) == 0 {
 		return nil, fmt.Errorf("workflow tasks are required")
 	}
+	if err := ValidateDAG(wf.Tasks); err != nil {
+		return nil, fmt.Errorf("workflow dag: %w", err)
+	}
 	return &wf, nil
 }
