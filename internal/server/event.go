@@ -126,6 +126,7 @@ func onModuleRunEventHandler(msg *message.Message) error {
 		AsUser:      types.Uid(be.Uid),
 		Topic:       be.Topic,
 		EventRuleId: be.EventName,
+		TraceCtx:    msg.Context(),
 	}
 	ctx.SetTimeout(10 * time.Minute)
 

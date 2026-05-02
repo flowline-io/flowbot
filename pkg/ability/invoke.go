@@ -6,7 +6,9 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type Invoker func(ctx context.Context, params map[string]any) (*InvokeResult, error)
@@ -73,8 +75,16 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	if !ok {
 		return nil, types.Errorf(types.ErrNotImplemented, "operation %s.%s not implemented", capability, operation)
 	}
+
+	ctx, span := trace.StartSpan(ctx, "ability."+string(capability)+"."+operation,
+		attribute.String("capability.name", string(capability)),
+		attribute.String("capability.operation", operation),
+	)
+	defer span.End()
+
 	result, err := invoker(ctx, params)
 	if err != nil {
+		trace.RecordError(ctx, err)
 		return nil, err
 	}
 	if result == nil {

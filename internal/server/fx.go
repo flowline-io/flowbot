@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/search"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"go.uber.org/fx"
 )
 
@@ -24,6 +25,7 @@ var Modules = fx.Options(
 		event.NewSubscriber,
 		event.NewPublisher,
 		slack.NewDriver,
+		trace.NewTracerProvider,
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,

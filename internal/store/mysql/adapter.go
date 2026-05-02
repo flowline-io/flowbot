@@ -16,6 +16,7 @@ import (
 	ms "github.com/go-sql-driver/mysql"
 	mysqlDriver "gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 const (
@@ -308,6 +309,10 @@ func (a *adapter) Open(adaptersConfig config.StoreType) error {
 	})
 	if err != nil {
 		return err
+	}
+
+	if err := a.db.Use(tracing.NewPlugin(tracing.WithDBSystem(adapterName))); err != nil {
+		return fmt.Errorf("failed to register gorm tracing plugin: %w", err)
 	}
 
 	// Initialize dao

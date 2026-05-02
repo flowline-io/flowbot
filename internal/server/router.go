@@ -194,6 +194,7 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 		Topic:      topic,
 		AsUser:     types.Uid(uid),
 		PageRuleId: pageRuleId,
+		TraceCtx:   ctx.Context(),
 	}
 
 	_, botHandler := module.FindRuleAndHandler[pageRule.Rule](pageRuleId, module.List())
@@ -306,6 +307,7 @@ func (c *Controller) postForm(ctx fiber.Ctx) error {
 		AsUser:     types.Uid(uid),
 		FormId:     formData.FormID,
 		FormRuleId: formMsg.ID,
+		TraceCtx:   ctx.Context(),
 	}
 
 	// user auth record
@@ -413,7 +415,9 @@ func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 		return protocol.ErrNotFound.New("module not found")
 	}
 
-	typesCtx := types.Context{}
+	typesCtx := types.Context{
+		TraceCtx: ctx.Context(),
+	}
 
 	var err error
 	var find *model.Webhook

@@ -11,6 +11,10 @@ type Context struct {
 	// cancel function
 	cancel context.CancelFunc
 
+	// TraceCtx carries the OpenTelemetry trace context for span propagation.
+	// Set via SetTraceContext before calling SetTimeout to inherit the trace parent.
+	TraceCtx context.Context
+
 	// Message ID denormalized
 	Id string
 	// chat platform
@@ -57,7 +61,11 @@ func (c *Context) SetTimeout(timeout time.Duration) {
 
 	// If the context is nil, create a new context with timeout
 	if c.ctx == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		parent := c.TraceCtx
+		if parent == nil {
+			parent = context.Background()
+		}
+		ctx, cancel := context.WithTimeout(parent, timeout)
 		c.ctx = ctx
 		c.cancel = cancel
 		return

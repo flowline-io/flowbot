@@ -8,6 +8,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
 	fiberzerolog "github.com/gofiber/contrib/v3/zerolog"
@@ -65,6 +66,8 @@ func newHTTPServer() *fiber.App {
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	// requestid
 	app.Use(requestid.New())
+	// trace
+	app.Use(tracepkg.FiberMiddleware())
 	// cors
 	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {

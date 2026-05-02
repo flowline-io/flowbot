@@ -1,6 +1,7 @@
 package flog
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/alarm"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var l zerolog.Logger
@@ -60,6 +62,21 @@ func Init(fileLogEnabled, alarmEnabled bool) {
 
 func GetLogger() zerolog.Logger {
 	return l
+}
+
+// Ctx returns a zerolog.Logger annotated with the trace_id and span_id from the
+// OpenTelemetry span in the given context. If no span is present, the global logger
+// is returned unchanged.
+func Ctx(ctx context.Context) *zerolog.Logger {
+	span := trace.SpanFromContext(ctx)
+	if !span.SpanContext().IsValid() {
+		return &l
+	}
+	lctx := l.With().
+		Str("trace_id", span.SpanContext().TraceID().String()).
+		Str("span_id", span.SpanContext().SpanID().String()).
+		Logger()
+	return &lctx
 }
 
 const (

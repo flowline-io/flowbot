@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 )
@@ -28,6 +29,9 @@ func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	})
+	if err := redisotel.InstrumentTracing(Client); err != nil {
+		return nil, fmt.Errorf("failed to instrument redis with tracing: %w", err)
+	}
 	s := Client.Ping(context.Background())
 	_, err := s.Result()
 	if err != nil {

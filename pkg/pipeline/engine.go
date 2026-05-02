@@ -7,9 +7,11 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
+	otelattr "go.opentelemetry.io/otel/attribute"
 )
 
 type RunStore interface {
@@ -56,6 +58,13 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 }
 
 func (e *Engine) executePipeline(ctx context.Context, def Definition, event types.DataEvent) error {
+	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
+		otelattr.String("pipeline.name", def.Name),
+		otelattr.String("event.id", event.EventID),
+		otelattr.String("event.type", event.EventType),
+	)
+	defer span.End()
+
 	if e.store != nil {
 		consumed, err := e.store.HasConsumed(def.Name, event.EventID)
 		if err != nil {
@@ -96,6 +105,13 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 }
 
 func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string) error {
+	ctx, span := trace.StartSpan(ctx, "pipeline."+pipelineName+".step."+step.Name,
+		otelattr.String("pipeline.step.name", step.Name),
+		otelattr.String("pipeline.step.capability", string(step.Capability)),
+		otelattr.String("pipeline.step.operation", step.Operation),
+	)
+	defer span.End()
+
 	renderedParams, err := rc.RenderParams(step.Params)
 	if err != nil {
 		return fmt.Errorf("render params step %s: %w", step.Name, err)
@@ -108,6 +124,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 
 	res, err := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 	if err != nil {
+		trace.RecordError(ctx, err)
 		e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error())
 		return fmt.Errorf("step %s: %w", step.Name, err)
 	}

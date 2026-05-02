@@ -12,7 +12,13 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/fx"
 )
 
@@ -74,7 +80,7 @@ func NewPublisher(lc fx.Lifecycle) (message.Publisher, error) {
 	return Publisher, err
 }
 
-func NewRouter(_ *redis.Client) (*message.Router, error) {
+func NewRouter(_ *redis.Client, _ *sdktrace.TracerProvider) (*message.Router, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
@@ -98,12 +104,12 @@ func NewRouter(_ *redis.Client) (*message.Router, error) {
 		middleware.Recoverer,
 	)
 
+	router.AddMiddleware(TraceConsumerMiddleware())
+
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(message *message.Message) ([]*message.Message, error) {
 			flog.Debug("executing handler specific middleware for %s", message.UUID)
-			// metrics
 			stats.EventTotalCounter().Inc()
-			// handle
 			return h(message)
 		}
 	})
@@ -118,7 +124,7 @@ func NewMessage(payload any) (*message.Message, error) {
 	}
 
 	msg := message.NewMessage(watermill.NewUUID(), data)
-	middleware.SetCorrelationID(watermill.NewShortUUID(), msg) // todo option with value
+	middleware.SetCorrelationID(watermill.NewShortUUID(), msg)
 
 	return msg, nil
 }
@@ -129,5 +135,64 @@ func PublishMessage(ctx context.Context, topic string, payload any) error {
 		return fmt.Errorf("failed to new message: %w", err)
 	}
 
-	return Publisher.Publish(topic, msg)
+	_, publishSpan := trace.StartSpan(ctx, "event.publish "+topic,
+		attribute.String("messaging.destination", topic),
+		attribute.String("messaging.message.id", msg.UUID),
+	)
+	defer publishSpan.End()
+
+	carrier := propagation.MapCarrier{}
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
+	for k, v := range carrier {
+		msg.Metadata.Set(k, v)
+	}
+	msg.Metadata.Set("x-otel-topic", topic)
+
+	err = Publisher.Publish(topic, msg)
+	if err != nil {
+		publishSpan.RecordError(err)
+		publishSpan.SetStatus(codes.Error, err.Error())
+	}
+	return err
+}
+
+// TraceConsumerMiddleware returns a Watermill middleware that extracts OTel trace context
+// from message metadata and creates a consumer span for each incoming message.
+func TraceConsumerMiddleware() message.HandlerMiddleware {
+	prop := otel.GetTextMapPropagator()
+	tracer := otel.Tracer("watermill")
+
+	return func(h message.HandlerFunc) message.HandlerFunc {
+		return func(msg *message.Message) ([]*message.Message, error) {
+			carrier := propagation.MapCarrier{}
+			for k, v := range msg.Metadata {
+				carrier.Set(k, v)
+			}
+			ctx := prop.Extract(msg.Context(), carrier)
+
+			topic := ""
+			if t := msg.Metadata.Get("x-otel-topic"); t != "" {
+				topic = t
+				delete(msg.Metadata, "x-otel-topic")
+			}
+
+			spanName := "event.receive"
+			if topic != "" {
+				spanName = "event.receive " + topic
+			}
+
+			ctx, span := tracer.Start(ctx, spanName)
+			span.SetAttributes(
+				attribute.String("messaging.operation", "receive"),
+				attribute.String("messaging.message.id", msg.UUID),
+			)
+			if topic != "" {
+				span.SetAttributes(attribute.String("messaging.destination", topic))
+			}
+			msg.SetContext(ctx)
+			defer span.End()
+
+			return h(msg)
+		}
+	}
 }

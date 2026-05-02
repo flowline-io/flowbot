@@ -82,6 +82,23 @@ type Type struct {
 
 	// Pipeline definitions for cross-service event-driven automation
 	Pipelines []Pipeline `json:"pipelines" yaml:"pipelines" mapstructure:"pipelines"`
+
+	// OpenTelemetry tracing configuration
+	Tracing Tracing `json:"tracing" yaml:"tracing" mapstructure:"tracing"`
+}
+
+// Tracing configures OpenTelemetry distributed tracing.
+type Tracing struct {
+	// Enabled toggles trace export
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Endpoint is the OTLP HTTP endpoint (e.g. http://localhost:4318/v1/traces)
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	// ServiceName identifies this service in traces
+	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
+	// Environment tag (development, staging, production)
+	Environment string `json:"environment" yaml:"environment" mapstructure:"environment"`
+	// SampleRate controls trace sampling (0.0-1.0)
+	SampleRate float64 `json:"sample_rate" yaml:"sample_rate" mapstructure:"sample_rate"`
 }
 
 // Large file handler config.
