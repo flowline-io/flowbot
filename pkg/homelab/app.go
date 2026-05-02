@@ -60,6 +60,7 @@ type RuntimeConfig struct {
 	SSHUser      string
 	SSHPassword  string
 	SSHKey       string
+	SSHHostKey   string
 }
 
 type RuntimeMode string

@@ -273,6 +273,7 @@ type HomelabRuntime struct {
 	SSHUser      string `json:"ssh_user" yaml:"ssh_user" mapstructure:"ssh_user"`
 	SSHPassword  string `json:"ssh_password" yaml:"ssh_password" mapstructure:"ssh_password"`
 	SSHKey       string `json:"ssh_key" yaml:"ssh_key" mapstructure:"ssh_key"`
+	SSHHostKey   string `json:"ssh_host_key" yaml:"ssh_host_key" mapstructure:"ssh_host_key"`
 }
 
 type HomelabPermissions struct {

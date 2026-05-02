@@ -57,6 +57,7 @@ func homelabConfig(cfg config.Homelab) homelab.Config {
 			SSHUser:      cfg.Runtime.SSHUser,
 			SSHPassword:  cfg.Runtime.SSHPassword,
 			SSHKey:       cfg.Runtime.SSHKey,
+			SSHHostKey:   cfg.Runtime.SSHHostKey,
 		},
 		Permissions: permissions,
 	}

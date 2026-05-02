@@ -2,13 +2,26 @@ package homelab
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
 )
+
+func generateTestHostKey(t *testing.T) string {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	signer, err := ssh.NewSignerFromKey(key)
+	require.NoError(t, err)
+	return string(ssh.MarshalAuthorizedKey(signer.PublicKey()))
+}
 
 func TestDockerComposeRuntime_ValidatePath(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -128,6 +141,7 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 		SSHHost:     "example.com",
 		SSHUser:     "root",
 		SSHPassword: "test",
+		SSHHostKey:  generateTestHostKey(t),
 	})
 	assert.Equal(t, "example.com", r.host)
 	assert.Equal(t, 22, r.port)
@@ -136,9 +150,10 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 
 func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
 	r := NewSSHRuntime(RuntimeConfig{
-		Mode:    RuntimeModeSSH,
-		SSHHost: "example.com",
-		SSHUser: "root",
+		Mode:       RuntimeModeSSH,
+		SSHHost:    "example.com",
+		SSHUser:    "root",
+		SSHHostKey: generateTestHostKey(t),
 	})
 	_, err := r.clientConfig()
 	require.Error(t, err)
@@ -151,6 +166,7 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 		SSHHost:     "example.com",
 		SSHUser:     "root",
 		SSHPassword: "test",
+		SSHHostKey:  generateTestHostKey(t),
 	})
 	cfg, err := r.clientConfig()
 	require.NoError(t, err)
@@ -159,12 +175,15 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 }
 
 func TestSSHRuntime_DefaultPort(t *testing.T) {
+	hostKey := generateTestHostKey(t)
+
 	r := NewSSHRuntime(RuntimeConfig{
 		Mode:        RuntimeModeSSH,
 		SSHHost:     "example.com",
 		SSHUser:     "root",
 		SSHPassword: "test",
 		SSHPort:     0,
+		SSHHostKey:  hostKey,
 	})
 	assert.Equal(t, 22, r.port)
 
@@ -174,6 +193,7 @@ func TestSSHRuntime_DefaultPort(t *testing.T) {
 		SSHUser:     "root",
 		SSHPassword: "test",
 		SSHPort:     2222,
+		SSHHostKey:  hostKey,
 	})
 	assert.Equal(t, 2222, r2.port)
 }
@@ -187,6 +207,7 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 		SSHHost:     "example.com",
 		SSHUser:     "root",
 		SSHPassword: "test",
+		SSHHostKey:  generateTestHostKey(t),
 	})
 	app := App{Name: "test", Path: "/test"}
 
@@ -201,4 +222,43 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 	require.Error(t, r.Restart(ctx, app))
 	require.Error(t, r.Pull(ctx, app))
 	require.Error(t, r.Update(ctx, app))
+}
+
+func TestSSHRuntime_ClientConfigNoHostKey(t *testing.T) {
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
+		SSHPassword: "test",
+	})
+	_, err := r.clientConfig()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "host_key")
+}
+
+func TestSSHRuntime_ClientConfigInvalidHostKey(t *testing.T) {
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
+		SSHPassword: "test",
+		SSHHostKey:  "not-a-valid-key",
+	})
+	_, err := r.clientConfig()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "parse ssh host key")
+}
+
+func TestSSHRuntime_ClientConfigFixedHostKey(t *testing.T) {
+	hostKey := generateTestHostKey(t)
+	r := NewSSHRuntime(RuntimeConfig{
+		Mode:        RuntimeModeSSH,
+		SSHHost:     "example.com",
+		SSHUser:     "root",
+		SSHPassword: "test",
+		SSHHostKey:  hostKey,
+	})
+	cfg, err := r.clientConfig()
+	require.NoError(t, err)
+	assert.NotNil(t, cfg.HostKeyCallback)
 }

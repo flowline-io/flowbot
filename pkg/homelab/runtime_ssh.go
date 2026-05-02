@@ -17,6 +17,7 @@ type SSHRuntime struct {
 	user     string
 	password string
 	key      string
+	hostKey  string
 }
 
 func NewSSHRuntime(config RuntimeConfig) *SSHRuntime {
@@ -30,13 +31,23 @@ func NewSSHRuntime(config RuntimeConfig) *SSHRuntime {
 		user:     config.SSHUser,
 		password: config.SSHPassword,
 		key:      config.SSHKey,
+		hostKey:  config.SSHHostKey,
 	}
 }
 
 func (r *SSHRuntime) clientConfig() (*ssh.ClientConfig, error) {
+	if r.hostKey == "" {
+		return nil, types.Errorf(types.ErrUnauthorized, "ssh requires host_key for host key verification")
+	}
+
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(r.hostKey))
+	if err != nil {
+		return nil, fmt.Errorf("parse ssh host key: %w", err)
+	}
+
 	config := &ssh.ClientConfig{
 		User:            r.user,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: ssh.FixedHostKey(pubKey),
 	}
 
 	if r.key != "" {
