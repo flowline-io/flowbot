@@ -223,6 +223,24 @@ func TestParseYAML_InvalidYAML(t *testing.T) {
 	assert.Contains(t, err.Error(), "parse workflow")
 }
 
+func TestParseYAML_ConnCycle(t *testing.T) {
+	data := []byte(`
+name: test
+pipeline:
+  - a
+tasks:
+  - id: a
+    action: echo
+    conn: [b]
+  - id: b
+    action: echo
+    conn: [a]
+`)
+	_, err := ParseYAML(data)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
+}
+
 func TestResolveParams_SimpleReplacement(t *testing.T) {
 	params := types.KV{"ref": "{{step1.id}}"}
 	results := map[string]string{"step1": "abc123"}
@@ -470,6 +488,17 @@ func TestValidateDAG_Diamond(t *testing.T) {
 	}
 	err := ValidateDAG(tasks)
 	assert.NoError(t, err)
+}
+
+func TestValidateDAG_DisconnectedWithCycle(t *testing.T) {
+	tasks := []types.WorkflowTask{
+		{ID: "a", Conn: []string{"b"}},
+		{ID: "b", Conn: []string{"a"}},
+		{ID: "c"},
+	}
+	err := ValidateDAG(tasks)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cycle detected")
 }
 
 func TestWorkflowTaskToTask_SliceCmdMixedTypes(t *testing.T) {
