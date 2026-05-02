@@ -58,38 +58,41 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 	}
 
 	if info.IsCapability {
-		task.Run = wt.Action
-		if len(wt.Params) > 0 {
-			paramsJSON, err := json.Marshal(wt.Params)
-			if err != nil {
-				return nil, fmt.Errorf("marshal params: %w", err)
-			}
-			task.Env["CAPABILITY_PARAMS"] = string(paramsJSON)
+		if err := marshalCapabilityParams(task, wt.Params); err != nil {
+			return nil, err
 		}
 		return task, nil
 	}
 
+	applyActionParams(task, info, wt.Params)
+	return task, nil
+}
+
+func marshalCapabilityParams(task *types.Task, params types.KV) error {
+	if len(params) == 0 {
+		return nil
+	}
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("marshal params: %w", err)
+	}
+	task.Env["CAPABILITY_PARAMS"] = string(paramsJSON)
+	return nil
+}
+
+func applyActionParams(task *types.Task, info ActionInfo, params types.KV) {
 	switch info.Type {
 	case "docker":
 		task.Image = info.Details
-		if len(wt.Params) > 0 {
-			if cmd, ok := wt.Params["cmd"]; ok {
-				switch v := cmd.(type) {
-				case string:
-					task.CMD = []string{v}
-				case []any:
-					for _, item := range v {
-						if s, ok := item.(string); ok {
-							task.CMD = append(task.CMD, s)
-						}
-					}
-				}
+		if len(params) > 0 {
+			if cmd, ok := params["cmd"]; ok {
+				task.CMD = extractCMDSlice(cmd)
 			}
 		}
 	case "shell":
 		task.Run = info.Details
-		if len(wt.Params) > 0 {
-			if cmd, ok := wt.Params["cmd"]; ok {
+		if len(params) > 0 {
+			if cmd, ok := params["cmd"]; ok {
 				if s, ok := cmd.(string); ok {
 					task.Run = s
 				}
@@ -102,8 +105,23 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 			task.Run = info.Details
 		}
 	}
+}
 
-	return task, nil
+func extractCMDSlice(cmd any) []string {
+	switch v := cmd.(type) {
+	case string:
+		return []string{v}
+	case []any:
+		result := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				result = append(result, s)
+			}
+		}
+		return result
+	default:
+		return nil
+	}
 }
 
 func DetermineRuntimeType(t *types.Task) string {

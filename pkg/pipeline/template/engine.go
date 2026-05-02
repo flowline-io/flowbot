@@ -32,7 +32,7 @@ func preprocessTemplate(s string) string {
 	return s
 }
 
-func (e *Engine) funcMap(data *TemplateData) txtpl.FuncMap {
+func funcMap(data *TemplateData) txtpl.FuncMap {
 	return txtpl.FuncMap{
 		"event": func(field string) any {
 			if data.Event != nil {
@@ -106,7 +106,7 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 
 	tmpl = preprocessTemplate(tmpl)
 
-	t, err := txtpl.New("render").Funcs(e.funcMap(data)).Parse(tmpl)
+	t, err := txtpl.New("render").Funcs(funcMap(data)).Parse(tmpl)
 	if err != nil {
 		return "", fmt.Errorf("template parse: %w", err)
 	}
