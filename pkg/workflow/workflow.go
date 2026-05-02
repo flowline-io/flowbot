@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -153,7 +154,10 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 			return fmt.Errorf("task %s not found in workflow", stepID)
 		}
 
-		params := resolveParams(wt.Params, results)
+		params, err := resolveParams(wt.Params, results)
+		if err != nil {
+			return fmt.Errorf("resolve params step %s: %w", stepID, err)
+		}
 
 		wtWithParams := wt
 		wtWithParams.Params = params
@@ -230,20 +234,25 @@ func ValidateDAG(tasks []types.WorkflowTask) error {
 	return nil
 }
 
-func resolveParams(params types.KV, results map[string]string) types.KV {
-	resolved := make(types.KV, len(params))
-	for k, v := range params {
-		if s, ok := v.(string); ok && strings.Contains(s, "{{") {
-			for stepID, result := range results {
-				s = strings.ReplaceAll(s, "{{"+stepID+".id}}", result)
-				if result != "" {
-					s = strings.ReplaceAll(s, "{{"+stepID+".result}}", result)
-				}
-			}
-			resolved[k] = s
-		} else {
-			resolved[k] = v
+var workflowEngine = template.New()
+
+func resolveParams(params types.KV, results map[string]string) (types.KV, error) {
+	steps := make(map[string]map[string]any, len(results))
+	for stepID, result := range results {
+		steps[stepID] = map[string]any{
+			"id":     result,
+			"result": result,
 		}
 	}
-	return resolved
+
+	data := &template.TemplateData{
+		Steps: steps,
+	}
+
+	rendered, err := workflowEngine.Render(map[string]any(params), data)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.KV(rendered), nil
 }

@@ -1,21 +1,21 @@
 package pipeline
 
 import (
-	"encoding/json"
-	"strings"
-
+	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type RenderContext struct {
-	Event types.DataEvent
-	Steps map[string]map[string]any
+	Event  types.DataEvent
+	Steps  map[string]map[string]any
+	engine *template.Engine
 }
 
 func NewRenderContext(event types.DataEvent) *RenderContext {
 	return &RenderContext{
-		Event: event,
-		Steps: make(map[string]map[string]any),
+		Event:  event,
+		Steps:  make(map[string]map[string]any),
+		engine: template.New(),
 	}
 }
 
@@ -23,69 +23,36 @@ func (rc *RenderContext) RecordStepResult(stepName string, result map[string]any
 	rc.Steps[stepName] = result
 }
 
-func (rc *RenderContext) RenderParams(params map[string]any) map[string]any {
-	rendered := make(map[string]any, len(params))
-	for key, value := range params {
-		rendered[key] = rc.renderValue(value)
-	}
-	return rendered
+func (rc *RenderContext) RenderParams(params map[string]any) (map[string]any, error) {
+	return rc.engine.Render(params, rc.templateData())
 }
 
-func (rc *RenderContext) renderValue(value any) any {
-	switch v := value.(type) {
-	case string:
-		return rc.renderString(v)
-	case map[string]any:
-		return rc.RenderParams(v)
-	case []any:
-		result := make([]any, len(v))
-		for i, item := range v {
-			result[i] = rc.renderValue(item)
-		}
-		return result
-	default:
-		return v
-	}
+func (rc *RenderContext) RenderString(s string) (string, error) {
+	return rc.engine.RenderString(s, rc.templateData())
 }
 
-func (rc *RenderContext) renderString(s string) string {
-	if !strings.Contains(s, "{{") {
-		return s
-	}
-
-	result := strings.ReplaceAll(s, "{{event.id}}", rc.Event.EntityID)
-	result = strings.ReplaceAll(result, "{{event.url}}", rc.getEventField("url"))
-	result = strings.ReplaceAll(result, "{{event.title}}", rc.getEventField("title"))
-
-	// Render step references like {{steps.some_step.field_name}}
-	for stepName, stepResult := range rc.Steps {
-		for field, fieldValue := range stepResult {
-			placeholder := "{{steps." + stepName + "." + field + "}}"
-			strVal, _ := json.Marshal(fieldValue)
-			result = strings.ReplaceAll(result, placeholder, toString(strVal))
-		}
-	}
-
-	return result
-}
-
-func (rc *RenderContext) getEventField(field string) string {
+func (rc *RenderContext) templateData() *template.TemplateData {
+	event := make(map[string]any)
 	if rc.Event.Data != nil {
-		if v, ok := rc.Event.Data[field]; ok {
-			switch val := v.(type) {
-			case string:
-				return val
-			default:
-				b, _ := json.Marshal(val)
-				return toString(b)
-			}
+		for k, v := range rc.Event.Data {
+			event[k] = v
 		}
 	}
-	return ""
-}
+	event["id"] = rc.Event.EntityID
+	event["event_id"] = rc.Event.EventID
+	event["event_type"] = rc.Event.EventType
+	event["source"] = rc.Event.Source
+	event["capability"] = rc.Event.Capability
+	event["operation"] = rc.Event.Operation
+	event["backend"] = rc.Event.Backend
+	event["app"] = rc.Event.App
+	event["entity_id"] = rc.Event.EntityID
+	event["idempotency_key"] = rc.Event.IdempotencyKey
+	event["uid"] = rc.Event.UID
+	event["topic"] = rc.Event.Topic
 
-func toString(b []byte) string {
-	s := string(b)
-	s = strings.Trim(s, `"`)
-	return s
+	return &template.TemplateData{
+		Event: event,
+		Steps: rc.Steps,
+	}
 }

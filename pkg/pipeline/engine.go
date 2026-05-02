@@ -84,7 +84,12 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	var finalErr error
 
 	for _, step := range def.Steps {
-		renderedParams := rc.RenderParams(step.Params)
+		renderedParams, err := rc.RenderParams(step.Params)
+		if err != nil {
+			failed = true
+			finalErr = fmt.Errorf("render params step %s: %w", step.Name, err)
+			break
+		}
 
 		var stepRunID int64
 		if e.store != nil {

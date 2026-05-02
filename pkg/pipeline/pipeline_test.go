@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -141,7 +140,8 @@ func TestRenderContext_RenderParams_EventFields(t *testing.T) {
 		"link":   "{{event.url}}",
 		"title":  "{{event.title}}",
 	}
-	rendered := rc.RenderParams(params)
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
 
 	assert.Equal(t, "entity-123", rendered["entity"])
 	assert.Equal(t, "https://example.com", rendered["link"])
@@ -151,7 +151,8 @@ func TestRenderContext_RenderParams_EventFields(t *testing.T) {
 func TestRenderContext_RenderParams_NoTemplates(t *testing.T) {
 	rc := NewRenderContext(types.DataEvent{})
 	params := map[string]any{"key": "value", "num": 42}
-	rendered := rc.RenderParams(params)
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
 	assert.Equal(t, "value", rendered["key"])
 	assert.Equal(t, 42, rendered["num"])
 }
@@ -167,7 +168,8 @@ func TestRenderContext_RenderParams_StepReferences(t *testing.T) {
 		"ref_id":  "{{steps.archive.id}}",
 		"ref_url": "{{steps.archive.url}}",
 	}
-	rendered := rc.RenderParams(params)
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
 
 	assert.Equal(t, "archive-1", rendered["ref_id"])
 	assert.Equal(t, "https://archived.example.com", rendered["ref_url"])
@@ -182,7 +184,8 @@ func TestRenderContext_RenderParams_NestedMap(t *testing.T) {
 			"inner": "{{event.id}}",
 		},
 	}
-	rendered := rc.RenderParams(params)
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
 	nested := rendered["nested"].(map[string]any)
 	assert.Equal(t, "123", nested["inner"])
 }
@@ -194,7 +197,8 @@ func TestRenderContext_RenderParams_StringSlice(t *testing.T) {
 	params := map[string]any{
 		"items": []any{"{{event.id}}", "static"},
 	}
-	rendered := rc.RenderParams(params)
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
 	items := rendered["items"].([]any)
 	assert.Equal(t, "eid", items[0])
 	assert.Equal(t, "static", items[1])
@@ -202,7 +206,8 @@ func TestRenderContext_RenderParams_StringSlice(t *testing.T) {
 
 func TestRenderContext_RenderParams_MissingEventField(t *testing.T) {
 	rc := NewRenderContext(types.DataEvent{})
-	rendered := rc.RenderParams(map[string]any{"ref": "{{event.url}}"})
+	rendered, err := rc.RenderParams(map[string]any{"ref": "{{event.url}}"})
+	require.NoError(t, err)
 	assert.Equal(t, "", rendered["ref"])
 }
 
@@ -211,7 +216,8 @@ func TestRenderContext_RenderParams_NonStringEventField(t *testing.T) {
 		Data: types.KV{"url": 42},
 	}
 	rc := NewRenderContext(event)
-	rendered := rc.RenderParams(map[string]any{"ref": "{{event.url}}"})
+	rendered, err := rc.RenderParams(map[string]any{"ref": "{{event.url}}"})
+	require.NoError(t, err)
 	assert.Equal(t, "42", rendered["ref"])
 }
 
@@ -239,9 +245,159 @@ func TestRenderContext_RenderParams_JSONField(t *testing.T) {
 		Data: types.KV{"url": map[string]any{"href": "https://x.com"}},
 	}
 	rc := NewRenderContext(event)
-	rendered := rc.RenderParams(map[string]any{"ref": "{{event.url}}"})
-	// JSON-encoded version of the map
-	var decoded any
-	_ = json.Unmarshal([]byte(rendered["ref"].(string)), &decoded)
-	assert.NotNil(t, decoded)
+	rendered, err := rc.RenderParams(map[string]any{"ref": "{{json (event \"url\")}}"})
+	require.NoError(t, err)
+	assert.Equal(t, `{"href":"https://x.com"}`, rendered["ref"])
+}
+
+func TestRenderContext_RenderParams_Condition(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"status": "done"},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"action": "{{if eq .Event.status \"done\"}}archive{{else}}skip{{end}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "archive", rendered["action"])
+}
+
+func TestRenderContext_RenderParams_ConditionElse(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"status": "pending"},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"action": "{{if eq .Event.status \"done\"}}archive{{else}}skip{{end}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "skip", rendered["action"])
+}
+
+func TestRenderContext_RenderParams_Loop(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"tags": []any{"a", "b", "c"}},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"joined": "{{range .Event.tags}}{{.}}-{{end}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "a-b-c-", rendered["joined"])
+}
+
+func TestRenderContext_RenderParams_LoopElse(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"tags": []any{}},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"result": "{{range .Event.tags}}x{{else}}empty{{end}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "empty", rendered["result"])
+}
+
+func TestRenderContext_RenderParams_NestedConditionLoop(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"items": []any{"a", "", "c"}},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"filtered": "{{range .Event.items}}{{if .}}{{.}},{{end}}{{end}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "a,c,", rendered["filtered"])
+}
+
+func TestRenderContext_RenderParams_Default(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"label": "{{default \"unknown\" .Event.category}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "unknown", rendered["label"])
+}
+
+func TestRenderContext_RenderParams_JoinAndContains(t *testing.T) {
+	event := types.DataEvent{
+		Data: types.KV{"tags": []any{"alpha", "beta", "gamma"}},
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"csv": "{{join .Event.tags \",\"}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "alpha,beta,gamma", rendered["csv"])
+}
+
+func TestRenderContext_RenderParams_InvalidTemplate(t *testing.T) {
+	rc := NewRenderContext(types.DataEvent{})
+	_, err := rc.RenderParams(map[string]any{"bad": "{{if xxx}}"})
+	require.Error(t, err)
+}
+
+func TestRenderContext_RenderString(t *testing.T) {
+	event := types.DataEvent{
+		EntityID: "123",
+		Data:     types.KV{"url": "https://example.com"},
+	}
+	rc := NewRenderContext(event)
+
+	result, err := rc.RenderString("id={{event.id}} url={{event.url}}")
+	require.NoError(t, err)
+	assert.Equal(t, "id=123 url=https://example.com", result)
+}
+
+func TestRenderContext_RenderString_NewSyntax(t *testing.T) {
+	event := types.DataEvent{
+		EntityID: "123",
+	}
+	rc := NewRenderContext(event)
+
+	result, err := rc.RenderString("{{if .Event.id}}ID:{{.Event.id}}{{end}}")
+	require.NoError(t, err)
+	assert.Equal(t, "ID:123", result)
+}
+
+func TestRenderContext_RenderParams_EventTopLevelFields(t *testing.T) {
+	event := types.DataEvent{
+		EventID:   "evt-001",
+		EventType: "bookmark.created",
+		EntityID:  "entity-123",
+		Source:    "test",
+	}
+	rc := NewRenderContext(event)
+
+	params := map[string]any{
+		"event_id":   "{{event.event_id}}",
+		"event_type": "{{event.event_type}}",
+		"id":         "{{event.id}}",
+		"entity_id":  "{{event.entity_id}}",
+		"source":     "{{event.source}}",
+	}
+	rendered, err := rc.RenderParams(params)
+	require.NoError(t, err)
+	assert.Equal(t, "evt-001", rendered["event_id"])
+	assert.Equal(t, "bookmark.created", rendered["event_type"])
+	assert.Equal(t, "entity-123", rendered["id"])
+	assert.Equal(t, "entity-123", rendered["entity_id"])
+	assert.Equal(t, "test", rendered["source"])
 }
