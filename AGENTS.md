@@ -82,3 +82,4 @@ go tool task lint    # Code lint
 - Run lint after modifying code
 - Text in English: comments, docs, commit messages
 - Code must have unit tests
+- In functions, variables, structs, interfaces, etc., must be commented using godoc. These comments should explain "what" and "why," without repeating "how.", and should be kept synchronized with the code.
