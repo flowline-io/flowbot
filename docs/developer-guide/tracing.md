@@ -34,49 +34,49 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
 
 ### Components
 
-| Component | File | Role |
-| --------- | ---- | ---- |
-| `TracerProvider` | `pkg/trace/trace.go` | OTLP HTTP exporter init, sampler, lifecycle |
-| Fiber middleware | `pkg/trace/fiber.go` | HTTP request spans, W3C context extraction |
-| Span helpers | `pkg/trace/helper.go` | `StartSpan`, `RecordError`, `SetSpanAttributes` |
-| GORM plugin | `internal/store/mysql/adapter.go` | Auto-span for all GORM queries |
-| Redis hook | `pkg/rdb/rdb.go`, `pkg/event/redis.go` | Auto-span for all Redis commands |
-| Pipeline spans | `pkg/pipeline/engine.go` | Pipeline + step execution spans |
-| ability.Invoke span | `pkg/ability/invoke.go` | Capability invocation span |
-| HTTP client | `pkg/utils/resty.go` | `otelhttp` transport for outgoing HTTP |
-| Watermill trace | `pkg/event/pubsub.go` | Publish span + consumer span + W3C propagation |
-| Log correlation | `pkg/flog/flog.go` | `Ctx(ctx)` annotates log entries with `trace_id` / `span_id` |
-| Trace context | `pkg/types/context.go` | `TraceCtx` field in `types.Context` |
+| Component           | File                                   | Role                                                         |
+| ------------------- | -------------------------------------- | ------------------------------------------------------------ |
+| `TracerProvider`    | `pkg/trace/trace.go`                   | OTLP HTTP exporter init, sampler, lifecycle                  |
+| Fiber middleware    | `pkg/trace/fiber.go`                   | HTTP request spans, W3C context extraction                   |
+| Span helpers        | `pkg/trace/helper.go`                  | `StartSpan`, `RecordError`, `SetSpanAttributes`              |
+| GORM plugin         | `internal/store/mysql/adapter.go`      | Auto-span for all GORM queries                               |
+| Redis hook          | `pkg/rdb/rdb.go`, `pkg/event/redis.go` | Auto-span for all Redis commands                             |
+| Pipeline spans      | `pkg/pipeline/engine.go`               | Pipeline + step execution spans                              |
+| ability.Invoke span | `pkg/ability/invoke.go`                | Capability invocation span                                   |
+| HTTP client         | `pkg/utils/resty.go`                   | `otelhttp` transport for outgoing HTTP                       |
+| Watermill trace     | `pkg/event/pubsub.go`                  | Publish span + consumer span + W3C propagation               |
+| Log correlation     | `pkg/flog/flog.go`                     | `Ctx(ctx)` annotates log entries with `trace_id` / `span_id` |
+| Trace context       | `pkg/types/context.go`                 | `TraceCtx` field in `types.Context`                          |
 
 ## Span Naming Convention
 
 Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its span with the component namespace.
 
-| Level | Span name | Location | Automatic |
-| ----- | --------- | -------- | --------- |
-| HTTP request | `HTTP {method} {route}` | `trace/fiber.go` | Yes |
-| Event publish | `event.publish {topic}` | `event/pubsub.go` | Yes |
-| Event consume | `event.receive {topic}` | `event/pubsub.go` | Yes |
-| Pipeline execute | `pipeline.{name}.execute` | `pipeline/engine.go` | Yes |
-| Pipeline step | `pipeline.{pipeline}.step.{step}` | `pipeline/engine.go` | Yes |
-| Ability invoke | `ability.{capability}.{operation}` | `ability/invoke.go` | Yes |
-| GORM query | `gorm.Query` / `gorm.Row` / `gorm.Transaction` | GORM plugin | Yes |
-| Redis command | `GET` / `SET` / `LPUSH` / `XADD` / ... | redisotel hook | Yes |
-| Outgoing HTTP | `HTTP {method}` | otelhttp transport | Yes |
+| Level            | Span name                                      | Location             | Automatic |
+| ---------------- | ---------------------------------------------- | -------------------- | --------- |
+| HTTP request     | `HTTP {method} {route}`                        | `trace/fiber.go`     | Yes       |
+| Event publish    | `event.publish {topic}`                        | `event/pubsub.go`    | Yes       |
+| Event consume    | `event.receive {topic}`                        | `event/pubsub.go`    | Yes       |
+| Pipeline execute | `pipeline.{name}.execute`                      | `pipeline/engine.go` | Yes       |
+| Pipeline step    | `pipeline.{pipeline}.step.{step}`              | `pipeline/engine.go` | Yes       |
+| Ability invoke   | `ability.{capability}.{operation}`             | `ability/invoke.go`  | Yes       |
+| GORM query       | `gorm.Query` / `gorm.Row` / `gorm.Transaction` | GORM plugin          | Yes       |
+| Redis command    | `GET` / `SET` / `LPUSH` / `XADD` / ...         | redisotel hook       | Yes       |
+| Outgoing HTTP    | `HTTP {method}`                                | otelhttp transport   | Yes       |
 
 ### Span attribute conventions
 
-| Span type | Key attributes |
-| --------- | -------------- |
-| HTTP server | `http.method`, `http.route`, `http.target`, `net.host.name`, `http.scheme`, `http.status_code` |
-| Event publish | `messaging.destination`, `messaging.message.id` |
-| Event consume | `messaging.operation` (`receive`), `messaging.destination`, `messaging.message.id` |
-| Pipeline execute | `pipeline.name`, `event.id`, `event.type` |
-| Pipeline step | `pipeline.step.name`, `pipeline.step.capability`, `pipeline.step.operation` |
-| Ability invoke | `capability.name`, `capability.operation` |
-| GORM | `db.system` (`mysql`), `db.statement`, `db.rows_affected` |
-| Redis | `db.system` (`redis`), `db.statement` |
-| Outgoing HTTP | `http.method`, `http.url`, `net.peer.name`, `http.status_code` |
+| Span type        | Key attributes                                                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
+| HTTP server      | `http.method`, `http.route`, `http.target`, `net.host.name`, `http.scheme`, `http.status_code` |
+| Event publish    | `messaging.destination`, `messaging.message.id`                                                |
+| Event consume    | `messaging.operation` (`receive`), `messaging.destination`, `messaging.message.id`             |
+| Pipeline execute | `pipeline.name`, `event.id`, `event.type`                                                      |
+| Pipeline step    | `pipeline.step.name`, `pipeline.step.capability`, `pipeline.step.operation`                    |
+| Ability invoke   | `capability.name`, `capability.operation`                                                      |
+| GORM             | `db.system` (`mysql`), `db.statement`, `db.rows_affected`                                      |
+| Redis            | `db.system` (`redis`), `db.statement`                                                          |
+| Outgoing HTTP    | `http.method`, `http.url`, `net.peer.name`, `http.status_code`                                 |
 
 ## Call Chain
 
@@ -163,29 +163,29 @@ When both `trace_id` and `span_id` are present in logs, Jaeger/Tempo/Grafana can
 ```yaml
 # flowbot.yaml
 tracing:
-  enabled: false                         # Set to true to enable trace export
-  endpoint: "http://localhost:4318/v1/traces"  # OTLP HTTP endpoint
-  service_name: "flowbot"                # Service name in traces
-  environment: "development"             # deployment.environment attribute
-  sample_rate: 1.0                       # 1.0 = all traces, 0.1 = 10%
+  enabled: false # Set to true to enable trace export
+  endpoint: "http://localhost:4318/v1/traces" # OTLP HTTP endpoint
+  service_name: "flowbot" # Service name in traces
+  environment: "development" # deployment.environment attribute
+  sample_rate: 1.0 # 1.0 = all traces, 0.1 = 10%
 ```
 
 ### Collector endpoints
 
-| Backend | Endpoint |
-| ------- | -------- |
-| Jaeger (OTLP) | `http://localhost:4318/v1/traces` |
-| Grafana Tempo | `http://localhost:4318/v1/traces` |
-| Datadog Agent | `http://localhost:4318/v1/traces` |
+| Backend       | Endpoint                                                   |
+| ------------- | ---------------------------------------------------------- |
+| Jaeger (OTLP) | `http://localhost:4318/v1/traces`                          |
+| Grafana Tempo | `http://localhost:4318/v1/traces`                          |
+| Datadog Agent | `http://localhost:4318/v1/traces`                          |
 | Grafana Cloud | `https://otlp-gateway-{region}.grafana.net/otlp/v1/traces` |
 
 ## Performance
 
-| Mode | Overhead |
-| ---- | -------- |
-| Disabled (`enabled: false`) | Zero — noop TracerProvider, no allocations |
-| Enabled, 100% sampling | < 1% throughput impact (batch export, async) |
-| Enabled, 10% sampling | Negligible |
+| Mode                        | Overhead                                     |
+| --------------------------- | -------------------------------------------- |
+| Disabled (`enabled: false`) | Zero — noop TracerProvider, no allocations   |
+| Enabled, 100% sampling      | < 1% throughput impact (batch export, async) |
+| Enabled, 10% sampling       | Negligible                                   |
 
 Skipped paths (`/livez`, `/readyz`, `/healthz`, `/metrics`) create no spans, preventing noise from health-check and metrics scraping traffic.
 

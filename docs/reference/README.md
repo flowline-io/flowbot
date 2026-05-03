@@ -12,7 +12,7 @@ Technical reference documentation for Flowbot.
 
 ## Configuration Quick Reference
 
-| File                      | Description                        |
-| ------------------------- | ---------------------------------- |
-| `config.yaml`             | Full server configuration template |
-| `flowbot.yaml` (runtime)  | Copy and edit for your environment |
+| File                     | Description                        |
+| ------------------------ | ---------------------------------- |
+| `config.yaml`            | Full server configuration template |
+| `flowbot.yaml` (runtime) | Copy and edit for your environment |

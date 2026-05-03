@@ -33,18 +33,18 @@ Add a `recovery` section to `flowbot.yaml`:
 
 ```yaml
 recovery:
-  enabled: true                # Enable the recovery manager
-  stale_timeout: 5m            # Time since last heartbeat before a run is considered stale
-  auto_resume: true            # Automatically resume stale runs (false = mark as cancelled/failed)
-  max_resume_age: 24h          # Maximum age of a run to attempt resumption (older runs are cancelled)
+  enabled: true # Enable the recovery manager
+  stale_timeout: 5m # Time since last heartbeat before a run is considered stale
+  auto_resume: true # Automatically resume stale runs (false = mark as cancelled/failed)
+  max_resume_age: 24h # Maximum age of a run to attempt resumption (older runs are cancelled)
 ```
 
-| Field | Type | Default | Description |
-| ----- | ---- | ------- | ----------- |
-| `enabled` | bool | `false` | Master switch for recovery manager |
-| `stale_timeout` | duration | `0s` | Inactivity threshold; runs with no heartbeat for this duration are considered stale. `0` means no timeout (all incomplete runs are stale). |
-| `auto_resume` | bool | `false` | If `true`, stale runs are resumed. If `false`, stale runs are marked as `PipelineCancel` / `JobFailed`. |
-| `max_resume_age` | duration | `0s` | Maximum allowed age of a run to attempt resumption. Runs older than this are cancelled regardless of `auto_resume`. `0` disables age check. |
+| Field            | Type     | Default | Description                                                                                                                                 |
+| ---------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`        | bool     | `false` | Master switch for recovery manager                                                                                                          |
+| `stale_timeout`  | duration | `0s`    | Inactivity threshold; runs with no heartbeat for this duration are considered stale. `0` means no timeout (all incomplete runs are stale).  |
+| `auto_resume`    | bool     | `false` | If `true`, stale runs are resumed. If `false`, stale runs are marked as `PipelineCancel` / `JobFailed`.                                     |
+| `max_resume_age` | duration | `0s`    | Maximum allowed age of a run to attempt resumption. Runs older than this are cancelled regardless of `auto_resume`. `0` disables age check. |
 
 ## Pipeline Recovery
 

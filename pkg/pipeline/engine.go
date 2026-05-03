@@ -19,10 +19,10 @@ import (
 
 // CheckpointData is the intermediate state saved at each pipeline step boundary.
 type CheckpointData struct {
-	StepIndex   int                     `json:"step_index"`
-	StepResults map[string]*StepResult  `json:"step_results"`
-	Event       types.DataEvent         `json:"event"`
-	HeartbeatAt time.Time               `json:"heartbeat_at"`
+	StepIndex   int                    `json:"step_index"`
+	StepResults map[string]*StepResult `json:"step_results"`
+	Event       types.DataEvent        `json:"event"`
+	HeartbeatAt time.Time              `json:"heartbeat_at"`
 }
 
 // StepResult captures the output of a completed pipeline step.

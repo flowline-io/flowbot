@@ -44,11 +44,11 @@ rendered map[string]any / string
 
 The data context exposed to templates has three namespaces:
 
-| Dot-path   | Type                       | Source                          |
-| ---------- | -------------------------- | ------------------------------- |
-| `.Event.*` | `map[string]any`           | `DataEvent` fields + `Data` KV  |
-| `.Steps.*` | `map[string]map[string]any` | Previous step results, by name  |
-| `.Env.*`   | `map[string]string`        | Environment variables (optional) |
+| Dot-path   | Type                        | Source                           |
+| ---------- | --------------------------- | -------------------------------- |
+| `.Event.*` | `map[string]any`            | `DataEvent` fields + `Data` KV   |
+| `.Steps.*` | `map[string]map[string]any` | Previous step results, by name   |
+| `.Env.*`   | `map[string]string`         | Environment variables (optional) |
 
 **`.Event` keys** (populated by `RenderContext.templateData()`):
 
@@ -92,19 +92,19 @@ Index notation for keys that contain special characters:
 
 ### Built-in Functions (12)
 
-| Function                          | Description                                   | Example                                                              |
-| --------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
-| `event field`                     | Read a field from the event                   | `{{event "url"}}`                                                    |
-| `step name field`                 | Read a field from a step result               | `{{step "archive" "url"}}`                                           |
-| `join elems sep`                  | Join a slice into a string                    | `{{join .Event.tags ","}}`                                           |
-| `split str sep`                   | Split a string into a slice                   | `{{index (split .Event.csv ",") 0}}`                                 |
-| `contains str substr`             | Check if a substring is present               | `{{if contains .Event.title "ERROR"}}alert{{end}}`                   |
-| `default def val`                 | Return `def` if `val` is nil or empty string  | `{{default "guest" .Event.username}}`                                |
-| `json val`                        | Marshal a value to JSON                       | `{{json .Event.metadata}}`                                           |
-| `len val`                         | Return length of string/slice/map (0 for nil) | `{{len .Event.tags}}`                                                |
-| `jsonpath jsonStr path`           | Extract string value from JSON via gjson path | `{{jsonpath (json .Event.data) "items.0.id"}}`                       |
-| `jsonpathExists jsonStr path`     | Check if a JSON path exists                   | `{{if jsonpathExists (json .Event.data) "error"}}...{{end}}`         |
-| `jsonpathRaw jsonStr path`        | Extract raw value from JSON (interface{})     | `{{json (jsonpathRaw (json .Event.data) "nested")}}`                 |
+| Function                      | Description                                   | Example                                                      |
+| ----------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| `event field`                 | Read a field from the event                   | `{{event "url"}}`                                            |
+| `step name field`             | Read a field from a step result               | `{{step "archive" "url"}}`                                   |
+| `join elems sep`              | Join a slice into a string                    | `{{join .Event.tags ","}}`                                   |
+| `split str sep`               | Split a string into a slice                   | `{{index (split .Event.csv ",") 0}}`                         |
+| `contains str substr`         | Check if a substring is present               | `{{if contains .Event.title "ERROR"}}alert{{end}}`           |
+| `default def val`             | Return `def` if `val` is nil or empty string  | `{{default "guest" .Event.username}}`                        |
+| `json val`                    | Marshal a value to JSON                       | `{{json .Event.metadata}}`                                   |
+| `len val`                     | Return length of string/slice/map (0 for nil) | `{{len .Event.tags}}`                                        |
+| `jsonpath jsonStr path`       | Extract string value from JSON via gjson path | `{{jsonpath (json .Event.data) "items.0.id"}}`               |
+| `jsonpathExists jsonStr path` | Check if a JSON path exists                   | `{{if jsonpathExists (json .Event.data) "error"}}...{{end}}` |
+| `jsonpathRaw jsonStr path`    | Extract raw value from JSON (interface{})     | `{{json (jsonpathRaw (json .Event.data) "nested")}}`         |
 
 These functions are registered into `text/template.FuncMap` and are available in any template expression.
 
@@ -112,14 +112,14 @@ These functions are registered into `text/template.FuncMap` and are available in
 
 The three `jsonpath*` functions use [gjson](https://github.com/tidwall/gjson) path syntax for extracting data from JSON strings. The path syntax supports:
 
-| Syntax              | Meaning                         | Example path       |
-| ------------------- | ------------------------------- | ------------------ |
-| `field`             | Top-level field                 | `url`              |
-| `parent.child`      | Nested field                    | `data.nested.key`  |
-| `array.N`           | Array index (0-based)           | `items.0`          |
-| `array.#`           | Array length                    | `items.#`          |
-| `array.#.field`     | All array elements' field       | `items.#.name`     |
-| `array.#(cond)#`    | Filter array by condition       | `users.#(age>20)#` |
+| Syntax           | Meaning                   | Example path       |
+| ---------------- | ------------------------- | ------------------ |
+| `field`          | Top-level field           | `url`              |
+| `parent.child`   | Nested field              | `data.nested.key`  |
+| `array.N`        | Array index (0-based)     | `items.0`          |
+| `array.#`        | Array length              | `items.#`          |
+| `array.#.field`  | All array elements' field | `items.#.name`     |
+| `array.#(cond)#` | Filter array by condition | `users.#(age>20)#` |
 
 **Basic extraction:**
 
@@ -190,6 +190,7 @@ Use Go template control structures:
 ```
 
 Note on boolean evaluation:
+
 - nil / zero-value / empty string → falsy
 - non-empty string / non-zero number → truthy
 
@@ -268,13 +269,13 @@ All three preprocessors run in order: `event.` → `steps.` → `stepName.` (id/
 
 ### Compatibility table
 
-| Old syntax (still works) | New syntax (recommended)       | Go template equivalent           |
-| ------------------------ | ------------------------------- | -------------------------------- |
-| `{{event.url}}`          | `{{event "url"}}`              | `{{.Event.url}}`                 |
-| `{{event.id}}`           | `{{event "id"}}`               | `{{.Event.id}}`                  |
-| `{{steps.archive.url}}`  | `{{step "archive" "url"}}`     | `{{index .Steps.archive "url"}}` |
-| `{{step1.id}}`           | `{{step "step1" "id"}}`        | `{{index .Steps.step1 "id"}}`    |
-| `{{step1.result}}`       | `{{step "step1" "result"}}`    | `{{index .Steps.step1 "result"}}` |
+| Old syntax (still works) | New syntax (recommended)    | Go template equivalent            |
+| ------------------------ | --------------------------- | --------------------------------- |
+| `{{event.url}}`          | `{{event "url"}}`           | `{{.Event.url}}`                  |
+| `{{event.id}}`           | `{{event "id"}}`            | `{{.Event.id}}`                   |
+| `{{steps.archive.url}}`  | `{{step "archive" "url"}}`  | `{{index .Steps.archive "url"}}`  |
+| `{{step1.id}}`           | `{{step "step1" "id"}}`     | `{{index .Steps.step1 "id"}}`     |
+| `{{step1.result}}`       | `{{step "step1" "result"}}` | `{{index .Steps.step1 "result"}}` |
 
 ## YAML Usage Notes
 
@@ -286,7 +287,7 @@ Go template delimiters `{{` and `}}` can confuse YAML parsers. Follow these rule
 
 ```yaml
 params:
-  action: "{{if eq .Event.status \"done\"}}archive{{else}}skip{{end}}"
+  action: '{{if eq .Event.status "done"}}archive{{else}}skip{{end}}'
 ```
 
 **Multi-line templates**: use YAML literal block scalar `|` or folded block scalar `>`.
@@ -305,8 +306,8 @@ params:
 
 ```yaml
 params:
-  entity: "{{event.id}}"      # ok
-  link: {{event.url}}         # ok, but quoting is safer
+  entity: "{{event.id}}" # ok
+  link: { { event.url } } # ok, but quoting is safer
 ```
 
 ### Escaping quotes inside templates

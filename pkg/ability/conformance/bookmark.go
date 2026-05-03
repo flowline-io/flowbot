@@ -13,24 +13,24 @@ import (
 // Fields set to non-nil/non-zero values become the fake responses; zero values
 // produce empty/default success responses.
 type BookmarkConfig struct {
-	ListItems         []*ability.Bookmark
-	ListNextCursor    string
-	ListErr           error
-	GetItem           *ability.Bookmark
-	GetErr            error
-	CreateItem        *ability.Bookmark
-	CreateErr         error
-	DeleteErr         error
-	ArchiveResult     *bool
-	ArchiveErr        error
-	SearchItems       []*ability.Bookmark
-	SearchNextCursor  string
-	SearchErr         error
-	AttachTagsErr     error
-	DetachTagsErr     error
-	CheckURLExists    bool
-	CheckURLID        string
-	CheckURLErr       error
+	ListItems        []*ability.Bookmark
+	ListNextCursor   string
+	ListErr          error
+	GetItem          *ability.Bookmark
+	GetErr           error
+	CreateItem       *ability.Bookmark
+	CreateErr        error
+	DeleteErr        error
+	ArchiveResult    *bool
+	ArchiveErr       error
+	SearchItems      []*ability.Bookmark
+	SearchNextCursor string
+	SearchErr        error
+	AttachTagsErr    error
+	DetachTagsErr    error
+	CheckURLExists   bool
+	CheckURLID       string
+	CheckURLErr      error
 }
 
 // BookmarkServiceFactory creates a fresh bookmark Service wired to a fake backend

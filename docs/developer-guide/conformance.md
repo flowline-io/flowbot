@@ -75,38 +75,38 @@ This decouples the conformance runner from provider-specific types — the runne
 
 Each runner function defines all test cases for its capability's operations. Test cases follow a consistent pattern:
 
-| Dimension | Operations Tested | Verification |
-|-----------|------------------|-------------|
-| Success | All | Non-nil result, correct item fields |
-| Pagination | List, Search | `PageInfo` present, `HasMore` logic, `Items` never nil |
-| Timeout | All | `errors.Is(err, types.ErrTimeout)` |
-| Invalid input | All | `errors.Is(err, types.ErrInvalidArgument)` |
-| Provider error | Mutations | `errors.Is(err, types.ErrProvider)` |
-| Not implemented | Per-backend | `errors.Is(err, types.ErrNotImplemented)` |
+| Dimension       | Operations Tested | Verification                                           |
+| --------------- | ----------------- | ------------------------------------------------------ |
+| Success         | All               | Non-nil result, correct item fields                    |
+| Pagination      | List, Search      | `PageInfo` present, `HasMore` logic, `Items` never nil |
+| Timeout         | All               | `errors.Is(err, types.ErrTimeout)`                     |
+| Invalid input   | All               | `errors.Is(err, types.ErrInvalidArgument)`             |
+| Provider error  | Mutations         | `errors.Is(err, types.ErrProvider)`                    |
+| Not implemented | Per-backend       | `errors.Is(err, types.ErrNotImplemented)`              |
 
 ## What the Suite Tests
 
 ### Pagination Conformance (every list/search operation)
 
-| Test | Assertion |
-|------|-----------|
-| Non-nil Items | `result.Items` is `[]*T{}` (empty slice, not nil) |
-| Non-nil Page | `result.Page` is always present |
-| Limit pass-through | Non-zero limit preserved (or normalized by adapter) |
-| HasMore = true | When provider returns a next cursor |
-| HasMore = false | When provider returns no next cursor |
-| NextCursor encoding | Cursor is HMAC-signed opaque string when HasMore is true |
-| Cursor decoding | Incoming opaque cursor extracts provider cursor correctly |
+| Test                | Assertion                                                 |
+| ------------------- | --------------------------------------------------------- |
+| Non-nil Items       | `result.Items` is `[]*T{}` (empty slice, not nil)         |
+| Non-nil Page        | `result.Page` is always present                           |
+| Limit pass-through  | Non-zero limit preserved (or normalized by adapter)       |
+| HasMore = true      | When provider returns a next cursor                       |
+| HasMore = false     | When provider returns no next cursor                      |
+| NextCursor encoding | Cursor is HMAC-signed opaque string when HasMore is true  |
+| Cursor decoding     | Incoming opaque cursor extracts provider cursor correctly |
 
 ### Error Conformance (every operation)
 
-| Sentinel Error | When Expected |
-|---------------|---------------|
-| `types.ErrTimeout` | Context is canceled before operation |
-| `types.ErrProvider` | Provider client returns an error |
+| Sentinel Error             | When Expected                                          |
+| -------------------------- | ------------------------------------------------------ |
+| `types.ErrTimeout`         | Context is canceled before operation                   |
+| `types.ErrProvider`        | Provider client returns an error                       |
 | `types.ErrInvalidArgument` | Empty ID, empty URL, nil tags, missing required fields |
-| `types.ErrNotFound` | Entity does not exist (where applicable) |
-| `types.ErrNotImplemented` | Operation not supported by this backend |
+| `types.ErrNotFound`        | Entity does not exist (where applicable)               |
+| `types.ErrNotImplemented`  | Operation not supported by this backend                |
 
 ### Input Validation (every operation)
 
@@ -196,27 +196,27 @@ a.now = conformance.TestTime
 
 The conformance package exports reusable assertion helpers:
 
-| Function | Purpose |
-|----------|---------|
-| `RequireListResult[T](t, result, limit, hasMore)` | Verifies `ListResult` structure |
-| `RequireTimeoutError(t, err)` | Asserts `errors.Is(err, types.ErrTimeout)` |
-| `RequireProviderError(t, err)` | Asserts `errors.Is(err, types.ErrProvider)` |
-| `RequireInvalidArgError(t, err)` | Asserts `errors.Is(err, types.ErrInvalidArgument)` |
-| `RequireNotFoundError(t, err)` | Asserts `errors.Is(err, types.ErrNotFound)` |
-| `RequireNotImplementedError(t, err)` | Asserts `errors.Is(err, types.ErrNotImplemented)` |
-| `AssertCursorRoundTrip(t, secret, payload)` | Verifies cursor encode → decode |
-| `AssertPageInfoIsComplete(t, page, limit)` | Verifies all `PageInfo` fields |
-| `CanceledContext()` | Returns an already-canceled `context.Context` |
+| Function                                          | Purpose                                            |
+| ------------------------------------------------- | -------------------------------------------------- |
+| `RequireListResult[T](t, result, limit, hasMore)` | Verifies `ListResult` structure                    |
+| `RequireTimeoutError(t, err)`                     | Asserts `errors.Is(err, types.ErrTimeout)`         |
+| `RequireProviderError(t, err)`                    | Asserts `errors.Is(err, types.ErrProvider)`        |
+| `RequireInvalidArgError(t, err)`                  | Asserts `errors.Is(err, types.ErrInvalidArgument)` |
+| `RequireNotFoundError(t, err)`                    | Asserts `errors.Is(err, types.ErrNotFound)`        |
+| `RequireNotImplementedError(t, err)`              | Asserts `errors.Is(err, types.ErrNotImplemented)`  |
+| `AssertCursorRoundTrip(t, secret, payload)`       | Verifies cursor encode → decode                    |
+| `AssertPageInfoIsComplete(t, page, limit)`        | Verifies all `PageInfo` fields                     |
+| `CanceledContext()`                               | Returns an already-canceled `context.Context`      |
 
 ## Coverage Matrix
 
-| Adapter | Capability | Conformance Tests | Adapter-Specific Tests | Total |
-|---------|-----------|-------------------|----------------------|-------|
-| karakeep | bookmark | 33 | 2 | 35 |
-| archivebox | archive | 7 | 1 | 8 |
-| miniflux | reader | 20 | 6 | 26 |
-| kanboard | kanban | 27 | 7 | 34 |
-| **Total** | | **87** | **16** | **103** |
+| Adapter    | Capability | Conformance Tests | Adapter-Specific Tests | Total   |
+| ---------- | ---------- | ----------------- | ---------------------- | ------- |
+| karakeep   | bookmark   | 33                | 2                      | 35      |
+| archivebox | archive    | 7                 | 1                      | 8       |
+| miniflux   | reader     | 20                | 6                      | 26      |
+| kanboard   | kanban     | 27                | 7                      | 34      |
+| **Total**  |            | **87**            | **16**                 | **103** |
 
 Plus 12 self-tests for the conformance framework itself.
 

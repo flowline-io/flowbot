@@ -11,13 +11,13 @@ import (
 
 // ArchiveConfig configures the fake backend for each archive conformance subtest.
 type ArchiveConfig struct {
-	AddItem  *ability.ArchiveItem
-	AddErr   error
-	GetItem  *ability.ArchiveItem
-	GetErr   error
-	SearchItems     []*ability.ArchiveItem
+	AddItem          *ability.ArchiveItem
+	AddErr           error
+	GetItem          *ability.ArchiveItem
+	GetErr           error
+	SearchItems      []*ability.ArchiveItem
 	SearchNextCursor string
-	SearchErr       error
+	SearchErr        error
 }
 
 // ArchiveServiceFactory creates a fresh archive Service wired to a fake backend

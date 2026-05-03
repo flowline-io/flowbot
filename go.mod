@@ -42,6 +42,7 @@ require (
 	github.com/redis/go-redis/extra/redisotel/v9 v9.19.0
 	github.com/redis/go-redis/v9 v9.19.0
 	github.com/rs/zerolog v1.35.1
+	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/samber/lo v1.53.0
 	github.com/samber/oops v1.21.0
 	github.com/schollz/progressbar/v3 v3.19.0
@@ -125,9 +126,9 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.6.0 // indirect
 	github.com/BobuSumisu/aho-corasick v1.0.3 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/ClickHouse/ch-go v0.61.5 // indirect
+	github.com/ClickHouse/ch-go v0.65.0 // indirect
 	github.com/ClickHouse/clickhouse-go v1.5.4 // indirect
-	github.com/ClickHouse/clickhouse-go/v2 v2.30.0 // indirect
+	github.com/ClickHouse/clickhouse-go/v2 v2.32.0 // indirect
 	github.com/GoogleCloudPlatform/grpc-gcp-go/grpcgcp v1.6.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.31.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
@@ -513,7 +514,6 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rqlite/gorqlite v0.0.0-20230708021416-2acd02b70b79 // indirect
 	github.com/rs/xid v1.6.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sajari/fuzzy v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect

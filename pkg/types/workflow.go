@@ -67,10 +67,10 @@ func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 }
 
 type WorkflowMetadata struct {
-	Name        string `json:"name" yaml:"name"`
-	Describe    string `json:"describe" yaml:"describe"`
-	Resumable   bool   `json:"resumable" yaml:"resumable"`
-	Triggers    []struct {
+	Name      string `json:"name" yaml:"name"`
+	Describe  string `json:"describe" yaml:"describe"`
+	Resumable bool   `json:"resumable" yaml:"resumable"`
+	Triggers  []struct {
 		Type string `json:"type" yaml:"type"`
 		Rule KV     `json:"rule,omitempty" yaml:"rule"`
 	} `json:"triggers" yaml:"triggers"`

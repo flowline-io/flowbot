@@ -26,7 +26,11 @@
 
 		<nav class="nav">
 			<div class="nav-inner">
-				<a href="https://flowline-io.github.io/flowbot/index.html" class="nav-logo">flowbot<span>.io</span></a>
+				<a
+					href="https://flowline-io.github.io/flowbot/index.html"
+					class="nav-logo"
+					>flowbot<span>.io</span></a
+				>
 				<ul class="nav-links">
 					<li><a href="index.html#overview">Overview</a></li>
 					<li><a href="index.html#problem">Problem</a></li>
@@ -67,9 +71,28 @@
 					interactive Swagger UI:
 				</p>
 				<ul>
-					<li><a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.yaml" target="_blank" rel="noopener">swagger.yaml</a> — OpenAPI 3.0 spec (YAML)</li>
-					<li><a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.json" target="_blank" rel="noopener">swagger.json</a> — OpenAPI 3.0 spec (JSON)</li>
-					<li><code>http://localhost:6060/swagger/index.html</code> — Swagger UI (when server is running)</li>
+					<li>
+						<a
+							href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.yaml"
+							target="_blank"
+							rel="noopener"
+							>swagger.yaml</a
+						>
+						— OpenAPI 3.0 spec (YAML)
+					</li>
+					<li>
+						<a
+							href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.json"
+							target="_blank"
+							rel="noopener"
+							>swagger.json</a
+						>
+						— OpenAPI 3.0 spec (JSON)
+					</li>
+					<li>
+						<code>http://localhost:6060/swagger/index.html</code> —
+						Swagger UI (when server is running)
+					</li>
 				</ul>
 
 				<h2>Quick Reference</h2>
@@ -87,30 +110,68 @@
 				<h3>Routing Planes</h3>
 				<table>
 					<thead>
-						<tr><th>Prefix</th><th>Plane</th><th>Purpose</th></tr>
+						<tr>
+							<th>Prefix</th>
+							<th>Plane</th>
+							<th>Purpose</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr><td><code>/service/{capability}/*</code></td><td>Capability Plane</td><td>Business operations</td></tr>
-						<tr><td><code>/hub/*</code></td><td>Management Plane</td><td>App lifecycle, health</td></tr>
+						<tr>
+							<td><code>/service/{capability}/*</code></td>
+							<td>Capability Plane</td>
+							<td>Business operations</td>
+						</tr>
+						<tr>
+							<td><code>/hub/*</code></td>
+							<td>Management Plane</td>
+							<td>App lifecycle, health</td>
+						</tr>
 					</tbody>
 				</table>
 
 				<h3>Health Probes</h3>
 				<table>
 					<thead>
-						<tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+						<tr>
+							<th>Endpoint</th>
+							<th>Method</th>
+							<th>Description</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr><td><code>/livez</code></td><td>GET</td><td>Liveness probe</td></tr>
-						<tr><td><code>/readyz</code></td><td>GET</td><td>Readiness probe</td></tr>
-						<tr><td><code>/startupz</code></td><td>GET</td><td>Startup probe</td></tr>
-						<tr><td><code>/metrics</code></td><td>GET</td><td>Prometheus metrics</td></tr>
+						<tr>
+							<td><code>/livez</code></td>
+							<td>GET</td>
+							<td>Liveness probe</td>
+						</tr>
+						<tr>
+							<td><code>/readyz</code></td>
+							<td>GET</td>
+							<td>Readiness probe</td>
+						</tr>
+						<tr>
+							<td><code>/startupz</code></td>
+							<td>GET</td>
+							<td>Startup probe</td>
+						</tr>
+						<tr>
+							<td><code>/metrics</code></td>
+							<td>GET</td>
+							<td>Prometheus metrics</td>
+						</tr>
 					</tbody>
 				</table>
 
 				<h2>HTTP Request Examples</h2>
 				<p>
-					See <a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/api.http" target="_blank" rel="noopener">api.http</a>
+					See
+					<a
+						href="https://github.com/flowline-io/flowbot/blob/main/docs/api/api.http"
+						target="_blank"
+						rel="noopener"
+						>api.http</a
+					>
 					for VS Code REST Client / IntelliJ HTTP Client examples.
 				</p>
 			</div>

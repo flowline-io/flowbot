@@ -4,24 +4,24 @@ Homelab Data Hub & Capability Orchestration Center.
 
 ## Quick Reference
 
-| Task             | Location            | Notes                         |
-| ---------------- | ------------------- | ----------------------------- |
-| Add new module   | `internal/modules/` | See `AGENTS.md` there         |
-| Module framework | `pkg/module/`       | Handler interface             |
-| Database work    | `internal/store/`   | DAO pattern, migrations       |
-| New provider     | `pkg/providers/`    | OAuth + API clients           |
-| Capability layer | `pkg/ability/`      | ability.Invoke()              |
-| Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines        |
-| Workflow engine  | `pkg/workflow/`     | Workflow runtime              |
-| Hub management   | `pkg/hub/`          | App lifecycle                 |
-| Homelab registry | `pkg/homelab/`      | App scanning                  |
-| Authentication   | `pkg/auth/`         | AuthContext helpers           |
-| Notifications    | `pkg/notify/`       | Multi-channel notify          |
-| Core types       | `pkg/types/`        | Rulesets, protocol, KV        |
-| API routes       | `internal/server/`  | Fiber v3 handlers             |
-| Entry points     | `cmd/`              | 3 binaries                    |
-| Frontend/PWA     | `pkg/page/`         | go-app WASM components        |
-| Utilities        | `pkg/utils/`        | Must have unit tests          |
+| Task             | Location            | Notes                   |
+| ---------------- | ------------------- | ----------------------- |
+| Add new module   | `internal/modules/` | See `AGENTS.md` there   |
+| Module framework | `pkg/module/`       | Handler interface       |
+| Database work    | `internal/store/`   | DAO pattern, migrations |
+| New provider     | `pkg/providers/`    | OAuth + API clients     |
+| Capability layer | `pkg/ability/`      | ability.Invoke()        |
+| Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines  |
+| Workflow engine  | `pkg/workflow/`     | Workflow runtime        |
+| Hub management   | `pkg/hub/`          | App lifecycle           |
+| Homelab registry | `pkg/homelab/`      | App scanning            |
+| Authentication   | `pkg/auth/`         | AuthContext helpers     |
+| Notifications    | `pkg/notify/`       | Multi-channel notify    |
+| Core types       | `pkg/types/`        | Rulesets, protocol, KV  |
+| API routes       | `internal/server/`  | Fiber v3 handlers       |
+| Entry points     | `cmd/`              | 3 binaries              |
+| Frontend/PWA     | `pkg/page/`         | go-app WASM components  |
+| Utilities        | `pkg/utils/`        | Must have unit tests    |
 
 ## Key Patterns
 

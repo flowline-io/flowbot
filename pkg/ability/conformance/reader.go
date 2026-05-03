@@ -91,7 +91,7 @@ func RunReaderConformance(t *testing.T, factory ReaderServiceFactory) {
 
 	t.Run("list entries success", func(t *testing.T) {
 		svc := factory(t, ReaderConfig{
-			Entries: []*ability.Entry{{ID: 1, Title: "Post", URL: "https://blog.example.com/p/1", Status: "unread"}},
+			Entries:      []*ability.Entry{{ID: 1, Title: "Post", URL: "https://blog.example.com/p/1", Status: "unread"}},
 			EntriesTotal: 100,
 		})
 		result, err := svc.ListEntries(t.Context(), &rdr.EntryQuery{})

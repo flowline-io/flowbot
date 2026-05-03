@@ -70,14 +70,14 @@ pipelines:
 
 Each pipeline step can specify an optional `retry` block. If omitted, the step runs exactly once.
 
-| Field | Type | Default | Description |
-| ----- | ---- | ------- | ----------- |
-| `max_attempts` | int | `0` | Maximum retry attempts. `0` disables retry. |
-| `delay` | duration | `0s` | Initial delay before first retry |
-| `backoff` | string | `"exponential"` | `fixed` (constant delay), `linear` (multiplier=1.0), `exponential` (multiplier=2.0) |
-| `max_delay` | duration | `0s` | Caps the delay between retries |
-| `jitter` | bool | `false` | Adds +/-50% randomization to delay |
-| `retry_on` | []string | (all errors) | Filter: only retry errors matching these codes or with `Retryable=true` |
+| Field          | Type     | Default         | Description                                                                         |
+| -------------- | -------- | --------------- | ----------------------------------------------------------------------------------- |
+| `max_attempts` | int      | `0`             | Maximum retry attempts. `0` disables retry.                                         |
+| `delay`        | duration | `0s`            | Initial delay before first retry                                                    |
+| `backoff`      | string   | `"exponential"` | `fixed` (constant delay), `linear` (multiplier=1.0), `exponential` (multiplier=2.0) |
+| `max_delay`    | duration | `0s`            | Caps the delay between retries                                                      |
+| `jitter`       | bool     | `false`         | Adds +/-50% randomization to delay                                                  |
+| `retry_on`     | []string | (all errors)    | Filter: only retry errors matching these codes or with `Retryable=true`             |
 
 ### Behavior
 
@@ -102,10 +102,10 @@ Jitter is only applied to linear and exponential modes (built on `ExponentialBac
 
 The `pipeline_step_runs` table tracks retries:
 
-| Column | Description |
-| ------ | ----------- |
-| `attempt` | Count of attempts including the first (1-based) |
-| `retry_config` | JSON snapshot of the retry configuration used |
+| Column         | Description                                     |
+| -------------- | ----------------------------------------------- |
+| `attempt`      | Count of attempts including the first (1-based) |
+| `retry_config` | JSON snapshot of the retry configuration used   |
 
 ## Checkpointing
 
@@ -145,6 +145,7 @@ Heartbeats stop automatically when the step completes (context cancelled via `de
 ### Resume
 
 `Engine.ResumePipeline(ctx, runID)` restores execution from the last checkpoint:
+
 1. Loads `pipeline_runs` to get the pipeline name.
 2. Loads `checkpoint_data` to get step index, step results, and the original event.
 3. Matches the pipeline definition by name.
@@ -153,21 +154,21 @@ Heartbeats stop automatically when the step completes (context cancelled via `de
 
 ## Execution States
 
-| State | Value | Meaning |
-| ----- | ----- | ------- |
-| `PipelineStateUnknown` | 0 | Default |
-| `PipelineStart` | 1 | Run in progress |
-| `PipelineDone` | 2 | All steps succeeded |
-| `PipelineCancel` | 3 | Step failed or run cancelled |
+| State                  | Value | Meaning                      |
+| ---------------------- | ----- | ---------------------------- |
+| `PipelineStateUnknown` | 0     | Default                      |
+| `PipelineStart`        | 1     | Run in progress              |
+| `PipelineDone`         | 2     | All steps succeeded          |
+| `PipelineCancel`       | 3     | Step failed or run cancelled |
 
 ## Database Tables
 
-| Table | Purpose |
-| ----- | ------- |
-| `pipeline_definitions` | Persisted YAML definitions (upserted on startup) |
-| `pipeline_runs` | One row per pipeline execution: status, error, checkpoint, heartbeat |
-| `pipeline_step_runs` | Per-step execution: params, result, attempt, status, error |
-| `event_consumptions` | Idempotency guard: `(consumer_name, event_id)` unique |
+| Table                  | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `pipeline_definitions` | Persisted YAML definitions (upserted on startup)                     |
+| `pipeline_runs`        | One row per pipeline execution: status, error, checkpoint, heartbeat |
+| `pipeline_step_runs`   | Per-step execution: params, result, attempt, status, error           |
+| `event_consumptions`   | Idempotency guard: `(consumer_name, event_id)` unique                |
 
 ## Event Flow
 
@@ -182,6 +183,7 @@ Heartbeats stop automatically when the step completes (context cancelled via `de
 ## Idempotency
 
 Each pipeline run is gated by `event_consumptions` which has a unique composite index on `(consumer_name, event_id)`. Before execution:
+
 1. `HasConsumed(pipelineName, eventID)` checks if this pipeline already processed this event.
 2. If consumed, the event is skipped (logged, no error).
 3. Otherwise, `RecordConsumption` inserts a row, then the pipeline executes.

@@ -26,9 +26,9 @@ func TestKarakeepConformance(t *testing.T) {
 				}
 				return true
 			}(),
-			archiveErr:   cfg.ArchiveErr,
-			searchResp:   cfgToSearchResponse(cfg),
-			searchErr:    cfg.SearchErr,
+			archiveErr:    cfg.ArchiveErr,
+			searchResp:    cfgToSearchResponse(cfg),
+			searchErr:     cfg.SearchErr,
 			attachTagsErr: cfg.AttachTagsErr,
 			detachTagsErr: cfg.DetachTagsErr,
 			checkURLResp:  cfgToCheckURLResp(cfg),

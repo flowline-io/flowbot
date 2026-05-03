@@ -62,10 +62,10 @@ func TestListFeedsConvertsFeeds(t *testing.T) {
 	adapter := NewWithClient(&fakeClient{
 		feeds: rssClient.Feeds{
 			{
-				ID:      1,
-				Title:   "Example Blog",
-				FeedURL: "https://example.com/rss",
-				SiteURL: "https://example.com",
+				ID:       1,
+				Title:    "Example Blog",
+				FeedURL:  "https://example.com/rss",
+				SiteURL:  "https://example.com",
 				Category: &rssClient.Category{ID: 1, Title: "Tech"},
 			},
 		},

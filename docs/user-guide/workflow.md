@@ -83,43 +83,44 @@ tasks:
 
 ### Top-Level Fields
 
-| Field | Type | Required | Description |
-| ----- | ---- | -------- | ----------- |
-| `name` | string | Yes | Unique workflow identifier |
-| `describe` | string | No | Human-readable description |
-| `resumable` | bool | No | Enable checkpoint persistence (default: false) |
-| `triggers` | []Trigger | No | Trigger configurations (cron, manual, webhook) |
-| `pipeline` | []string | Yes | Ordered list of task IDs to execute |
-| `tasks` | []Task | Yes | Task definitions |
+| Field       | Type      | Required | Description                                    |
+| ----------- | --------- | -------- | ---------------------------------------------- |
+| `name`      | string    | Yes      | Unique workflow identifier                     |
+| `describe`  | string    | No       | Human-readable description                     |
+| `resumable` | bool      | No       | Enable checkpoint persistence (default: false) |
+| `triggers`  | []Trigger | No       | Trigger configurations (cron, manual, webhook) |
+| `pipeline`  | []string  | Yes      | Ordered list of task IDs to execute            |
+| `tasks`     | []Task    | Yes      | Task definitions                               |
 
 ### Task Fields
 
-| Field | Type | Required | Description |
-| ----- | ---- | -------- | ----------- |
-| `id` | string | Yes | Unique task identifier |
-| `action` | string | Yes | `capability:<type>.<op>`, `docker:<image>`, `shell:<cmd>`, `machine:<name>`, `mapper:` |
-| `describe` | string | No | Human-readable description |
-| `params` | KV | No | Input parameters (template-rendered) |
-| `vars` | []string | No | Declared variable names (reserved) |
-| `conn` | []string | No | DAG dependency edges (validated for cycles, not used for scheduling) |
-| `retry` | RetryConfig | No | Retry strategy (see below) |
+| Field      | Type        | Required | Description                                                                            |
+| ---------- | ----------- | -------- | -------------------------------------------------------------------------------------- |
+| `id`       | string      | Yes      | Unique task identifier                                                                 |
+| `action`   | string      | Yes      | `capability:<type>.<op>`, `docker:<image>`, `shell:<cmd>`, `machine:<name>`, `mapper:` |
+| `describe` | string      | No       | Human-readable description                                                             |
+| `params`   | KV          | No       | Input parameters (template-rendered)                                                   |
+| `vars`     | []string    | No       | Declared variable names (reserved)                                                     |
+| `conn`     | []string    | No       | DAG dependency edges (validated for cycles, not used for scheduling)                   |
+| `retry`    | RetryConfig | No       | Retry strategy (see below)                                                             |
 
 ## Action Types
 
-| Prefix | Runtime | Example |
-| ------ | ------- | ------- |
-| `capability:` | Capability | `capability:bookmark.create` |
-| `docker:` | Docker container | `docker:nginx:latest` |
-| `shell:` | Shell command | `shell:echo hello` |
-| `machine:` | Remote SSH | `machine:vm1` |
-| `mapper:` | Inline data transform | `mapper:` |
-| Free-form | Shell fallback | `custom-action` |
+| Prefix        | Runtime               | Example                      |
+| ------------- | --------------------- | ---------------------------- |
+| `capability:` | Capability            | `capability:bookmark.create` |
+| `docker:`     | Docker container      | `docker:nginx:latest`        |
+| `shell:`      | Shell command         | `shell:echo hello`           |
+| `machine:`    | Remote SSH            | `machine:vm1`                |
+| `mapper:`     | Inline data transform | `mapper:`                    |
+| Free-form     | Shell fallback        | `custom-action`              |
 
 ### Mapper Step (`mapper:`)
 
 The mapper step provides a lightweight data transformation node within the workflow. It takes template-rendered parameters and serializes them to a JSON string, making it suitable for converting output formats between steps. Unlike other action types, mapper is handled inline in the workflow runner -- no external runtime or process is involved.
 
 Mapper steps are resolved before the normal task execution path. When a task's action starts with `mapper:`, the runner:
+
 1. Resolves template expressions in the step's `params` against previous step results.
 2. Marshals the resolved params to a JSON string.
 3. Stores the JSON as the step result for downstream consumption.
@@ -176,6 +177,7 @@ Key difference: the workflow engine retries ALL errors (no `retry_on` filtering)
 ## Parameter Resolution
 
 Task `params` are rendered through the template engine before execution. The data context for each step includes:
+
 - Results from all previously completed steps (mapped as `{{step "id" "result"}}`)
 - Input variables passed to the workflow entry point (`{{input.*}}`)
 
@@ -184,6 +186,7 @@ See [Pipeline Template Engine](pipeline-template.md) for the full template synta
 ### Result Handling
 
 After a task succeeds:
+
 - If `task.Result` is non-empty, it is stored in the `results` map keyed by task ID.
 - Downstream tasks can reference it: `{{step "save_bookmark" "result"}}`.
 - Both the raw result string and the step output JSON are available.
@@ -207,13 +210,13 @@ When `resumable: true`, the workflow engine persists execution state via the `Wo
 
 ### Tables Used
 
-| Table | Purpose |
-| ----- | ------- |
-| `jobs` | Workflow run: state, workflow_id, timing |
-| `steps` | Per-task execution: action, input, output, state, error |
-| `workflow` | Workflow definition: name, state, counters |
-| `workflow_script` | YAML content: lang, code, version |
-| `workflow_trigger` | Trigger config: type, rule |
+| Table              | Purpose                                                 |
+| ------------------ | ------------------------------------------------------- |
+| `jobs`             | Workflow run: state, workflow_id, timing                |
+| `steps`            | Per-task execution: action, input, output, state, error |
+| `workflow`         | Workflow definition: name, state, counters              |
+| `workflow_script`  | YAML content: lang, code, version                       |
+| `workflow_trigger` | Trigger config: type, rule                              |
 
 ### State Flow
 
@@ -246,14 +249,14 @@ for attempt := 1; ; attempt++ {
 
 ### Error Propagation
 
-| Stage | Error | Return |
-| ----- | ----- | ------ |
-| Task not found in taskMap | `task %s not found in workflow` | Immediate |
-| Resolve params failure | `resolve params step %s: %w` | Immediate |
-| Mapper marshal failure | `mapper step %s: %w` | Immediate |
-| Convert task failure | `convert task %s: %w` | Immediate |
+| Stage                           | Error                                         | Return    |
+| ------------------------------- | --------------------------------------------- | --------- |
+| Task not found in taskMap       | `task %s not found in workflow`               | Immediate |
+| Resolve params failure          | `resolve params step %s: %w`                  | Immediate |
+| Mapper marshal failure          | `mapper step %s: %w`                          | Immediate |
+| Convert task failure            | `convert task %s: %w`                         | Immediate |
 | Run failure (retries exhausted) | `step %s (retries exhausted, attempt %d): %w` | Immediate |
-| Run failure (context cancel) | `step %s cancelled: %w` | Immediate |
+| Run failure (context cancel)    | `step %s cancelled: %w`                       | Immediate |
 
 ## Invocation
 

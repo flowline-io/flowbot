@@ -28,10 +28,10 @@ type WorkflowRecoveryStore interface {
 
 // Config controls recovery behavior.
 type Config struct {
-	Enabled       bool          `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	StaleTimeout  time.Duration `json:"stale_timeout" yaml:"stale_timeout" mapstructure:"stale_timeout"`
-	AutoResume    bool          `json:"auto_resume" yaml:"auto_resume" mapstructure:"auto_resume"`
-	MaxResumeAge  time.Duration `json:"max_resume_age" yaml:"max_resume_age" mapstructure:"max_resume_age"`
+	Enabled      bool          `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	StaleTimeout time.Duration `json:"stale_timeout" yaml:"stale_timeout" mapstructure:"stale_timeout"`
+	AutoResume   bool          `json:"auto_resume" yaml:"auto_resume" mapstructure:"auto_resume"`
+	MaxResumeAge time.Duration `json:"max_resume_age" yaml:"max_resume_age" mapstructure:"max_resume_age"`
 }
 
 // Manager orchestrates restart recovery for pipelines and workflows.

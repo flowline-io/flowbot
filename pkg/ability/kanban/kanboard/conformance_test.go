@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	kb "github.com/flowline-io/flowbot/pkg/ability/kanban"
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
+	kb "github.com/flowline-io/flowbot/pkg/ability/kanban"
 	provider "github.com/flowline-io/flowbot/pkg/providers/kanboard"
 )
 

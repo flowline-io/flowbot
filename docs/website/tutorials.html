@@ -26,7 +26,11 @@
 
 		<nav class="nav">
 			<div class="nav-inner">
-				<a href="https://flowline-io.github.io/flowbot/index.html" class="nav-logo">flowbot<span>.io</span></a>
+				<a
+					href="https://flowline-io.github.io/flowbot/index.html"
+					class="nav-logo"
+					>flowbot<span>.io</span></a
+				>
 				<ul class="nav-links">
 					<li><a href="index.html#overview">Overview</a></li>
 					<li><a href="index.html#problem">Problem</a></li>
@@ -64,7 +68,10 @@
 				<div class="card-grid">
 					<a href="docs/getting-started.html" class="card">
 						<h3>Quick Start Guide</h3>
-						<p>Installation, configuration, and first run. Prerequisites, health checks, and CLI tools.</p>
+						<p>
+							Installation, configuration, and first run.
+							Prerequisites, health checks, and CLI tools.
+						</p>
 					</a>
 				</div>
 
@@ -72,26 +79,46 @@
 				<div class="card-grid">
 					<a href="docs/user-guide/pipeline.html" class="card">
 						<h3>Pipeline Engine</h3>
-						<p>Event-driven automation: triggers, steps, retry strategy, checkpointing, and idempotency.</p>
+						<p>
+							Event-driven automation: triggers, steps, retry
+							strategy, checkpointing, and idempotency.
+						</p>
 					</a>
-					<a href="docs/user-guide/pipeline-template.html" class="card">
+					<a
+						href="docs/user-guide/pipeline-template.html"
+						class="card"
+					>
 						<h3>Pipeline Templates</h3>
-						<p>Parameter rendering: conditionals, loops, FuncMap utilities, and migration guide.</p>
+						<p>
+							Parameter rendering: conditionals, loops, FuncMap
+							utilities, and migration guide.
+						</p>
 					</a>
 					<a href="docs/user-guide/workflow.html" class="card">
 						<h3>Workflow Engine</h3>
-						<p>Task DAGs: capability, shell, Docker, SSH actions. DAG validation and retry.</p>
+						<p>
+							Task DAGs: capability, shell, Docker, SSH actions.
+							DAG validation and retry.
+						</p>
 					</a>
 					<a href="docs/user-guide/notifications.html" class="card">
 						<h3>Notifications</h3>
-						<p>Configure Slack, Pushover, ntfy, and Message Pusher notification providers.</p>
+						<p>
+							Configure Slack, Pushover, ntfy, and Message Pusher
+							notification providers.
+						</p>
 					</a>
 				</div>
 
 				<h2>Examples</h2>
 				<p>
 					See the
-					<a href="https://github.com/flowline-io/flowbot/blob/main/docs/examples/workflows/save_and_track.yaml" target="_blank" rel="noopener">save_and_track.yaml</a>
+					<a
+						href="https://github.com/flowline-io/flowbot/blob/main/docs/examples/workflows/save_and_track.yaml"
+						target="_blank"
+						rel="noopener"
+						>save_and_track.yaml</a
+					>
 					workflow example — a 3-step pipeline that bookmarks a URL,
 					archives it, and creates a Kanban task.
 				</p>
@@ -99,21 +126,47 @@
 				<h2>Deployment</h2>
 				<p>
 					For production deployment options, see
-					<a href="docs/developer-guide/deployment.html">Deployment Guide</a>:
+					<a href="docs/developer-guide/deployment.html"
+						>Deployment Guide</a
+					>:
 				</p>
 				<ul>
-					<li><strong>Binary</strong> — <code>go tool task build</code>, run directly</li>
-					<li><strong>Docker</strong> — <code>docker build -f deployments/Dockerfile</code></li>
-					<li><strong>systemd</strong> — Headless Linux service with automatic restart</li>
+					<li>
+						<strong>Binary</strong> —
+						<code>go tool task build</code>, run directly
+					</li>
+					<li>
+						<strong>Docker</strong> —
+						<code>docker build -f deployments/Dockerfile</code>
+					</li>
+					<li>
+						<strong>systemd</strong> — Headless Linux service with
+						automatic restart
+					</li>
 				</ul>
 
 				<h2>Next Steps</h2>
 				<ul>
-					<li><strong>Read the Architecture</strong> — Understand the six-layer design</li>
-					<li><strong>Write a Pipeline</strong> — Automate your first multi-step workflow</li>
-					<li><strong>Add Providers</strong> — Integrate your own self-hosted apps</li>
-					<li><strong>Pass Conformance</strong> — Ensure your adapter meets the standard</li>
-					<li><strong>View the API</strong> — Explore the interactive Swagger docs</li>
+					<li>
+						<strong>Read the Architecture</strong> — Understand the
+						six-layer design
+					</li>
+					<li>
+						<strong>Write a Pipeline</strong> — Automate your first
+						multi-step workflow
+					</li>
+					<li>
+						<strong>Add Providers</strong> — Integrate your own
+						self-hosted apps
+					</li>
+					<li>
+						<strong>Pass Conformance</strong> — Ensure your adapter
+						meets the standard
+					</li>
+					<li>
+						<strong>View the API</strong> — Explore the interactive
+						Swagger docs
+					</li>
 				</ul>
 			</div>
 		</div>
