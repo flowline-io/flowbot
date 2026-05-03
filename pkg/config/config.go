@@ -420,7 +420,7 @@ func Load(path ...string) {
 	}
 }
 
-func NewConfig(lc fx.Lifecycle) Type {
+func NewConfig(lc fx.Lifecycle) *Type {
 	executable, _ := os.Executable()
 
 	curwd, err := os.Getwd()
@@ -473,5 +473,5 @@ func NewConfig(lc fx.Lifecycle) Type {
 		},
 	})
 
-	return App
+	return &App
 }

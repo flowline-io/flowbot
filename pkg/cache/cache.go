@@ -13,7 +13,7 @@ type Cache struct {
 	i *ristretto.Cache[string, any]
 }
 
-func NewCache(_ config.Type) (*Cache, error) {
+func NewCache(_ *config.Type) (*Cache, error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, any]{
 		NumCounters: 1e7,     // number of keys to track frequency of (10M).
 		MaxCost:     1 << 30, // maximum cost of cache (1GB).

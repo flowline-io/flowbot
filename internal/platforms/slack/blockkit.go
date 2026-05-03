@@ -425,12 +425,10 @@ func buildActionCard(card ActionCardDef) []slack.Block {
 		blocks = append(blocks, imageBlock(card.ImageURL, card.Title, card.Title))
 	}
 	if len(card.Fields) > 0 {
-		blocks = append(blocks, divider())
-		blocks = append(blocks, sectionFields(card.Fields))
+		blocks = append(blocks, divider(), sectionFields(card.Fields))
 	}
 	if len(card.Buttons) > 0 {
-		blocks = append(blocks, divider())
-		blocks = append(blocks, actionButtons(card.Buttons...))
+		blocks = append(blocks, divider(), actionButtons(card.Buttons...))
 	}
 	if card.Footer != "" {
 		blocks = append(blocks, contextBlock(card.Footer))

@@ -64,10 +64,10 @@ func invokeList(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
 		q := &ListQuery{Page: ability.PageRequestFromParams(params)}
 		if value, ok := ability.BoolParam(params, "archived"); ok {
-			q.Archived = new(value)
+			q.Archived = &value
 		}
 		if value, ok := ability.BoolParam(params, "favourited"); ok {
-			q.Favourited = new(value)
+			q.Favourited = &value
 		}
 		result, err := svc.List(ctx, q)
 		if err != nil {

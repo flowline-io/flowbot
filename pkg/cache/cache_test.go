@@ -12,12 +12,12 @@ import (
 func TestNewCache(t *testing.T) {
 	tests := []struct {
 		name    string
-		config  config.Type
+		config  *config.Type
 		wantErr bool
 	}{
 		{
 			name:    "default_config",
-			config:  config.Type{},
+			config:  &config.Type{},
 			wantErr: false,
 		},
 	}
@@ -45,7 +45,7 @@ func TestNewCache(t *testing.T) {
 
 // TestCacheSet tests the Set method
 func TestCacheSet(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -104,7 +104,7 @@ func TestCacheSet(t *testing.T) {
 
 // TestCacheSetWithTTL tests the SetWithTTL method
 func TestCacheSetWithTTL(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -149,7 +149,7 @@ func TestCacheSetWithTTL(t *testing.T) {
 
 // TestCacheGet tests the Get method
 func TestCacheGet(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -214,7 +214,7 @@ func TestCacheGet(t *testing.T) {
 
 // TestCacheDel tests the Del method
 func TestCacheDel(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -273,7 +273,7 @@ func TestCacheDel(t *testing.T) {
 
 // TestCacheWait tests the Wait method
 func TestCacheWait(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -290,7 +290,7 @@ func TestCacheWait(t *testing.T) {
 
 // TestCacheIntegration tests basic cache operations together
 func TestCacheIntegration(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 
@@ -319,7 +319,7 @@ func TestCacheIntegration(t *testing.T) {
 
 // TestCacheTTLExpiration tests that TTL actually expires
 func TestCacheTTLExpiration(t *testing.T) {
-	cache, err := NewCache(config.Type{})
+	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
 

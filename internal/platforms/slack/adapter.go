@@ -132,8 +132,10 @@ func (a *Adapter) EventConvert(data any) protocol.Event {
 
 			// Extract submitted values from the modal
 			submittedValues := make(map[string]string)
-			for blockID, blockValues := range callback.View.State.Values {
-				for actionID, actionValue := range blockValues {
+			for blockID := range callback.View.State.Values {
+				blockValues := callback.View.State.Values[blockID]
+				for actionID := range blockValues {
+					actionValue := blockValues[actionID]
 					key := blockID
 					if key == "" {
 						key = actionID

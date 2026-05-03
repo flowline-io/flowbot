@@ -140,9 +140,11 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	for name, value := range t.Env {
 		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
 	}
-	env = append(env, fmt.Sprintf("%sOUTPUT=%s/stdout", envVarPrefix, workdir))
-	env = append(env, fmt.Sprintf("WORKDIR=%s", workdir))
-	env = append(env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
+	env = append(env,
+		fmt.Sprintf("%sOUTPUT=%s/stdout", envVarPrefix, workdir),
+		fmt.Sprintf("WORKDIR=%s", workdir),
+		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+	)
 
 	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
 		return fmt.Errorf("error writing the entrypoint, %w", err)

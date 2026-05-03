@@ -1,7 +1,7 @@
 package dev
 
 import (
-	_ "embed"
+	"embed"
 	"net/http"
 	"time"
 

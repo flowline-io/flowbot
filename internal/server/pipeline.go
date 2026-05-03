@@ -20,7 +20,7 @@ import (
 
 const DataEventTopic = "pipeline:data_event"
 
-func initPipeline(lc fx.Lifecycle, cfg config.Type, router *message.Router, subscriber message.Subscriber) error {
+func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, subscriber message.Subscriber) error {
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 	if len(pipelineDefs) == 0 {
 		flog.Info("no pipelines configured, skipping pipeline engine")

@@ -12,7 +12,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func newDatabaseAdapter(lc fx.Lifecycle, _ config.Type) (store.Adapter, error) {
+func newDatabaseAdapter(lc fx.Lifecycle, _ *config.Type) (store.Adapter, error) {
 	// init database
 	mysql.Init()
 	store.Init()

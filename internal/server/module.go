@@ -19,7 +19,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func handleModules(lc fx.Lifecycle, _ config.Type, _ store.Adapter, _ *redis.Client) error {
+func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Client) error {
 	// Initialize bots
 	initializeModules(config.App.Bots, config.App.Vendors)
 

@@ -16,7 +16,7 @@ import (
 
 var Client *redis.Client
 
-func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
+func NewClient(lc fx.Lifecycle, _ *config.Type) (*redis.Client, error) {
 	addr := net.JoinHostPort(config.App.Redis.Host, strconv.Itoa(config.App.Redis.Port))
 	password := config.App.Redis.Password
 	if addr == ":" || password == "" {

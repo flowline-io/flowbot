@@ -140,7 +140,7 @@ func WebDocAction(_ context.Context, _ *cli.Command) error {
 		return fmt.Errorf("walking docs: %w", err)
 	}
 
-	fmt.Println("website docs generated successfully")
+	_, _ = fmt.Println("website docs generated successfully")
 	return nil
 }
 
@@ -187,7 +187,7 @@ func convertFile(srcDir, outDir, relPath string) error {
 		return fmt.Errorf("writing %s: %w", outFile, err)
 	}
 
-	fmt.Printf("  %s -> %s\n", relPath, filepath.Join("website", "docs", outFile))
+	_, _ = fmt.Printf("  %s -> %s\n", relPath, filepath.Join("website", "docs", outFile))
 	return nil
 }
 

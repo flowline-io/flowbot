@@ -84,7 +84,7 @@ type Controller struct {
 	tailchatDriver protocol.Driver
 }
 
-func newController(driver protocol.Driver, cfg config.Type, storeAdapter store.Adapter) *Controller {
+func newController(driver protocol.Driver, cfg *config.Type, storeAdapter store.Adapter) *Controller {
 	return &Controller{
 		driver:         driver,
 		tailchatDriver: tailchat.NewDriver(cfg, storeAdapter),

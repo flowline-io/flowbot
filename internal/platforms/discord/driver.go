@@ -21,7 +21,7 @@ type Driver struct {
 	stop    chan bool
 }
 
-func NewDriver(_ config.Type, _ store.Adapter) protocol.Driver {
+func NewDriver(_ *config.Type, _ store.Adapter) protocol.Driver {
 	session, err := discordgo.New("Bot " + config.App.Platform.Discord.BotToken)
 	if err != nil {
 		flog.Fatal("error creating discord session: %v", err)

@@ -99,18 +99,18 @@ func kanbanListCommand() *cli.Command {
 			} else {
 				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "COLUMN", "STATUS")
 				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for _, t := range tasks {
-					id := strconv.Itoa(t.ID)
-					title := t.Title
+				for i := range tasks {
+					id := strconv.Itoa(tasks[i].ID)
+					title := tasks[i].Title
 					if len(title) > 28 {
 						title = title[:25] + "..."
 					}
-					column := t.ColumnTitle
+					column := tasks[i].ColumnTitle
 					if len(column) > 13 {
 						column = column[:10] + "..."
 					}
 					statusStr := "active"
-					if t.IsActive == 0 {
+					if tasks[i].IsActive == 0 {
 						statusStr = "closed"
 					}
 					_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", id, title, column, statusStr)
@@ -447,18 +447,18 @@ func kanbanSearchCommand() *cli.Command {
 			} else {
 				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "COLUMN", "STATUS")
 				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for _, t := range tasks {
-					id := strconv.Itoa(t.ID)
-					title := t.Title
+				for i := range tasks {
+					id := strconv.Itoa(tasks[i].ID)
+					title := tasks[i].Title
 					if len(title) > 28 {
 						title = title[:25] + "..."
 					}
-					column := t.ColumnTitle
+					column := tasks[i].ColumnTitle
 					if len(column) > 13 {
 						column = column[:10] + "..."
 					}
 					statusStr := "active"
-					if t.IsActive == 0 {
+					if tasks[i].IsActive == 0 {
 						statusStr = "closed"
 					}
 					_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", id, title, column, statusStr)

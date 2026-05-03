@@ -19,7 +19,7 @@ type Driver struct {
 	stop    chan bool
 }
 
-func NewDriver(_ config.Type, _ store.Adapter) protocol.Driver {
+func NewDriver(_ *config.Type, _ store.Adapter) protocol.Driver {
 	client := newClient()
 
 	// register

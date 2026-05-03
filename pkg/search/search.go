@@ -20,7 +20,7 @@ type Client struct {
 	manager meilisearch.ServiceManager
 }
 
-func NewClient(lc fx.Lifecycle, _ config.Type) *Client {
+func NewClient(lc fx.Lifecycle, _ *config.Type) *Client {
 	if !config.App.Search.Enabled {
 		return &Client{}
 	}
