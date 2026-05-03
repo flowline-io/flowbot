@@ -1,5 +1,6 @@
 name: save_and_track
 describe: "Save a URL as a bookmark, archive it, and create a kanban task"
+resumable: true
 
 pipeline:
   - save_bookmark
@@ -12,12 +13,23 @@ tasks:
     describe: "Save the URL as a bookmark"
     params:
       url: "{{input.url}}"
+    retry:
+      max_attempts: 3
+      delay: 2s
+      backoff: exponential
+      max_delay: 30s
+      jitter: true
 
   - id: archive_url
     action: capability:archive.add
     describe: "Archive the URL in ArchiveBox"
     params:
       url: "{{input.url}}"
+    retry:
+      max_attempts: 5
+      delay: 1s
+      backoff: linear
+      max_delay: 60s
 
   - id: create_task
     action: capability:kanban.create_task

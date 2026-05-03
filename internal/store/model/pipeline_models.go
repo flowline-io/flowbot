@@ -22,15 +22,17 @@ func (*PipelineDefinition) TableName() string {
 const TableNamePipelineRun = "pipeline_runs"
 
 type PipelineRun struct {
-	ID           int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	PipelineName string        `gorm:"column:pipeline_name;not null;index" json:"pipeline_name"`
-	EventID      string        `gorm:"column:event_id;not null;uniqueIndex" json:"event_id"`
-	EventType    string        `gorm:"column:event_type;not null;default:''" json:"event_type"`
-	Status       PipelineState `gorm:"column:status;not null;default:0" json:"status"`
-	Error        string        `gorm:"column:error" json:"error,omitempty"`
-	StartedAt    time.Time     `gorm:"column:started_at" json:"started_at"`
-	CompletedAt  *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
-	CreatedAt    time.Time     `gorm:"column:created_at;not null" json:"created_at"`
+	ID             int64         `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	PipelineName   string        `gorm:"column:pipeline_name;not null;index" json:"pipeline_name"`
+	EventID        string        `gorm:"column:event_id;not null;uniqueIndex" json:"event_id"`
+	EventType      string        `gorm:"column:event_type;not null;default:''" json:"event_type"`
+	Status         PipelineState `gorm:"column:status;not null;default:0" json:"status"`
+	Error          string        `gorm:"column:error" json:"error,omitempty"`
+	CheckpointData JSON          `gorm:"column:checkpoint_data" json:"checkpoint_data,omitempty"`
+	LastHeartbeat  *time.Time    `gorm:"column:last_heartbeat" json:"last_heartbeat,omitempty"`
+	StartedAt      time.Time     `gorm:"column:started_at" json:"started_at"`
+	CompletedAt    *time.Time    `gorm:"column:completed_at" json:"completed_at,omitempty"`
+	CreatedAt      time.Time     `gorm:"column:created_at;not null" json:"created_at"`
 }
 
 func (*PipelineRun) TableName() string {
@@ -47,6 +49,8 @@ type PipelineStepRun struct {
 	Operation     string        `gorm:"column:operation;not null;default:''" json:"operation"`
 	Params        JSON          `gorm:"column:params" json:"params"`
 	Result        JSON          `gorm:"column:result" json:"result"`
+	Attempt       int           `gorm:"column:attempt;not null;default:1" json:"attempt"`
+	RetryConfig   JSON          `gorm:"column:retry_config" json:"retry_config,omitempty"`
 	Status        PipelineState `gorm:"column:status;not null;default:0" json:"status"`
 	Error         string        `gorm:"column:error" json:"error,omitempty"`
 	StartedAt     time.Time     `gorm:"column:started_at" json:"started_at"`

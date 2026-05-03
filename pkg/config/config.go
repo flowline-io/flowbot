@@ -344,19 +344,31 @@ type Pipeline struct {
 	Name        string          `json:"name" yaml:"name" mapstructure:"name"`
 	Description string          `json:"description" yaml:"description" mapstructure:"description"`
 	Enabled     bool            `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Resumable   bool            `json:"resumable" yaml:"resumable" mapstructure:"resumable"`
 	Trigger     PipelineTrigger `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
 	Steps       []PipelineStep  `json:"steps" yaml:"steps" mapstructure:"steps"`
 }
 
-type PipelineTrigger struct {
-	Event string `json:"event" yaml:"event" mapstructure:"event"`
+type PipelineStep struct {
+	Name       string              `json:"name" yaml:"name" mapstructure:"name"`
+	Capability string              `json:"capability" yaml:"capability" mapstructure:"capability"`
+	Operation  string              `json:"operation" yaml:"operation" mapstructure:"operation"`
+	Params     map[string]any      `json:"params" yaml:"params" mapstructure:"params"`
+	Retry      *PipelineStepRetry  `json:"retry" yaml:"retry" mapstructure:"retry"`
 }
 
-type PipelineStep struct {
-	Name       string         `json:"name" yaml:"name" mapstructure:"name"`
-	Capability string         `json:"capability" yaml:"capability" mapstructure:"capability"`
-	Operation  string         `json:"operation" yaml:"operation" mapstructure:"operation"`
-	Params     map[string]any `json:"params" yaml:"params" mapstructure:"params"`
+// PipelineStepRetry mirrors types.RetryConfig for config parsing.
+type PipelineStepRetry struct {
+	MaxAttempts int      `json:"max_attempts" yaml:"max_attempts" mapstructure:"max_attempts"`
+	Delay       string   `json:"delay" yaml:"delay" mapstructure:"delay"`
+	Backoff     string   `json:"backoff" yaml:"backoff" mapstructure:"backoff"`
+	MaxDelay    string   `json:"max_delay" yaml:"max_delay" mapstructure:"max_delay"`
+	Jitter      bool     `json:"jitter" yaml:"jitter" mapstructure:"jitter"`
+	RetryOn     []string `json:"retry_on" yaml:"retry_on" mapstructure:"retry_on"`
+}
+
+type PipelineTrigger struct {
+	Event string `json:"event" yaml:"event" mapstructure:"event"`
 }
 
 type Alarm struct {

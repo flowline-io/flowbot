@@ -29,8 +29,11 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
   - `save_and_track.yaml` — Capability pipeline example
 
 - [notify.md](./notify.md) — Notification configuration
+- [pipeline.md](./pipeline.md) — Pipeline engine: retry, checkpointing, recovery
 - [pipeline-template.md](./pipeline-template.md) — Pipeline template engine reference
 - [tracing.md](./tracing.md) — OpenTelemetry distributed tracing
+- [workflow.md](./workflow.md) — Workflow engine: retry, DAG, persistent state
+- [recovery.md](./recovery.md) — Restart recovery for incomplete pipeline/workflow runs
 
 ## Development Tools
 

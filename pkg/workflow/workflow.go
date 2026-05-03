@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
@@ -187,7 +189,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 
 		flog.Info("[workflow] running step %s: %s", stepID, wt.Action)
 
-		if err := r.Run(ctx, task); err != nil {
+		if err := r.runWithRetry(ctx, task, wt.Retry, stepID); err != nil {
 			return fmt.Errorf("step %s failed: %w", stepID, err)
 		}
 
@@ -199,6 +201,36 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 	}
 
 	return nil
+}
+
+func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *types.RetryConfig, stepID string) error {
+	bo := retryCfg.BuildBackOff()
+
+	attempt := 0
+	for {
+		attempt++
+		err := r.Run(ctx, task)
+		if err == nil {
+			return nil
+		}
+
+		if !retryCfg.RetryEnabled() {
+			return err
+		}
+
+		nextDelay := bo.NextBackOff()
+		if nextDelay == backoff.Stop {
+			return fmt.Errorf("step %s (retries exhausted, attempt %d): %w", stepID, attempt, err)
+		}
+
+		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, nextDelay, err)
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("step %s cancelled: %w", stepID, ctx.Err())
+		case <-time.After(nextDelay):
+		}
+	}
 }
 
 func ValidateDAG(tasks []types.WorkflowTask) error {

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -140,7 +141,7 @@ func (s *PipelineStore) UpdateRunStatus(runID int64, status model.PipelineState,
 	return s.db.Model(&model.PipelineRun{}).Where("id = ?", runID).Updates(updates).Error
 }
 
-func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operation string, params model.JSON) (*model.PipelineStepRun, error) {
+func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error) {
 	if s == nil || s.db == nil {
 		return nil, nil
 	}
@@ -151,6 +152,7 @@ func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operati
 		Capability:    capability,
 		Operation:     operation,
 		Params:        params,
+		Attempt:       attempt,
 		Status:        model.PipelineStart,
 		StartedAt:     now,
 		CreatedAt:     now,
@@ -161,7 +163,7 @@ func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operati
 	return &sr, nil
 }
 
-func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineState, result model.JSON, errMsg string) error {
+func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error {
 	if s == nil || s.db == nil {
 		return nil
 	}
@@ -169,6 +171,7 @@ func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineStat
 	updates := map[string]any{
 		"status":       status,
 		"completed_at": now,
+		"attempt":      attempt,
 	}
 	if result != nil {
 		updates["result"] = result
@@ -201,4 +204,76 @@ func (s *PipelineStore) HasConsumed(consumerName, eventID string) (bool, error) 
 		Where("consumer_name = ? AND event_id = ?", consumerName, eventID).
 		Count(&count).Error
 	return count > 0, err
+}
+
+// SaveCheckpoint persists the intermediate pipeline run state.
+func (s *PipelineStore) SaveCheckpoint(runID int64, data any) error {
+	if s == nil || s.db == nil {
+		return nil
+	}
+	cp := model.JSON{}
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := cp.Scan(raw); err != nil {
+		return err
+	}
+	return s.db.Model(&model.PipelineRun{}).
+		Where("id = ?", runID).
+		Update("checkpoint_data", cp).Error
+}
+
+// UpdateRunHeartbeat refreshes the last_heartbeat timestamp for a running pipeline.
+func (s *PipelineStore) UpdateRunHeartbeat(runID int64) error {
+	if s == nil || s.db == nil {
+		return nil
+	}
+	now := time.Now()
+	return s.db.Model(&model.PipelineRun{}).
+		Where("id = ?", runID).
+		Update("last_heartbeat", now).Error
+}
+
+// GetIncompleteRuns returns pipeline runs that are in Start state and may need recovery.
+func (s *PipelineStore) GetIncompleteRuns() ([]*model.PipelineRun, error) {
+	if s == nil || s.db == nil {
+		return nil, nil
+	}
+	var runs []*model.PipelineRun
+	err := s.db.Where("status = ?", model.PipelineStart).
+		Order("created_at ASC").
+		Find(&runs).Error
+	return runs, err
+}
+
+// GetCheckpoint loads the checkpoint data for a pipeline run.
+func (s *PipelineStore) GetCheckpoint(runID int64, target any) error {
+	if s == nil || s.db == nil {
+		return nil
+	}
+	var run model.PipelineRun
+	if err := s.db.Select("checkpoint_data").Where("id = ?", runID).First(&run).Error; err != nil {
+		return err
+	}
+	if run.CheckpointData == nil {
+		return nil
+	}
+	raw, err := json.Marshal(run.CheckpointData)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(raw, target)
+}
+
+// GetRun returns a pipeline run by ID.
+func (s *PipelineStore) GetRun(runID int64) (*model.PipelineRun, error) {
+	if s == nil || s.db == nil {
+		return nil, nil
+	}
+	var run model.PipelineRun
+	if err := s.db.Where("id = ?", runID).First(&run).Error; err != nil {
+		return nil, err
+	}
+	return &run, nil
 }

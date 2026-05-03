@@ -1,8 +1,12 @@
 package pipeline
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/bytedance/sonic"
+	"github.com/cenkalti/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -400,4 +404,129 @@ func TestRenderContext_RenderParams_EventTopLevelFields(t *testing.T) {
 	assert.Equal(t, "entity-123", rendered["id"])
 	assert.Equal(t, "entity-123", rendered["entity_id"])
 	assert.Equal(t, "test", rendered["source"])
+}
+
+func TestBuildBackoff_NoConfig(t *testing.T) {
+	bo := (&types.RetryConfig{}).BuildBackOff()
+	require.NotNil(t, bo)
+}
+
+func TestBuildBackoff_Exponential(t *testing.T) {
+	cfg := &types.RetryConfig{
+		MaxAttempts: 3,
+		Delay:       1 * time.Second,
+		Backoff:     types.BackoffExponential,
+		MaxDelay:    10 * time.Second,
+	}
+	bo := cfg.BuildBackOff()
+	require.NotNil(t, bo)
+	assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
+}
+
+func TestBuildBackoff_Fixed(t *testing.T) {
+	cfg := &types.RetryConfig{
+		MaxAttempts: 3,
+		Delay:       500 * time.Millisecond,
+		Backoff:     types.BackoffFixed,
+	}
+	bo := cfg.BuildBackOff()
+	require.NotNil(t, bo)
+	delay := bo.NextBackOff()
+	assert.Equal(t, cfg.Delay, delay)
+}
+
+func TestBuildBackoff_Linear(t *testing.T) {
+	cfg := &types.RetryConfig{
+		MaxAttempts: 3,
+		Delay:       1 * time.Second,
+		Backoff:     types.BackoffLinear,
+		MaxDelay:    30 * time.Second,
+	}
+	bo := cfg.BuildBackOff()
+	require.NotNil(t, bo)
+	assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
+}
+
+func TestBuildBackoff_WithJitter(t *testing.T) {
+	cfg := &types.RetryConfig{
+		MaxAttempts: 3,
+		Delay:       1 * time.Second,
+		Backoff:     types.BackoffExponential,
+		Jitter:      true,
+	}
+	bo := cfg.BuildBackOff()
+	require.NotNil(t, bo)
+	assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
+}
+
+func TestIsRetryable_NoFilter(t *testing.T) {
+	cfg := &types.RetryConfig{}
+	err := fmt.Errorf("generic error")
+	assert.True(t, isRetryable(err, cfg))
+}
+
+func TestIsRetryable_NilConfig(t *testing.T) {
+	err := fmt.Errorf("generic error")
+	assert.True(t, isRetryable(err, nil))
+}
+
+func TestIsRetryable_WithRetryOnMatch(t *testing.T) {
+	cfg := &types.RetryConfig{
+		RetryOn: []string{"timeout", "rate_limited"},
+	}
+	te := &types.Error{Code: "timeout", Retryable: true}
+	assert.True(t, isRetryable(te, cfg))
+}
+
+func TestIsRetryable_WithRetryOnNoMatch(t *testing.T) {
+	cfg := &types.RetryConfig{
+		RetryOn: []string{"timeout"},
+	}
+	err := fmt.Errorf("some other error")
+	assert.False(t, isRetryable(err, cfg))
+}
+
+func TestIsRetryable_RetryableFlag(t *testing.T) {
+	cfg := &types.RetryConfig{
+		RetryOn: []string{"timeout"},
+	}
+	te := &types.Error{Retryable: true}
+	assert.True(t, isRetryable(te, cfg))
+}
+
+func TestRetryConfig_RetryEnabled(t *testing.T) {
+	assert.False(t, (*types.RetryConfig)(nil).RetryEnabled())
+	assert.False(t, (&types.RetryConfig{}).RetryEnabled())
+	assert.True(t, (&types.RetryConfig{MaxAttempts: 3}).RetryEnabled())
+}
+
+func TestCheckpointData_Marshaling(t *testing.T) {
+	cp := &CheckpointData{
+		StepIndex: 2,
+		StepResults: map[string]*StepResult{
+			"step1": {Name: "step1", Output: map[string]any{"id": "123"}},
+		},
+		HeartbeatAt: time.Now(),
+	}
+	data, err := sonic.Marshal(cp)
+	require.NoError(t, err)
+	assert.NotEmpty(t, data)
+
+	var restored CheckpointData
+	err = sonic.Unmarshal(data, &restored)
+	require.NoError(t, err)
+	assert.Equal(t, 2, restored.StepIndex)
+	assert.Equal(t, "step1", restored.StepResults["step1"].Name)
+}
+
+func TestBuildStepResults(t *testing.T) {
+	event := types.DataEvent{EventID: "evt-1"}
+	rc := NewRenderContext(event)
+	rc.RecordStepResult("step1", map[string]any{"id": "123"})
+	rc.RecordStepResult("step2", map[string]any{"id": "456"})
+
+	results := buildStepResults(rc)
+	assert.Len(t, results, 2)
+	assert.Equal(t, "123", results["step1"].Output["id"])
+	assert.Equal(t, "456", results["step2"].Output["id"])
 }
