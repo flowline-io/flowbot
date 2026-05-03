@@ -5,12 +5,18 @@ on:
     branches:
       - master
     paths:
-      - 'docs/website/**'
+      - 'docs/**'
+      - 'cmd/composer/action/webdoc/**'
+      - 'go.mod'
+      - 'go.sum'
   pull_request:
     branches:
       - master
     paths:
-      - 'docs/website/**'
+      - 'docs/**'
+      - 'cmd/composer/action/webdoc/**'
+      - 'go.mod'
+      - 'go.sum'
   workflow_dispatch:
 
 permissions:
@@ -31,6 +37,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build website docs
+        run: go run ./cmd/composer webdoc
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

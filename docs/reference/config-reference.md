@@ -24,7 +24,7 @@ Main application configuration file template for the Flowbot server. Covers:
 
 ### Workflow Examples
 
-See `docs/examples/workflows/` for workflow configuration examples.
+See [examples/workflows/](../examples/workflows/) for workflow configuration examples.
 
 ## Quick Start
 

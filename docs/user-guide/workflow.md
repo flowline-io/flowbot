@@ -287,4 +287,4 @@ go test ./pkg/workflow/...   # Unit tests for parsing, DAG, params, runner
 
 ## Recovery
 
-See [Recovery Manager](recovery.md) for restart recovery of incomplete workflow jobs.
+See [Recovery Manager](../developer-guide/recovery.md) for restart recovery of incomplete workflow jobs.

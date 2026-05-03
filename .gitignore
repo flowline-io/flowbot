@@ -42,6 +42,7 @@ flowbot.log
 /scripts/
 /templ/
 /cloc/
+/docs/website/docs/
 
 # app
 /web/

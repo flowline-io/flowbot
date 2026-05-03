@@ -35,6 +35,7 @@
 					<li><a href="design.html">Design</a></li>
 					<li><a href="api.html">API</a></li>
 					<li><a href="tutorials.html">Tutorials</a></li>
+					<li><a href="docs/getting-started.html">Docs</a></li>
 				</ul>
 				<a
 					href="https://github.com/flowline-io/flowbot"
@@ -59,482 +60,61 @@
 			</div>
 
 			<div class="content">
-				<!-- Tutorial 1: Installation -->
-				<h2>1. Installation</h2>
+				<h2>Getting Started</h2>
+				<div class="card-grid">
+					<a href="docs/getting-started.html" class="card">
+						<h3>Quick Start Guide</h3>
+						<p>Installation, configuration, and first run. Prerequisites, health checks, and CLI tools.</p>
+					</a>
+				</div>
 
-				<h3>Prerequisites</h3>
+				<h2>User Guide</h2>
+				<div class="card-grid">
+					<a href="docs/user-guide/pipeline.html" class="card">
+						<h3>Pipeline Engine</h3>
+						<p>Event-driven automation: triggers, steps, retry strategy, checkpointing, and idempotency.</p>
+					</a>
+					<a href="docs/user-guide/pipeline-template.html" class="card">
+						<h3>Pipeline Templates</h3>
+						<p>Parameter rendering: conditionals, loops, FuncMap utilities, and migration guide.</p>
+					</a>
+					<a href="docs/user-guide/workflow.html" class="card">
+						<h3>Workflow Engine</h3>
+						<p>Task DAGs: capability, shell, Docker, SSH actions. DAG validation and retry.</p>
+					</a>
+					<a href="docs/user-guide/notifications.html" class="card">
+						<h3>Notifications</h3>
+						<p>Configure Slack, Pushover, ntfy, and Message Pusher notification providers.</p>
+					</a>
+				</div>
+
+				<h2>Examples</h2>
+				<p>
+					See the
+					<a href="https://github.com/flowline-io/flowbot/blob/main/docs/examples/workflows/save_and_track.yaml" target="_blank" rel="noopener">save_and_track.yaml</a>
+					workflow example — a 3-step pipeline that bookmarks a URL,
+					archives it, and creates a Kanban task.
+				</p>
+
+				<h2>Deployment</h2>
+				<p>
+					For production deployment options, see
+					<a href="docs/developer-guide/deployment.html">Deployment Guide</a>:
+				</p>
 				<ul>
-					<li><strong>Go</strong> 1.26+</li>
-					<li><strong>MySQL</strong> 8.0+</li>
-					<li><strong>Redis</strong> 7.0+</li>
-					<li><strong>Docker</strong> (for workflow executor)</li>
-					<li>
-						<strong>Task</strong> runner (<a
-							href="https://taskfile.dev"
-							target="_blank"
-							rel="noopener"
-							>taskfile.dev</a
-						>)
-					</li>
+					<li><strong>Binary</strong> — <code>go tool task build</code>, run directly</li>
+					<li><strong>Docker</strong> — <code>docker build -f deployments/Dockerfile</code></li>
+					<li><strong>systemd</strong> — Headless Linux service with automatic restart</li>
 				</ul>
 
-				<h3>Clone and Build</h3>
-				<pre>
-git clone https://github.com/flowline-io/flowbot.git
-cd flowbot
-
-# Copy and edit the config
-cp docs/config/config.yaml flowbot.yaml
-vim flowbot.yaml
-
-# Install Go tool dependencies
-go mod download
-
-# Build the server
-go tool task build</pre
-				>
-
-				<h3>Configuration</h3>
-				<p>
-					Edit <code>flowbot.yaml</code> with your environment
-					settings:
-				</p>
-				<pre>
-listen: ":6060"
-
-store_config:
-  use_adapter: mysql
-  adapters:
-    mysql:
-      dsn: "root:password@tcp(localhost:3306)/flowbot?parseTime=True"
-
-redis:
-  addr: "localhost:6379"
-
-platform:
-  slack:
-    enabled: true
-    bot_token: "xoxb-..."
-  discord:
-    enabled: true
-    bot_token: "..."</pre
-				>
-
-				<h3>Database Migration</h3>
-				<pre>
-# Migrations run automatically on startup.
-# Or run manually:
-go tool task migrate</pre
-				>
-
-				<h3>Run</h3>
-				<pre>
-# Direct
-./bin/flowbot
-
-# With live reload (development)
-go tool task air
-
-# Docker
-docker build -f deployments/Dockerfile -t flowbot .
-docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot</pre
-				>
-
-				<h3>Verify</h3>
-				<pre>
-# Check health
-curl http://localhost:6060/livez
-
-# View API docs
-open http://localhost:6060/swagger/index.html</pre
-				>
-
-				<!-- Tutorial 2: App Discovery -->
-				<h2>2. App Discovery &amp; Capability Binding</h2>
-
-				<h3>Scan for Apps</h3>
-				<p>
-					Place your apps in the homelab directory with
-					<code>docker-compose.yaml</code> files. Flowbot scans and
-					registers them automatically.
-				</p>
-				<pre>
-# Expected structure:
-/home/&lt;user&gt;/homelab/apps/
-  archivebox/
-    docker-compose.yaml
-  miniflux/
-    docker-compose.yaml
-  kanboard/
-    docker-compose.yaml</pre
-				>
-				<pre>
-# Verify discovered apps via API
-curl -H "X-AccessToken: sk-..." http://localhost:6060/hub/apps</pre
-				>
-
-				<h3>Bind Apps to Capabilities</h3>
-				<p>
-					Binding tells Flowbot which capability to use for each app:
-				</p>
-				<pre>
-# List available capabilities
-curl -H "X-AccessToken: sk-..." http://localhost:6060/hub/capabilities
-
-# Bind archivebox to the archive capability (via Hub API or config)</pre
-				>
-
-				<!-- Tutorial 3: Using Capabilities -->
-				<h2>3. Using Capabilities</h2>
-				<p>
-					Once bound, you can invoke capabilities through any
-					interface:
-				</p>
-
-				<h3>REST API</h3>
-				<pre>
-# List bookmarks
-curl -H "X-AccessToken: sk-..." \
-  "http://localhost:6060/service/bookmark?limit=20"
-
-# Create a bookmark
-curl -X POST \
-  -H "X-AccessToken: sk-..." \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","title":"Example"}' \
-  http://localhost:6060/service/bookmark
-
-# Get a specific bookmark
-curl -H "X-AccessToken: sk-..." \
-  http://localhost:6060/service/bookmark/bkm_a1b2c3
-
-# Delete a bookmark
-curl -X DELETE \
-  -H "X-AccessToken: sk-..." \
-  http://localhost:6060/service/bookmark/bkm_a1b2c3</pre
-				>
-
-				<h3>Chat Bot</h3>
-				<pre>
-# In Discord/Slack, capability commands are available as:
-/bookmark list
-/bookmark add https://example.com --tags=homelab
-/bookmark delete bkm_a1b2c3
-/archive submit https://example.com
-/reader feeds
-/kanban board</pre
-				>
-
-				<h3>CLI</h3>
-				<pre>
-# Using the admin CLI
-flowbot-cli capability invoke bookmark list --limit 20
-flowbot-cli capability invoke bookmark create \
-  --url "https://example.com" --title "Example"
-flowbot-cli capability invoke archive submit \
-  --url "https://example.com"</pre
-				>
-
-				<!-- Tutorial 4: Pipelines -->
-				<h2>4. Creating Declarative Pipelines</h2>
-				<p>
-					Pipelines are defined in YAML and triggered by events, cron,
-					or webhooks.
-				</p>
-
-				<h3>Define a Pipeline</h3>
-				<p>Create <code>pipelines/archive-on-bookmark.yaml</code>:</p>
-				<pre>
-# When a new bookmark is saved, archive it and notify
-trigger:
-  event: "bookmark.created"
-
-steps:
-  - action: archive.submit
-    input: $.event.url
-    idempotency_key: "archive-{{.event.id}}"
-    timeout: 30s
-
-  - action: notify.send
-    input:
-      channel: slack
-      message: "Archived: {{.steps.archive-submit.url}}"
-    condition: "{{.steps.archive-submit.status}} == 'success'"</pre
-				>
-
-				<h3>Pipelines with Cron Triggers</h3>
-				<pre>
-# Weekly backup pipeline
-trigger:
-  cron: "0 2 * * 0"    # Every Sunday at 2 AM
-
-steps:
-  - action: reader.export
-    input:
-      format: json
-  - action: archive.submit
-    input: $.steps.reader-export.output</pre
-				>
-
-				<h3>Pipelines with Webhook Triggers</h3>
-				<pre>
-# Trigger via external webhook
-trigger:
-  webhook: "github-push"
-
-steps:
-  - action: notify.send
-    input:
-      channel: discord
-      message: "Push to {{.event.branch}}: {{.event.commit_message}}"</pre
-				>
-
-				<h3>Pipeline Observability</h3>
-				<p>Every pipeline run is audited. Check execution history:</p>
-				<pre>
-# Via API (endpoint depends on pipeline module)
-flowbot-cli pipeline history archive-on-bookmark
-flowbot-cli pipeline replay archive-on-bookmark --run-id=run_xyz</pre
-				>
-
-				<!-- Tutorial 5: Workflows -->
-				<h2>5. Building Workflows</h2>
-				<p>
-					Workflows compose multiple capability steps into a DAG for
-					complex automation.
-				</p>
-
-				<h3>Example: RSS Digest Workflow</h3>
-				<pre>
-# Daily: fetch feeds, summarize with LLM, save bookmarks, notify
-trigger:
-  cron: "0 9 * * *"
-
-steps:
-  reader.fetch:
-    inputs: ["https://example.com/feed.xml"]
-  llm.summarize:
-    input: $.steps.reader-fetch.items
-    prompt: "Summarize these articles in 3 bullet points each"
-  bookmark.create:
-    input: $.steps.reader-fetch.items
-  notify.send:
-    input:
-      channel: slack
-      message: "Daily digest ready: {{len .steps.bookmark-create.items}} articles saved"</pre
-				>
-
-				<h3>Step Types Reference</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Type</th>
-							<th>Example Usage</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>Capability</code></td>
-							<td>
-								Invoke any capability: bookmark.create,
-								archive.submit, reader.fetch
-							</td>
-						</tr>
-						<tr>
-							<td><code>Message</code></td>
-							<td>
-								Send a notification through the notify
-								dispatcher
-							</td>
-						</tr>
-						<tr>
-							<td><code>Fetch</code></td>
-							<td>HTTP GET/POST to external URLs</td>
-						</tr>
-						<tr>
-							<td><code>Feed</code></td>
-							<td>Parse RSS/Atom feeds from URLs</td>
-						</tr>
-						<tr>
-							<td><code>LLM</code></td>
-							<td>Generate text, summarize, classify with AI</td>
-						</tr>
-						<tr>
-							<td><code>Docker</code></td>
-							<td>Run commands in containers</td>
-						</tr>
-						<tr>
-							<td><code>Grep</code></td>
-							<td>Filter previous step output by pattern</td>
-						</tr>
-						<tr>
-							<td><code>Unique</code></td>
-							<td>Deduplicate items from previous step</td>
-						</tr>
-						<tr>
-							<td><code>Torrent</code></td>
-							<td>Manage torrent downloads</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Tutorial 6: Notifications -->
-				<h2>6. Configuring Notifications</h2>
-				<p>
-					Flowbot supports 4 notification channels: Slack, Pushover,
-					ntfy, and Message Pusher.
-				</p>
-				<pre>
-# flowbot.yaml
-notify:
-  slack:
-    enabled: true
-    bot_token: "xoxb-..."
-    default_channel: "#alerts"
-  pushover:
-    enabled: true
-    api_token: "..."
-    user_key: "..."
-  ntfy:
-    enabled: true
-    server: "https://ntfy.sh"
-    topic: "flowbot-alerts"
-  message_pusher:
-    enabled: true
-    api_url: "https://example.com/push"</pre
-				>
-
-				<!-- Tutorial 7: Production -->
-				<h2>7. Production Deployment</h2>
-
-				<h3>Docker Compose Stack</h3>
-				<pre>
-version: "3.8"
-services:
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: flowbot
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-
-  flowbot:
-    build: .
-    ports:
-      - "6060:6060"
-    volumes:
-      - ./flowbot.yaml:/opt/app/flowbot.yaml
-    depends_on:
-      - mysql
-      - redis
-    environment:
-      - GOMEMLIMIT=256MiB
-
-volumes:
-  mysql_data:
-  redis_data:</pre
-				>
-
-				<h3>Health Checks</h3>
-				<pre>
-# Kubernetes-style probes
-curl http://localhost:6060/livez    # Is the process alive?
-curl http://localhost:6060/readyz   # Can it serve traffic?
-curl http://localhost:6060/startupz # Has init completed?</pre
-				>
-
-				<h3>Systemd Service</h3>
-				<p>
-					See <code>docs/deployment/flowbot.service</code> for a
-					ready-to-use systemd unit file.
-				</p>
-
-				<!-- Tutorial 8: Development -->
-				<h2>8. Development Workflow</h2>
-				<pre>
-# Full quality pipeline
-go tool task default    # tidy -> swagger -> format -> lint -> test
-
-# Individual steps
-go tool task build      # Build server
-go tool task test       # All tests
-go tool task lint       # revive + actionlint
-go tool task air        # Live reload for development
-
-# Code generation
-go tool task dao        # Generate DAO from database
-go tool task swagger    # Generate OpenAPI spec
-go tool task doc        # Generate schema documentation</pre
-				>
-
-				<!-- Tutorial 9: Troubleshooting -->
-				<h2>9. Troubleshooting</h2>
-
-				<h3>Common Issues</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Symptom</th>
-							<th>Check</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>Server won't start</td>
-							<td>
-								MySQL and Redis running?
-								<code>flowbot.yaml</code> DSN correct?
-							</td>
-						</tr>
-						<tr>
-							<td>Auth errors (401)</td>
-							<td>
-								Include <code>X-AccessToken</code> header. Token
-								valid?
-							</td>
-						</tr>
-						<tr>
-							<td>Capability returns 404</td>
-							<td>
-								App bound to capability? Hub shows the binding?
-							</td>
-						</tr>
-						<tr>
-							<td>Pipeline not triggering</td>
-							<td>
-								Redis Stream reachable? Events persisting to
-								<code>data_events</code> table?
-							</td>
-						</tr>
-						<tr>
-							<td>Pagination returns empty</td>
-							<td>
-								Cursor expired? Try without cursor for first
-								page.
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Logs</h3>
-				<pre>
-# Structured logging via flog (JSON format by default)
-# Set log level in flowbot.yaml:
-log:
-  level: debug    # debug, info, warn, error</pre
-				>
-
-				<h3>Metrics</h3>
-				<pre>
-# Prometheus metrics
-curl http://localhost:6060/metrics</pre
-				>
+				<h2>Next Steps</h2>
+				<ul>
+					<li><strong>Read the Architecture</strong> — Understand the six-layer design</li>
+					<li><strong>Write a Pipeline</strong> — Automate your first multi-step workflow</li>
+					<li><strong>Add Providers</strong> — Integrate your own self-hosted apps</li>
+					<li><strong>Pass Conformance</strong> — Ensure your adapter meets the standard</li>
+					<li><strong>View the API</strong> — Explore the interactive Swagger docs</li>
+				</ul>
 			</div>
 		</div>
 
@@ -549,6 +129,7 @@ curl http://localhost:6060/metrics</pre
 				<a href="design.html">Design</a>
 				<a href="api.html">API</a>
 				<a href="tutorials.html">Tutorials</a>
+				<a href="docs/getting-started.html">Docs</a>
 				<span style="color: var(--white-muted); font-size: 0.82rem"
 					>GPL-3.0</span
 				>

@@ -35,6 +35,7 @@
 					<li><a href="design.html">Design</a></li>
 					<li><a href="api.html">API</a></li>
 					<li><a href="tutorials.html">Tutorials</a></li>
+					<li><a href="docs/getting-started.html">Docs</a></li>
 				</ul>
 				<a
 					href="https://github.com/flowline-io/flowbot"
@@ -59,464 +60,87 @@
 			</div>
 
 			<div class="content">
-				<!-- Architecture Overview -->
-				<h2>Architecture Overview</h2>
+				<h2>Architecture</h2>
 				<p>
 					Flowbot follows a strict six-layer architecture with a side
-					management plane. Every layer has a single responsibility;
-					no layer leaks into its neighbors.
+					management plane. See the architecture diagrams for the
+					complete visual reference.
 				</p>
 
-				<h3>Layer Stack</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Layer</th>
-							<th>Name</th>
-							<th>Components</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>6</code></td>
-							<td>External</td>
-							<td>
-								Users, Discord/Slack/Tailchat, Third-Party APIs
-							</td>
-						</tr>
-						<tr>
-							<td><code>5</code></td>
-							<td>Platform</td>
-							<td>Chat platform protocol adapters</td>
-						</tr>
-						<tr>
-							<td><code>4</code></td>
-							<td>HTTP Gateway</td>
-							<td>
-								Fiber v3 server, REST API routing, auth
-								middleware, rate limiting
-							</td>
-						</tr>
-						<tr>
-							<td><code>3</code></td>
-							<td>Business Logic</td>
-							<td>
-								16 bot modules, Workflow Engine, Pipeline
-								Engine, LLM Agent
-							</td>
-						</tr>
-						<tr>
-							<td><code>2</code></td>
-							<td>Capability</td>
-							<td>
-								<code>ability.Invoke()</code> — unified
-								abstraction over all providers
-							</td>
-						</tr>
-						<tr>
-							<td><code>1</code></td>
-							<td>Providers</td>
-							<td>
-								16 service integrations: archivebox, karakeep,
-								miniflux, kanboard, ...
-							</td>
-						</tr>
-						<tr>
-							<td><code>0</code></td>
-							<td>Infrastructure</td>
-							<td>
-								MySQL (GORM), Redis (Streams), Docker (executor)
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="card-grid">
+					<a href="docs/architecture.html" class="card">
+						<h3>Architecture Overview</h3>
+						<p>Layer stack, component relationships, and design rules.</p>
+					</a>
+				</div>
 
-				<h3>Management Plane (Side Plane)</h3>
-				<pre>
-Homelab Scanner &rarr; App Registry &rarr; Hub Manager &rarr; Capability Binding &rarr; Ability Layer</pre
-				>
+				<h2>Core Engines</h2>
+				<div class="card-grid">
+					<a href="docs/user-guide/pipeline.html" class="card">
+						<h3>Pipeline Engine</h3>
+						<p>Event-driven automation with retry, checkpointing, and recovery.</p>
+					</a>
+					<a href="docs/user-guide/pipeline-template.html" class="card">
+						<h3>Pipeline Templates</h3>
+						<p>Go text/template-based parameter rendering with conditionals and FuncMap.</p>
+					</a>
+					<a href="docs/user-guide/workflow.html" class="card">
+						<h3>Workflow Engine</h3>
+						<p>YAML-defined task DAGs with capability, shell, Docker, and SSH actions.</p>
+					</a>
+					<a href="docs/user-guide/notifications.html" class="card">
+						<h3>Notifications</h3>
+						<p>Multi-channel notification configuration (Slack, Pushover, ntfy, etc.).</p>
+					</a>
+				</div>
+
+				<h2>Reference</h2>
+				<div class="card-grid">
+					<a href="docs/reference/config-reference.html" class="card">
+						<h3>Configuration</h3>
+						<p>Full server configuration reference and environment variable overrides.</p>
+					</a>
+					<a href="docs/reference/database-reference.html" class="card">
+						<h3>Database</h3>
+						<p>Table categories, migration guide, and backup procedures.</p>
+					</a>
+					<a href="docs/reference/schema.html" class="card">
+						<h3>Schema Reference</h3>
+						<p>Complete MySQL table schema with column definitions for 40+ tables.</p>
+					</a>
+				</div>
+
+				<h2>Developer Guide</h2>
+				<div class="card-grid">
+					<a href="docs/developer-guide/deployment.html" class="card">
+						<h3>Deployment</h3>
+						<p>Binary, Docker, and systemd deployment methods with health checks.</p>
+					</a>
+					<a href="docs/developer-guide/tracing.html" class="card">
+						<h3>Tracing</h3>
+						<p>OpenTelemetry distributed tracing across HTTP, events, pipeline, and DB.</p>
+					</a>
+					<a href="docs/developer-guide/recovery.html" class="card">
+						<h3>Recovery</h3>
+						<p>Restart recovery for incomplete pipeline runs and workflow jobs.</p>
+					</a>
+					<a href="docs/developer-guide/conformance.html" class="card">
+						<h3>Conformance Tests</h3>
+						<p>Standard compliance suite every provider adapter must pass.</p>
+					</a>
+				</div>
+
+				<h2>Architecture Diagrams</h2>
 				<p>
-					The Homelab Scanner discovers apps by scanning
-					<code>docker-compose.yaml</code> files under
-					<code>/home/&lt;user&gt;/homelab/apps/</code>. Discovered
-					apps are registered in the Hub, then bound to capabilities
-					(e.g., <code>archivebox</code> &rarr; <code>archive</code>).
-				</p>
-
-				<!-- Capability Abstraction -->
-				<h2>Capability Abstraction Layer</h2>
-				<p>
-					The core of Flowbot's design. Modules never import providers
-					directly — everything goes through
-					<code>ability.Invoke()</code>. This decouples business logic
-					from provider implementation details.
-				</p>
-
-				<h3>Standard Invocation Pattern</h3>
-				<pre>
-result, err := ability.Invoke(ctx, "bookmark", ability.OpList, ability.Params{
-    Limit:  20,
-    Cursor: "opaque_cursor_string",
-})</pre
-				>
-
-				<h3>Capability Registry</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Capability</th>
-							<th>Mapped Apps</th>
-							<th>Interfaces</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>bookmark</code></td>
-							<td>karakeep, linkwarden</td>
-							<td>REST, CLI, Chat, Workflow</td>
-						</tr>
-						<tr>
-							<td><code>archive</code></td>
-							<td>archivebox</td>
-							<td>REST, CLI, Chat, Workflow</td>
-						</tr>
-						<tr>
-							<td><code>reader</code></td>
-							<td>miniflux</td>
-							<td>REST, CLI, Chat, Webhook, Cron</td>
-						</tr>
-						<tr>
-							<td><code>kanban</code></td>
-							<td>kanboard</td>
-							<td>REST, CLI, Chat, Webhook</td>
-						</tr>
-						<tr>
-							<td><code>finance</code></td>
-							<td>fireflyiii</td>
-							<td>REST, CLI, Chat, Webhook</td>
-						</tr>
-						<tr>
-							<td><code>infra</code></td>
-							<td>beszel, uptime-kuma, adguard</td>
-							<td>REST, CLI</td>
-						</tr>
-						<tr>
-							<td><code>shell_history</code></td>
-							<td>atuin</td>
-							<td>REST, CLI</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Standard Errors</h3>
-				<p>
-					Provider-specific errors are wrapped into three standard
-					error types:
-				</p>
-				<table>
-					<thead>
-						<tr>
-							<th>Error</th>
-							<th>Meaning</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>types.ErrNotFound</code></td>
-							<td>Resource does not exist</td>
-						</tr>
-						<tr>
-							<td><code>types.ErrForbidden</code></td>
-							<td>Access denied or auth failure</td>
-						</tr>
-						<tr>
-							<td><code>types.ErrProvider</code></td>
-							<td>Provider-level error (wraps original)</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Standard Pagination</h3>
-				<p>
-					All list operations use <code>limit</code> + opaque
-					<code>cursor</code>. Provider-specific page/offset/token
-					internals are hidden in adapters and never exposed to API
-					callers or modules.
-				</p>
-
-				<!-- Pipeline Engine -->
-				<h2>Declarative Pipeline Engine</h2>
-				<p>
-					Cross-service data flows are defined in YAML, triggered by
-					durable events. Every pipeline run is persisted, idempotent,
-					and fully audited.
-				</p>
-
-				<h3>Pipeline YAML Structure</h3>
-				<pre>
-trigger:
-  event: "bookmark.created"          # or: cron, webhook, manual
-
-steps:
-  - action: archive.submit
-    input: $.event.url
-    idempotency_key: "archive-{{.event.id}}"
-
-  - action: notify.send
-    input:
-      channel: slack
-      message: "Archived: {{.steps.archive-submit.url}}"
-    condition: "{{.steps.archive-submit.status}} == 'success'"</pre
-				>
-
-				<h3>Durable Event Flow</h3>
-				<pre>
-DataEvent &rarr; MySQL (data_events table) &rarr; Redis Stream (outbox) &rarr; Pipeline Engine &rarr; Actions</pre
-				>
-				<p>
-					Events are written to MySQL first for durability, then
-					published to Redis Stream for real-time consumption. On
-					restart, all unprocessed events are replayed from the
-					database.
-				</p>
-
-				<h3>Pipeline Guarantees</h3>
-				<ul>
-					<li>
-						<strong>Idempotency</strong>: Every step has a unique
-						key; re-running is safe.
-					</li>
-					<li>
-						<strong>Atomicity</strong>: A pipeline completes all
-						steps or records the failure point.
-					</li>
-					<li>
-						<strong>Auditability</strong>: Every run, step result,
-						and error is written to the database.
-					</li>
-					<li>
-						<strong>Recoverability</strong>: Failed pipelines can be
-						replayed from any step.
-					</li>
-				</ul>
-
-				<!-- Workflow Engine -->
-				<h2>Workflow Engine</h2>
-				<p>
-					Composes capability invocations into a DAG (Directed Acyclic
-					Graph). Each node is a step type; edges define execution
-					order and data dependencies.
-				</p>
-
-				<h3>Step Types</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Type</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>Capability</code></td>
-							<td>
-								Invokes a capability operation via
-								<code>ability.Invoke()</code>
-							</td>
-						</tr>
-						<tr>
-							<td><code>Message</code></td>
-							<td>
-								Sends a notification through the notify
-								dispatcher
-							</td>
-						</tr>
-						<tr>
-							<td><code>Fetch</code></td>
-							<td>HTTP request to an external URL</td>
-						</tr>
-						<tr>
-							<td><code>Feed</code></td>
-							<td>Parse and process RSS/Atom feeds</td>
-						</tr>
-						<tr>
-							<td><code>LLM</code></td>
-							<td>Text generation, summarization, or tool use</td>
-						</tr>
-						<tr>
-							<td><code>Docker</code></td>
-							<td>Execute a command inside a Docker container</td>
-						</tr>
-						<tr>
-							<td><code>Grep</code></td>
-							<td>Pattern matching on previous step output</td>
-						</tr>
-						<tr>
-							<td><code>Unique</code></td>
-							<td>Deduplicates items from a previous step</td>
-						</tr>
-						<tr>
-							<td><code>Torrent</code></td>
-							<td>Torrent download management</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- AuthContext -->
-				<h2>AuthContext</h2>
-				<p>
-					A single <code>AuthContext</code> spans every interaction
-					surface: REST, CLI, Chat, Form, Webhook, Cron, Pipeline, and
-					Workflow. This ensures consistent identity propagation
-					regardless of how a request enters the system.
-				</p>
-				<pre>
-type AuthContext struct {
-    UserID    string
-    Roles     []string
-    Platform  string   // "discord", "slack", "rest", "webhook", ...
-    Interface string   // "chat", "cli", "web", ...
-    Token     string
-    SessionID string
-}</pre
-				>
-
-				<!-- Data Flows -->
-				<h2>Data Flows</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Flow</th>
-							<th>Path</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>Chat Message</td>
-							<td>
-								User &rarr; Platform &rarr; Adapter &rarr;
-								Server &rarr; Module &rarr;
-								<code>ability.Invoke()</code> &rarr; Provider
-							</td>
-						</tr>
-						<tr>
-							<td>Workflow</td>
-							<td>
-								Trigger &rarr; Workflow Engine &rarr; Executor
-								(Docker) &rarr; Pipeline &rarr; Notifications
-							</td>
-						</tr>
-						<tr>
-							<td>Durable Events</td>
-							<td>
-								DataEvent &rarr; MySQL &rarr; Redis Stream
-								&rarr; Pipeline &rarr; Actions
-							</td>
-						</tr>
-						<tr>
-							<td>Hub Management</td>
-							<td>
-								Homelab Scan &rarr; App Registry &rarr; Hub
-								&rarr; Capability Binding &rarr; Ability
-								Registry
-							</td>
-						</tr>
-						<tr>
-							<td>Notifications</td>
-							<td>
-								Module &rarr; Dispatcher &rarr; [Slack |
-								Pushover | ntfy | Message Pusher]
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Entry Points -->
-				<h2>Entry Points</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Binary</th>
-							<th>Path</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>flowbot</code></td>
-							<td><code>cmd/main.go</code></td>
-							<td>HTTP server (Fiber v3 + Uber fx DI)</td>
-						</tr>
-						<tr>
-							<td><code>flowbot-cli</code></td>
-							<td><code>cmd/cli/</code></td>
-							<td>
-								Admin CLI: user/token management, config,
-								pipeline admin
-							</td>
-						</tr>
-						<tr>
-							<td><code>flowbot-composer</code></td>
-							<td><code>cmd/composer/</code></td>
-							<td>Code generation: DAO, schema docs, Swagger</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Design Rules -->
-				<h2>Design Rules (Anti-Patterns)</h2>
-				<p>
-					The architecture enforces strict boundaries. Violating these
-					is a design error:
+					PlantUML source files and rendered PNGs are in
+					<a href="https://github.com/flowline-io/flowbot/tree/main/docs/architecture" target="_blank" rel="noopener">docs/architecture/</a>:
 				</p>
 				<ul>
-					<li>
-						Never import <code>pkg/providers/*</code> directly from
-						<code>internal/modules/*</code> — use
-						<code>ability.Invoke()</code>
-					</li>
-					<li>Never call provider clients directly in modules</li>
-					<li>Never access local filesystem paths from modules</li>
-					<li>Never call Hub or Pipeline from inside a provider</li>
-					<li>
-						Never emit <code>DataEvent</code> from inside a provider
-					</li>
-					<li>
-						Never write cross-service logic in cron/event handlers —
-						use Pipeline
-					</li>
-					<li>
-						Never expose provider pagination internals to API
-						callers
-					</li>
-					<li>
-						Never expose cursor/offset/page internal structure in
-						API responses
-					</li>
-					<li>
-						Never use Redis Stream as sole long-term event store
-					</li>
+					<li><strong>Component Diagram</strong> — full system components and their relationships</li>
+					<li><strong>Layered Architecture</strong> — six-layer stack with dependency rules</li>
+					<li><strong>Data Flows</strong> — chat message, workflow execution, event pipeline, hub lifecycle</li>
+					<li><strong>Deployment</strong> — Docker containers, CI/CD, and external services</li>
 				</ul>
-
-				<!-- Shared Packages -->
-				<h2>Shared Packages</h2>
-				<p>
-					31 shared packages in <code>pkg/</code> provide
-					cross-cutting utilities:
-				</p>
-				<p
-					style="
-						font-family: var(--mono);
-						font-size: 0.82rem;
-						color: var(--white-muted);
-					"
-				>
-					ability, alarm, auth, cache, chatbot, client, config,
-					crawler, event, executor, flog, homelab, hub, llm, locker,
-					media, migrate, module, notify, page, parser, pipeline,
-					providers, rdb, route, search, stats, types, utils,
-					validate, workflow
-				</p>
 			</div>
 		</div>
 
@@ -531,6 +155,7 @@ type AuthContext struct {
 				<a href="design.html">Design</a>
 				<a href="api.html">API</a>
 				<a href="tutorials.html">Tutorials</a>
+				<a href="docs/getting-started.html">Docs</a>
 				<span style="color: var(--white-muted); font-size: 0.82rem"
 					>GPL-3.0</span
 				>

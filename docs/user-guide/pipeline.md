@@ -201,4 +201,4 @@ go test ./pkg/pipeline/template/...  # Template engine tests
 
 ## Recovery
 
-See [Recovery Manager](recovery.md) for restart recovery of incomplete pipeline runs.
+See [Recovery Manager](../developer-guide/recovery.md) for restart recovery of incomplete pipeline runs.

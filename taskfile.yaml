@@ -36,6 +36,12 @@ tasks:
     cmds:
       - go build -v -o bin/flowbot-cli ./cmd/cli
 
+  build:docgen:
+    desc: Build website documentation from markdown
+    cmds:
+      - go run ./cmd/composer webdoc
+      - echo "website docs built"
+
   build:all:
     desc: Build all binaries
     cmds:

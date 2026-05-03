@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
+	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 	"github.com/urfave/cli/v3"
@@ -40,6 +41,11 @@ func NewCommand() *cli.Command {
 					},
 				},
 				Action: dao.GenerationAction,
+			},
+			{
+				Name:   "webdoc",
+				Usage:  "website documentation from markdown sources",
+				Action: webdoc.WebDocAction,
 			},
 			{
 				Name:  "doc",

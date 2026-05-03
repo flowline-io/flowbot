@@ -875,6 +875,39 @@ img {
 	animation: flowDash 1s linear infinite;
 }
 
+/* --- Card Grid (documentation TOC) --- */
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 1rem;
+	margin: 1.5rem 0 2.5rem;
+}
+.card {
+	display: block;
+	padding: 1.5rem;
+	background: rgba(255, 255, 255, 0.02);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 8px;
+	text-decoration: none;
+	transition: border-color 0.2s, background 0.2s;
+}
+.card:hover {
+	border-color: var(--cyan);
+	background: rgba(0, 229, 255, 0.04);
+}
+.card h3 {
+	margin: 0 0 0.5rem;
+	color: var(--white);
+	font-size: 1.1rem;
+	font-family: var(--mono);
+}
+.card p {
+	margin: 0;
+	color: var(--white-dim);
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
 /* --- Responsive --- */
 @media (max-width: 1024px) {
 	.hero-grid {
@@ -971,5 +1004,8 @@ img {
 	}
 	.dag-node::after {
 		content: none;
+	}
+	.card-grid {
+		grid-template-columns: 1fr;
 	}
 }

@@ -35,6 +35,7 @@
 					<li><a href="design.html">Design</a></li>
 					<li><a href="api.html">API</a></li>
 					<li><a href="tutorials.html">Tutorials</a></li>
+					<li><a href="docs/getting-started.html">Docs</a></li>
 				</ul>
 				<a
 					href="https://github.com/flowline-io/flowbot"
@@ -59,631 +60,59 @@
 			</div>
 
 			<div class="content">
-				<!-- Quick Start -->
-				<h2>Base URL</h2>
+				<h2>OpenAPI Specification</h2>
+				<p>
+					The complete REST API is defined as an OpenAPI 3.0
+					specification. View the machine-readable spec or the
+					interactive Swagger UI:
+				</p>
+				<ul>
+					<li><a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.yaml" target="_blank" rel="noopener">swagger.yaml</a> — OpenAPI 3.0 spec (YAML)</li>
+					<li><a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/swagger.json" target="_blank" rel="noopener">swagger.json</a> — OpenAPI 3.0 spec (JSON)</li>
+					<li><code>http://localhost:6060/swagger/index.html</code> — Swagger UI (when server is running)</li>
+				</ul>
+
+				<h2>Quick Reference</h2>
+
+				<h3>Base URL</h3>
 				<pre>http://localhost:6060</pre>
 				<p>
-					The listen address is configured in
-					<code>flowbot.yaml</code> under the
-					<code>listen</code> field (default <code>:6060</code>).
+					Configured via <code>listen</code> in
+					<code>flowbot.yaml</code> (default <code>:6060</code>).
 				</p>
 
-				<!-- Authentication -->
-				<h2>Authentication</h2>
-				<p>All API requests must include an access token:</p>
+				<h3>Authentication</h3>
 				<pre>X-AccessToken: &lt;your-token&gt;</pre>
+
+				<h3>Routing Planes</h3>
+				<table>
+					<thead>
+						<tr><th>Prefix</th><th>Plane</th><th>Purpose</th></tr>
+					</thead>
+					<tbody>
+						<tr><td><code>/service/{capability}/*</code></td><td>Capability Plane</td><td>Business operations</td></tr>
+						<tr><td><code>/hub/*</code></td><td>Management Plane</td><td>App lifecycle, health</td></tr>
+					</tbody>
+				</table>
+
+				<h3>Health Probes</h3>
+				<table>
+					<thead>
+						<tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+					</thead>
+					<tbody>
+						<tr><td><code>/livez</code></td><td>GET</td><td>Liveness probe</td></tr>
+						<tr><td><code>/readyz</code></td><td>GET</td><td>Readiness probe</td></tr>
+						<tr><td><code>/startupz</code></td><td>GET</td><td>Startup probe</td></tr>
+						<tr><td><code>/metrics</code></td><td>GET</td><td>Prometheus metrics</td></tr>
+					</tbody>
+				</table>
+
+				<h2>HTTP Request Examples</h2>
 				<p>
-					Tokens are managed through the admin CLI (<code
-						>flowbot-cli user token create</code
-					>). OAuth 2.0 is supported for select providers via
-					<code>/oauth/:provider/:flag</code>.
+					See <a href="https://github.com/flowline-io/flowbot/blob/main/docs/api/api.http" target="_blank" rel="noopener">api.http</a>
+					for VS Code REST Client / IntelliJ HTTP Client examples.
 				</p>
-
-				<!-- Routing Planes -->
-				<h2>Routing Planes</h2>
-				<p>
-					Flowbot divides its API into two distinct planes with
-					separate prefixes:
-				</p>
-				<table>
-					<thead>
-						<tr>
-							<th>Prefix</th>
-							<th>Plane</th>
-							<th>Purpose</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/service/{capability}/*</code></td>
-							<td>Capability Plane</td>
-							<td>
-								Business operations: bookmark, archive, reader,
-								kanban, ...
-							</td>
-						</tr>
-						<tr>
-							<td><code>/hub/*</code></td>
-							<td>Management Plane</td>
-							<td>App lifecycle, health, capability registry</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Health Probes -->
-				<h2>Health Probes</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Endpoint</th>
-							<th>Method</th>
-							<th>Auth</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/livez</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>
-								Liveness probe: returns 200 if process is
-								running
-							</td>
-						</tr>
-						<tr>
-							<td><code>/readyz</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>
-								Readiness probe: checks DB, Redis, and
-								dependencies
-							</td>
-						</tr>
-						<tr>
-							<td><code>/startupz</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>
-								Startup probe: returns 200 once init completes
-							</td>
-						</tr>
-						<tr>
-							<td><code>/metrics</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Prometheus-compatible metrics endpoint</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Capability Plane -->
-				<h2>Capability Plane</h2>
-				<p>
-					The capability plane provides a unified REST interface for
-					all capabilities. Every capability supports the same
-					standard operations regardless of the underlying provider.
-				</p>
-
-				<h3>Universal Operations</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Operation</th>
-							<th>Method</th>
-							<th>Path</th>
-							<th>Request</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>List</td>
-							<td><code>GET</code></td>
-							<td><code>/service/{capability}</code></td>
-							<td><code>?limit=20&amp;cursor=opaque</code></td>
-						</tr>
-						<tr>
-							<td>Get</td>
-							<td><code>GET</code></td>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td>—</td>
-						</tr>
-						<tr>
-							<td>Create</td>
-							<td><code>POST</code></td>
-							<td><code>/service/{capability}</code></td>
-							<td>JSON body</td>
-						</tr>
-						<tr>
-							<td>Update</td>
-							<td><code>PUT</code></td>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td>JSON body</td>
-						</tr>
-						<tr>
-							<td>Delete</td>
-							<td><code>DELETE</code></td>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td>—</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Example: List Bookmarks</h3>
-				<pre>
-GET /service/bookmark?limit=20&amp;cursor=eyJvZmZzZXQiOjIwfQ==
-X-AccessToken: sk-abc123
-
-# Response 200 OK
-{
-  "items": [
-    {
-      "id": "bkm_a1b2c3",
-      "url": "https://example.com/article",
-      "title": "An Interesting Article",
-      "tags": ["homelab", "selfhosted"],
-      "created_at": "2026-04-30T14:23:01Z"
-    }
-  ],
-  "next_cursor": "eyJvZmZzZXQiOjQwfQ==",
-  "has_more": true
-}</pre
-				>
-
-				<h3>Example: Create Bookmark</h3>
-				<pre>
-POST /service/bookmark
-X-AccessToken: sk-abc123
-Content-Type: application/json
-
-{
-  "url": "https://example.com/article",
-  "title": "An Interesting Article",
-  "tags": ["homelab", "selfhosted"]
-}
-
-# Response 201 Created
-{
-  "id": "bkm_a1b2c3",
-  "url": "https://example.com/article",
-  "title": "An Interesting Article",
-  "tags": ["homelab", "selfhosted"],
-  "created_at": "2026-04-30T14:23:01Z"
-}</pre
-				>
-
-				<!-- Pagination -->
-				<h2>Pagination</h2>
-				<p>
-					All list endpoints use the same cursor-based pagination.
-					Provider-specific page/offset/token internals are never
-					exposed.
-				</p>
-
-				<h3>Request Parameters</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Parameter</th>
-							<th>Type</th>
-							<th>Default</th>
-							<th>Max</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>limit</code></td>
-							<td>integer</td>
-							<td>20</td>
-							<td>100</td>
-							<td>Number of items to return</td>
-						</tr>
-						<tr>
-							<td><code>cursor</code></td>
-							<td>string</td>
-							<td>—</td>
-							<td>—</td>
-							<td>Opaque cursor for the next page</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Response Fields</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Field</th>
-							<th>Type</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>items</code></td>
-							<td>array</td>
-							<td>Array of results for this page</td>
-						</tr>
-						<tr>
-							<td><code>next_cursor</code></td>
-							<td>string | null</td>
-							<td>
-								Cursor to fetch the next page; null if no more
-							</td>
-						</tr>
-						<tr>
-							<td><code>has_more</code></td>
-							<td>boolean</td>
-							<td>True if more pages are available</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<blockquote>
-					Cursor values are opaque. Clients must never parse or
-					construct cursor values. Pass the
-					<code>next_cursor</code> value as-is to the next request.
-				</blockquote>
-
-				<!-- Hub Management -->
-				<h2>Hub (Management Plane)</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Endpoint</th>
-							<th>Method</th>
-							<th>Auth</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/hub/apps</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>List all registered applications</td>
-						</tr>
-						<tr>
-							<td><code>/hub/apps/:name</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>Get details for a specific app</td>
-						</tr>
-						<tr>
-							<td><code>/hub/apps/:name/restart</code></td>
-							<td><code>POST</code></td>
-							<td>Yes</td>
-							<td>Restart a specific application</td>
-						</tr>
-						<tr>
-							<td><code>/hub/capabilities</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>
-								List available capabilities and their bindings
-							</td>
-						</tr>
-						<tr>
-							<td><code>/hub/health</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>Aggregated health status across all apps</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Bot Module Routes -->
-				<h2>Bot Module Routes</h2>
-				<p>
-					Each of the 20 bot modules can register additional
-					webservice routes at runtime.
-				</p>
-				<table>
-					<thead>
-						<tr>
-							<th>Prefix</th>
-							<th>Module</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/dev/*</code></td>
-							<td>dev</td>
-							<td>Debugging, testing, forms</td>
-						</tr>
-						<tr>
-							<td><code>/search/*</code></td>
-							<td>search</td>
-							<td>Full-text search: autocomplete, query</td>
-						</tr>
-						<tr>
-							<td><code>/user/*</code></td>
-							<td>user</td>
-							<td>
-								User data: bookmarks, dashboard, kanban, metrics
-							</td>
-						</tr>
-						<tr>
-							<td><code>/server/*</code></td>
-							<td>server</td>
-							<td>Server management: stack traces, uploads</td>
-						</tr>
-						<tr>
-							<td><code>/workflow/*</code></td>
-							<td>workflow</td>
-							<td>Workflow management and scheduling</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Webhook & Callbacks -->
-				<h2>Webhook &amp; Callback Endpoints</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Route</th>
-							<th>Method</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/webhook/:flag</code></td>
-							<td><code>ALL</code></td>
-							<td>
-								Inbound webhook handler for external triggers
-							</td>
-						</tr>
-						<tr>
-							<td><code>/chatbot/:platform</code></td>
-							<td><code>ALL</code></td>
-							<td>
-								Chat platform callbacks (Discord, Slack,
-								Tailchat)
-							</td>
-						</tr>
-						<tr>
-							<td><code>/oauth/:provider/:flag</code></td>
-							<td><code>ALL</code></td>
-							<td>OAuth 2.0 callback endpoints</td>
-						</tr>
-						<tr>
-							<td><code>/form</code></td>
-							<td><code>POST</code></td>
-							<td>Form submissions from web/PWA</td>
-						</tr>
-						<tr>
-							<td><code>/agent</code></td>
-							<td><code>POST</code></td>
-							<td>Agent data endpoint</td>
-						</tr>
-						<tr>
-							<td><code>/p/:id</code></td>
-							<td><code>GET</code></td>
-							<td>PWA page rendering (go-app WASM)</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<!-- Error Handling -->
-				<h2>Error Handling</h2>
-				<p>
-					All errors follow a consistent JSON format. HTTP status
-					codes are used appropriately.
-				</p>
-
-				<h3>HTTP Status Codes</h3>
-				<table>
-					<thead>
-						<tr>
-							<th>Status</th>
-							<th>Code</th>
-							<th>When</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>400</code></td>
-							<td><code>bad_request</code></td>
-							<td>Invalid input or malformed body</td>
-						</tr>
-						<tr>
-							<td><code>401</code></td>
-							<td><code>unauthorized</code></td>
-							<td>Missing or invalid access token</td>
-						</tr>
-						<tr>
-							<td><code>403</code></td>
-							<td><code>forbidden</code></td>
-							<td>Insufficient permissions</td>
-						</tr>
-						<tr>
-							<td><code>404</code></td>
-							<td><code>not_found</code></td>
-							<td>Resource does not exist</td>
-						</tr>
-						<tr>
-							<td><code>409</code></td>
-							<td><code>conflict</code></td>
-							<td>Duplicate or version conflict</td>
-						</tr>
-						<tr>
-							<td><code>429</code></td>
-							<td><code>rate_limited</code></td>
-							<td>Too many requests</td>
-						</tr>
-						<tr>
-							<td><code>500</code></td>
-							<td><code>internal_error</code></td>
-							<td>Unexpected server error</td>
-						</tr>
-						<tr>
-							<td><code>503</code></td>
-							<td><code>service_unavailable</code></td>
-							<td>Provider or dependency unavailable</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<h3>Error Response Format</h3>
-				<pre>
-{
-  "error": {
-    "code": "not_found",
-    "message": "Bookmark not found",
-    "details": null
-  }
-}</pre
-				>
-
-				<!-- Swagger -->
-				<h2>Swagger / OpenAPI</h2>
-				<p>Interactive API documentation is available at runtime:</p>
-				<pre>http://localhost:6060/swagger/index.html</pre>
-				<p>Regenerate the spec from code annotations:</p>
-				<pre>go tool task swagger</pre>
-
-				<!-- Full Endpoint Reference -->
-				<h2>Full Endpoint Reference</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Endpoint</th>
-							<th>Method</th>
-							<th>Auth</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><code>/service/{capability}</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>List items for a capability</td>
-						</tr>
-						<tr>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>Get a single item</td>
-						</tr>
-						<tr>
-							<td><code>/service/{capability}</code></td>
-							<td><code>POST</code></td>
-							<td>Yes</td>
-							<td>Create a new item</td>
-						</tr>
-						<tr>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td><code>PUT</code></td>
-							<td>Yes</td>
-							<td>Update an existing item</td>
-						</tr>
-						<tr>
-							<td><code>/service/{capability}/{id}</code></td>
-							<td><code>DELETE</code></td>
-							<td>Yes</td>
-							<td>Delete an item</td>
-						</tr>
-						<tr>
-							<td><code>/hub/apps</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>List registered apps</td>
-						</tr>
-						<tr>
-							<td><code>/hub/apps/:name</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>Get app details</td>
-						</tr>
-						<tr>
-							<td><code>/hub/apps/:name/restart</code></td>
-							<td><code>POST</code></td>
-							<td>Yes</td>
-							<td>Restart an app</td>
-						</tr>
-						<tr>
-							<td><code>/hub/capabilities</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>List capabilities</td>
-						</tr>
-						<tr>
-							<td><code>/hub/health</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>Aggregated health</td>
-						</tr>
-						<tr>
-							<td><code>/livez</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Liveness probe</td>
-						</tr>
-						<tr>
-							<td><code>/readyz</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Readiness probe</td>
-						</tr>
-						<tr>
-							<td><code>/startupz</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Startup probe</td>
-						</tr>
-						<tr>
-							<td><code>/metrics</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Prometheus metrics</td>
-						</tr>
-						<tr>
-							<td><code>/webhook/:flag</code></td>
-							<td><code>ALL</code></td>
-							<td>Varies</td>
-							<td>Inbound webhook</td>
-						</tr>
-						<tr>
-							<td><code>/chatbot/:platform</code></td>
-							<td><code>ALL</code></td>
-							<td>Varies</td>
-							<td>Chat platform callback</td>
-						</tr>
-						<tr>
-							<td><code>/oauth/:provider/:flag</code></td>
-							<td><code>ALL</code></td>
-							<td>Varies</td>
-							<td>OAuth callback</td>
-						</tr>
-						<tr>
-							<td><code>/form</code></td>
-							<td><code>POST</code></td>
-							<td>Yes</td>
-							<td>Form submissions</td>
-						</tr>
-						<tr>
-							<td><code>/agent</code></td>
-							<td><code>POST</code></td>
-							<td>Yes</td>
-							<td>Agent data</td>
-						</tr>
-						<tr>
-							<td><code>/p/:id</code></td>
-							<td><code>GET</code></td>
-							<td>Yes</td>
-							<td>PWA pages</td>
-						</tr>
-						<tr>
-							<td><code>/swagger/</code></td>
-							<td><code>GET</code></td>
-							<td>No</td>
-							<td>Swagger UI</td>
-						</tr>
-					</tbody>
-				</table>
 			</div>
 		</div>
 
@@ -698,6 +127,7 @@ Content-Type: application/json
 				<a href="design.html">Design</a>
 				<a href="api.html">API</a>
 				<a href="tutorials.html">Tutorials</a>
+				<a href="docs/getting-started.html">Docs</a>
 				<span style="color: var(--white-muted); font-size: 0.82rem"
 					>GPL-3.0</span
 				>
