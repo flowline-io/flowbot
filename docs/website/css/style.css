@@ -875,6 +875,75 @@ img {
 	animation: flowDash 1s linear infinite;
 }
 
+/* --- Docs Layout (sidebar + content) --- */
+.docs-layout {
+	display: grid;
+	grid-template-columns: 240px minmax(0, 1fr);
+	gap: 48px;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 28px 100px;
+}
+
+.docs-sidebar {
+	position: sticky;
+	top: 80px;
+	align-self: start;
+	max-height: calc(100vh - 100px);
+	overflow-y: auto;
+	padding-right: 16px;
+}
+
+.docs-nav-section {
+	margin-bottom: 20px;
+}
+
+.docs-nav-title {
+	font-family: var(--mono);
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	color: var(--white-muted);
+	margin-bottom: 10px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--abyss-border);
+}
+
+.docs-nav-items {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.docs-nav-items li {
+	margin-bottom: 2px;
+}
+
+.docs-nav-link {
+	display: block;
+	padding: 5px 10px;
+	font-size: 0.84rem;
+	color: var(--white-dim);
+	border-radius: var(--radius-sm);
+	transition: all var(--transition);
+}
+
+.docs-nav-link:hover {
+	color: var(--cyan);
+	background: var(--cyan-dim);
+}
+
+.docs-nav-link.active {
+	color: var(--cyan);
+	background: var(--cyan-dim);
+	font-weight: 500;
+}
+
+.docs-content {
+	min-width: 0;
+}
+
 /* --- Card Grid (documentation TOC) --- */
 .card-grid {
 	display: grid;
@@ -955,6 +1024,35 @@ img {
 		flex-direction: column;
 		gap: 16px;
 		text-align: center;
+	}
+
+	.docs-layout {
+		grid-template-columns: 1fr;
+		gap: 24px;
+	}
+
+	.docs-sidebar {
+		position: static;
+		max-height: none;
+		overflow-y: visible;
+		padding-right: 0;
+		border-bottom: 1px solid var(--abyss-border);
+		padding-bottom: 16px;
+	}
+
+	.docs-nav-items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.docs-nav-items li {
+		margin-bottom: 0;
+	}
+
+	.docs-nav-link {
+		padding: 4px 10px;
+		font-size: 0.8rem;
 	}
 }
 

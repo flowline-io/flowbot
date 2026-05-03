@@ -41,15 +41,30 @@
   // Active link for subpages
   (function () {
     const path = window.location.pathname;
-    // Extract current page filename from path (e.g. "design.html" from "/design.html")
-    var currentPage = path.split("/").filter(Boolean).pop() || "index.html";
-    // Directory path (e.g. /flowbot/) => homepage
-    if (currentPage.indexOf(".html") === -1) currentPage = "index.html";
     document.querySelectorAll(".nav-links a[href]").forEach(function (link) {
       var href = link.getAttribute("href");
       // Skip anchor-only links (those are handled by scroll)
       if (href.charAt(0) === "#") return;
-      if (href === currentPage) {
+      // Skip external links
+      if (href.indexOf("://") !== -1) return;
+      // Match if path ends with the href (supports directory-prefixed links)
+      if (href && path.endsWith(href)) {
+        link.classList.add("active");
+        return;
+      }
+      // Match if path ends with href/index.html (directory-style links)
+      if (href && (path + "index.html").endsWith(href)) {
+        link.classList.add("active");
+        return;
+      }
+      // Docs section: highlight Docs nav on any /docs/ page
+      if (path.indexOf("/docs/") !== -1 && href.indexOf("docs/") === 0) {
+        link.classList.add("active");
+        return;
+      }
+      // Fallback: match last path segment
+      var currentPage = path.split("/").filter(Boolean).pop() || "index.html";
+      if (currentPage === href) {
         link.classList.add("active");
       }
     });
