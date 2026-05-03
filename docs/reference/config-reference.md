@@ -18,9 +18,12 @@ Main application configuration file template for the Flowbot server. Covers:
 - MeiliSearch integration
 - LLM model configuration (OpenAI-compatible)
 - AI agent definitions
-- Platform integrations (Slack, Discord, Tailchat)
+- Homelab app scanner and endpoint/auth discovery
+- Platform integrations (Slack, Discord, Tailchat, Telegram)
 - Bot module settings
 - Third-party vendor configurations
+
+For details on the homelab discovery system, see [Homelab App Discovery](../user-guide/homelab-discovery.md).
 
 ### Workflow Examples
 

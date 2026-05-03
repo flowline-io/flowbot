@@ -178,6 +178,53 @@ flowbot:
   url: ""
   lang: "english"
 
+# Homelab app scanner and discovery configuration
+homelab:
+  # Root directory for homelab files
+  root: ""
+  # Apps directory (defaults to <root>/apps)
+  apps_dir: ""
+  # Compose file name to look for (defaults to docker-compose.yaml)
+  compose_file: ""
+  # Runtime mode: none, docker_socket, ssh
+  runtime:
+    mode: "none"
+    docker_socket: ""
+    ssh_host: ""
+    ssh_port: 22
+    ssh_user: ""
+    ssh_password: ""
+    ssh_key: ""
+    ssh_host_key: ""
+  # Optional allowlist: only scan named apps when non-empty
+  allowlist: []
+  # Lifecycle operation permissions
+  permissions:
+    status: true
+    logs: true
+    start: false
+    stop: false
+    restart: false
+    pull: false
+    update: false
+    exec: false
+  # Endpoint and auth discovery configuration
+  discovery:
+    # Enable runtime HTTP probing of running containers
+    probe_enabled: false
+    # Per-request timeout for probe HTTP calls
+    probe_timeout: "5s"
+    # Maximum concurrent probe goroutines
+    probe_concurrency: 4
+    # Docker network names for container resolution (reserved)
+    # probe_networks: []
+    # Port resolution strategy: published, container, both
+    probe_port_strategy: "published"
+    # Enable service fingerprint matching
+    fingerprint_enabled: true
+    # When true, label-derived data overrides probe results
+    label_priority: true
+
 # Platform integration configuration
 platform:
   # Slack platform configuration

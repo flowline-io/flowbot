@@ -10,6 +10,8 @@ type App struct {
 	Labels      map[string]string `json:"labels,omitzero"`
 	Status      AppStatus         `json:"status"`
 	Health      HealthStatus      `json:"health"`
+	// Capabilities discovered from labels and/or probing.
+	Capabilities []AppCapability `json:"capabilities,omitzero"`
 }
 
 type ComposeService struct {
@@ -50,6 +52,7 @@ type Config struct {
 	Allowlist   []string
 	Runtime     RuntimeConfig
 	Permissions Permissions
+	Discovery   DiscoveryConfig
 }
 
 type RuntimeConfig struct {

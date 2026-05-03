@@ -39,6 +39,8 @@ Layer 0 — Infrastructure:  MySQL, Redis, Docker executor
 
 ```
 Homelab Scanner → App Registry → Hub Manager → Capability Binding → Ability Layer
+                                  ↑
+                     Discovery Engine (labels + runtime probes)
 ```
 
 ### Key Design Rules
@@ -55,7 +57,7 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 1. **Chat Message**: User → Platform → Adapter → Server → Bot Module → ability.Invoke() → Provider → API
 2. **Workflow**: Trigger → Workflow Engine → Executor (Docker) → Pipeline Engine → Notifications
 3. **Durable Events**: DataEvent → MySQL (data_events) → Redis Stream Outbox → Pipeline → Actions
-4. **Hub Management**: Homelab Scan → App Registry → Hub → Capability Binding → Ability Registry
+4. **Hub Management**: Homelab Scan → Discovery (labels + probes) → App Registry → Hub → Capability Binding → Ability Registry
 5. **Notifications**: Module → Dispatcher → [Slack, Pushover, ntfy, Message Pusher]
 
 ### Entry Points
@@ -78,9 +80,9 @@ adguard, archivebox, drone, dropbox, email, fireflyiii, gitea, github, kanboard,
 
 Slack, Pushover, ntfy, Message Pusher
 
-### Shared Packages (31)
+### Shared Packages (32)
 
-ability, alarm, auth, cache, chatbot, client, config, crawler, event, executor, flog, homelab, hub, llm, locker, media, migrate, module, notify, page, parser, pipeline, providers, rdb, route, search, stats, types, utils, validate, workflow
+ability, alarm, auth, cache, chatbot, client, config, crawler, event, executor, flog, homelab (with probe/ sub-package), hub, llm, locker, media, migrate, module, notify, page, parser, pipeline, providers, rdb, route, search, stats, types, utils, validate, workflow
 
 ### CI/CD (`.github/workflows/`)
 

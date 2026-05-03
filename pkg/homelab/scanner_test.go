@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,6 +34,9 @@ networks:
 	require.Equal(t, "8080", apps[0].Ports[0].HostPort)
 	require.Equal(t, "8000", apps[0].Ports[0].Container)
 	require.Equal(t, "archive", apps[0].Labels["flowbot.capability"])
+	require.Len(t, apps[0].Capabilities, 1)
+	assert.Equal(t, CapArchive, apps[0].Capabilities[0].Capability)
+	assert.Equal(t, "archive", apps[0].Capabilities[0].Backend)
 }
 
 func TestScannerAppliesAllowlist(t *testing.T) {

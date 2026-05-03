@@ -73,16 +73,18 @@ func (s *Scanner) scanApp(appsDir, name string) (App, error) {
 	if err != nil {
 		return App{}, err
 	}
+	capabilities := ParseLabels(labels)
 	return App{
-		Name:        name,
-		Path:        realPath,
-		ComposeFile: composeFile,
-		Services:    services,
-		Networks:    networks,
-		Ports:       ports,
-		Labels:      labels,
-		Status:      AppStatusUnknown,
-		Health:      HealthUnknown,
+		Name:         name,
+		Path:         realPath,
+		ComposeFile:  composeFile,
+		Services:     services,
+		Networks:     networks,
+		Ports:        ports,
+		Labels:       labels,
+		Capabilities: capabilities,
+		Status:       AppStatusUnknown,
+		Health:       HealthUnknown,
 	}, nil
 }
 

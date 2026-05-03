@@ -11,6 +11,7 @@ import (
 	kanbankanboard "github.com/flowline-io/flowbot/pkg/ability/kanban/kanboard"
 	areader "github.com/flowline-io/flowbot/pkg/ability/reader"
 	readerminiflux "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
+	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
 func initCapabilityHub() error {
@@ -26,5 +27,9 @@ func initCapabilityHub() error {
 	if err := afinance.RegisterService("fireflyiii", "fireflyiii", financefireflyiii.New()); err != nil {
 		return err
 	}
-	return archive.RegisterService("archivebox", "archivebox", archiveboxadapter.New())
+	if err := archive.RegisterService("archivebox", "archivebox", archiveboxadapter.New()); err != nil {
+		return err
+	}
+	hub.LogDiscovered()
+	return nil
 }
