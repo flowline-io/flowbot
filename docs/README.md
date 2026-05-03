@@ -28,6 +28,7 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
 - [examples/workflows/](./examples/workflows/) — Workflow examples
   - `save_and_track.yaml` — Capability pipeline example
 
+- [conformance.md](./conformance.md) — Ability adapter conformance test suite
 - [notify.md](./notify.md) — Notification configuration
 - [pipeline.md](./pipeline.md) — Pipeline engine: retry, checkpointing, recovery
 - [pipeline-template.md](./pipeline-template.md) — Pipeline template engine reference
@@ -96,6 +97,16 @@ go tool task test:short      # Short mode (skip integration)
 go tool task test:utils      # pkg/utils only
 go tool task test:integration # Integration tests (Docker)
 go tool task test:coverage   # Coverage report
+```
+
+#### Conformance Tests
+
+New provider adapters must pass the ability conformance suite:
+
+```bash
+go test ./pkg/ability/...                           # All ability + conformance tests
+go test -run TestConformance ./pkg/ability/bookmark/karakeep/  # Run single adapter
+go test ./pkg/ability/conformance/                   # Conformance framework self-tests
 ```
 
 ### Add Go Tool Dependency
