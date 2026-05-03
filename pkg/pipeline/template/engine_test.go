@@ -724,3 +724,196 @@ func TestRenderString_EscapedBraces(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "start 123 end", result)
 }
+
+func TestRenderString_Jsonpath_Simple(t *testing.T) {
+	e := New()
+	// Use the json function to produce a JSON string, avoiding inline quote escaping issues.
+	data := &TemplateData{
+		Event: map[string]any{
+			"nested": map[string]any{"key": "hello"},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.nested) "key"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "hello", result)
+}
+
+func TestRenderString_Jsonpath_ArrayIndex(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"items": []any{"a", "b", "c"},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.items) "1"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "b", result)
+}
+
+func TestRenderString_Jsonpath_ArrayNestedAccess(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"items": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+			},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.items) "1.name"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "b", result)
+}
+
+func TestRenderString_Jsonpath_ArrayWildcard(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"items": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+			},
+		},
+	}
+	// #.name extracts all array elements' name fields as a JSON array string.
+	result, err := e.RenderString(`{{jsonpath (json .Event.items) "#.name"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, `["a","b"]`, result)
+}
+
+func TestRenderString_Jsonpath_ArrayLength(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"items": []any{float64(1), float64(2), float64(3)},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.items) "#"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "3", result)
+}
+
+func TestRenderString_Jsonpath_MissingPath(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"data": map[string]any{"a": float64(1)},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.data) "x.y"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "", result)
+}
+
+func TestRenderString_JsonpathEmptyJSON(t *testing.T) {
+	e := New()
+	result, err := e.RenderString(`{{jsonpath "" "x"}}`, &TemplateData{})
+	require.NoError(t, err)
+	assert.Equal(t, "", result)
+}
+
+func TestRenderString_JsonpathExists_True(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"data": map[string]any{"a": float64(1)},
+		},
+	}
+	result, err := e.RenderString(`{{if jsonpathExists (json .Event.data) "a"}}yes{{else}}no{{end}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "yes", result)
+}
+
+func TestRenderString_JsonpathExists_False(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"data": map[string]any{"a": float64(1)},
+		},
+	}
+	result, err := e.RenderString(`{{if jsonpathExists (json .Event.data) "x"}}yes{{else}}no{{end}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "no", result)
+}
+
+func TestRenderString_JsonpathRaw_Object(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"nested": map[string]any{"key": "value"},
+		},
+	}
+	result, err := e.RenderString(`{{json (jsonpathRaw (json .Event.nested) "key")}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, `"value"`, result)
+}
+
+func TestRenderString_JsonpathRaw_Number(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"data": map[string]any{"count": float64(42)},
+		},
+	}
+	// jsonpathRaw returns the raw gjson.Value() (float64), rendered as "42" by text/template.
+	result, err := e.RenderString(`{{jsonpathRaw (json .Event.data) "count"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "42", result)
+}
+
+func TestRenderString_JsonpathWithJsonFunction(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"data": map[string]any{"nested": map[string]any{"deep": "found"}},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.data) "nested.deep"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "found", result)
+}
+
+func TestRenderString_JsonpathWithStepResult(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Steps: map[string]map[string]any{
+			"src": {"result": `{"title":"Hello","tags":["a","b"]}`},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (step "src" "result") "title"}}-{{jsonpath (step "src" "result") "tags.0"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "Hello-a", result)
+}
+
+func TestRenderString_JsonpathFilteredArray(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"users": []any{
+				map[string]any{"name": "Alice", "age": float64(30)},
+				map[string]any{"name": "Bob", "age": float64(25)},
+			},
+		},
+	}
+	result, err := e.RenderString(`{{jsonpath (json .Event.users) "#(age>28).name"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "Alice", result)
+}
+
+func TestRender_ParamsWithJsonpath(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Event: map[string]any{
+			"items": []any{
+				map[string]any{"id": "x"},
+				map[string]any{"id": "y"},
+			},
+		},
+	}
+	params := map[string]any{
+		"extracted": `{{jsonpath (json .Event.items) "1.id"}}`,
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "y", result["extracted"])
+}

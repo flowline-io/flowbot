@@ -16,9 +16,14 @@ Runner.Execute()
     │
     ├── For each task in pipeline order:
     │     ├── resolveParams (template engine)
-    │     ├── WorkflowTaskToTask (task conversion)
-    │     ├── runWithRetry (Runner.Run with backoff)
-    │     └── Collect result for downstream templates
+    │     ├── if action is mapper:
+    │     │     └── json.Marshal(params) → store as step result
+    │     │         (inline, no external runtime)
+    │     ├── else:
+    │     │     ├── WorkflowTaskToTask (task conversion)
+    │     │     ├── runWithRetry (Runner.Run with backoff)
+    │     │     └── Collect result for downstream templates
+    │     └── continue
     └── Return success or error
 ```
 
@@ -92,7 +97,7 @@ tasks:
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
 | `id` | string | Yes | Unique task identifier |
-| `action` | string | Yes | `capability:<type>.<op>`, `docker:<image>`, `shell:<cmd>`, `machine:<name>` |
+| `action` | string | Yes | `capability:<type>.<op>`, `docker:<image>`, `shell:<cmd>`, `machine:<name>`, `mapper:` |
 | `describe` | string | No | Human-readable description |
 | `params` | KV | No | Input parameters (template-rendered) |
 | `vars` | []string | No | Declared variable names (reserved) |
@@ -107,7 +112,60 @@ tasks:
 | `docker:` | Docker container | `docker:nginx:latest` |
 | `shell:` | Shell command | `shell:echo hello` |
 | `machine:` | Remote SSH | `machine:vm1` |
+| `mapper:` | Inline data transform | `mapper:` |
 | Free-form | Shell fallback | `custom-action` |
+
+### Mapper Step (`mapper:`)
+
+The mapper step provides a lightweight data transformation node within the workflow. It takes template-rendered parameters and serializes them to a JSON string, making it suitable for converting output formats between steps. Unlike other action types, mapper is handled inline in the workflow runner -- no external runtime or process is involved.
+
+Mapper steps are resolved before the normal task execution path. When a task's action starts with `mapper:`, the runner:
+1. Resolves template expressions in the step's `params` against previous step results.
+2. Marshals the resolved params to a JSON string.
+3. Stores the JSON as the step result for downstream consumption.
+4. Skips the engine/runtime dispatch entirely.
+
+**Example: field mapping between two capability steps**
+
+```yaml
+pipeline:
+  - fetch_data
+  - transform_output
+  - consume_data
+
+tasks:
+  - id: fetch_data
+    action: capability:api.fetch
+    params:
+      endpoint: "/users"
+
+  - id: transform_output
+    action: mapper:
+    params:
+      target_url: '{{jsonpath (step "fetch_data" "result") "data.0.link"}}'
+      target_title: '{{jsonpath (step "fetch_data" "result") "data.0.name"}}'
+      metadata:
+        source: api
+        priority: high
+
+  - id: consume_data
+    action: capability:bookmark.create
+    params:
+      url: '{{jsonpath (step "transform_output" "result") "target_url"}}'
+      title: '{{jsonpath (step "transform_output" "result") "target_title"}}'
+```
+
+**Example: conditional field mapping**
+
+```yaml
+  - id: conditional_map
+    action: mapper:
+    params:
+      status: "{{if jsonpathExists (step \"api\" \"result\") \"error\"}}failed{{else}}ok{{end}}"
+      output: '{{default "{}" (step "api" "result")}}'
+```
+
+The mapper's output is a JSON object where each key from `params` becomes a top-level field. Subsequent steps can extract individual fields using `jsonpath` or reference the full result with `{{step "transform_output" "result"}}`.
 
 ## Retry Strategy
 
@@ -192,6 +250,7 @@ for attempt := 1; ; attempt++ {
 | ----- | ----- | ------ |
 | Task not found in taskMap | `task %s not found in workflow` | Immediate |
 | Resolve params failure | `resolve params step %s: %w` | Immediate |
+| Mapper marshal failure | `mapper step %s: %w` | Immediate |
 | Convert task failure | `convert task %s: %w` | Immediate |
 | Run failure (retries exhausted) | `step %s (retries exhausted, attempt %d): %w` | Immediate |
 | Run failure (context cancel) | `step %s cancelled: %w` | Immediate |

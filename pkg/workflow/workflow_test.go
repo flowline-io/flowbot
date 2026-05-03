@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -511,4 +512,125 @@ func TestWorkflowTaskToTask_SliceCmdMixedTypes(t *testing.T) {
 	require.NoError(t, err)
 	// json.Unmarshal converts numbers to float64, so test with string slice
 	assert.Equal(t, []string{"echo", "hello"}, task.CMD)
+}
+
+func TestParseAction_Mapper(t *testing.T) {
+	info := ParseAction("mapper:")
+	assert.False(t, info.IsCapability)
+	assert.Equal(t, "mapper", info.Type)
+	assert.Equal(t, "", info.Details)
+}
+
+func TestWorkflowTaskToTask_Mapper(t *testing.T) {
+	// Mapper is handled inline in Runner.Execute, so WorkflowTaskToTask
+	// treats it like a generic default action (fallback to Details="").
+	wt := types.WorkflowTask{
+		ID:     "map1",
+		Action: "mapper:",
+		Params: types.KV{"target_url": "https://example.com"},
+	}
+	task, err := WorkflowTaskToTask(wt)
+	require.NoError(t, err)
+	assert.Equal(t, "mapper:", task.Run)
+}
+
+func TestResolveParams_MapperLike(t *testing.T) {
+	// Simulates how a mapper step's params would be resolved after previous steps.
+	params := types.KV{
+		"target_url":   "{{step \"src\" \"result\"}}",
+		"target_title": "static-title",
+	}
+	results := map[string]string{"src": "https://example.com"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com", resolved["target_url"])
+	assert.Equal(t, "static-title", resolved["target_title"])
+}
+
+func TestResolveParams_MapperWithJsonpath(t *testing.T) {
+	params := types.KV{
+		"id":    `{{jsonpath (step "api" "result") "data.id"}}`,
+		"name":  `{{jsonpath (step "api" "result") "data.name"}}`,
+		"extra": "fixed",
+	}
+	results := map[string]string{"api": `{"data":{"id":"123","name":"test"}}`}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "123", resolved["id"])
+	assert.Equal(t, "test", resolved["name"])
+	assert.Equal(t, "fixed", resolved["extra"])
+}
+
+func TestResolveParams_MapperConditional(t *testing.T) {
+	params := types.KV{
+		"status": "{{if contains (step \"check\" \"result\") \"ok\"}}mapped-ok{{else}}mapped-fail{{end}}",
+	}
+	results := map[string]string{"check": "all-ok-done"}
+	resolved, err := resolveParams(params, results)
+	require.NoError(t, err)
+	assert.Equal(t, "mapped-ok", resolved["status"])
+}
+
+func TestRunnerExecute_MapperStepOnly(t *testing.T) {
+	// A workflow consisting solely of mapper steps should execute without
+	// touching any runtime engine, since mapper is handled inline.
+	runner := NewRunner()
+	wf := types.WorkflowMetadata{
+		Name:     "mapper-only",
+		Pipeline: []string{"m1", "m2"},
+		Tasks: []types.WorkflowTask{
+			{
+				ID:     "m1",
+				Action: "mapper:",
+				Params: types.KV{"key_a": "value_a", "key_b": "static"},
+			},
+			{
+				ID:     "m2",
+				Action: "mapper:",
+				Params: types.KV{
+					"from_m1": `{{jsonpath (step "m1" "result") "key_a"}}`,
+					"extra":   "from-m2",
+				},
+			},
+		},
+	}
+	err := runner.Execute(context.Background(), wf)
+	require.NoError(t, err)
+}
+
+func TestRunnerExecute_MapperChainWithJsonpath(t *testing.T) {
+	// Verify mapper-to-mapper data flow: m1 produces JSON that m2 reads
+	// via jsonpath, then m3 reads m2's output.
+	runner := NewRunner()
+	wf := types.WorkflowMetadata{
+		Name:     "mapper-chain",
+		Pipeline: []string{"produce", "transform", "final"},
+		Tasks: []types.WorkflowTask{
+			{
+				ID:     "produce",
+				Action: "mapper:",
+				Params: types.KV{
+					"label": "first",
+					"score": float64(10),
+				},
+			},
+			{
+				ID:     "transform",
+				Action: "mapper:",
+				Params: types.KV{
+					"name":  `{{jsonpath (step "produce" "result") "label"}}`,
+					"value": `{{jsonpath (step "produce" "result") "score"}}`,
+				},
+			},
+			{
+				ID:     "final",
+				Action: "mapper:",
+				Params: types.KV{
+					"result": `{{step "transform" "result"}}`,
+				},
+			},
+		},
+	}
+	err := runner.Execute(context.Background(), wf)
+	require.NoError(t, err)
 }

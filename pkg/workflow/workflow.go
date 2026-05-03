@@ -179,6 +179,20 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 			return fmt.Errorf("resolve params step %s: %w", stepID, err)
 		}
 
+		// Mapper steps are handled inline: they serialize resolved
+		// params to JSON and store as the step result for downstream
+		// steps to consume. No external runtime is needed.
+		info := ParseAction(wt.Action)
+		if info.Type == "mapper" {
+			mappedJSON, err := json.Marshal(map[string]any(params))
+			if err != nil {
+				return fmt.Errorf("mapper step %s: %w", stepID, err)
+			}
+			results[stepID] = string(mappedJSON)
+			flog.Info("[workflow] mapper step %s completed", stepID)
+			continue
+		}
+
 		wtWithParams := wt
 		wtWithParams.Params = params
 

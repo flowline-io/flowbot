@@ -90,20 +90,89 @@ Index notation for keys that contain special characters:
 {{index .Steps "step-1" "result-field"}}
 ```
 
-### Built-in Functions (9)
+### Built-in Functions (12)
 
-| Function                   | Description                                   | Example                                                          |
-| -------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| `event field`              | Read a field from the event                   | `{{event "url"}}`                                                |
-| `step name field`          | Read a field from a step result               | `{{step "archive" "url"}}`                                       |
-| `join elems sep`           | Join a slice into a string                    | `{{join .Event.tags ","}}`                                       |
-| `split str sep`            | Split a string into a slice                   | `{{index (split .Event.csv ",") 0}}`                             |
-| `contains str substr`      | Check if a substring is present               | `{{if contains .Event.title "ERROR"}}alert{{end}}`               |
-| `default def val`          | Return `def` if `val` is nil or empty string  | `{{default "guest" .Event.username}}`                            |
-| `json val`                 | Marshal a value to JSON                       | `{{json .Event.metadata}}`                                       |
-| `len val`                  | Return length of string/slice/map (0 for nil) | `{{len .Event.tags}}`                                            |
+| Function                          | Description                                   | Example                                                              |
+| --------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| `event field`                     | Read a field from the event                   | `{{event "url"}}`                                                    |
+| `step name field`                 | Read a field from a step result               | `{{step "archive" "url"}}`                                           |
+| `join elems sep`                  | Join a slice into a string                    | `{{join .Event.tags ","}}`                                           |
+| `split str sep`                   | Split a string into a slice                   | `{{index (split .Event.csv ",") 0}}`                                 |
+| `contains str substr`             | Check if a substring is present               | `{{if contains .Event.title "ERROR"}}alert{{end}}`                   |
+| `default def val`                 | Return `def` if `val` is nil or empty string  | `{{default "guest" .Event.username}}`                                |
+| `json val`                        | Marshal a value to JSON                       | `{{json .Event.metadata}}`                                           |
+| `len val`                         | Return length of string/slice/map (0 for nil) | `{{len .Event.tags}}`                                                |
+| `jsonpath jsonStr path`           | Extract string value from JSON via gjson path | `{{jsonpath (json .Event.data) "items.0.id"}}`                       |
+| `jsonpathExists jsonStr path`     | Check if a JSON path exists                   | `{{if jsonpathExists (json .Event.data) "error"}}...{{end}}`         |
+| `jsonpathRaw jsonStr path`        | Extract raw value from JSON (interface{})     | `{{json (jsonpathRaw (json .Event.data) "nested")}}`                 |
 
 These functions are registered into `text/template.FuncMap` and are available in any template expression.
+
+### JSON Path Extraction (gjson)
+
+The three `jsonpath*` functions use [gjson](https://github.com/tidwall/gjson) path syntax for extracting data from JSON strings. The path syntax supports:
+
+| Syntax              | Meaning                         | Example path       |
+| ------------------- | ------------------------------- | ------------------ |
+| `field`             | Top-level field                 | `url`              |
+| `parent.child`      | Nested field                    | `data.nested.key`  |
+| `array.N`           | Array index (0-based)           | `items.0`          |
+| `array.#`           | Array length                    | `items.#`          |
+| `array.#.field`     | All array elements' field       | `items.#.name`     |
+| `array.#(cond)#`    | Filter array by condition       | `users.#(age>20)#` |
+
+**Basic extraction:**
+
+```
+{{jsonpath (json .Event.data) "nested.deep"}}
+{{jsonpath (step "api" "result") "data.id"}}
+{{jsonpath (step "api" "result") "items.1.name"}}
+```
+
+When the source is already a JSON string (e.g., a step result from a capability invocation), use `jsonpath` directly:
+
+```
+# Step "api" returned: {"data": {"items": [{"id": "x"}, {"id": "y"}]}}
+{{jsonpath (step "api" "result") "data.items.1.id"}}          → "y"
+{{jsonpath (step "api" "result") "data.items.#"}}             → "2"
+{{jsonpath (step "api" "result") "data.items.#.id"}}          → ["x","y"]
+```
+
+**Conditional extraction:**
+
+```
+{{if jsonpathExists (json .Event.data) "error"}}
+  Error: {{jsonpath (json .Event.data) "error.message"}}
+{{end}}
+```
+
+**Raw value access:**
+
+`jsonpathRaw` returns the underlying Go value (`interface{}`), useful when you need to chain with other functions or iterate:
+
+```
+{{range jsonpathRaw (json .Event.data) "items.#"}}
+  {{json .}}    # each item as JSON
+{{end}}
+```
+
+**Filtered array queries:**
+
+gjson supports array filtering with `#(condition)#` syntax:
+
+```
+{{jsonpath (json .Event.data) "users.#(age>28).name"}}
+```
+
+Operators supported in filters: `==`, `!=`, `<`, `>`, `<=`, `>=`, `%` (mod), `%~` (regex match).
+
+**Composing with other functions:**
+
+```
+{{default "unknown" (jsonpath (json .Event.data) "metadata.source")}}
+{{if contains (jsonpath (step "log" "result") "status") "ok"}}pass{{end}}
+{{printf "ID: %s" (jsonpath (step "api" "result") "data.id")}}
+```
 
 ### Conditionals
 
@@ -155,6 +224,8 @@ Functions can be chained with parentheses:
 {{json (event "metadata")}}
 {{contains (step "log" "output") "ERROR"}}
 {{default "none" (step "prev" "title")}}
+{{jsonpath (json .Event.data) "nested.field"}}
+{{jsonpath (step "api" "result") "items.0.id"}}
 ```
 
 ### Formatting
@@ -344,4 +415,4 @@ params, err := e.Render(map[string]any{
 go test ./pkg/pipeline/template/...
 ```
 
-Test coverage includes: plain text passthrough, event fields, step fields, env fields, conditions (if/else/eq/ne/and/or/not/gt), loops (range/range-index/range-else), nested condition+loop, all 9 built-in functions, old syntax compatibility, error propagation, invalid templates, and nil/empty data.
+Test coverage includes: plain text passthrough, event fields, step fields, env fields, conditions (if/else/eq/ne/and/or/not/gt), loops (range/range-index/range-else), nested condition+loop, all 12 built-in functions (including jsonpath, jsonpathExists, jsonpathRaw for gjson-based JSON extraction), old syntax compatibility, error propagation, invalid templates, and nil/empty data.

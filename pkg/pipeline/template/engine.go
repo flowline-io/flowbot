@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	txtpl "text/template"
+
+	"github.com/tidwall/gjson"
 )
 
 type Engine struct{}
@@ -35,7 +37,7 @@ func preprocessTemplate(s string) string {
 func funcMap(data *TemplateData) txtpl.FuncMap {
 	return txtpl.FuncMap{
 		"event": func(field string) any {
-			if data.Event != nil {
+			if data != nil && data.Event != nil {
 				if v, ok := data.Event[field]; ok {
 					return v
 				}
@@ -43,7 +45,7 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 			return ""
 		},
 		"step": func(stepName, field string) any {
-			if data.Steps != nil {
+			if data != nil && data.Steps != nil {
 				if step, ok := data.Steps[stepName]; ok {
 					if v, ok := step[field]; ok {
 						return v
@@ -95,6 +97,15 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 				return val.Len()
 			}
 			return 0
+		},
+		"jsonpath": func(jsonStr, path string) string {
+			return gjson.Get(jsonStr, path).String()
+		},
+		"jsonpathExists": func(jsonStr, path string) bool {
+			return gjson.Get(jsonStr, path).Exists()
+		},
+		"jsonpathRaw": func(jsonStr, path string) any {
+			return gjson.Get(jsonStr, path).Value()
 		},
 	}
 }
