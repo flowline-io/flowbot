@@ -259,3 +259,7 @@ func (r *Runtime) Stop(_ context.Context, t *types.Task) error {
 func (r *Runtime) HealthCheck(_ context.Context) error {
 	return nil
 }
+
+func (r *Runtime) Close() error {
+	return nil
+}

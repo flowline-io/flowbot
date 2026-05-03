@@ -18,4 +18,5 @@ type Runtime interface {
 	Run(ctx context.Context, t *types.Task) error
 	Stop(ctx context.Context, t *types.Task) error
 	HealthCheck(ctx context.Context) error
+	Close() error
 }

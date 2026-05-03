@@ -59,14 +59,12 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			// Give server 10 seconds to shut down.
-			ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+
 			if err := app.ShutdownWithContext(ctx); err != nil {
-				// failure/timeout shutting down the server gracefully
 				flog.Error(err)
 			}
-
-			cancel()
 
 			// Shutdown Extra
 			for _, ruleset := range globals.cronRuleset {

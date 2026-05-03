@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/server"
 	// Importing automaxprocs automatically adjusts GOMAXPROCS.
 	_ "go.uber.org/automaxprocs"
@@ -22,5 +24,6 @@ import (
 func main() {
 	fx.New(
 		server.Modules,
+		fx.StopTimeout(30*time.Second),
 	).Run()
 }

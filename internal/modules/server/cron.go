@@ -53,6 +53,8 @@ var cronRules = []cron.Rule{
 				flog.Error(err)
 				return nil
 			}
+			defer dc.Close()
+
 			report, err := dc.ImagesPrune(ctx.Context(), filters.Args{})
 			if err != nil {
 				flog.Error(err)
@@ -77,6 +79,8 @@ var cronRules = []cron.Rule{
 				flog.Error(err)
 				return nil
 			}
+			defer dc.Close()
+
 			list, err := dc.ContainerList(ctx.Context(), container.ListOptions{All: true})
 			if err != nil {
 				flog.Error(err)

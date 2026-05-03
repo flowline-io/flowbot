@@ -116,6 +116,13 @@ func (r *Runtime) HealthCheck(_ context.Context) error {
 	return sess.Run("/usr/bin/hostname")
 }
 
+func (r *Runtime) Close() error {
+	if r.client != nil {
+		return r.client.Close()
+	}
+	return nil
+}
+
 func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if t.ID == "" {
 		return errors.New("task id is required")

@@ -43,7 +43,7 @@ func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			Shutdown()
+			Shutdown(ctx)
 			return nil
 		},
 	})
@@ -51,13 +51,16 @@ func NewClient(lc fx.Lifecycle, _ config.Type) (*redis.Client, error) {
 	return Client, nil
 }
 
-func Shutdown() {
+func Shutdown(ctx context.Context) {
 	if Client == nil {
 		flog.Warn("redis not initialized")
 		return
 	}
 
-	_, err := Client.Ping(context.Background()).Result()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	_, err := Client.Ping(ctx).Result()
 	if err == nil {
 		err = Client.Close()
 		if err != nil {

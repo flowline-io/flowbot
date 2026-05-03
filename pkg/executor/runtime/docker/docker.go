@@ -31,12 +31,13 @@ import (
 )
 
 type Runtime struct {
-	client  *client.Client
-	tasks   *syncx.Map[string, string]
-	images  *syncx.Map[string, bool]
-	pullq   chan *pullRequest
-	mounter runtime.Mounter
-	config  string
+	client     *client.Client
+	tasks      *syncx.Map[string, string]
+	images     *syncx.Map[string, bool]
+	pullq      chan *pullRequest
+	pullerDone chan struct{}
+	mounter    runtime.Mounter
+	config     string
 }
 
 type printableReader struct {
@@ -74,10 +75,11 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 		return nil, err
 	}
 	rt := &Runtime{
-		client: dc,
-		tasks:  new(syncx.Map[string, string]),
-		images: new(syncx.Map[string, bool]),
-		pullq:  make(chan *pullRequest, 1),
+		client:     dc,
+		tasks:      new(syncx.Map[string, string]),
+		images:     new(syncx.Map[string, bool]),
+		pullq:      make(chan *pullRequest, 1),
+		pullerDone: make(chan struct{}),
 	}
 	for _, o := range opts {
 		o(rt)
@@ -91,7 +93,7 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 		}
 		rt.mounter = vmounter
 	}
-	go rt.puller(context.Background())
+	go rt.puller()
 	return rt, nil
 }
 
@@ -575,7 +577,8 @@ func (d *Runtime) imagePull(ctx context.Context, t *types.Task) error {
 
 // puller is a goroutine that serializes all requests
 // to pull images from the docker repo
-func (d *Runtime) puller(ctx context.Context) {
+func (d *Runtime) puller() {
+	defer close(d.pullerDone)
 	for pr := range d.pullq {
 		var authConfig regtypes.AuthConfig
 		if pr.registry.username != "" {
@@ -609,7 +612,7 @@ func (d *Runtime) puller(ctx context.Context) {
 		}
 		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 		reader, err := d.client.ImagePull(
-			ctx, pr.image, image.PullOptions{RegistryAuth: authStr})
+			context.Background(), pr.image, image.PullOptions{RegistryAuth: authStr})
 		if err != nil {
 			pr.done <- err
 			continue
@@ -621,4 +624,11 @@ func (d *Runtime) puller(ctx context.Context) {
 		}
 		pr.done <- nil
 	}
+}
+
+// Close shuts down the Docker runtime, stopping the puller goroutine
+// and closing the Docker client connection.
+func (d *Runtime) Close() error {
+	close(d.pullq)
+	return d.client.Close()
 }

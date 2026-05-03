@@ -52,6 +52,16 @@ func (e *Engine) State() string {
 	return e.state
 }
 
+// Close cleans up the engine's runtime resources.
+func (e *Engine) Close() error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.runtime != nil {
+		return e.runtime.Close()
+	}
+	return nil
+}
+
 func (e *Engine) Run(ctx context.Context, t *types.Task) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()

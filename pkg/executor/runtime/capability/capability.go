@@ -65,3 +65,7 @@ func (r *Runtime) Stop(ctx context.Context, t *types.Task) error {
 func (r *Runtime) HealthCheck(ctx context.Context) error {
 	return nil
 }
+
+func (r *Runtime) Close() error {
+	return nil
+}

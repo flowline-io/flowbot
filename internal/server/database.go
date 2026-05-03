@@ -3,10 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/mysql"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"go.uber.org/fx"
 )
 
@@ -31,7 +33,24 @@ func newDatabaseAdapter(lc fx.Lifecycle, _ config.Type) (store.Adapter, error) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return store.Store.Close()
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				if err := store.Store.Close(); err != nil {
+					flog.Error(fmt.Errorf("database close error: %w", err))
+				}
+			}()
+
+			select {
+			case <-done:
+				flog.Info("database closed")
+			case <-ctx.Done():
+				flog.Error(fmt.Errorf("database close timed out: %w", ctx.Err()))
+			}
+			return nil
 		},
 	})
 
