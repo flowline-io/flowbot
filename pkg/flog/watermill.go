@@ -9,7 +9,7 @@ var WatermillLogger = &watermillLogger{}
 
 type watermillLogger struct{}
 
-func (w *watermillLogger) Error(msg string, err error, fields watermill.LogFields) {
+func (*watermillLogger) Error(msg string, err error, fields watermill.LogFields) {
 	t := l.Error().Err(err)
 	if mustCaller() {
 		t = t.Caller(1)
@@ -23,7 +23,7 @@ func (w *watermillLogger) Error(msg string, err error, fields watermill.LogField
 	t.Msg(msg)
 }
 
-func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
+func (*watermillLogger) Info(msg string, fields watermill.LogFields) {
 	t := l.Info()
 	if mustCaller() {
 		t = t.Caller(1)
@@ -34,7 +34,7 @@ func (w *watermillLogger) Info(msg string, fields watermill.LogFields) {
 	t.Msg(msg)
 }
 
-func (w *watermillLogger) Debug(msg string, fields watermill.LogFields) {
+func (*watermillLogger) Debug(msg string, fields watermill.LogFields) {
 	t := l.Debug()
 	if mustCaller() {
 		t = t.Caller(1)
@@ -45,7 +45,7 @@ func (w *watermillLogger) Debug(msg string, fields watermill.LogFields) {
 	t.Msg(msg)
 }
 
-func (w *watermillLogger) Trace(msg string, fields watermill.LogFields) {
+func (*watermillLogger) Trace(msg string, fields watermill.LogFields) {
 	t := l.Trace()
 	if mustCaller() {
 		t = t.Caller(1)

@@ -4,7 +4,7 @@ var SlackLogger = &slackLogger{}
 
 type slackLogger struct{}
 
-func (s *slackLogger) Output(i int, s2 string) error {
+func (*slackLogger) Output(i int, s2 string) error {
 	evt := l.Debug()
 	if mustCaller() {
 		evt = evt.Caller(i)

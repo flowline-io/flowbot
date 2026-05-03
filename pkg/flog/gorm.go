@@ -31,15 +31,15 @@ func (g *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 	return g
 }
 
-func (g *GormLogger) Info(_ context.Context, s string, i ...any) {
+func (*GormLogger) Info(_ context.Context, s string, i ...any) {
 	Info(s, i...)
 }
 
-func (g *GormLogger) Warn(_ context.Context, s string, i ...any) {
+func (*GormLogger) Warn(_ context.Context, s string, i ...any) {
 	Warn(s, i...)
 }
 
-func (g *GormLogger) Error(_ context.Context, s string, i ...any) {
+func (*GormLogger) Error(_ context.Context, s string, i ...any) {
 	evt := l.Error()
 	if mustCaller() {
 		evt = evt.Caller(1)
@@ -50,7 +50,7 @@ func (g *GormLogger) Error(_ context.Context, s string, i ...any) {
 	evt.Msgf(s, i...)
 }
 
-func (g *GormLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+func (g *GormLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), _ error) {
 	if !(g.level == DebugLevel || g.level == InfoLevel) {
 		return
 	}
