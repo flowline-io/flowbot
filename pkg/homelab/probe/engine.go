@@ -124,8 +124,7 @@ func (e *Engine) resolveTargets(app homelab.App) []string {
 			continue
 		}
 		address := net.JoinHostPort(host, hostPort)
-		targets = append(targets, fmt.Sprintf("http://%s", address))
-		targets = append(targets, fmt.Sprintf("https://%s", address))
+		targets = append(targets, fmt.Sprintf("http://%s", address), fmt.Sprintf("https://%s", address))
 	}
 	return targets
 }

@@ -39,9 +39,9 @@ func FiberMiddleware() fiber.Handler {
 		}
 
 		carrier := propagation.HeaderCarrier{}
-		c.Request().Header.VisitAll(func(key, value []byte) {
+		for key, value := range c.Request().Header.All() {
 			carrier.Set(string(key), string(value))
-		})
+		}
 		ctx := propagator.Extract(c.Context(), carrier)
 
 		method := c.Method()

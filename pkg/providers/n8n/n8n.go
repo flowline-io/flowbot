@@ -194,7 +194,7 @@ func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
 	var webhookURL string
 	if webhookPath != "" {
 		// Remove leading slash if present
-		if len(webhookPath) > 0 && webhookPath[0] == '/' {
+		if len(webhookPath) > 1 && webhookPath[0] == '/' && webhookPath[1] != '/' && webhookPath[1] != '\\' {
 			webhookPath = webhookPath[1:]
 		}
 		webhookURL = fmt.Sprintf("/webhook/%s", webhookPath)

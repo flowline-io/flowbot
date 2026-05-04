@@ -100,7 +100,7 @@ func (s *Crawler) ruleWorker(name string, r Rule) {
 			result := func() []map[string]string {
 				defer func() {
 					if r := recover(); r != nil {
-						_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", r, debug.Stack())) //nolint:errcheck // This will never fail
+						_, _ = fmt.Fprintf(os.Stderr, "panic: %v\n%s\n", r, debug.Stack()) //nolint:errcheck // This will never fail
 						if v, ok := r.(error); ok {
 							flog.Error(v)
 						}

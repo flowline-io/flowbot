@@ -376,7 +376,8 @@ func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, e
 			return "", err
 		}
 
-		if _, err := io.Copy(&buf, tr); err != nil {
+		const maxOutputSize = 10 * 1024 * 1024 // 10 MB
+		if _, err := io.CopyN(&buf, tr, maxOutputSize); err != nil && !errors.Is(err, io.EOF) {
 			return "", err
 		}
 	}

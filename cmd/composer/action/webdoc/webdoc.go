@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 	"github.com/urfave/cli/v3"
 )
@@ -305,6 +306,7 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 	htmlBody := blackfriday.Run(input,
 		blackfriday.WithExtensions(blackfriday.CommonExtensions),
 	)
+	htmlBody = bluemonday.UGCPolicy().SanitizeBytes(htmlBody)
 
 	htmlBody = mdLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1.html$2"`))
 	htmlBody = readmeLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1$2"`))
