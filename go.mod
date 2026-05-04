@@ -59,7 +59,7 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	github.com/urfave/cli/v3 v3.8.0
 	github.com/valyala/fasthttp v1.70.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
