@@ -766,7 +766,9 @@ img {
 	margin: 0 auto;
 }
 
-.content h2 {
+/* --- Shared content element styles (subpages + generated docs) --- */
+.content h2,
+.docs-content h2 {
 	font-size: 1.6rem;
 	font-weight: 700;
 	margin: 48px 0 16px;
@@ -774,31 +776,56 @@ img {
 	border-top: 1px solid var(--abyss-border);
 }
 
-.content h3 {
+.content h3,
+.docs-content h3 {
 	font-size: 1.2rem;
 	font-weight: 600;
 	margin: 32px 0 12px;
 	color: var(--cyan);
 }
 
-.content p {
+.content h4,
+.docs-content h4 {
+	font-size: 1.05rem;
+	font-weight: 600;
+	margin: 24px 0 10px;
+	color: var(--white);
+}
+
+.content p,
+.docs-content p {
 	color: var(--white-dim);
 	margin-bottom: 16px;
 	line-height: 1.7;
 }
 
 .content ul,
-.content ol {
+.content ol,
+.docs-content ul,
+.docs-content ol {
 	color: var(--white-dim);
 	margin-bottom: 16px;
 	padding-left: 24px;
 	line-height: 1.7;
 }
-.content li {
+.content li,
+.docs-content li {
 	margin-bottom: 6px;
 }
 
-.content code {
+.content a,
+.docs-content a {
+	color: var(--cyan);
+	text-decoration: none;
+	transition: color var(--transition);
+}
+.content a:hover,
+.docs-content a:hover {
+	color: var(--green);
+}
+
+.content code,
+.docs-content code {
 	font-family: var(--mono);
 	background: var(--abyss-card);
 	padding: 2px 6px;
@@ -808,7 +835,8 @@ img {
 	border: 1px solid var(--abyss-border);
 }
 
-.content pre {
+.content pre,
+.docs-content pre {
 	background: var(--abyss-card);
 	border: 1px solid var(--abyss-border);
 	border-radius: var(--radius);
@@ -821,7 +849,8 @@ img {
 	color: var(--white-dim);
 	position: relative;
 }
-.content pre::before {
+.content pre::before,
+.docs-content pre::before {
 	content: "";
 	position: absolute;
 	top: 0;
@@ -830,14 +859,29 @@ img {
 	height: 1px;
 	background: linear-gradient(90deg, transparent, var(--cyan), transparent);
 }
+.content pre code,
+.docs-content pre code {
+	background: none;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	font-size: inherit;
+	color: inherit;
+}
 
-.content table {
+.content table,
+.docs-content table {
 	width: 100%;
 	border-collapse: collapse;
 	margin-bottom: 24px;
 	font-size: 0.88rem;
 }
-.content th {
+.content thead,
+.docs-content thead {
+	border-bottom: 2px solid var(--abyss-border);
+}
+.content th,
+.docs-content th {
 	text-align: left;
 	padding: 10px 14px;
 	border-bottom: 2px solid var(--abyss-border);
@@ -847,13 +891,26 @@ img {
 	text-transform: uppercase;
 	letter-spacing: 1px;
 }
-.content td {
+.content td,
+.docs-content td {
 	padding: 10px 14px;
 	border-bottom: 1px solid var(--abyss-border);
 	color: var(--white-dim);
 }
+.content tbody tr:hover,
+.docs-content tbody tr:hover {
+	background: var(--cyan-dim);
+}
 
-.content blockquote {
+.content hr,
+.docs-content hr {
+	border: none;
+	border-top: 1px solid var(--abyss-border);
+	margin: 32px 0;
+}
+
+.content blockquote,
+.docs-content blockquote {
 	border-left: 2px solid var(--cyan);
 	padding: 12px 20px;
 	margin-bottom: 16px;
@@ -861,6 +918,17 @@ img {
 	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 	color: var(--white-dim);
 	font-style: italic;
+}
+.content blockquote p,
+.docs-content blockquote p {
+	margin-bottom: 0;
+}
+
+.content img,
+.docs-content img {
+	max-width: 100%;
+	display: block;
+	border-radius: var(--radius-sm);
 }
 
 /* --- Data flow animation --- */
