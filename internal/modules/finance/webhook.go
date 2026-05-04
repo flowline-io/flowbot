@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 )
@@ -73,7 +73,16 @@ var webhookRules = []webhook.Rule{
 				msg += "*Recurring:* Yes\n"
 			}
 
-			err := event.SendMessage(ctx, types.TextMsg{Text: msg})
+			err := notify.GatewaySend(ctx.Context(), ctx.AsUser, "finance.transaction", []string{"slack", "ntfy"}, map[string]any{
+				"amount":   payload.Amount,
+				"currency": payload.Currency,
+				"category": payload.Category,
+				"payee":    payload.Payee,
+				"account":  payload.Account,
+				"date":     payload.Date,
+				"notes":    payload.Notes,
+				"recurring": payload.Recurring,
+			})
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: fmt.Sprintf("Failed to send message: %v", err)}

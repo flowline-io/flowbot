@@ -83,8 +83,71 @@ type Type struct {
 	// Pipeline definitions for cross-service event-driven automation
 	Pipelines []Pipeline `json:"pipelines" yaml:"pipelines" mapstructure:"pipelines"`
 
+	// Notify configuration for notification gateway
+	Notify Notify `json:"notify" yaml:"notify" mapstructure:"notify"`
+
 	// OpenTelemetry tracing configuration
 	Tracing Tracing `json:"tracing" yaml:"tracing" mapstructure:"tracing"`
+}
+
+// Notify holds notification gateway configuration including templates and rules.
+type Notify struct {
+	// Templates defines notification message templates indexed by ID.
+	Templates []NotifyTemplate `json:"templates" yaml:"templates" mapstructure:"templates"`
+	// Rules defines notification filtering and aggregation rules.
+	Rules []NotifyRule `json:"rules" yaml:"rules" mapstructure:"rules"`
+}
+
+// NotifyTemplate defines a notification message template with optional per-channel overrides.
+type NotifyTemplate struct {
+	ID              string           `json:"id" yaml:"id" mapstructure:"id"`
+	Name            string           `json:"name" yaml:"name" mapstructure:"name"`
+	Description     string           `json:"description" yaml:"description" mapstructure:"description"`
+	DefaultFormat   string           `json:"default_format" yaml:"default_format" mapstructure:"default_format"`
+	DefaultTemplate string           `json:"default_template" yaml:"default_template" mapstructure:"default_template"`
+	Overrides       []NotifyOverride `json:"overrides" yaml:"overrides" mapstructure:"overrides"`
+}
+
+// NotifyOverride defines a channel-specific template override.
+type NotifyOverride struct {
+	Channel  string `json:"channel" yaml:"channel" mapstructure:"channel"`
+	Format   string `json:"format" yaml:"format" mapstructure:"format"`
+	Template string `json:"template" yaml:"template" mapstructure:"template"`
+}
+
+// NotifyRuleAction defines the action to take when a rule matches.
+type NotifyRuleAction string
+
+// Rule action constants.
+const (
+	NotifyRuleActionThrottle  NotifyRuleAction = "throttle"
+	NotifyRuleActionAggregate NotifyRuleAction = "aggregate"
+	NotifyRuleActionMute      NotifyRuleAction = "mute"
+	NotifyRuleActionDrop      NotifyRuleAction = "drop"
+)
+
+// NotifyRuleMatch defines the event and channel matching criteria.
+type NotifyRuleMatch struct {
+	Event   string `json:"event" yaml:"event" mapstructure:"event"`
+	Channel string `json:"channel" yaml:"channel" mapstructure:"channel"`
+}
+
+// NotifyRuleParams holds action-specific parameters.
+type NotifyRuleParams struct {
+	Window        string `json:"window" yaml:"window" mapstructure:"window"`
+	Limit         int    `json:"limit" yaml:"limit" mapstructure:"limit"`
+	DigestTplID   string `json:"digest_template_id" yaml:"digest_template_id" mapstructure:"digest_template_id"`
+	DelayedSend   bool   `json:"delayed_send" yaml:"delayed_send" mapstructure:"delayed_send"`
+}
+
+// NotifyRule defines a notification filtering or aggregation rule.
+type NotifyRule struct {
+	ID        string           `json:"id" yaml:"id" mapstructure:"id"`
+	Action    NotifyRuleAction `json:"action" yaml:"action" mapstructure:"action"`
+	Match     NotifyRuleMatch  `json:"match" yaml:"match" mapstructure:"match"`
+	Condition string           `json:"condition" yaml:"condition" mapstructure:"condition"`
+	Priority  int              `json:"priority" yaml:"priority" mapstructure:"priority"`
+	Params    NotifyRuleParams `json:"params" yaml:"params" mapstructure:"params"`
 }
 
 // Tracing configures OpenTelemetry distributed tracing.

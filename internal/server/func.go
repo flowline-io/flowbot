@@ -11,8 +11,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
@@ -325,7 +325,9 @@ func notifyAll(message string) {
 		ctx := types.Context{
 			AsUser: types.Uid(item.Flag),
 		}
-		err = event.SendMessage(ctx, types.TextMsg{Text: message})
+		err = notify.GatewaySend(ctx.Context(), types.Uid(item.Flag), "agent.status", []string{"slack", "ntfy"}, map[string]any{
+			"message": message,
+		})
 		if err != nil {
 			flog.Error(fmt.Errorf("notify error %w", err))
 			continue
@@ -415,7 +417,11 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 		}
 		if check == "" {
 			// send message
-			err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s online", hostid, hostname)})
+			err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+				"hostid":   hostid,
+				"hostname": hostname,
+				"status":   "online",
+			})
 			if err != nil {
 				flog.Error(fmt.Errorf("send message error %w", err))
 			}
@@ -444,7 +450,11 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			flog.Error(fmt.Errorf("del agent online stats error %w", err))
 		}
 
-		err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("hostid: %s %s stop", hostid, hostname)})
+		err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+			"hostid":   hostid,
+			"hostname": hostname,
+			"status":   "offline",
+		})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
@@ -454,7 +464,9 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			return nil, errors.New("empty message")
 		}
 
-		err := event.SendMessage(ctx, types.TextMsg{Text: message})
+		err := notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+			"message": message,
+		})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}

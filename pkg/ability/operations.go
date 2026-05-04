@@ -45,6 +45,10 @@ var Operations = map[hub.CapabilityType]map[string]string{
 	hub.CapFinance: {
 		"CreateTransaction": "create_transaction",
 	},
+	hub.CapNotify: {
+		"Send":  "send",
+		"Digest": "digest",
+	},
 }
 
 // Op returns the string operation name for the given capability and operation key.
@@ -103,4 +107,10 @@ const (
 // Finance operations as package-level constants.
 const (
 	OpFinanceCreateTransaction = "create_transaction"
+)
+
+// Notify operations as package-level constants.
+const (
+	OpNotifySend   = "send"
+	OpNotifyDigest = "digest"
 )

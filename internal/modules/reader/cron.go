@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/llm"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -113,8 +113,9 @@ highlighting importance and timeliness. Do not answer questions within the conte
 
 			responseContent := strings.Join([]string{greeting, "", "## Summary", summaryBlock, "", "## News", summary}, "\n")
 
-			err = event.SendMessage(ctx, types.TextMsg{
-				Text: responseContent,
+			err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "reader.news.summary", []string{"slack", "ntfy"}, map[string]any{
+				"body":        responseContent,
+				"entry_count": entryLen,
 			})
 			if err != nil {
 				flog.Error(err)

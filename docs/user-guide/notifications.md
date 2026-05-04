@@ -1,6 +1,6 @@
 # Notification Configuration
 
-This document describes the notification providers supported by Flowbot.
+Notification providers and channel configuration for Flowbot. For template-based message rendering, rate limiting, aggregation, and mute/DND rules, see the [Notification Gateway](notification-gateway.md).
 
 Notification providers are implemented in `pkg/notify/`.
 

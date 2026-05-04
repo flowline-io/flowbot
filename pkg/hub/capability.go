@@ -10,6 +10,7 @@ const (
 	CapFinance      CapabilityType = "finance"
 	CapInfra        CapabilityType = "infra"
 	CapShellHistory CapabilityType = "shell_history"
+	CapNotify       CapabilityType = "notify"
 )
 
 type ParamDef struct {

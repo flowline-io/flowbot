@@ -4,9 +4,8 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	"github.com/flowline-io/flowbot/pkg/config"
-	pkgEvent "github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 )
@@ -42,17 +41,15 @@ var eventRules = []event.Rule{
 
 			_ = priority
 
-			err = pkgEvent.SendMessage(ctx, types.TextMsg{
-				Text: fmt.Sprintf("Task created: [%s](%s/task/%v)\n\n*Title:* %s\n*Project ID:* %d",
-					title,
-					config.App.Search.UrlBaseMap["kanboard"],
-					res.Text,
-					title,
-					projectID,
-				),
+			err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "kanban.task.created", []string{"slack", "ntfy"}, map[string]any{
+				"title":       title,
+				"task_id":     res.Text,
+				"project_id":  projectID,
+				"description": description,
+				"reference":   reference,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to send message %w", err)
+				return fmt.Errorf("failed to send message: %w", err)
 			}
 
 			return nil

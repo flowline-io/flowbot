@@ -8,15 +8,16 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/providers/uptimekuma"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/redis/go-redis/v9"
 )
 
 var cronRules = []cron.Rule{
@@ -160,10 +161,12 @@ var cronRules = []cron.Rule{
 				if duration > 2*time.Minute && duration < 3*time.Minute {
 					ctx.AsUser = types.Uid(item.UID)
 					ctx.Topic = item.Topic
-					err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("Server offline: [%s](%s) - Host ID: %s",
-						item.Hostname, item.Hostid, item.Hostid)})
+					err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "server.offline", []string{"slack", "ntfy"}, map[string]any{
+						"hostname": item.Hostname,
+						"hostid":   item.Hostid,
+					})
 					if err != nil {
-						flog.Error(fmt.Errorf("send message error %w", err))
+						flog.Error(fmt.Errorf("send message error: %w", err))
 					}
 				}
 			}

@@ -10,8 +10,8 @@ import (
 
 	"github.com/flc1125/go-cron/v4"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -206,7 +206,24 @@ func (r *Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}
-	err := event.SendMessage(res.ctx, res.payload)
+
+	var body string
+	switch v := res.payload.(type) {
+	case types.TextMsg:
+		body = v.Text
+	case types.InfoMsg:
+		body = v.Title
+	case types.LinkMsg:
+		body = v.Url
+	}
+	if body == "" {
+		return
+	}
+
+	err := notify.GatewaySend(res.ctx.Context(), res.ctx.AsUser, "cron.output", []string{"slack", "ntfy"}, map[string]any{
+		"body":     body,
+		"cron_job": res.name,
+	})
 	if err != nil {
 		flog.Error(err)
 	}

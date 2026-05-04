@@ -1,0 +1,130 @@
+# Notification templates and rules for the Notification Gateway.
+# Copy the relevant sections into your flowbot.yaml under the "notify" key.
+
+notify:
+  # Notification message templates.
+  # Templates use Go text/template syntax with Sprig functions
+  # (upper, lower, default, join, date, now, shorten, etc.).
+  templates:
+    - id: bookmark.created
+      name: "New bookmark notification"
+      description: "Triggered when a bookmark is successfully created"
+      default_format: markdown
+      default_template: |
+        **New Bookmark Saved**
+        **URL:** {{ .url | default "N/A" }}
+        {{ if .title }}**Title:** {{ .title }}{{ end }}
+
+    - id: bookmark.archived
+      name: "Bookmark archived notification"
+      description: "Triggered when a bookmark is archived"
+      default_format: markdown
+      default_template: |
+        **Bookmark Archived**
+        {{ if .title }}{{ .title }}{{ end }}
+        {{ if .id }}ID: {{ .id }}{{ end }}
+
+    - id: archive.item.added
+      name: "Archive item added notification"
+      description: "Triggered when an item is added to ArchiveBox"
+      default_format: markdown
+      default_template: |
+        **ArchiveBox: Item Added**
+        {{ if .title }}{{ .title }}{{ end }}
+        {{ if .url }}URL: {{ .url }}{{ end }}
+
+    - id: kanban.task.created
+      name: "Kanban task created notification"
+      description: "Triggered when a kanban task is created"
+      default_format: markdown
+      default_template: |
+        **Task Created**
+        **Title:** {{ .title }}
+        {{ if .project_id }}**Project ID:** {{ .project_id }}{{ end }}
+        {{ if .description }}**Description:** {{ .description }}{{ end }}
+
+    - id: reader.news.summary
+      name: "Daily news summary notification"
+      description: "Daily AI-generated news summary"
+      default_format: markdown
+      default_template: |
+        {{ .body }}
+      overrides:
+        - channel: "telegram"
+          format: html
+          template: |
+            {{ .body | html }}
+
+    - id: server.offline
+      name: "Server offline notification"
+      description: "Triggered when a server is detected offline"
+      default_format: markdown
+      default_template: |
+        **Server Offline**
+        **Hostname:** {{ .hostname }}
+        **Host ID:** {{ .hostid }}
+
+    - id: finance.transaction
+      name: "Finance transaction notification"
+      description: "Triggered when a new transaction is received via webhook"
+      default_format: markdown
+      default_template: |
+        **New Transaction Received**
+        {{ if .amount }}*Amount:* {{ .amount }}{{ if .currency }} {{ .currency }}{{ end }}
+        {{ end }}{{ if .category }}*Category:* {{ .category }}
+        {{ end }}{{ if .payee }}*Payee:* {{ .payee }}
+        {{ end }}{{ if .account }}*Account:* {{ .account }}
+        {{ end }}{{ if .date }}*Date:* {{ .date }}
+        {{ end }}{{ if .notes }}*Notes:* {{ .notes }}
+        {{ end }}{{ if .recurring }}*Recurring:* Yes{{ end }}
+
+    - id: github.deployment
+      name: "GitHub deployment notification"
+      description: "Triggered when a deployment is triggered from GitHub"
+      default_format: markdown
+      default_template: |
+        **Deployment Triggered**
+        **Repository:** {{ .repo }}
+        **Build #:** {{ .build }}
+        {{ if .drone_url }}[View Build]({{ .drone_url }}/{{ .user }}/{{ .repo }}/deploy/{{ .build }}){{ end }}
+
+    - id: agent.status
+      name: "Agent status notification"
+      description: "Triggered when an agent comes online, goes offline, or sends a message"
+      default_format: markdown
+      default_template: |
+        {{ if .status }}**Agent {{ .status | upper }}**
+        **Host ID:** {{ .hostid }}
+        {{ if .hostname }}**Hostname:** {{ .hostname }}{{ end }}
+        {{ else }}{{ .message }}{{ end }}
+
+    - id: cron.output
+      name: "Cron output notification"
+      description: "Generic cron job output"
+      default_format: markdown
+      default_template: |
+        {{ if .cron_job }}**Cron:** {{ .cron_job }}
+        {{ end }}{{ .body }}
+
+  # Notification rules for throttling, aggregation, and mute/DND.
+  # Rules are evaluated in priority order (higher priority first).
+  rules: []
+  # Example rules (uncomment to enable):
+  #
+  # - id: "night_mute"
+  #   action: mute
+  #   match:
+  #     event: "*"
+  #     channel: "*"
+  #   condition: "time.hour >= 23 || time.hour < 8"
+  #   priority: 100
+  #
+  # - id: "infra_alert_throttle"
+  #   action: throttle
+  #   match:
+  #     event: "server.*"
+  #     channel: "*"
+  #   priority: 50
+  #   params:
+  #     window: "5m"
+  #     limit: 1

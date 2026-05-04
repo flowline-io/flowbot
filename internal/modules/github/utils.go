@@ -1,10 +1,8 @@
 package github
 
 import (
-	"fmt"
-
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/providers/drone"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -30,12 +28,12 @@ func deploy(ctx types.Context) error {
 	}
 
 	// send message
-	err = event.SendMessage(ctx, types.TextMsg{Text: fmt.Sprintf("Deployment triggered: [%s/%s/deploy/%d](%s/%s/deploy/%d)\n\n*Repository:* %s\n*Build #:* %d",
-		user.UserName, drone.DefaultDeployRepoName, build.Number,
-		config.App.Search.UrlBaseMap[drone.ID], user.UserName, build.Number,
-		drone.DefaultDeployRepoName,
-		build.Number,
-	)})
+	err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "github.deployment", []string{"slack", "ntfy"}, map[string]any{
+		"user":    user.UserName,
+		"repo":    drone.DefaultDeployRepoName,
+		"build":   build.Number,
+		"drone_url": config.App.Search.UrlBaseMap[drone.ID],
+	})
 	if err != nil {
 		return err
 	}

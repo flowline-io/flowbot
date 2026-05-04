@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	code.gitea.io/sdk/gitea v0.24.1
+	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/RealAlexandreAI/json-repair v0.0.15
 	github.com/ThreeDotsLabs/watermill v1.5.1
@@ -137,7 +138,6 @@ require (
 	github.com/Ladicle/tabwriter v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
