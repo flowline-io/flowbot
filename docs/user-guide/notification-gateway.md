@@ -137,22 +137,22 @@ notify:
 
 ### Field Reference
 
-| Field              | Type     | Required | Description                                      |
-| ------------------ | -------- | -------- | ------------------------------------------------ |
-| `id`               | string   | yes      | Unique template identifier (e.g., `bookmark.created`) |
-| `name`             | string   | yes      | Human-readable display name                      |
-| `description`      | string   | no       | Text describing when this template is used       |
-| `default_format`   | string   | yes      | Output format: `markdown` or `html`              |
-| `default_template` | string   | yes      | Sprig template body (YAML `|` block scalar)      |
-| `overrides`        | array    | no       | Per-channel template overrides                   |
+| Field              | Type   | Required | Description                                           |
+| ------------------ | ------ | -------- | ----------------------------------------------------- | --------------- |
+| `id`               | string | yes      | Unique template identifier (e.g., `bookmark.created`) |
+| `name`             | string | yes      | Human-readable display name                           |
+| `description`      | string | no       | Text describing when this template is used            |
+| `default_format`   | string | yes      | Output format: `markdown` or `html`                   |
+| `default_template` | string | yes      | Sprig template body (YAML `                           | ` block scalar) |
+| `overrides`        | array  | no       | Per-channel template overrides                        |
 
 ### Override Fields
 
-| Field      | Type   | Required | Description                             |
-| ---------- | ------ | -------- | --------------------------------------- |
+| Field      | Type   | Required | Description                                |
+| ---------- | ------ | -------- | ------------------------------------------ |
 | `channel`  | string | yes      | Channel name: `slack`, `telegram`, `email` |
-| `format`   | string | yes      | Output format for this channel          |
-| `template` | string | yes      | Channel-specific template body          |
+| `format`   | string | yes      | Output format for this channel             |
+| `template` | string | yes      | Channel-specific template body             |
 
 ### Template Data Context
 
@@ -172,26 +172,26 @@ Template payload data is accessed via `{{ .key }}` dot-notation. The payload is 
 
 All [Sprig string functions](https://masterminds.github.io/sprig/strings.html), [date functions](https://masterminds.github.io/sprig/date.html), [math functions](https://masterminds.github.io/sprig/math.html), and [list functions](https://masterminds.github.io/sprig/lists.html) are available. Commonly used:
 
-| Function                    | Description                          | Example                            |
-| --------------------------- | ------------------------------------ | ---------------------------------- |
-| `upper str`                 | Uppercase                            | `{{ .name \| upper }}`            |
-| `lower str`                 | Lowercase                            | `{{ .category \| lower }}`        |
-| `default val default`       | Default for nil/empty                | `{{ .title \| default "Untitled" }}` |
-| `join sep elems`            | Join slice into string               | `{{ .tags \| join ", " }}`        |
-| `date format time`          | Format a time value                  | `{{ now \| date "2006-01-02" }}`  |
-| `now`                       | Current time                         | `{{ now \| date "15:04" }}`       |
-| `trunc n str`               | Truncate to length                   | `{{ .body \| trunc 100 }}`        |
-| `contains str substr`       | Check substring                      | `{{ if contains .body "ERROR" }}` |
-| `replace old new str`       | Replace substring                    | `{{ .url \| replace "http:" "https:" }}` |
-| `quote str`                 | Wrap in double quotes                | `{{ .title \| quote }}`           |
-| `toJson val`                | Marshal to JSON                      | `{{ .meta \| toJson }}`           |
-| `indent n str`              | Indent each line                     | `{{ .body \| indent 2 }}`         |
+| Function              | Description            | Example                                  |
+| --------------------- | ---------------------- | ---------------------------------------- |
+| `upper str`           | Uppercase              | `{{ .name \| upper }}`                   |
+| `lower str`           | Lowercase              | `{{ .category \| lower }}`               |
+| `default val default` | Default for nil/empty  | `{{ .title \| default "Untitled" }}`     |
+| `join sep elems`      | Join slice into string | `{{ .tags \| join ", " }}`               |
+| `date format time`    | Format a time value    | `{{ now \| date "2006-01-02" }}`         |
+| `now`                 | Current time           | `{{ now \| date "15:04" }}`              |
+| `trunc n str`         | Truncate to length     | `{{ .body \| trunc 100 }}`               |
+| `contains str substr` | Check substring        | `{{ if contains .body "ERROR" }}`        |
+| `replace old new str` | Replace substring      | `{{ .url \| replace "http:" "https:" }}` |
+| `quote str`           | Wrap in double quotes  | `{{ .title \| quote }}`                  |
+| `toJson val`          | Marshal to JSON        | `{{ .meta \| toJson }}`                  |
+| `indent n str`        | Indent each line       | `{{ .body \| indent 2 }}`                |
 
 ### Custom Functions
 
-| Function              | Description                             |
-| --------------------- | --------------------------------------- |
-| `shorten str maxLen`  | Truncate and append `"..."` (min output length 4) |
+| Function             | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `shorten str maxLen` | Truncate and append `"..."` (min output length 4) |
 
 ### Template Rendering Logic
 
@@ -221,31 +221,31 @@ notify:
 
 ### Rule Fields
 
-| Field       | Type   | Required | Description                                           |
-| ----------- | ------ | -------- | ----------------------------------------------------- |
-| `id`        | string | yes      | Unique rule identifier                                |
-| `action`    | string | yes      | `mute`, `throttle`, `aggregate`, or `drop`            |
-| `match`     | object | yes      | Event and channel matching criteria                   |
-| `condition` | string | no       | Time-based expression for conditional rules           |
-| `priority`  | int    | yes      | Evaluation order (higher = first)                     |
-| `params`    | object | no       | Action-specific parameters (see below)                |
+| Field       | Type   | Required | Description                                 |
+| ----------- | ------ | -------- | ------------------------------------------- |
+| `id`        | string | yes      | Unique rule identifier                      |
+| `action`    | string | yes      | `mute`, `throttle`, `aggregate`, or `drop`  |
+| `match`     | object | yes      | Event and channel matching criteria         |
+| `condition` | string | no       | Time-based expression for conditional rules |
+| `priority`  | int    | yes      | Evaluation order (higher = first)           |
+| `params`    | object | no       | Action-specific parameters (see below)      |
 
 ### Match Fields
 
-| Field     | Type   | Description                                       |
-| --------- | ------ | ------------------------------------------------- |
+| Field     | Type   | Description                                                                                |
+| --------- | ------ | ------------------------------------------------------------------------------------------ |
 | `event`   | string | Event type pattern: exact match, `*` for all, `prefix.*` for prefix, `*.suffix` for suffix |
-| `channel` | string | Channel pattern: same glob syntax as event match  |
+| `channel` | string | Channel pattern: same glob syntax as event match                                           |
 
 ### Match Examples
 
-| Pattern          | Matches                               |
-| ---------------- | ------------------------------------- |
-| `*`              | Everything                            |
-| `bookmark.created` | Exact event type only               |
-| `infra.*`        | `infra.host.down`, `infra.host.up`, etc. |
-| `*.created`      | `bookmark.created`, `kanban.task.created` |
-| `server.*`       | `server.offline`, `server.online`     |
+| Pattern            | Matches                                   |
+| ------------------ | ----------------------------------------- |
+| `*`                | Everything                                |
+| `bookmark.created` | Exact event type only                     |
+| `infra.*`          | `infra.host.down`, `infra.host.up`, etc.  |
+| `*.created`        | `bookmark.created`, `kanban.task.created` |
+| `server.*`         | `server.offline`, `server.online`         |
 
 ### Rule Actions
 
@@ -283,10 +283,10 @@ Limits how many notifications of a specific type are sent within a time window. 
 
 **Throttle parameters**:
 
-| Field    | Type   | Required | Description                        |
-| -------- | ------ | -------- | ---------------------------------- |
-| `window` | string | yes      | Time window (Go duration format)   |
-| `limit`  | int    | yes      | Max messages in window             |
+| Field    | Type   | Required | Description                      |
+| -------- | ------ | -------- | -------------------------------- |
+| `window` | string | yes      | Time window (Go duration format) |
+| `limit`  | int    | yes      | Max messages in window           |
 
 Redis key pattern: `notify:throttle:{ruleID}:{eventType}:{channel}`
 
@@ -308,14 +308,15 @@ Buffers individual events into a Redis List and flushes them as a single digest 
 
 **Aggregate parameters**:
 
-| Field                | Type   | Required | Description                       |
-| -------------------- | ------ | -------- | --------------------------------- |
-| `window`             | string | yes      | Aggregation window                |
-| `digest_template_id` | string | no       | Template for the digest message   |
+| Field                | Type   | Required | Description                     |
+| -------------------- | ------ | -------- | ------------------------------- |
+| `window`             | string | yes      | Aggregation window              |
+| `digest_template_id` | string | no       | Template for the digest message |
 
 Redis key pattern: `notify:agg:{ruleID}:{eventType}:{channel}` (List), `notify:agg:timer:{ruleID}:{eventType}:{channel}` (timer key with TTL)
 
 The digest template receives a `.items` field containing all aggregated payloads:
+
 ```
 **Digest: {{ len .items }} items in the last 15 minutes**
 {{ range .items }}
@@ -345,15 +346,15 @@ Example with two rules:
 ```yaml
 - id: "night_mute"
   action: mute
-  match: {event: "*", channel: "*"}
+  match: { event: "*", channel: "*" }
   condition: "time.hour >= 23 || time.hour < 8"
-  priority: 100     # Evaluated first
+  priority: 100 # Evaluated first
 
 - id: "infra_throttle"
   action: throttle
-  match: {event: "infra.*", channel: "*"}
-  params: {window: "5m", limit: 1}
-  priority: 50      # Only evaluated if mute doesn't match
+  match: { event: "infra.*", channel: "*" }
+  params: { window: "5m", limit: 1 }
+  priority: 50 # Only evaluated if mute doesn't match
 ```
 
 At 2 PM: night_mute condition is false, so infra_throttle applies to `infra.host.down` events.
@@ -379,7 +380,7 @@ notify:
 2. Add optional rules:
 
 ```yaml
-  rules: []   # or add rules as needed
+rules: [] # or add rules as needed
 ```
 
 3. Configure at least one notification channel per user via the `notify config` chat command:
@@ -399,18 +400,18 @@ See [config/notify.yaml](../config/notify.yaml) for a complete template and rule
 
 The following templates are built into the reference configuration. Add them to your `flowbot.yaml` to enable notifications for common events.
 
-| Template ID           | Trigger                    | Key Payload Fields                    |
-| --------------------- | -------------------------- | ------------------------------------- |
-| `bookmark.created`    | Bookmark created           | `url`, `title`                        |
-| `bookmark.archived`   | Bookmark archived          | `id`, `title`                         |
-| `archive.item.added`  | ArchiveBox item added      | `url`, `title`                        |
-| `kanban.task.created` | Kanban task created        | `title`, `project_id`, `description`  |
-| `reader.news.summary` | Daily RSS news summary     | `body`                                |
-| `server.offline`      | Server offline detection   | `hostname`, `hostid`                  |
-| `finance.transaction` | Finance webhook received   | `amount`, `currency`, `category`, `payee`, `account`, `date` |
-| `github.deployment`   | GitHub deployment triggered | `user`, `repo`, `build`, `drone_url` |
-| `agent.status`        | Agent online/offline/message | `hostid`, `hostname`, `status`, `message` |
-| `cron.output`         | Generic cron job output    | `body`, `cron_job`                    |
+| Template ID           | Trigger                      | Key Payload Fields                                           |
+| --------------------- | ---------------------------- | ------------------------------------------------------------ |
+| `bookmark.created`    | Bookmark created             | `url`, `title`                                               |
+| `bookmark.archived`   | Bookmark archived            | `id`, `title`                                                |
+| `archive.item.added`  | ArchiveBox item added        | `url`, `title`                                               |
+| `kanban.task.created` | Kanban task created          | `title`, `project_id`, `description`                         |
+| `reader.news.summary` | Daily RSS news summary       | `body`                                                       |
+| `server.offline`      | Server offline detection     | `hostname`, `hostid`                                         |
+| `finance.transaction` | Finance webhook received     | `amount`, `currency`, `category`, `payee`, `account`, `date` |
+| `github.deployment`   | GitHub deployment triggered  | `user`, `repo`, `build`, `drone_url`                         |
+| `agent.status`        | Agent online/offline/message | `hostid`, `hostname`, `status`, `message`                    |
+| `cron.output`         | Generic cron job output      | `body`, `cron_job`                                           |
 
 ## Usage Patterns
 
@@ -477,21 +478,21 @@ err := notify.GatewaySend(ctx.Context(), uid, "agent.status",
 
 The following 13 code locations formerly used `event.SendMessage()` and now route through `notify.GatewaySend()`:
 
-| Module             | File               | Template ID           |
-| ------------------ | ------------------ | --------------------- |
-| bookmark           | `event.go:26`      | `bookmark.archived`   |
-| bookmark           | `event.go:46`      | `bookmark.created`    |
-| bookmark           | `event.go:66`      | `archive.item.added`  |
-| kanban             | `event.go:45`      | `kanban.task.created` |
-| reader             | `cron.go:116`      | `reader.news.summary` |
-| server             | `cron.go:165`      | `server.offline`      |
-| finance            | `webhook.go:76`    | `finance.transaction` |
-| github             | `utils.go:33`      | `github.deployment`   |
-| server (internal)  | `func.go:328`       | `agent.status`        |
-| server (internal)  | `func.go:418`       | `agent.status`        |
-| server (internal)  | `func.go:447`       | `agent.status`        |
-| server (internal)  | `func.go:457`       | `agent.status`        |
-| cron ruleset       | `cron.go:209`      | `cron.output`         |
+| Module            | File            | Template ID           |
+| ----------------- | --------------- | --------------------- |
+| bookmark          | `event.go:26`   | `bookmark.archived`   |
+| bookmark          | `event.go:46`   | `bookmark.created`    |
+| bookmark          | `event.go:66`   | `archive.item.added`  |
+| kanban            | `event.go:45`   | `kanban.task.created` |
+| reader            | `cron.go:116`   | `reader.news.summary` |
+| server            | `cron.go:165`   | `server.offline`      |
+| finance           | `webhook.go:76` | `finance.transaction` |
+| github            | `utils.go:33`   | `github.deployment`   |
+| server (internal) | `func.go:328`   | `agent.status`        |
+| server (internal) | `func.go:418`   | `agent.status`        |
+| server (internal) | `func.go:447`   | `agent.status`        |
+| server (internal) | `func.go:457`   | `agent.status`        |
+| cron ruleset      | `cron.go:209`   | `cron.output`         |
 
 Interactive chat messages (command responses, form interactions) continue to use `event.SendMessage()` directly.
 
@@ -499,11 +500,11 @@ Interactive chat messages (command responses, form interactions) continue to use
 
 The rule engine uses Redis for three state-tracking patterns:
 
-| Pattern   | Data Structure        | Key Format                                     | TTL         |
-| --------- | --------------------- | ---------------------------------------------- | ----------- |
-| Throttle  | String (counter)      | `notify:throttle:{rule}:{event}:{channel}`     | Rule window |
-| Aggregate | List (buffer)         | `notify:agg:{rule}:{event}:{channel}`          | Manual del  |
-| Timers    | String (sentinel)     | `notify:agg:timer:{rule}:{event}:{channel}`    | Rule window |
+| Pattern   | Data Structure    | Key Format                                  | TTL         |
+| --------- | ----------------- | ------------------------------------------- | ----------- |
+| Throttle  | String (counter)  | `notify:throttle:{rule}:{event}:{channel}`  | Rule window |
+| Aggregate | List (buffer)     | `notify:agg:{rule}:{event}:{channel}`       | Manual del  |
+| Timers    | String (sentinel) | `notify:agg:timer:{rule}:{event}:{channel}` | Rule window |
 
 Throttle counters use atomic `INCR` with `EXPIRE` on first increment, avoiding TOCTOU race conditions. Aggregate lists are flushed by a background worker that scans for expired timer keys.
 

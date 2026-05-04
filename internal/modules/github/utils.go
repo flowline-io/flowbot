@@ -29,9 +29,9 @@ func deploy(ctx types.Context) error {
 
 	// send message
 	err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "github.deployment", []string{"slack", "ntfy"}, map[string]any{
-		"user":    user.UserName,
-		"repo":    drone.DefaultDeployRepoName,
-		"build":   build.Number,
+		"user":      user.UserName,
+		"repo":      drone.DefaultDeployRepoName,
+		"build":     build.Number,
 		"drone_url": config.App.Search.UrlBaseMap[drone.ID],
 	})
 	if err != nil {

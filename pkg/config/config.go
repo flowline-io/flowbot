@@ -134,10 +134,10 @@ type NotifyRuleMatch struct {
 
 // NotifyRuleParams holds action-specific parameters.
 type NotifyRuleParams struct {
-	Window        string `json:"window" yaml:"window" mapstructure:"window"`
-	Limit         int    `json:"limit" yaml:"limit" mapstructure:"limit"`
-	DigestTplID   string `json:"digest_template_id" yaml:"digest_template_id" mapstructure:"digest_template_id"`
-	DelayedSend   bool   `json:"delayed_send" yaml:"delayed_send" mapstructure:"delayed_send"`
+	Window      string `json:"window" yaml:"window" mapstructure:"window"`
+	Limit       int    `json:"limit" yaml:"limit" mapstructure:"limit"`
+	DigestTplID string `json:"digest_template_id" yaml:"digest_template_id" mapstructure:"digest_template_id"`
+	DelayedSend bool   `json:"delayed_send" yaml:"delayed_send" mapstructure:"delayed_send"`
 }
 
 // NotifyRule defines a notification filtering or aggregation rule.

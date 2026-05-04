@@ -74,13 +74,13 @@ var webhookRules = []webhook.Rule{
 			}
 
 			err := notify.GatewaySend(ctx.Context(), ctx.AsUser, "finance.transaction", []string{"slack", "ntfy"}, map[string]any{
-				"amount":   payload.Amount,
-				"currency": payload.Currency,
-				"category": payload.Category,
-				"payee":    payload.Payee,
-				"account":  payload.Account,
-				"date":     payload.Date,
-				"notes":    payload.Notes,
+				"amount":    payload.Amount,
+				"currency":  payload.Currency,
+				"category":  payload.Category,
+				"payee":     payload.Payee,
+				"account":   payload.Account,
+				"date":      payload.Date,
+				"notes":     payload.Notes,
 				"recurring": payload.Recurring,
 			})
 			if err != nil {

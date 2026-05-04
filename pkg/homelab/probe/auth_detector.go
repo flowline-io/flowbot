@@ -69,5 +69,3 @@ func (d *AuthDetector) detectAPIKey(resp *http.Response) *homelab.AuthInfo {
 	}
 	return &homelab.AuthInfo{Type: homelab.AuthUnknown}
 }
-
-

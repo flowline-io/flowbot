@@ -39,23 +39,23 @@ func TestEngineEvaluate(t *testing.T) {
 	e := New(nil)
 	err := e.LoadConfig([]config.NotifyRule{
 		{
-			ID:       "night_mute",
-			Action:   config.NotifyRuleActionMute,
-			Match:    config.NotifyRuleMatch{Event: "*", Channel: "*"},
+			ID:        "night_mute",
+			Action:    config.NotifyRuleActionMute,
+			Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
 			Condition: "time.hour >= 25",
 			Priority:  100,
 		},
 		{
-			ID:      "infra_throttle",
-			Action:  config.NotifyRuleActionThrottle,
-			Match:   config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+			ID:       "infra_throttle",
+			Action:   config.NotifyRuleActionThrottle,
+			Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
 			Priority: 50,
-			Params: config.NotifyRuleParams{Window: "5m", Limit: 1},
+			Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
 		},
 		{
-			ID:      "drop_rule",
-			Action:  config.NotifyRuleActionDrop,
-			Match:   config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+			ID:       "drop_rule",
+			Action:   config.NotifyRuleActionDrop,
+			Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
 			Priority: 10,
 		},
 	})
@@ -100,9 +100,9 @@ func TestEngineEvaluateChannelMatch(t *testing.T) {
 	e := New(nil)
 	err := e.LoadConfig([]config.NotifyRule{
 		{
-			ID:      "slack_only",
-			Action:  config.NotifyRuleActionDrop,
-			Match:   config.NotifyRuleMatch{Event: "*", Channel: "slack"},
+			ID:       "slack_only",
+			Action:   config.NotifyRuleActionDrop,
+			Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
 			Priority: 10,
 		},
 	})

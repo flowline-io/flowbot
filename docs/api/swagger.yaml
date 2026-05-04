@@ -50,6 +50,7 @@ definitions:
       - finance
       - infra
       - shell_history
+      - notify
     type: string
     x-enum-varnames:
       - CapBookmark
@@ -59,6 +60,7 @@ definitions:
       - CapFinance
       - CapInfra
       - CapShellHistory
+      - CapNotify
   protocol.Response:
     properties:
       data:

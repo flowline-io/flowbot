@@ -7,16 +7,16 @@ import (
 
 // Label key constants for the flowbot docker-compose label convention.
 const (
-	LabelCapability       = "flowbot.capability"
-	LabelBackend          = "flowbot.backend"
-	LabelEndpointBase     = "flowbot.endpoint.base"
-	LabelEndpointHealth   = "flowbot.endpoint.health"
+	LabelCapability        = "flowbot.capability"
+	LabelBackend           = "flowbot.backend"
+	LabelEndpointBase      = "flowbot.endpoint.base"
+	LabelEndpointHealth    = "flowbot.endpoint.health"
 	LabelEndpointHealthTTL = "flowbot.endpoint.health_ttl"
-	LabelAuthType         = "flowbot.auth.type"
-	LabelAuthHeader       = "flowbot.auth.header"
-	LabelAuthPrefix       = "flowbot.auth.prefix"
-	LabelAuthTokenKey     = "flowbot.auth.token_key"
-	LabelAuthTokenSource  = "flowbot.auth.token_source"
+	LabelAuthType          = "flowbot.auth.type"
+	LabelAuthHeader        = "flowbot.auth.header"
+	LabelAuthPrefix        = "flowbot.auth.prefix"
+	LabelAuthTokenKey      = "flowbot.auth.token_key"
+	LabelAuthTokenSource   = "flowbot.auth.token_source"
 )
 
 // knownCapabilities maps label values to capability type constants.

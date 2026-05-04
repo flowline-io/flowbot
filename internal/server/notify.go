@@ -4,12 +4,12 @@ import (
 	"context"
 
 	abilitynotify "github.com/flowline-io/flowbot/pkg/ability/notify"
-	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
-	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	message_pusher "github.com/flowline-io/flowbot/pkg/notify/message-pusher"
 	"github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	"github.com/flowline-io/flowbot/pkg/notify/pushover"
+	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	"github.com/flowline-io/flowbot/pkg/notify/slack"
+	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 
 	"go.uber.org/fx"

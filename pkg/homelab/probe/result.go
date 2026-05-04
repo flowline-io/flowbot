@@ -17,4 +17,3 @@ type ProbeMatch struct {
 	Confidence  float64
 	Fingerprint string
 }
-

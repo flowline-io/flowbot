@@ -18,8 +18,8 @@ type Engine struct {
 }
 
 type templateEntry struct {
-	manifest  *config.NotifyTemplate
-	compiled  map[string]*template.Template // keyed by channel ("" for default)
+	manifest *config.NotifyTemplate
+	compiled map[string]*template.Template // keyed by channel ("" for default)
 }
 
 // New creates a new template Engine.

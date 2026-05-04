@@ -74,11 +74,11 @@ func (e *Engine) LoadConfig(rules []config.NotifyRule) error {
 
 // EvalResult represents the outcome of rule evaluation.
 type EvalResult struct {
-	Action   config.NotifyRuleAction
-	RuleID   string
-	Window   string
-	Limit    int
-	Muted    bool
+	Action config.NotifyRuleAction
+	RuleID string
+	Window string
+	Limit  int
+	Muted  bool
 }
 
 // Evaluate checks all rules against an event type and channel, returning the first matching action.
@@ -111,10 +111,10 @@ func (e *Engine) Evaluate(ctx context.Context, eventType, channel string) *EvalR
 		}
 
 		return &EvalResult{
-			Action:   rule.Action,
-			RuleID:   rule.ID,
-			Window:   rule.Params.Window,
-			Limit:    rule.Params.Limit,
+			Action: rule.Action,
+			RuleID: rule.ID,
+			Window: rule.Params.Window,
+			Limit:  rule.Params.Limit,
 		}
 	}
 

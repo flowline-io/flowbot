@@ -34,6 +34,7 @@ require (
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/maxence-charriere/go-app/v10 v10.1.11
 	github.com/meilisearch/meilisearch-go v0.36.2
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.1.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/pkoukk/tiktoken-go v0.1.8
@@ -434,7 +435,6 @@ require (
 	github.com/mgechev/dots v1.0.0 // indirect
 	github.com/mgechev/revive v1.14.0 // indirect
 	github.com/mholt/archives v0.1.2 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/microsoft/go-mssqldb v1.0.0 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect

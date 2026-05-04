@@ -44,9 +44,9 @@ func TestParseLabels_WithBackend(t *testing.T) {
 
 func TestParseLabels_FullEndpointInfo(t *testing.T) {
 	labels := map[string]string{
-		LabelCapability:       "archive",
-		LabelEndpointBase:     "http://archivebox:8000",
-		LabelEndpointHealth:   "/health",
+		LabelCapability:        "archive",
+		LabelEndpointBase:      "http://archivebox:8000",
+		LabelEndpointHealth:    "/health",
 		LabelEndpointHealthTTL: "30s",
 	}
 	capabilities := ParseLabels(labels)

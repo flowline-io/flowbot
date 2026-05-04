@@ -2,7 +2,7 @@ package ability
 
 import "github.com/flowline-io/flowbot/pkg/hub"
 
-// OperationName returns a capability-specific operation constant.
+// Operations returns a capability-specific operation constant.
 // All ability operations are defined here to avoid import namespace conflicts
 // with internal/modules packages.
 var Operations = map[hub.CapabilityType]map[string]string{
@@ -46,7 +46,7 @@ var Operations = map[hub.CapabilityType]map[string]string{
 		"CreateTransaction": "create_transaction",
 	},
 	hub.CapNotify: {
-		"Send":  "send",
+		"Send":   "send",
 		"Digest": "digest",
 	},
 }

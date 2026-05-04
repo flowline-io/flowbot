@@ -33,30 +33,30 @@ during filesystem scanning with zero runtime cost.
 
 ### Label Convention
 
-| Label                              | Required | Description                                  | Example                      |
-| ---------------------------------- | -------- | -------------------------------------------- | ---------------------------- |
-| `flowbot.capability`               | Yes      | Capability type the app provides             | `bookmark`                   |
-| `flowbot.backend`                  | No       | Backend provider name (defaults to capability)| `karakeep`                   |
-| `flowbot.endpoint.base`            | No       | Base URL for the API                         | `http://linkwarden:3000/api/v1`|
-| `flowbot.endpoint.health`          | No       | Health check path (relative to base)         | `/health`                    |
-| `flowbot.endpoint.health_ttl`      | No       | Health check cache TTL (duration string)     | `30s`                        |
-| `flowbot.auth.type`                | No       | Auth type: `api_token`, `basic`, `oauth2`, `oidc`, `none` | `api_token` |
-| `flowbot.auth.header`              | No       | HTTP header name for auth                    | `Authorization`              |
-| `flowbot.auth.prefix`              | No       | Header value prefix                          | `Bearer`                     |
-| `flowbot.auth.token_key`           | No       | Environment variable name holding the token  | `LW_API_KEY`                 |
-| `flowbot.auth.token_source`        | No       | Where to read the token: `env`, `file`, `config` | `env`                    |
+| Label                         | Required | Description                                               | Example                         |
+| ----------------------------- | -------- | --------------------------------------------------------- | ------------------------------- |
+| `flowbot.capability`          | Yes      | Capability type the app provides                          | `bookmark`                      |
+| `flowbot.backend`             | No       | Backend provider name (defaults to capability)            | `karakeep`                      |
+| `flowbot.endpoint.base`       | No       | Base URL for the API                                      | `http://linkwarden:3000/api/v1` |
+| `flowbot.endpoint.health`     | No       | Health check path (relative to base)                      | `/health`                       |
+| `flowbot.endpoint.health_ttl` | No       | Health check cache TTL (duration string)                  | `30s`                           |
+| `flowbot.auth.type`           | No       | Auth type: `api_token`, `basic`, `oauth2`, `oidc`, `none` | `api_token`                     |
+| `flowbot.auth.header`         | No       | HTTP header name for auth                                 | `Authorization`                 |
+| `flowbot.auth.prefix`         | No       | Header value prefix                                       | `Bearer`                        |
+| `flowbot.auth.token_key`      | No       | Environment variable name holding the token               | `LW_API_KEY`                    |
+| `flowbot.auth.token_source`   | No       | Where to read the token: `env`, `file`, `config`          | `env`                           |
 
 ### Supported Capabilities
 
-| Label Value      | Capability Type | Typical Backend |
-| ---------------- | --------------- | --------------- |
-| `bookmark`       | Bookmark        | karakeep        |
-| `archive`        | Archive         | archivebox      |
-| `reader`         | Reader (RSS)    | miniflux        |
-| `kanban`         | Kanban          | kanboard        |
-| `finance`        | Finance         | fireflyiii      |
-| `infra`          | Infrastructure  | —               |
-| `shell_history`  | Shell History   | atuin           |
+| Label Value     | Capability Type | Typical Backend |
+| --------------- | --------------- | --------------- |
+| `bookmark`      | Bookmark        | karakeep        |
+| `archive`       | Archive         | archivebox      |
+| `reader`        | Reader (RSS)    | miniflux        |
+| `kanban`        | Kanban          | kanboard        |
+| `finance`       | Finance         | fireflyiii      |
+| `infra`         | Infrastructure  | —               |
+| `shell_history` | Shell History   | atuin           |
 
 ### Example
 
@@ -95,24 +95,24 @@ endpoints and auth mechanisms by making requests to running containers.
 
 ### What It Detects
 
-| Discovery Target             | Method                                                          |
-| ---------------------------- | --------------------------------------------------------------- |
-| API endpoint reachability    | HTTP GET to each published TCP port (http and https)            |
-| Health endpoint              | Probes common paths: `/health`, `/healthz`, `/api/health`, `/api/v1/health`, `/ping`, `/status` |
-| Authentication mechanism     | Analyses HTTP 401/403 responses and `WWW-Authenticate` headers  |
-| OIDC support                 | Probes `/.well-known/openid-configuration`                      |
-| Service fingerprint          | Matches known API paths against the fingerprint database        |
+| Discovery Target          | Method                                                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| API endpoint reachability | HTTP GET to each published TCP port (http and https)                                            |
+| Health endpoint           | Probes common paths: `/health`, `/healthz`, `/api/health`, `/api/v1/health`, `/ping`, `/status` |
+| Authentication mechanism  | Analyses HTTP 401/403 responses and `WWW-Authenticate` headers                                  |
+| OIDC support              | Probes `/.well-known/openid-configuration`                                                      |
+| Service fingerprint       | Matches known API paths against the fingerprint database                                        |
 
 ### Auth Detection Logic
 
-| Response                           | Detected Auth   |
-| ---------------------------------- | --------------- |
-| 401 with `WWW-Authenticate: Bearer` | `oauth2`        |
-| 401 with `WWW-Authenticate: Basic`  | `basic`         |
-| 401/403 with no `WWW-Authenticate`  | `api_token`     |
-| 200 at `/.well-known/openid-configuration` | `oidc`   |
-| 200 at base URL                    | `none`          |
-| Other                              | `unknown`       |
+| Response                                   | Detected Auth |
+| ------------------------------------------ | ------------- |
+| 401 with `WWW-Authenticate: Bearer`        | `oauth2`      |
+| 401 with `WWW-Authenticate: Basic`         | `basic`       |
+| 401/403 with no `WWW-Authenticate`         | `api_token`   |
+| 200 at `/.well-known/openid-configuration` | `oidc`        |
+| 200 at base URL                            | `none`        |
+| Other                                      | `unknown`     |
 
 ### Fingerprint Database
 
@@ -120,13 +120,13 @@ The probe engine maintains a fingerprint database of known self-hosted services.
 When a service's API paths match a fingerprint, the capability type is automatically
 inferred. Currently supported fingerprints:
 
-| Service     | Capability | Detection Path      |
-| ----------- | ---------- | ------------------- |
-| LinkWarden  | bookmark   | `/api/v1/health`    |
-| ArchiveBox  | archive    | `/admin`            |
-| Miniflux    | reader     | `/v1/healthcheck`   |
-| Kanboard    | kanban     | `/jsonrpc.php`      |
-| Firefly III | finance    | `/api/v1/about`     |
+| Service     | Capability | Detection Path    |
+| ----------- | ---------- | ----------------- |
+| LinkWarden  | bookmark   | `/api/v1/health`  |
+| ArchiveBox  | archive    | `/admin`          |
+| Miniflux    | reader     | `/v1/healthcheck` |
+| Kanboard    | kanban     | `/jsonrpc.php`    |
+| Firefly III | finance    | `/api/v1/about`   |
 
 ### Probe Behavior
 
@@ -171,23 +171,23 @@ homelab:
 
 ### Discovery Configuration Reference
 
-| Field                  | Type     | Default      | Description                                                   |
-| ---------------------- | -------- | ------------ | ------------------------------------------------------------- |
-| `probe_enabled`        | bool     | `false`      | Enable runtime HTTP probing of running containers             |
-| `probe_timeout`        | duration | `"5s"`       | Per-request timeout for probe HTTP calls                      |
-| `probe_concurrency`    | int      | `4`          | Maximum number of parallel probe goroutines                   |
-| `probe_networks`       | []string | `[]`         | Docker network names to resolve (reserved for future use)     |
-| `probe_port_strategy`  | string   | `"published"`| Port resolution strategy: `published`, `container`, or `both` |
-| `fingerprint_enabled`  | bool     | `true`       | Enable service fingerprint matching against known patterns    |
-| `label_priority`       | bool     | `true`       | When true, label-derived data takes precedence over probes    |
+| Field                 | Type     | Default       | Description                                                   |
+| --------------------- | -------- | ------------- | ------------------------------------------------------------- |
+| `probe_enabled`       | bool     | `false`       | Enable runtime HTTP probing of running containers             |
+| `probe_timeout`       | duration | `"5s"`        | Per-request timeout for probe HTTP calls                      |
+| `probe_concurrency`   | int      | `4`           | Maximum number of parallel probe goroutines                   |
+| `probe_networks`      | []string | `[]`          | Docker network names to resolve (reserved for future use)     |
+| `probe_port_strategy` | string   | `"published"` | Port resolution strategy: `published`, `container`, or `both` |
+| `fingerprint_enabled` | bool     | `true`        | Enable service fingerprint matching against known patterns    |
+| `label_priority`      | bool     | `true`        | When true, label-derived data takes precedence over probes    |
 
 ### Port Strategy
 
-| Strategy    | Behaviour                                                    |
-| ----------- | ------------------------------------------------------------ |
-| `published` | Probe the host-published port (e.g., `8080:3000` probes `8080`) |
+| Strategy    | Behaviour                                                              |
+| ----------- | ---------------------------------------------------------------------- |
+| `published` | Probe the host-published port (e.g., `8080:3000` probes `8080`)        |
 | `container` | Probe the container-internal port (e.g., probes `3000` on `localhost`) |
-| `both`      | Try published first, fall back to container port             |
+| `both`      | Try published first, fall back to container port                       |
 
 ## How Discovery Feeds Into the Hub
 
@@ -216,14 +216,14 @@ homelab:
 
 ## Design Decisions
 
-| Decision                                                                 | Rationale                                                    |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| Decision                                                                | Rationale                                                      |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Label convention uses a flat namespace (`flowbot.*`)                    | Matches docker-compose label conventions; discoverable by grep |
-| Labels take priority over probe results when `label_priority` is true   | User intent is authoritative; probes are best-effort          |
-| Probe engine returns `nil` when disabled (not an empty engine)          | Avoids unnecessary allocations; callers check for nil         |
-| Homelab capability types use string constants, not `hub.CapabilityType` | Breaks import cycle between `homelab` and `hub` packages      |
-| Only TCP ports are probed (UDP skipped)                                 | Self-hosted APIs are HTTP-based; UDP probing adds noise       |
-| Probes do not follow redirects                                          | Avoids probing login pages that return 200 on redirect        |
+| Labels take priority over probe results when `label_priority` is true   | User intent is authoritative; probes are best-effort           |
+| Probe engine returns `nil` when disabled (not an empty engine)          | Avoids unnecessary allocations; callers check for nil          |
+| Homelab capability types use string constants, not `hub.CapabilityType` | Breaks import cycle between `homelab` and `hub` packages       |
+| Only TCP ports are probed (UDP skipped)                                 | Self-hosted APIs are HTTP-based; UDP probing adds noise        |
+| Probes do not follow redirects                                          | Avoids probing login pages that return 200 on redirect         |
 
 ## Adding New Service Fingerprints
 

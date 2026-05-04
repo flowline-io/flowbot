@@ -944,7 +944,8 @@ const docTemplate = `{
                 "kanban",
                 "finance",
                 "infra",
-                "shell_history"
+                "shell_history",
+                "notify"
             ],
             "x-enum-varnames": [
                 "CapBookmark",
@@ -953,7 +954,8 @@ const docTemplate = `{
                 "CapKanban",
                 "CapFinance",
                 "CapInfra",
-                "CapShellHistory"
+                "CapShellHistory",
+                "CapNotify"
             ]
         },
         "protocol.Response": {
