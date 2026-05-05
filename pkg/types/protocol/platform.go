@@ -19,7 +19,7 @@ type Driver interface {
 	Shoutdown() error
 }
 
-// Adapter Responsible for converting platform messages to chatbot event/message formats.
+// Adapter converts platform messages to internal event/message formats.
 type Adapter interface {
 	MessageConvert(data any) Message
 	EventConvert(data any) Event

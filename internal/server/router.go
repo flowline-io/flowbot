@@ -74,7 +74,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	// webhook
 	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
-	a.All("/chatbot/:platform", ctl.platformCallback)
+	a.All("/platform/:platform", ctl.platformCallback)
 }
 
 // handler

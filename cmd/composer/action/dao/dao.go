@@ -70,7 +70,6 @@ func GenerationAction(ctx context.Context, c *cli.Command) error {
 
 	g.UseDB(db)
 
-	// chatbot table
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("behavior", "Behavior",
 		gen.FieldType("extra", "*JSON")))
 	g.ApplyInterface(func(Querier) {}, g.GenerateModelAs("configs", "Config",

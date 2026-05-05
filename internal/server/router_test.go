@@ -212,9 +212,9 @@ func TestWebhookRoute_PostNoBot(t *testing.T) {
 func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 	app := newTestApp()
 	ctl := &Controller{}
-	app.All("/chatbot/:platform", ctl.platformCallback)
+	app.All("/platform/:platform", ctl.platformCallback)
 
-	req := httptest.NewRequest(http.MethodPost, "/chatbot/unknown_platform", nil)
+	req := httptest.NewRequest(http.MethodPost, "/platform/unknown_platform", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -328,7 +328,7 @@ func TestRouteRegistration(t *testing.T) {
 	app.Get("/page/:id/:flag", ctl.renderPage)
 	app.Post("/agent", ctl.agentData)
 	app.All("/webhook/:flag", ctl.doWebhook)
-	app.All("/chatbot/:platform", ctl.platformCallback)
+	app.All("/platform/:platform", ctl.platformCallback)
 
 	routes := app.GetRoutes()
 	routePaths := make(map[string]bool)
@@ -347,7 +347,7 @@ func TestRouteRegistration(t *testing.T) {
 		"/page/:id/:flag",
 		"/agent",
 		"/webhook/:flag",
-		"/chatbot/:platform",
+		"/platform/:platform",
 	}
 	for _, p := range expectedPaths {
 		assert.True(t, routePaths[p], "expected route %q to be registered", p)
@@ -400,15 +400,15 @@ func TestWebhook_MethodRouting(t *testing.T) {
 	}
 }
 
-func TestChatbot_MethodRouting(t *testing.T) {
+func TestPlatform_MethodRouting(t *testing.T) {
 	app := newTestApp()
 	ctl := &Controller{}
-	app.All("/chatbot/:platform", ctl.platformCallback)
+	app.All("/platform/:platform", ctl.platformCallback)
 
 	methods := []string{http.MethodGet, http.MethodPost, http.MethodPut}
 	for _, method := range methods {
 		t.Run(method, func(t *testing.T) {
-			req := httptest.NewRequest(method, "/chatbot/unknown", nil)
+			req := httptest.NewRequest(method, "/platform/unknown", nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)

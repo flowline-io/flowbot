@@ -1156,7 +1156,7 @@
   ],
   "refresh": "30s",
   "schemaVersion": 38,
-  "tags": ["flowbot", "homelab", "chatbot"],
+  "tags": ["flowbot", "homelab"],
   "templating": {
     "list": [
       {

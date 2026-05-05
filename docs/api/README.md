@@ -73,7 +73,7 @@ X-AccessToken: <your-token>
 | `/metrics`               | GET    | Prometheus metrics  |
 | `/oauth/:provider/:flag` | ALL    | OAuth callbacks     |
 | `/webhook/:flag`         | ALL    | Webhook handler     |
-| `/chatbot/:platform`     | ALL    | Platform callbacks  |
+| `/platform/:platform`    | ALL    | Platform callbacks  |
 | `/form`                  | POST   | Form submissions    |
 | `/p/:id`                 | GET    | Page rendering      |
 | `/agent`                 | POST   | Agent data endpoint |

@@ -26,7 +26,7 @@ func NewCommand() *cli.Command {
 	}
 	return &cli.Command{
 		Name:                  "composer",
-		Usage:                 "chatbot tool cli",
+		Usage:                 "tool cli",
 		EnableShellCompletion: true,
 		Version:               version.Buildtags,
 		Commands: []*cli.Command{
