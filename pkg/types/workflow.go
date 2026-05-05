@@ -8,7 +8,7 @@ import (
 
 // RetryConfig defines the retry strategy for a pipeline step or workflow task.
 type RetryConfig struct {
-	MaxAttempts int           `json:"max_attempts" yaml:"max_attempts"`
+	MaxAttempts int           `json:"max_attempts" yaml:"max_attempts"` // Total execution attempts; 0 or 1 means no retry.
 	Delay       time.Duration `json:"delay" yaml:"delay"`
 	Backoff     string        `json:"backoff" yaml:"backoff"` // fixed | linear | exponential
 	MaxDelay    time.Duration `json:"max_delay" yaml:"max_delay"`
@@ -23,9 +23,9 @@ const (
 	BackoffExponential = "exponential"
 )
 
-// RetryEnabled returns true if retries are configured with at least one attempt.
+// RetryEnabled returns true if retries are configured with more than one attempt.
 func (r *RetryConfig) RetryEnabled() bool {
-	return r != nil && r.MaxAttempts > 0
+	return r != nil && r.MaxAttempts > 1
 }
 
 // BuildBackOff constructs a backoff.BackOff from the retry configuration.
@@ -63,7 +63,9 @@ func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 		}
 	}
 	bo.Reset()
-	return backoff.WithMaxRetries(bo, uint64(r.MaxAttempts))
+	// WithMaxRetries takes the number of retries (after the initial attempt),
+	// so we subtract 1 from the total attempt count.
+	return backoff.WithMaxRetries(bo, uint64(r.MaxAttempts-1))
 }
 
 type WorkflowMetadata struct {
