@@ -594,7 +594,7 @@ func TestRunnerExecute_MapperStepOnly(t *testing.T) {
 			},
 		},
 	}
-	err := runner.Execute(context.Background(), wf, nil)
+	err := runner.Execute(context.Background(), wf, nil, "")
 	require.NoError(t, err)
 }
 
@@ -631,6 +631,6 @@ func TestRunnerExecute_MapperChainWithJsonpath(t *testing.T) {
 			},
 		},
 	}
-	err := runner.Execute(context.Background(), wf, nil)
+	err := runner.Execute(context.Background(), wf, nil, "")
 	require.NoError(t, err)
 }

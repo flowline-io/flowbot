@@ -281,8 +281,7 @@ func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName,
 	if e.store == nil {
 		return 0, nil
 	}
-	paramsJSON := model.JSON{}
-	_ = paramsJSON.Scan(convertToTypesKV(params))
+	paramsJSON := model.JSON(convertToTypesKV(params))
 	sr, err := e.store.CreateStepRun(runID, stepName, capability, operation, paramsJSON, attempt)
 	if err != nil {
 		return 0, fmt.Errorf("create step run %s: %w", stepName, err)
@@ -296,7 +295,7 @@ func (e *Engine) updateStepRunRecord(stepRunID int64, status model.PipelineState
 	}
 	var resultJSON model.JSON
 	if result != nil {
-		_ = resultJSON.Scan(convertToTypesKV(result))
+		resultJSON = model.JSON(convertToTypesKV(result))
 	}
 	_ = e.store.UpdateStepRun(stepRunID, status, resultJSON, errMsg, attempt)
 }
@@ -317,16 +316,26 @@ func (e *Engine) finishRunRecord(runID int64, failed bool, finalErr error) {
 }
 
 func extractResult(res *ability.InvokeResult) map[string]any {
-	stepResult := map[string]any{}
 	if res.Data == nil {
-		return stepResult
+		return map[string]any{}
 	}
 	if m, ok := res.Data.(map[string]any); ok {
 		return m
 	}
-	dataJSON, _ := sonic.Marshal(res.Data)
-	_ = sonic.Unmarshal(dataJSON, &stepResult)
-	return stepResult
+	// For non-map types (e.g. slices, structs), serialize via JSON and store
+	// in a map so template resolution can access individual fields.
+	dataJSON, err := sonic.Marshal(res.Data)
+	if err != nil {
+		return map[string]any{"result": res.Data}
+	}
+	var stepResult any
+	if err := sonic.Unmarshal(dataJSON, &stepResult); err != nil {
+		return map[string]any{"result": res.Data}
+	}
+	if m, ok := stepResult.(map[string]any); ok {
+		return m
+	}
+	return map[string]any{"items": stepResult}
 }
 
 func convertToTypesKV(m map[string]any) types.KV {

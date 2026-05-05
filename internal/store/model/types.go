@@ -128,6 +128,20 @@ func (j PipelineState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
+// WorkflowRunState represents the execution state of a local workflow engine run.
+type WorkflowRunState int
+
+const (
+	WorkflowRunStateUnknown WorkflowRunState = iota
+	WorkflowRunRunning
+	WorkflowRunDone
+	WorkflowRunFailed
+)
+
+func (j WorkflowRunState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type ValueModeType string
 
 const (

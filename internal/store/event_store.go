@@ -167,11 +167,13 @@ func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineStat
 	if s == nil || s.db == nil {
 		return nil
 	}
-	now := time.Now()
 	updates := map[string]any{
-		"status":       status,
-		"completed_at": now,
-		"attempt":      attempt,
+		"status":  status,
+		"attempt": attempt,
+	}
+	if status == model.PipelineDone || status == model.PipelineCancel {
+		now := time.Now()
+		updates["completed_at"] = now
 	}
 	if result != nil {
 		updates["result"] = result
