@@ -70,7 +70,7 @@ require (
 	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
 	golang.org/x/sys v0.43.0
 	golang.org/x/term v0.42.0
-	google.golang.org/genai v1.55.0
+	google.golang.org/genai v1.56.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0
