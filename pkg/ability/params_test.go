@@ -100,6 +100,53 @@ func TestPageRequestFromParams(t *testing.T) {
 	assert.Equal(t, "desc", pr.SortOrder)
 }
 
+func TestRequiredInt(t *testing.T) {
+	v, err := RequiredInt(map[string]any{"key": 42}, "key")
+	assert.NoError(t, err)
+	assert.Equal(t, 42, v)
+
+	_, err = RequiredInt(map[string]any{}, "key")
+	assert.Error(t, err)
+
+	_, err = RequiredInt(map[string]any{"key": "abc"}, "key")
+	assert.Error(t, err)
+}
+
+func TestInt64Param(t *testing.T) {
+	tests := []struct {
+		name   string
+		params map[string]any
+		key    string
+		want   int64
+		wantOk bool
+	}{
+		{"int64 value", map[string]any{"key": int64(42)}, "key", 42, true},
+		{"int value", map[string]any{"key": 42}, "key", 42, true},
+		{"float64 value", map[string]any{"key": float64(99.0)}, "key", 99, true},
+		{"not found", map[string]any{}, "key", 0, false},
+		{"nil value", map[string]any{"key": nil}, "key", 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := Int64Param(tt.params, tt.key)
+			assert.Equal(t, tt.wantOk, ok)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestRequiredInt64(t *testing.T) {
+	v, err := RequiredInt64(map[string]any{"key": int64(100)}, "key")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(100), v)
+
+	_, err = RequiredInt64(map[string]any{}, "key")
+	assert.Error(t, err)
+
+	_, err = RequiredInt64(map[string]any{"key": nil}, "key")
+	assert.Error(t, err)
+}
+
 func TestPageRequestFromParamsEmpty(t *testing.T) {
 	pr := PageRequestFromParams(map[string]any{})
 	assert.Equal(t, 0, pr.Limit)

@@ -57,7 +57,7 @@ func RegisterService(backend, app string, svc Service) error {
 
 func invokeListFeeds(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		result, err := svc.ListFeeds(ctx, &FeedQuery{})
+		result, err := svc.ListFeeds(ctx, &FeedQuery{Page: ability.PageRequestFromParams(params)})
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func invokeListFeeds(svc Service) ability.Invoker {
 
 func invokeCreateFeed(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		feedURL, err := requiredString(params, "feed_url")
+		feedURL, err := ability.RequiredString(params, "feed_url")
 		if err != nil {
 			return nil, err
 		}
@@ -84,11 +84,11 @@ func invokeCreateFeed(svc Service) ability.Invoker {
 
 func invokeListEntries(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &EntryQuery{}
-		if v, ok := stringParam(params, "status"); ok {
+		q := &EntryQuery{Page: ability.PageRequestFromParams(params)}
+		if v, ok := ability.StringParam(params, "status"); ok {
 			q.Status = v
 		}
-		if v, ok := int64Param(params, "feed_id"); ok {
+		if v, ok := ability.Int64Param(params, "feed_id"); ok {
 			q.FeedID = v
 		}
 		result, err := svc.ListEntries(ctx, q)
@@ -104,7 +104,7 @@ func invokeListEntries(svc Service) ability.Invoker {
 
 func invokeMarkEntryRead(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt64(params, "id")
+		id, err := ability.RequiredInt64(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func invokeMarkEntryRead(svc Service) ability.Invoker {
 
 func invokeMarkEntryUnread(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt64(params, "id")
+		id, err := ability.RequiredInt64(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func invokeMarkEntryUnread(svc Service) ability.Invoker {
 
 func invokeStarEntry(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt64(params, "id")
+		id, err := ability.RequiredInt64(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func invokeStarEntry(svc Service) ability.Invoker {
 
 func invokeUnstarEntry(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt64(params, "id")
+		id, err := ability.RequiredInt64(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -152,48 +152,4 @@ func invokeUnstarEntry(svc Service) ability.Invoker {
 		}
 		return &ability.InvokeResult{Text: "entry unstarred"}, nil
 	}
-}
-
-func requiredString(params map[string]any, key string) (string, error) {
-	value, ok := stringParam(params, key)
-	if !ok || value == "" {
-		return "", types.Errorf(types.ErrInvalidArgument, "%s is required", key)
-	}
-	return value, nil
-}
-
-func stringParam(params map[string]any, key string) (string, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return "", false
-	}
-	s, ok := value.(string)
-	if !ok {
-		return "", false
-	}
-	return s, true
-}
-
-func requiredInt64(params map[string]any, key string) (int64, error) {
-	value, ok := int64Param(params, key)
-	if !ok {
-		return 0, types.Errorf(types.ErrInvalidArgument, "%s is required", key)
-	}
-	return value, nil
-}
-
-func int64Param(params map[string]any, key string) (int64, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return 0, false
-	}
-	switch v := value.(type) {
-	case int64:
-		return v, true
-	case int:
-		return int64(v), true
-	case float64:
-		return int64(v), true
-	}
-	return 0, false
 }

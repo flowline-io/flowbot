@@ -3,12 +3,15 @@ package kanboard
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/ability/kanban"
 	provider "github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
+
+var defaultCursorSecret = []byte("flowbot-ability-kanban-kanboard-cursor-v1")
 
 type client interface {
 	GetAllTasks(ctx context.Context, projectID int, status provider.StatusId) ([]*provider.Task, error)
@@ -23,7 +26,9 @@ type client interface {
 }
 
 type Adapter struct {
-	client client
+	client       client
+	cursorSecret []byte
+	now          func() time.Time
 }
 
 func New() kanban.Service {
@@ -35,7 +40,11 @@ func New() kanban.Service {
 }
 
 func NewWithClient(client client) kanban.Service {
-	return &Adapter{client: client}
+	return &Adapter{
+		client:       client,
+		cursorSecret: defaultCursorSecret,
+		now:          time.Now,
+	}
 }
 
 func (a *Adapter) checkClient() error {
@@ -51,6 +60,9 @@ func (a *Adapter) ListTasks(ctx context.Context, q *kanban.TaskQuery) (*ability.
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "kanban list tasks canceled", err)
+	}
+	if q == nil {
+		q = &kanban.TaskQuery{}
 	}
 	projectID := q.ProjectID
 	if projectID == 0 {
@@ -68,7 +80,7 @@ func (a *Adapter) ListTasks(ctx context.Context, q *kanban.TaskQuery) (*ability.
 	for _, t := range tasks {
 		items = append(items, toAbilityTask(t))
 	}
-	return &ability.ListResult[ability.Task]{Items: items, Page: &ability.PageInfo{Limit: len(items)}}, nil
+	return paginateSlice(items, q.Page, a.cursorSecret, a.now(), "kanban", "kanboard"), nil
 }
 
 func (a *Adapter) GetTask(ctx context.Context, id int) (*ability.Task, error) {
@@ -222,6 +234,9 @@ func (a *Adapter) SearchTasks(ctx context.Context, q *kanban.SearchQuery) (*abil
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "kanban search tasks canceled", err)
 	}
+	if q == nil {
+		q = &kanban.SearchQuery{}
+	}
 	projectID := q.ProjectID
 	if projectID == 0 {
 		projectID = 1
@@ -234,7 +249,7 @@ func (a *Adapter) SearchTasks(ctx context.Context, q *kanban.SearchQuery) (*abil
 	for _, t := range tasks {
 		items = append(items, toAbilityTask(t))
 	}
-	return &ability.ListResult[ability.Task]{Items: items, Page: &ability.PageInfo{Limit: len(items)}}, nil
+	return paginateSlice(items, q.Page, a.cursorSecret, a.now(), "kanban", "kanboard"), nil
 }
 
 func toAbilityTask(t *provider.Task) *ability.Task {
@@ -268,6 +283,49 @@ func anyToStringSlice(items []any) []string {
 		}
 	}
 	return result
+}
+
+func paginateSlice[T any](items []*T, pageReq ability.PageRequest, cursorSecret []byte, now time.Time, capability, backend string) *ability.ListResult[T] {
+	offset := 0
+	limit := normalizedLimit(pageReq.Limit)
+	if pageReq.Cursor != "" {
+		if payload, err := ability.DecodeCursor(cursorSecret, pageReq.Cursor, now); err == nil {
+			offset = payload.Offset
+			if payload.Limit > 0 {
+				limit = payload.Limit
+			}
+		}
+	}
+	if offset >= len(items) {
+		return &ability.ListResult[T]{Items: []*T{}, Page: &ability.PageInfo{Limit: limit}}
+	}
+	end := offset + limit
+	if end > len(items) {
+		end = len(items)
+	}
+	slice := items[offset:end]
+	hasMore := end < len(items)
+	page := &ability.PageInfo{Limit: limit, HasMore: hasMore}
+	if hasMore {
+		nextCursor, err := ability.EncodeCursor(cursorSecret, ability.CursorPayload{
+			Capability: capability,
+			Backend:    backend,
+			Strategy:   "offset",
+			Offset:     end,
+			Limit:      limit,
+		})
+		if err == nil {
+			page.NextCursor = nextCursor
+		}
+	}
+	return &ability.ListResult[T]{Items: slice, Page: page}
+}
+
+func normalizedLimit(limit int) int {
+	if limit <= 0 || limit > 100 {
+		return 100
+	}
+	return limit
 }
 
 var _ = fmt.Sprintf

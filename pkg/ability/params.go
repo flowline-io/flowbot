@@ -66,6 +66,38 @@ func IntParam(params map[string]any, key string) (int, bool) {
 	}
 }
 
+func RequiredInt(params map[string]any, key string) (int, error) {
+	value, ok := IntParam(params, key)
+	if !ok {
+		return 0, types.Errorf(types.ErrInvalidArgument, "%s is required", key)
+	}
+	return value, nil
+}
+
+func Int64Param(params map[string]any, key string) (int64, bool) {
+	value, ok := params[key]
+	if !ok || value == nil {
+		return 0, false
+	}
+	switch v := value.(type) {
+	case int64:
+		return v, true
+	case int:
+		return int64(v), true
+	case float64:
+		return int64(v), true
+	}
+	return 0, false
+}
+
+func RequiredInt64(params map[string]any, key string) (int64, error) {
+	value, ok := Int64Param(params, key)
+	if !ok {
+		return 0, types.Errorf(types.ErrInvalidArgument, "%s is required", key)
+	}
+	return value, nil
+}
+
 func BoolParam(params map[string]any, key string) (bool, bool) {
 	value, ok := params[key]
 	if !ok || value == nil {

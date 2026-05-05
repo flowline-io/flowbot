@@ -45,11 +45,11 @@ func RegisterService(backend, app string, svc Service) error {
 func invokeCreateTransaction(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
 		req := CreateTransactionRequest{}
-		req.Description, _ = stringParam(params, "description")
-		req.Amount, _ = stringParam(params, "amount")
-		req.Date, _ = stringParam(params, "date")
-		req.SourceID, _ = stringParam(params, "source_id")
-		if v, ok := intParam(params, "destination_id"); ok {
+		req.Description, _ = ability.StringParam(params, "description")
+		req.Amount, _ = ability.StringParam(params, "amount")
+		req.Date, _ = ability.StringParam(params, "date")
+		req.SourceID, _ = ability.StringParam(params, "source_id")
+		if v, ok := ability.IntParam(params, "destination_id"); ok {
 			req.DestinationID = v
 		}
 		result, err := svc.CreateTransaction(ctx, req)
@@ -58,32 +58,4 @@ func invokeCreateTransaction(svc Service) ability.Invoker {
 		}
 		return &ability.InvokeResult{Data: result, Text: "transaction created"}, nil
 	}
-}
-
-func stringParam(params map[string]any, key string) (string, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return "", false
-	}
-	s, ok := value.(string)
-	if !ok {
-		return "", false
-	}
-	return s, true
-}
-
-func intParam(params map[string]any, key string) (int, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return 0, false
-	}
-	switch v := value.(type) {
-	case int:
-		return v, true
-	case int64:
-		return int(v), true
-	case float64:
-		return int(v), true
-	}
-	return 0, false
 }

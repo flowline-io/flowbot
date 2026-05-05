@@ -7,69 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func TestStringParam_Matches(t *testing.T) {
-	v, ok := stringParam(map[string]any{"key": "hello"}, "key")
-	assert.True(t, ok)
-	assert.Equal(t, "hello", v)
-}
-
-func TestStringParam_NonString(t *testing.T) {
-	_, ok := stringParam(map[string]any{"key": 42}, "key")
-	assert.False(t, ok)
-}
-
-func TestStringParam_Missing(t *testing.T) {
-	_, ok := stringParam(map[string]any{}, "key")
-	assert.False(t, ok)
-}
-
-func TestStringParam_Nil(t *testing.T) {
-	_, ok := stringParam(map[string]any{"key": nil}, "key")
-	assert.False(t, ok)
-}
-
-func TestIntParam_Int(t *testing.T) {
-	v, ok := intParam(map[string]any{"key": 42}, "key")
-	assert.True(t, ok)
-	assert.Equal(t, 42, v)
-}
-
-func TestIntParam_Int64(t *testing.T) {
-	v, ok := intParam(map[string]any{"key": int64(100)}, "key")
-	assert.True(t, ok)
-	assert.Equal(t, 100, v)
-}
-
-func TestIntParam_Float64(t *testing.T) {
-	v, ok := intParam(map[string]any{"key": float64(99.0)}, "key")
-	assert.True(t, ok)
-	assert.Equal(t, 99, v)
-}
-
-func TestIntParam_String(t *testing.T) {
-	_, ok := intParam(map[string]any{"key": "42"}, "key")
-	assert.False(t, ok)
-}
-
-func TestIntParam_Missing(t *testing.T) {
-	_, ok := intParam(map[string]any{}, "key")
-	assert.False(t, ok)
-}
-
-func TestRequiredInt_Present(t *testing.T) {
-	v, err := requiredInt(map[string]any{"id": 5}, "id")
-	require.NoError(t, err)
-	assert.Equal(t, 5, v)
-}
-
-func TestRequiredInt_Missing(t *testing.T) {
-	_, err := requiredInt(map[string]any{}, "id")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "id is required")
-}
 
 func TestStringListParam_StringSlice(t *testing.T) {
 	v, ok := stringListParam(map[string]any{"tags": []string{"a", "b"}}, "tags")

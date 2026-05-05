@@ -62,11 +62,11 @@ func RegisterService(backend, app string, svc Service) error {
 
 func invokeListTasks(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &TaskQuery{}
-		if v, ok := intParam(params, "project_id"); ok {
+		q := &TaskQuery{Page: ability.PageRequestFromParams(params)}
+		if v, ok := ability.IntParam(params, "project_id"); ok {
 			q.ProjectID = v
 		}
-		if v, ok := stringParam(params, "status"); ok {
+		if v, ok := ability.StringParam(params, "status"); ok {
 			q.Status = v
 		}
 		result, err := svc.ListTasks(ctx, q)
@@ -82,7 +82,7 @@ func invokeListTasks(svc Service) ability.Invoker {
 
 func invokeGetTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt(params, "id")
+		id, err := ability.RequiredInt(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -97,18 +97,18 @@ func invokeGetTask(svc Service) ability.Invoker {
 func invokeCreateTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
 		req := CreateTaskRequest{}
-		req.Title, _ = stringParam(params, "title")
-		req.Description, _ = stringParam(params, "description")
-		if v, ok := intParam(params, "project_id"); ok {
+		req.Title, _ = ability.StringParam(params, "title")
+		req.Description, _ = ability.StringParam(params, "description")
+		if v, ok := ability.IntParam(params, "project_id"); ok {
 			req.ProjectID = v
 		}
-		if v, ok := intParam(params, "column_id"); ok {
+		if v, ok := ability.IntParam(params, "column_id"); ok {
 			req.ColumnID = v
 		}
 		if v, ok := stringListParam(params, "tags"); ok {
 			req.Tags = v
 		}
-		req.Reference, _ = stringParam(params, "reference")
+		req.Reference, _ = ability.StringParam(params, "reference")
 		item, err := svc.CreateTask(ctx, req)
 		if err != nil {
 			return nil, err
@@ -126,13 +126,13 @@ func invokeCreateTask(svc Service) ability.Invoker {
 
 func invokeUpdateTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt(params, "id")
+		id, err := ability.RequiredInt(params, "id")
 		if err != nil {
 			return nil, err
 		}
 		req := UpdateTaskRequest{}
-		req.Title, _ = stringParam(params, "title")
-		req.Description, _ = stringParam(params, "description")
+		req.Title, _ = ability.StringParam(params, "title")
+		req.Description, _ = ability.StringParam(params, "description")
 		item, err := svc.UpdateTask(ctx, id, req)
 		if err != nil {
 			return nil, err
@@ -143,7 +143,7 @@ func invokeUpdateTask(svc Service) ability.Invoker {
 
 func invokeDeleteTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt(params, "id")
+		id, err := ability.RequiredInt(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -156,21 +156,21 @@ func invokeDeleteTask(svc Service) ability.Invoker {
 
 func invokeMoveTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt(params, "id")
+		id, err := ability.RequiredInt(params, "id")
 		if err != nil {
 			return nil, err
 		}
 		req := MoveTaskRequest{}
-		if v, ok := intParam(params, "column_id"); ok {
+		if v, ok := ability.IntParam(params, "column_id"); ok {
 			req.ColumnID = v
 		}
-		if v, ok := intParam(params, "position"); ok {
+		if v, ok := ability.IntParam(params, "position"); ok {
 			req.Position = v
 		}
-		if v, ok := intParam(params, "swimlane_id"); ok {
+		if v, ok := ability.IntParam(params, "swimlane_id"); ok {
 			req.SwimlaneID = v
 		}
-		if v, ok := intParam(params, "project_id"); ok {
+		if v, ok := ability.IntParam(params, "project_id"); ok {
 			req.ProjectID = v
 		}
 		item, err := svc.MoveTask(ctx, id, req)
@@ -183,7 +183,7 @@ func invokeMoveTask(svc Service) ability.Invoker {
 
 func invokeCompleteTask(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := requiredInt(params, "id")
+		id, err := ability.RequiredInt(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func invokeCompleteTask(svc Service) ability.Invoker {
 func invokeGetColumns(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
 		projectID := 1
-		if v, ok := intParam(params, "project_id"); ok {
+		if v, ok := ability.IntParam(params, "project_id"); ok {
 			projectID = v
 		}
 		columns, err := svc.GetColumns(ctx, projectID)
@@ -216,9 +216,9 @@ func invokeGetColumns(svc Service) ability.Invoker {
 
 func invokeSearchTasks(svc Service) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &SearchQuery{}
-		q.Q, _ = stringParam(params, "q")
-		if v, ok := intParam(params, "project_id"); ok {
+		q := &SearchQuery{Page: ability.PageRequestFromParams(params)}
+		q.Q, _ = ability.StringParam(params, "q")
+		if v, ok := ability.IntParam(params, "project_id"); ok {
 			q.ProjectID = v
 		}
 		result, err := svc.SearchTasks(ctx, q)
@@ -230,42 +230,6 @@ func invokeSearchTasks(svc Service) ability.Invoker {
 		}
 		return &ability.InvokeResult{Data: result.Items, Page: result.Page}, nil
 	}
-}
-
-func requiredInt(params map[string]any, key string) (int, error) {
-	value, ok := intParam(params, key)
-	if !ok {
-		return 0, types.Errorf(types.ErrInvalidArgument, "%s is required", key)
-	}
-	return value, nil
-}
-
-func stringParam(params map[string]any, key string) (string, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return "", false
-	}
-	s, ok := value.(string)
-	if !ok {
-		return "", false
-	}
-	return s, true
-}
-
-func intParam(params map[string]any, key string) (int, bool) {
-	value, ok := params[key]
-	if !ok || value == nil {
-		return 0, false
-	}
-	switch v := value.(type) {
-	case int:
-		return v, true
-	case int64:
-		return int(v), true
-	case float64:
-		return int(v), true
-	}
-	return 0, false
 }
 
 func stringListParam(params map[string]any, key string) ([]string, bool) {
