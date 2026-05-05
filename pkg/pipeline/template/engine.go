@@ -17,17 +17,20 @@ type TemplateData struct {
 	Event map[string]any
 	Steps map[string]map[string]any
 	Env   map[string]string
+	Input map[string]any
 }
 
 func New() *Engine {
 	return &Engine{}
 }
 
+var reInput = regexp.MustCompile(`\{\{input\.(\w+)\}\}`)
 var reEvent = regexp.MustCompile(`\{\{event\.(\w+)\}\}`)
 var reSteps = regexp.MustCompile(`\{\{steps\.(\w+)\.(\w+)\}\}`)
 var reStepLegacy = regexp.MustCompile(`\{\{(\w+)\.(id|result)\}\}`)
 
 func preprocessTemplate(s string) string {
+	s = reInput.ReplaceAllString(s, `{{input "$1"}}`)
 	s = reEvent.ReplaceAllString(s, `{{event "$1"}}`)
 	s = reSteps.ReplaceAllString(s, `{{step "$1" "$2"}}`)
 	s = reStepLegacy.ReplaceAllString(s, `{{step "$1" "$2"}}`)
@@ -36,6 +39,14 @@ func preprocessTemplate(s string) string {
 
 func funcMap(data *TemplateData) txtpl.FuncMap {
 	return txtpl.FuncMap{
+		"input": func(field string) any {
+			if data != nil && data.Input != nil {
+				if v, ok := data.Input[field]; ok {
+					return v
+				}
+			}
+			return ""
+		},
 		"event": func(field string) any {
 			if data != nil && data.Event != nil {
 				if v, ok := data.Event[field]; ok {
@@ -123,14 +134,19 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	}
 
 	tplData := map[string]any{}
-	if data.Event != nil {
-		tplData["Event"] = data.Event
-	}
-	if data.Steps != nil {
-		tplData["Steps"] = data.Steps
-	}
-	if data.Env != nil {
-		tplData["Env"] = data.Env
+	if data != nil {
+		if data.Event != nil {
+			tplData["Event"] = data.Event
+		}
+		if data.Steps != nil {
+			tplData["Steps"] = data.Steps
+		}
+		if data.Env != nil {
+			tplData["Env"] = data.Env
+		}
+		if data.Input != nil {
+			tplData["Input"] = data.Input
+		}
 	}
 
 	var buf strings.Builder

@@ -160,7 +160,7 @@ func (r *Runner) Run(ctx context.Context, t *types.Task) error {
 	return eng.Run(ctx, t)
 }
 
-func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
+func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input map[string]any) error {
 	taskMap := make(map[string]types.WorkflowTask)
 	for _, wt := range wf.Tasks {
 		taskMap[wt.ID] = wt
@@ -174,7 +174,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata) error {
 			return fmt.Errorf("task %s not found in workflow", stepID)
 		}
 
-		params, err := resolveParams(wt.Params, results)
+		params, err := resolveParams(wt.Params, results, input)
 		if err != nil {
 			return fmt.Errorf("resolve params step %s: %w", stepID, err)
 		}
@@ -300,7 +300,7 @@ func ValidateDAG(tasks []types.WorkflowTask) error {
 
 var workflowEngine = template.New()
 
-func resolveParams(params types.KV, results map[string]string) (types.KV, error) {
+func resolveParams(params types.KV, results map[string]string, input map[string]any) (types.KV, error) {
 	steps := make(map[string]map[string]any, len(results))
 	for stepID, result := range results {
 		steps[stepID] = map[string]any{
@@ -311,6 +311,7 @@ func resolveParams(params types.KV, results map[string]string) (types.KV, error)
 
 	data := &template.TemplateData{
 		Steps: steps,
+		Input: input,
 	}
 
 	rendered, err := workflowEngine.Render(map[string]any(params), data)

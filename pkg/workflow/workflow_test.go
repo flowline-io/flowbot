@@ -245,7 +245,7 @@ tasks:
 func TestResolveParams_SimpleReplacement(t *testing.T) {
 	params := types.KV{"ref": "{{step1.id}}"}
 	results := map[string]string{"step1": "abc123"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "abc123", resolved["ref"])
 }
@@ -253,7 +253,7 @@ func TestResolveParams_SimpleReplacement(t *testing.T) {
 func TestResolveParams_NoMatch(t *testing.T) {
 	params := types.KV{"ref": "hello world"}
 	results := map[string]string{"step1": "abc"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "hello world", resolved["ref"])
 }
@@ -261,7 +261,7 @@ func TestResolveParams_NoMatch(t *testing.T) {
 func TestResolveParams_NonStringValue(t *testing.T) {
 	params := types.KV{"count": 42}
 	results := map[string]string{"step1": "abc"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 42, resolved["count"])
 }
@@ -269,7 +269,7 @@ func TestResolveParams_NonStringValue(t *testing.T) {
 func TestResolveParams_MultipleKeys(t *testing.T) {
 	params := types.KV{"a": "{{step1.id}}", "b": "{{step2.id}}"}
 	results := map[string]string{"step1": "r1", "step2": "r2"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "r1", resolved["a"])
 	assert.Equal(t, "r2", resolved["b"])
@@ -280,7 +280,7 @@ func TestResolveParams_ConditionInParams(t *testing.T) {
 		"action": "{{if eq (step \"step1\" \"result\") \"success\"}}proceed{{else}}retry{{end}}",
 	}
 	results := map[string]string{"step1": "success"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "proceed", resolved["action"])
 }
@@ -290,7 +290,7 @@ func TestResolveParams_ConditionElse(t *testing.T) {
 		"action": "{{if eq (step \"step1\" \"result\") \"success\"}}proceed{{else}}retry{{end}}",
 	}
 	results := map[string]string{"step1": "failed"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "retry", resolved["action"])
 }
@@ -298,7 +298,7 @@ func TestResolveParams_ConditionElse(t *testing.T) {
 func TestResolveParams_OldSyntaxStepResult(t *testing.T) {
 	params := types.KV{"output": "{{steps.step1.result}}"}
 	results := map[string]string{"step1": "my-output"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "my-output", resolved["output"])
 }
@@ -306,7 +306,7 @@ func TestResolveParams_OldSyntaxStepResult(t *testing.T) {
 func TestResolveParams_NewSyntaxStep(t *testing.T) {
 	params := types.KV{"output": "{{step \"step1\" \"id\"}}"}
 	results := map[string]string{"step1": "id-value"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "id-value", resolved["output"])
 }
@@ -316,7 +316,7 @@ func TestResolveParams_DefaultWhenMissing(t *testing.T) {
 		"label": "{{default \"no-result\" .Steps.noexist.id}}",
 	}
 	results := map[string]string{}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "no-result", resolved["label"])
 }
@@ -326,7 +326,7 @@ func TestResolveParams_JoinStepResults(t *testing.T) {
 		"out": "{{step \"s1\" \"result\"}}|{{step \"s2\" \"result\"}}",
 	}
 	results := map[string]string{"s1": "a", "s2": "b"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "a|b", resolved["out"])
 }
@@ -334,7 +334,7 @@ func TestResolveParams_JoinStepResults(t *testing.T) {
 func TestResolveParams_InvalidTemplate(t *testing.T) {
 	params := types.KV{"bad": "{{if xxx}}"}
 	results := map[string]string{}
-	_, err := resolveParams(params, results)
+	_, err := resolveParams(params, results, nil)
 	require.Error(t, err)
 }
 
@@ -343,7 +343,7 @@ func TestResolveParams_ContainsCheck(t *testing.T) {
 		"match": "{{if contains (step \"step1\" \"result\") \"ok\"}}yes{{else}}no{{end}}",
 	}
 	results := map[string]string{"step1": "all-ok-done"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "yes", resolved["match"])
 }
@@ -353,7 +353,7 @@ func TestResolveParams_LoopOverSteps(t *testing.T) {
 		"all": "{{range $k, $v := .Steps}}{{$k}}={{index $v \"id\"}};{{end}}",
 	}
 	results := map[string]string{"a": "r1", "b": "r2"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Contains(t, resolved["all"], "a=r1")
 	assert.Contains(t, resolved["all"], "b=r2")
@@ -366,7 +366,7 @@ func TestResolveParams_NestedMapValue(t *testing.T) {
 		},
 	}
 	results := map[string]string{"step1": "nested-id"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	inner := resolved["inner"].(map[string]any)
 	assert.Equal(t, "nested-id", inner["ref"])
@@ -377,7 +377,7 @@ func TestResolveParams_StringSliceValue(t *testing.T) {
 		"items": []any{"{{step \"a\" \"result\"}}", "{{step \"b\" \"result\"}}"},
 	}
 	results := map[string]string{"a": "x", "b": "y"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	items := resolved["items"].([]any)
 	assert.Equal(t, "x", items[0])
@@ -387,7 +387,7 @@ func TestResolveParams_StringSliceValue(t *testing.T) {
 func TestResolveParams_EmptyResults(t *testing.T) {
 	params := types.KV{"ref": "{{step \"nonexist\" \"id\"}}"}
 	results := map[string]string{}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "", resolved["ref"])
 }
@@ -541,7 +541,7 @@ func TestResolveParams_MapperLike(t *testing.T) {
 		"target_title": "static-title",
 	}
 	results := map[string]string{"src": "https://example.com"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "https://example.com", resolved["target_url"])
 	assert.Equal(t, "static-title", resolved["target_title"])
@@ -554,7 +554,7 @@ func TestResolveParams_MapperWithJsonpath(t *testing.T) {
 		"extra": "fixed",
 	}
 	results := map[string]string{"api": `{"data":{"id":"123","name":"test"}}`}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "123", resolved["id"])
 	assert.Equal(t, "test", resolved["name"])
@@ -566,7 +566,7 @@ func TestResolveParams_MapperConditional(t *testing.T) {
 		"status": "{{if contains (step \"check\" \"result\") \"ok\"}}mapped-ok{{else}}mapped-fail{{end}}",
 	}
 	results := map[string]string{"check": "all-ok-done"}
-	resolved, err := resolveParams(params, results)
+	resolved, err := resolveParams(params, results, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "mapped-ok", resolved["status"])
 }
@@ -594,7 +594,7 @@ func TestRunnerExecute_MapperStepOnly(t *testing.T) {
 			},
 		},
 	}
-	err := runner.Execute(context.Background(), wf)
+	err := runner.Execute(context.Background(), wf, nil)
 	require.NoError(t, err)
 }
 
@@ -631,6 +631,6 @@ func TestRunnerExecute_MapperChainWithJsonpath(t *testing.T) {
 			},
 		},
 	}
-	err := runner.Execute(context.Background(), wf)
+	err := runner.Execute(context.Background(), wf, nil)
 	require.NoError(t, err)
 }

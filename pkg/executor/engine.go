@@ -19,9 +19,8 @@ import (
 type Mode string
 
 const (
-	StateIdle      = "IDLE"
-	StateRunning   = "RUNNING"
-	StateCompleted = "COMPLETED"
+	StateIdle    = "IDLE"
+	StateRunning = "RUNNING"
 )
 
 type Engine struct {
@@ -67,7 +66,9 @@ func (e *Engine) Run(ctx context.Context, t *types.Task) error {
 	defer e.mu.Unlock()
 	e.mustState(StateIdle)
 	e.state = StateRunning
-	return e.runTask(ctx, t)
+	err := e.runTask(ctx, t)
+	e.state = StateIdle
+	return err
 }
 
 func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
@@ -177,6 +178,5 @@ func (e *Engine) doRunTask(ctx context.Context, t *types.Task) error {
 	t.CompletedAt = &finished
 	t.State = types.TaskStateCompleted
 	t.Result = rtTask.Result
-	e.state = StateCompleted
 	return nil
 }

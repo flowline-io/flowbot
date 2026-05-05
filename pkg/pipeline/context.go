@@ -8,6 +8,7 @@ import (
 type RenderContext struct {
 	Event  types.DataEvent
 	Steps  map[string]map[string]any
+	Input  map[string]any
 	engine *template.Engine
 }
 
@@ -54,5 +55,6 @@ func (rc *RenderContext) templateData() *template.TemplateData {
 	return &template.TemplateData{
 		Event: event,
 		Steps: rc.Steps,
+		Input: rc.Input,
 	}
 }

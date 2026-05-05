@@ -15,7 +15,8 @@ var webserviceRules = []webservice.Rule{
 }
 
 type runWorkflowRequest struct {
-	File string `json:"file" validate:"required"`
+	File   string         `json:"file" validate:"required"`
+	Params map[string]any `json:"params"`
 }
 
 func runWorkflow(ctx fiber.Ctx) error {
@@ -34,7 +35,7 @@ func runWorkflow(ctx fiber.Ctx) error {
 	}
 
 	runner := workflowpkg.NewRunner()
-	if err := runner.Execute(context.Background(), *wf); err != nil {
+	if err := runner.Execute(context.Background(), *wf, body.Params); err != nil {
 		return fmt.Errorf("workflow execution: %w", err)
 	}
 

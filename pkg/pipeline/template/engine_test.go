@@ -900,6 +900,239 @@ func TestRenderString_JsonpathFilteredArray(t *testing.T) {
 	assert.Equal(t, "Alice", result)
 }
 
+// ---- input function tests ----
+
+func TestRenderString_InputField(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://example.com", "title": "Test"},
+	}
+	result, err := e.RenderString(`{{input "url"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com", result)
+}
+
+func TestRenderString_InputField_DotSyntax(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://example.com"},
+	}
+	result, err := e.RenderString("{{input.url}}", data)
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com", result)
+}
+
+func TestRenderString_InputField_MultipleFields(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://x.com", "title": "Hello"},
+	}
+	result, err := e.RenderString(`url={{input "url"}} title={{input "title"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "url=https://x.com title=Hello", result)
+}
+
+func TestRenderString_InputField_Missing(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{},
+	}
+	result, err := e.RenderString(`{{input "missing"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "", result)
+}
+
+func TestRenderString_InputField_NilInput(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: nil,
+	}
+	result, err := e.RenderString(`{{input "any"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "", result)
+}
+
+func TestRenderString_InputField_NilData(t *testing.T) {
+	e := New()
+	result, err := e.RenderString(`{{input "url"}}`, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "", result)
+}
+
+func TestRenderString_InputField_WithDefault(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{},
+	}
+	result, err := e.RenderString(`{{default "fallback" (input "title")}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "fallback", result)
+}
+
+func TestRenderString_InputField_Conditional(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://x.com"},
+	}
+	result, err := e.RenderString(`{{if (input "url")}}has-input{{else}}no-input{{end}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "has-input", result)
+}
+
+func TestRenderString_InputField_ConditionalMissing(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{},
+	}
+	result, err := e.RenderString(`{{if (input "url")}}has-input{{else}}no-input{{end}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "no-input", result)
+}
+
+func TestRenderString_InputField_CombinedWithStep(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://example.com"},
+		Steps: map[string]map[string]any{
+			"save": {"id": "saved-123"},
+		},
+	}
+	result, err := e.RenderString(`input={{input "url"}} step={{step "save" "id"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "input=https://example.com step=saved-123", result)
+}
+
+func TestRenderString_InputField_CombinedWithEvent(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"title": "My Title"},
+		Event: map[string]any{"source": "web"},
+	}
+	result, err := e.RenderString(`title={{input "title"}} source={{event "source"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "title=My Title source=web", result)
+}
+
+func TestRender_ParamsWithInput(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://x.com", "title": "Hello"},
+	}
+	params := map[string]any{
+		"link":      `{{input "url"}}`,
+		"headline":  `{{input "title"}}`,
+		"static":    "no-template",
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "https://x.com", result["link"])
+	assert.Equal(t, "Hello", result["headline"])
+	assert.Equal(t, "no-template", result["static"])
+}
+
+func TestRender_ParamsWithInputDotSyntax(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"url": "https://x.com"},
+	}
+	params := map[string]any{
+		"link": "{{input.url}}",
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "https://x.com", result["link"])
+}
+
+func TestRender_ParamsWithInputAndCondition(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"env": "prod"},
+	}
+	params := map[string]any{
+		"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "high", result["level"])
+}
+
+func TestRender_ParamsWithInputElseBranch(t *testing.T) {
+	e := New()
+	data := &TemplateData{
+		Input: map[string]any{"env": "dev"},
+	}
+	params := map[string]any{
+		"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "low", result["level"])
+}
+
+// ---- preprocess input.X ----
+
+func TestPreprocessTemplate_Input(t *testing.T) {
+	result := preprocessTemplate("{{input.url}}")
+	assert.Equal(t, `{{input "url"}}`, result)
+
+	result = preprocessTemplate("prefix {{input.url}} suffix")
+	assert.Equal(t, `prefix {{input "url"}} suffix`, result)
+
+	result = preprocessTemplate("{{input.url}} {{input.title}}")
+	assert.Equal(t, `{{input "url"}} {{input "title"}}`, result)
+}
+
+func TestPreprocessTemplate_InputUnderscoreKey(t *testing.T) {
+	// \w+ matches word characters including underscore
+	result := preprocessTemplate("{{input.user_id}}")
+	assert.Equal(t, `{{input "user_id"}}`, result)
+}
+
+func TestPreprocessTemplate_InputNoMatch(t *testing.T) {
+	// Only transforms {{input.X}} where there is a dot. {{input}} is left as-is.
+	result := preprocessTemplate("{{input}}")
+	assert.Equal(t, "{{input}}", result)
+
+	// Input with whitespace is not matched
+	result = preprocessTemplate("{{ input.url }}")
+	assert.Equal(t, "{{ input.url }}", result)
+}
+
+func TestPreprocessTemplate_InputDoesNotConflictWithStepLegacy(t *testing.T) {
+	// input.result matches the legacy step pattern but input is handled first
+	result := preprocessTemplate("{{input.result}}")
+	assert.Equal(t, `{{input "result"}}`, result)
+
+	// input.id should also be handled as input, not step
+	result = preprocessTemplate("{{input.id}}")
+	assert.Equal(t, `{{input "id"}}`, result)
+}
+
+// ---- workflow-style end-to-end input test ----
+
+func TestRender_WorkflowStyleInputParams(t *testing.T) {
+	e := New()
+	// Simulates the save_and_track.yaml workflow: params with input.url and input.title
+	data := &TemplateData{
+		Input: map[string]any{
+			"url":   "https://example.com",
+			"title": "Read This Article",
+		},
+	}
+	params := map[string]any{
+		"url":         "{{input.url}}",
+		"title":       `Read: {{input "title"}}`,
+		"description": `Bookmark: {{input "url"}}`,
+		"tags":        []any{"reading", "bookmark"},
+	}
+	result, err := e.Render(params, data)
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com", result["url"])
+	assert.Equal(t, "Read: Read This Article", result["title"])
+	assert.Equal(t, "Bookmark: https://example.com", result["description"])
+	assert.Equal(t, []any{"reading", "bookmark"}, result["tags"])
+}
+
 func TestRender_ParamsWithJsonpath(t *testing.T) {
 	e := New()
 	data := &TemplateData{
