@@ -1,12 +1,8 @@
 package server
 
 import (
-	"github.com/flowline-io/flowbot/pkg/ability/archive"
-	archiveboxadapter "github.com/flowline-io/flowbot/pkg/ability/archive/archivebox"
 	abookmark "github.com/flowline-io/flowbot/pkg/ability/bookmark"
 	bookmarkkarakeep "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
-	afinance "github.com/flowline-io/flowbot/pkg/ability/finance"
-	financefireflyiii "github.com/flowline-io/flowbot/pkg/ability/finance/fireflyiii"
 	akanban "github.com/flowline-io/flowbot/pkg/ability/kanban"
 	kanbankanboard "github.com/flowline-io/flowbot/pkg/ability/kanban/kanboard"
 	areader "github.com/flowline-io/flowbot/pkg/ability/reader"
@@ -22,12 +18,6 @@ func initCapabilityHub() error {
 		return err
 	}
 	if err := akanban.RegisterService("kanboard", "kanboard", kanbankanboard.New()); err != nil {
-		return err
-	}
-	if err := afinance.RegisterService("fireflyiii", "fireflyiii", financefireflyiii.New()); err != nil {
-		return err
-	}
-	if err := archive.RegisterService("archivebox", "archivebox", archiveboxadapter.New()); err != nil {
 		return err
 	}
 	hub.LogDiscovered()
