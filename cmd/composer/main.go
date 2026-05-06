@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
+	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
@@ -46,6 +47,18 @@ func NewCommand() *cli.Command {
 				Name:   "webdoc",
 				Usage:  "website documentation from markdown sources",
 				Action: webdoc.WebDocAction,
+			},
+			{
+				Name:   "skills",
+				Usage:  "generate SKILL.md files for CLI capabilities",
+				Action: skills.SkillsAction,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "output",
+						Value: "./docs/skills",
+						Usage: "output directory for SKILL.md files",
+					},
+				},
 			},
 			{
 				Name:  "doc",

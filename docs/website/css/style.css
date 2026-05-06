@@ -1047,6 +1047,75 @@ img {
 	line-height: 1.5;
 }
 
+/* --- Skills Section --- */
+.skill-section {
+	background: var(--abyss-card);
+	border: 1px solid var(--abyss-border);
+	border-radius: var(--radius);
+	padding: 28px 32px;
+	margin-bottom: 32px;
+}
+
+.skill-section h3 {
+	margin-top: 0 !important;
+	color: var(--white) !important;
+	font-size: 1.3rem !important;
+	border-top: none !important;
+	padding-top: 0 !important;
+}
+
+.skill-section h4 {
+	margin-top: 28px;
+}
+
+.skill-badge {
+	font-family: var(--mono);
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--cyan);
+	background: var(--cyan-dim);
+	border: 1px solid rgba(0, 229, 255, 0.2);
+	border-radius: 4px;
+	padding: 3px 10px;
+	margin-right: 10px;
+	vertical-align: middle;
+	text-transform: lowercase;
+}
+
+/* --- Details / Summary --- */
+.content details,
+.docs-content details {
+	margin: 20px 0 8px;
+}
+
+.content summary,
+.docs-content summary {
+	cursor: pointer;
+	font-family: var(--mono);
+	font-size: 0.8rem;
+	color: var(--white-muted);
+	padding: 8px 12px;
+	background: rgba(255, 255, 255, 0.02);
+	border: 1px solid var(--abyss-border);
+	border-radius: var(--radius-sm);
+	user-select: none;
+	transition: all var(--transition);
+}
+
+.content summary:hover,
+.docs-content summary:hover {
+	color: var(--cyan);
+	border-color: var(--cyan);
+}
+
+.content details pre,
+.docs-content details pre {
+	margin-top: 0;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	border-top: none;
+}
+
 /* --- Responsive --- */
 @media (max-width: 1024px) {
 	.hero-grid {

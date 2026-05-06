@@ -10,5 +10,6 @@ Flowbot is a Homelab Data Hub & Capability Orchestration Center — it discovers
 - [API](./api/) — OpenAPI 3.0 specification and HTTP request examples
 - [Architecture](./architecture/) — System architecture diagrams (PlantUML)
 - [Developer Guide](./developer-guide/) — Deployment, tracing, recovery, conformance testing
+- [Skills](./skills/) — AI assistant skills for CLI-invokable capabilities
 - [Examples](./examples/) — Workflow and pipeline configuration examples
 - [Website](./website/) — Public-facing documentation site

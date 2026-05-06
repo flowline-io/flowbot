@@ -73,7 +73,7 @@ func (m *Manager) Recover(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) recoverPipelines(ctx context.Context) (int, error) {
+func (m *Manager) recoverPipelines(_ context.Context) (int, error) {
 	if m.pipelineStore == nil {
 		return 0, nil
 	}
@@ -120,7 +120,7 @@ func (m *Manager) recoverPipelines(ctx context.Context) (int, error) {
 	return recovered, nil
 }
 
-func (m *Manager) recoverWorkflows(ctx context.Context) (int, error) {
+func (m *Manager) recoverWorkflows(_ context.Context) (int, error) {
 	if m.workflowStore == nil {
 		return 0, nil
 	}

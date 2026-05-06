@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Skills — Flowbot</title>
+		<meta
+			name="description"
+			content="Flowbot AI assistant skills for Claude Code, opencode, and other AI coding assistants. Teach your AI how to manage bookmarks, kanban tasks, and RSS feeds via the flowbot CLI."
+		/>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="css/style.css" />
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2300e5ff' stroke-width='3'/><circle cx='50' cy='50' r='15' fill='%2300e5ff'/></svg>"
+		/>
+	</head>
+	<body>
+		<div class="bg-grid"><canvas id="bg-canvas"></canvas></div>
+
+		<nav class="nav">
+			<div class="nav-inner">
+				<a
+					href="https://flowline-io.github.io/flowbot/index.html"
+					class="nav-logo"
+					>flowbot<span>.io</span></a
+				>
+				<ul class="nav-links">
+					<li><a href="index.html#overview">Overview</a></li>
+					<li><a href="index.html#problem">Problem</a></li>
+					<li><a href="index.html#capabilities">Capabilities</a></li>
+					<li><a href="index.html#workflow">Workflow</a></li>
+					<li><a href="design.html">Design</a></li>
+					<li><a href="api.html">API</a></li>
+					<li><a href="skills.html">Skills</a></li>
+					<li><a href="tutorials.html">Tutorials</a></li>
+					<li><a href="docs/getting-started/">Docs</a></li>
+				</ul>
+				<a
+					href="https://github.com/flowline-io/flowbot"
+					class="nav-cta"
+					target="_blank"
+					rel="noopener"
+					>GitHub</a
+				>
+				<button class="nav-toggle" aria-label="Menu">
+					<span></span><span></span><span></span>
+				</button>
+			</div>
+		</nav>
+
+		<div class="page">
+			<div class="page-hero">
+				<h1>AI Assistant <em>Skills</em></h1>
+				<p>
+					Teach your AI coding assistant how to use the Flowbot CLI.
+					Skills follow the SKILL.md convention and work with Claude
+					Code, opencode, and other AI tools.
+				</p>
+			</div>
+
+			<div class="content">
+				<h2>What Are Skills?</h2>
+				<p>
+					Skills are instruction files that teach AI assistants
+					how to interact with the <code>flowbot</code> CLI. Each
+					skill describes a Flowbot capability — its full command
+					tree, flags, common workflows, and troubleshooting tips.
+				</p>
+				<p>
+					When you ask an AI assistant to "save this URL" or "create
+					a kanban card", the assistant loads the corresponding skill
+					and follows the documented commands to get the job done.
+				</p>
+
+				<h3>How Skills Work</h3>
+				<div class="card-grid">
+					<div class="card">
+						<h3>1. Auto-Discovery</h3>
+						<p>
+							The AI assistant reads each skill's name and
+							description from SKILL.md YAML frontmatter at
+							startup.
+						</p>
+					</div>
+					<div class="card">
+						<h3>2. Smart Trigger</h3>
+						<p>
+							When your request matches a skill's description
+							keywords, the assistant loads the full SKILL.md
+							into context.
+						</p>
+					</div>
+					<div class="card">
+						<h3>3. Executed via CLI</h3>
+						<p>
+							The assistant follows the documented commands,
+							flags, and workflows to compose and run the right
+							<code>flowbot</code> command.
+						</p>
+					</div>
+				</div>
+
+				<h3>Enabling Skills</h3>
+				<p>
+					Flowbot skills are generated into
+					<code>docs/skills/</code>. To use them with your AI
+					assistant, symlink the skill directories into the tool's
+					skills path:
+				</p>
+
+				<h4>Claude Code</h4>
+				<pre># Project-wide
+mkdir -p .claude/skills/
+ln -sf "$(pwd)/docs/skills/homelab-bookmark" .claude/skills/homelab-bookmark
+ln -sf "$(pwd)/docs/skills/homelab-kanban"    .claude/skills/homelab-kanban
+ln -sf "$(pwd)/docs/skills/homelab-reader"    .claude/skills/homelab-reader
+
+# Global
+mkdir -p ~/.claude/skills/
+ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</pre>
+
+				<h4>opencode</h4>
+				<p>
+					Configure your opencode environment to scan
+					<code>docs/skills/</code> as a skills directory.
+				</p>
+
+				<h2>Available Skills</h2>
+				<p>
+					Flowbot ships with three production skills. Each skill is
+					auto-generated from the live CLI command tree and kept in
+					sync with the codebase.
+				</p>
+
+				<!-- homelab-bookmark -->
+				<div class="skill-section">
+					<h3>
+						<span class="skill-badge">homelab-bookmark</span>
+						Bookmark Management
+					</h3>
+					<p>
+						Create, list, search, archive, and tag bookmarks stored
+						in the Flowbot server. Triggers on keywords like
+						<em>bookmarks</em>, <em>saving URLs</em>,
+						<em>link collection</em>, <em>reading list</em>.
+					</p>
+
+					<h4>Key Commands</h4>
+					<table>
+						<thead>
+							<tr>
+								<th>Command</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>flowbot bookmark create -u &lt;url&gt;</code></td>
+								<td>Add a new bookmark</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark list</code></td>
+								<td>List all bookmarks</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark get &lt;id&gt;</code></td>
+								<td>Get bookmark details</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark search -q &lt;q&gt;</code></td>
+								<td>Full-text search</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark check-url -u &lt;url&gt;</code></td>
+								<td>Check if URL is bookmarked</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark archive &lt;id&gt;</code></td>
+								<td>Archive / unarchive</td>
+							</tr>
+							<tr>
+								<td><code>flowbot bookmark delete &lt;id&gt;</code></td>
+								<td>Delete a bookmark</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h4>Common Workflows</h4>
+					<ul>
+						<li>
+							<strong>Save a URL:</strong>
+							<code>check-url</code> &rarr; <code>create</code>
+							&rarr; report details
+						</li>
+						<li>
+							<strong>Find bookmarks:</strong>
+							<code>search</code> &rarr; <code>get</code>
+							&rarr; present results
+						</li>
+					</ul>
+
+					<details>
+						<summary>View full SKILL.md</summary>
+						<pre>name:          homelab-bookmark
+triggers:      bookmarks, saving URLs, link collection, web
+               clippings, reading list, tagging URLs, URL
+               archiving, checking saved links
+capabilities:  create, list, get, search, check-url, archive,
+               delete
+support:       flags: --url, --query, --sort-order, --limit,
+               --cursor, --include-content, --yes</pre>
+					</details>
+				</div>
+
+				<!-- homelab-kanban -->
+				<div class="skill-section">
+					<h3>
+						<span class="skill-badge">homelab-kanban</span>
+						Kanban Task Management
+					</h3>
+					<p>
+						Manage kanban boards and tasks. Create, update, move,
+						and search tasks. Handle subtasks with time tracking,
+						tags, columns, and metadata. Triggers on
+						<em>kanban</em>, <em>task management</em>,
+						<em>todo list</em>, <em>time tracking</em>,
+						<em>moving cards</em>.
+					</p>
+
+					<h4>Key Commands</h4>
+					<table>
+						<thead>
+							<tr>
+								<th>Command</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>flowbot kanban list -s active</code></td>
+								<td>List active tasks</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban get &lt;id&gt;</code></td>
+								<td>Get task details</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban create -t "title"</code></td>
+								<td>Create a task</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban move &lt;id&gt; -c &lt;col&gt;</code></td>
+								<td>Move to column</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban search &lt;query&gt;</code></td>
+								<td>Search tasks</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban subtask list &lt;id&gt;</code></td>
+								<td>List subtasks</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban subtask create &lt;id&gt; -t "s" -e 30</code></td>
+								<td>Create subtask with estimate</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban subtask timer start &lt;tid&gt; &lt;sid&gt;</code></td>
+								<td>Start time tracking</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban tag create -n &lt;name&gt;</code></td>
+								<td>Create tag</td>
+							</tr>
+							<tr>
+								<td><code>flowbot kanban metadata set &lt;id&gt; key=val</code></td>
+								<td>Set metadata</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h4>Common Workflows</h4>
+					<ul>
+						<li>
+							<strong>Create with subtasks:</strong>
+							<code>column list</code> &rarr;
+							<code>create</code> &rarr;
+							<code>subtask create</code> (repeat)
+						</li>
+						<li>
+							<strong>Review and triage:</strong>
+							<code>list -s active</code> &rarr;
+							<code>get</code> &rarr;
+							<code>subtask list</code> &rarr;
+							summarize &amp; suggest
+						</li>
+					</ul>
+
+					<details>
+						<summary>View full SKILL.md</summary>
+						<pre>name:          homelab-kanban
+triggers:      kanban, task management, project management,
+               kanban board, todo list, task tracking, issue
+               tracking, subtasks, time tracking, moving cards,
+               board columns, task tags
+capabilities:  list, search, get, create, update, move, delete,
+               card add/move/delete, column list, metadata
+               get/set/delete, tag list/create/update/delete,
+               tag task get/set, subtask list/get/create/update
+               /delete, subtask timer start/stop/check/spent</pre>
+					</details>
+				</div>
+
+				<!-- homelab-reader -->
+				<div class="skill-section">
+					<h3>
+						<span class="skill-badge">homelab-reader</span>
+						RSS Feed Reader
+					</h3>
+					<p>
+						Subscribe to RSS and Atom feeds. List entries, mark
+						items read/unread, star entries, and manage feed
+						lifecycle. Triggers on <em>RSS feeds</em>,
+						<em>feed reader</em>, <em>news feeds</em>,
+						<em>Atom feeds</em>, <em>subscribing to blogs</em>.
+					</p>
+
+					<h4>Key Commands</h4>
+					<table>
+						<thead>
+							<tr>
+								<th>Command</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>flowbot reader list</code></td>
+								<td>List all feeds</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader create -u &lt;url&gt;</code></td>
+								<td>Add a new feed</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader get &lt;id&gt;</code></td>
+								<td>Get feed details</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader refresh &lt;id&gt;</code></td>
+								<td>Refresh a feed</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader entries -s unread -n 20</code></td>
+								<td>List unread entries</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader feed-entries &lt;id&gt; -n 5</code></td>
+								<td>Entries for a feed</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader update-entries -i &lt;ids&gt; -s read</code></td>
+								<td>Mark entries read</td>
+							</tr>
+							<tr>
+								<td><code>flowbot reader update &lt;id&gt; --enable</code></td>
+								<td>Enable a feed</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h4>Common Workflows</h4>
+					<ul>
+						<li>
+							<strong>Subscribe to a feed:</strong>
+							<code>create</code> &rarr;
+							<code>refresh</code> &rarr;
+							<code>feed-entries</code> &rarr;
+							report latest
+						</li>
+						<li>
+							<strong>Catch up on unread:</strong>
+							<code>entries -s unread</code> &rarr;
+							present &rarr;
+							<code>update-entries -s read</code>
+						</li>
+					</ul>
+
+					<details>
+						<summary>View full SKILL.md</summary>
+						<pre>name:          homelab-reader
+triggers:      RSS feeds, RSS reader, feed reader, news feeds,
+               Atom feeds, subscribing to blogs, reading feeds,
+               feed management, marking read, starring articles
+capabilities:  list, get, create, update, refresh, entries,
+               update-entries, feed-entries
+support:       flags: --url, --category, --title, --disable,
+               --enable, --status, --limit, --offset, --starred,
+               --ids</pre>
+					</details>
+				</div>
+
+				<h2>Generating Skills</h2>
+				<p>
+					Skills are auto-generated from the live CLI command tree
+					using the Flowbot composer tool. This ensures every skill
+					stays in sync with the actual CLI interface.
+				</p>
+				<pre># Regenerate all skills
+go tool task build:composer
+./flowbot-composer skills --output ./docs/skills</pre>
+
+				<h3>Adding a New Skill</h3>
+				<p>
+					To add a new skill, implement the CLI command tree in
+					<code>cmd/cli/command/</code>, then register the capability
+					in <code>cmd/composer/action/skills/skills.go</code> with
+					its name, description, trigger keywords, and workflows.
+					Re-run the generator to produce the new SKILL.md.
+				</p>
+
+				<h2>File Format</h2>
+				<p>
+					Each skill is a directory under <code>docs/skills/</code>
+					containing a single <code>SKILL.md</code> file:
+				</p>
+				<pre>docs/skills/homelab-bookmark/
+&#9500;&#9472;&#9472; SKILL.md
+
+SKILL.md structure:
+  &#9500;&#9472;&#9472; YAML frontmatter (name, description)
+  &#9500;&#9472;&#9472; Prerequisites &amp; global flags
+  &#9500;&#9472;&#9472; Operations (auto-generated from CLI tree)
+  &#9500;&#9472;&#9472; Common workflows (hand-written recipes)
+  &#9492;&#9472;&#9472; Troubleshooting</pre>
+
+				<h2>Next Steps</h2>
+				<ul>
+					<li>
+						<strong>Read the skill spec</strong> —
+						<a
+							href="https://github.com/flowline-io/flowbot/blob/main/docs/skill_spec.md"
+							target="_blank"
+							rel="noopener"
+							>skill_spec.md</a
+						>
+						for the full SKILL.md format reference
+					</li>
+					<li>
+						<strong>View the generator</strong> —
+						<a
+							href="https://github.com/flowline-io/flowbot/blob/main/cmd/composer/action/skills/skills.go"
+							target="_blank"
+							rel="noopener"
+							>cmd/composer/action/skills/skills.go</a
+						>
+					</li>
+					<li>
+						<strong>Get Started</strong> — Install and configure
+						Flowbot following the
+						<a href="docs/getting-started/">Quick Start Guide</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<footer class="footer">
+			<div class="footer-left">
+				<a
+					href="https://github.com/flowline-io/flowbot"
+					target="_blank"
+					rel="noopener"
+					>GitHub</a
+				>
+				<a href="design.html">Design</a>
+				<a href="api.html">API</a>
+				<a href="skills.html">Skills</a>
+				<a href="tutorials.html">Tutorials</a>
+				<a href="docs/getting-started/">Docs</a>
+				<span style="color: var(--white-muted); font-size: 0.82rem"
+					>GPL-3.0</span
+				>
+			</div>
+			<div class="footer-right">
+				Built for the Homelabbers, by the Homelabbers.
+			</div>
+		</footer>
+
+		<script src="js/main.js"></script>
+	</body>
+</html>
