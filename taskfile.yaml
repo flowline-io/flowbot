@@ -155,6 +155,16 @@ tasks:
     cmds:
       - go run ./cmd/composer dao
 
+  skills:
+    desc: Generate SKILLS.md to cmd/cli
+    cmds:
+      - go run ./cmd/composer skills
+  
+  webdoc:
+    desc: Generate docs to website
+    cmds:
+      - go run ./cmd/composer webdoc
+
   # Development tools
   tools:
     desc: Install all development tools
