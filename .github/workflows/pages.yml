@@ -7,16 +7,6 @@ on:
     paths:
       - 'docs/**'
       - 'cmd/composer/action/webdoc/**'
-      - 'go.mod'
-      - 'go.sum'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'docs/**'
-      - 'cmd/composer/action/webdoc/**'
-      - 'go.mod'
-      - 'go.sum'
   workflow_dispatch:
 
 permissions:
