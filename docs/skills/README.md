@@ -11,11 +11,11 @@ body when the user's request matches the description.
 
 ## Available Skills
 
-| Skill                   | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `homelab-bookmark`      | Create, search, and archive bookmarks / saved links      |
-| `homelab-kanban`        | Manage kanban boards, tasks, and subtasks                |
-| `homelab-reader`        | Subscribe to RSS/Atom feeds, read entries, mark status   |
+| Skill              | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `homelab-bookmark` | Create, search, and archive bookmarks / saved links    |
+| `homelab-kanban`   | Manage kanban boards, tasks, and subtasks              |
+| `homelab-reader`   | Subscribe to RSS/Atom feeds, read entries, mark status |
 
 Each skill file is in the corresponding subdirectory:
 
@@ -147,10 +147,15 @@ description: >
 # Flowbot Bookmark
 
 ## Prerequisites
+
 ## Global Flags Reference
+
 ## Common Output Options
+
 ## Operations (auto-generated from CLI tree)
+
 ## Common Workflows
+
 ## Troubleshooting
 ```
 

@@ -140,9 +140,9 @@ type metaSpec struct {
 // metaSpecs defines all capabilities with their CLI command factories.
 var metaSpecs = []metaSpec{
 	{
-		Name:     "homelab-bookmark",
-		Title:    "Bookmark",
-		CommandFn: command.BookmarkCommand,
+		Name:        "homelab-bookmark",
+		Title:       "Bookmark",
+		CommandFn:   command.BookmarkCommand,
 		Description: "Manage bookmarks via the Flowbot CLI. Create, list, search, archive, and tag bookmarks stored in the Flowbot server.",
 		Keywords:    "bookmarks, saving URLs, link collection, web clippings, reading list, tagging URLs, URL archiving, checking saved links",
 		Workflows: []workflowSpec{
@@ -167,9 +167,9 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:     "homelab-kanban",
-		Title:    "Kanban",
-		CommandFn: command.KanbanCommand,
+		Name:        "homelab-kanban",
+		Title:       "Kanban",
+		CommandFn:   command.KanbanCommand,
 		Description: "Manage kanban boards and tasks via the Flowbot CLI. Create, update, move, and search tasks. Manage subtasks with time tracking, tags, columns, and metadata.",
 		Keywords:    "kanban, task management, project management, kanban board, todo list, task tracking, issue tracking, subtasks, time tracking, moving cards, board columns, task tags",
 		Workflows: []workflowSpec{
@@ -196,9 +196,9 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:     "homelab-reader",
-		Title:    "Reader",
-		CommandFn: command.ReaderCommand,
+		Name:        "homelab-reader",
+		Title:       "Reader",
+		CommandFn:   command.ReaderCommand,
 		Description: "Manage RSS and Atom feed subscriptions via the Flowbot CLI. Add feeds, list entries, mark items read/unread, star entries, and manage feed lifecycle.",
 		Keywords:    "RSS feeds, RSS reader, feed reader, news feeds, Atom feeds, subscribing to blogs, reading feeds, feed management, marking read, starring articles",
 		Workflows: []workflowSpec{

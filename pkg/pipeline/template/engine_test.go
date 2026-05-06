@@ -1019,9 +1019,9 @@ func TestRender_ParamsWithInput(t *testing.T) {
 		Input: map[string]any{"url": "https://x.com", "title": "Hello"},
 	}
 	params := map[string]any{
-		"link":      `{{input "url"}}`,
-		"headline":  `{{input "title"}}`,
-		"static":    "no-template",
+		"link":     `{{input "url"}}`,
+		"headline": `{{input "title"}}`,
+		"static":   "no-template",
 	}
 	result, err := e.Render(params, data)
 	require.NoError(t, err)

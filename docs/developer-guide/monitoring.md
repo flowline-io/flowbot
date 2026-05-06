@@ -31,10 +31,10 @@ Observability stack — Prometheus metrics via PushGateway, OpenTelemetry traces
 
 Two data paths feed into Grafana:
 
-| Path | Protocol | Exporter | Default Port |
-| ---- | -------- | -------- | ------------ |
-| Metrics | PushGateway → Prometheus scrape | `pkg/stats/` push every 15s | `:9091` |
-| Traces | OTLP HTTP (protobuf) | `pkg/trace/` batch export | `:4318` |
+| Path    | Protocol                        | Exporter                    | Default Port |
+| ------- | ------------------------------- | --------------------------- | ------------ |
+| Metrics | PushGateway → Prometheus scrape | `pkg/stats/` push every 15s | `:9091`      |
+| Traces  | OTLP HTTP (protobuf)            | `pkg/trace/` batch export   | `:4318`      |
 
 ## Prerequisites
 
@@ -87,15 +87,15 @@ tracing:
   sample_rate: 1.0
 ```
 
-| Field | Type | Default | Description |
-| ----- | ---- | ------- | ----------- |
-| `metrics.enabled` | bool | `false` | Enable PushGateway push |
-| `metrics.endpoint` | string | `http://localhost:9091` | PushGateway base URL |
-| `tracing.enabled` | bool | `false` | Enable OTLP trace export |
-| `tracing.endpoint` | string | `http://localhost:4318/v1/traces` | OTLP HTTP collector |
-| `tracing.service_name` | string | `flowbot` | `service.name` resource attribute |
-| `tracing.environment` | string | `development` | `deployment.environment` attribute |
-| `tracing.sample_rate` | float | `1.0` | 1.0 = all, 0.1 = 10% |
+| Field                  | Type   | Default                           | Description                        |
+| ---------------------- | ------ | --------------------------------- | ---------------------------------- |
+| `metrics.enabled`      | bool   | `false`                           | Enable PushGateway push            |
+| `metrics.endpoint`     | string | `http://localhost:9091`           | PushGateway base URL               |
+| `tracing.enabled`      | bool   | `false`                           | Enable OTLP trace export           |
+| `tracing.endpoint`     | string | `http://localhost:4318/v1/traces` | OTLP HTTP collector                |
+| `tracing.service_name` | string | `flowbot`                         | `service.name` resource attribute  |
+| `tracing.environment`  | string | `development`                     | `deployment.environment` attribute |
+| `tracing.sample_rate`  | float  | `1.0`                             | 1.0 = all, 0.1 = 10%               |
 
 ## Prometheus Configuration
 
@@ -135,11 +135,13 @@ curl -s "http://localhost:9090/api/v1/query?query=module_total_gauge" | jq .
 In Grafana (http://localhost:3000), go to **Connections → Data sources**:
 
 **Prometheus:**
+
 - Name: `Prometheus`
 - URL: `http://prometheus:9090`
 - Click **Save & test**
 
 **Tempo:**
+
 - Name: `Tempo`
 - URL: `http://tempo:3200`
 - Click **Save & test**
@@ -167,75 +169,75 @@ The dashboard is organized into 5 rows.
 
 ### Overview (top row)
 
-| Panel | Query | Type |
-| ----- | ----- | ---- |
-| Active Modules | `module_total_gauge` | Stat |
-| Docker Containers | `docker_container_total_gauge` | Stat |
-| Monitors DOWN | `monitor_down_total_gauge` | Stat |
-| Monitors UP | `monitor_up_total_gauge` | Stat |
+| Panel                  | Query                                | Type        |
+| ---------------------- | ------------------------------------ | ----------- |
+| Active Modules         | `module_total_gauge`                 | Stat        |
+| Docker Containers      | `docker_container_total_gauge`       | Stat        |
+| Monitors DOWN          | `monitor_down_total_gauge`           | Stat        |
+| Monitors UP            | `monitor_up_total_gauge`             | Stat        |
 | Module Runs by Ruleset | `rate(module_run_total_counter[5m])` | Time series |
-| Event Processing Rate | `rate(event_total_counter[5m])` | Time series |
+| Event Processing Rate  | `rate(event_total_counter[5m])`      | Time series |
 
 ### Features
 
-| Panel | Query | Type |
-| ----- | ----- | ---- |
-| Bookmarks | `bookmark_total_gauge` | Stat + Trend |
-| Torrent Downloads | `torrent_download_total_gauge` | Stat |
-| Torrents by Status | `torrent_status_total_gauge` | Time series |
-| RSS Unread | `reader_unread_total_gauge` | Stat |
-| RSS (total vs unread) | `reader_total_gauge`, `reader_unread_total_gauge` | Time series |
-| Kanban Tasks | `kanban_task_total_gauge` | Stat + Trend |
-| Kanban Events | `rate(kanban_event_total_counter[5m])` | Time series |
-| Gitea Open Issues | `gitea_issue_total_gauge{status="open"}` | Stat |
+| Panel                 | Query                                             | Type         |
+| --------------------- | ------------------------------------------------- | ------------ |
+| Bookmarks             | `bookmark_total_gauge`                            | Stat + Trend |
+| Torrent Downloads     | `torrent_download_total_gauge`                    | Stat         |
+| Torrents by Status    | `torrent_status_total_gauge`                      | Time series  |
+| RSS Unread            | `reader_unread_total_gauge`                       | Stat         |
+| RSS (total vs unread) | `reader_total_gauge`, `reader_unread_total_gauge` | Time series  |
+| Kanban Tasks          | `kanban_task_total_gauge`                         | Stat + Trend |
+| Kanban Events         | `rate(kanban_event_total_counter[5m])`            | Time series  |
+| Gitea Open Issues     | `gitea_issue_total_gauge{status="open"}`          | Stat         |
 
 ### Search
 
-| Panel | Query | Type |
-| ----- | ----- | ---- |
-| Search Query Rate | `rate(search_total_counter[5m])` by `index` | Time series |
+| Panel                  | Query                                                          | Type        |
+| ---------------------- | -------------------------------------------------------------- | ----------- |
+| Search Query Rate      | `rate(search_total_counter[5m])` by `index`                    | Time series |
 | Document Indexing Rate | `rate(search_processed_document_total_counter[5m])` by `index` | Time series |
 
 ### Infrastructure
 
-| Panel | Query | Type |
-| ----- | ----- | ---- |
-| Docker Containers | `docker_container_total_gauge` | Time series |
-| Uptime Monitors | `monitor_up_total_gauge`, `monitor_down_total_gauge` | Time series |
+| Panel             | Query                                                | Type        |
+| ----------------- | ---------------------------------------------------- | ----------- |
+| Docker Containers | `docker_container_total_gauge`                       | Time series |
+| Uptime Monitors   | `monitor_up_total_gauge`, `monitor_down_total_gauge` | Time series |
 
 ### Traces (Tempo)
 
-| Panel | Query | Type |
-| ----- | ----- | ---- |
-| HTTP Request Traces | `serviceName=flowbot spanName=HTTP` | Table |
-| Pipeline Execution | `serviceName=flowbot spanName=pipeline` | Table |
-| Ability Invocation | `serviceName=flowbot spanName=ability` | Table |
-| Event Processing | `serviceName=flowbot spanName=event` | Table |
-| Recent Pipelines | Trace search | Trace view |
-| Recent Events | Trace search | Trace view |
+| Panel               | Query                                   | Type       |
+| ------------------- | --------------------------------------- | ---------- |
+| HTTP Request Traces | `serviceName=flowbot spanName=HTTP`     | Table      |
+| Pipeline Execution  | `serviceName=flowbot spanName=pipeline` | Table      |
+| Ability Invocation  | `serviceName=flowbot spanName=ability`  | Table      |
+| Event Processing    | `serviceName=flowbot spanName=event`    | Table      |
+| Recent Pipelines    | Trace search                            | Trace view |
+| Recent Events       | Trace search                            | Trace view |
 
 ## Metrics Reference
 
 All 21 custom metrics, each producing a `_counter` and `_gauge` suffix variant:
 
-| Base Name | Labels | Updated By | Type |
-| --------- | ------ | ---------- | ---- |
-| `module_total` | — | `internal/server/module.go` | Gauge |
-| `module_run_total` | `ruleset` | `internal/server/router.go`, `func.go` | Counter |
-| `event_total` | — | `pkg/event/pubsub.go` | Counter |
-| `bookmark_total` | — | `internal/modules/bookmark/cron.go` | Gauge |
-| `search_total` | `index` | `pkg/search/search.go` | Counter |
-| `search_processed_document_total` | `index` | `pkg/search/search.go` | Counter |
-| `torrent_download_total` | — | `internal/modules/torrent/cron.go` | Gauge |
-| `torrent_status_total` | `status` | `internal/modules/torrent/cron.go` | Gauge |
-| `gitea_issue_total` | `status` | `internal/modules/gitea/cron.go` | Gauge |
-| `kanban_event_total` | `event_name` | `internal/modules/kanban/webhook.go` | Counter |
-| `kanban_task_total` | — | `internal/modules/kanban/cron.go` | Gauge |
-| `reader_total` | — | `internal/modules/reader/cron.go` | Gauge |
-| `reader_unread_total` | — | `internal/modules/reader/cron.go` | Gauge |
-| `monitor_up_total` | — | `internal/modules/server/cron.go` | Gauge |
-| `monitor_down_total` | — | `internal/modules/server/cron.go` | Gauge |
-| `docker_container_total` | — | `internal/modules/server/cron.go` | Gauge |
+| Base Name                         | Labels       | Updated By                             | Type    |
+| --------------------------------- | ------------ | -------------------------------------- | ------- |
+| `module_total`                    | —            | `internal/server/module.go`            | Gauge   |
+| `module_run_total`                | `ruleset`    | `internal/server/router.go`, `func.go` | Counter |
+| `event_total`                     | —            | `pkg/event/pubsub.go`                  | Counter |
+| `bookmark_total`                  | —            | `internal/modules/bookmark/cron.go`    | Gauge   |
+| `search_total`                    | `index`      | `pkg/search/search.go`                 | Counter |
+| `search_processed_document_total` | `index`      | `pkg/search/search.go`                 | Counter |
+| `torrent_download_total`          | —            | `internal/modules/torrent/cron.go`     | Gauge   |
+| `torrent_status_total`            | `status`     | `internal/modules/torrent/cron.go`     | Gauge   |
+| `gitea_issue_total`               | `status`     | `internal/modules/gitea/cron.go`       | Gauge   |
+| `kanban_event_total`              | `event_name` | `internal/modules/kanban/webhook.go`   | Counter |
+| `kanban_task_total`               | —            | `internal/modules/kanban/cron.go`      | Gauge   |
+| `reader_total`                    | —            | `internal/modules/reader/cron.go`      | Gauge   |
+| `reader_unread_total`             | —            | `internal/modules/reader/cron.go`      | Gauge   |
+| `monitor_up_total`                | —            | `internal/modules/server/cron.go`      | Gauge   |
+| `monitor_down_total`              | —            | `internal/modules/server/cron.go`      | Gauge   |
+| `docker_container_total`          | —            | `internal/modules/server/cron.go`      | Gauge   |
 
 **PushGateway labels:** `job` (default `flowbot`), `instance` (hostid), `hostname`.
 

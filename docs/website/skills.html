@@ -68,14 +68,14 @@
 			<div class="content">
 				<h2>What Are Skills?</h2>
 				<p>
-					Skills are instruction files that teach AI assistants
-					how to interact with the <code>flowbot</code> CLI. Each
-					skill describes a Flowbot capability — its full command
-					tree, flags, common workflows, and troubleshooting tips.
+					Skills are instruction files that teach AI assistants how to
+					interact with the <code>flowbot</code> CLI. Each skill
+					describes a Flowbot capability — its full command tree,
+					flags, common workflows, and troubleshooting tips.
 				</p>
 				<p>
-					When you ask an AI assistant to "save this URL" or "create
-					a kanban card", the assistant loads the corresponding skill
+					When you ask an AI assistant to "save this URL" or "create a
+					kanban card", the assistant loads the corresponding skill
 					and follows the documented commands to get the job done.
 				</p>
 
@@ -93,8 +93,8 @@
 						<h3>2. Smart Trigger</h3>
 						<p>
 							When your request matches a skill's description
-							keywords, the assistant loads the full SKILL.md
-							into context.
+							keywords, the assistant loads the full SKILL.md into
+							context.
 						</p>
 					</div>
 					<div class="card">
@@ -116,7 +116,8 @@
 				</p>
 
 				<h4>Claude Code</h4>
-				<pre># Project-wide
+				<pre>
+# Project-wide
 mkdir -p .claude/skills/
 ln -sf "$(pwd)/docs/skills/homelab-bookmark" .claude/skills/homelab-bookmark
 ln -sf "$(pwd)/docs/skills/homelab-kanban"    .claude/skills/homelab-kanban
@@ -124,7 +125,8 @@ ln -sf "$(pwd)/docs/skills/homelab-reader"    .claude/skills/homelab-reader
 
 # Global
 mkdir -p ~/.claude/skills/
-ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</pre>
+ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</pre
+				>
 
 				<h4>opencode</h4>
 				<p>
@@ -162,7 +164,12 @@ ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</
 						</thead>
 						<tbody>
 							<tr>
-								<td><code>flowbot bookmark create -u &lt;url&gt;</code></td>
+								<td>
+									<code
+										>flowbot bookmark create -u
+										&lt;url&gt;</code
+									>
+								</td>
 								<td>Add a new bookmark</td>
 							</tr>
 							<tr>
@@ -170,23 +177,45 @@ ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</
 								<td>List all bookmarks</td>
 							</tr>
 							<tr>
-								<td><code>flowbot bookmark get &lt;id&gt;</code></td>
+								<td>
+									<code>flowbot bookmark get &lt;id&gt;</code>
+								</td>
 								<td>Get bookmark details</td>
 							</tr>
 							<tr>
-								<td><code>flowbot bookmark search -q &lt;q&gt;</code></td>
+								<td>
+									<code
+										>flowbot bookmark search -q
+										&lt;q&gt;</code
+									>
+								</td>
 								<td>Full-text search</td>
 							</tr>
 							<tr>
-								<td><code>flowbot bookmark check-url -u &lt;url&gt;</code></td>
+								<td>
+									<code
+										>flowbot bookmark check-url -u
+										&lt;url&gt;</code
+									>
+								</td>
 								<td>Check if URL is bookmarked</td>
 							</tr>
 							<tr>
-								<td><code>flowbot bookmark archive &lt;id&gt;</code></td>
+								<td>
+									<code
+										>flowbot bookmark archive
+										&lt;id&gt;</code
+									>
+								</td>
 								<td>Archive / unarchive</td>
 							</tr>
 							<tr>
-								<td><code>flowbot bookmark delete &lt;id&gt;</code></td>
+								<td>
+									<code
+										>flowbot bookmark delete
+										&lt;id&gt;</code
+									>
+								</td>
 								<td>Delete a bookmark</td>
 							</tr>
 						</tbody>
@@ -208,14 +237,16 @@ ln -sf "$(pwd)/docs/skills/homelab-bookmark" ~/.claude/skills/homelab-bookmark</
 
 					<details>
 						<summary>View full SKILL.md</summary>
-						<pre>name:          homelab-bookmark
+						<pre>
+name:          homelab-bookmark
 triggers:      bookmarks, saving URLs, link collection, web
                clippings, reading list, tagging URLs, URL
                archiving, checking saved links
 capabilities:  create, list, get, search, check-url, archive,
                delete
 support:       flags: --url, --query, --sort-order, --limit,
-               --cursor, --include-content, --yes</pre>
+               --cursor, --include-content, --yes</pre
+						>
 					</details>
 				</div>
 
@@ -244,43 +275,86 @@ support:       flags: --url, --query, --sort-order, --limit,
 						</thead>
 						<tbody>
 							<tr>
-								<td><code>flowbot kanban list -s active</code></td>
+								<td>
+									<code>flowbot kanban list -s active</code>
+								</td>
 								<td>List active tasks</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban get &lt;id&gt;</code></td>
+								<td>
+									<code>flowbot kanban get &lt;id&gt;</code>
+								</td>
 								<td>Get task details</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban create -t "title"</code></td>
+								<td>
+									<code
+										>flowbot kanban create -t "title"</code
+									>
+								</td>
 								<td>Create a task</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban move &lt;id&gt; -c &lt;col&gt;</code></td>
+								<td>
+									<code
+										>flowbot kanban move &lt;id&gt; -c
+										&lt;col&gt;</code
+									>
+								</td>
 								<td>Move to column</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban search &lt;query&gt;</code></td>
+								<td>
+									<code
+										>flowbot kanban search
+										&lt;query&gt;</code
+									>
+								</td>
 								<td>Search tasks</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban subtask list &lt;id&gt;</code></td>
+								<td>
+									<code
+										>flowbot kanban subtask list
+										&lt;id&gt;</code
+									>
+								</td>
 								<td>List subtasks</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban subtask create &lt;id&gt; -t "s" -e 30</code></td>
+								<td>
+									<code
+										>flowbot kanban subtask create
+										&lt;id&gt; -t "s" -e 30</code
+									>
+								</td>
 								<td>Create subtask with estimate</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban subtask timer start &lt;tid&gt; &lt;sid&gt;</code></td>
+								<td>
+									<code
+										>flowbot kanban subtask timer start
+										&lt;tid&gt; &lt;sid&gt;</code
+									>
+								</td>
 								<td>Start time tracking</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban tag create -n &lt;name&gt;</code></td>
+								<td>
+									<code
+										>flowbot kanban tag create -n
+										&lt;name&gt;</code
+									>
+								</td>
 								<td>Create tag</td>
 							</tr>
 							<tr>
-								<td><code>flowbot kanban metadata set &lt;id&gt; key=val</code></td>
+								<td>
+									<code
+										>flowbot kanban metadata set &lt;id&gt;
+										key=val</code
+									>
+								</td>
 								<td>Set metadata</td>
 							</tr>
 						</tbody>
@@ -298,14 +372,15 @@ support:       flags: --url, --query, --sort-order, --limit,
 							<strong>Review and triage:</strong>
 							<code>list -s active</code> &rarr;
 							<code>get</code> &rarr;
-							<code>subtask list</code> &rarr;
-							summarize &amp; suggest
+							<code>subtask list</code> &rarr; summarize &amp;
+							suggest
 						</li>
 					</ul>
 
 					<details>
 						<summary>View full SKILL.md</summary>
-						<pre>name:          homelab-kanban
+						<pre>
+name:          homelab-kanban
 triggers:      kanban, task management, project management,
                kanban board, todo list, task tracking, issue
                tracking, subtasks, time tracking, moving cards,
@@ -314,7 +389,8 @@ capabilities:  list, search, get, create, update, move, delete,
                card add/move/delete, column list, metadata
                get/set/delete, tag list/create/update/delete,
                tag task get/set, subtask list/get/create/update
-               /delete, subtask timer start/stop/check/spent</pre>
+               /delete, subtask timer start/stop/check/spent</pre
+						>
 					</details>
 				</div>
 
@@ -346,31 +422,62 @@ capabilities:  list, search, get, create, update, move, delete,
 								<td>List all feeds</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader create -u &lt;url&gt;</code></td>
+								<td>
+									<code
+										>flowbot reader create -u
+										&lt;url&gt;</code
+									>
+								</td>
 								<td>Add a new feed</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader get &lt;id&gt;</code></td>
+								<td>
+									<code>flowbot reader get &lt;id&gt;</code>
+								</td>
 								<td>Get feed details</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader refresh &lt;id&gt;</code></td>
+								<td>
+									<code
+										>flowbot reader refresh &lt;id&gt;</code
+									>
+								</td>
 								<td>Refresh a feed</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader entries -s unread -n 20</code></td>
+								<td>
+									<code
+										>flowbot reader entries -s unread -n
+										20</code
+									>
+								</td>
 								<td>List unread entries</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader feed-entries &lt;id&gt; -n 5</code></td>
+								<td>
+									<code
+										>flowbot reader feed-entries &lt;id&gt;
+										-n 5</code
+									>
+								</td>
 								<td>Entries for a feed</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader update-entries -i &lt;ids&gt; -s read</code></td>
+								<td>
+									<code
+										>flowbot reader update-entries -i
+										&lt;ids&gt; -s read</code
+									>
+								</td>
 								<td>Mark entries read</td>
 							</tr>
 							<tr>
-								<td><code>flowbot reader update &lt;id&gt; --enable</code></td>
+								<td>
+									<code
+										>flowbot reader update &lt;id&gt;
+										--enable</code
+									>
+								</td>
 								<td>Enable a feed</td>
 							</tr>
 						</tbody>
@@ -382,20 +489,19 @@ capabilities:  list, search, get, create, update, move, delete,
 							<strong>Subscribe to a feed:</strong>
 							<code>create</code> &rarr;
 							<code>refresh</code> &rarr;
-							<code>feed-entries</code> &rarr;
-							report latest
+							<code>feed-entries</code> &rarr; report latest
 						</li>
 						<li>
 							<strong>Catch up on unread:</strong>
-							<code>entries -s unread</code> &rarr;
-							present &rarr;
+							<code>entries -s unread</code> &rarr; present &rarr;
 							<code>update-entries -s read</code>
 						</li>
 					</ul>
 
 					<details>
 						<summary>View full SKILL.md</summary>
-						<pre>name:          homelab-reader
+						<pre>
+name:          homelab-reader
 triggers:      RSS feeds, RSS reader, feed reader, news feeds,
                Atom feeds, subscribing to blogs, reading feeds,
                feed management, marking read, starring articles
@@ -403,7 +509,8 @@ capabilities:  list, get, create, update, refresh, entries,
                update-entries, feed-entries
 support:       flags: --url, --category, --title, --disable,
                --enable, --status, --limit, --offset, --starred,
-               --ids</pre>
+               --ids</pre
+						>
 					</details>
 				</div>
 
@@ -413,9 +520,11 @@ support:       flags: --url, --category, --title, --disable,
 					using the Flowbot composer tool. This ensures every skill
 					stays in sync with the actual CLI interface.
 				</p>
-				<pre># Regenerate all skills
+				<pre>
+# Regenerate all skills
 go tool task build:composer
-./flowbot-composer skills --output ./docs/skills</pre>
+./flowbot-composer skills --output ./docs/skills</pre
+				>
 
 				<h3>Adding a New Skill</h3>
 				<p>
@@ -428,10 +537,12 @@ go tool task build:composer
 
 				<h2>File Format</h2>
 				<p>
-					Each skill is a directory under <code>docs/skills/</code>
-					containing a single <code>SKILL.md</code> file:
+					Each skill is a directory under
+					<code>docs/skills/</code> containing a single
+					<code>SKILL.md</code> file:
 				</p>
-				<pre>docs/skills/homelab-bookmark/
+				<pre>
+docs/skills/homelab-bookmark/
 &#9500;&#9472;&#9472; SKILL.md
 
 SKILL.md structure:
@@ -439,7 +550,8 @@ SKILL.md structure:
   &#9500;&#9472;&#9472; Prerequisites &amp; global flags
   &#9500;&#9472;&#9472; Operations (auto-generated from CLI tree)
   &#9500;&#9472;&#9472; Common workflows (hand-written recipes)
-  &#9492;&#9472;&#9472; Troubleshooting</pre>
+  &#9492;&#9472;&#9472; Troubleshooting</pre
+				>
 
 				<h2>Next Steps</h2>
 				<ul>
