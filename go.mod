@@ -3,7 +3,7 @@ module github.com/flowline-io/flowbot
 go 1.26.0
 
 require (
-	code.gitea.io/sdk/gitea v0.24.1
+	code.gitea.io/sdk/gitea v0.25.0
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/RealAlexandreAI/json-repair v0.0.15
@@ -368,7 +368,7 @@ require (
 	github.com/hashicorp/go-getter v1.8.6 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
-	github.com/hashicorp/go-version v1.8.0 // indirect
+	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hekmon/cunits/v2 v2.1.0 // indirect
