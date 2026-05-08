@@ -68,7 +68,7 @@ require (
 	go.uber.org/fx v1.24.0
 	golang.org/x/crypto v0.50.0
 	golang.org/x/exp v0.0.0-20251209150349-8475f28825e9
-	golang.org/x/sys v0.43.0
+	golang.org/x/sys v0.44.0
 	golang.org/x/term v0.42.0
 	google.golang.org/genai v1.56.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
