@@ -187,14 +187,14 @@ agents:
     enabled: true
     model: ""
 
-# Rule engine configuration
-rule_engine:
-  rules_path: "/opt/app/rules"
-
-# Flowbot configuration
+# Flowbot instance configuration
 flowbot:
+  # External URL of this Flowbot instance
   url: ""
-  lang: "english"
+  # Chat channel path prefix
+  channel_path: "/channels"
+  # UI language: english, chinese
+  language: "english"
 
 # Homelab app scanner and discovery configuration
 homelab:
@@ -242,6 +242,68 @@ homelab:
     fingerprint_enabled: true
     # When true, label-derived data overrides probe results
     label_priority: true
+
+# Pipeline configuration for cross-service event-driven automation
+pipelines: []
+  # - name: ""
+  #   description: ""
+  #   enabled: true
+  #   resumable: false
+  #   trigger:
+  #     event: ""
+  #   steps:
+  #     - name: ""
+  #       capability: ""
+  #       operation: ""
+  #       params: {}
+  #       retry:
+  #         max_attempts: 3
+  #         delay: "1s"
+  #         backoff: "exponential"
+  #         max_delay: "30s"
+  #         jitter: true
+  #         retry_on: []
+
+# Notification gateway configuration
+notify:
+  # Notification message templates indexed by ID
+  templates: []
+    # - id: ""
+    #   name: ""
+    #   description: ""
+    #   default_format: "markdown"
+    #   default_template: ""
+    #   overrides:
+    #     - channel: ""
+    #       format: ""
+    #       template: ""
+  # Notification filtering and aggregation rules
+  rules: []
+    # - id: ""
+    #   action: "throttle" # throttle, aggregate, mute, drop
+    #   match:
+    #     event: ""
+    #     channel: ""
+    #   condition: ""
+    #   priority: 0
+    #   params:
+    #     window: "60s"
+    #     limit: 5
+    #     digest_template_id: ""
+    #     delayed_send: false
+
+# OpenTelemetry distributed tracing configuration
+tracing:
+  # Enable trace export
+  enabled: false
+  # OTLP HTTP endpoint
+  endpoint: "http://127.0.0.1:4318/v1/traces"
+  # Service name in traces
+  service_name: "flowbot"
+  # Environment tag: development, staging, production
+  environment: "development"
+  # Trace sampling rate (0.0 - 1.0)
+  sample_rate: 1.0
 
 # Platform integration configuration
 platform:

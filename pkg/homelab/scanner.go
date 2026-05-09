@@ -44,8 +44,7 @@ func (s *Scanner) Scan() ([]App, error) {
 		}
 		app, err := s.scanApp(appsDir, name)
 		if err != nil {
-			flog.Error(err)
-			continue
+			return nil, err
 		}
 		if app.ComposeFile == "" {
 			continue
@@ -59,7 +58,7 @@ func (s *Scanner) scanApp(appsDir, name string) (App, error) {
 	path := filepath.Join(appsDir, name)
 	realPath, err := safeEval(path)
 	if err != nil {
-		return App{}, err
+		return App{Name: name, Path: path, Status: AppStatusUnknown, Health: HealthUnknown}, nil
 	}
 	if !isInside(appsDir, realPath) {
 		return App{}, fmt.Errorf("app %s escapes apps dir", name)
@@ -70,11 +69,13 @@ func (s *Scanner) scanApp(appsDir, name string) (App, error) {
 	}
 	data, err := os.ReadFile(composeFile)
 	if err != nil {
-		return App{}, fmt.Errorf("read compose file: %w", err)
+		flog.Error(fmt.Errorf("read compose file %s: %w", composeFile, err))
+		return App{Name: name, Path: realPath, Status: AppStatusUnknown, Health: HealthUnknown}, nil
 	}
 	services, networks, ports, labels, err := ParseCompose(data)
 	if err != nil {
-		return App{}, err
+		flog.Error(fmt.Errorf("parse compose file %s: %w", composeFile, err))
+		return App{Name: name, Path: realPath, Status: AppStatusUnknown, Health: HealthUnknown}, nil
 	}
 	capabilities := ParseLabels(labels)
 	return App{
