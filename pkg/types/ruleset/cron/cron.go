@@ -89,6 +89,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 	nextTime := schedule.Next(time.Now())
 
 	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-r.stop:
@@ -177,6 +178,10 @@ func (r *Ruleset) resultWorker() {
 			res := r.filter(out)
 			// pipeline
 			r.pipeline(res)
+			// cancel the timeout context after processing
+			if cancel := out.ctx.Cancel(); cancel != nil {
+				cancel()
+			}
 		}
 	}
 }
