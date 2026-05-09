@@ -21,7 +21,7 @@ import (
 )
 
 func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Client) error {
-	// Initialize bots
+	// Initialize modules
 	initializeModules(config.App.Bots, config.App.Vendors)
 
 	lc.Append(fx.Hook{
@@ -39,11 +39,11 @@ func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Cl
 	return nil
 }
 
-// initialize bots
+// initialize modules
 func initializeModules(modulesConfig any, vendorsConfig any) {
 	b, err := sonic.Marshal(modulesConfig)
 	if err != nil {
-		flog.Fatal("Failed to marshal bots: %v", err)
+		flog.Fatal("Failed to marshal modules: %v", err)
 	}
 	v, err := sonic.Marshal(vendorsConfig)
 	if err != nil {
@@ -63,16 +63,16 @@ func initializeModules(modulesConfig any, vendorsConfig any) {
 		flog.Fatal("Failed to initialize capability hub: %v", err)
 	}
 
-	// init bots
+	// init modules
 	err = module.Init(b)
 	if err != nil {
 		flog.Fatal("Failed to initialize bot: %v", err)
 	}
 
-	// register bots
+	// register modules
 	registerModules()
 
-	// bootstrap bots
+	// bootstrap modules
 	err = module.Bootstrap()
 	if err != nil {
 		flog.Fatal("Failed to bootstrap bot: %v", err)
@@ -88,9 +88,9 @@ func initializeModules(modulesConfig any, vendorsConfig any) {
 	rdb.SetMetricsInt64(stats.ModuleTotalStatsName, int64(len(module.List())))
 }
 
-// register bots
+// register modules
 func registerModules() {
-	// register bots
+	// register modules
 	registerModuless := sets.NewString()
 	for name, handler := range module.List() {
 		registerModuless.Insert(name)
