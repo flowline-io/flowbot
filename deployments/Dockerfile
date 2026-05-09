@@ -18,4 +18,6 @@ COPY --from=builder /opt/app/flowbot .
 
 RUN chmod +x flowbot
 
+LABEL org.opencontainers.image.description="Homelab Data Hub & Capability Orchestration Center"
+
 ENTRYPOINT exec /opt/app/flowbot
