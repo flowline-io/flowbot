@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 var appNamePattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
@@ -42,7 +44,8 @@ func (s *Scanner) Scan() ([]App, error) {
 		}
 		app, err := s.scanApp(appsDir, name)
 		if err != nil {
-			return nil, err
+			flog.Error(err)
+			continue
 		}
 		if app.ComposeFile == "" {
 			continue

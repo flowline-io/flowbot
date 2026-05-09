@@ -18,8 +18,8 @@ func initHomelabRegistry(cfg config.Homelab) error {
 	homeConfig := homelabConfig(cfg)
 	homelabRuntime = homelab.NewRuntime(homeConfig.Runtime, homeConfig.AppsDir)
 	homelab.DefaultRuntime = homelabRuntime
-	if homeConfig.AppsDir == "" {
-		flog.Info("homelab app registry disabled: homelab.apps_dir is empty")
+	if homeConfig.AppsDir == "" && homeConfig.Root == "" {
+		flog.Info("homelab app registry disabled: homelab.apps_dir and homelab.root are empty")
 		return nil
 	}
 	apps, err := homelab.NewScanner(homeConfig).Scan()
