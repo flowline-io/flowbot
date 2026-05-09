@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -37,5 +38,6 @@ var Modules = fx.Options(
 		handlePlatform,
 		initPipeline,
 		RunServer,
+		profiling.NewProfiler,
 	),
 )

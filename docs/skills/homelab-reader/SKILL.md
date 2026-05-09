@@ -17,11 +17,11 @@ Manage RSS and Atom feed subscriptions via the Flowbot CLI. Add feeds, list entr
 
 ## Global Flags Reference
 
-| Flag | Shorthand | Type | Description |
-|------|-----------|------|-------------|
-| `--server-url` | | string | Flowbot server URL (or set `FLOWBOT_SERVER_URL` env var) |
-| `--profile` | | string | Configuration profile name |
-| `--debug` | `-d` | bool | Enable debug mode |
+| Flag           | Shorthand | Type   | Description                                              |
+| -------------- | --------- | ------ | -------------------------------------------------------- |
+| `--server-url` |           | string | Flowbot server URL (or set `FLOWBOT_SERVER_URL` env var) |
+| `--profile`    |           | string | Configuration profile name                               |
+| `--debug`      | `-d`      | bool   | Enable debug mode                                        |
 
 ## Common Output Options
 
@@ -42,6 +42,7 @@ Display all RSS feeds from Flowbot server
 Display details of a specific RSS feed
 
 **Positional Arguments:**
+
 - `<id>`
 
 ---
@@ -51,10 +52,10 @@ Display details of a specific RSS feed
 **Command:** `flowbot reader create --url <url> [flags]`
 Add a new RSS feed to the Flowbot server
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--url` | `-u` | string | yes | Feed URL |
-| `--category` | `-c` | int | no | Category ID |
+| Flag         | Shorthand | Type   | Required | Description |
+| ------------ | --------- | ------ | -------- | ----------- |
+| `--url`      | `-u`      | string | yes      | Feed URL    |
+| `--category` | `-c`      | int    | no       | Category ID |
 
 ---
 
@@ -64,14 +65,15 @@ Add a new RSS feed to the Flowbot server
 Modify an existing RSS feed
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | no | New title |
-| `--url` | `-u` | string | no | New feed URL |
-| `--disable` |  | bool | no | Disable the feed |
-| `--enable` |  | bool | no | Enable the feed |
+| Flag        | Shorthand | Type   | Required | Description      |
+| ----------- | --------- | ------ | -------- | ---------------- |
+| `--title`   | `-t`      | string | no       | New title        |
+| `--url`     | `-u`      | string | no       | New feed URL     |
+| `--disable` |           | bool   | no       | Disable the feed |
+| `--enable`  |           | bool   | no       | Enable the feed  |
 
 ---
 
@@ -81,6 +83,7 @@ Modify an existing RSS feed
 Trigger a refresh of a specific RSS feed
 
 **Positional Arguments:**
+
 - `<id>`
 
 ---
@@ -90,12 +93,12 @@ Trigger a refresh of a specific RSS feed
 **Command:** `flowbot reader entries [flags]`
 Display RSS entries from Flowbot server
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--status` | `-s` | string | no | Status filter (read, unread, removed) |
-| `--limit` | `-n` | int | no | Maximum number of entries |
-| `--offset` |  | int | no | Pagination offset |
-| `--starred` |  | bool | no | Starred entries only |
+| Flag        | Shorthand | Type   | Required | Description                           |
+| ----------- | --------- | ------ | -------- | ------------------------------------- |
+| `--status`  | `-s`      | string | no       | Status filter (read, unread, removed) |
+| `--limit`   | `-n`      | int    | no       | Maximum number of entries             |
+| `--offset`  |           | int    | no       | Pagination offset                     |
+| `--starred` |           | bool   | no       | Starred entries only                  |
 
 ---
 
@@ -104,10 +107,10 @@ Display RSS entries from Flowbot server
 **Command:** `flowbot reader update-entries --ids <ids> --status <status>`
 Update the status of multiple entries
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--ids` | `-i` | int | yes | Entry IDs to update |
-| `--status` | `-s` | string | yes | New status (read, unread, removed) |
+| Flag       | Shorthand | Type   | Required | Description                        |
+| ---------- | --------- | ------ | -------- | ---------------------------------- |
+| `--ids`    | `-i`      | int    | yes      | Entry IDs to update                |
+| `--status` | `-s`      | string | yes      | New status (read, unread, removed) |
 
 ---
 
@@ -117,14 +120,15 @@ Update the status of multiple entries
 Display RSS entries for a specific feed
 
 **Positional Arguments:**
+
 - `<feed-id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--status` | `-s` | string | no | Status filter (read, unread, removed) |
-| `--limit` | `-n` | int | no | Maximum number of entries |
-| `--offset` |  | int | no | Pagination offset |
-| `--starred` |  | bool | no | Starred entries only |
+| Flag        | Shorthand | Type   | Required | Description                           |
+| ----------- | --------- | ------ | -------- | ------------------------------------- |
+| `--status`  | `-s`      | string | no       | Status filter (read, unread, removed) |
+| `--limit`   | `-n`      | int    | no       | Maximum number of entries             |
+| `--offset`  |           | int    | no       | Pagination offset                     |
+| `--starred` |           | bool   | no       | Starred entries only                  |
 
 ---
 
@@ -139,7 +143,6 @@ When a user shares a blog or feed URL they want to follow:
 3. `flowbot reader feed-entries <feed_id> -n 5`
 4. `Report the latest entries to the user.`
 
-
 ### Catch up on unread entries
 
 When a user wants to see what's new across all feeds:
@@ -147,7 +150,6 @@ When a user wants to see what's new across all feeds:
 1. `flowbot reader entries -s unread -n 20`
 2. `Present the entries in a readable format.`
 3. `If the user wants to mark as read: flowbot reader update-entries -i <ids> -s read`
-
 
 ## Troubleshooting
 

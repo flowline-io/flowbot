@@ -17,11 +17,11 @@ Manage kanban boards and tasks via the Flowbot CLI. Create, update, move, and se
 
 ## Global Flags Reference
 
-| Flag | Shorthand | Type | Description |
-|------|-----------|------|-------------|
-| `--server-url` | | string | Flowbot server URL (or set `FLOWBOT_SERVER_URL` env var) |
-| `--profile` | | string | Configuration profile name |
-| `--debug` | `-d` | bool | Enable debug mode |
+| Flag           | Shorthand | Type   | Description                                              |
+| -------------- | --------- | ------ | -------------------------------------------------------- |
+| `--server-url` |           | string | Flowbot server URL (or set `FLOWBOT_SERVER_URL` env var) |
+| `--profile`    |           | string | Configuration profile name                               |
+| `--debug`      | `-d`      | bool   | Enable debug mode                                        |
 
 ## Common Output Options
 
@@ -34,10 +34,10 @@ Most commands support `--output` / `-o` to choose between `table` (default, huma
 **Command:** `flowbot kanban list [flags]`
 Display kanban tasks from Flowbot server
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--project` | `-p` | int | no | Project ID |
-| `--status` | `-s` | string | no | Status filter (active, inactive, all) |
+| Flag        | Shorthand | Type   | Required | Description                           |
+| ----------- | --------- | ------ | -------- | ------------------------------------- |
+| `--project` | `-p`      | int    | no       | Project ID                            |
+| `--status`  | `-s`      | string | no       | Status filter (active, inactive, all) |
 
 ---
 
@@ -47,11 +47,12 @@ Display kanban tasks from Flowbot server
 Search tasks using kanboard search syntax
 
 **Positional Arguments:**
+
 - `<query>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--project` | `-p` | int | no | Project ID |
+| Flag        | Shorthand | Type | Required | Description |
+| ----------- | --------- | ---- | -------- | ----------- |
+| `--project` | `-p`      | int  | no       | Project ID  |
 
 ---
 
@@ -61,6 +62,7 @@ Search tasks using kanboard search syntax
 Display details of a specific kanban task
 
 **Positional Arguments:**
+
 - `<id>`
 
 ---
@@ -70,12 +72,12 @@ Display details of a specific kanban task
 **Command:** `flowbot kanban create --title <title> [flags]`
 Add a new task to the kanban board
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | yes | Task title |
-| `--description` | `-d` | string | no | Task description |
-| `--project` | `-p` | int | no | Project ID |
-| `--column` | `-c` | int | no | Column ID |
+| Flag            | Shorthand | Type   | Required | Description      |
+| --------------- | --------- | ------ | -------- | ---------------- |
+| `--title`       | `-t`      | string | yes      | Task title       |
+| `--description` | `-d`      | string | no       | Task description |
+| `--project`     | `-p`      | int    | no       | Project ID       |
+| `--column`      | `-c`      | int    | no       | Column ID        |
 
 ---
 
@@ -85,12 +87,13 @@ Add a new task to the kanban board
 Modify an existing kanban task
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | no | New title |
-| `--description` | `-d` | string | no | New description |
+| Flag            | Shorthand | Type   | Required | Description     |
+| --------------- | --------- | ------ | -------- | --------------- |
+| `--title`       | `-t`      | string | no       | New title       |
+| `--description` | `-d`      | string | no       | New description |
 
 ---
 
@@ -100,11 +103,12 @@ Modify an existing kanban task
 Close a task by ID
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--yes` | `-y` | bool | no | Skip confirmation |
+| Flag    | Shorthand | Type | Required | Description       |
+| ------- | --------- | ---- | -------- | ----------------- |
+| `--yes` | `-y`      | bool | no       | Skip confirmation |
 
 ---
 
@@ -114,13 +118,14 @@ Close a task by ID
 Move a task to a different column
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--column` | `-c` | int | yes | Destination column ID |
-| `--position` | `-p` | int | no | Position in column (0 = first) |
-| `--project` | `-r` | int | no | Project ID |
+| Flag         | Shorthand | Type | Required | Description                    |
+| ------------ | --------- | ---- | -------- | ------------------------------ |
+| `--column`   | `-c`      | int  | yes      | Destination column ID          |
+| `--position` | `-p`      | int  | no       | Position in column (0 = first) |
+| `--project`  | `-r`      | int  | no       | Project ID                     |
 
 ---
 
@@ -129,12 +134,12 @@ Move a task to a different column
 **Command:** `flowbot kanban card add --title <title> [flags]`
 Create a new task in the specified column
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | yes | Card title |
-| `--description` | `-d` | string | no | Card description |
-| `--project` | `-p` | int | no | Project ID |
-| `--column` | `-c` | int | no | Column ID |
+| Flag            | Shorthand | Type   | Required | Description      |
+| --------------- | --------- | ------ | -------- | ---------------- |
+| `--title`       | `-t`      | string | yes      | Card title       |
+| `--description` | `-d`      | string | no       | Card description |
+| `--project`     | `-p`      | int    | no       | Project ID       |
+| `--column`      | `-c`      | int    | no       | Column ID        |
 
 ---
 
@@ -144,13 +149,14 @@ Create a new task in the specified column
 Move a task to a different column
 
 **Positional Arguments:**
+
 - `<card-id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--column` | `-c` | int | yes | Destination column ID |
-| `--position` | `-p` | int | no | Position in column (0 = first) |
-| `--project` | `-r` | int | no | Project ID |
+| Flag         | Shorthand | Type | Required | Description                    |
+| ------------ | --------- | ---- | -------- | ------------------------------ |
+| `--column`   | `-c`      | int  | yes      | Destination column ID          |
+| `--position` | `-p`      | int  | no       | Position in column (0 = first) |
+| `--project`  | `-r`      | int  | no       | Project ID                     |
 
 ---
 
@@ -160,11 +166,12 @@ Move a task to a different column
 Close a task by ID
 
 **Positional Arguments:**
+
 - `<card-id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--yes` | `-y` | bool | no | Skip confirmation |
+| Flag    | Shorthand | Type | Required | Description       |
+| ------- | --------- | ---- | -------- | ----------------- |
+| `--yes` | `-y`      | bool | no       | Skip confirmation |
 
 ---
 
@@ -173,9 +180,9 @@ Close a task by ID
 **Command:** `flowbot kanban column list [flags]`
 Display all columns in the specified project
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--project` | `-p` | int | no | Project ID |
+| Flag        | Shorthand | Type | Required | Description |
+| ----------- | --------- | ---- | -------- | ----------- |
+| `--project` | `-p`      | int  | no       | Project ID  |
 
 ---
 
@@ -185,6 +192,7 @@ Display all columns in the specified project
 Get all metadata or a specific metadata value by name
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<[name]>`
 
@@ -196,6 +204,7 @@ Get all metadata or a specific metadata value by name
 Set one or more metadata values for a task
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<name=value...>`
 
@@ -207,12 +216,13 @@ Set one or more metadata values for a task
 Delete a metadata entry from a task
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<name>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--yes` | `-y` | bool | no | Skip confirmation |
+| Flag    | Shorthand | Type | Required | Description       |
+| ------- | --------- | ---- | -------- | ----------------- |
+| `--yes` | `-y`      | bool | no       | Skip confirmation |
 
 ---
 
@@ -221,9 +231,9 @@ Delete a metadata entry from a task
 **Command:** `flowbot kanban tag list [flags]`
 Display kanban tags
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--project` | `-p` | int | no | Project ID (if specified, list tags for this project) |
+| Flag        | Shorthand | Type | Required | Description                                           |
+| ----------- | --------- | ---- | -------- | ----------------------------------------------------- |
+| `--project` | `-p`      | int  | no       | Project ID (if specified, list tags for this project) |
 
 ---
 
@@ -232,11 +242,11 @@ Display kanban tags
 **Command:** `flowbot kanban tag create --name <name> [flags]`
 Add a new tag to the kanban board
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--name` | `-n` | string | yes | Tag name |
-| `--project` | `-p` | int | no | Project ID |
-| `--color` | `-c` | string | no | Color ID |
+| Flag        | Shorthand | Type   | Required | Description |
+| ----------- | --------- | ------ | -------- | ----------- |
+| `--name`    | `-n`      | string | yes      | Tag name    |
+| `--project` | `-p`      | int    | no       | Project ID  |
+| `--color`   | `-c`      | string | no       | Color ID    |
 
 ---
 
@@ -246,12 +256,13 @@ Add a new tag to the kanban board
 Modify an existing tag
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--name` | `-n` | string | yes | New tag name |
-| `--color` | `-c` | string | no | Color ID |
+| Flag      | Shorthand | Type   | Required | Description  |
+| --------- | --------- | ------ | -------- | ------------ |
+| `--name`  | `-n`      | string | yes      | New tag name |
+| `--color` | `-c`      | string | no       | Color ID     |
 
 ---
 
@@ -261,11 +272,12 @@ Modify an existing tag
 Remove a tag by ID
 
 **Positional Arguments:**
+
 - `<id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--yes` | `-y` | bool | no | Skip confirmation |
+| Flag    | Shorthand | Type | Required | Description       |
+| ------- | --------- | ---- | -------- | ----------------- |
+| `--yes` | `-y`      | bool | no       | Skip confirmation |
 
 ---
 
@@ -275,6 +287,7 @@ Remove a tag by ID
 Display tags assigned to a task
 
 **Positional Arguments:**
+
 - `<task_id>`
 
 ---
@@ -285,12 +298,13 @@ Display tags assigned to a task
 Assign tags to a task
 
 **Positional Arguments:**
+
 - `<task_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--project` | `-p` | int | yes | Project ID |
-| `--tags` | `-t` | string | yes | Tag names (can be specified multiple times) |
+| Flag        | Shorthand | Type   | Required | Description                                 |
+| ----------- | --------- | ------ | -------- | ------------------------------------------- |
+| `--project` | `-p`      | int    | yes      | Project ID                                  |
+| `--tags`    | `-t`      | string | yes      | Tag names (can be specified multiple times) |
 
 ---
 
@@ -300,6 +314,7 @@ Assign tags to a task
 Display all subtasks for a given task
 
 **Positional Arguments:**
+
 - `<task_id>`
 
 ---
@@ -310,6 +325,7 @@ Display all subtasks for a given task
 Display details of a specific subtask
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
@@ -321,15 +337,16 @@ Display details of a specific subtask
 Add a subtask to a kanban task
 
 **Positional Arguments:**
+
 - `<task_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | yes | Subtask title |
-| `--user` | `-u` | int | no | User ID to assign |
-| `--time-estimated` | `-e` | int | no | Estimated time (minutes) |
-| `--time-spent` | `-s` | int | no | Time spent (minutes) |
-| `--status` | `-S` | int | no | Status (0=Todo, 1=In progress, 2=Done) |
+| Flag               | Shorthand | Type   | Required | Description                            |
+| ------------------ | --------- | ------ | -------- | -------------------------------------- |
+| `--title`          | `-t`      | string | yes      | Subtask title                          |
+| `--user`           | `-u`      | int    | no       | User ID to assign                      |
+| `--time-estimated` | `-e`      | int    | no       | Estimated time (minutes)               |
+| `--time-spent`     | `-s`      | int    | no       | Time spent (minutes)                   |
+| `--status`         | `-S`      | int    | no       | Status (0=Todo, 1=In progress, 2=Done) |
 
 ---
 
@@ -339,16 +356,17 @@ Add a subtask to a kanban task
 Modify an existing subtask
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--title` | `-t` | string | no | New title |
-| `--user` | `-u` | int | no | User ID to assign (-1 to unassign) |
-| `--time-estimated` | `-e` | int | no | Estimated time (minutes, -1 to clear) |
-| `--time-spent` | `-s` | int | no | Time spent (minutes, -1 to clear) |
-| `--status` | `-S` | int | no | Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged) |
+| Flag               | Shorthand | Type   | Required | Description                                                   |
+| ------------------ | --------- | ------ | -------- | ------------------------------------------------------------- |
+| `--title`          | `-t`      | string | no       | New title                                                     |
+| `--user`           | `-u`      | int    | no       | User ID to assign (-1 to unassign)                            |
+| `--time-estimated` | `-e`      | int    | no       | Estimated time (minutes, -1 to clear)                         |
+| `--time-spent`     | `-s`      | int    | no       | Time spent (minutes, -1 to clear)                             |
+| `--status`         | `-S`      | int    | no       | Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged) |
 
 ---
 
@@ -358,12 +376,13 @@ Modify an existing subtask
 Remove a subtask by ID
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--yes` | `-y` | bool | no | Skip confirmation |
+| Flag    | Shorthand | Type | Required | Description       |
+| ------- | --------- | ---- | -------- | ----------------- |
+| `--yes` | `-y`      | bool | no       | Skip confirmation |
 
 ---
 
@@ -373,12 +392,13 @@ Remove a subtask by ID
 Check if a timer is started for the given subtask and user
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--user` | `-u` | int | no | User ID |
+| Flag     | Shorthand | Type | Required | Description |
+| -------- | --------- | ---- | -------- | ----------- |
+| `--user` | `-u`      | int  | no       | User ID     |
 
 ---
 
@@ -388,12 +408,13 @@ Check if a timer is started for the given subtask and user
 Start subtask timer for a user
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--user` | `-u` | int | no | User ID |
+| Flag     | Shorthand | Type | Required | Description |
+| -------- | --------- | ---- | -------- | ----------- |
+| `--user` | `-u`      | int  | no       | User ID     |
 
 ---
 
@@ -403,12 +424,13 @@ Start subtask timer for a user
 Stop subtask timer for a user
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--user` | `-u` | int | no | User ID |
+| Flag     | Shorthand | Type | Required | Description |
+| -------- | --------- | ---- | -------- | ----------- |
+| `--user` | `-u`      | int  | no       | User ID     |
 
 ---
 
@@ -418,12 +440,13 @@ Stop subtask timer for a user
 Get time spent on a subtask for a user (in hours)
 
 **Positional Arguments:**
+
 - `<task_id>`
 - `<subtask_id>`
 
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-| `--user` | `-u` | int | no | User ID |
+| Flag     | Shorthand | Type | Required | Description |
+| -------- | --------- | ---- | -------- | ----------- |
+| `--user` | `-u`      | int  | no       | User ID     |
 
 ---
 
@@ -438,7 +461,6 @@ When a user wants to create a well-structured task:
 3. `flowbot kanban subtask create <task_id> -t "<subtask 1>" -e <minutes>`
 4. `flowbot kanban subtask create <task_id> -t "<subtask 2>" -e <minutes>`
 
-
 ### Review and triage tasks
 
 When reviewing the current board state:
@@ -447,7 +469,6 @@ When reviewing the current board state:
 2. `flowbot kanban get <task_id>`
 3. `flowbot kanban subtask list <task_id>`
 4. `Summarize task status, subtask completion, and suggest next actions.`
-
 
 ## Troubleshooting
 

@@ -88,6 +88,9 @@ type Type struct {
 
 	// OpenTelemetry tracing configuration
 	Tracing Tracing `json:"tracing" yaml:"tracing" mapstructure:"tracing"`
+
+	// Pyroscope continuous profiling configuration
+	Profiling Profiling `json:"profiling" yaml:"profiling" mapstructure:"profiling"`
 }
 
 // Notify holds notification gateway configuration including templates and rules.
@@ -162,6 +165,20 @@ type Tracing struct {
 	Environment string `json:"environment" yaml:"environment" mapstructure:"environment"`
 	// SampleRate controls trace sampling (0.0-1.0)
 	SampleRate float64 `json:"sample_rate" yaml:"sample_rate" mapstructure:"sample_rate"`
+}
+
+// Profiling configures Pyroscope continuous profiling.
+type Profiling struct {
+	// Enabled toggles continuous profiling
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// ServerAddress is the Pyroscope server URL (e.g. http://localhost:4040)
+	ServerAddress string `json:"server_address" yaml:"server_address" mapstructure:"server_address"`
+	// ServiceName identifies this service in profiles
+	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
+	// Environment tag (development, staging, production)
+	Environment string `json:"environment" yaml:"environment" mapstructure:"environment"`
+	// ProfileTypes lists the profile types to enable (cpu, alloc_objects, etc.)
+	ProfileTypes []string `json:"profile_types" yaml:"profile_types" mapstructure:"profile_types"`
 }
 
 // Large file handler config.

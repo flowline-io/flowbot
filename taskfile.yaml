@@ -159,7 +159,7 @@ tasks:
     desc: Generate SKILLS.md to cmd/cli
     cmds:
       - go run ./cmd/composer skills
-  
+
   webdoc:
     desc: Generate docs to website
     cmds:

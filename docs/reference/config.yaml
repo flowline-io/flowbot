@@ -116,6 +116,24 @@ metrics:
   enabled: true
   endpoint: "http://127.0.0.1:8428"
 
+# Pyroscope continuous profiling configuration
+profiling:
+  enabled: false
+  server_address: "http://127.0.0.1:4040"
+  service_name: "flowbot"
+  environment: "development"
+  profile_types:
+    - "cpu"
+    - "alloc_objects"
+    - "alloc_space"
+    - "inuse_objects"
+    - "inuse_space"
+    - "goroutines"
+    - "mutex_count"
+    - "mutex_duration"
+    - "block_count"
+    - "block_duration"
+
 # Search service configuration
 search:
   enabled: true
