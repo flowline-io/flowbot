@@ -60,6 +60,7 @@ go tool task test:integration  # Integration tests (requires Docker)
 - Never leak provider raw errors or pagination internals to HTTP layer
 - Never use Redis Stream as sole event store — persist to MySQL data_events
 - Never skip delivery/audit/idempotency records
+- Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`
 
 ## Build & CI
 
