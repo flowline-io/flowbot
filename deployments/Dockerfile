@@ -18,6 +18,17 @@ COPY --from=builder /opt/app/flowbot .
 
 RUN chmod +x flowbot
 
-LABEL org.opencontainers.image.description="Homelab Data Hub & Capability Orchestration Center"
+ARG VERSION=dev
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
+
+LABEL org.opencontainers.image.title="flowbot" \
+      org.opencontainers.image.description="Homelab Data Hub & Capability Orchestration Center" \
+      org.opencontainers.image.url="https://github.com/flowline-io/flowbot" \
+      org.opencontainers.image.source="https://github.com/flowline-io/flowbot" \
+      org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.created=${BUILD_DATE} \
+      org.opencontainers.image.revision=${VCS_REF} \
+      org.opencontainers.image.licenses="GPL-3.0"
 
 ENTRYPOINT exec /opt/app/flowbot
