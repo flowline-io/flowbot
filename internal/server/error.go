@@ -3,8 +3,9 @@ package server
 import (
 	"errors"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v3"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func domainErrorStatus(err error) (int, bool) {

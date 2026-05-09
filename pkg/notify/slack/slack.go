@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"resty.dev/v3"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"resty.dev/v3"
 )
 
 const ID = "slack"

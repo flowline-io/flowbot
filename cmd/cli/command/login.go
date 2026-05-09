@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
+
+	"github.com/flowline-io/flowbot/cmd/cli/store"
 )
 
 // LoginCommand returns the login command

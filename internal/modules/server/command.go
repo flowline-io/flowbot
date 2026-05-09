@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
@@ -18,7 +20,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/redis/go-redis/v9"
 )
 
 var commandRules = []command.Rule{

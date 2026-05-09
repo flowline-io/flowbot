@@ -10,8 +10,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/flowline-io/flowbot/cmd/cli/command"
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/cmd/cli/command"
 )
 
 // skillTemplate is the SKILL.md template following the docs/skill_spec.md format.

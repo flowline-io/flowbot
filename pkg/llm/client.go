@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"google.golang.org/genai"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 var models = make(map[string]config.Model)

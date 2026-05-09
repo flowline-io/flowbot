@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 

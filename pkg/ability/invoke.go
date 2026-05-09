@@ -4,11 +4,12 @@ import (
 	"context"
 	"sync"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"go.opentelemetry.io/otel/attribute"
 )
 
 type Invoker func(ctx context.Context, params map[string]any) (*InvokeResult, error)

@@ -3,9 +3,10 @@ package utils
 import (
 	"fmt"
 
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/flowline-io/flowbot/pkg/client"
-	"github.com/urfave/cli/v3"
 )
 
 func NewClient(cmd *cli.Command) (*client.Client, error) {

@@ -1,8 +1,9 @@
 package config
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -245,13 +246,13 @@ func TestTypeJSONMarshaling(t *testing.T) {
 		},
 	}
 
-	data, err := json.Marshal(cfg)
+	data, err := sonic.Marshal(cfg)
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), ":9090")
 	assert.Contains(t, string(data), "/v1/")
 
 	var unmarshaled Type
-	err = json.Unmarshal(data, &unmarshaled)
+	err = sonic.Unmarshal(data, &unmarshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, ":9090", unmarshaled.Listen)
 	assert.Equal(t, "/v1/", unmarshaled.ApiPath)

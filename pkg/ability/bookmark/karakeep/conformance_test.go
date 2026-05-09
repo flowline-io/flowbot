@@ -3,11 +3,12 @@ package karakeep
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	bm "github.com/flowline-io/flowbot/pkg/ability/bookmark"
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
 	provider "github.com/flowline-io/flowbot/pkg/providers/karakeep"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestKarakeepConformance(t *testing.T) {

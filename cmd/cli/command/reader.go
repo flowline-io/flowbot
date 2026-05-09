@@ -2,14 +2,16 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/bytedance/sonic"
+
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
-	"github.com/urfave/cli/v3"
 )
 
 func ReaderCommand() *cli.Command {
@@ -61,7 +63,7 @@ func readerFeedListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(feeds, "", "  ")
+				data, err := sonic.MarshalIndent(feeds, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal feeds: %w", err)
 				}
@@ -127,7 +129,7 @@ func readerFeedGetCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(feed, "", "  ")
+				data, err := sonic.MarshalIndent(feed, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal feed: %w", err)
 				}
@@ -345,7 +347,7 @@ func readerEntryListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result.Entries, "", "  ")
+				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal entries: %w", err)
 				}
@@ -481,7 +483,7 @@ func readerFeedEntriesCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result.Entries, "", "  ")
+				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal entries: %w", err)
 				}

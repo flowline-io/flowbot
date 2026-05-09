@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -22,8 +25,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/gofiber/fiber/v3"
-	"gorm.io/gorm"
 )
 
 const (

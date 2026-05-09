@@ -8,8 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/hekmon/transmissionrpc/v3"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
 const (

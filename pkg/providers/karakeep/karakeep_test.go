@@ -1,8 +1,9 @@
 package karakeep
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +51,7 @@ func TestBookmarkUnmarshal(t *testing.T) {
 	}`
 
 	var b Bookmark
-	if err := json.Unmarshal([]byte(data), &b); err != nil {
+	if err := sonic.Unmarshal([]byte(data), &b); err != nil {
 		t.Fatalf("failed to unmarshal bookmark: %v", err)
 	}
 
@@ -107,7 +108,7 @@ func TestBookmarkContent_Unmarshal(t *testing.T) {
 	}`
 
 	var content BookmarkContent
-	err := json.Unmarshal([]byte(data), &content)
+	err := sonic.Unmarshal([]byte(data), &content)
 	require.NoError(t, err)
 
 	assert.Equal(t, "link", content.Type)
@@ -127,7 +128,7 @@ func TestBookmarksResponse_Unmarshal(t *testing.T) {
 	}`
 
 	var resp BookmarksResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 
 	assert.Len(t, resp.Bookmarks, 1)
@@ -138,7 +139,7 @@ func TestBookmarksResponse_Unmarshal(t *testing.T) {
 func TestBookmarksResponse_Empty(t *testing.T) {
 	data := `{"bookmarks": [], "nextCursor": ""}`
 	var resp BookmarksResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	assert.Empty(t, resp.Bookmarks)
 	assert.Empty(t, resp.NextCursor)
@@ -152,7 +153,7 @@ func TestTagsResponse_Unmarshal(t *testing.T) {
 	}`
 
 	var resp TagsResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 
 	assert.Len(t, resp.Tags, 1)
@@ -175,7 +176,7 @@ func TestTagNumBookmarksByAttachedType(t *testing.T) {
 func TestAttachTagsResponse_Unmarshal(t *testing.T) {
 	data := `{"attached": ["tag1", "tag2"]}`
 	var resp AttachTagsResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"tag1", "tag2"}, resp.Attached)
 }
@@ -183,7 +184,7 @@ func TestAttachTagsResponse_Unmarshal(t *testing.T) {
 func TestDetachTagsResponse_Unmarshal(t *testing.T) {
 	data := `{"detached": ["tag3"]}`
 	var resp DetachTagsResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"tag3"}, resp.Detached)
 }
@@ -191,7 +192,7 @@ func TestDetachTagsResponse_Unmarshal(t *testing.T) {
 func TestArchiveResponse_Unmarshal(t *testing.T) {
 	data := `{"archived": true}`
 	var resp ArchiveResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	assert.True(t, resp.Archived)
 }
@@ -249,7 +250,7 @@ func TestSearchBookmarksQuery_WithValues(t *testing.T) {
 func TestCheckUrlResponse_Unmarshal_WithBookmarkId(t *testing.T) {
 	data := `{"bookmarkId": "abc123"}`
 	var resp CheckUrlResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	require.NotNil(t, resp.BookmarkId)
 	assert.Equal(t, "abc123", *resp.BookmarkId)
@@ -258,7 +259,7 @@ func TestCheckUrlResponse_Unmarshal_WithBookmarkId(t *testing.T) {
 func TestCheckUrlResponse_Unmarshal_NotFound(t *testing.T) {
 	data := `{"bookmarkId": null}`
 	var resp CheckUrlResponse
-	err := json.Unmarshal([]byte(data), &resp)
+	err := sonic.Unmarshal([]byte(data), &resp)
 	require.NoError(t, err)
 	assert.Nil(t, resp.BookmarkId)
 }
@@ -266,7 +267,7 @@ func TestCheckUrlResponse_Unmarshal_NotFound(t *testing.T) {
 func TestBookmarkTagsInner_Unmarshal(t *testing.T) {
 	data := `{"id":"t1","name":"go","attachedBy":"ai"}`
 	var tag BookmarkTagsInner
-	err := json.Unmarshal([]byte(data), &tag)
+	err := sonic.Unmarshal([]byte(data), &tag)
 	require.NoError(t, err)
 	assert.Equal(t, "t1", tag.Id)
 	assert.Equal(t, "go", tag.Name)
@@ -276,7 +277,7 @@ func TestBookmarkTagsInner_Unmarshal(t *testing.T) {
 func TestBookmarksBookmarkIdAssets_Unmarshal(t *testing.T) {
 	data := `{"id":"a1","assetType":"linkHtmlContent","fileName":"file.html"}`
 	var asset BookmarksBookmarkIdAssets
-	err := json.Unmarshal([]byte(data), &asset)
+	err := sonic.Unmarshal([]byte(data), &asset)
 	require.NoError(t, err)
 	assert.Equal(t, "a1", asset.Id)
 	assert.Equal(t, "linkHtmlContent", asset.AssetType)

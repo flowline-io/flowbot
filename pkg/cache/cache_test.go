@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 // TestNewCache tests the NewCache function

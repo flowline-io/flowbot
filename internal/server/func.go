@@ -8,6 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -24,11 +30,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v3"
-	"github.com/redis/go-redis/v9"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"gorm.io/gorm"
 )
 
 // newProvider returns a new OAuth provider based on the given category.

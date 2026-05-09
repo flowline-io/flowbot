@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
 type Table struct {

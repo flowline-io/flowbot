@@ -1,13 +1,14 @@
 package slash
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -61,7 +62,7 @@ func TestSlash_CreateShortcut(t *testing.T) {
 
 				body, _ := io.ReadAll(r.Body)
 				var reqData Shortcut
-				err := json.Unmarshal(body, &reqData)
+				err := sonic.Unmarshal(body, &reqData)
 				require.NoError(t, err)
 				assert.Equal(t, tt.shortcut.Name, reqData.Name)
 				assert.Equal(t, tt.shortcut.Link, reqData.Link)
@@ -91,7 +92,7 @@ func TestSlash_UpdateShortcut(t *testing.T) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var reqData Shortcut
-		err = json.Unmarshal(body, &reqData)
+		err = sonic.Unmarshal(body, &reqData)
 		require.NoError(t, err)
 
 		assert.Equal(t, int32(123), reqData.Id)
@@ -185,7 +186,7 @@ func TestSlash_GetShortcut(t *testing.T) {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(response)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -247,7 +248,7 @@ func TestSlash_ListShortcuts(t *testing.T) {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(shortcuts)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(shortcuts)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -267,7 +268,7 @@ func TestSlash_ListShortcuts_Empty(t *testing.T) {
 		shortcuts := []*Shortcut{}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(shortcuts)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(shortcuts)
 		require.NoError(t, err)
 	}))
 	defer server.Close()

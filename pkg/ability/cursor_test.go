@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestCursorRoundTrip(t *testing.T) {

@@ -3,10 +3,11 @@ package conformance
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
-	bm "github.com/flowline-io/flowbot/pkg/ability/bookmark"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/ability"
+	bm "github.com/flowline-io/flowbot/pkg/ability/bookmark"
 )
 
 // BookmarkConfig configures the fake backend for each bookmark conformance subtest.

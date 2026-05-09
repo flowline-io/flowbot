@@ -3,8 +3,9 @@ package webhook
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 func TestStateStr_Active(t *testing.T) {

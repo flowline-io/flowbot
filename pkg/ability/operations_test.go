@@ -3,8 +3,9 @@ package ability
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
 func TestOpKnownCapability(t *testing.T) {

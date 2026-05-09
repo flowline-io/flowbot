@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
@@ -14,6 +12,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/fx"
+
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // NewTracerProvider creates and configures the global OpenTelemetry TracerProvider.

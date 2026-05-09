@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/homelab"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/homelab"
 )
 
 type HubStore struct {

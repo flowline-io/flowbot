@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/library"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
 //go:embed styles.css

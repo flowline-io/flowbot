@@ -1,12 +1,13 @@
 package n8n
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,7 +39,7 @@ func TestN8N_ListWorkflows(t *testing.T) {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(workflows)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(workflows)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -89,7 +90,7 @@ func TestN8N_GetWorkflow(t *testing.T) {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(workflow)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(workflow)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -113,7 +114,7 @@ func TestN8N_CreateWorkflow(t *testing.T) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var reqData Workflow
-		err = json.Unmarshal(body, &reqData)
+		err = sonic.Unmarshal(body, &reqData)
 		require.NoError(t, err)
 		assert.Equal(t, "New Workflow", reqData.Name)
 
@@ -124,7 +125,7 @@ func TestN8N_CreateWorkflow(t *testing.T) {
 			Nodes:  reqData.Nodes,
 		}
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(createdWorkflow)
+		err = sonic.ConfigDefault.NewEncoder(w).Encode(createdWorkflow)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -151,7 +152,7 @@ func TestN8N_UpdateWorkflow(t *testing.T) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var reqData Workflow
-		err = json.Unmarshal(body, &reqData)
+		err = sonic.Unmarshal(body, &reqData)
 		require.NoError(t, err)
 
 		updatedWorkflow := Workflow{
@@ -160,7 +161,7 @@ func TestN8N_UpdateWorkflow(t *testing.T) {
 			Active: reqData.Active,
 		}
 		w.WriteHeader(http.StatusOK)
-		err = json.NewEncoder(w).Encode(updatedWorkflow)
+		err = sonic.ConfigDefault.NewEncoder(w).Encode(updatedWorkflow)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -241,14 +242,14 @@ func TestN8N_ExecuteWorkflow_WithWebhookPath(t *testing.T) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			err := json.NewEncoder(w).Encode(workflow)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(workflow)
 			require.NoError(t, err)
 		case "/webhook/my-webhook-path":
 			assert.Equal(t, http.MethodPost, r.Method)
 			body, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
 			var data map[string]any
-			err = json.Unmarshal(body, &data)
+			err = sonic.Unmarshal(body, &data)
 			require.NoError(t, err)
 			assert.Equal(t, "test-value", data["key"])
 			w.WriteHeader(http.StatusOK)
@@ -283,7 +284,7 @@ func TestN8N_ExecuteWorkflow_WithWebhookID(t *testing.T) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			err := json.NewEncoder(w).Encode(workflow)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(workflow)
 			require.NoError(t, err)
 		case "/webhook/webhook-456":
 			w.WriteHeader(http.StatusAccepted)
@@ -315,7 +316,7 @@ func TestN8N_ExecuteWorkflow_NoWebhook(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(workflow)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(workflow)
 		require.NoError(t, err)
 	}))
 	defer server.Close()

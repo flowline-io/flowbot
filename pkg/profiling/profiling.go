@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/grafana/pyroscope-go"
 	"go.uber.org/fx"
+
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // pyroscopeLogger adapts flog to the pyroscope.Logger interface.

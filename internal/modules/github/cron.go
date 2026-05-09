@@ -3,12 +3,13 @@ package github
 import (
 	"errors"
 
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"gorm.io/gorm"
 )
 
 var cronRules = []cron.Rule{

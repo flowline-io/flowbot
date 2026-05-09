@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto/v2"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 

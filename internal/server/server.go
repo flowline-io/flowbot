@@ -5,14 +5,15 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/search"
-	"github.com/gofiber/fiber/v3"
-	"github.com/redis/go-redis/v9"
-	"go.uber.org/fx"
 )
 
 func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher) {

@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
+	"resty.dev/v3"
+
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/gofiber/fiber/v3"
-	"resty.dev/v3"
 )
 
 const (

@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/gofiber/fiber/v3"
 )
 
 var (

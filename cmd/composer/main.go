@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/urfave/cli/v3"
 )
 
 func main() {

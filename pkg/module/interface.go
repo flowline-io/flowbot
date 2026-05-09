@@ -3,9 +3,10 @@ package module
 import (
 	"encoding/json"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/gofiber/fiber/v3"
 )
 
 type Handler interface {

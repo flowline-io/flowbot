@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/fiber/v3"
 )
 
 type Driver struct {

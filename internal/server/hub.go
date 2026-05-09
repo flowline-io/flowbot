@@ -3,6 +3,8 @@ package server
 import (
 	"strconv"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -10,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/fiber/v3"
 )
 
 func (c *Controller) hubApps(ctx fiber.Ctx) error {

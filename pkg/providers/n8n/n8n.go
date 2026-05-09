@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"resty.dev/v3"
+
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"resty.dev/v3"
 )
 
 const (

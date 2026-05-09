@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 func TestEngineLoadConfig(t *testing.T) {

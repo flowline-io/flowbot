@@ -15,9 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
-	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/recover"
@@ -32,6 +29,10 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	gormmysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
 // IntegrationTestSuite is the base test suite for all integration tests.

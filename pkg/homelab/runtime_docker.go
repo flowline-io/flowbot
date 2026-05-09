@@ -2,12 +2,13 @@ package homelab
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -25,7 +26,7 @@ func parseComposePSStatus(output string) AppStatus {
 	}
 
 	var entries []composePSEntry
-	if err := json.Unmarshal([]byte(trimmed), &entries); err != nil {
+	if err := sonic.Unmarshal([]byte(trimmed), &entries); err != nil {
 		return AppStatusUnknown
 	}
 

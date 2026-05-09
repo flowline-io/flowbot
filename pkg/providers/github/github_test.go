@@ -1,9 +1,10 @@
 package github
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ func TestTokenResponse_Unmarshal(t *testing.T) {
 	}`
 
 	var token TokenResponse
-	err := json.Unmarshal([]byte(data), &token)
+	err := sonic.Unmarshal([]byte(data), &token)
 	require.NoError(t, err)
 
 	assert.Equal(t, "gho_test_token", token.AccessToken)
@@ -47,7 +48,7 @@ func TestUser_Unmarshal(t *testing.T) {
 	}`
 
 	var user User
-	err := json.Unmarshal([]byte(data), &user)
+	err := sonic.Unmarshal([]byte(data), &user)
 	require.NoError(t, err)
 
 	assert.Equal(t, "testuser", *user.Login)
@@ -78,7 +79,7 @@ func TestRepository_Unmarshal(t *testing.T) {
 	}`
 
 	var repo Repository
-	err := json.Unmarshal([]byte(data), &repo)
+	err := sonic.Unmarshal([]byte(data), &repo)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(123456789), *repo.ID)
@@ -116,7 +117,7 @@ func TestIssue_Unmarshal(t *testing.T) {
 	}`
 
 	var issue Issue
-	err := json.Unmarshal([]byte(data), &issue)
+	err := sonic.Unmarshal([]byte(data), &issue)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(123456), *issue.ID)
@@ -138,7 +139,7 @@ func TestLabel_Unmarshal(t *testing.T) {
 	}`
 
 	var label Label
-	err := json.Unmarshal([]byte(data), &label)
+	err := sonic.Unmarshal([]byte(data), &label)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(123), *label.ID)
@@ -159,7 +160,7 @@ func TestProject_Unmarshal(t *testing.T) {
 	}`
 
 	var project Project
-	err := json.Unmarshal([]byte(data), &project)
+	err := sonic.Unmarshal([]byte(data), &project)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(1234567), *project.ID)
@@ -176,7 +177,7 @@ func TestProjectColumn_Unmarshal(t *testing.T) {
 	}`
 
 	var column ProjectColumn
-	err := json.Unmarshal([]byte(data), &column)
+	err := sonic.Unmarshal([]byte(data), &column)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(12345678), *column.ID)
@@ -193,7 +194,7 @@ func TestProjectCard_Unmarshal(t *testing.T) {
 	}`
 
 	var card ProjectCard
-	err := json.Unmarshal([]byte(data), &card)
+	err := sonic.Unmarshal([]byte(data), &card)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(123456789), *card.ID)
@@ -219,7 +220,7 @@ func TestNotification_Unmarshal(t *testing.T) {
 	}`
 
 	var notification Notification
-	err := json.Unmarshal([]byte(data), &notification)
+	err := sonic.Unmarshal([]byte(data), &notification)
 	require.NoError(t, err)
 
 	assert.Equal(t, "123456789", *notification.ID)
@@ -242,7 +243,7 @@ func TestRepositoryRelease_Unmarshal(t *testing.T) {
 	}`
 
 	var release RepositoryRelease
-	err := json.Unmarshal([]byte(data), &release)
+	err := sonic.Unmarshal([]byte(data), &release)
 	require.NoError(t, err)
 
 	assert.Equal(t, "v1.0.0", *release.TagName)
@@ -278,7 +279,7 @@ func TestPackageWebhook_Unmarshal(t *testing.T) {
 	}`
 
 	var webhook PackageWebhook
-	err := json.Unmarshal([]byte(data), &webhook)
+	err := sonic.Unmarshal([]byte(data), &webhook)
 	require.NoError(t, err)
 
 	assert.Equal(t, "published", webhook.Action)
@@ -302,7 +303,7 @@ func TestMilestone_Unmarshal(t *testing.T) {
 	}`
 
 	var milestone Milestone
-	err := json.Unmarshal([]byte(data), &milestone)
+	err := sonic.Unmarshal([]byte(data), &milestone)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(12345), *milestone.ID)
@@ -324,7 +325,7 @@ func TestReactions_Unmarshal(t *testing.T) {
 	}`
 
 	var reactions Reactions
-	err := json.Unmarshal([]byte(data), &reactions)
+	err := sonic.Unmarshal([]byte(data), &reactions)
 	require.NoError(t, err)
 
 	assert.Equal(t, 10, *reactions.TotalCount)
@@ -346,7 +347,7 @@ func TestReleaseAsset_Unmarshal(t *testing.T) {
 	}`
 
 	var asset ReleaseAsset
-	err := json.Unmarshal([]byte(data), &asset)
+	err := sonic.Unmarshal([]byte(data), &asset)
 	require.NoError(t, err)
 
 	assert.Equal(t, int64(12345), *asset.ID)
@@ -400,7 +401,7 @@ func TestTimePointer(t *testing.T) {
 	data := `{"created_at": "` + now.Format(time.RFC3339) + `"}`
 
 	var user User
-	err := json.Unmarshal([]byte(data), &user)
+	err := sonic.Unmarshal([]byte(data), &user)
 	require.NoError(t, err)
 
 	assert.NotNil(t, user.CreatedAt)

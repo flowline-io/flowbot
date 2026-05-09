@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"

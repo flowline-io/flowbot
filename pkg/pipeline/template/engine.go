@@ -1,12 +1,13 @@
 package template
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 	txtpl "text/template"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/tidwall/gjson"
 )
@@ -92,7 +93,7 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 			return val
 		},
 		"json": func(v any) (string, error) {
-			b, err := json.Marshal(v)
+			b, err := sonic.Marshal(v)
 			if err != nil {
 				return "", err
 			}

@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 func newRedisClient() (*redis.Client, error) {

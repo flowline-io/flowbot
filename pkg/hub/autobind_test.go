@@ -3,9 +3,10 @@ package hub
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/homelab"
 )
 
 func TestAutoBind_EmptyRegistry(t *testing.T) {

@@ -5,8 +5,9 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/utils"
 
-	"github.com/flowline-io/flowbot/pkg/providers"
 	"resty.dev/v3"
+
+	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
 const (

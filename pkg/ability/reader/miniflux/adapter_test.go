@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
-	rdr "github.com/flowline-io/flowbot/pkg/ability/reader"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	rssClient "miniflux.app/v2/client"
+
+	rdr "github.com/flowline-io/flowbot/pkg/ability/reader"
 )
 
 type fakeClient struct {

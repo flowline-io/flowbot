@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 // DatabaseExtTestSuite tests CRUD operations for models not covered by DatabaseTestSuite.

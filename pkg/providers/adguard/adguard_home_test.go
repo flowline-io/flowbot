@@ -1,10 +1,11 @@
 package adguard
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 				assert.Equal(t, "Basic YWRtaW46cGFzc3dvcmQ=", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tt.statusCode)
-				err := json.NewEncoder(w).Encode(tt.response)
+				err := sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
 				require.NoError(t, err)
 			}))
 			defer server.Close()
@@ -86,7 +87,7 @@ func TestAdGuardHome_GetStats(t *testing.T) {
 			ReplacedParental:      []int32{},
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(response)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
 		require.NoError(t, err)
 	}))
 	defer server.Close()

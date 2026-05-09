@@ -1,11 +1,13 @@
 package store
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/bytedance/sonic"
+
 	"gorm.io/gorm"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 // WorkflowRunStore persists workflow runs, step runs, and checkpoint data.
@@ -109,7 +111,7 @@ func (s *WorkflowRunStore) SaveCheckpoint(runID int64, data any) error {
 		return nil
 	}
 	cp := model.JSON{}
-	raw, err := json.Marshal(data)
+	raw, err := sonic.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -145,11 +147,11 @@ func (s *WorkflowRunStore) GetCheckpoint(runID int64, target any) error {
 	if run.CheckpointData == nil {
 		return nil
 	}
-	raw, err := json.Marshal(run.CheckpointData)
+	raw, err := sonic.Marshal(run.CheckpointData)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(raw, target)
+	return sonic.Unmarshal(raw, target)
 }
 
 // GetRun returns a workflow run by ID.

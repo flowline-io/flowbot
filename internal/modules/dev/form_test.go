@@ -3,10 +3,11 @@ package dev
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 )
 
 func TestFormRules_Count(t *testing.T) {

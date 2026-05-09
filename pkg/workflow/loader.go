@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"gopkg.in/yaml.v3"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func LoadFile(path string) (*types.WorkflowMetadata, error) {

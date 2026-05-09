@@ -3,8 +3,9 @@ package store
 import (
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"gorm.io/gorm"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 type AuditStore struct {

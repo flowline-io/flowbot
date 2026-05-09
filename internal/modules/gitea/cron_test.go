@@ -3,8 +3,9 @@ package gitea
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 func TestCronRules_Count(t *testing.T) {

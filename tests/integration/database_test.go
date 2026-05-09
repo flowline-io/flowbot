@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 // DatabaseTestSuite tests database operations with Testcontainers.

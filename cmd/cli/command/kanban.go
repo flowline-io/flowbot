@@ -2,16 +2,18 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
+
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
-	"github.com/urfave/cli/v3"
 )
 
 func KanbanCommand() *cli.Command {
@@ -91,7 +93,7 @@ func kanbanListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(tasks, "", "  ")
+				data, err := sonic.MarshalIndent(tasks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal kanban tasks: %w", err)
 				}
@@ -158,7 +160,7 @@ func kanbanGetCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(task, "", "  ")
+				data, err := sonic.MarshalIndent(task, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal kanban task: %w", err)
 				}
@@ -439,7 +441,7 @@ func kanbanSearchCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(tasks, "", "  ")
+				data, err := sonic.MarshalIndent(tasks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal tasks: %w", err)
 				}
@@ -524,7 +526,7 @@ func kanbanMetadataGetCommand() *cli.Command {
 				if err != nil {
 					return fmt.Errorf("get metadata: %w", err)
 				}
-				data, err := json.MarshalIndent(metadata, "", "  ")
+				data, err := sonic.MarshalIndent(metadata, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal metadata: %w", err)
 				}
@@ -705,7 +707,7 @@ func kanbanSubtaskListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(subtasks, "", "  ")
+				data, err := sonic.MarshalIndent(subtasks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal subtasks: %w", err)
 				}
@@ -772,7 +774,7 @@ func kanbanSubtaskGetCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(subtask, "", "  ")
+				data, err := sonic.MarshalIndent(subtask, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal subtask: %w", err)
 				}
@@ -1283,7 +1285,7 @@ func kanbanTagListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(tags, "", "  ")
+				data, err := sonic.MarshalIndent(tags, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal tags: %w", err)
 				}
@@ -1506,7 +1508,7 @@ func kanbanTagTaskGetCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(tags, "", "  ")
+				data, err := sonic.MarshalIndent(tags, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal tags: %w", err)
 				}

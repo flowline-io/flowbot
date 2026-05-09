@@ -7,10 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/config"
-	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -21,6 +17,11 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/config"
+	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // AdapterTestSuite is a test suite for the MySQL adapter using testcontainers

@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 )
 
 func TestWebhookConstants(t *testing.T) {

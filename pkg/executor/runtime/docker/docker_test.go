@@ -13,10 +13,11 @@ import (
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 // skipIfNoDocker skips the test if the Docker daemon is not reachable.

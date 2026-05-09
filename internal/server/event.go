@@ -10,11 +10,12 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"go.uber.org/fx"
 )
 
 // init event

@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestMountTmpfs(t *testing.T) {

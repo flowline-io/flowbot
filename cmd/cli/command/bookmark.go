@@ -2,14 +2,16 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
+
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
-	"github.com/urfave/cli/v3"
 )
 
 func BookmarkCommand() *cli.Command {
@@ -105,7 +107,7 @@ func bookmarkListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result.Bookmarks, "", "  ")
+				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmarks: %w", err)
 				}
@@ -172,7 +174,7 @@ func bookmarkGetCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(bookmark, "", "  ")
+				data, err := sonic.MarshalIndent(bookmark, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmark: %w", err)
 				}
@@ -421,7 +423,7 @@ func bookmarkSearchCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result.Bookmarks, "", "  ")
+				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal bookmarks: %w", err)
 				}

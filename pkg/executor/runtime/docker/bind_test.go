@@ -7,9 +7,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestMountBindNotAllowed(t *testing.T) {

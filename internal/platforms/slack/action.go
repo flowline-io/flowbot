@@ -6,10 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/slack-go/slack"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/slack-go/slack"
 )
 
 type Action struct {

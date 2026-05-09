@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
+
+	"github.com/flowline-io/flowbot/pkg/utils/syncx"
 )
 
 func TestGetNonExistent(t *testing.T) {

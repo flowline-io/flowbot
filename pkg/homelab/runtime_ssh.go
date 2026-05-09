@@ -6,9 +6,10 @@ import (
 	"net"
 	"strings"
 
+	"golang.org/x/crypto/ssh"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"golang.org/x/crypto/ssh"
 )
 
 type SSHRuntime struct {

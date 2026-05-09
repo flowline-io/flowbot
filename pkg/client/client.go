@@ -16,14 +16,16 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/bytedance/sonic"
+
 	"resty.dev/v3"
+
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
 // Client is the main client for the Flowbot API.
@@ -159,7 +161,7 @@ func parseResponse(resp *resty.Response, result any) error {
 	}
 
 	var r protocol.Response
-	if err := json.Unmarshal(body, &r); err != nil {
+	if err := sonic.Unmarshal(body, &r); err != nil {
 		return &APIError{
 			StatusCode: resp.StatusCode(),
 			Message:    fmt.Sprintf("parse response: %v", err),
@@ -179,11 +181,11 @@ func parseResponse(resp *resty.Response, result any) error {
 	}
 
 	if result != nil && r.Data != nil {
-		data, err := json.Marshal(r.Data)
+		data, err := sonic.Marshal(r.Data)
 		if err != nil {
 			return fmt.Errorf("marshal response data: %w", err)
 		}
-		if err := json.Unmarshal(data, result); err != nil {
+		if err := sonic.Unmarshal(data, result); err != nil {
 			return fmt.Errorf("parse response data: %w", err)
 		}
 	}

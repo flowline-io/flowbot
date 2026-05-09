@@ -7,6 +7,8 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -15,7 +17,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"go.uber.org/fx"
 )
 
 const DataEventTopic = "pipeline:data_event"

@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
 func WorkflowCommand() *cli.Command {

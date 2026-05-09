@@ -3,10 +3,11 @@ package conformance
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
-	rdr "github.com/flowline-io/flowbot/pkg/ability/reader"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/ability"
+	rdr "github.com/flowline-io/flowbot/pkg/ability/reader"
 )
 
 // ReaderConfig configures the fake backend for each reader conformance subtest.

@@ -2,9 +2,10 @@ package capability
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/auth"
@@ -34,7 +35,7 @@ func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 
 	params := make(map[string]any)
 	if paramsJSON, ok := t.Env["CAPABILITY_PARAMS"]; ok && paramsJSON != "" {
-		if err := json.Unmarshal([]byte(paramsJSON), &params); err != nil {
+		if err := sonic.Unmarshal([]byte(paramsJSON), &params); err != nil {
 			return fmt.Errorf("decode capability params: %w", err)
 		}
 	}
@@ -53,7 +54,7 @@ func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 		return fmt.Errorf("%s.%s: %w", capType, operation, err)
 	}
 
-	out, _ := json.Marshal(result)
+	out, _ := sonic.Marshal(result)
 	t.Result = string(out)
 	return nil
 }

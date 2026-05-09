@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/lithammer/shortuuid/v4"
+
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 func Id() string {

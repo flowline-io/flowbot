@@ -3,9 +3,10 @@ package karakeep
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	provider "github.com/flowline-io/flowbot/pkg/providers/karakeep"
-	"github.com/stretchr/testify/require"
 )
 
 type fakeClient struct {

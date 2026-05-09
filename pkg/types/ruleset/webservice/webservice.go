@@ -3,9 +3,10 @@ package webservice
 import (
 	"fmt"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/gofiber/fiber/v3"
 )
 
 type Rule struct {

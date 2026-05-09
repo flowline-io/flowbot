@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/gofiber/fiber/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
-	"github.com/gofiber/fiber/v3"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHelp_CommandRules(t *testing.T) {

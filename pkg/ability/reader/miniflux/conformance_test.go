@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	rssClient "miniflux.app/v2/client"
+
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
 	rdr "github.com/flowline-io/flowbot/pkg/ability/reader"
-	rssClient "miniflux.app/v2/client"
 )
 
 func TestMinifluxConformance(t *testing.T) {

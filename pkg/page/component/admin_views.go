@@ -1,13 +1,15 @@
 package component
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/bytedance/sonic"
+
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
 type BotRuleOption struct {
@@ -497,7 +499,7 @@ func JSONString(v any) string {
 	if v == nil {
 		return "{}"
 	}
-	b, err := json.MarshalIndent(v, "", "  ")
+	b, err := sonic.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return "{}"
 	}

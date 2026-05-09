@@ -7,6 +7,9 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
+	"github.com/shirou/gopsutil/v4/process"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -14,8 +17,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/validate"
-	"github.com/gofiber/fiber/v3"
-	"github.com/shirou/gopsutil/v4/process"
 )
 
 var webserviceRules = []webservice.Rule{

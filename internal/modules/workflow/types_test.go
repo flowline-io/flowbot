@@ -3,8 +3,9 @@ package workflow
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestRuleType_Fields(t *testing.T) {

@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 
 	"github.com/bytedance/sonic"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	appConfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"

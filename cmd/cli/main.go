@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli/v3"
+
 	"github.com/flowline-io/flowbot/cmd/cli/command"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/urfave/cli/v3"
 )
 
 const (

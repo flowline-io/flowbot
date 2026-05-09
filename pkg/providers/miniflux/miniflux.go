@@ -3,9 +3,10 @@ package miniflux
 import (
 	"fmt"
 
+	rssClient "miniflux.app/v2/client"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	rssClient "miniflux.app/v2/client"
 )
 
 const (

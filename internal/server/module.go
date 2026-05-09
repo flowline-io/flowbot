@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -15,8 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
-	"github.com/redis/go-redis/v9"
-	"go.uber.org/fx"
 )
 
 func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Client) error {

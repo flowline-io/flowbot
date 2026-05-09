@@ -1,6 +1,8 @@
 package server
 
 import (
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/modules"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -10,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/trace"
-	"go.uber.org/fx"
 )
 
 var Modules = fx.Options(

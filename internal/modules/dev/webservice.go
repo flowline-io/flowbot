@@ -1,11 +1,12 @@
 package dev
 
 import (
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{

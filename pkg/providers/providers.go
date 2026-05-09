@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v3"
 	"github.com/tidwall/gjson"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type OAuthProvider interface {

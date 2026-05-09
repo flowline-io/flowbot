@@ -3,9 +3,10 @@ package notify
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestParseSchema_Valid(t *testing.T) {

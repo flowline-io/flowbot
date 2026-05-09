@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"strings"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -30,7 +31,7 @@ func EncodeCursor(secret []byte, payload CursorPayload) (string, error) {
 	if len(secret) == 0 {
 		return "", types.Errorf(types.ErrInvalidArgument, "cursor secret is required")
 	}
-	raw, err := json.Marshal(payload)
+	raw, err := sonic.Marshal(payload)
 	if err != nil {
 		return "", types.WrapError(types.ErrInvalidArgument, "marshal cursor payload", err)
 	}
@@ -56,7 +57,7 @@ func DecodeCursor(secret []byte, cursor string, now time.Time) (CursorPayload, e
 	if err != nil {
 		return payload, types.WrapError(types.ErrInvalidArgument, "decode cursor", err)
 	}
-	if err := json.Unmarshal(raw, &payload); err != nil {
+	if err := sonic.Unmarshal(raw, &payload); err != nil {
 		return payload, types.WrapError(types.ErrInvalidArgument, "unmarshal cursor", err)
 	}
 	if !payload.ExpiresAt.IsZero() && now.After(payload.ExpiresAt) {

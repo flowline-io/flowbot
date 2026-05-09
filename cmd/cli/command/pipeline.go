@@ -2,12 +2,14 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/bytedance/sonic"
+
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
 func PipelineCommand() *cli.Command {
@@ -53,7 +55,7 @@ func pipelineListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(result.Pipelines, "", "  ")
+				data, err := sonic.MarshalIndent(result.Pipelines, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal pipelines: %w", err)
 				}

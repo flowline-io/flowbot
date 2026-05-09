@@ -1,11 +1,12 @@
 package archivebox
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -70,12 +71,12 @@ func TestArchiveBox_Add(t *testing.T) {
 				body, err := io.ReadAll(r.Body)
 				require.NoError(t, err)
 				var reqData Data
-				err = json.Unmarshal(body, &reqData)
+				err = sonic.Unmarshal(body, &reqData)
 				require.NoError(t, err)
 				assert.Equal(t, tt.request.Urls, reqData.Urls)
 
 				w.WriteHeader(tt.statusCode)
-				err = json.NewEncoder(w).Encode(tt.response)
+				err = sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
 				require.NoError(t, err)
 			}))
 			defer server.Close()
@@ -100,7 +101,7 @@ func TestArchiveBox_AddMultipleUrls(t *testing.T) {
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 		var reqData Data
-		err = json.Unmarshal(body, &reqData)
+		err = sonic.Unmarshal(body, &reqData)
 		require.NoError(t, err)
 
 		assert.Len(t, reqData.Urls, 3)
@@ -111,7 +112,7 @@ func TestArchiveBox_AddMultipleUrls(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		err = json.NewEncoder(w).Encode(response)
+		err = sonic.ConfigDefault.NewEncoder(w).Encode(response)
 		require.NoError(t, err)
 	}))
 	defer server.Close()

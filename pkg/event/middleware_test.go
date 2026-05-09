@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func TestRetry_Fields(t *testing.T) {

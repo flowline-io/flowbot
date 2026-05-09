@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/flowline-io/flowbot/pkg/validate"
 	rssClient "miniflux.app/v2/client"
+
+	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
 // ReaderClient provides access to the reader API.

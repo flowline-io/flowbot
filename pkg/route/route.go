@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
-	"github.com/gofiber/fiber/v3"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 const prefix = "service"

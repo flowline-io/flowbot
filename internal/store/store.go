@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql" //revive:disable
+	migrate "github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/media"
 	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types"
-	_ "github.com/go-sql-driver/mysql" //revive:disable
-	migrate "github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"gorm.io/gorm"
 )
 
 var adp Adapter

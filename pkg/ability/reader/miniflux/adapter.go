@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	rssClient "miniflux.app/v2/client"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/ability/reader"
 	provider "github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/types"
-	rssClient "miniflux.app/v2/client"
 )
 
 var defaultCursorSecret = []byte("flowbot-ability-reader-miniflux-cursor-v1")

@@ -6,12 +6,13 @@ import (
 
 	"errors"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	kb "github.com/flowline-io/flowbot/pkg/ability/kanban"
 	provider "github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type fakeClient struct {

@@ -1,12 +1,13 @@
 package fireflyiii
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func TestFireflyIII_About(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 
 				w.WriteHeader(tt.statusCode)
-				json.NewEncoder(w).Encode(tt.response)
+				sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
 			}))
 			defer server.Close()
 
@@ -92,7 +93,7 @@ func TestFireflyIII_CurrentUser(t *testing.T) {
 			Exception: "",
 		}
 		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(response)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
 		require.NoError(t, err)
 	}))
 	defer server.Close()
@@ -154,7 +155,7 @@ func TestFireflyIII_CreateTransaction(t *testing.T) {
 
 				body, _ := io.ReadAll(r.Body)
 				var reqData Transaction
-				err := json.Unmarshal(body, &reqData)
+				err := sonic.Unmarshal(body, &reqData)
 				require.NoError(t, err)
 				assert.Equal(t, tt.transaction.ApplyRules, reqData.ApplyRules)
 				assert.Len(t, reqData.Transactions, len(tt.transaction.Transactions))
@@ -176,9 +177,9 @@ func TestFireflyIII_CreateTransaction(t *testing.T) {
 						Message:   "",
 						Exception: "",
 					}
-					json.NewEncoder(w).Encode(response)
+					sonic.ConfigDefault.NewEncoder(w).Encode(response)
 				} else {
-					json.NewEncoder(w).Encode(Response{
+					sonic.ConfigDefault.NewEncoder(w).Encode(Response{
 						Message:   "Validation error",
 						Exception: "FireflyIII\\Api\\V1\\Controllers\\TransactionController@store",
 					})

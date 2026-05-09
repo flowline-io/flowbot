@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/cmd/cli/store"
 )
 
 // ConfigCommand returns the config parent command

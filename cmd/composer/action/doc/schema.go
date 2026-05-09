@@ -10,11 +10,12 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/goccy/go-yaml"
 	"github.com/jmoiron/sqlx"
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type Column struct {

@@ -14,10 +14,11 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/redis/go-redis/v9"
 )
 
 type Crawler struct {

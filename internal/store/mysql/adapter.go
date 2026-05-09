@@ -7,16 +7,17 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	ms "github.com/go-sql-driver/mysql"
+	mysqlDriver "gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/dao"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
-	ms "github.com/go-sql-driver/mysql"
-	mysqlDriver "gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 const (

@@ -1,6 +1,8 @@
 package modules
 
 import (
+	"go.uber.org/fx"
+
 	"github.com/flowline-io/flowbot/internal/modules/bookmark"
 	"github.com/flowline-io/flowbot/internal/modules/dev"
 	"github.com/flowline-io/flowbot/internal/modules/gitea"
@@ -12,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/modules/webhook"
 	"github.com/flowline-io/flowbot/internal/modules/workflow"
-	"go.uber.org/fx"
 )
 
 // Modules registers all interaction modules.

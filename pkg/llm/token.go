@@ -3,8 +3,9 @@ package llm
 import (
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/pkoukk/tiktoken-go"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func CountToken(text string) int {

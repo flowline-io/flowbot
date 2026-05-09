@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDescriptor(t *testing.T) {

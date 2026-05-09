@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
+
 	"github.com/flowline-io/flowbot/pkg/rdb"
 )
 

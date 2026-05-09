@@ -8,13 +8,15 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/cenkalti/backoff"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
 	otelattr "go.opentelemetry.io/otel/attribute"
+
+	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 // CheckpointData is the intermediate state saved at each pipeline step boundary.

@@ -7,12 +7,13 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/flowline-io/flowbot/version"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
+
+	"github.com/flowline-io/flowbot/pkg/utils"
+	"github.com/flowline-io/flowbot/version"
 )
 
 const (

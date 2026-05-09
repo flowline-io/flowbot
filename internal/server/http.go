@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/flog"
-	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
 	fiberzerolog "github.com/gofiber/contrib/v3/zerolog"
 	"github.com/gofiber/fiber/v3"
@@ -22,6 +19,10 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/samber/lo"
 	"github.com/samber/oops"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
 var sharedApp *fiber.App

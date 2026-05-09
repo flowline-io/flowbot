@@ -2,10 +2,11 @@ package rules
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -19,7 +20,7 @@ func (e *Engine) EnqueueForAggregation(ctx context.Context, ruleID, eventType, c
 	dataKey := fmt.Sprintf("notify:agg:%s:%s:%s", ruleID, eventType, channel)
 
 	// serialize payload
-	data, err := json.Marshal(payload)
+	data, err := sonic.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal aggregate payload: %w", err)
 	}
@@ -72,7 +73,7 @@ func (e *Engine) FlushAggregation(ctx context.Context, ruleID, eventType, channe
 	var payloads []map[string]any
 	for _, item := range items {
 		var payload map[string]any
-		if err := json.Unmarshal([]byte(item), &payload); err != nil {
+		if err := sonic.Unmarshal([]byte(item), &payload); err != nil {
 			flog.Warn("[notify-rules] failed to unmarshal aggregate payload: %v", err)
 			continue
 		}

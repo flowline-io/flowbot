@@ -1,8 +1,9 @@
 package dropbox
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestTokenResponse_Unmarshal(t *testing.T) {
 	}`
 
 	var token TokenResponse
-	err := json.Unmarshal([]byte(data), &token)
+	err := sonic.Unmarshal([]byte(data), &token)
 	assert.NoError(t, err)
 	assert.Equal(t, "test_token_123", token.AccessToken)
 	assert.Equal(t, "bearer", token.TokenType)

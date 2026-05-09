@@ -4,13 +4,14 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/validate"
-	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{

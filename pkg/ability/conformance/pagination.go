@@ -3,9 +3,10 @@ package conformance
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/ability"
 )
 
 // AssertCursorRoundTrip verifies that a cursor can be encoded and decoded correctly.

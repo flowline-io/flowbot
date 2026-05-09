@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/bytedance/sonic"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +17,7 @@ func TestBotName(t *testing.T) {
 func TestBotInit_Enabled(t *testing.T) {
 	handler = moduleHandler{} // reset
 	config := configType{Enabled: true}
-	data, _ := json.Marshal(config)
+	data, _ := sonic.Marshal(config)
 	err := handler.Init(data)
 	require.NoError(t, err)
 	assert.True(t, handler.IsReady())
@@ -24,7 +26,7 @@ func TestBotInit_Enabled(t *testing.T) {
 func TestBotInit_Disabled(t *testing.T) {
 	handler = moduleHandler{} // reset
 	config := configType{Enabled: false}
-	data, _ := json.Marshal(config)
+	data, _ := sonic.Marshal(config)
 	err := handler.Init(data)
 	require.NoError(t, err)
 	assert.False(t, handler.IsReady())

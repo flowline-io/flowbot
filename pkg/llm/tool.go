@@ -2,7 +2,8 @@ package llm
 
 import (
 	"context"
-	"encoding/json"
+
+	"github.com/bytedance/sonic"
 )
 
 // Tool interface for agent tools
@@ -59,7 +60,7 @@ func ConvertFromString(input string) (map[string]any, error) {
 		return make(map[string]any), nil
 	}
 	var result map[string]any
-	if err := json.Unmarshal([]byte(input), &result); err != nil {
+	if err := sonic.Unmarshal([]byte(input), &result); err != nil {
 		return nil, err
 	}
 	return result, nil

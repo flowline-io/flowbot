@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -13,7 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"gorm.io/gorm"
 )
 
 var commandRules = []command.Rule{

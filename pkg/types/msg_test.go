@@ -1,8 +1,9 @@
 package types
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +23,7 @@ func TestTypeOf(t *testing.T) {
 }
 
 func TestToPayload_TextMsg(t *testing.T) {
-	src, _ := json.Marshal(TextMsg{Text: "hello"})
+	src, _ := sonic.Marshal(TextMsg{Text: "hello"})
 	payload := ToPayload("TextMsg", src)
 	msg, ok := payload.(TextMsg)
 	assert.True(t, ok)
@@ -30,7 +31,7 @@ func TestToPayload_TextMsg(t *testing.T) {
 }
 
 func TestToPayload_LinkMsg(t *testing.T) {
-	src, _ := json.Marshal(LinkMsg{Title: "t", Url: "http://x"})
+	src, _ := sonic.Marshal(LinkMsg{Title: "t", Url: "http://x"})
 	payload := ToPayload("LinkMsg", src)
 	msg, ok := payload.(LinkMsg)
 	assert.True(t, ok)
@@ -38,7 +39,7 @@ func TestToPayload_LinkMsg(t *testing.T) {
 }
 
 func TestToPayload_TableMsg(t *testing.T) {
-	src, _ := json.Marshal(TableMsg{Title: "tbl"})
+	src, _ := sonic.Marshal(TableMsg{Title: "tbl"})
 	payload := ToPayload("TableMsg", src)
 	msg, ok := payload.(TableMsg)
 	assert.True(t, ok)
@@ -46,7 +47,7 @@ func TestToPayload_TableMsg(t *testing.T) {
 }
 
 func TestToPayload_InfoMsg(t *testing.T) {
-	src, _ := json.Marshal(InfoMsg{Title: "info"})
+	src, _ := sonic.Marshal(InfoMsg{Title: "info"})
 	payload := ToPayload("InfoMsg", src)
 	msg, ok := payload.(InfoMsg)
 	assert.True(t, ok)
@@ -54,7 +55,7 @@ func TestToPayload_InfoMsg(t *testing.T) {
 }
 
 func TestToPayload_ChartMsg(t *testing.T) {
-	src, _ := json.Marshal(ChartMsg{Title: "chart"})
+	src, _ := sonic.Marshal(ChartMsg{Title: "chart"})
 	payload := ToPayload("ChartMsg", src)
 	msg, ok := payload.(ChartMsg)
 	assert.True(t, ok)
@@ -62,7 +63,7 @@ func TestToPayload_ChartMsg(t *testing.T) {
 }
 
 func TestToPayload_KVMsg(t *testing.T) {
-	src, _ := json.Marshal(KVMsg{"key": "val"})
+	src, _ := sonic.Marshal(KVMsg{"key": "val"})
 	payload := ToPayload("KVMsg", src)
 	msg, ok := payload.(KVMsg)
 	assert.True(t, ok)

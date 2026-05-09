@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
@@ -19,6 +17,8 @@ import (
 	"github.com/samber/oops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
 // newTestApp creates a minimal Fiber app with the same config as production
@@ -61,7 +61,7 @@ func decodeResponse(t *testing.T, resp *http.Response) protocol.Response {
 	defer resp.Body.Close()
 
 	var r protocol.Response
-	err = json.Unmarshal(body, &r)
+	err = sonic.Unmarshal(body, &r)
 	require.NoError(t, err)
 	return r
 }

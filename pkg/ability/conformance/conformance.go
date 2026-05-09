@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/stretchr/testify/require"
 )
 
 // CanceledContext returns a context that is already canceled.

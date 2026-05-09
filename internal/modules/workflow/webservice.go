@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	workflowpkg "github.com/flowline-io/flowbot/pkg/workflow"
-	"github.com/gofiber/fiber/v3"
 )
 
 var webserviceRules = []webservice.Rule{

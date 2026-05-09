@@ -3,10 +3,11 @@ package component
 import (
 	"fmt"
 
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/page/form"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
 type Form struct {

@@ -12,9 +12,10 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/mmcdole/gofeed"
 	"github.com/tidwall/gjson"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type Rule struct {

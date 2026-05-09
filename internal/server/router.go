@@ -7,6 +7,16 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/samber/oops"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -25,15 +35,6 @@ import (
 	pageRule "github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/validate"
-	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/adaptor"
-	"github.com/gofiber/fiber/v3/middleware/healthcheck"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/samber/oops"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"gorm.io/gorm"
 )
 
 func handleRoutes(a *fiber.App, ctl *Controller) {

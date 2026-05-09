@@ -2,12 +2,14 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/bytedance/sonic"
+
 	"github.com/urfave/cli/v3"
+
+	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
 func HubCommand() *cli.Command {
@@ -68,7 +70,7 @@ func hubAppsListCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(apps, "", "  ")
+				data, err := sonic.MarshalIndent(apps, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal apps: %w", err)
 				}
@@ -117,7 +119,7 @@ func hubAppsStatusCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(status, "", "  ")
+				data, err := sonic.MarshalIndent(status, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal status: %w", err)
 				}
@@ -228,7 +230,7 @@ func hubCapabilitiesCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(caps, "", "  ")
+				data, err := sonic.MarshalIndent(caps, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal capabilities: %w", err)
 				}
@@ -276,7 +278,7 @@ func hubHealthCommand() *cli.Command {
 
 			output := cmd.String("output")
 			if output == "json" {
-				data, err := json.MarshalIndent(health, "", "  ")
+				data, err := sonic.MarshalIndent(health, "", "  ")
 				if err != nil {
 					return fmt.Errorf("marshal health: %w", err)
 				}

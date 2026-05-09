@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // CheckThrottle checks whether a notification is within the rate limit for the given key.

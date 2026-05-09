@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"maps"
 
+	"github.com/goccy/go-yaml"
+	"gorm.io/gorm"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils"
-	"github.com/goccy/go-yaml"
-	"gorm.io/gorm"
 )
 
 var callers = make(map[string]*Caller)

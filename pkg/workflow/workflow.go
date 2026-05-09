@@ -2,12 +2,14 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
+
 	"github.com/cenkalti/backoff"
+
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
@@ -75,7 +77,7 @@ func marshalCapabilityParams(task *types.Task, params types.KV) error {
 	if len(params) == 0 {
 		return nil
 	}
-	paramsJSON, err := json.Marshal(params)
+	paramsJSON, err := sonic.Marshal(params)
 	if err != nil {
 		return fmt.Errorf("marshal params: %w", err)
 	}
@@ -195,7 +197,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 		}
 		inputJSON := model.JSON{}
 		if len(input) > 0 {
-			raw, _ := json.Marshal(input)
+			raw, _ := sonic.Marshal(input)
 			_ = inputJSON.Scan(raw)
 		}
 		var err error
@@ -255,7 +257,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 
 		// Mapper steps are handled inline.
 		if info.Type == "mapper" {
-			mappedJSON, merr := json.Marshal(map[string]any(params))
+			mappedJSON, merr := sonic.Marshal(map[string]any(params))
 			if merr != nil {
 				merr = fmt.Errorf("mapper step %s: %w", stepID, merr)
 				r.failStep(stepRun, merr, 1)
@@ -301,7 +303,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 		if r.store != nil && stepRun != nil {
 			resultJSON := model.JSON{}
 			if task.Result != "" {
-				resultRaw, _ := json.Marshal(map[string]any{"result": task.Result})
+				resultRaw, _ := sonic.Marshal(map[string]any{"result": task.Result})
 				_ = resultJSON.Scan(resultRaw)
 			}
 			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
@@ -401,7 +403,7 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 		}
 
 		if info.Type == "mapper" {
-			mappedJSON, merr := json.Marshal(map[string]any(params))
+			mappedJSON, merr := sonic.Marshal(map[string]any(params))
 			if merr != nil {
 				merr = fmt.Errorf("resume mapper step %s: %w", stepID, merr)
 				r.failStep(stepRun, merr, 1)
@@ -443,7 +445,7 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 		if stepRun != nil {
 			resultJSON := model.JSON{}
 			if task.Result != "" {
-				resultRaw, _ := json.Marshal(map[string]any{"result": task.Result})
+				resultRaw, _ := sonic.Marshal(map[string]any{"result": task.Result})
 				_ = resultJSON.Scan(resultRaw)
 			}
 			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)

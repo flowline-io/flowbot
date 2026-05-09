@@ -12,9 +12,10 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/rs/zerolog"
 )
 
 func Alarm(err error, skip int) {

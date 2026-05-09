@@ -11,11 +11,12 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/alarm"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	"github.com/flowline-io/flowbot/pkg/alarm"
 )
 
 var (
