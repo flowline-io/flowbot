@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -495,9 +496,7 @@ func (r *Runner) heartbeat(ctx context.Context, runID int64) {
 // resultCopy returns a shallow copy of the results map.
 func resultCopy(src map[string]string) map[string]string {
 	dst := make(map[string]string, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
+	maps.Copy(dst, src)
 	return dst
 }
 

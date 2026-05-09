@@ -3,6 +3,7 @@ package kanboard
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
@@ -219,9 +220,7 @@ func (a *Adapter) GetColumns(ctx context.Context, projectID int) ([]map[string]a
 	result := make([]map[string]any, 0, len(columns))
 	for _, col := range columns {
 		resultMap := make(map[string]any)
-		for k, v := range col {
-			resultMap[k] = v
-		}
+		maps.Copy(resultMap, col)
 		result = append(result, resultMap)
 	}
 	return result, nil
@@ -299,10 +298,7 @@ func paginateSlice[T any](items []*T, pageReq ability.PageRequest, cursorSecret 
 	if offset >= len(items) {
 		return &ability.ListResult[T]{Items: []*T{}, Page: &ability.PageInfo{Limit: limit}}
 	}
-	end := offset + limit
-	if end > len(items) {
-		end = len(items)
-	}
+	end := min(offset+limit, len(items))
 	slice := items[offset:end]
 	hasMore := end < len(items)
 	page := &ability.PageInfo{Limit: limit, HasMore: hasMore}

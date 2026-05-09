@@ -135,7 +135,7 @@ func TestGithub_CreateIssue(t *testing.T) {
 	client := NewGithub("id", "secret", "redirect", "test_token")
 	client.c.SetBaseURL(server.URL)
 
-	issue, err := client.CreateIssue("owner", "repo", Issue{Title: strPtr("Test Issue")})
+	issue, err := client.CreateIssue("owner", "repo", Issue{Title: new("Test Issue")})
 	require.NoError(t, err)
 	require.NotNil(t, issue)
 	assert.Equal(t, 42, *issue.Number)
@@ -296,11 +296,12 @@ func TestGithub_CreateCard(t *testing.T) {
 	client := NewGithub("id", "secret", "redirect", "test_token")
 	client.c.SetBaseURL(server.URL)
 
-	card, err := client.CreateCard(10, ProjectCard{Note: strPtr("My card")})
+	card, err := client.CreateCard(10, ProjectCard{Note: new("My card")})
 	require.NoError(t, err)
 	require.NotNil(t, card)
 	assert.Equal(t, int64(100), *card.ID)
 	assert.Equal(t, "My card", *card.Note)
 }
 
-func strPtr(s string) *string { return &s }
+//go:fix inline
+func strPtr(s string) *string { return new(s) }

@@ -2,6 +2,7 @@ package kanboard
 
 import (
 	"context"
+	"maps"
 	"testing"
 
 	"errors"
@@ -103,9 +104,7 @@ func (f *fakeClient) GetColumns(ctx context.Context, projectID int) ([]types.KV,
 		result := make([]types.KV, 0, len(cols))
 		for _, c := range cols {
 			kv := make(types.KV)
-			for k, v := range c {
-				kv[k] = v
-			}
+			maps.Copy(kv, c)
 			result = append(result, kv)
 		}
 		return result, nil

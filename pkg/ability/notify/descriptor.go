@@ -57,7 +57,7 @@ func sendInvoker(ctx context.Context, params map[string]any) (*ability.InvokeRes
 		switch v := ch.(type) {
 		case []string:
 			channels = v
-		case []interface{}:
+		case []any:
 			for _, item := range v {
 				if s, ok := item.(string); ok {
 					channels = append(channels, s)

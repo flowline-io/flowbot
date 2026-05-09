@@ -136,7 +136,7 @@ func extractTitle(body string) string {
 }
 
 // eventTime formats a time string for display.
-func eventTime(t interface{}) string {
+func eventTime(t any) string {
 	switch v := t.(type) {
 	case string:
 		return v

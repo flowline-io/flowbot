@@ -131,13 +131,13 @@ func matchPattern(pattern, value string) bool {
 		return true
 	}
 	// suffix match: "infra.*" matches "infra.host.down"
-	if strings.HasSuffix(pattern, ".*") {
-		prefix := strings.TrimSuffix(pattern, ".*")
+	if before, ok := strings.CutSuffix(pattern, ".*"); ok {
+		prefix := before
 		return strings.HasPrefix(value, prefix+".")
 	}
 	// prefix match: "*.created" matches "bookmark.created"
-	if strings.HasPrefix(pattern, "*.") {
-		suffix := strings.TrimPrefix(pattern, "*.")
+	if after, ok := strings.CutPrefix(pattern, "*."); ok {
+		suffix := after
 		return strings.HasSuffix(value, "."+suffix)
 	}
 	return false
@@ -147,8 +147,8 @@ func matchPattern(pattern, value string) bool {
 // Supported: time.hour >= N, time.hour < N, connected by || and &&.
 func evalCondition(condition string) bool {
 	// For simplicity, split by || and evaluate each part
-	parts := strings.Split(condition, "||")
-	for _, part := range parts {
+	parts := strings.SplitSeq(condition, "||")
+	for part := range parts {
 		part = strings.TrimSpace(part)
 		if evalSimpleCondition(part) {
 			return true
@@ -159,8 +159,8 @@ func evalCondition(condition string) bool {
 
 func evalSimpleCondition(condition string) bool {
 	// handle && within a part
-	andParts := strings.Split(condition, "&&")
-	for _, part := range andParts {
+	andParts := strings.SplitSeq(condition, "&&")
+	for part := range andParts {
 		part = strings.TrimSpace(part)
 		if !evalTimeCondition(part) {
 			return false

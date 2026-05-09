@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -120,10 +121,8 @@ func (a *adapter) UserDelete(uid types.Uid, _ bool) error {
 
 func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
 	// Convert types.KV to map[string]interface{} for GORM compatibility
-	updates := make(map[string]interface{}, len(update))
-	for k, v := range update {
-		updates[k] = v
-	}
+	updates := make(map[string]any, len(update))
+	maps.Copy(updates, update)
 	return a.db.
 		Model(&model.User{}).
 		Where("flag = ?", uid.String()).

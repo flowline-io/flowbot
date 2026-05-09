@@ -65,7 +65,7 @@ func TestListResultEmpty(t *testing.T) {
 }
 
 func TestListResultWithItems(t *testing.T) {
-	items := []*string{ptr("a"), ptr("b"), ptr("c")}
+	items := []*string{new("a"), new("b"), new("c")}
 	lr := ListResult[string]{
 		Items: items,
 	}
@@ -79,7 +79,7 @@ func TestListResultWithItems(t *testing.T) {
 func TestListResultWithPage(t *testing.T) {
 	total := int64(50)
 	lr := ListResult[string]{
-		Items: []*string{ptr("x")},
+		Items: []*string{new("x")},
 		Page: &PageInfo{
 			Limit:      10,
 			HasMore:    true,
@@ -111,6 +111,7 @@ func TestListResultGenericWithBookmark(t *testing.T) {
 	assert.True(t, lr.Items[0].Favourited)
 }
 
+//go:fix inline
 func ptr[T any](v T) *T {
-	return &v
+	return new(v)
 }

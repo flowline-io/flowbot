@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -342,9 +343,7 @@ func extractResult(res *ability.InvokeResult) map[string]any {
 
 func convertToTypesKV(m map[string]any) types.KV {
 	result := make(types.KV, len(m))
-	for k, v := range m {
-		result[k] = v
-	}
+	maps.Copy(result, m)
 	return result
 }
 

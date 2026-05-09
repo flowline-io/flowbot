@@ -55,16 +55,14 @@ func (e *Engine) ProbeAll(ctx context.Context, apps []homelab.App) []ProbeResult
 
 	var wg sync.WaitGroup
 	for i := 0; i < concurrency; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for t := range tasks {
 				caps := e.probeApp(ctx, t.app, t.target)
 				if len(caps) > 0 {
 					results <- appResult{appName: t.app.Name, capabilities: caps}
 				}
 			}
-		}()
+		})
 	}
 
 	go func() {

@@ -311,16 +311,17 @@ func extractFlags(flags []cli.Flag) []flagSpec {
 
 // buildCLIString constructs the CLI command reference string.
 func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
-	cmd := "flowbot " + path
+	var cmd strings.Builder
+	cmd.WriteString("flowbot " + path)
 	if argsUsage != "" {
-		cmd += " " + argsUsage
+		cmd.WriteString(" " + argsUsage)
 	}
 	// Append required flags inline.
 	for _, fl := range flags {
 		if fl.Required {
-			cmd += " --" + fl.Name
+			cmd.WriteString(" --" + fl.Name)
 			if fl.Type != "bool" {
-				cmd += " <" + fl.Name + ">"
+				cmd.WriteString(" <" + fl.Name + ">")
 			}
 		}
 	}
@@ -333,9 +334,9 @@ func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
 		}
 	}
 	if hasOptional {
-		cmd += " [flags]"
+		cmd.WriteString(" [flags]")
 	}
-	return cmd
+	return cmd.String()
 }
 
 // parseArgs splits an ArgsUsage string like "<id>" or "<task_id> <subtask_id>"

@@ -190,3 +190,8 @@ tasks:
     desc: Run with live reload using air
     cmds:
       - air -c .air.toml
+
+  fix:
+    desc: Using go fix to modernize Go code
+    cmds:
+      - go fix ./...

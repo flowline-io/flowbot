@@ -24,7 +24,7 @@ type CursorPayload struct {
 	SortBy         string    `json:"sort_by,omitempty"`
 	SortOrder      string    `json:"sort_order,omitempty"`
 	FilterHash     string    `json:"filter_hash,omitempty"`
-	ExpiresAt      time.Time `json:"expires_at,omitempty"`
+	ExpiresAt      time.Time `json:"expires_at"`
 }
 
 func EncodeCursor(secret []byte, payload CursorPayload) (string, error) {

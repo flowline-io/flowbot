@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"maps"
+
 	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -35,9 +37,7 @@ func (rc *RenderContext) RenderString(s string) (string, error) {
 func (rc *RenderContext) templateData() *template.TemplateData {
 	event := make(map[string]any)
 	if rc.Event.Data != nil {
-		for k, v := range rc.Event.Data {
-			event[k] = v
-		}
+		maps.Copy(event, rc.Event.Data)
 	}
 	event["id"] = rc.Event.EntityID
 	event["event_id"] = rc.Event.EventID
