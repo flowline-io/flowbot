@@ -759,6 +759,29 @@ img {
 	margin: 0 auto;
 }
 
+.docs-hero-desc {
+	font-size: 1.05rem;
+	color: var(--white-dim);
+	max-width: 560px;
+	margin: 8px auto 0;
+}
+
+/* --- Docs Layout Wide (full-width content, no sidebar) --- */
+.docs-layout-wide {
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0;
+}
+
+.docs-layout-wide .docs-content {
+	max-width: 900px;
+	margin: 0 auto;
+}
+
+/* --- Docs Layout No Sidebar (single column) --- */
+.docs-layout-no-sidebar {
+	grid-template-columns: minmax(0, 1fr);
+}
+
 /* --- Content (subpages) --- */
 .content {
 	padding: 0 28px 100px;
@@ -995,6 +1018,47 @@ img {
 	color: var(--white-dim);
 	border-radius: var(--radius-sm);
 	transition: all var(--transition);
+}
+
+.docs-nav-link.docs-nav-sub {
+	padding-left: 24px;
+	font-size: 0.8rem;
+	position: relative;
+}
+
+.docs-nav-link.docs-nav-sub::before {
+	content: "";
+	position: absolute;
+	left: 7px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 5px;
+	height: 5px;
+	border: 1px solid var(--abyss-border);
+	border-radius: 50%;
+	background: transparent;
+	transition: all var(--transition);
+}
+
+.docs-nav-link.docs-nav-sub:hover::before {
+	border-color: var(--cyan);
+	background: var(--cyan);
+	box-shadow: 0 0 6px var(--cyan-glow);
+}
+
+.docs-nav-link.docs-nav-sub::after {
+	content: "";
+	position: absolute;
+	left: 9px;
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	background: var(--abyss-border);
+	z-index: -1;
+}
+
+.docs-nav-items li:last-child .docs-nav-link.docs-nav-sub::after {
+	height: 50%;
 }
 
 .docs-nav-link:hover {

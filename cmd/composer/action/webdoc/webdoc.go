@@ -16,7 +16,18 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 	"github.com/urfave/cli/v3"
+	"gopkg.in/yaml.v3"
 )
+
+// FrontMatter holds the parsed YAML front matter from a markdown file.
+// Fields are optional; zero values mean "not set" and will not override defaults.
+type FrontMatter struct {
+	Title       string `yaml:"title"`
+	Description string `yaml:"description"`
+	AccentColor string `yaml:"accent_color"`
+	Wide        bool   `yaml:"wide"`
+	HideSidebar bool   `yaml:"hide_sidebar"`
+}
 
 // DocSection represents a top-level documentation section with its pages.
 type DocSection struct {
@@ -29,14 +40,19 @@ type DocNavPage struct {
 	Title  string
 	URL    string // relative to docs/website/, e.g. "docs/getting-started/"
 	Active bool
+	IsSub  bool
 }
 
 // Page holds data for the HTML template.
 type Page struct {
 	Title       string
+	Description string
 	Content     template.HTML
 	BasePath    string
 	DocSections []DocSection
+	AccentColor string
+	Wide        bool
+	HideSidebar bool
 }
 
 // pageTemplate is the HTML wrapper matching the website's visual identity.
@@ -46,10 +62,12 @@ const pageTemplate = `<!doctype html>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{.Title}} — Flowbot</title>
+{{if .Description}}<meta name="description" content="{{.Description}}" />{{end}}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="{{.BasePath}}css/style.css" />
+{{if .AccentColor}}<style>:root { --page-accent: {{.AccentColor}}; --page-accent-dim: color-mix(in srgb, {{.AccentColor}} 12%, transparent); --page-accent-glow: color-mix(in srgb, {{.AccentColor}} 25%, transparent); } .docs-content h3 { color: var(--page-accent); } .docs-content a { color: var(--page-accent); } .docs-content a:hover { color: var(--green); } .docs-content pre::before { background: linear-gradient(90deg, transparent, var(--page-accent), transparent); } .docs-content blockquote { border-left-color: var(--page-accent); background: var(--page-accent-dim); } .page-hero h1 em { background: linear-gradient(135deg, var(--page-accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }</style>{{end}}
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%2300e5ff' stroke-width='3'/><circle cx='50' cy='50' r='15' fill='%2300e5ff'/></svg>" />
 </head>
 <body>
@@ -76,22 +94,25 @@ const pageTemplate = `<!doctype html>
 <div class="page">
 <div class="page-hero">
 <h1>{{.Title}}</h1>
+{{if .Description}}<p class="docs-hero-desc">{{.Description}}</p>{{end}}
 </div>
-<div class="docs-layout">
+<div class="docs-layout{{if .Wide}} docs-layout-wide{{end}}{{if .HideSidebar}} docs-layout-no-sidebar{{end}}">
+{{if not .HideSidebar}}
 <aside class="docs-sidebar">
 <nav class="docs-nav">
 {{range .DocSections}}
 <div class="docs-nav-section">
 <h3 class="docs-nav-title">{{.Title}}</h3>
 <ul class="docs-nav-items">
-{{range .Pages}}
-<li><a href="{{$.BasePath}}{{.URL}}" class="docs-nav-link{{if .Active}} active{{end}}">{{.Title}}</a></li>
-{{end}}
+			{{range .Pages}}
+			<li><a href="{{$.BasePath}}{{.URL}}" class="docs-nav-link{{if .IsSub}} docs-nav-sub{{end}}{{if .Active}} active{{end}}">{{.Title}}</a></li>
+			{{end}}
 </ul>
 </div>
 {{end}}
 </nav>
 </aside>
+{{end}}
 <main class="docs-content">
 {{.Content}}
 </main>
@@ -122,9 +143,10 @@ var (
 
 // docPageInfo holds metadata about a single documentation page.
 type docPageInfo struct {
-	SourcePath string // e.g. "getting-started/README.md"
-	Title      string
-	OutURL     string // e.g. "docs/getting-started/" or "docs/user-guide/pipeline.html"
+	SourcePath  string // e.g. "getting-started/README.md"
+	Title       string
+	OutURL      string // e.g. "docs/getting-started/" or "docs/user-guide/pipeline.html"
+	FrontMatter FrontMatter
 }
 
 // WebDocAction generates the documentation website from markdown sources.
@@ -197,11 +219,13 @@ func collectPages(srcDir string, pages *[]docPageInfo) error {
 			return fmt.Errorf("reading %s: %w", relPath, err)
 		}
 
-		title := extractTitle(input)
+		fm, content := parseFrontMatter(input)
+		title := extractTitle(content, fm)
 		*pages = append(*pages, docPageInfo{
-			SourcePath: relPath,
-			Title:      title,
-			OutURL:     outURL(relPath),
+			SourcePath:  relPath,
+			Title:       title,
+			OutURL:      outURL(relPath),
+			FrontMatter: fm,
 		})
 		return nil
 	})
@@ -226,6 +250,13 @@ func buildSectionsWithActive(pages []docPageInfo, activeIndex int) []DocSection 
 	var sections []DocSection
 	for _, dir := range dirs {
 		items := secMap[dir]
+		hasIndex := false
+		for _, item := range items {
+			if strings.HasSuffix(item.URL, "/") {
+				hasIndex = true
+				break
+			}
+		}
 		// Sort: README/index pages first, then alphabetical.
 		sort.SliceStable(items, func(i, j int) bool {
 			aIdx := strings.HasSuffix(items[i].URL, "/")
@@ -235,6 +266,14 @@ func buildSectionsWithActive(pages []docPageInfo, activeIndex int) []DocSection 
 			}
 			return items[i].Title < items[j].Title
 		})
+
+		if hasIndex {
+			for i := range items {
+				if !strings.HasSuffix(items[i].URL, "/") {
+					items[i].IsSub = true
+				}
+			}
+		}
 
 		secTitle := sectionTitle(items, dir)
 		sections = append(sections, DocSection{
@@ -303,7 +342,9 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 		return fmt.Errorf("reading %s: %w", info.SourcePath, err)
 	}
 
-	htmlBody := blackfriday.Run(input,
+	_, content := parseFrontMatter(input)
+
+	htmlBody := blackfriday.Run(content,
 		blackfriday.WithExtensions(blackfriday.CommonExtensions),
 	)
 	htmlBody = bluemonday.UGCPolicy().SanitizeBytes(htmlBody)
@@ -326,9 +367,13 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 
 	page := Page{
 		Title:       info.Title,
+		Description: info.FrontMatter.Description,
 		Content:     template.HTML(htmlBody),
 		BasePath:    basePath,
 		DocSections: buildSectionsWithActive(allPages, activeIndex),
+		AccentColor: info.FrontMatter.AccentColor,
+		Wide:        info.FrontMatter.Wide,
+		HideSidebar: info.FrontMatter.HideSidebar,
 	}
 
 	var buf bytes.Buffer
@@ -359,8 +404,56 @@ func relPathToOut(relPath string) string {
 	return filepath.Join(dir, stem+".html")
 }
 
-// extractTitle returns the first H1 heading text from markdown input.
-func extractTitle(input []byte) string {
+// parseFrontMatter extracts YAML front matter delimited by --- and returns the
+// parsed metadata together with the remaining markdown content. If no front
+// matter is present, fm remains the zero value and content equals input.
+func parseFrontMatter(input []byte) (fm FrontMatter, content []byte) {
+	const delimiter = "---"
+	scanner := bufio.NewScanner(bytes.NewReader(input))
+
+	if !scanner.Scan() || scanner.Text() != delimiter {
+		return fm, input
+	}
+
+	var yamlLines []string
+	foundClosing := false
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == delimiter {
+			foundClosing = true
+			break
+		}
+		yamlLines = append(yamlLines, line)
+	}
+
+	if !foundClosing || len(yamlLines) == 0 {
+		return fm, input
+	}
+
+	if err := yaml.Unmarshal([]byte(strings.Join(yamlLines, "\n")), &fm); err != nil {
+		return FrontMatter{}, input
+	}
+
+	rest := make([]byte, 0, len(input))
+	if scanner.Scan() {
+		rest = append(rest, scanner.Bytes()...)
+		rest = append(rest, '\n')
+	}
+	for scanner.Scan() {
+		rest = append(rest, scanner.Bytes()...)
+		rest = append(rest, '\n')
+	}
+
+	return fm, bytes.TrimRight(rest, "\n")
+}
+
+// extractTitle returns the best available title for a documentation page.
+// It checks front matter first, then falls back to the first H1 heading,
+// and finally returns "Documentation" as a last resort.
+func extractTitle(input []byte, fm FrontMatter) string {
+	if fm.Title != "" {
+		return fm.Title
+	}
 	scanner := bufio.NewScanner(bytes.NewReader(input))
 	for scanner.Scan() {
 		line := scanner.Text()
