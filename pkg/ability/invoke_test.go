@@ -69,7 +69,7 @@ func TestRegistry_RegisterEmptyCapability(t *testing.T) {
 				return nil, nil
 			})
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrInvalidArgument))
+			require.ErrorIs(t, err, types.ErrInvalidArgument)
 			assert.Contains(t, err.Error(), "capability is required")
 		})
 	}
@@ -89,7 +89,7 @@ func TestRegistry_RegisterEmptyOperation(t *testing.T) {
 				return nil, nil
 			})
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrInvalidArgument))
+			require.ErrorIs(t, err, types.ErrInvalidArgument)
 			assert.Contains(t, err.Error(), "operation is required")
 		})
 	}
@@ -107,7 +107,7 @@ func TestRegistry_RegisterNilInvoker(t *testing.T) {
 
 			err := r.Register(hub.CapBookmark, "list", nil)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrInvalidArgument))
+			require.ErrorIs(t, err, types.ErrInvalidArgument)
 			assert.Contains(t, err.Error(), "invoker is required")
 		})
 	}
@@ -184,7 +184,7 @@ func TestRegistry_InvokeCapabilityNotFound(t *testing.T) {
 			result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
 			require.Error(t, err)
 			assert.Nil(t, result)
-			assert.True(t, errors.Is(err, types.ErrNotFound))
+			require.ErrorIs(t, err, types.ErrNotFound)
 			assert.Contains(t, err.Error(), "capability bookmark not found")
 		})
 	}
@@ -208,7 +208,7 @@ func TestRegistry_InvokeOperationNotFound(t *testing.T) {
 			result, err := r.Invoke(t.Context(), hub.CapBookmark, "get", nil)
 			require.Error(t, err)
 			assert.Nil(t, result)
-			assert.True(t, errors.Is(err, types.ErrNotImplemented))
+			require.ErrorIs(t, err, types.ErrNotImplemented)
 			assert.Contains(t, err.Error(), "operation bookmark.get not implemented")
 		})
 	}

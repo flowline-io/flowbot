@@ -150,7 +150,7 @@ func TestWorkflowTaskToTask(t *testing.T) {
 			check: func(t *testing.T, task *types.Task) {
 				assert.Equal(t, "capability:bookmark.list", task.Run)
 				assert.Contains(t, task.Env, "CAPABILITY_PARAMS")
-				assert.Equal(t, `{"url":"https://example.com"}`, task.Env["CAPABILITY_PARAMS"])
+				assert.JSONEq(t, `{"url":"https://example.com"}`, task.Env["CAPABILITY_PARAMS"])
 			},
 		},
 		{
@@ -540,7 +540,7 @@ func TestResolveParams(t *testing.T) {
 			params:  types.KV{"ref": "{{step \"nonexist\" \"id\"}}"},
 			results: map[string]string{},
 			check: func(t *testing.T, resolved types.KV) {
-				assert.Equal(t, "", resolved["ref"])
+				assert.Empty(t, resolved["ref"])
 			},
 		},
 		{

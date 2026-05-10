@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshal(t *testing.T) {
@@ -36,7 +37,7 @@ func TestUnmarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var result testStruct
 			err := unmarshal(tt.input, &result)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Name, result.Name)
 			if tt.expected.Age != 0 {
 				assert.Equal(t, tt.expected.Age, result.Age)

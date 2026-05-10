@@ -6,6 +6,7 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTokenResponse_Unmarshal(t *testing.T) {
@@ -20,7 +21,7 @@ func TestTokenResponse_Unmarshal(t *testing.T) {
 
 		var token TokenResponse
 		err := sonic.Unmarshal([]byte(data), &token)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "test_token_123", token.AccessToken)
 		assert.Equal(t, "bearer", token.TokenType)
 		assert.Equal(t, "user123", token.UID)
@@ -71,7 +72,7 @@ func TestDropbox_Redirect(t *testing.T) {
 		dropbox := NewDropbox("client_id", "secret", "https://example.com/callback", "")
 		url, err := dropbox.Redirect(nil)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, url, "dropbox.com/oauth2/authorize")
 	})
 }

@@ -261,8 +261,8 @@ func TestEngineMissingTemplate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			e := New()
 			result, err := e.Render(tt.templateID, "slack", tt.data)
-			assert.NoError(t, err)
-			assert.Nil(t, result)
+		require.NoError(t, err)
+		assert.Nil(t, result)
 		})
 	}
 }
@@ -308,7 +308,7 @@ func TestEngineGetTemplateID(t *testing.T) {
 
 			got := e.GetTemplateID(tt.eventType)
 			if tt.wantEmpty {
-				assert.Equal(t, "", got)
+				assert.Empty(t, got)
 			} else {
 				assert.Equal(t, tt.eventType, got)
 			}

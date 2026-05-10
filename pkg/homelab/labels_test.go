@@ -142,7 +142,7 @@ func TestParseLabels_FullAuthInfo(t *testing.T) {
 			require.NotNil(t, capabilities[0].Auth)
 			assert.Equal(t, AuthAPIToken, capabilities[0].Auth.Type)
 			assert.Equal(t, "X-API-Key", capabilities[0].Auth.Header)
-			assert.Equal(t, "", capabilities[0].Auth.Prefix)
+			assert.Empty(t, capabilities[0].Auth.Prefix)
 			assert.Equal(t, "KANBOARD_API_KEY", capabilities[0].Auth.TokenKey)
 			assert.Equal(t, "env", capabilities[0].Auth.TokenSource)
 		})

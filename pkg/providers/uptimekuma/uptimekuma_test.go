@@ -26,13 +26,13 @@ uptimekuma_monitor_response_time{monitor_name="GitHub"} 45
 			assert.Equal(t, "/metrics", r.URL.Path)
 			assert.Equal(t, "Basic Om15LWFwaS10b2tlbg==", r.Header.Get("Authorization"))
 			w.Header().Set("Content-Type", "text/plain; version=0.0.4")
-			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(prometheusMetrics))
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(prometheusMetrics))
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
-		client := NewUptimeKuma(server.URL, "my-api-token")
+	client := NewUptimeKuma(server.URL, "my-api-token")
 		result, err := client.Metrics()
 
 		require.NoError(t, err)
@@ -53,13 +53,13 @@ func TestUptimeKuma_Metrics_InvalidResponse(t *testing.T) {
 	t.Run("invalid prometheus response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte("not valid prometheus metrics"))
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("not valid prometheus metrics"))
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
-		client := NewUptimeKuma(server.URL, "my-token")
+	client := NewUptimeKuma(server.URL, "my-token")
 		_, err := client.Metrics()
 
 		assert.Error(t, err)
@@ -70,11 +70,11 @@ func TestUptimeKuma_Metrics_EmptyResponse(t *testing.T) {
 	t.Run("empty metrics response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(""))
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(""))
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
 		client := NewUptimeKuma(server.URL, "my-token")
 		result, err := client.Metrics()

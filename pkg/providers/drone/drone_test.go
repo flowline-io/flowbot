@@ -119,13 +119,13 @@ func TestDrone_CreateBuildWithStages(t *testing.T) {
 				},
 			}
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
-		client := NewDrone(server.URL, "test-token")
+	client := NewDrone(server.URL, "test-token")
 		result, err := client.CreateBuild("myorg", "myrepo")
 
 		require.NoError(t, err)

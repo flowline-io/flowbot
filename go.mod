@@ -107,6 +107,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
+	github.com/Antonboom/testifylint v1.6.4 // indirect
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1 // indirect
@@ -669,6 +670,7 @@ require (
 )
 
 tool (
+	github.com/Antonboom/testifylint
 	github.com/air-verse/air
 	github.com/boyter/scc/v3
 	github.com/go-gremlins/gremlins/cmd/gremlins

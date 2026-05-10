@@ -161,7 +161,7 @@ func TestKV_Float64(t *testing.T) {
 			val, ok := tt.kv.Float64(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
-				assert.Equal(t, tt.wantVal, val)
+				assert.InEpsilon(t, tt.wantVal, val, 0.001)
 			}
 		})
 	}
@@ -417,7 +417,7 @@ func TestKV_Float64Value(t *testing.T) {
 			val, ok := tt.kv.Float64Value()
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
-				assert.Equal(t, tt.wantVal, val)
+				assert.InEpsilon(t, tt.wantVal, val, 0.001)
 			}
 		})
 	}

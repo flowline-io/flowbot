@@ -146,7 +146,7 @@ func TestRetry_Middleware(t *testing.T) {
 			msg := message.NewMessage("test", []byte("payload"))
 			result, err := middleware(msg)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, result)
 				return
 			}

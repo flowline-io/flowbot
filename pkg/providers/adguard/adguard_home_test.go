@@ -42,17 +42,17 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tt.statusCode)
 				err := sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
-				require.NoError(t, err)
-			}))
-			defer server.Close()
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
-			client := NewAdGuardHome(server.URL, "admin", "password")
-			result, err := client.GetStatus()
+		client := NewAdGuardHome(server.URL, "admin", "password")
+		result, err := client.GetStatus()
 
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				require.NoError(t, err)
+		if tt.wantErr {
+			assert.Error(t, err)
+		} else {
+			require.NoError(t, err)
 				assert.Equal(t, tt.response.Version, result.Version)
 				assert.Equal(t, tt.response.ProtectionEnabled, result.ProtectionEnabled)
 				assert.Equal(t, tt.response.Running, result.Running)
@@ -87,11 +87,11 @@ func TestAdGuardHome_GetStats(t *testing.T) {
 				ReplacedSafebrowsing:  []int32{},
 				ReplacedParental:      []int32{},
 			}
-			w.WriteHeader(http.StatusOK)
-			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
 		client := NewAdGuardHome(server.URL, "admin", "password")
 		result, err := client.GetStats()
@@ -101,7 +101,7 @@ func TestAdGuardHome_GetStats(t *testing.T) {
 		assert.Equal(t, "hours", *result.TimeUnits)
 		assert.Equal(t, int32(1000), *result.NumDnsQueries)
 		assert.Equal(t, int32(100), *result.NumBlockedFiltering)
-		assert.Equal(t, float32(0.5), *result.AvgProcessingTime)
+		assert.InEpsilon(t, float64(0.5), float64(*result.AvgProcessingTime), 0.001)
 		assert.Len(t, result.DnsQueries, 3)
 	})
 }

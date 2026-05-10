@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrors(t *testing.T) {
@@ -14,9 +15,9 @@ func TestErrors(t *testing.T) {
 		{
 			name: "error variables should be non-nil",
 			test: func(t *testing.T) {
-				assert.NotNil(t, ErrMissingCommitMessage)
-				assert.NotNil(t, ErrMissingDiffContent)
-				assert.NotNil(t, ErrEmptyPrompt)
+		require.Error(t, ErrMissingCommitMessage)
+		require.Error(t, ErrMissingDiffContent)
+		require.Error(t, ErrEmptyPrompt)
 			},
 		},
 		{
@@ -93,10 +94,10 @@ func TestQualityMetric(t *testing.T) {
 				ReadabilityScore:  7.5,
 				BestPracticeScore: 8.5,
 			}
-			assert.Equal(t, 9.0, metric.SecurityScore)
-			assert.Equal(t, 8.0, metric.PerformanceScore)
-			assert.Equal(t, 7.5, metric.ReadabilityScore)
-			assert.Equal(t, 8.5, metric.BestPracticeScore)
+			assert.InEpsilon(t, 9.0, metric.SecurityScore, 0.001)
+			assert.InEpsilon(t, 8.0, metric.PerformanceScore, 0.001)
+			assert.InEpsilon(t, 7.5, metric.ReadabilityScore, 0.001)
+			assert.InEpsilon(t, 8.5, metric.BestPracticeScore, 0.001)
 		})
 	}
 }
@@ -113,7 +114,7 @@ func TestReviewResult(t *testing.T) {
 				Score:    8.5,
 				Comments: []string{"good"},
 			}
-			assert.Equal(t, 8.5, result.Score)
+			assert.InEpsilon(t, 8.5, result.Score, 0.001)
 			assert.Equal(t, []string{"good"}, result.Comments)
 		})
 	}
@@ -175,7 +176,7 @@ func TestDefaultConfig(t *testing.T) {
 				assert.NotNil(t, cfg)
 				assert.Equal(t, 5, cfg.ContextWindow)
 				assert.Equal(t, 4096, cfg.MaxTokens)
-				assert.Equal(t, 8.5, cfg.QualityThreshold)
+				assert.InEpsilon(t, 8.5, cfg.QualityThreshold, 0.001)
 				assert.Equal(t, 5, cfg.MaxSecurityIssues)
 				assert.NotEmpty(t, cfg.IgnorePatterns)
 				assert.NotEmpty(t, cfg.ScoringRules)
@@ -186,10 +187,10 @@ func TestDefaultConfig(t *testing.T) {
 			name: "scoring rules should have correct weights",
 			test: func(t *testing.T) {
 				cfg := DefaultConfig()
-				assert.Equal(t, 0.3, cfg.ScoringRules["security"])
-				assert.Equal(t, 0.2, cfg.ScoringRules["performance"])
-				assert.Equal(t, 0.2, cfg.ScoringRules["readability"])
-				assert.Equal(t, 0.3, cfg.ScoringRules["best_practice"])
+				assert.InEpsilon(t, 0.3, cfg.ScoringRules["security"], 0.001)
+				assert.InEpsilon(t, 0.2, cfg.ScoringRules["performance"], 0.001)
+				assert.InEpsilon(t, 0.2, cfg.ScoringRules["readability"], 0.001)
+				assert.InEpsilon(t, 0.3, cfg.ScoringRules["best_practice"], 0.001)
 			},
 		},
 	}

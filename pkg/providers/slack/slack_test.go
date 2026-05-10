@@ -177,13 +177,13 @@ func TestSlack_GetIdentity(t *testing.T) {
 					Name: "Test Team",
 				},
 			}
-			w.WriteHeader(http.StatusOK)
-			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
-		slack := NewSlack("client-id", "secret", "https://example.com/callback", "xoxp-access-token")
+	slack := NewSlack("client-id", "secret", "https://example.com/callback", "xoxp-access-token")
 		slack.c.SetBaseURL(server.URL)
 
 		result, err := slack.GetIdentity()
@@ -202,18 +202,18 @@ func TestSlack_GetIdentity_Error(t *testing.T) {
 				OK:    false,
 				Error: "account_inactive",
 			}
-			w.WriteHeader(http.StatusOK)
-			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-			require.NoError(t, err)
-		}))
-		defer server.Close()
+		w.WriteHeader(http.StatusOK)
+		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+		assert.NoError(t, err)
+	}))
+	defer server.Close()
 
-		slack := NewSlack("client-id", "secret", "https://example.com/callback", "invalid-token")
+	slack := NewSlack("client-id", "secret", "https://example.com/callback", "invalid-token")
 		slack.c.SetBaseURL(server.URL)
 
-		_, err := slack.GetIdentity()
+	_, err := slack.GetIdentity()
 
-		assert.Error(t, err)
+	require.Error(t, err)
 		assert.Contains(t, err.Error(), "account_inactive")
 	})
 }

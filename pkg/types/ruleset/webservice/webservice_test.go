@@ -113,7 +113,7 @@ func TestRuleset_Creation(t *testing.T) {
 func TestRuleset_Empty(t *testing.T) {
 	t.Run("empty ruleset", func(t *testing.T) {
 		rules := Ruleset{}
-		assert.Len(t, rules, 0)
+		assert.Empty(t, rules)
 	})
 }
 

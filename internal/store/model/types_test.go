@@ -1141,7 +1141,7 @@ func TestJob_MarshalBinary(t *testing.T) {
 			data, err := job.MarshalBinary()
 			require.NoError(t, err)
 			assert.NotNil(t, data)
-			assert.Greater(t, len(data), 0)
+			assert.NotEmpty(t, data)
 		})
 	}
 }

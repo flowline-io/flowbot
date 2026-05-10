@@ -96,7 +96,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Command returns nil payload",
 			call: func() error {
 				payload, err := b.Command(types.Context{}, nil)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Nil(t, payload)
 				return nil
 			},
@@ -105,7 +105,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Form returns nil payload",
 			call: func() error {
 				payload, err := b.Form(types.Context{}, nil)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Nil(t, payload)
 				return nil
 			},
@@ -114,7 +114,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Page returns empty HTML",
 			call: func() error {
 				html, err := b.Page(types.Context{}, "", nil)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Empty(t, html)
 				return nil
 			},
@@ -123,7 +123,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Cron returns nil ruleset",
 			call: func() error {
 				rs, err := b.Cron()
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Nil(t, rs)
 				return nil
 			},
@@ -140,7 +140,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Webhook returns nil payload",
 			call: func() error {
 				payload, err := b.Webhook(types.Context{}, nil)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Nil(t, payload)
 				return nil
 			},
@@ -149,7 +149,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Input returns nil payload",
 			call: func() error {
 				payload, err := b.Input(types.Context{}, nil, nil)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Nil(t, payload)
 				return nil
 			},
@@ -166,7 +166,7 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			name: "Help returns non-nil map",
 			call: func() error {
 				help, err := b.Help()
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.NotNil(t, help)
 				return nil
 			},

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -18,7 +19,7 @@ func TestMountTmpfs(t *testing.T) {
 			Target: "/target",
 		}
 		err := mounter.Mount(ctx, mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -45,8 +46,8 @@ func TestUnmountTmpfs(t *testing.T) {
 			Target: "/target",
 		}
 		err := mounter.Mount(ctx, mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = mounter.Unmount(ctx, mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

@@ -1,8 +1,6 @@
 package ability
 
 import (
-	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -53,7 +51,7 @@ func TestCursorRejectsTampering(t *testing.T) {
 
 			_, err = DecodeCursor([]byte("secret"), cursor+"x", now)
 			require.Error(t, err)
-			require.True(t, errors.Is(err, types.ErrInvalidArgument))
+			require.ErrorIs(t, err, types.ErrInvalidArgument)
 		})
 	}
 }
@@ -72,7 +70,7 @@ func TestCursorRejectsExpired(t *testing.T) {
 
 			_, err = DecodeCursor([]byte("secret"), cursor, now)
 			require.Error(t, err)
-			require.True(t, strings.Contains(err.Error(), "expired"))
+			require.Contains(t, err.Error(), "expired")
 		})
 	}
 }

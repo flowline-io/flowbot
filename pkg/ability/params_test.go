@@ -45,9 +45,9 @@ func TestRequiredString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := RequiredString(tt.params, tt.key)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.want, got)
 			}
 		})
@@ -198,9 +198,9 @@ func TestRequiredInt64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := RequiredInt64(tt.params, tt.key)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.want, v)
 			}
 		})

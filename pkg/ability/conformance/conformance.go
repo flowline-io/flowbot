@@ -5,7 +5,6 @@ package conformance
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -45,33 +44,33 @@ func RequireListResult[T any](t *testing.T, result *ability.ListResult[T], limit
 func RequireTimeoutError(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err, "expected error from canceled context")
-	require.True(t, errors.Is(err, types.ErrTimeout), "error must wrap ErrTimeout, got: %v", err)
+	require.ErrorIs(t, err, types.ErrTimeout, "error must wrap ErrTimeout, got: %v", err)
 }
 
 // RequireProviderError checks that err wraps types.ErrProvider.
 func RequireProviderError(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err, "expected error from provider failure")
-	require.True(t, errors.Is(err, types.ErrProvider), "error must wrap ErrProvider, got: %v", err)
+	require.ErrorIs(t, err, types.ErrProvider, "error must wrap ErrProvider, got: %v", err)
 }
 
 // RequireInvalidArgError checks that err wraps types.ErrInvalidArgument.
 func RequireInvalidArgError(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err, "expected error for invalid/missing input")
-	require.True(t, errors.Is(err, types.ErrInvalidArgument), "error must wrap ErrInvalidArgument, got: %v", err)
+	require.ErrorIs(t, err, types.ErrInvalidArgument, "error must wrap ErrInvalidArgument, got: %v", err)
 }
 
 // RequireNotFoundError checks that err wraps types.ErrNotFound.
 func RequireNotFoundError(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err, "expected error for missing entity")
-	require.True(t, errors.Is(err, types.ErrNotFound), "error must wrap ErrNotFound, got: %v", err)
+	require.ErrorIs(t, err, types.ErrNotFound, "error must wrap ErrNotFound, got: %v", err)
 }
 
 // RequireNotImplementedError checks that err wraps types.ErrNotImplemented.
 func RequireNotImplementedError(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err, "expected error for not-implemented operation")
-	require.True(t, errors.Is(err, types.ErrNotImplemented), "error must wrap ErrNotImplemented, got: %v", err)
+	require.ErrorIs(t, err, types.ErrNotImplemented, "error must wrap ErrNotImplemented, got: %v", err)
 }

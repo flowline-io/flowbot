@@ -101,7 +101,7 @@ func TestRuleset_ProcessEvent_MultipleRulesStopsOnError(t *testing.T) {
 
 		ctx := types.Context{EventRuleId: "event1"}
 		err := rules.ProcessEvent(ctx, types.KV{})
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Equal(t, []string{"first"}, callOrder)
 	})
 }

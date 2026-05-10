@@ -18,7 +18,7 @@ func TestMasker(t *testing.T) {
 
 func TestFirstUpper(t *testing.T) {
 	require.Equal(t, "Test", FirstUpper("test"))
-	require.Equal(t, "", FirstUpper(""))
+	require.Empty(t, FirstUpper(""))
 }
 
 func TestMD5(t *testing.T) {

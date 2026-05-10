@@ -15,7 +15,7 @@ func TestGithub_GetAuthenticatedUser(t *testing.T) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/user", r.URL.Path)
 			assert.Equal(t, "token test_token", r.Header.Get("Authorization"))
-			assert.Equal(t, JSONAccept, r.Header.Get("Accept"))
+			assert.Equal(t, "application/vnd.github.v3+json", r.Header.Get("Accept"))
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -77,7 +77,7 @@ func TestGithub_GetAuthenticatedUser_Error(t *testing.T) {
 		client.c.SetBaseURL(server.URL)
 
 		user, err := client.GetAuthenticatedUser()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, user)
 	})
 }
@@ -121,7 +121,7 @@ func TestGithub_GetRepository_Error(t *testing.T) {
 		client.c.SetBaseURL(server.URL)
 
 		repo, err := client.GetRepository("owner", "nonexistent")
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, repo)
 	})
 }

@@ -1,7 +1,6 @@
 package bookmark
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +64,7 @@ func TestTagsParam_EmptyStringSlice(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tagsParam(map[string]any{"tags": []string{}})
 			require.Error(t, err)
-			assert.True(t, strings.Contains(err.Error(), "tags are required"))
+			assert.Contains(t, err.Error(), "tags are required")
 		})
 	}
 }
@@ -80,7 +79,7 @@ func TestTagsParam_EmptyAnySlice(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tagsParam(map[string]any{"tags": []any{}})
 			require.Error(t, err)
-			assert.True(t, strings.Contains(err.Error(), "tags are required"))
+			assert.Contains(t, err.Error(), "tags are required")
 		})
 	}
 }
@@ -109,7 +108,7 @@ func TestTagsParam_WrongType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tagsParam(map[string]any{"tags": "not-an-array"})
 			require.Error(t, err)
-			assert.True(t, strings.Contains(err.Error(), "must be an array"))
+			assert.Contains(t, err.Error(), "must be an array")
 		})
 	}
 }

@@ -224,7 +224,7 @@ func TestFormRuleset_ProcessForm(t *testing.T) {
 
 			payload, err := rs.ProcessForm(ctx, values)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}

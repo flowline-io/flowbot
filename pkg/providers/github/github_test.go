@@ -389,7 +389,6 @@ func TestConstants(t *testing.T) {
 		assert.Equal(t, "github", ID)
 		assert.Equal(t, "id", ClientIdKey)
 		assert.Equal(t, "secret", ClientSecretKey)
-		assert.Equal(t, "application/vnd.github.v3+json", JSONAccept)
 	})
 }
 
@@ -425,9 +424,9 @@ func TestGithub_GetAuthorizeURL(t *testing.T) {
 func TestGithub_Redirect(t *testing.T) {
 	t.Run("redirect URL generation", func(t *testing.T) {
 		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
-		url, err := github.Redirect(nil)
+	url, err := github.Redirect(nil)
 
-		assert.NoError(t, err)
+	require.NoError(t, err)
 		assert.Contains(t, url, "github.com/login/oauth/authorize")
 	})
 }

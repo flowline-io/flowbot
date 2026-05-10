@@ -51,7 +51,7 @@ func TestConcurrentSetAndGet(t *testing.T) {
 			m.Set("somekey", ix)
 			v, ok := m.Get("somekey")
 			assert.True(t, ok)
-			assert.Greater(t, v, 0)
+			assert.Positive(t, v)
 		}(i)
 	}
 	wg.Wait()

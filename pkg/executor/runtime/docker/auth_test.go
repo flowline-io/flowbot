@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDecodeBase64Auth(t *testing.T) {
@@ -12,9 +13,9 @@ func TestDecodeBase64Auth(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			u, p, err := decodeBase64Auth(tc.config)
 			if tc.expErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 			assert.Equal(t, tc.expUser, u)
 			assert.Equal(t, tc.expPass, p)
@@ -32,9 +33,9 @@ func TestGetRegistryCredentials(t *testing.T) {
 			}
 			u, p, err := config.getRegistryCredentials("some.domain")
 			if tc.expErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 			assert.Equal(t, tc.expUser, u)
 			assert.Equal(t, tc.expPass, p)

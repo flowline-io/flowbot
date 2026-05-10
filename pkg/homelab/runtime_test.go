@@ -58,9 +58,9 @@ func TestDockerComposeRuntime_ValidatePath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := r.validatePath(tt.app)
 			if tt.wantErr {
-				assert.Error(t, err)
+		require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+		require.NoError(t, err)
 			}
 		})
 	}
@@ -141,16 +141,16 @@ func TestNoopRuntime_AllOperations(t *testing.T) {
 			app := App{Name: "testapp", Path: "/fake/path", Status: AppStatusUnknown}
 
 			status, err := r.Status(ctx, app)
-			assert.NoError(t, err)
-			assert.Equal(t, AppStatusUnknown, status)
+		require.NoError(t, err)
+		assert.Equal(t, AppStatusUnknown, status)
 
-			_, err = r.Logs(ctx, app, 100)
-			assert.Error(t, err)
+		_, err = r.Logs(ctx, app, 100)
+		require.Error(t, err)
 
-			assert.Error(t, r.Start(ctx, app))
-			assert.Error(t, r.Stop(ctx, app))
-			assert.Error(t, r.Restart(ctx, app))
-			assert.Error(t, r.Pull(ctx, app))
+		require.Error(t, r.Start(ctx, app))
+		require.Error(t, r.Stop(ctx, app))
+		require.Error(t, r.Restart(ctx, app))
+		require.Error(t, r.Pull(ctx, app))
 			assert.Error(t, r.Update(ctx, app))
 		})
 	}

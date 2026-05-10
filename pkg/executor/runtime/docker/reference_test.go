@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParse(t *testing.T) {
@@ -68,7 +69,7 @@ func TestParse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ref, err := parseRef(tt.ref)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expDomain, ref.domain)
 			assert.Equal(t, tt.expPath, ref.path)
 			assert.Equal(t, tt.expTag, ref.tag)

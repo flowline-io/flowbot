@@ -74,12 +74,18 @@ tasks:
     desc: Run static code analysis
     cmds:
       - go tool revive -config revive.toml -formatter friendly ./...
+      - task: lint:testify
       - task: lint:action
 
   lint:action:
     desc: Lint GitHub Actions workflow files
     cmds:
       - go tool actionlint
+
+  lint:testify:
+    desc: Lint usage of testify
+    cmds:
+      - go tool testifylint ./...
 
   format:
     desc: Format code (Go and other files)

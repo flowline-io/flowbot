@@ -260,7 +260,7 @@ func TestRenderParams(t *testing.T) {
 				"ref": "{{event.url}}",
 			},
 			asserts: func(t *testing.T, rendered map[string]any) {
-				assert.Equal(t, "", rendered["ref"])
+				assert.Empty(t, rendered["ref"])
 			},
 		},
 		{
@@ -284,7 +284,7 @@ func TestRenderParams(t *testing.T) {
 				"ref": "{{json (event \"url\")}}",
 			},
 			asserts: func(t *testing.T, rendered map[string]any) {
-				assert.Equal(t, `{"href":"https://x.com"}`, rendered["ref"])
+				assert.JSONEq(t, `{"href":"https://x.com"}`, rendered["ref"].(string))
 			},
 		},
 		{

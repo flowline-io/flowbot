@@ -2,7 +2,6 @@ package kanboard
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"testing"
 
@@ -253,7 +252,7 @@ func TestCheckClientWithNilClient(t *testing.T) {
 			adapter := &Adapter{client: nil}
 			err := adapter.checkClient()
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrUnavailable))
+			require.ErrorIs(t, err, types.ErrUnavailable)
 		})
 	}
 }

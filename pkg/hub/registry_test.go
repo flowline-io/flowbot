@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -129,7 +128,7 @@ func TestRegistry_Register(t *testing.T) {
 					assert.Contains(t, lastErr.Error(), tt.errContains)
 				}
 				if tt.errIs != nil {
-					assert.True(t, errors.Is(lastErr, tt.errIs))
+					require.ErrorIs(t, lastErr, tt.errIs)
 				}
 			}
 			if tt.check != nil {

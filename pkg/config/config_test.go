@@ -6,6 +6,7 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTypeStruct(t *testing.T) {
@@ -335,13 +336,13 @@ func TestTypeJSONMarshaling(t *testing.T) {
 		}
 
 		data, err := sonic.Marshal(cfg)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, string(data), ":9090")
 		assert.Contains(t, string(data), "/v1/")
 
 		var unmarshaled Type
 		err = sonic.Unmarshal(data, &unmarshaled)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, ":9090", unmarshaled.Listen)
 		assert.Equal(t, "/v1/", unmarshaled.ApiPath)
 		assert.Equal(t, 50, unmarshaled.Store.MaxResults)

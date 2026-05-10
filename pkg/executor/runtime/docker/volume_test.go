@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types/volume"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -14,15 +15,15 @@ func TestCreateVolume(t *testing.T) {
 	t.Run("create and remove volume via mounter", func(t *testing.T) {
 		skipIfNoDocker(t)
 		vm, err := NewVolumeMounter()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		mnt := &types.Mount{}
 		err = vm.Mount(ctx, mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ls, err := vm.client.VolumeList(ctx, volume.ListOptions{})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		found := false
 		for _, v := range ls.Volumes {
 			if v.Name == mnt.Source {
@@ -33,10 +34,10 @@ func TestCreateVolume(t *testing.T) {
 		assert.True(t, found)
 
 		err = vm.Unmount(ctx, mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ls, err = vm.client.VolumeList(ctx, volume.ListOptions{})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		for _, v := range ls.Volumes {
 			assert.NotEqual(t, "testvol", v.Name)
@@ -48,7 +49,7 @@ func Test_createMountVolume(t *testing.T) {
 	t.Run("mount volume sets target and source", func(t *testing.T) {
 		skipIfNoDocker(t)
 		m, err := NewVolumeMounter()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		mnt := &types.Mount{
 			Type:   types.MountTypeVolume,
@@ -56,7 +57,7 @@ func Test_createMountVolume(t *testing.T) {
 		}
 
 		err = m.Mount(context.Background(), mnt)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer func() {
 			assert.NoError(t, m.Unmount(context.Background(), mnt))
 		}()

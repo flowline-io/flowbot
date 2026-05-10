@@ -75,7 +75,7 @@ func TestNewCronRuleset_EmptyRules(t *testing.T) {
 		rs := NewCronRuleset("empty", []Rule{})
 		assert.NotNil(t, rs)
 		assert.Equal(t, "empty", rs.Type)
-		assert.Len(t, rs.cronRules, 0)
+		assert.Empty(t, rs.cronRules)
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -75,7 +76,7 @@ func TestShellRuntimeRunResult(t *testing.T) {
 
 		err := rt.Run(context.Background(), tk)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "hello world", tk.Result)
 	})
 }
@@ -99,7 +100,7 @@ func TestShellRuntimeRunFile(t *testing.T) {
 
 		err := rt.Run(context.Background(), tk)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "hello world", tk.Result)
 	})
 }
@@ -189,7 +190,7 @@ func TestShellRuntimeStop(t *testing.T) {
 		time.Sleep(time.Second * 1)
 
 		err := rt.Stop(context.Background(), tk)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		<-ch
 	})
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -48,7 +49,7 @@ func TestParseCPUs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parsed, err := parseCPUs(&types.TaskLimits{CPUs: tt.cpus})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.exp, parsed)
 		})
 	}
@@ -63,7 +64,7 @@ func TestPrintableReader(t *testing.T) {
 		s = append(s, []byte{104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100}...)
 		pr := printableReader{reader: bytes.NewReader(s)}
 		b, err := io.ReadAll(pr)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "hello world", string(b))
 	})
 }
@@ -81,7 +82,7 @@ func TestPrintableReaderEOF(t *testing.T) {
 	t.Run("reader returning EOF with valid data", func(t *testing.T) {
 		pr := printableReader{reader: eofReader{}}
 		b, err := io.ReadAll(pr)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "hello world", string(b))
 	})
 }
@@ -101,7 +102,7 @@ func TestParseMemory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parsed, err := parseMemory(&types.TaskLimits{Memory: tt.mem})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.exp, parsed)
 		})
 	}
@@ -111,7 +112,7 @@ func TestNewDockerRuntime(t *testing.T) {
 	t.Run("creates a new Docker runtime", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 	})
 }
@@ -120,7 +121,7 @@ func TestRunTaskCMD(t *testing.T) {
 	t.Run("runs a task with CMD", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 
 		err = rt.Run(context.Background(), &types.Task{
@@ -128,7 +129,7 @@ func TestRunTaskCMD(t *testing.T) {
 			Image: "ubuntu:mantic",
 			CMD:   []string{"ls"},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -136,7 +137,7 @@ func TestRunTaskConcurrently(t *testing.T) {
 	t.Run("runs multiple tasks concurrently", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		wg := sync.WaitGroup{}
 		c := 10
@@ -150,19 +151,19 @@ func TestRunTaskConcurrently(t *testing.T) {
 					Run:   "echo -n hello > $OUTPUT",
 				}
 				err := rt.Run(context.Background(), tk)
-				assert.NoError(t, err)
-				assert.Equal(t, "hello", tk.Result)
-			}()
-		}
-		wg.Wait()
-	})
+			assert.NoError(t, err)
+			assert.Equal(t, "hello", tk.Result)
+		}()
+	}
+	wg.Wait()
+})
 }
 
 func TestRunTaskWithTimeout(t *testing.T) {
 	t.Run("run cancels task on timeout", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -171,7 +172,7 @@ func TestRunTaskWithTimeout(t *testing.T) {
 			Image: "ubuntu:mantic",
 			CMD:   []string{"sleep", "10"},
 		})
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -179,7 +180,7 @@ func TestRunTaskWithError(t *testing.T) {
 	t.Run("run returns error on invalid command", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -188,7 +189,7 @@ func TestRunTaskWithError(t *testing.T) {
 			Image: "ubuntu:mantic",
 			Run:   "not_a_thing",
 		})
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -196,7 +197,7 @@ func TestRunAndStopTask(t *testing.T) {
 	t.Run("stop terminates a running task", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
@@ -204,13 +205,13 @@ func TestRunAndStopTask(t *testing.T) {
 			CMD:   []string{"sleep", "10"},
 		}
 		go func() {
-			err := rt.Run(context.Background(), t1)
-			assert.Error(t, err)
-		}()
-		// give the task a chance to get started
+		err := rt.Run(context.Background(), t1)
+		assert.Error(t, err)
+	}()
+	// give the task a chance to get started
 		time.Sleep(time.Second)
 		err = rt.Stop(context.Background(), t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -218,7 +219,7 @@ func TestHealthCheck(t *testing.T) {
 	t.Run("docker daemon is healthy", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
@@ -230,7 +231,7 @@ func TestHealthCheckFailed(t *testing.T) {
 	t.Run("health check fails with cancelled context", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -252,7 +253,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rt, err := NewRuntime()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, rt)
 			err = rt.Run(context.Background(), &types.Task{
 				ID:       utils.NewUUID(),
@@ -261,9 +262,9 @@ func TestRunTaskWithNetwork(t *testing.T) {
 				Networks: tt.networks,
 			})
 			if tt.expErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -273,7 +274,7 @@ func TestRunTaskWithVolume(t *testing.T) {
 	t.Run("run task with volume mount", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 
@@ -289,7 +290,7 @@ func TestRunTaskWithVolume(t *testing.T) {
 			},
 		}
 		err = rt.Run(ctx, t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -298,11 +299,11 @@ func TestRunTaskWithBind(t *testing.T) {
 		skipIfNoDocker(t)
 		mm := runtime.NewMultiMounter()
 		vm, err := NewVolumeMounter()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		mm.RegisterMounter("bind", NewBindMounter(BindConfig{Allowed: true}))
 		mm.RegisterMounter("volume", vm)
 		rt, err := NewRuntime(WithMounter(mm))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		ctx := context.Background()
 		dir := path.Join(os.TempDir(), utils.NewUUID())
 		t1 := &types.Task{
@@ -316,7 +317,7 @@ func TestRunTaskWithBind(t *testing.T) {
 			}},
 		}
 		err = rt.Run(ctx, t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -326,7 +327,7 @@ func TestRunTaskWithTempfs(t *testing.T) {
 		rt, err := NewRuntime(
 			WithMounter(NewTmpfsMounter()),
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 
@@ -342,7 +343,7 @@ func TestRunTaskWithTempfs(t *testing.T) {
 			},
 		}
 		err = rt.Run(ctx, t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -351,10 +352,10 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 		skipIfNoDocker(t)
 		mounter := runtime.NewMultiMounter()
 		vmounter, err := NewVolumeMounter()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		mounter.RegisterMounter(types.MountTypeVolume, vmounter)
 		rt, err := NewRuntime(WithMounter(mounter))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
 			Image: "ubuntu:mantic",
@@ -368,7 +369,7 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 		}
 		ctx := context.Background()
 		err = rt.Run(ctx, t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -376,7 +377,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 	t.Run("run task with input files in workdir", func(t *testing.T) {
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		t1 := &types.Task{
 			ID:    utils.NewUUID(),
 			Image: "ubuntu:mantic",
@@ -388,7 +389,7 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 		}
 		ctx := context.Background()
 		err = rt.Run(ctx, t1)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "hello world", t1.Result)
 	})
 }
@@ -399,21 +400,21 @@ func Test_imagePull(t *testing.T) {
 		ctx := context.Background()
 
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 
 		images, err := rt.client.ImageList(ctx, image.ListOptions{
 			Filters: filters.NewArgs(filters.Arg("reference", "busybox:*")),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		for _, img := range images {
 			_, err = rt.client.ImageRemove(ctx, img.ID, image.RemoveOptions{Force: true})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 
 		err = rt.imagePull(ctx, &types.Task{Image: "localhost:5001/no/suchthing"})
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		wg := sync.WaitGroup{}
 		wg.Add(3)
@@ -422,11 +423,11 @@ func Test_imagePull(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				err := rt.imagePull(ctx, &types.Task{Image: "busybox:1.36"})
-				assert.NoError(t, err)
-			}()
-		}
-		wg.Wait()
-	})
+			assert.NoError(t, err)
+		}()
+	}
+	wg.Wait()
+})
 }
 
 func Test_imagePullPrivateRegistry(t *testing.T) {
@@ -435,7 +436,7 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 		ctx := context.Background()
 
 		rt, err := NewRuntime()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, rt)
 
 		// attempt to pull a public image; skip entire test if unable to reach registry
@@ -448,7 +449,7 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 		images, err := rt.client.ImageList(ctx, image.ListOptions{
 			Filters: filters.NewArgs(filters.Arg("reference", "alpine:3.18.3")),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		// len may be 0 if daemon cleaned up, not a failure
 		if len(images) == 0 {
 			t.Skip("image not found after pull, skipping private registry portion")

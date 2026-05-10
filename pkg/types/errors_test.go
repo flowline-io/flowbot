@@ -29,7 +29,7 @@ func TestSentinelErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.NotNil(t, tt.err)
+			assert.Error(t, tt.err)
 		})
 	}
 }
@@ -72,7 +72,7 @@ func TestError_Error_Empty(t *testing.T) {
 func TestError_Unwrap_Nil(t *testing.T) {
 	t.Run("nil unwrap", func(t *testing.T) {
 		var e *Error
-		assert.Nil(t, e.Unwrap())
+		assert.NoError(t, e.Unwrap())
 	})
 }
 
@@ -87,7 +87,7 @@ func TestError_Unwrap_WithCause(t *testing.T) {
 func TestError_Unwrap_WithoutCause(t *testing.T) {
 	t.Run("without cause", func(t *testing.T) {
 		e := &Error{}
-		assert.Nil(t, e.Unwrap())
+		assert.NoError(t, e.Unwrap())
 	})
 }
 
@@ -117,11 +117,11 @@ func TestWrapError(t *testing.T) {
 		cause := errors.New("root cause")
 		err := WrapError(ErrProvider, "provider failed", cause)
 
-		assert.True(t, errors.Is(err, ErrProvider))
+		require.ErrorIs(t, err, ErrProvider)
 		assert.Equal(t, "provider failed", err.Error())
 
 		var fe *Error
-		require.True(t, errors.As(err, &fe))
+		require.ErrorAs(t, err, &fe)
 		assert.Equal(t, ErrProvider, fe.Kind)
 		assert.Equal(t, cause, fe.Cause)
 	})
@@ -131,11 +131,11 @@ func TestErrorf(t *testing.T) {
 	t.Run("errorf", func(t *testing.T) {
 		err := Errorf(ErrInvalidArgument, "field %s is required", "id")
 
-		assert.True(t, errors.Is(err, ErrInvalidArgument))
+		require.ErrorIs(t, err, ErrInvalidArgument)
 		assert.Equal(t, "field id is required", err.Error())
 
 		var fe *Error
-		require.True(t, errors.As(err, &fe))
+		require.ErrorAs(t, err, &fe)
 		assert.Equal(t, ErrInvalidArgument, fe.Kind)
 	})
 }

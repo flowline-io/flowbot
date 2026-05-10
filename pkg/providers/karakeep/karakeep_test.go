@@ -204,7 +204,7 @@ func TestTagsResponse_Unmarshal(t *testing.T) {
 		assert.Len(t, resp.Tags, 1)
 		assert.Equal(t, "t1", resp.Tags[0].Id)
 		assert.Equal(t, "go", resp.Tags[0].Name)
-		assert.Equal(t, float32(5.0), resp.Tags[0].NumBookmarks)
+		assert.InEpsilon(t, float64(5.0), float64(resp.Tags[0].NumBookmarks), 0.001)
 	})
 }
 
@@ -216,8 +216,8 @@ func TestTagNumBookmarksByAttachedType(t *testing.T) {
 			Ai:    &ai,
 			Human: &human,
 		}
-		assert.Equal(t, float32(3.0), *nb.Ai)
-		assert.Equal(t, float32(2.0), *nb.Human)
+		assert.InEpsilon(t, float64(3.0), float64(*nb.Ai), 0.001)
+		assert.InEpsilon(t, float64(2.0), float64(*nb.Human), 0.001)
 	})
 }
 

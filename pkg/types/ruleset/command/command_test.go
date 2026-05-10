@@ -102,6 +102,6 @@ func TestHelp(t *testing.T) {
 	t.Run("help returns non-nil", func(t *testing.T) {
 		help, err := b.Help("help")
 		require.NoError(t, err)
-		assert.True(t, help != nil)
+		assert.NotNil(t, help)
 	})
 }

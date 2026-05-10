@@ -172,7 +172,7 @@ func TestWebhookRuleset_ProcessRule(t *testing.T) {
 
 			payload, err := rs.ProcessRule(ctx, []byte(`test data`))
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}

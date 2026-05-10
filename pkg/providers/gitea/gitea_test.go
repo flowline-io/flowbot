@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHookIssueAction_Constants(t *testing.T) {
@@ -52,7 +53,7 @@ func TestIssuePayload_JSONPayload(t *testing.T) {
 		}
 
 		data, err := payload.JSONPayload()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, data)
 		assert.Contains(t, string(data), `"action": "opened"`)
 		assert.Contains(t, string(data), `"number": 42`)
@@ -75,7 +76,7 @@ func TestIssuePayload_WithChanges(t *testing.T) {
 		}
 
 		data, err := payload.JSONPayload()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, data)
 		assert.Contains(t, string(data), `"title"`)
 		assert.Contains(t, string(data), `"body"`)

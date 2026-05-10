@@ -256,7 +256,7 @@ services:
 			assert.Equal(t, "true", labels["traefik.enable"])
 			assert.Equal(t, "Server", labels["homepage.group"])
 			assert.Equal(t, "Traefik", labels["homepage.name"])
-			assert.Equal(t, "", labels["keyonly"])
+			assert.Empty(t, labels["keyonly"])
 		})
 	}
 }
@@ -292,7 +292,7 @@ func TestNormalizeLabels_ListFormat(t *testing.T) {
 			result := normalizeLabels(tt.raw)
 			assert.Equal(t, "val1", result["key1"])
 			assert.Equal(t, "val2 with spaces", result["key2"])
-			assert.Equal(t, "", result["keyonly"])
+			assert.Empty(t, result["keyonly"])
 		})
 	}
 }
