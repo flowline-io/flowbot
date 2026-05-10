@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -655,4 +657,151 @@ func TestCheckpointDataMarshaling(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 2, restored.StepIndex)
 	assert.Equal(t, "step1", restored.StepResults["step1"].Name)
+}
+
+func FuzzIsRetryable(f *testing.F) {
+	f.Add("generic error", "timeout")
+	f.Add("timeout error", "")
+	f.Add("some error", "rate_limited")
+
+	f.Fuzz(func(t *testing.T, errMsg, retryCode string) {
+		err := errors.New(errMsg)
+		cfg := &types.RetryConfig{}
+		if retryCode != "" {
+			cfg.RetryOn = []string{retryCode}
+		}
+		_ = isRetryable(err, cfg)
+	})
+}
+
+func FuzzIsRetryableTypedError(f *testing.F) {
+	f.Add("ERR001", "ERR001")
+	f.Add("ERR001", "ERR002")
+
+	f.Fuzz(func(t *testing.T, code, filter string) {
+		err := &types.Error{Code: code, Retryable: false}
+		cfg := &types.RetryConfig{RetryOn: []string{filter}}
+		_ = isRetryable(err, cfg)
+	})
+}
+
+func FuzzContainsErrorCode(f *testing.F) {
+	f.Add("ERR001", "ERR001")
+	f.Add("some error", "timeout")
+
+	f.Fuzz(func(t *testing.T, code, target string) {
+		err := &types.Error{Code: code}
+		wrapped := fmt.Errorf("wrapped: %w", err)
+		_ = containsErrorCode(wrapped, target)
+		_ = containsErrorCode(err, target)
+	})
+}
+
+func FuzzExtractResult(f *testing.F) {
+	f.Add([]byte(`{"key":"value"}`))
+	f.Add([]byte(`null`))
+	f.Add([]byte(`[1,2,3]`))
+	f.Add([]byte(`"string"`))
+	f.Add([]byte(`42`))
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		var val any
+		if err := sonic.Unmarshal(data, &val); err != nil {
+			t.Skip()
+		}
+		res := &ability.InvokeResult{Data: val}
+		result := extractResult(res)
+		if result == nil {
+			t.Error("extractResult returned nil")
+		}
+	})
+}
+
+func FuzzFindByEvent(f *testing.F) {
+	f.Add([]byte(`[{"n":"p1","e":"e1"},{"n":"p2","e":"e2"}]`), "e1")
+	f.Add([]byte(`[]`), "e1")
+
+	f.Fuzz(func(t *testing.T, defsData []byte, eventType string) {
+		var raw []struct {
+			Name  string `json:"n"`
+			Event string `json:"e"`
+		}
+		if err := sonic.Unmarshal(defsData, &raw); err != nil {
+			t.Skip()
+		}
+		defs := make([]Definition, len(raw))
+		for i, r := range raw {
+			defs[i] = Definition{
+				Name:    r.Name,
+				Trigger: Trigger{Event: r.Event},
+			}
+		}
+		result := FindByEvent(defs, eventType)
+		// Each matched definition should have the trigger event matching eventType
+		for _, d := range result {
+			if d.Trigger.Event != eventType {
+				t.Errorf("FindByEvent matched definition %q with event %q, expected %q",
+					d.Name, d.Trigger.Event, eventType)
+			}
+		}
+	})
+}
+
+func FuzzBuildStepResults(f *testing.F) {
+	f.Add([]byte(`{"s1":{"id":"123"}}`))
+	f.Add([]byte(`{}`))
+
+	f.Fuzz(func(t *testing.T, stepsData []byte) {
+		var raw map[string]map[string]any
+		if err := sonic.Unmarshal(stepsData, &raw); err != nil {
+			t.Skip()
+		}
+		event := types.DataEvent{EventID: "evt", EntityID: "123"}
+		rc := NewRenderContext(event)
+		for name, data := range raw {
+			rc.RecordStepResult(name, data)
+		}
+		results := buildStepResults(rc)
+		if len(results) != len(raw) {
+			t.Errorf("buildStepResults len=%d, want %d", len(results), len(raw))
+		}
+		for name, sr := range results {
+			if sr.Name != name {
+				t.Errorf("StepResult name mismatch: %q != %q", sr.Name, name)
+			}
+		}
+	})
+}
+
+func FuzzConvertRetryConfig(f *testing.F) {
+	f.Add(0, "1s", "", "exponential", "")
+	f.Add(3, "500ms", "10s", "fixed", "")
+	f.Add(0, "", "", "", "")
+
+	f.Fuzz(func(t *testing.T, maxAttempts int, delay, maxDelay, backoffStr, jitterStr string) {
+		cfg := &config.PipelineStepRetry{
+			MaxAttempts: maxAttempts,
+			Delay:       delay,
+			MaxDelay:    maxDelay,
+			Backoff:     backoffStr,
+		}
+		_ = jitterStr
+		result, err := convertRetryConfig(cfg)
+		_ = result
+		_ = err
+	})
+}
+
+func FuzzErrorWrapping(f *testing.F) {
+	f.Add("outer", "ERR001")
+	f.Add("outer", "")
+
+	f.Fuzz(func(t *testing.T, outer, code string) {
+		inner := &types.Error{Code: code, Retryable: true}
+		wrapped := fmt.Errorf("%s: %w", outer, inner)
+		if errors.As(wrapped, new(*types.Error)) {
+			_ = containsErrorCode(wrapped, code)
+		}
+		_ = isRetryable(wrapped, &types.RetryConfig{RetryOn: []string{code}})
+	})
 }

@@ -163,10 +163,10 @@ tasks:
       - go test -count=10 -race ./...
 
   test:fuzz:
-    desc: Run all fuzz tests in pkg/utils (fuzztime=30s per test)
+    desc: Run all fuzz tests (fuzztime=30s per test)
     cmds:
       - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
           tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
           for t in $tests; do
             go test -run='^$' -fuzz="^${t}$" -fuzztime=30s $pkg || exit 1
@@ -177,7 +177,7 @@ tasks:
     desc: Quick fuzz run for CI (fuzztime=3s per test)
     cmds:
       - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
           tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
           for t in $tests; do
             go test -run='^$' -fuzz="^${t}$" -fuzztime=3s $pkg || exit 1
@@ -188,7 +188,7 @@ tasks:
     desc: Long fuzz run (fuzztime=5m per test)
     cmds:
       - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
           tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
           for t in $tests; do
             go test -run='^$' -fuzz="^${t}$" -fuzztime=5m $pkg || exit 1

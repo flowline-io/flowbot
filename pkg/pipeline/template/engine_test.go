@@ -1106,3 +1106,52 @@ func TestRender_MaxDepth(t *testing.T) {
 		})
 	}
 }
+
+func FuzzRenderString(f *testing.F) {
+	f.Add("hello {{.Event.name}}!")
+	f.Add("{{event.id}}")
+	f.Add("{{if .Event.x}}y{{else}}z{{end}}")
+	f.Add("")
+	f.Add("{{.Event.missing}}")
+	f.Add("{{if .Event.x}}}")
+
+	f.Fuzz(func(t *testing.T, tmpl string) {
+		e := New()
+		data := &TemplateData{
+			Event: map[string]any{"id": "123", "name": "test", "url": "https://x.com"},
+			Steps: map[string]map[string]any{"s1": {"id": "abc"}},
+			Input: map[string]any{"key": "value"},
+		}
+		result, err := e.RenderString(tmpl, data)
+		// Should never panic; errors from invalid templates are fine.
+		_ = result
+		_ = err
+	})
+}
+
+func FuzzRenderStringNilData(f *testing.F) {
+	f.Add("hello")
+	f.Add("{{.Event.x}}")
+	f.Add("{{if .Event}}yes{{end}}")
+
+	f.Fuzz(func(t *testing.T, tmpl string) {
+		e := New()
+		result, err := e.RenderString(tmpl, nil)
+		_ = result
+		_ = err
+	})
+}
+
+func FuzzPreprocessTemplate(f *testing.F) {
+	f.Add("{{event.url}}")
+	f.Add("{{steps.archive.url}}")
+	f.Add("{{step1.id}}")
+	f.Add("{{input.url}}")
+	f.Add("{{.Event.url}}")
+	f.Add("")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		result := preprocessTemplate(s)
+		_ = result
+	})
+}
