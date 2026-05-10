@@ -10,7 +10,10 @@ import (
 )
 
 func TestNewRegistry(t *testing.T) {
+	t.Parallel()
+
 	t.Run("creates non-nil registry with empty list", func(t *testing.T) {
+		t.Parallel()
 		r := NewRegistry()
 		require.NotNil(t, r)
 		assert.Empty(t, r.List())
@@ -18,6 +21,8 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestRegistry_Register(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		descriptors []Descriptor
@@ -113,6 +118,7 @@ func TestRegistry_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			var lastErr error
 			for i, d := range tt.descriptors {
@@ -139,6 +145,8 @@ func TestRegistry_Register(t *testing.T) {
 }
 
 func TestRegistry_Get(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		capType CapabilityType
@@ -158,6 +166,7 @@ func TestRegistry_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			_, ok := r.Get(tt.capType)
 			assert.False(t, ok)
@@ -166,6 +175,8 @@ func TestRegistry_Get(t *testing.T) {
 }
 
 func TestRegistry_List(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		descriptors []Descriptor
@@ -196,6 +207,7 @@ func TestRegistry_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			for _, d := range tt.descriptors {
 				require.NoError(t, r.Register(d))
@@ -207,13 +219,19 @@ func TestRegistry_List(t *testing.T) {
 }
 
 func TestDefaultRegistryIsNotNil(t *testing.T) {
+	t.Parallel()
+
 	t.Run("default registry is not nil", func(t *testing.T) {
+		t.Parallel()
 		assert.NotNil(t, Default)
 	})
 }
 
 func TestDescriptorZeroValue(t *testing.T) {
+	t.Parallel()
+
 	t.Run("descriptor fields are zero values", func(t *testing.T) {
+		t.Parallel()
 		var d Descriptor
 		assert.Empty(t, d.Type)
 		assert.Empty(t, d.Backend)

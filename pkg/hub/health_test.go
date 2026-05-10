@@ -10,7 +10,10 @@ import (
 )
 
 func TestNewChecker(t *testing.T) {
+	t.Parallel()
+
 	t.Run("creates non-nil checker", func(t *testing.T) {
+		t.Parallel()
 		registry := NewRegistry()
 		checker := NewChecker(registry)
 		require.NotNil(t, checker)
@@ -164,6 +167,8 @@ func TestChecker_Check(t *testing.T) {
 }
 
 func TestChecker_CheckCapability(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		descriptors []Descriptor
@@ -220,6 +225,7 @@ func TestChecker_CheckCapability(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			for _, d := range tt.descriptors {
 				require.NoError(t, r.Register(d))

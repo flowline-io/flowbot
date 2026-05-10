@@ -22,6 +22,8 @@ func TestRegister(t *testing.T) {
 }
 
 func TestCommand(t *testing.T) {
+	t.Parallel()
+
 	cmd := Command("nonexistent")
 	// On unsupported platforms (like Windows), Command returns nil
 	if cmd == nil {

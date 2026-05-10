@@ -37,6 +37,8 @@ func TestSetLevel(t *testing.T) {
 }
 
 func TestLevelConstants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		got  string

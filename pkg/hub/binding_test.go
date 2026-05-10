@@ -8,6 +8,8 @@ import (
 )
 
 func TestBindings(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name  string
 		check func(*testing.T, *Registry)
@@ -61,6 +63,7 @@ func TestBindings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			tt.check(t, r)
 		})
@@ -68,7 +71,10 @@ func TestBindings(t *testing.T) {
 }
 
 func TestBindingJsonTags(t *testing.T) {
+	t.Parallel()
+
 	t.Run("struct fields are set correctly", func(t *testing.T) {
+		t.Parallel()
 		b := Binding{
 			Capability: CapBookmark,
 			Backend:    "karakeep",
