@@ -50,7 +50,7 @@ func IsUrl(text string) bool {
 }
 
 func Masker(input string, start int) string {
-	if len(input) <= start {
+	if len(input) <= start || start < 0 {
 		return input
 	}
 	lenStart := len(input[start:])

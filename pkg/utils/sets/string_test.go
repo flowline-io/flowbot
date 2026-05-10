@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -544,4 +545,113 @@ func TestString_Len(t *testing.T) {
 			assert.Equal(t, tt.want, tt.s.Len())
 		})
 	}
+}
+
+func FuzzStringSet(f *testing.F) {
+	f.Add([]byte(`[]`), []byte(`[]`))
+	f.Add([]byte(`["a","b","c"]`), []byte(`["c","d","e"]`))
+	f.Add([]byte(`["a"]`), []byte(`["a"]`))
+
+	f.Fuzz(func(t *testing.T, aData, bData []byte) {
+		var a, b []string
+		if err := sonic.Unmarshal(aData, &a); err != nil {
+			t.Skip()
+		}
+		if err := sonic.Unmarshal(bData, &b); err != nil {
+			t.Skip()
+		}
+
+		s1 := NewString(a...)
+		s2 := NewString(b...)
+
+		for _, v := range a {
+			if !s1.Has(v) {
+				t.Errorf("Set constructed from %v missing element %q", a, v)
+			}
+		}
+
+		if !s1.HasAll(a...) {
+			t.Errorf("HasAll failed for self-elements: %v", a)
+		}
+
+		u1 := s1.Union(s2)
+		u2 := s2.Union(s1)
+		if !u1.Equal(u2) {
+			t.Errorf("Union not commutative")
+		}
+
+		if u1.Len() > s1.Len()+s2.Len() {
+			t.Errorf("Union size %d > sum of sizes %d+%d", u1.Len(), s1.Len(), s2.Len())
+		}
+		if u1.Len() < max(s1.Len(), s2.Len()) {
+			t.Errorf("Union size %d < max(%d, %d)", u1.Len(), s1.Len(), s2.Len())
+		}
+
+		i1 := s1.Intersection(s2)
+		i2 := s2.Intersection(s1)
+		if !i1.Equal(i2) {
+			t.Errorf("Intersection not commutative")
+		}
+
+		if i1.Len() > min(s1.Len(), s2.Len()) {
+			t.Errorf("Intersection size %d > min(%d, %d)", i1.Len(), s1.Len(), s2.Len())
+		}
+
+		diff := s1.Difference(s2)
+		reconstructed := diff.Union(i1)
+		if !reconstructed.Equal(s1) {
+			t.Errorf("Difference+Intersection != original")
+		}
+
+		if !s1.Equal(s1) {
+			t.Errorf("Set not equal to itself")
+		}
+
+		lst := s1.List()
+		for i := 1; i < len(lst); i++ {
+			if lst[i-1] > lst[i] {
+				t.Errorf("List not sorted")
+				break
+			}
+		}
+
+		if s1.Len() == 0 {
+			_, ok := s1.PopAny()
+			if ok {
+				t.Error("PopAny on empty set returned ok=true")
+			}
+		}
+
+		if !s1.IsSuperset(NewString()) {
+			t.Errorf("Every set should be superset of empty")
+		}
+
+		sCopy := NewString(a...)
+		sCopy.Delete(a...)
+		if sCopy.Len() > 0 {
+			t.Errorf("Delete all elements left %d items", sCopy.Len())
+		}
+	})
+}
+
+func FuzzStringKeySet(f *testing.F) {
+	f.Fuzz(func(t *testing.T, keysData []byte) {
+		var keys []string
+		if err := sonic.Unmarshal(keysData, &keys); err != nil {
+			t.Skip()
+		}
+		theMap := make(map[string]int, len(keys))
+		for _, k := range keys {
+			theMap[k] = 0
+		}
+		result := StringKeySet(theMap)
+		if result.Len() != len(theMap) {
+			t.Errorf("StringKeySet size %d != map size %d", result.Len(), len(theMap))
+		}
+		for k := range theMap {
+			if !result.Has(k) {
+				t.Errorf("StringKeySet missing key %q", k)
+			}
+		}
+	})
 }

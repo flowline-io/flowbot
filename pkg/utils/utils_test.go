@@ -454,3 +454,94 @@ func TestMergeMaps(t *testing.T) {
 		})
 	}
 }
+
+func FuzzParseVersionPart(f *testing.F) {
+	f.Add("1")
+	f.Add("123abc")
+	f.Add("")
+	f.Add("abc")
+	f.Add("9999")
+	f.Add("8191")
+
+	f.Fuzz(func(t *testing.T, vers string) {
+		got := ParseVersionPart(vers)
+		if got > 0x1fff {
+			t.Errorf("ParseVersionPart(%q) = %d, exceeds max 0x1fff", vers, got)
+		}
+	})
+}
+
+func FuzzParseVersion(f *testing.F) {
+	f.Add("1.2.3")
+	f.Add("v1.2.3")
+	f.Add("")
+	f.Add("1")
+	f.Add("1.2.3-rc1")
+	f.Add("v10.20.30-alpha")
+
+	f.Fuzz(func(t *testing.T, vers string) {
+		got := ParseVersion(vers)
+		if got < 0 {
+			t.Errorf("ParseVersion(%q) = %d, negative result", vers, got)
+		}
+
+		b10 := Base10Version(got)
+		if b10 < 0 {
+			t.Errorf("Base10Version(%d) = %d, should be >= 0", got, b10)
+		}
+	})
+}
+
+func FuzzVersionCompare(f *testing.F) {
+	f.Add(0, 0)
+	f.Add(256, 0)
+	f.Add(0, 256)
+	f.Add(0x010203, 0x010205)
+
+	f.Fuzz(func(t *testing.T, v1, v2 int) {
+		got := VersionCompare(v1, v2)
+		if got > 0 && !(v1>>8 > v2>>8) {
+			t.Errorf("VersionCompare(%d,%d)=%d but v1>>8=%d not > v2>>8=%d", v1, v2, got, v1>>8, v2>>8)
+		}
+		if got < 0 && !(v1>>8 < v2>>8) {
+			t.Errorf("VersionCompare(%d,%d)=%d but v1>>8=%d not < v2>>8=%d", v1, v2, got, v1>>8, v2>>8)
+		}
+		if got == 0 && v1>>8 != v2>>8 {
+			t.Errorf("VersionCompare(%d,%d)=0 but v1>>8=%d != v2>>8=%d",
+				v1, v2, v1>>8, v2>>8)
+		}
+	})
+}
+
+func FuzzMax(f *testing.F) {
+	f.Add(0, 0)
+	f.Add(10, 5)
+	f.Add(-5, -1)
+	f.Add(1<<31-1, -1<<31)
+
+	f.Fuzz(func(t *testing.T, a, b int) {
+		got := Max(a, b)
+		if got < a || got < b {
+			t.Errorf("Max(%d,%d)=%d, less than one of the inputs", a, b, got)
+		}
+		if got != a && got != b {
+			t.Errorf("Max(%d,%d)=%d, not equal to either input", a, b, got)
+		}
+	})
+}
+
+func FuzzIsNullValue(f *testing.F) {
+	f.Add("hello")
+	f.Add("")
+	f.Add("\u2421")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		got := IsNullValue(s)
+		if got && s != "\u2421" {
+			t.Errorf("IsNullValue(%q) = true, only %q should return true", s, "\u2421")
+		}
+		if !got && s == "\u2421" {
+			t.Errorf("IsNullValue(%q) = false, should return true", s)
+		}
+	})
+}

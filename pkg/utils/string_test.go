@@ -430,6 +430,166 @@ func TestYamlToJson(t *testing.T) {
 	}
 }
 
+func FuzzHasHan(f *testing.F) {
+	f.Add("hello")
+	f.Add("你好")
+	f.Add("hello, 世界")
+	f.Add("")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		got := HasHan(s)
+		if got && len(s) == 0 {
+			t.Error("HasHan() = true for empty string")
+		}
+		// ASCII-only strings should not have Han characters
+		ascii := true
+		for _, r := range s {
+			if r > 127 {
+				ascii = false
+				break
+			}
+		}
+		if ascii && got {
+			t.Errorf("HasHan(%q) = true for pure ASCII string", s)
+		}
+	})
+}
+
+func FuzzIsUrl(f *testing.F) {
+	f.Add("https://example.com")
+	f.Add("http://example.com/path?q=1")
+	f.Add("")
+	f.Add("not a url")
+	f.Add("ftp://example.com")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		if r := recover(); r != nil {
+			t.Fatalf("IsUrl panicked on %q: %v", s, r)
+		}
+		_ = IsUrl(s)
+	})
+}
+
+func FuzzFirstUpper(f *testing.F) {
+	f.Add("test")
+	f.Add("")
+	f.Add("Test")
+	f.Add("hello world")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		got := FirstUpper(s)
+		if s == "" && got != "" {
+			t.Errorf("FirstUpper(%q) = %q, expected empty", s, got)
+		}
+		if s != "" && got == "" {
+			t.Errorf("FirstUpper(%q) = %q, expected non-empty", s, got)
+		}
+	})
+}
+
+func FuzzMasker(f *testing.F) {
+	f.Add("qwertyuiop1234567890", 2)
+	f.Add("abc", 0)
+	f.Add("short", 10)
+	f.Add("", 0)
+
+	f.Fuzz(func(t *testing.T, input string, start int) {
+		got := Masker(input, start)
+		if len(got) != len(input) && input != "" && start < len(input) {
+			t.Errorf("Masker(%q, %d) len=%d, expected len=%d", input, start, len(got), len(input))
+		}
+	})
+}
+
+func FuzzMD5(f *testing.F) {
+	f.Add("hello")
+	f.Add("")
+	f.Add("123456")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		got := MD5(s)
+		if len(got) != 32 {
+			t.Errorf("MD5(%q) = %q, len=%d, expected 32", s, got, len(got))
+		}
+		if got2 := MD5(s); got != got2 {
+			t.Errorf("MD5(%q) not deterministic: %q vs %q", s, got, got2)
+		}
+	})
+}
+
+func FuzzSHA1(f *testing.F) {
+	f.Add("hello")
+	f.Add("")
+	f.Add("123456")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		got := SHA1(s)
+		if len(got) != 40 {
+			t.Errorf("SHA1(%q) = %q, len=%d, expected 40", s, got, len(got))
+		}
+		if got2 := SHA1(s); got != got2 {
+			t.Errorf("SHA1(%q) not deterministic: %q vs %q", s, got, got2)
+		}
+	})
+}
+
+func FuzzMarkdownTitle(f *testing.F) {
+	f.Add("")
+	f.Add("# title")
+	f.Add("## subtitle")
+	f.Add("plain text")
+	f.Add("# title\ncontent")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		if r := recover(); r != nil {
+			t.Fatalf("MarkdownTitle panicked on %q: %v", s, r)
+		}
+		_ = MarkdownTitle(s)
+	})
+}
+
+func FuzzValidImageContentType(f *testing.F) {
+	f.Add("image/png")
+	f.Add("text/plain")
+	f.Add("")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		if r := recover(); r != nil {
+			t.Fatalf("ValidImageContentType panicked on %q: %v", s, r)
+		}
+		_ = ValidImageContentType(s)
+	})
+}
+
+func FuzzYamlToJson(f *testing.F) {
+	f.Add([]byte("name: test"))
+	f.Add([]byte(""))
+	f.Add([]byte("name: test\nage: 30"))
+	f.Add([]byte("key: value\nlist:\n  - a\n  - b"))
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		got, err := YamlToJson(data)
+		if err == nil && got == nil && len(data) > 0 {
+			t.Errorf("YamlToJson(%q) returned nil result with no error", data)
+		}
+	})
+}
+
+func FuzzFn(f *testing.F) {
+	f.Add("test")
+	f.Add("")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		if r := recover(); r != nil {
+			t.Fatalf("Fn panicked on %q: %v", s, r)
+		}
+		_ = Fn(s)
+
+		_ = Fn(map[string]any{"fn": s})
+		_ = Fn(map[string]any{"fn": 123})
+	})
+}
+
 func TestBoolToString(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

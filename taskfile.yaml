@@ -162,6 +162,44 @@ tasks:
     cmds:
       - go test -count=10 -race ./...
 
+  test:fuzz:
+    desc: Run all fuzz tests in pkg/utils (fuzztime=30s per test)
+    cmds:
+      - |
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
+          for t in $tests; do
+            go test -run='^$' -fuzz="^${t}$" -fuzztime=30s $pkg || exit 1
+          done
+        done
+
+  test:fuzz:quick:
+    desc: Quick fuzz run for CI (fuzztime=3s per test)
+    cmds:
+      - |
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
+          for t in $tests; do
+            go test -run='^$' -fuzz="^${t}$" -fuzztime=3s $pkg || exit 1
+          done
+        done
+
+  test:fuzz:long:
+    desc: Long fuzz run (fuzztime=5m per test)
+    cmds:
+      - |
+        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx; do
+          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
+          for t in $tests; do
+            go test -run='^$' -fuzz="^${t}$" -fuzztime=5m $pkg || exit 1
+          done
+        done
+
+  test:fuzz:race:
+    desc: Fuzz tests with race detector (syncx)
+    cmds:
+      - go test -race -run='^$' -fuzz=FuzzMapSetGet -fuzztime=30s ./pkg/utils/syncx
+
   # Documentation tasks
   swagger:
     desc: Generate Swagger API documentation
