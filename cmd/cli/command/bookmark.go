@@ -1,57 +1,48 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-func BookmarkCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "bookmark",
-		Usage:       "Work with bookmarks",
-		Description: "Manage bookmarks via Flowbot server",
-		Commands: []*cli.Command{
-			bookmarkCreateCommand(),
-			bookmarkListCommand(),
-			bookmarkGetCommand(),
-			bookmarkArchiveCommand(),
-			bookmarkDeleteCommand(),
-			bookmarkCheckUrlCommand(),
-			bookmarkSearchCommand(),
-		},
+func BookmarkCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bookmark",
+		Short: "Work with bookmarks",
+		Long:  "Manage bookmarks via Flowbot server",
 	}
+	cmd.AddCommand(
+		bookmarkCreateCommand(),
+		bookmarkListCommand(),
+		bookmarkGetCommand(),
+		bookmarkArchiveCommand(),
+		bookmarkDeleteCommand(),
+		bookmarkCheckUrlCommand(),
+		bookmarkSearchCommand(),
+	)
+	return cmd
 }
 
-func bookmarkCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new bookmark",
-		Description: "Add a new bookmark to the Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "url",
-				Aliases:  []string{"u"},
-				Usage:    "Bookmark URL",
-				Required: true,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func bookmarkCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new bookmark",
+		Long:  "Add a new bookmark to the Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			urlStr := cmd.String("url")
-			bookmark, err := c.Bookmark.Create(ctx, urlStr)
+			urlStr, _ := cmd.Flags().GetString("url")
+			bookmark, err := c.Bookmark.Create(cmd.Context(), urlStr)
 			if err != nil {
 				return fmt.Errorf("create bookmark: %w", err)
 			}
@@ -64,38 +55,28 @@ func bookmarkCreateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("url", "u", "", "Bookmark URL")
+	_ = cmd.MarkFlagRequired("url")
+	return cmd
 }
 
-func bookmarkListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List all bookmarks",
-		Description: "Display bookmarks from the Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.IntFlag{
-				Name:    "limit",
-				Aliases: []string{"n"},
-				Usage:   "Maximum number of bookmarks",
-				Value:   20,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func bookmarkListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all bookmarks",
+		Long:  "Display bookmarks from the Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			limit, _ := cmd.Flags().GetInt("limit")
 			query := &client.ListBookmarksQuery{
-				Limit: int(cmd.Int("limit")),
+				Limit: limit,
 			}
 
-			result, err := c.Bookmark.List(ctx, query)
+			result, err := c.Bookmark.List(cmd.Context(), query)
 			if err != nil {
 				return fmt.Errorf("list bookmarks: %w", err)
 			}
@@ -105,7 +86,7 @@ func bookmarkListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
 				if err != nil {
@@ -140,39 +121,33 @@ func bookmarkListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("limit", "n", 20, "Maximum number of bookmarks")
+	return cmd
 }
 
-func bookmarkGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get a bookmark by ID",
-		ArgsUsage:   "<id>",
-		Description: "Display details of a specific bookmark",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func bookmarkGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <id>",
+		Short: "Get a bookmark by ID",
+		Long:  "Display details of a specific bookmark",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("bookmark ID is required")
 			}
-			id := cmd.Args().Get(0)
+			id := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			bookmark, err := c.Bookmark.Get(ctx, id)
+			bookmark, err := c.Bookmark.Get(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("get bookmark: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(bookmark, "", "  ")
 				if err != nil {
@@ -208,33 +183,27 @@ func bookmarkGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func bookmarkArchiveCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "archive",
-		Usage:       "Toggle archive status of a bookmark",
-		ArgsUsage:   "<id>",
-		Description: "Archive or unarchive a bookmark by ID",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func bookmarkArchiveCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "archive <id>",
+		Short: "Toggle archive status of a bookmark",
+		Long:  "Archive or unarchive a bookmark by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("bookmark ID is required")
 			}
-			id := cmd.Args().Get(0)
+			id := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			bookmark, err := c.Bookmark.Get(ctx, id)
+			bookmark, err := c.Bookmark.Get(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("get bookmark: %w", err)
 			}
@@ -246,7 +215,8 @@ func bookmarkArchiveCommand() *cli.Command {
 				newStatus = "unarchived"
 			}
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Bookmark is currently %s. Change to %s? [y/N]: ", currentStatus, newStatus)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -258,7 +228,7 @@ func bookmarkArchiveCommand() *cli.Command {
 				}
 			}
 
-			result, err := c.Bookmark.Archive(ctx, id)
+			result, err := c.Bookmark.Archive(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("toggle archive status: %w", err)
 			}
@@ -271,28 +241,23 @@ func bookmarkArchiveCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func bookmarkDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Delete (archive) a bookmark",
-		ArgsUsage:   "<id>",
-		Description: "Archive a bookmark by ID",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func bookmarkDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <id>",
+		Short: "Delete (archive) a bookmark",
+		Long:  "Archive a bookmark by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("bookmark ID is required")
 			}
-			id := cmd.Args().Get(0)
+			id := args[0]
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Archive bookmark %s? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -309,7 +274,7 @@ func bookmarkDeleteCommand() *cli.Command {
 				return err
 			}
 
-			_, err = c.Bookmark.Archive(ctx, id)
+			_, err = c.Bookmark.Archive(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("delete bookmark: %w", err)
 			}
@@ -318,30 +283,24 @@ func bookmarkDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func bookmarkCheckUrlCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "check-url",
-		Usage:       "Check if a URL is already bookmarked",
-		Description: "Check if a URL exists in the bookmark collection",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "url",
-				Aliases:  []string{"u"},
-				Usage:    "URL to check",
-				Required: true,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			urlStr := cmd.String("url")
+func bookmarkCheckUrlCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "check-url",
+		Short: "Check if a URL is already bookmarked",
+		Long:  "Check if a URL exists in the bookmark collection",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			urlStr, _ := cmd.Flags().GetString("url")
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			result, err := c.Bookmark.CheckUrl(ctx, urlStr)
+			result, err := c.Bookmark.CheckUrl(cmd.Context(), urlStr)
 			if err != nil {
 				return fmt.Errorf("check URL: %w", err)
 			}
@@ -354,64 +313,37 @@ func bookmarkCheckUrlCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("url", "u", "", "URL to check")
+	_ = cmd.MarkFlagRequired("url")
+	return cmd
 }
 
-func bookmarkSearchCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "search",
-		Usage:       "Search bookmarks",
-		Description: "Full-text search across all bookmarks",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "query",
-				Aliases:  []string{"q"},
-				Usage:    "Search query",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "sort-order",
-				Aliases: []string{"s"},
-				Usage:   "Sort order (asc, desc, relevance)",
-				Value:   "relevance",
-			},
-			&cli.IntFlag{
-				Name:    "limit",
-				Aliases: []string{"n"},
-				Usage:   "Maximum number of results",
-				Value:   20,
-			},
-			&cli.StringFlag{
-				Name:    "cursor",
-				Aliases: []string{"c"},
-				Usage:   "Pagination cursor",
-			},
-			&cli.BoolFlag{
-				Name:    "include-content",
-				Aliases: []string{"i"},
-				Usage:   "Include full content in results",
-			},
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func bookmarkSearchCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "search",
+		Short: "Search bookmarks",
+		Long:  "Full-text search across all bookmarks",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			q, _ := cmd.Flags().GetString("query")
+			sortOrder, _ := cmd.Flags().GetString("sort-order")
+			limit, _ := cmd.Flags().GetInt("limit")
+			cursor, _ := cmd.Flags().GetString("cursor")
+			includeContent, _ := cmd.Flags().GetBool("include-content")
+
 			query := &client.SearchBookmarksQuery{
-				Q:              cmd.String("query"),
-				SortOrder:      cmd.String("sort-order"),
-				Limit:          int(cmd.Int("limit")),
-				Cursor:         cmd.String("cursor"),
-				IncludeContent: cmd.Bool("include-content"),
+				Q:              q,
+				SortOrder:      sortOrder,
+				Limit:          limit,
+				Cursor:         cursor,
+				IncludeContent: includeContent,
 			}
 
-			result, err := c.Bookmark.Search(ctx, query)
+			result, err := c.Bookmark.Search(cmd.Context(), query)
 			if err != nil {
 				return fmt.Errorf("search bookmarks: %w", err)
 			}
@@ -421,7 +353,7 @@ func bookmarkSearchCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
 				if err != nil {
@@ -454,4 +386,12 @@ func bookmarkSearchCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("query", "q", "", "Search query")
+	_ = cmd.MarkFlagRequired("query")
+	cmd.Flags().StringP("sort-order", "s", "relevance", "Sort order (asc, desc, relevance)")
+	cmd.Flags().IntP("limit", "n", 20, "Maximum number of results")
+	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
+	cmd.Flags().BoolP("include-content", "i", false, "Include full content in results")
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }

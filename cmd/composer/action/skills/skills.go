@@ -3,14 +3,14 @@
 package skills
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
 )
@@ -96,7 +96,7 @@ Most commands support ` + "`" + `--output` + "`" + ` / ` + "`" + `-o` + "`" + ` 
 - **Empty results**: Check the server is running and you have access to the requested resources.
 `
 
-// flagSpec describes a CLI flag extracted from cli.Flag.
+// flagSpec describes a CLI flag extracted from pflag.Flag.
 type flagSpec struct {
 	Name        string
 	Shorthand   string
@@ -105,7 +105,7 @@ type flagSpec struct {
 	Description string
 }
 
-// opSpec describes a single CLI operation extracted from a *cli.Command leaf.
+// opSpec describes a single CLI operation extracted from a *cobra.Command leaf.
 type opSpec struct {
 	Title       string
 	CLI         string
@@ -135,7 +135,7 @@ type metaSpec struct {
 	Description string
 	Keywords    string
 	Workflows   []workflowSpec
-	CommandFn   func() *cli.Command
+	CommandFn   func() *cobra.Command
 }
 
 // metaSpecs defines all capabilities with their CLI command factories.
@@ -226,37 +226,36 @@ var metaSpecs = []metaSpec{
 	},
 }
 
-// extractOperations walks a *cli.Command tree recursively and returns all
+// extractOperations walks a *cobra.Command tree recursively and returns all
 // leaf-level operations with their full CLI path, flags, and metadata.
-func extractOperations(cmd *cli.Command, pathPrefix string) []opSpec {
+func extractOperations(cmd *cobra.Command, pathPrefix string) []opSpec {
 	var ops []opSpec
 
-	if len(cmd.Commands) == 0 {
-		// Leaf command: extract as an operation.
-		if cmd.Name == "" {
+	if !cmd.HasSubCommands() {
+		if cmd.Name() == "" {
 			return nil
 		}
-		flags := extractFlags(cmd.Flags)
+		flags := extractFlags(cmd.Flags())
 		cliPath := pathPrefix
 		if cliPath == "" {
-			cliPath = cmd.Name
+			cliPath = cmd.Name()
 		}
+		argsUsage := extractArgsFromUse(cmd.Use)
 		op := opSpec{
-			Title:       zeroDefault(cmd.Usage, cmd.Name),
-			CLI:         buildCLIString(cliPath, cmd.ArgsUsage, flags),
-			Description: strings.TrimSpace(cmd.Description),
-			Args:        parseArgs(cmd.ArgsUsage),
+			Title:       zeroDefault(cmd.Short, cmd.Name()),
+			CLI:         buildCLIString(cliPath, argsUsage, flags),
+			Description: strings.TrimSpace(cmd.Long),
+			Args:        parseArgs(argsUsage),
 			Flags:       flags,
 		}
 		ops = append(ops, op)
 	} else {
-		// Container command: recurse into subcommands.
-		for _, sub := range cmd.Commands {
+		for _, sub := range cmd.Commands() {
 			subPath := pathPrefix
 			if subPath == "" {
-				subPath = cmd.Name + " " + sub.Name
+				subPath = cmd.Name() + " " + sub.Name()
 			} else {
-				subPath += " " + sub.Name
+				subPath += " " + sub.Name()
 			}
 			ops = append(ops, extractOperations(sub, subPath)...)
 		}
@@ -265,48 +264,45 @@ func extractOperations(cmd *cli.Command, pathPrefix string) []opSpec {
 	return ops
 }
 
-// extractFlags converts []cli.Flag into []flagSpec.
-// Flag metadata is extracted via separate interfaces (RequiredFlag, DocGenerationFlag)
-// since the base Flag interface does not cover all methods.
+// extractFlags converts *pflag.FlagSet into []flagSpec.
+// Flag metadata is extracted from pflag attributes.
 // The common --output flag is skipped since it is documented globally.
-func extractFlags(flags []cli.Flag) []flagSpec {
+func extractFlags(flagSet *pflag.FlagSet) []flagSpec {
 	var result []flagSpec
-	for _, f := range flags {
-		names := f.Names()
-		if len(names) == 0 {
-			continue
-		}
-		// Skip the ubiquitous --output flag.
-		if names[0] == "output" {
-			continue
-		}
-
-		shorthand := ""
-		if len(names) > 1 {
-			shorthand = names[1]
+	flagSet.VisitAll(func(f *pflag.Flag) {
+		if f.Name == "output" {
+			return
 		}
 
 		required := false
-		if rf, ok := f.(cli.RequiredFlag); ok {
-			required = rf.IsRequired()
-		}
-
-		typeName := ""
-		usage := ""
-		if df, ok := f.(cli.DocGenerationFlag); ok {
-			typeName = df.TypeName()
-			usage = df.GetUsage()
+		if f.Annotations != nil {
+			if v, ok := f.Annotations[cobra.BashCompOneRequiredFlag]; ok && len(v) > 0 && v[0] == "true" {
+				required = true
+			}
 		}
 
 		result = append(result, flagSpec{
-			Name:        names[0],
-			Shorthand:   shorthand,
-			Type:        typeName,
+			Name:        f.Name,
+			Shorthand:   f.Shorthand,
+			Type:        f.Value.Type(),
 			Required:    required,
-			Description: usage,
+			Description: f.Usage,
 		})
-	}
+	})
 	return result
+}
+
+// extractArgsFromUse extracts positional argument placeholders from cobra's Use string.
+// Returns a space-separated string like "<id>" or "<task_id> <subtask_id>".
+func extractArgsFromUse(use string) string {
+	parts := strings.Fields(use)
+	var args []string
+	for _, p := range parts {
+		if strings.HasPrefix(p, "<") && strings.HasSuffix(p, ">") {
+			args = append(args, p)
+		}
+	}
+	return strings.Join(args, " ")
 }
 
 // buildCLIString constructs the CLI command reference string.
@@ -316,7 +312,6 @@ func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
 	if argsUsage != "" {
 		_, _ = cmd.WriteString(" " + argsUsage)
 	}
-	// Append required flags inline.
 	for _, fl := range flags {
 		if fl.Required {
 			_, _ = cmd.WriteString(" --" + fl.Name)
@@ -325,7 +320,6 @@ func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
 			}
 		}
 	}
-	// Indicate optional flags exist.
 	hasOptional := false
 	for _, fl := range flags {
 		if !fl.Required {
@@ -363,8 +357,8 @@ func zeroDefault(a, b string) string {
 }
 
 // SkillsAction generates SKILL.md files for all CLI-invokable capabilities.
-func SkillsAction(_ context.Context, cmd *cli.Command) error {
-	outputDir := cmd.String("output")
+func SkillsAction(cmd *cobra.Command, _ []string) error {
+	outputDir, _ := cmd.Flags().GetString("output")
 	if outputDir == "" {
 		outputDir = "./docs/skills"
 	}
@@ -380,9 +374,8 @@ func SkillsAction(_ context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("create directory %s: %w", dirPath, err)
 		}
 
-		// Extract operations from the live CLI command tree.
 		rootCmd := meta.CommandFn()
-		operations := extractOperations(rootCmd, rootCmd.Name)
+		operations := extractOperations(rootCmd, rootCmd.Name())
 
 		data := struct {
 			Name        string

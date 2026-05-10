@@ -1,11 +1,7 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
@@ -18,68 +14,51 @@ import (
 
 func main() {
 	command := NewCommand()
-	if err := command.Run(context.Background(), os.Args); err != nil {
+	if err := command.Execute(); err != nil {
 		flog.Panic("%s", err.Error())
 	}
 }
 
-func NewCommand() *cli.Command {
-	cli.VersionPrinter = func(_ *cli.Command) {
-		_, _ = fmt.Printf("version=%s\n", version.Buildtags)
+func NewCommand() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:     "composer",
+		Short:   "tool cli",
+		Version: version.Buildtags,
 	}
-	return &cli.Command{
-		Name:                  "composer",
-		Usage:                 "tool cli",
-		EnableShellCompletion: true,
-		Version:               version.Buildtags,
-		Commands: []*cli.Command{
-			admin.AdminCommand(),
-			{
-				Name:  "dao",
-				Usage: "dao generator",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "config",
-						Value: "./flowbot.yaml",
-						Usage: "config of the database connection",
-					},
-				},
-				Action: dao.GenerationAction,
-			},
-			{
-				Name:   "webdoc",
-				Usage:  "website documentation from markdown sources",
-				Action: webdoc.WebDocAction,
-			},
-			{
-				Name:   "skills",
-				Usage:  "generate SKILL.md files for CLI capabilities",
-				Action: skills.SkillsAction,
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "output",
-						Value: "./docs/skills",
-						Usage: "output directory for SKILL.md files",
-					},
-				},
-			},
-			{
-				Name:  "doc",
-				Usage: "database schema documentation",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "config",
-						Value: "./flowbot.yaml",
-						Usage: "config of the database connection",
-					},
-					&cli.StringFlag{
-						Name:  "database",
-						Value: "flowbot",
-						Usage: "database name",
-					},
-				},
-				Action: doc.SchemaAction,
-			},
-		},
+	rootCmd.SetVersionTemplate("version={{.Version}}\n")
+
+	rootCmd.AddCommand(admin.AdminCommand())
+
+	daoCmd := &cobra.Command{
+		Use:   "dao",
+		Short: "dao generator",
+		RunE:  dao.GenerationAction,
 	}
+	daoCmd.Flags().String("config", "./flowbot.yaml", "config of the database connection")
+	rootCmd.AddCommand(daoCmd)
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "webdoc",
+		Short: "website documentation from markdown sources",
+		RunE:  webdoc.WebDocAction,
+	})
+
+	skillsCmd := &cobra.Command{
+		Use:   "skills",
+		Short: "generate SKILL.md files for CLI capabilities",
+		RunE:  skills.SkillsAction,
+	}
+	skillsCmd.Flags().String("output", "./docs/skills", "output directory for SKILL.md files")
+	rootCmd.AddCommand(skillsCmd)
+
+	docCmd := &cobra.Command{
+		Use:   "doc",
+		Short: "database schema documentation",
+		RunE:  doc.SchemaAction,
+	}
+	docCmd.Flags().String("config", "./flowbot.yaml", "config of the database connection")
+	docCmd.Flags().String("database", "flowbot", "database name")
+	rootCmd.AddCommand(docCmd)
+
+	return rootCmd
 }

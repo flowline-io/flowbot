@@ -1,7 +1,6 @@
 package doc
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -13,7 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" //revive:disable
 	"github.com/goccy/go-yaml"
 	"github.com/jmoiron/sqlx"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -75,9 +74,9 @@ func NullString2String(s sql.NullString) string {
 	}
 }
 
-func SchemaAction(ctx context.Context, c *cli.Command) error {
-	conffile := c.String("config")
-	database := c.String("database")
+func SchemaAction(cmd *cobra.Command, _ []string) error {
+	conffile, _ := cmd.Flags().GetString("config")
+	database, _ := cmd.Flags().GetString("database")
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {

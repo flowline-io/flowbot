@@ -1,86 +1,65 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 )
 
-func KanbanCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "kanban",
-		Usage:       "Work with kanban boards",
-		Description: "Manage kanban boards via Flowbot server",
-		Commands: []*cli.Command{
-			kanbanListCommand(),
-			kanbanSearchCommand(),
-			kanbanGetCommand(),
-			kanbanCreateCommand(),
-			kanbanUpdateCommand(),
-			kanbanDeleteCommand(),
-			kanbanMoveCommand(),
-			kanbanCardCommand(),
-			kanbanColumnCommand(),
-			kanbanMetadataCommand(),
-			kanbanTagCommand(),
-			kanbanSubtaskCommand(),
-		},
+func KanbanCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "kanban",
+		Short: "Work with kanban boards",
+		Long:  "Manage kanban boards via Flowbot server",
 	}
+	cmd.AddCommand(
+		kanbanListCommand(),
+		kanbanSearchCommand(),
+		kanbanGetCommand(),
+		kanbanCreateCommand(),
+		kanbanUpdateCommand(),
+		kanbanDeleteCommand(),
+		kanbanMoveCommand(),
+		kanbanCardCommand(),
+		kanbanColumnCommand(),
+		kanbanMetadataCommand(),
+		kanbanTagCommand(),
+		kanbanSubtaskCommand(),
+	)
+	return cmd
 }
 
-func kanbanListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List all kanban tasks",
-		Description: "Display kanban tasks from Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-			&cli.StringFlag{
-				Name:    "status",
-				Aliases: []string{"s"},
-				Usage:   "Status filter (active, inactive, all)",
-				Value:   "active",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all kanban tasks",
+		Long:  "Display kanban tasks from Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			projectId := int(cmd.Int("project"))
-			status := cmd.String("status")
+			projectId, _ := cmd.Flags().GetInt("project")
+			status, _ := cmd.Flags().GetString("status")
 
 			var tasks []kanboard.Task
 			if status == "all" {
-				tasks, err = c.Kanban.ListAll(ctx, projectId)
+				tasks, err = c.Kanban.ListAll(cmd.Context(), projectId)
 			} else {
 				statusId := kanboard.Active
 				if status == "inactive" {
 					statusId = kanboard.Inactive
 				}
-				tasks, err = c.Kanban.List(ctx, projectId, statusId)
+				tasks, err = c.Kanban.List(cmd.Context(), projectId, statusId)
 			}
 			if err != nil {
 				return fmt.Errorf("list kanban tasks: %w", err)
@@ -91,7 +70,7 @@ func kanbanListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(tasks, "", "  ")
 				if err != nil {
@@ -122,28 +101,22 @@ func kanbanListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	cmd.Flags().StringP("status", "s", "active", "Status filter (active, inactive, all)")
+	return cmd
 }
 
-func kanbanGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get a kanban task by ID",
-		ArgsUsage:   "<id>",
-		Description: "Display details of a specific kanban task",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <id>",
+		Short: "Get a kanban task by ID",
+		Long:  "Display details of a specific kanban task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -153,12 +126,12 @@ func kanbanGetCommand() *cli.Command {
 				return err
 			}
 
-			task, err := c.Kanban.Get(ctx, id)
+			task, err := c.Kanban.Get(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("get kanban task: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(task, "", "  ")
 				if err != nil {
@@ -180,52 +153,34 @@ func kanbanGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func kanbanCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new kanban task",
-		Description: "Add a new task to the kanban board",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "title",
-				Aliases:  []string{"t"},
-				Usage:    "Task title",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "Task description",
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-			&cli.IntFlag{
-				Name:    "column",
-				Aliases: []string{"c"},
-				Usage:   "Column ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new kanban task",
+		Long:  "Add a new task to the kanban board",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			title, _ := cmd.Flags().GetString("title")
+			description, _ := cmd.Flags().GetString("description")
+			projectId, _ := cmd.Flags().GetInt("project")
+			columnId, _ := cmd.Flags().GetInt("column")
+
 			req := client.KanbanCreateRequest{
-				Title:       cmd.String("title"),
-				Description: cmd.String("description"),
-				ProjectID:   int(cmd.Int("project")),
-				ColumnID:    int(cmd.Int("column")),
+				Title:       title,
+				Description: description,
+				ProjectID:   projectId,
+				ColumnID:    columnId,
 			}
 
-			result, err := c.Kanban.Create(ctx, req)
+			result, err := c.Kanban.Create(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("create kanban task: %w", err)
 			}
@@ -234,32 +189,24 @@ func kanbanCreateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "Task title")
+	_ = cmd.MarkFlagRequired("title")
+	cmd.Flags().StringP("description", "d", "", "Task description")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	cmd.Flags().IntP("column", "c", 0, "Column ID")
+	return cmd
 }
 
-func kanbanUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update",
-		Usage:       "Update a kanban task",
-		ArgsUsage:   "<id>",
-		Description: "Modify an existing kanban task",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "title",
-				Aliases: []string{"t"},
-				Usage:   "New title",
-			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "New description",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update <id>",
+		Short: "Update a kanban task",
+		Long:  "Modify an existing kanban task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -270,14 +217,14 @@ func kanbanUpdateCommand() *cli.Command {
 			}
 
 			req := client.KanbanUpdateRequest{}
-			if title := cmd.String("title"); title != "" {
+			if title, _ := cmd.Flags().GetString("title"); title != "" {
 				req.Title = title
 			}
-			if desc := cmd.String("description"); desc != "" {
+			if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 				req.Description = desc
 			}
 
-			_, err = c.Kanban.Update(ctx, id, req)
+			_, err = c.Kanban.Update(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("update kanban task: %w", err)
 			}
@@ -286,32 +233,27 @@ func kanbanUpdateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "New title")
+	cmd.Flags().StringP("description", "d", "", "New description")
+	return cmd
 }
 
-func kanbanDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Close a kanban task",
-		ArgsUsage:   "<id>",
-		Description: "Close a task by ID",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <id>",
+		Short: "Close a kanban task",
+		Long:  "Close a task by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Close task %d? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -328,7 +270,7 @@ func kanbanDeleteCommand() *cli.Command {
 				return err
 			}
 
-			_, err = c.Kanban.Close(ctx, id)
+			_, err = c.Kanban.Close(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("close kanban task: %w", err)
 			}
@@ -337,40 +279,20 @@ func kanbanDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func kanbanMoveCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "move",
-		Usage:       "Move a kanban task to another column",
-		ArgsUsage:   "<id>",
-		Description: "Move a task to a different column",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:     "column",
-				Aliases:  []string{"c"},
-				Usage:    "Destination column ID",
-				Required: true,
-			},
-			&cli.IntFlag{
-				Name:    "position",
-				Aliases: []string{"p"},
-				Usage:   "Position in column (0 = first)",
-				Value:   0,
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"r"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanMoveCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "move <id>",
+		Short: "Move a kanban task to another column",
+		Long:  "Move a task to a different column",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -380,13 +302,17 @@ func kanbanMoveCommand() *cli.Command {
 				return err
 			}
 
+			column, _ := cmd.Flags().GetInt("column")
+			position, _ := cmd.Flags().GetInt("position")
+			project, _ := cmd.Flags().GetInt("project")
+
 			req := client.KanbanMoveRequest{
-				ColumnID:  int(cmd.Int("column")),
-				Position:  int(cmd.Int("position")),
-				ProjectID: int(cmd.Int("project")),
+				ColumnID:  column,
+				Position:  position,
+				ProjectID: project,
 			}
 
-			_, err = c.Kanban.Move(ctx, id, req)
+			_, err = c.Kanban.Move(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("move kanban task: %w", err)
 			}
@@ -395,41 +321,31 @@ func kanbanMoveCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("column", "c", 0, "Destination column ID")
+	_ = cmd.MarkFlagRequired("column")
+	cmd.Flags().IntP("position", "p", 0, "Position in column (0 = first)")
+	cmd.Flags().IntP("project", "r", 1, "Project ID")
+	return cmd
 }
 
-func kanbanSearchCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "search",
-		Usage:       "Search kanban tasks",
-		ArgsUsage:   "<query>",
-		Description: "Search tasks using kanboard search syntax",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanSearchCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "search <query>",
+		Short: "Search kanban tasks",
+		Long:  "Search tasks using kanboard search syntax",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("search query is required")
 			}
-			query := cmd.Args().Get(0)
+			query := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			projectId := int(cmd.Int("project"))
-			tasks, err := c.Kanban.Search(ctx, projectId, query)
+			projectId, _ := cmd.Flags().GetInt("project")
+			tasks, err := c.Kanban.Search(cmd.Context(), projectId, query)
 			if err != nil {
 				return fmt.Errorf("search kanban tasks: %w", err)
 			}
@@ -439,7 +355,7 @@ func kanbanSearchCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(tasks, "", "  ")
 				if err != nil {
@@ -470,41 +386,35 @@ func kanbanSearchCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	return cmd
 }
 
-func kanbanMetadataCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "metadata",
-		Usage:       "Manage task metadata",
-		Description: "Get, set, or delete task metadata",
-		Commands: []*cli.Command{
-			kanbanMetadataGetCommand(),
-			kanbanMetadataSetCommand(),
-			kanbanMetadataDeleteCommand(),
-		},
+func kanbanMetadataCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "metadata",
+		Short: "Manage task metadata",
+		Long:  "Get, set, or delete task metadata",
 	}
+	cmd.AddCommand(
+		kanbanMetadataGetCommand(),
+		kanbanMetadataSetCommand(),
+		kanbanMetadataDeleteCommand(),
+	)
+	return cmd
 }
 
-func kanbanMetadataGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get task metadata",
-		ArgsUsage:   "<task_id> [name]",
-		Description: "Get all metadata or a specific metadata value by name",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (json, value)",
-				Value:   "json",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanMetadataGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <task_id> [name]",
+		Short: "Get task metadata",
+		Long:  "Get all metadata or a specific metadata value by name",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -514,15 +424,15 @@ func kanbanMetadataGetCommand() *cli.Command {
 				return err
 			}
 
-			if cmd.NArg() > 1 {
-				name := cmd.Args().Get(1)
-				value, err := c.Kanban.GetMetadataByName(ctx, taskId, name)
+			if len(args) > 1 {
+				name := args[1]
+				value, err := c.Kanban.GetMetadataByName(cmd.Context(), taskId, name)
 				if err != nil {
 					return fmt.Errorf("get metadata: %w", err)
 				}
 				_, _ = fmt.Println(value)
 			} else {
-				metadata, err := c.Kanban.GetMetadata(ctx, taskId)
+				metadata, err := c.Kanban.GetMetadata(cmd.Context(), taskId)
 				if err != nil {
 					return fmt.Errorf("get metadata: %w", err)
 				}
@@ -536,30 +446,29 @@ func kanbanMetadataGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "json", "Output format (json, value)")
+	return cmd
 }
 
-func kanbanMetadataSetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "set",
-		Usage:       "Set task metadata",
-		ArgsUsage:   "<task_id> <name=value>...",
-		Description: "Set one or more metadata values for a task",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanMetadataSetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set <task_id> <name=value>...",
+		Short: "Set task metadata",
+		Long:  "Set one or more metadata values for a task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and at least one name=value pair are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
 
 			values := make(kanboard.TaskMetadata)
-			for i := 1; i < cmd.NArg(); i++ {
-				arg := cmd.Args().Get(i)
-				parts := strings.SplitN(arg, "=", 2)
+			for i := 1; i < len(args); i++ {
+				parts := strings.SplitN(args[i], "=", 2)
 				if len(parts) != 2 {
-					return fmt.Errorf("invalid format for %s, expected name=value", arg)
+					return fmt.Errorf("invalid format for %s, expected name=value", args[i])
 				}
 				values[parts[0]] = parts[1]
 			}
@@ -569,7 +478,7 @@ func kanbanMetadataSetCommand() *cli.Command {
 				return err
 			}
 
-			result, err := c.Kanban.SaveMetadata(ctx, taskId, values)
+			result, err := c.Kanban.SaveMetadata(cmd.Context(), taskId, values)
 			if err != nil {
 				return fmt.Errorf("save metadata: %w", err)
 			}
@@ -583,33 +492,26 @@ func kanbanMetadataSetCommand() *cli.Command {
 			return nil
 		},
 	}
+	return cmd
 }
 
-func kanbanMetadataDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Delete task metadata",
-		ArgsUsage:   "<task_id> <name>",
-		Description: "Delete a metadata entry from a task",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanMetadataDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <task_id> <name>",
+		Short: "Delete task metadata",
+		Long:  "Delete a metadata entry from a task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and metadata name are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			name := cmd.Args().Get(1)
+			name := args[1]
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Delete metadata '%s' from task %d? [y/N]: ", name, taskId)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -626,7 +528,7 @@ func kanbanMetadataDeleteCommand() *cli.Command {
 				return err
 			}
 
-			result, err := c.Kanban.RemoveMetadata(ctx, taskId, name)
+			result, err := c.Kanban.RemoveMetadata(cmd.Context(), taskId, name)
 			if err != nil {
 				return fmt.Errorf("remove metadata: %w", err)
 			}
@@ -640,6 +542,8 @@ func kanbanMetadataDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
 func formatTimestamp(ts int) string {
@@ -650,42 +554,33 @@ func formatTimestamp(ts int) string {
 	return t.Format(time.RFC3339)
 }
 
-func kanbanSubtaskCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "subtask",
-		Usage:       "Manage kanban subtasks",
-		Description: "Create, update, list and delete subtasks for kanban tasks",
-		Commands: []*cli.Command{
-			kanbanSubtaskListCommand(),
-			kanbanSubtaskGetCommand(),
-			kanbanSubtaskCreateCommand(),
-			kanbanSubtaskUpdateCommand(),
-			kanbanSubtaskDeleteCommand(),
-			kanbanSubtaskTimerCommand(),
-		},
+func kanbanSubtaskCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "subtask",
+		Short: "Manage kanban subtasks",
+		Long:  "Create, update, list and delete subtasks for kanban tasks",
 	}
+	cmd.AddCommand(
+		kanbanSubtaskListCommand(),
+		kanbanSubtaskGetCommand(),
+		kanbanSubtaskCreateCommand(),
+		kanbanSubtaskUpdateCommand(),
+		kanbanSubtaskDeleteCommand(),
+		kanbanSubtaskTimerCommand(),
+	)
+	return cmd
 }
 
-func kanbanSubtaskListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List subtasks for a task",
-		ArgsUsage:   "<task_id>",
-		Description: "Display all subtasks for a given task",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanSubtaskListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list <task_id>",
+		Short: "List subtasks for a task",
+		Long:  "Display all subtasks for a given task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -695,7 +590,7 @@ func kanbanSubtaskListCommand() *cli.Command {
 				return err
 			}
 
-			subtasks, err := c.Kanban.ListSubtasks(ctx, taskId)
+			subtasks, err := c.Kanban.ListSubtasks(cmd.Context(), taskId)
 			if err != nil {
 				return fmt.Errorf("list subtasks: %w", err)
 			}
@@ -705,7 +600,7 @@ func kanbanSubtaskListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(subtasks, "", "  ")
 				if err != nil {
@@ -731,33 +626,24 @@ func kanbanSubtaskListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func kanbanSubtaskGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get a subtask by ID",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Display details of a specific subtask",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <task_id> <subtask_id>",
+		Short: "Get a subtask by ID",
+		Long:  "Display details of a specific subtask",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -767,12 +653,12 @@ func kanbanSubtaskGetCommand() *cli.Command {
 				return err
 			}
 
-			subtask, err := c.Kanban.GetSubtask(ctx, taskId, subtaskId)
+			subtask, err := c.Kanban.GetSubtask(cmd.Context(), taskId, subtaskId)
 			if err != nil {
 				return fmt.Errorf("get subtask: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(subtask, "", "  ")
 				if err != nil {
@@ -794,52 +680,20 @@ func kanbanSubtaskGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func kanbanSubtaskCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new subtask",
-		ArgsUsage:   "<task_id>",
-		Description: "Add a subtask to a kanban task",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "title",
-				Aliases:  []string{"t"},
-				Usage:    "Subtask title",
-				Required: true,
-			},
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID to assign",
-				Value:   0,
-			},
-			&cli.IntFlag{
-				Name:    "time-estimated",
-				Aliases: []string{"e"},
-				Usage:   "Estimated time (minutes)",
-				Value:   0,
-			},
-			&cli.IntFlag{
-				Name:    "time-spent",
-				Aliases: []string{"s"},
-				Usage:   "Time spent (minutes)",
-				Value:   0,
-			},
-			&cli.IntFlag{
-				Name:    "status",
-				Aliases: []string{"S"},
-				Usage:   "Status (0=Todo, 1=In progress, 2=Done)",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanSubtaskCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create <task_id>",
+		Short: "Create a new subtask",
+		Long:  "Add a subtask to a kanban task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -849,15 +703,21 @@ func kanbanSubtaskCreateCommand() *cli.Command {
 				return err
 			}
 
+			title, _ := cmd.Flags().GetString("title")
+			user, _ := cmd.Flags().GetInt("user")
+			timeEstimated, _ := cmd.Flags().GetInt("time-estimated")
+			timeSpent, _ := cmd.Flags().GetInt("time-spent")
+			status, _ := cmd.Flags().GetInt("status")
+
 			req := client.KanbanCreateSubtaskRequest{
-				Title:         cmd.String("title"),
-				UserID:        int(cmd.Int("user")),
-				TimeEstimated: int(cmd.Int("time-estimated")),
-				TimeSpent:     int(cmd.Int("time-spent")),
-				Status:        int(cmd.Int("status")),
+				Title:         title,
+				UserID:        user,
+				TimeEstimated: timeEstimated,
+				TimeSpent:     timeSpent,
+				Status:        status,
 			}
 
-			result, err := c.Kanban.CreateSubtask(ctx, taskId, req)
+			result, err := c.Kanban.CreateSubtask(cmd.Context(), taskId, req)
 			if err != nil {
 				return fmt.Errorf("create subtask: %w", err)
 			}
@@ -866,56 +726,29 @@ func kanbanSubtaskCreateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "Subtask title")
+	_ = cmd.MarkFlagRequired("title")
+	cmd.Flags().IntP("user", "u", 0, "User ID to assign")
+	cmd.Flags().IntP("time-estimated", "e", 0, "Estimated time (minutes)")
+	cmd.Flags().IntP("time-spent", "s", 0, "Time spent (minutes)")
+	cmd.Flags().IntP("status", "S", 0, "Status (0=Todo, 1=In progress, 2=Done)")
+	return cmd
 }
 
-func kanbanSubtaskUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update",
-		Usage:       "Update a subtask",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Modify an existing subtask",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "title",
-				Aliases: []string{"t"},
-				Usage:   "New title",
-			},
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID to assign (-1 to unassign)",
-				Value:   -1,
-			},
-			&cli.IntFlag{
-				Name:    "time-estimated",
-				Aliases: []string{"e"},
-				Usage:   "Estimated time (minutes, -1 to clear)",
-				Value:   -1,
-			},
-			&cli.IntFlag{
-				Name:    "time-spent",
-				Aliases: []string{"s"},
-				Usage:   "Time spent (minutes, -1 to clear)",
-				Value:   -1,
-			},
-			&cli.IntFlag{
-				Name:    "status",
-				Aliases: []string{"S"},
-				Usage:   "Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged)",
-				Value:   -1,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update <task_id> <subtask_id>",
+		Short: "Update a subtask",
+		Long:  "Modify an existing subtask",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -926,23 +759,23 @@ func kanbanSubtaskUpdateCommand() *cli.Command {
 			}
 
 			req := client.KanbanUpdateSubtaskRequest{}
-			if title := cmd.String("title"); title != "" {
+			if title, _ := cmd.Flags().GetString("title"); title != "" {
 				req.Title = title
 			}
-			if user := int(cmd.Int("user")); user >= 0 {
+			if user, _ := cmd.Flags().GetInt("user"); user >= 0 {
 				req.UserID = user
 			}
-			if te := int(cmd.Int("time-estimated")); te >= 0 {
+			if te, _ := cmd.Flags().GetInt("time-estimated"); te >= 0 {
 				req.TimeEstimated = te
 			}
-			if ts := int(cmd.Int("time-spent")); ts >= 0 {
+			if ts, _ := cmd.Flags().GetInt("time-spent"); ts >= 0 {
 				req.TimeSpent = ts
 			}
-			if st := int(cmd.Int("status")); st >= 0 {
+			if st, _ := cmd.Flags().GetInt("status"); st >= 0 {
 				req.Status = st
 			}
 
-			result, err := c.Kanban.UpdateSubtask(ctx, taskId, subtaskId, req)
+			result, err := c.Kanban.UpdateSubtask(cmd.Context(), taskId, subtaskId, req)
 			if err != nil {
 				return fmt.Errorf("update subtask: %w", err)
 			}
@@ -955,37 +788,34 @@ func kanbanSubtaskUpdateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "New title")
+	cmd.Flags().IntP("user", "u", -1, "User ID to assign (-1 to unassign)")
+	cmd.Flags().IntP("time-estimated", "e", -1, "Estimated time (minutes, -1 to clear)")
+	cmd.Flags().IntP("time-spent", "s", -1, "Time spent (minutes, -1 to clear)")
+	cmd.Flags().IntP("status", "S", -1, "Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged)")
+	return cmd
 }
 
-func kanbanSubtaskDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Delete a subtask",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Remove a subtask by ID",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <task_id> <subtask_id>",
+		Short: "Delete a subtask",
+		Long:  "Remove a subtask by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Delete subtask %d? [y/N]: ", subtaskId)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -1002,7 +832,7 @@ func kanbanSubtaskDeleteCommand() *cli.Command {
 				return err
 			}
 
-			result, err := c.Kanban.RemoveSubtask(ctx, taskId, subtaskId)
+			result, err := c.Kanban.RemoveSubtask(cmd.Context(), taskId, subtaskId)
 			if err != nil {
 				return fmt.Errorf("delete subtask: %w", err)
 			}
@@ -1015,47 +845,39 @@ func kanbanSubtaskDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func kanbanSubtaskTimerCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "timer",
-		Usage:       "Manage subtask timer",
-		Description: "Check, start, stop timer and get time spent for subtasks",
-		Commands: []*cli.Command{
-			kanbanSubtaskTimerCheckCommand(),
-			kanbanSubtaskTimerStartCommand(),
-			kanbanSubtaskTimerStopCommand(),
-			kanbanSubtaskTimerSpentCommand(),
-		},
+func kanbanSubtaskTimerCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "timer",
+		Short: "Manage subtask timer",
+		Long:  "Check, start, stop timer and get time spent for subtasks",
 	}
+	cmd.AddCommand(
+		kanbanSubtaskTimerCheckCommand(),
+		kanbanSubtaskTimerStartCommand(),
+		kanbanSubtaskTimerStopCommand(),
+		kanbanSubtaskTimerSpentCommand(),
+	)
+	return cmd
 }
 
-func kanbanSubtaskTimerCheckCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "check",
-		Usage:       "Check if timer is active",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Check if a timer is started for the given subtask and user",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskTimerCheckCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "check <task_id> <subtask_id>",
+		Short: "Check if timer is active",
+		Long:  "Check if a timer is started for the given subtask and user",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -1065,8 +887,8 @@ func kanbanSubtaskTimerCheckCommand() *cli.Command {
 				return err
 			}
 
-			userId := int(cmd.Int("user"))
-			result, err := c.Kanban.HasSubtaskTimer(ctx, taskId, subtaskId, userId)
+			userId, _ := cmd.Flags().GetInt("user")
+			result, err := c.Kanban.HasSubtaskTimer(cmd.Context(), taskId, subtaskId, userId)
 			if err != nil {
 				return fmt.Errorf("check subtask timer: %w", err)
 			}
@@ -1079,33 +901,24 @@ func kanbanSubtaskTimerCheckCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("user", "u", 0, "User ID")
+	return cmd
 }
 
-func kanbanSubtaskTimerStartCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "start",
-		Usage:       "Start subtask timer",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Start subtask timer for a user",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskTimerStartCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "start <task_id> <subtask_id>",
+		Short: "Start subtask timer",
+		Long:  "Start subtask timer for a user",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -1115,8 +928,8 @@ func kanbanSubtaskTimerStartCommand() *cli.Command {
 				return err
 			}
 
-			userId := int(cmd.Int("user"))
-			result, err := c.Kanban.SetSubtaskStartTime(ctx, taskId, subtaskId, userId)
+			userId, _ := cmd.Flags().GetInt("user")
+			result, err := c.Kanban.SetSubtaskStartTime(cmd.Context(), taskId, subtaskId, userId)
 			if err != nil {
 				return fmt.Errorf("start subtask timer: %w", err)
 			}
@@ -1129,33 +942,24 @@ func kanbanSubtaskTimerStartCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("user", "u", 0, "User ID")
+	return cmd
 }
 
-func kanbanSubtaskTimerStopCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "stop",
-		Usage:       "Stop subtask timer",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Stop subtask timer for a user",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskTimerStopCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stop <task_id> <subtask_id>",
+		Short: "Stop subtask timer",
+		Long:  "Stop subtask timer for a user",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -1165,8 +969,8 @@ func kanbanSubtaskTimerStopCommand() *cli.Command {
 				return err
 			}
 
-			userId := int(cmd.Int("user"))
-			result, err := c.Kanban.SetSubtaskEndTime(ctx, taskId, subtaskId, userId)
+			userId, _ := cmd.Flags().GetInt("user")
+			result, err := c.Kanban.SetSubtaskEndTime(cmd.Context(), taskId, subtaskId, userId)
 			if err != nil {
 				return fmt.Errorf("stop subtask timer: %w", err)
 			}
@@ -1179,33 +983,24 @@ func kanbanSubtaskTimerStopCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("user", "u", 0, "User ID")
+	return cmd
 }
 
-func kanbanSubtaskTimerSpentCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "spent",
-		Usage:       "Get time spent",
-		ArgsUsage:   "<task_id> <subtask_id>",
-		Description: "Get time spent on a subtask for a user (in hours)",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "user",
-				Aliases: []string{"u"},
-				Usage:   "User ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
+func kanbanSubtaskTimerSpentCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "spent <task_id> <subtask_id>",
+		Short: "Get time spent",
+		Long:  "Get time spent on a subtask for a user (in hours)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
 				return fmt.Errorf("task ID and subtask ID are required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
-			subtaskIdStr := cmd.Args().Get(1)
-			subtaskId, err := strconv.Atoi(subtaskIdStr)
+			subtaskId, err := strconv.Atoi(args[1])
 			if err != nil {
 				return fmt.Errorf("invalid subtask ID: %w", err)
 			}
@@ -1215,8 +1010,8 @@ func kanbanSubtaskTimerSpentCommand() *cli.Command {
 				return err
 			}
 
-			userId := int(cmd.Int("user"))
-			result, err := c.Kanban.GetSubtaskTimeSpent(ctx, taskId, subtaskId, userId)
+			userId, _ := cmd.Flags().GetInt("user")
+			result, err := c.Kanban.GetSubtaskTimeSpent(cmd.Context(), taskId, subtaskId, userId)
 			if err != nil {
 				return fmt.Errorf("get subtask time spent: %w", err)
 			}
@@ -1225,54 +1020,43 @@ func kanbanSubtaskTimerSpentCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("user", "u", 0, "User ID")
+	return cmd
 }
 
-func kanbanTagCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "tag",
-		Usage:       "Manage kanban tags",
-		Description: "Create, update, list and manage kanban tags",
-		Commands: []*cli.Command{
-			kanbanTagListCommand(),
-			kanbanTagCreateCommand(),
-			kanbanTagUpdateCommand(),
-			kanbanTagDeleteCommand(),
-			kanbanTagTaskCommand(),
-		},
+func kanbanTagCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tag",
+		Short: "Manage kanban tags",
+		Long:  "Create, update, list and manage kanban tags",
 	}
+	cmd.AddCommand(
+		kanbanTagListCommand(),
+		kanbanTagCreateCommand(),
+		kanbanTagUpdateCommand(),
+		kanbanTagDeleteCommand(),
+		kanbanTagTaskCommand(),
+	)
+	return cmd
 }
 
-func kanbanTagListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List all tags",
-		Description: "Display kanban tags",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID (if specified, list tags for this project)",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanTagListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all tags",
+		Long:  "Display kanban tags",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			projectId := int(cmd.Int("project"))
+			projectId, _ := cmd.Flags().GetInt("project")
 			var tags []client.KanbanTag
 			if projectId > 0 {
-				tags, err = c.Kanban.ListTagsByProject(ctx, projectId)
+				tags, err = c.Kanban.ListTagsByProject(cmd.Context(), projectId)
 			} else {
-				tags, err = c.Kanban.ListTags(ctx)
+				tags, err = c.Kanban.ListTags(cmd.Context())
 			}
 			if err != nil {
 				return fmt.Errorf("list tags: %w", err)
@@ -1283,7 +1067,7 @@ func kanbanTagListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(tags, "", "  ")
 				if err != nil {
@@ -1305,45 +1089,33 @@ func kanbanTagListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().IntP("project", "p", 0, "Project ID (if specified, list tags for this project)")
+	return cmd
 }
 
-func kanbanTagCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new tag",
-		Description: "Add a new tag to the kanban board",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Usage:    "Tag name",
-				Required: true,
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-			&cli.StringFlag{
-				Name:    "color",
-				Aliases: []string{"c"},
-				Usage:   "Color ID",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanTagCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new tag",
+		Long:  "Add a new tag to the kanban board",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			name, _ := cmd.Flags().GetString("name")
+			project, _ := cmd.Flags().GetInt("project")
+			color, _ := cmd.Flags().GetString("color")
+
 			req := client.KanbanCreateTagRequest{
-				ProjectID: int(cmd.Int("project")),
-				Name:      cmd.String("name"),
-				ColorID:   cmd.String("color"),
+				ProjectID: project,
+				Name:      name,
+				ColorID:   color,
 			}
 
-			result, err := c.Kanban.CreateTag(ctx, req)
+			result, err := c.Kanban.CreateTag(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("create tag: %w", err)
 			}
@@ -1352,33 +1124,23 @@ func kanbanTagCreateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("name", "n", "", "Tag name")
+	_ = cmd.MarkFlagRequired("name")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	cmd.Flags().StringP("color", "c", "", "Color ID")
+	return cmd
 }
 
-func kanbanTagUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update",
-		Usage:       "Update a tag",
-		ArgsUsage:   "<id>",
-		Description: "Modify an existing tag",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Usage:    "New tag name",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "color",
-				Aliases: []string{"c"},
-				Usage:   "Color ID",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanTagUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update <id>",
+		Short: "Update a tag",
+		Long:  "Modify an existing tag",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("tag ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid tag ID: %w", err)
 			}
@@ -1388,12 +1150,15 @@ func kanbanTagUpdateCommand() *cli.Command {
 				return err
 			}
 
+			name, _ := cmd.Flags().GetString("name")
+			color, _ := cmd.Flags().GetString("color")
+
 			req := client.KanbanUpdateTagRequest{
-				Name:    cmd.String("name"),
-				ColorID: cmd.String("color"),
+				Name:    name,
+				ColorID: color,
 			}
 
-			_, err = c.Kanban.UpdateTag(ctx, id, req)
+			_, err = c.Kanban.UpdateTag(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("update tag: %w", err)
 			}
@@ -1402,32 +1167,28 @@ func kanbanTagUpdateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("name", "n", "", "New tag name")
+	_ = cmd.MarkFlagRequired("name")
+	cmd.Flags().StringP("color", "c", "", "Color ID")
+	return cmd
 }
 
-func kanbanTagDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Delete a tag",
-		ArgsUsage:   "<id>",
-		Description: "Remove a tag by ID",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanTagDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <id>",
+		Short: "Delete a tag",
+		Long:  "Remove a tag by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("tag ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.Atoi(idStr)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid tag ID: %w", err)
 			}
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Delete tag %d? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -1444,7 +1205,7 @@ func kanbanTagDeleteCommand() *cli.Command {
 				return err
 			}
 
-			_, err = c.Kanban.RemoveTag(ctx, id)
+			_, err = c.Kanban.RemoveTag(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("delete tag: %w", err)
 			}
@@ -1453,40 +1214,33 @@ func kanbanTagDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func kanbanTagTaskCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "task",
-		Usage:       "Manage task tags",
-		Description: "Get or set tags for a task",
-		Commands: []*cli.Command{
-			kanbanTagTaskGetCommand(),
-			kanbanTagTaskSetCommand(),
-		},
+func kanbanTagTaskCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "task",
+		Short: "Manage task tags",
+		Long:  "Get or set tags for a task",
 	}
+	cmd.AddCommand(
+		kanbanTagTaskGetCommand(),
+		kanbanTagTaskSetCommand(),
+	)
+	return cmd
 }
 
-func kanbanTagTaskGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get tags for a task",
-		ArgsUsage:   "<task_id>",
-		Description: "Display tags assigned to a task",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (json, table)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanTagTaskGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <task_id>",
+		Short: "Get tags for a task",
+		Long:  "Display tags assigned to a task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -1496,7 +1250,7 @@ func kanbanTagTaskGetCommand() *cli.Command {
 				return err
 			}
 
-			tags, err := c.Kanban.GetTaskTags(ctx, taskId)
+			tags, err := c.Kanban.GetTaskTags(cmd.Context(), taskId)
 			if err != nil {
 				return fmt.Errorf("get task tags: %w", err)
 			}
@@ -1506,7 +1260,7 @@ func kanbanTagTaskGetCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(tags, "", "  ")
 				if err != nil {
@@ -1524,34 +1278,20 @@ func kanbanTagTaskGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (json, table)")
+	return cmd
 }
 
-func kanbanTagTaskSetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "set",
-		Usage:       "Set tags for a task",
-		ArgsUsage:   "<task_id>",
-		Description: "Assign tags to a task",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:     "project",
-				Aliases:  []string{"p"},
-				Usage:    "Project ID",
-				Required: true,
-			},
-			&cli.StringSliceFlag{
-				Name:     "tags",
-				Aliases:  []string{"t"},
-				Usage:    "Tag names (can be specified multiple times)",
-				Required: true,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanTagTaskSetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set <task_id>",
+		Short: "Set tags for a task",
+		Long:  "Assign tags to a task",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("task ID is required")
 			}
-			taskIdStr := cmd.Args().Get(0)
-			taskId, err := strconv.Atoi(taskIdStr)
+			taskId, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid task ID: %w", err)
 			}
@@ -1561,12 +1301,15 @@ func kanbanTagTaskSetCommand() *cli.Command {
 				return err
 			}
 
+			project, _ := cmd.Flags().GetInt("project")
+			tags, _ := cmd.Flags().GetStringSlice("tags")
+
 			req := client.KanbanSetTaskTagsRequest{
-				ProjectID: int(cmd.Int("project")),
-				Tags:      cmd.StringSlice("tags"),
+				ProjectID: project,
+				Tags:      tags,
 			}
 
-			result, err := c.Kanban.SetTaskTags(ctx, taskId, req)
+			result, err := c.Kanban.SetTaskTags(cmd.Context(), taskId, req)
 			if err != nil {
 				return fmt.Errorf("set task tags: %w", err)
 			}
@@ -1580,65 +1323,51 @@ func kanbanTagTaskSetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("project", "p", 0, "Project ID")
+	_ = cmd.MarkFlagRequired("project")
+	cmd.Flags().StringSliceP("tags", "t", nil, "Tag names (can be specified multiple times)")
+	_ = cmd.MarkFlagRequired("tags")
+	return cmd
 }
 
-func kanbanCardCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "card",
-		Usage:       "Work with kanban cards (alias for task operations)",
-		Description: "Manage cards within kanban boards via server API",
-		Commands: []*cli.Command{
-			kanbanCardAddCommand(),
-			kanbanCardMoveCommand(),
-			kanbanCardDeleteCommand(),
-		},
+func kanbanCardCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "card",
+		Short: "Work with kanban cards (alias for task operations)",
+		Long:  "Manage cards within kanban boards via server API",
 	}
+	cmd.AddCommand(
+		kanbanCardAddCommand(),
+		kanbanCardMoveCommand(),
+		kanbanCardDeleteCommand(),
+	)
+	return cmd
 }
 
-func kanbanCardAddCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "add",
-		Usage:       "Add a card to a kanban board",
-		Description: "Create a new task in the specified column",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "title",
-				Aliases:  []string{"t"},
-				Usage:    "Card title",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "description",
-				Aliases: []string{"d"},
-				Usage:   "Card description",
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-			&cli.IntFlag{
-				Name:    "column",
-				Aliases: []string{"c"},
-				Usage:   "Column ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanCardAddCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add",
+		Short: "Add a card to a kanban board",
+		Long:  "Create a new task in the specified column",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			title, _ := cmd.Flags().GetString("title")
+			description, _ := cmd.Flags().GetString("description")
+			project, _ := cmd.Flags().GetInt("project")
+			column, _ := cmd.Flags().GetInt("column")
+
 			req := client.KanbanCreateRequest{
-				Title:       cmd.String("title"),
-				Description: cmd.String("description"),
-				ProjectID:   int(cmd.Int("project")),
-				ColumnID:    int(cmd.Int("column")),
+				Title:       title,
+				Description: description,
+				ProjectID:   project,
+				ColumnID:    column,
 			}
 
-			result, err := c.Kanban.Create(ctx, req)
+			result, err := c.Kanban.Create(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("create card: %w", err)
 			}
@@ -1647,40 +1376,24 @@ func kanbanCardAddCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "Card title")
+	_ = cmd.MarkFlagRequired("title")
+	cmd.Flags().StringP("description", "d", "", "Card description")
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	cmd.Flags().IntP("column", "c", 0, "Column ID")
+	return cmd
 }
 
-func kanbanCardMoveCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "move",
-		Usage:       "Move a card to another column",
-		Description: "Move a task to a different column",
-		ArgsUsage:   "<card-id>",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:     "column",
-				Aliases:  []string{"c"},
-				Usage:    "Destination column ID",
-				Required: true,
-			},
-			&cli.IntFlag{
-				Name:    "position",
-				Aliases: []string{"p"},
-				Usage:   "Position in column (0 = first)",
-				Value:   0,
-			},
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"r"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanCardMoveCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "move <card-id>",
+		Short: "Move a card to another column",
+		Long:  "Move a task to a different column",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("card ID is required")
 			}
-			cardID := cmd.Args().Get(0)
-			id, err := strconv.Atoi(cardID)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid card ID: %w", err)
 			}
@@ -1690,13 +1403,17 @@ func kanbanCardMoveCommand() *cli.Command {
 				return err
 			}
 
+			column, _ := cmd.Flags().GetInt("column")
+			position, _ := cmd.Flags().GetInt("position")
+			project, _ := cmd.Flags().GetInt("project")
+
 			req := client.KanbanMoveRequest{
-				ColumnID:  int(cmd.Int("column")),
-				Position:  int(cmd.Int("position")),
-				ProjectID: int(cmd.Int("project")),
+				ColumnID:  column,
+				Position:  position,
+				ProjectID: project,
 			}
 
-			_, err = c.Kanban.Move(ctx, id, req)
+			_, err = c.Kanban.Move(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("move card: %w", err)
 			}
@@ -1705,32 +1422,29 @@ func kanbanCardMoveCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("column", "c", 0, "Destination column ID")
+	_ = cmd.MarkFlagRequired("column")
+	cmd.Flags().IntP("position", "p", 0, "Position in column (0 = first)")
+	cmd.Flags().IntP("project", "r", 1, "Project ID")
+	return cmd
 }
 
-func kanbanCardDeleteCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "delete",
-		Usage:       "Delete a card from a kanban board",
-		Description: "Close a task by ID",
-		ArgsUsage:   "<card-id>",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "yes",
-				Aliases: []string{"y"},
-				Usage:   "Skip confirmation",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func kanbanCardDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <card-id>",
+		Short: "Delete a card from a kanban board",
+		Long:  "Close a task by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("card ID is required")
 			}
-			cardID := cmd.Args().Get(0)
-			id, err := strconv.Atoi(cardID)
+			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid card ID: %w", err)
 			}
 
-			if !cmd.Bool("yes") {
+			yes, _ := cmd.Flags().GetBool("yes")
+			if !yes {
 				_, _ = fmt.Printf("Close card %d? [y/N]: ", id)
 				var response string
 				if _, err := fmt.Scanln(&response); err != nil {
@@ -1747,7 +1461,7 @@ func kanbanCardDeleteCommand() *cli.Command {
 				return err
 			}
 
-			_, err = c.Kanban.Close(ctx, id)
+			_, err = c.Kanban.Close(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("close card: %w", err)
 			}
@@ -1756,41 +1470,34 @@ func kanbanCardDeleteCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	return cmd
 }
 
-func kanbanColumnCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "column",
-		Usage:       "Work with kanban columns",
-		Description: "Manage columns within kanban boards",
-		Commands: []*cli.Command{
-			kanbanColumnListCommand(),
-		},
+func kanbanColumnCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "column",
+		Short: "Work with kanban columns",
+		Long:  "Manage columns within kanban boards",
 	}
+	cmd.AddCommand(kanbanColumnListCommand())
+	return cmd
 }
 
-func kanbanColumnListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List columns in a project",
-		Description: "Display all columns in the specified project",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "project",
-				Aliases: []string{"p"},
-				Usage:   "Project ID",
-				Value:   1,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func kanbanColumnListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List columns in a project",
+		Long:  "Display all columns in the specified project",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			projectId := int(cmd.Int("project"))
+			projectId, _ := cmd.Flags().GetInt("project")
 
-			columns, err := c.Kanban.ListColumns(ctx, projectId)
+			columns, err := c.Kanban.ListColumns(cmd.Context(), projectId)
 			if err != nil {
 				return fmt.Errorf("list columns: %w", err)
 			}
@@ -1808,4 +1515,6 @@ func kanbanColumnListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("project", "p", 1, "Project ID")
+	return cmd
 }

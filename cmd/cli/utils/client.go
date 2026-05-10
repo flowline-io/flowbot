@@ -2,17 +2,21 @@ package utils
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/store"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-func NewClient(cmd *cli.Command) (*client.Client, error) {
-	profile := cmd.String("profile")
+func NewClient(cmd *cobra.Command) (*client.Client, error) {
+	profile, _ := cmd.Flags().GetString("profile")
 
-	serverURL := cmd.String("server-url")
+	serverURL, _ := cmd.Flags().GetString("server-url")
+	if serverURL == "" {
+		serverURL = os.Getenv("FLOWBOT_SERVER_URL")
+	}
 	if serverURL == "" {
 		stored, err := store.LoadServerURL(profile)
 		if err != nil {
@@ -34,7 +38,13 @@ func NewClient(cmd *cli.Command) (*client.Client, error) {
 
 	cl := client.NewClient(serverURL, token)
 
-	debug := cmd.Bool("debug")
+	debug, _ := cmd.Flags().GetBool("debug")
+	if !debug {
+		debugEnv := os.Getenv("FLOWBOT_DEBUG")
+		if debugEnv == "true" || debugEnv == "1" {
+			debug = true
+		}
+	}
 	if !debug {
 		stored, _ := store.LoadDebug(profile)
 		debug = stored

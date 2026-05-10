@@ -1,42 +1,39 @@
 package command
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
-func WorkflowCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "workflow",
-		Usage:       "Manage workflows",
-		Description: "Run local workflow YAML files with capability, docker, shell, and machine actions.",
-		Commands: []*cli.Command{
-			workflowRunCommand(),
-		},
+func WorkflowCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "workflow",
+		Short: "Manage workflows",
+		Long:  "Run local workflow YAML files with capability, docker, shell, and machine actions.",
 	}
+	cmd.AddCommand(workflowRunCommand())
+	return cmd
 }
 
-func workflowRunCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "run",
-		Usage:     "Run a workflow YAML file",
-		ArgsUsage: "<file.yaml>",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func workflowRunCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run <file.yaml>",
+		Short: "Run a workflow YAML file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("workflow file path is required")
 			}
-			filePath := cmd.Args().Get(0)
+			filePath := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			result, err := c.Workflow.RunFile(ctx, filePath)
+			result, err := c.Workflow.RunFile(cmd.Context(), filePath)
 			if err != nil {
 				return fmt.Errorf("run workflow: %w", err)
 			}
@@ -45,4 +42,5 @@ func workflowRunCommand() *cli.Command {
 			return nil
 		},
 	}
+	return cmd
 }

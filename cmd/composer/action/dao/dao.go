@@ -1,12 +1,11 @@
 package dao
 
 import (
-	"context"
 	"io"
 	"os"
 
 	"github.com/goccy/go-yaml"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -32,8 +31,8 @@ type Querier interface {
 	FindByUidAndTopic(uid, topic string) ([]*gen.T, error)
 }
 
-func GenerationAction(ctx context.Context, c *cli.Command) error {
-	conffile := c.String("config")
+func GenerationAction(cmd *cobra.Command, _ []string) error {
+	conffile, _ := cmd.Flags().GetString("config")
 
 	file, err := os.Open(conffile)
 	if err != nil {

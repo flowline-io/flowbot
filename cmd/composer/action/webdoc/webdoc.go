@@ -4,7 +4,6 @@ package webdoc
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"html/template"
 	"os"
@@ -15,7 +14,7 @@ import (
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
@@ -150,7 +149,7 @@ type docPageInfo struct {
 }
 
 // WebDocAction generates the documentation website from markdown sources.
-func WebDocAction(_ context.Context, _ *cli.Command) error {
+func WebDocAction(_ *cobra.Command, _ []string) error {
 	rootDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)

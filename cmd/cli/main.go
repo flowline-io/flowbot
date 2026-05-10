@@ -1,11 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
 	"github.com/flowline-io/flowbot/version"
@@ -17,41 +16,30 @@ const (
 )
 
 func main() {
-	rootCmd := &cli.Command{
-		Name:    appName,
-		Usage:   appUsage,
+	rootCmd := &cobra.Command{
+		Use:     appName,
+		Short:   appUsage,
 		Version: version.Buildtags,
-		Commands: []*cli.Command{
-			command.LoginCommand(),
-			command.HubCommand(),
-			command.PipelineCommand(),
-			command.WorkflowCommand(),
-			command.BookmarkCommand(),
-			command.KanbanCommand(),
-			command.ReaderCommand(),
-			command.ConfigCommand(),
-			command.VersionCommand(version.Buildtags),
-		},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "profile",
-				Usage: "Configuration profile name (e.g. dev)",
-			},
-			&cli.StringFlag{
-				Name:    "server-url",
-				Usage:   "Flowbot server URL",
-				Sources: cli.EnvVars("FLOWBOT_SERVER_URL"),
-			},
-			&cli.BoolFlag{
-				Name:    "debug",
-				Aliases: []string{"d"},
-				Usage:   "Enable debug mode (prints HTTP request/response logs)",
-				Sources: cli.EnvVars("FLOWBOT_DEBUG"),
-			},
-		},
 	}
+	rootCmd.SetVersionTemplate("flowbot version {{.Version}}\n")
 
-	if err := rootCmd.Run(context.Background(), os.Args); err != nil {
+	rootCmd.PersistentFlags().String("profile", "", "Configuration profile name (e.g. dev)")
+	rootCmd.PersistentFlags().String("server-url", "", "Flowbot server URL")
+	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Enable debug mode (prints HTTP request/response logs)")
+
+	rootCmd.AddCommand(
+		command.LoginCommand(),
+		command.HubCommand(),
+		command.PipelineCommand(),
+		command.WorkflowCommand(),
+		command.BookmarkCommand(),
+		command.KanbanCommand(),
+		command.ReaderCommand(),
+		command.ConfigCommand(),
+		command.VersionCommand(version.Buildtags),
+	)
+
+	if err := rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

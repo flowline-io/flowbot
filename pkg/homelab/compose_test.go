@@ -195,7 +195,7 @@ services:
 
 func TestNormalizeLabels_MapFormat(t *testing.T) {
 	raw := map[string]any{
-		"env": "prod",
+		"env":  "prod",
 		"tier": 1,
 	}
 	result := normalizeLabels(raw)

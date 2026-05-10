@@ -3,7 +3,6 @@ package admin
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +12,7 @@ import (
 	"unicode"
 
 	"github.com/goccy/go-yaml"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -42,53 +41,41 @@ type configType struct {
 }
 
 // AdminCommand returns the admin command group with management subcommands.
-func AdminCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "admin",
-		Usage: "admin management tools",
-		Commands: []*cli.Command{
-			tokenCreateCommand(),
-		},
+func AdminCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "admin",
+		Short: "admin management tools",
 	}
+	cmd.AddCommand(tokenCreateCommand())
+	return cmd
 }
 
 // tokenCreateCommand returns the token create subcommand.
-func tokenCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "token",
-		Usage: "manage CLI access tokens",
-		Commands: []*cli.Command{
-			{
-				Name:  "create",
-				Usage: "create a new CLI access token",
-				Description: "Create a new access token for CLI authentication." +
-					" Scopes are selected interactively from a numbered list.",
-				Flags: []cli.Flag{
-					&cli.IntFlag{
-						Name:     "id",
-						Usage:    "user table row ID",
-						Required: true,
-					},
-					&cli.StringFlag{
-						Name:  "expires",
-						Value: defaultExpires,
-						Usage: "token duration (e.g. 365d, 24h, 30m); 0d means never",
-					},
-					&cli.StringFlag{
-						Name:  "config",
-						Value: defaultConfigPath,
-						Usage: "config file path",
-					},
-				},
-				Action: tokenCreateAction,
-			},
-		},
+func tokenCreateCommand() *cobra.Command {
+	tokenCmd := &cobra.Command{
+		Use:   "token",
+		Short: "manage CLI access tokens",
 	}
+
+	createCmd := &cobra.Command{
+		Use:   "create",
+		Short: "create a new CLI access token",
+		Long: "Create a new access token for CLI authentication." +
+			" Scopes are selected interactively from a numbered list.",
+		RunE: tokenCreateAction,
+	}
+	createCmd.Flags().Int("id", 0, "user table row ID")
+	_ = createCmd.MarkFlagRequired("id")
+	createCmd.Flags().String("expires", defaultExpires, "token duration (e.g. 365d, 24h, 30m); 0d means never")
+	createCmd.Flags().String("config", defaultConfigPath, "config file path")
+
+	tokenCmd.AddCommand(createCmd)
+	return tokenCmd
 }
 
 // tokenCreateAction creates a CLI access token and writes it to the parameter table.
-func tokenCreateAction(_ context.Context, c *cli.Command) error {
-	configFile := c.String("config")
+func tokenCreateAction(cmd *cobra.Command, _ []string) error {
+	configFile, _ := cmd.Flags().GetString("config")
 
 	dsn, err := loadDSN(configFile)
 	if err != nil {
@@ -100,7 +87,7 @@ func tokenCreateAction(_ context.Context, c *cli.Command) error {
 		flog.Panic("%s", err.Error())
 	}
 
-	userID := c.Int("id")
+	userID, _ := cmd.Flags().GetInt("id")
 
 	var user model.User
 	if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
@@ -120,7 +107,7 @@ func tokenCreateAction(_ context.Context, c *cli.Command) error {
 
 	token := types.Id()
 
-	expiresStr := c.String("expires")
+	expiresStr, _ := cmd.Flags().GetString("expires")
 	expiredAt, err := parseExpires(expiresStr)
 	if err != nil {
 		return fmt.Errorf("parse expires %q: %w", expiresStr, err)

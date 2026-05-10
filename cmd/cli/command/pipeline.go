@@ -1,49 +1,40 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
-func PipelineCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "pipeline",
-		Usage:       "Manage pipelines",
-		Description: "List and run cross-service pipelines.",
-		Commands: []*cli.Command{
-			pipelineListCommand(),
-			pipelineRunCommand(),
-		},
+func PipelineCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pipeline",
+		Short: "Manage pipelines",
+		Long:  "List and run cross-service pipelines.",
 	}
+	cmd.AddCommand(
+		pipelineListCommand(),
+		pipelineRunCommand(),
+	)
+	return cmd
 }
 
-func pipelineListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List pipelines",
-		Description: "Display configured pipelines.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func pipelineListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List pipelines",
+		Long:  "Display configured pipelines.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			result, err := c.Pipeline.List(ctx)
+			result, err := c.Pipeline.List(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("list pipelines: %w", err)
 			}
@@ -53,7 +44,7 @@ func pipelineListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(result.Pipelines, "", "  ")
 				if err != nil {
@@ -75,25 +66,26 @@ func pipelineListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func pipelineRunCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "run",
-		Usage:     "Run a pipeline",
-		ArgsUsage: "<name>",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func pipelineRunCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run <name>",
+		Short: "Run a pipeline",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("pipeline name is required")
 			}
-			name := cmd.Args().Get(0)
+			name := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			result, err := c.Pipeline.Run(ctx, name)
+			result, err := c.Pipeline.Run(cmd.Context(), name)
 			if err != nil {
 				return fmt.Errorf("run pipeline: %w", err)
 			}
@@ -102,4 +94,5 @@ func pipelineRunCommand() *cli.Command {
 			return nil
 		},
 	}
+	return cmd
 }

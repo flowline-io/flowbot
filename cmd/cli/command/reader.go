@@ -1,57 +1,48 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-func ReaderCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "reader",
-		Usage:       "Work with RSS feeds",
-		Description: "Manage RSS feeds via Flowbot server",
-		Commands: []*cli.Command{
-			readerFeedListCommand(),
-			readerFeedGetCommand(),
-			readerFeedCreateCommand(),
-			readerFeedUpdateCommand(),
-			readerFeedRefreshCommand(),
-			readerEntryListCommand(),
-			readerEntryUpdateCommand(),
-			readerFeedEntriesCommand(),
-		},
+func ReaderCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reader",
+		Short: "Work with RSS feeds",
+		Long:  "Manage RSS feeds via Flowbot server",
 	}
+	cmd.AddCommand(
+		readerFeedListCommand(),
+		readerFeedGetCommand(),
+		readerFeedCreateCommand(),
+		readerFeedUpdateCommand(),
+		readerFeedRefreshCommand(),
+		readerEntryListCommand(),
+		readerEntryUpdateCommand(),
+		readerFeedEntriesCommand(),
+	)
+	return cmd
 }
 
-func readerFeedListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List all feeds",
-		Description: "Display all RSS feeds from Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func readerFeedListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all feeds",
+		Long:  "Display all RSS feeds from Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			feeds, err := c.Reader.ListFeeds(ctx)
+			feeds, err := c.Reader.ListFeeds(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("list feeds: %w", err)
 			}
@@ -61,7 +52,7 @@ func readerFeedListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(feeds, "", "  ")
 				if err != nil {
@@ -91,28 +82,20 @@ func readerFeedListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func readerFeedGetCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "get",
-		Usage:       "Get a feed by ID",
-		ArgsUsage:   "<id>",
-		Description: "Display details of a specific RSS feed",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func readerFeedGetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <id>",
+		Short: "Get a feed by ID",
+		Long:  "Display details of a specific RSS feed",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("feed ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.ParseInt(idStr, 10, 64)
+			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid feed ID: %w", err)
 			}
@@ -122,12 +105,12 @@ func readerFeedGetCommand() *cli.Command {
 				return err
 			}
 
-			feed, err := c.Reader.GetFeed(ctx, id)
+			feed, err := c.Reader.GetFeed(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("get feed: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(feed, "", "  ")
 				if err != nil {
@@ -146,39 +129,30 @@ func readerFeedGetCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func readerFeedCreateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "create",
-		Usage:       "Create a new feed",
-		Description: "Add a new RSS feed to the Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "url",
-				Aliases:  []string{"u"},
-				Usage:    "Feed URL",
-				Required: true,
-			},
-			&cli.Int64Flag{
-				Name:    "category",
-				Aliases: []string{"c"},
-				Usage:   "Category ID",
-				Value:   0,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func readerFeedCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new feed",
+		Long:  "Add a new RSS feed to the Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			urlStr, _ := cmd.Flags().GetString("url")
+			category, _ := cmd.Flags().GetInt64("category")
+
 			req := &client.CreateFeedRequest{
-				FeedURL:    cmd.String("url"),
-				CategoryID: cmd.Int64("category"),
+				FeedURL:    urlStr,
+				CategoryID: category,
 			}
 
-			result, err := c.Reader.CreateFeed(ctx, req)
+			result, err := c.Reader.CreateFeed(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("create feed: %w", err)
 			}
@@ -187,40 +161,22 @@ func readerFeedCreateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("url", "u", "", "Feed URL")
+	_ = cmd.MarkFlagRequired("url")
+	cmd.Flags().Int64P("category", "c", 0, "Category ID")
+	return cmd
 }
 
-func readerFeedUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update",
-		Usage:       "Update a feed",
-		ArgsUsage:   "<id>",
-		Description: "Modify an existing RSS feed",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "title",
-				Aliases: []string{"t"},
-				Usage:   "New title",
-			},
-			&cli.StringFlag{
-				Name:    "url",
-				Aliases: []string{"u"},
-				Usage:   "New feed URL",
-			},
-			&cli.BoolFlag{
-				Name:  "disable",
-				Usage: "Disable the feed",
-			},
-			&cli.BoolFlag{
-				Name:  "enable",
-				Usage: "Enable the feed",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func readerFeedUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update <id>",
+		Short: "Update a feed",
+		Long:  "Modify an existing RSS feed",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("feed ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.ParseInt(idStr, 10, 64)
+			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid feed ID: %w", err)
 			}
@@ -231,22 +187,24 @@ func readerFeedUpdateCommand() *cli.Command {
 			}
 
 			req := &client.UpdateFeedRequest{}
-			if title := cmd.String("title"); title != "" {
+			if title, _ := cmd.Flags().GetString("title"); title != "" {
 				req.Title = title
 			}
-			if url := cmd.String("url"); url != "" {
-				req.FeedURL = url
+			if urlStr, _ := cmd.Flags().GetString("url"); urlStr != "" {
+				req.FeedURL = urlStr
 			}
-			if cmd.Bool("disable") {
+			disable, _ := cmd.Flags().GetBool("disable")
+			enable, _ := cmd.Flags().GetBool("enable")
+			if disable {
 				disabled := true
 				req.Disabled = &disabled
 			}
-			if cmd.Bool("enable") {
+			if enable {
 				disabled := false
 				req.Disabled = &disabled
 			}
 
-			feed, err := c.Reader.UpdateFeed(ctx, id, req)
+			feed, err := c.Reader.UpdateFeed(cmd.Context(), id, req)
 			if err != nil {
 				return fmt.Errorf("update feed: %w", err)
 			}
@@ -255,20 +213,23 @@ func readerFeedUpdateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("title", "t", "", "New title")
+	cmd.Flags().StringP("url", "u", "", "New feed URL")
+	cmd.Flags().Bool("disable", false, "Disable the feed")
+	cmd.Flags().Bool("enable", false, "Enable the feed")
+	return cmd
 }
 
-func readerFeedRefreshCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "refresh",
-		Usage:       "Refresh a feed",
-		ArgsUsage:   "<id>",
-		Description: "Trigger a refresh of a specific RSS feed",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func readerFeedRefreshCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "refresh <id>",
+		Short: "Refresh a feed",
+		Long:  "Trigger a refresh of a specific RSS feed",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("feed ID is required")
 			}
-			idStr := cmd.Args().Get(0)
-			id, err := strconv.ParseInt(idStr, 10, 64)
+			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid feed ID: %w", err)
 			}
@@ -278,7 +239,7 @@ func readerFeedRefreshCommand() *cli.Command {
 				return err
 			}
 
-			_, err = c.Reader.RefreshFeed(ctx, id)
+			_, err = c.Reader.RefreshFeed(cmd.Context(), id)
 			if err != nil {
 				return fmt.Errorf("refresh feed: %w", err)
 			}
@@ -287,55 +248,33 @@ func readerFeedRefreshCommand() *cli.Command {
 			return nil
 		},
 	}
+	return cmd
 }
 
-func readerEntryListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "entries",
-		Usage:       "List entries",
-		Description: "Display RSS entries from Flowbot server",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.StringFlag{
-				Name:    "status",
-				Aliases: []string{"s"},
-				Usage:   "Status filter (read, unread, removed)",
-			},
-			&cli.IntFlag{
-				Name:    "limit",
-				Aliases: []string{"n"},
-				Usage:   "Maximum number of entries",
-				Value:   20,
-			},
-			&cli.IntFlag{
-				Name:  "offset",
-				Usage: "Pagination offset",
-				Value: 0,
-			},
-			&cli.BoolFlag{
-				Name:  "starred",
-				Usage: "Starred entries only",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func readerEntryListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "entries",
+		Short: "List entries",
+		Long:  "Display RSS entries from Flowbot server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			status, _ := cmd.Flags().GetString("status")
+			limit, _ := cmd.Flags().GetInt("limit")
+			offset, _ := cmd.Flags().GetInt("offset")
+			starred, _ := cmd.Flags().GetBool("starred")
+
 			query := &client.ListEntriesQuery{
-				Status:  cmd.String("status"),
-				Limit:   int(cmd.Int("limit")),
-				Offset:  int(cmd.Int("offset")),
-				Starred: cmd.Bool("starred"),
+				Status:  status,
+				Limit:   limit,
+				Offset:  offset,
+				Starred: starred,
 			}
 
-			result, err := c.Reader.ListEntries(ctx, query)
+			result, err := c.Reader.ListEntries(cmd.Context(), query)
 			if err != nil {
 				return fmt.Errorf("list entries: %w", err)
 			}
@@ -345,7 +284,7 @@ func readerEntryListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
 				if err != nil {
@@ -372,39 +311,34 @@ func readerEntryListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
+	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
+	cmd.Flags().Int("offset", 0, "Pagination offset")
+	cmd.Flags().Bool("starred", false, "Starred entries only")
+	return cmd
 }
 
-func readerEntryUpdateCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "update-entries",
-		Usage:       "Update entries status",
-		Description: "Update the status of multiple entries",
-		Flags: []cli.Flag{
-			&cli.Int64SliceFlag{
-				Name:     "ids",
-				Aliases:  []string{"i"},
-				Usage:    "Entry IDs to update",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:     "status",
-				Aliases:  []string{"s"},
-				Usage:    "New status (read, unread, removed)",
-				Required: true,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func readerEntryUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-entries",
+		Short: "Update entries status",
+		Long:  "Update the status of multiple entries",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
+			ids, _ := cmd.Flags().GetInt64Slice("ids")
+			status, _ := cmd.Flags().GetString("status")
+
 			req := &client.UpdateEntriesRequest{
-				EntryIDs: cmd.Int64Slice("ids"),
-				Status:   cmd.String("status"),
+				EntryIDs: ids,
+				Status:   status,
 			}
 
-			_, err = c.Reader.UpdateEntriesStatus(ctx, req)
+			_, err = c.Reader.UpdateEntriesStatus(cmd.Context(), req)
 			if err != nil {
 				return fmt.Errorf("update entries status: %w", err)
 			}
@@ -413,48 +347,23 @@ func readerEntryUpdateCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().Int64SliceP("ids", "i", nil, "Entry IDs to update")
+	_ = cmd.MarkFlagRequired("ids")
+	cmd.Flags().StringP("status", "s", "", "New status (read, unread, removed)")
+	_ = cmd.MarkFlagRequired("status")
+	return cmd
 }
 
-func readerFeedEntriesCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "feed-entries",
-		Usage:       "Get entries for a feed",
-		ArgsUsage:   "<feed-id>",
-		Description: "Display RSS entries for a specific feed",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-			&cli.StringFlag{
-				Name:    "status",
-				Aliases: []string{"s"},
-				Usage:   "Status filter (read, unread, removed)",
-			},
-			&cli.IntFlag{
-				Name:    "limit",
-				Aliases: []string{"n"},
-				Usage:   "Maximum number of entries",
-				Value:   20,
-			},
-			&cli.IntFlag{
-				Name:  "offset",
-				Usage: "Pagination offset",
-				Value: 0,
-			},
-			&cli.BoolFlag{
-				Name:  "starred",
-				Usage: "Starred entries only",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func readerFeedEntriesCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "feed-entries <feed-id>",
+		Short: "Get entries for a feed",
+		Long:  "Display RSS entries for a specific feed",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("feed ID is required")
 			}
-			feedIDStr := cmd.Args().Get(0)
-			feedID, err := strconv.ParseInt(feedIDStr, 10, 64)
+			feedID, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid feed ID: %w", err)
 			}
@@ -464,14 +373,19 @@ func readerFeedEntriesCommand() *cli.Command {
 				return err
 			}
 
+			status, _ := cmd.Flags().GetString("status")
+			limit, _ := cmd.Flags().GetInt("limit")
+			offset, _ := cmd.Flags().GetInt("offset")
+			starred, _ := cmd.Flags().GetBool("starred")
+
 			query := &client.GetFeedEntriesQuery{
-				Status:  cmd.String("status"),
-				Limit:   int(cmd.Int("limit")),
-				Offset:  int(cmd.Int("offset")),
-				Starred: cmd.Bool("starred"),
+				Status:  status,
+				Limit:   limit,
+				Offset:  offset,
+				Starred: starred,
 			}
 
-			result, err := c.Reader.GetFeedEntries(ctx, feedID, query)
+			result, err := c.Reader.GetFeedEntries(cmd.Context(), feedID, query)
 			if err != nil {
 				return fmt.Errorf("get feed entries: %w", err)
 			}
@@ -481,7 +395,7 @@ func readerFeedEntriesCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
 				if err != nil {
@@ -508,4 +422,10 @@ func readerFeedEntriesCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
+	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
+	cmd.Flags().Int("offset", 0, "Pagination offset")
+	cmd.Flags().Bool("starred", false, "Starred entries only")
+	return cmd
 }

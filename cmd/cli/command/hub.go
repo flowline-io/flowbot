@@ -1,64 +1,56 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
 	"github.com/bytedance/sonic"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
 )
 
-func HubCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "hub",
-		Usage:       "Manage the Flowbot hub (homelab apps, capabilities, health)",
-		Description: "Hub management plane for homelab app registry, capability registry, and health checks.",
-		Commands: []*cli.Command{
-			hubAppsCommand(),
-			hubCapabilitiesCommand(),
-			hubHealthCommand(),
-		},
+func HubCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "hub",
+		Short: "Manage the Flowbot hub (homelab apps, capabilities, health)",
+		Long:  "Hub management plane for homelab app registry, capability registry, and health checks.",
 	}
+	cmd.AddCommand(
+		hubAppsCommand(),
+		hubCapabilitiesCommand(),
+		hubHealthCommand(),
+	)
+	return cmd
 }
 
-func hubAppsCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "apps",
-		Usage:       "Manage homelab apps",
-		Description: "List, inspect, and manage homelab applications registered in the hub.",
-		Commands: []*cli.Command{
-			hubAppsListCommand(),
-			hubAppsStatusCommand(),
-			hubAppsLogsCommand(),
-			hubAppsRestartCommand(),
-		},
+func hubAppsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "apps",
+		Short: "Manage homelab apps",
+		Long:  "List, inspect, and manage homelab applications registered in the hub.",
 	}
+	cmd.AddCommand(
+		hubAppsListCommand(),
+		hubAppsStatusCommand(),
+		hubAppsLogsCommand(),
+		hubAppsRestartCommand(),
+	)
+	return cmd
 }
 
-func hubAppsListCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "list",
-		Usage:       "List all homelab apps",
-		Description: "Display all registered homelab applications with their status.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func hubAppsListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all homelab apps",
+		Long:  "Display all registered homelab applications with their status.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			apps, err := c.Hub.ListApps(ctx)
+			apps, err := c.Hub.ListApps(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("list apps: %w", err)
 			}
@@ -68,7 +60,7 @@ func hubAppsListCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(apps, "", "  ")
 				if err != nil {
@@ -86,38 +78,31 @@ func hubAppsListCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func hubAppsStatusCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "status",
-		Usage:     "Get app status",
-		ArgsUsage: "<name>",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func hubAppsStatusCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "status <name>",
+		Short: "Get app status",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("app name is required")
 			}
-			name := cmd.Args().Get(0)
+			name := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			status, err := c.Hub.GetAppStatus(ctx, name)
+			status, err := c.Hub.GetAppStatus(cmd.Context(), name)
 			if err != nil {
 				return fmt.Errorf("get app status: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(status, "", "  ")
 				if err != nil {
@@ -132,33 +117,27 @@ func hubAppsStatusCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func hubAppsLogsCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "logs",
-		Usage:     "Get app logs",
-		ArgsUsage: "<name>",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "tail",
-				Aliases: []string{"n"},
-				Usage:   "Number of lines to tail",
-				Value:   100,
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func hubAppsLogsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "logs <name>",
+		Short: "Get app logs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("app name is required")
 			}
-			name := cmd.Args().Get(0)
+			name := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			logs, err := c.Hub.GetAppLogs(ctx, name, int(cmd.Int("tail")))
+			tail, _ := cmd.Flags().GetInt("tail")
+			logs, err := c.Hub.GetAppLogs(cmd.Context(), name, tail)
 			if err != nil {
 				return fmt.Errorf("get app logs: %w", err)
 			}
@@ -170,25 +149,26 @@ func hubAppsLogsCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().IntP("tail", "n", 100, "Number of lines to tail")
+	return cmd
 }
 
-func hubAppsRestartCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "restart",
-		Usage:     "Restart a homelab app",
-		ArgsUsage: "<name>",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() == 0 {
+func hubAppsRestartCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "restart <name>",
+		Short: "Restart a homelab app",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
 				return fmt.Errorf("app name is required")
 			}
-			name := cmd.Args().Get(0)
+			name := args[0]
 
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			result, err := c.Hub.RestartApp(ctx, name)
+			result, err := c.Hub.RestartApp(cmd.Context(), name)
 			if err != nil {
 				return fmt.Errorf("restart app: %w", err)
 			}
@@ -197,28 +177,21 @@ func hubAppsRestartCommand() *cli.Command {
 			return nil
 		},
 	}
+	return cmd
 }
 
-func hubCapabilitiesCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "capabilities",
-		Usage:       "List capabilities",
-		Description: "Display all registered capability descriptors with their backends.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func hubCapabilitiesCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "capabilities",
+		Short: "List capabilities",
+		Long:  "Display all registered capability descriptors with their backends.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			caps, err := c.Hub.ListCapabilities(ctx)
+			caps, err := c.Hub.ListCapabilities(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("list capabilities: %w", err)
 			}
@@ -228,7 +201,7 @@ func hubCapabilitiesCommand() *cli.Command {
 				return nil
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(caps, "", "  ")
 				if err != nil {
@@ -250,33 +223,27 @@ func hubCapabilitiesCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
 
-func hubHealthCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "health",
-		Usage:       "Check hub health",
-		Description: "Display overall hub health including capability and app statuses.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "output",
-				Aliases: []string{"o"},
-				Usage:   "Output format (table, json)",
-				Value:   "table",
-			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
+func hubHealthCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "health",
+		Short: "Check hub health",
+		Long:  "Display overall hub health including capability and app statuses.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
 				return err
 			}
 
-			health, err := c.Hub.GetHealth(ctx)
+			health, err := c.Hub.GetHealth(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("check health: %w", err)
 			}
 
-			output := cmd.String("output")
+			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				data, err := sonic.MarshalIndent(health, "", "  ")
 				if err != nil {
@@ -315,4 +282,6 @@ func hubHealthCommand() *cli.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
+	return cmd
 }
