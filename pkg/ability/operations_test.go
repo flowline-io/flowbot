@@ -9,6 +9,7 @@ import (
 )
 
 func TestOpKnownCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -27,12 +28,14 @@ func TestOpKnownCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpArchiveCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -45,12 +48,14 @@ func TestOpArchiveCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpReaderCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -67,12 +72,14 @@ func TestOpReaderCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpKanbanCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -91,12 +98,14 @@ func TestOpKanbanCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpFinanceCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -107,12 +116,14 @@ func TestOpFinanceCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpUnknownCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -123,12 +134,14 @@ func TestOpUnknownCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpUnknownKey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -139,12 +152,14 @@ func TestOpUnknownKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOpEmptyCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -155,12 +170,14 @@ func TestOpEmptyCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Op(tt.cap, tt.key))
 		})
 	}
 }
 
 func TestOperationsMapHasExpectedCapabilities(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -173,12 +190,14 @@ func TestOperationsMapHasExpectedCapabilities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Contains(t, Operations, tt.cap)
 		})
 	}
 }
 
 func TestOperationsMapBookmarkKeys(t *testing.T) {
+	t.Parallel()
 	ops := Operations[hub.CapBookmark]
 
 	tests := []struct {
@@ -191,16 +210,19 @@ func TestOperationsMapBookmarkKeys(t *testing.T) {
 		{"Create key equals create", "Create", "create"},
 	}
 	t.Run("has correct number of operations", func(t *testing.T) {
+		t.Parallel()
 		assert.Len(t, ops, 9)
 	})
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, ops[tt.key])
 		})
 	}
 }
 
 func TestOperationConstantsMatchOperationsMap(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cap  hub.CapabilityType
@@ -229,6 +251,7 @@ func TestOperationConstantsMatchOperationsMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, Operations[tt.cap][tt.key])
 		})
 	}

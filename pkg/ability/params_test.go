@@ -8,6 +8,7 @@ import (
 )
 
 func TestStringParam(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		params map[string]any
@@ -22,6 +23,7 @@ func TestStringParam(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, ok := StringParam(tt.params, tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			assert.Equal(t, tt.want, got)
@@ -30,6 +32,7 @@ func TestStringParam(t *testing.T) {
 }
 
 func TestRequiredString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		params  map[string]any
@@ -43,6 +46,7 @@ func TestRequiredString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := RequiredString(tt.params, tt.key)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -55,6 +59,7 @@ func TestRequiredString(t *testing.T) {
 }
 
 func TestIntParam(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		params map[string]any
@@ -70,6 +75,7 @@ func TestIntParam(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, ok := IntParam(tt.params, tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			assert.Equal(t, tt.want, got)
@@ -78,6 +84,7 @@ func TestIntParam(t *testing.T) {
 }
 
 func TestBoolParam(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		params map[string]any
@@ -94,6 +101,7 @@ func TestBoolParam(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, ok := BoolParam(tt.params, tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			assert.Equal(t, tt.want, got)
@@ -102,6 +110,7 @@ func TestBoolParam(t *testing.T) {
 }
 
 func TestPageRequestFromParams(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		params map[string]any
@@ -125,6 +134,7 @@ func TestPageRequestFromParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pr := PageRequestFromParams(tt.params)
 			assert.Equal(t, tt.want.Limit, pr.Limit)
 			assert.Equal(t, tt.want.Cursor, pr.Cursor)
@@ -135,6 +145,7 @@ func TestPageRequestFromParams(t *testing.T) {
 }
 
 func TestRequiredInt(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		params  map[string]any
@@ -148,6 +159,7 @@ func TestRequiredInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, err := RequiredInt(tt.params, tt.key)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -160,6 +172,7 @@ func TestRequiredInt(t *testing.T) {
 }
 
 func TestInt64Param(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		params map[string]any
@@ -175,6 +188,7 @@ func TestInt64Param(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, ok := Int64Param(tt.params, tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			assert.Equal(t, tt.want, got)
@@ -183,6 +197,7 @@ func TestInt64Param(t *testing.T) {
 }
 
 func TestRequiredInt64(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		params  map[string]any
@@ -196,6 +211,7 @@ func TestRequiredInt64(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, err := RequiredInt64(tt.params, tt.key)
 			if tt.wantErr {
 				require.Error(t, err)

@@ -60,6 +60,7 @@ func (f *fakeClient) UpdateEntries(entryIDs []int64, status string) error {
 }
 
 func TestListFeedsConvertsFeeds(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -67,6 +68,7 @@ func TestListFeedsConvertsFeeds(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{
 				feeds: rssClient.Feeds{
 					{
@@ -93,6 +95,7 @@ func TestListFeedsConvertsFeeds(t *testing.T) {
 }
 
 func TestListEntriesConvertsEntries(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -100,6 +103,7 @@ func TestListEntriesConvertsEntries(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pubDate := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
 			adapter := NewWithClient(&fakeClient{
 				entries: &rssClient.EntryResultSet{
@@ -139,6 +143,7 @@ func TestListEntriesConvertsEntries(t *testing.T) {
 }
 
 func TestListFeedsEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -146,6 +151,7 @@ func TestListFeedsEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{})
 			result, err := adapter.ListFeeds(t.Context(), &rdr.FeedQuery{})
 			require.NoError(t, err)
@@ -157,6 +163,7 @@ func TestListFeedsEmpty(t *testing.T) {
 }
 
 func TestCreateFeedReturnsFeed(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -164,6 +171,7 @@ func TestCreateFeedReturnsFeed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{createFeedID: 42})
 			feed, err := adapter.CreateFeed(t.Context(), "https://new.example.com/rss")
 			require.NoError(t, err)
@@ -175,6 +183,7 @@ func TestCreateFeedReturnsFeed(t *testing.T) {
 }
 
 func TestStarEntryReturnsNotImplemented(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -182,6 +191,7 @@ func TestStarEntryReturnsNotImplemented(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{})
 			err := adapter.StarEntry(t.Context(), 1)
 			require.Error(t, err)
@@ -191,6 +201,7 @@ func TestStarEntryReturnsNotImplemented(t *testing.T) {
 }
 
 func TestUnstarEntryReturnsNotImplemented(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -198,6 +209,7 @@ func TestUnstarEntryReturnsNotImplemented(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{})
 			err := adapter.UnstarEntry(t.Context(), 1)
 			require.Error(t, err)

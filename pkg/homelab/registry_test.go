@@ -8,6 +8,7 @@ import (
 )
 
 func TestNewRegistry(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,6 +16,7 @@ func TestNewRegistry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			require.NotNil(t, r)
 			assert.Empty(t, r.List())
@@ -23,6 +25,7 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestRegistry_Replace(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -30,6 +33,7 @@ func TestRegistry_Replace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			apps := []App{
@@ -47,6 +51,7 @@ func TestRegistry_Replace(t *testing.T) {
 }
 
 func TestRegistry_ReplaceOverwrites(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -54,6 +59,7 @@ func TestRegistry_ReplaceOverwrites(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			r.Replace([]App{{Name: "first", Path: "/apps/first"}})
@@ -67,6 +73,7 @@ func TestRegistry_ReplaceOverwrites(t *testing.T) {
 }
 
 func TestRegistry_ReplaceEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -74,6 +81,7 @@ func TestRegistry_ReplaceEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			r.Replace([]App{{Name: "test", Path: "/apps/test"}})
 			r.Replace([]App{})
@@ -84,6 +92,7 @@ func TestRegistry_ReplaceEmpty(t *testing.T) {
 }
 
 func TestRegistry_ListSorted(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -91,6 +100,7 @@ func TestRegistry_ListSorted(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			apps := []App{
@@ -110,6 +120,7 @@ func TestRegistry_ListSorted(t *testing.T) {
 }
 
 func TestRegistry_Get(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -117,6 +128,7 @@ func TestRegistry_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			r.Replace([]App{
@@ -133,6 +145,7 @@ func TestRegistry_Get(t *testing.T) {
 }
 
 func TestRegistry_GetMissing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -140,6 +153,7 @@ func TestRegistry_GetMissing(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			_, ok := r.Get("nonexistent")
@@ -149,6 +163,7 @@ func TestRegistry_GetMissing(t *testing.T) {
 }
 
 func TestRegistry_GetEmptyRegistry(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -156,6 +171,7 @@ func TestRegistry_GetEmptyRegistry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			_, ok := r.Get("anything")
@@ -165,6 +181,7 @@ func TestRegistry_GetEmptyRegistry(t *testing.T) {
 }
 
 func TestRegistry_Permissions(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -172,6 +189,7 @@ func TestRegistry_Permissions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			p := Permissions{
@@ -193,6 +211,7 @@ func TestRegistry_Permissions(t *testing.T) {
 }
 
 func TestRegistry_PermissionsDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -200,6 +219,7 @@ func TestRegistry_PermissionsDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			got := r.Permissions()
@@ -216,6 +236,7 @@ func TestRegistry_PermissionsDefaults(t *testing.T) {
 }
 
 func TestDefaultRegistry(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -223,6 +244,7 @@ func TestDefaultRegistry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotNil(t, DefaultRegistry)
 		})
 	}

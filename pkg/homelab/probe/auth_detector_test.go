@@ -10,6 +10,7 @@ import (
 )
 
 func TestAuthDetector_BearerAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -17,6 +18,7 @@ func TestAuthDetector_BearerAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("WWW-Authenticate", `Bearer realm="api"`)
 				w.WriteHeader(http.StatusUnauthorized)
@@ -38,6 +40,7 @@ func TestAuthDetector_BearerAuth(t *testing.T) {
 }
 
 func TestAuthDetector_BasicAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -45,6 +48,7 @@ func TestAuthDetector_BasicAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("WWW-Authenticate", `Basic realm="restricted"`)
 				w.WriteHeader(http.StatusUnauthorized)
@@ -66,6 +70,7 @@ func TestAuthDetector_BasicAuth(t *testing.T) {
 }
 
 func TestAuthDetector_NoAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -73,6 +78,7 @@ func TestAuthDetector_NoAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte("ok"))
@@ -92,6 +98,7 @@ func TestAuthDetector_NoAuth(t *testing.T) {
 }
 
 func TestAuthDetector_ForbiddenNoWWWAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -99,6 +106,7 @@ func TestAuthDetector_ForbiddenNoWWWAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusForbidden)
 			}))
@@ -117,6 +125,7 @@ func TestAuthDetector_ForbiddenNoWWWAuth(t *testing.T) {
 }
 
 func TestAuthDetector_OIDCHeader(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -124,6 +133,7 @@ func TestAuthDetector_OIDCHeader(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("WWW-Authenticate", `Bearer realm="oidc"`)
 				w.Header().Set("X-OIDC-Issuer", "https://issuer.example.com")
@@ -144,6 +154,7 @@ func TestAuthDetector_OIDCHeader(t *testing.T) {
 }
 
 func TestAuthDetector_UnknownAuthScheme(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -151,6 +162,7 @@ func TestAuthDetector_UnknownAuthScheme(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("WWW-Authenticate", `Digest realm="protected"`)
 				w.WriteHeader(http.StatusUnauthorized)
@@ -170,6 +182,7 @@ func TestAuthDetector_UnknownAuthScheme(t *testing.T) {
 }
 
 func TestAuthDetector_NilResponse(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -177,6 +190,7 @@ func TestAuthDetector_NilResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			detector := &AuthDetector{}
 			auth := detector.Detect(nil)
 			assert.Nil(t, auth)

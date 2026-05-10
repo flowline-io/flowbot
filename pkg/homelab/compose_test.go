@@ -8,6 +8,7 @@ import (
 )
 
 func TestParseCompose_ValidDocument(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 services:
   web:
@@ -30,6 +31,7 @@ networks:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			services, networks, ports, labels, err := ParseCompose(data)
 			require.NoError(t, err)
 			require.Len(t, services, 1)
@@ -54,6 +56,7 @@ networks:
 }
 
 func TestParseCompose_InvalidYAML(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		data []byte
@@ -62,6 +65,7 @@ func TestParseCompose_InvalidYAML(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, _, _, _, err := ParseCompose(tt.data)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "parse compose")
@@ -70,6 +74,7 @@ func TestParseCompose_InvalidYAML(t *testing.T) {
 }
 
 func TestParseCompose_EmptyDocument(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		data []byte
@@ -78,6 +83,7 @@ func TestParseCompose_EmptyDocument(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			services, networks, ports, labels, err := ParseCompose(tt.data)
 			require.NoError(t, err)
 			assert.Empty(t, services)
@@ -89,6 +95,7 @@ func TestParseCompose_EmptyDocument(t *testing.T) {
 }
 
 func TestParseCompose_NoServices(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 networks:
   proxy: {}
@@ -101,6 +108,7 @@ networks:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			services, networks, ports, labels, err := ParseCompose(data)
 			require.NoError(t, err)
 			assert.Empty(t, services)
@@ -114,6 +122,7 @@ networks:
 }
 
 func TestParseCompose_MultipleServices(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 services:
   web:
@@ -132,6 +141,7 @@ services:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			services, _, ports, _, err := ParseCompose(data)
 			require.NoError(t, err)
 			require.Len(t, services, 2)
@@ -153,6 +163,7 @@ services:
 }
 
 func TestParseCompose_PortMapFormat(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 services:
   web:
@@ -170,6 +181,7 @@ services:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, _, ports, _, err := ParseCompose(data)
 			require.NoError(t, err)
 			require.Len(t, ports, 1)
@@ -181,6 +193,7 @@ services:
 }
 
 func TestParseCompose_PortStringFormats(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		yaml      string
@@ -221,6 +234,7 @@ func TestParseCompose_PortStringFormats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, _, ports, _, err := ParseCompose([]byte(tt.yaml))
 			require.NoError(t, err)
 			require.Len(t, ports, 1)
@@ -233,6 +247,7 @@ func TestParseCompose_PortStringFormats(t *testing.T) {
 }
 
 func TestParseCompose_LabelsListFormat(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 services:
   web:
@@ -251,6 +266,7 @@ services:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, _, _, labels, err := ParseCompose(data)
 			require.NoError(t, err)
 			assert.Equal(t, "true", labels["traefik.enable"])
@@ -262,6 +278,7 @@ services:
 }
 
 func TestNormalizeLabels_MapFormat(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		raw  map[string]any
@@ -273,6 +290,7 @@ func TestNormalizeLabels_MapFormat(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := normalizeLabels(tt.raw)
 			assert.Equal(t, "prod", result["env"])
 			assert.Equal(t, "1", result["tier"])
@@ -281,6 +299,7 @@ func TestNormalizeLabels_MapFormat(t *testing.T) {
 }
 
 func TestNormalizeLabels_ListFormat(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		raw  []any
@@ -289,6 +308,7 @@ func TestNormalizeLabels_ListFormat(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := normalizeLabels(tt.raw)
 			assert.Equal(t, "val1", result["key1"])
 			assert.Equal(t, "val2 with spaces", result["key2"])
@@ -298,6 +318,7 @@ func TestNormalizeLabels_ListFormat(t *testing.T) {
 }
 
 func TestNormalizeLabels_Nil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -305,6 +326,7 @@ func TestNormalizeLabels_Nil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := normalizeLabels(nil)
 			assert.Empty(t, result)
 		})
@@ -312,6 +334,7 @@ func TestNormalizeLabels_Nil(t *testing.T) {
 }
 
 func TestParseCompose_LabelsAcrossServices(t *testing.T) {
+	t.Parallel()
 	data := []byte(`
 services:
   web:
@@ -332,6 +355,7 @@ services:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, _, _, labels, err := ParseCompose(data)
 			require.NoError(t, err)
 			assert.Equal(t, "prod", labels["env"])

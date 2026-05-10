@@ -10,6 +10,7 @@ import (
 )
 
 func TestMatchPattern(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		pattern string
@@ -31,6 +32,7 @@ func TestMatchPattern(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := matchPattern(tt.pattern, tt.value)
 			assert.Equal(t, tt.want, got)
 		})
@@ -182,6 +184,7 @@ func TestEngineEvaluate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New(nil)
 			err := e.LoadConfig(tt.rules)
 			require.NoError(t, err)
@@ -205,6 +208,7 @@ func TestEngineEvaluate(t *testing.T) {
 }
 
 func TestParseHour(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
@@ -217,6 +221,7 @@ func TestParseHour(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, parseHour(tt.input))
 		})
 	}
@@ -242,6 +247,7 @@ func TestEvalTimeCondition(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, evalTimeCondition(tt.condition))
 		})
 	}

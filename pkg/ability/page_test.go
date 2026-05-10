@@ -7,6 +7,7 @@ import (
 )
 
 func TestPageRequestDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -14,6 +15,7 @@ func TestPageRequestDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pr := PageRequest{}
 			assert.Equal(t, 0, pr.Limit)
 			assert.Empty(t, pr.Cursor)
@@ -24,6 +26,7 @@ func TestPageRequestDefaults(t *testing.T) {
 }
 
 func TestPageRequestWithValues(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -31,6 +34,7 @@ func TestPageRequestWithValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pr := PageRequest{
 				Limit:     10,
 				Cursor:    "abc123",
@@ -46,6 +50,7 @@ func TestPageRequestWithValues(t *testing.T) {
 }
 
 func TestPageInfoDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -53,6 +58,7 @@ func TestPageInfoDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pi := PageInfo{}
 			assert.Equal(t, 0, pi.Limit)
 			assert.False(t, pi.HasMore)
@@ -64,6 +70,7 @@ func TestPageInfoDefaults(t *testing.T) {
 }
 
 func TestPageInfoWithValues(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -71,6 +78,7 @@ func TestPageInfoWithValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			total := int64(100)
 			pi := PageInfo{
 				Limit:      20,
@@ -90,6 +98,7 @@ func TestPageInfoWithValues(t *testing.T) {
 }
 
 func TestPageInfoTotalNil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -97,6 +106,7 @@ func TestPageInfoTotalNil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pi := PageInfo{}
 			assert.Nil(t, pi.Total)
 		})
@@ -104,6 +114,7 @@ func TestPageInfoTotalNil(t *testing.T) {
 }
 
 func TestListResultEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -111,6 +122,7 @@ func TestListResultEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			lr := ListResult[string]{}
 			assert.Nil(t, lr.Items)
 			assert.Nil(t, lr.Page)
@@ -119,6 +131,7 @@ func TestListResultEmpty(t *testing.T) {
 }
 
 func TestListResultWithItems(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -126,6 +139,7 @@ func TestListResultWithItems(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			items := []*string{new("a"), new("b"), new("c")}
 			lr := ListResult[string]{
 				Items: items,
@@ -140,6 +154,7 @@ func TestListResultWithItems(t *testing.T) {
 }
 
 func TestListResultWithPage(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -147,6 +162,7 @@ func TestListResultWithPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			total := int64(50)
 			lr := ListResult[string]{
 				Items: []*string{new("x")},
@@ -168,6 +184,7 @@ func TestListResultWithPage(t *testing.T) {
 }
 
 func TestListResultGenericWithBookmark(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -175,6 +192,7 @@ func TestListResultGenericWithBookmark(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			bm := Bookmark{
 				ID:         "1",
 				URL:        "https://example.com",

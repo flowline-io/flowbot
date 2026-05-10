@@ -8,6 +8,7 @@ import (
 
 // TestEncodeJSON tests the EncodeJSON function
 func TestEncodeJSON(t *testing.T) {
+	t.Parallel()
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -45,6 +46,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var buf bytes.Buffer
 			err := EncodeJSON(&buf, tt.input)
 
@@ -62,6 +64,7 @@ func TestEncodeJSON(t *testing.T) {
 
 // TestEncodeJSONEscapeHTML tests the EncodeJSONEscapeHTML function
 func TestEncodeJSONEscapeHTML(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		v   any
 		esc bool
@@ -98,6 +101,7 @@ func TestEncodeJSONEscapeHTML(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var buf bytes.Buffer
 			err := EncodeJSONEscapeHTML(&buf, tt.args.v, tt.args.esc)
 
@@ -118,6 +122,7 @@ func TestEncodeJSONEscapeHTML(t *testing.T) {
 
 // TestEncodeJSONEscapeHTMLIndent tests the EncodeJSONEscapeHTMLIndent function
 func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
+	t.Parallel()
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -154,6 +159,7 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var buf bytes.Buffer
 			err := EncodeJSONEscapeHTMLIndent(&buf, tt.v, tt.esc, tt.indent)
 
@@ -174,6 +180,7 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 
 // TestDecodeJSON tests the DecodeJSON function
 func TestDecodeJSON(t *testing.T) {
+	t.Parallel()
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -207,6 +214,7 @@ func TestDecodeJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			reader := strings.NewReader(tt.input)
 			err := DecodeJSON(reader, tt.target)
 

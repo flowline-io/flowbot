@@ -11,6 +11,7 @@ func foo3(a, b string, c int) *testing.InternalExample {
 }
 
 func TestGetFunctionName(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		i any
 	}
@@ -43,6 +44,7 @@ func TestGetFunctionName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := GetFunctionName(tt.args.i); got != tt.want {
 				t.Errorf("GetFunctionName() = %v, want %v", got, tt.want)
 			}
@@ -51,6 +53,7 @@ func TestGetFunctionName(t *testing.T) {
 }
 
 func TestParseFunctionName(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		name string
 	}
@@ -79,6 +82,7 @@ func TestParseFunctionName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, got1 := ParseFunctionName(tt.args.name)
 			if got != tt.want {
 				t.Errorf("ParseFunctionName() got = %v, want %v", got, tt.want)

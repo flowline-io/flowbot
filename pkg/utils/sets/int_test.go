@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewInt(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		items []int
@@ -38,6 +39,7 @@ func TestNewInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := NewInt(tt.items...)
 			assert.Equal(t, tt.want, got)
 		})
@@ -45,6 +47,7 @@ func TestNewInt(t *testing.T) {
 }
 
 func TestIntKeySet(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		theMap any
@@ -64,6 +67,7 @@ func TestIntKeySet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := IntKeySet(tt.theMap)
 			assert.Equal(t, tt.want, got)
 		})
@@ -71,6 +75,7 @@ func TestIntKeySet(t *testing.T) {
 }
 
 func TestInt_Insert(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		initial []int
@@ -98,6 +103,7 @@ func TestInt_Insert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			s := NewInt(tt.initial...)
 			got := s.Insert(tt.insert...)
 			assert.Equal(t, tt.want, got)
@@ -106,6 +112,7 @@ func TestInt_Insert(t *testing.T) {
 }
 
 func TestInt_Delete(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		initial []int
@@ -133,6 +140,7 @@ func TestInt_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			s := NewInt(tt.initial...)
 			got := s.Delete(tt.delete...)
 			assert.Equal(t, tt.want, got)
@@ -141,6 +149,7 @@ func TestInt_Delete(t *testing.T) {
 }
 
 func TestInt_Has(t *testing.T) {
+	t.Parallel()
 	s := NewInt(1, 2, 3)
 
 	tests := []struct {
@@ -157,12 +166,14 @@ func TestInt_Has(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.Has(tt.item))
 		})
 	}
 }
 
 func TestInt_HasAll(t *testing.T) {
+	t.Parallel()
 	s := NewInt(1, 2, 3, 4)
 
 	tests := []struct {
@@ -194,12 +205,14 @@ func TestInt_HasAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.HasAll(tt.items...))
 		})
 	}
 }
 
 func TestInt_HasAny(t *testing.T) {
+	t.Parallel()
 	s := NewInt(1, 2, 3)
 
 	tests := []struct {
@@ -231,12 +244,14 @@ func TestInt_HasAny(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.HasAny(tt.items...))
 		})
 	}
 }
 
 func TestInt_Difference(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   Int
@@ -264,6 +279,7 @@ func TestInt_Difference(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Difference(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -271,6 +287,7 @@ func TestInt_Difference(t *testing.T) {
 }
 
 func TestInt_Union(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   Int
@@ -298,6 +315,7 @@ func TestInt_Union(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Union(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -305,6 +323,7 @@ func TestInt_Union(t *testing.T) {
 }
 
 func TestInt_Intersection(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   Int
@@ -332,6 +351,7 @@ func TestInt_Intersection(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Intersection(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -339,6 +359,7 @@ func TestInt_Intersection(t *testing.T) {
 }
 
 func TestInt_IsSuperset(t *testing.T) {
+	t.Parallel()
 	s := NewInt(1, 2, 3, 4, 5)
 
 	tests := []struct {
@@ -369,12 +390,14 @@ func TestInt_IsSuperset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.IsSuperset(tt.other))
 		})
 	}
 }
 
 func TestInt_Equal(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   Int
@@ -402,12 +425,14 @@ func TestInt_Equal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.s1.Equal(tt.s2))
 		})
 	}
 }
 
 func TestInt_List(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    Int
@@ -431,6 +456,7 @@ func TestInt_List(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s.List()
 			assert.Equal(t, tt.want, got)
 		})
@@ -438,6 +464,7 @@ func TestInt_List(t *testing.T) {
 }
 
 func TestInt_UnsortedList(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    Int
@@ -456,6 +483,7 @@ func TestInt_UnsortedList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s.UnsortedList()
 			assert.Len(t, got, len(tt.want))
 			for _, item := range tt.want {
@@ -466,7 +494,9 @@ func TestInt_UnsortedList(t *testing.T) {
 }
 
 func TestInt_PopAny(t *testing.T) {
+	t.Parallel()
 	t.Run("non-empty set pops and shrinks", func(t *testing.T) {
+		t.Parallel()
 		s := NewInt(1, 2, 3)
 		originalLen := s.Len()
 
@@ -477,6 +507,7 @@ func TestInt_PopAny(t *testing.T) {
 	})
 
 	t.Run("empty set returns false", func(t *testing.T) {
+		t.Parallel()
 		emptySet := NewInt()
 		_, ok := emptySet.PopAny()
 		assert.False(t, ok)
@@ -484,6 +515,7 @@ func TestInt_PopAny(t *testing.T) {
 }
 
 func TestInt_Len(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    Int
@@ -508,6 +540,7 @@ func TestInt_Len(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.s.Len())
 		})
 	}

@@ -8,6 +8,7 @@ import (
 )
 
 func TestParseLabels_NilOrEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -17,12 +18,14 @@ func TestParseLabels_NilOrEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Nil(t, ParseLabels(tt.labels))
 		})
 	}
 }
 
 func TestParseLabels_UnknownCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -36,12 +39,14 @@ func TestParseLabels_UnknownCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Nil(t, ParseLabels(tt.labels))
 		})
 	}
 }
 
 func TestParseLabels_MinimalLabel(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -55,6 +60,7 @@ func TestParseLabels_MinimalLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Equal(t, CapBookmark, capabilities[0].Capability)
@@ -66,6 +72,7 @@ func TestParseLabels_MinimalLabel(t *testing.T) {
 }
 
 func TestParseLabels_WithBackend(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -80,6 +87,7 @@ func TestParseLabels_WithBackend(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Equal(t, CapBookmark, capabilities[0].Capability)
@@ -89,6 +97,7 @@ func TestParseLabels_WithBackend(t *testing.T) {
 }
 
 func TestParseLabels_FullEndpointInfo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -105,6 +114,7 @@ func TestParseLabels_FullEndpointInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Equal(t, CapArchive, capabilities[0].Capability)
@@ -118,6 +128,7 @@ func TestParseLabels_FullEndpointInfo(t *testing.T) {
 }
 
 func TestParseLabels_FullAuthInfo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -136,6 +147,7 @@ func TestParseLabels_FullAuthInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Equal(t, CapKanban, capabilities[0].Capability)
@@ -150,6 +162,7 @@ func TestParseLabels_FullAuthInfo(t *testing.T) {
 }
 
 func TestParseLabels_AuthNoneSkipped(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -164,6 +177,7 @@ func TestParseLabels_AuthNoneSkipped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Nil(t, capabilities[0].Auth)
@@ -172,6 +186,7 @@ func TestParseLabels_AuthNoneSkipped(t *testing.T) {
 }
 
 func TestParseLabels_AllCapabilities(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		labelValue string
 		expected   string
@@ -186,6 +201,7 @@ func TestParseLabels_AllCapabilities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.labelValue, func(t *testing.T) {
+			t.Parallel()
 			labels := map[string]string{LabelCapability: tt.labelValue}
 			capabilities := ParseLabels(labels)
 			require.Len(t, capabilities, 1)
@@ -195,6 +211,7 @@ func TestParseLabels_AllCapabilities(t *testing.T) {
 }
 
 func TestParseLabels_TrimSpaces(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		labels map[string]string
@@ -209,6 +226,7 @@ func TestParseLabels_TrimSpaces(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
 			assert.Equal(t, "karakeep", capabilities[0].Backend)

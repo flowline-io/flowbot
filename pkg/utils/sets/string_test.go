@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		items []string
@@ -38,6 +39,7 @@ func TestNewString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := NewString(tt.items...)
 			assert.Equal(t, tt.want, got)
 		})
@@ -45,6 +47,7 @@ func TestNewString(t *testing.T) {
 }
 
 func TestStringKeySet(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		theMap any
@@ -64,6 +67,7 @@ func TestStringKeySet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := StringKeySet(tt.theMap)
 			assert.Equal(t, tt.want, got)
 		})
@@ -71,6 +75,7 @@ func TestStringKeySet(t *testing.T) {
 }
 
 func TestString_Insert(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		initial []string
@@ -98,6 +103,7 @@ func TestString_Insert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			s := NewString(tt.initial...)
 			got := s.Insert(tt.insert...)
 			assert.Equal(t, tt.want, got)
@@ -106,6 +112,7 @@ func TestString_Insert(t *testing.T) {
 }
 
 func TestString_Delete(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		initial []string
@@ -133,6 +140,7 @@ func TestString_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			s := NewString(tt.initial...)
 			got := s.Delete(tt.delete...)
 			assert.Equal(t, tt.want, got)
@@ -141,6 +149,7 @@ func TestString_Delete(t *testing.T) {
 }
 
 func TestString_Has(t *testing.T) {
+	t.Parallel()
 	s := NewString("a", "b", "c")
 
 	tests := []struct {
@@ -157,12 +166,14 @@ func TestString_Has(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.Has(tt.item))
 		})
 	}
 }
 
 func TestString_HasAll(t *testing.T) {
+	t.Parallel()
 	s := NewString("a", "b", "c", "d")
 
 	tests := []struct {
@@ -194,12 +205,14 @@ func TestString_HasAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.HasAll(tt.items...))
 		})
 	}
 }
 
 func TestString_HasAny(t *testing.T) {
+	t.Parallel()
 	s := NewString("a", "b", "c")
 
 	tests := []struct {
@@ -231,12 +244,14 @@ func TestString_HasAny(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.HasAny(tt.items...))
 		})
 	}
 }
 
 func TestString_Difference(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   String
@@ -264,6 +279,7 @@ func TestString_Difference(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Difference(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -271,6 +287,7 @@ func TestString_Difference(t *testing.T) {
 }
 
 func TestString_Union(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   String
@@ -298,6 +315,7 @@ func TestString_Union(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Union(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -305,6 +323,7 @@ func TestString_Union(t *testing.T) {
 }
 
 func TestString_Intersection(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   String
@@ -332,6 +351,7 @@ func TestString_Intersection(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s1.Intersection(tt.s2)
 			assert.Equal(t, tt.want, got)
 		})
@@ -339,6 +359,7 @@ func TestString_Intersection(t *testing.T) {
 }
 
 func TestString_IsSuperset(t *testing.T) {
+	t.Parallel()
 	s := NewString("a", "b", "c", "d", "e")
 
 	tests := []struct {
@@ -369,12 +390,14 @@ func TestString_IsSuperset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, s.IsSuperset(tt.other))
 		})
 	}
 }
 
 func TestString_Equal(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s1   String
@@ -402,12 +425,14 @@ func TestString_Equal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.s1.Equal(tt.s2))
 		})
 	}
 }
 
 func TestString_List(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    String
@@ -431,6 +456,7 @@ func TestString_List(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s.List()
 			assert.Equal(t, tt.want, got)
 		})
@@ -438,6 +464,7 @@ func TestString_List(t *testing.T) {
 }
 
 func TestString_UnsortedList(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    String
@@ -456,6 +483,7 @@ func TestString_UnsortedList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.s.UnsortedList()
 			assert.Len(t, got, len(tt.want))
 			for _, item := range tt.want {
@@ -466,7 +494,9 @@ func TestString_UnsortedList(t *testing.T) {
 }
 
 func TestString_PopAny(t *testing.T) {
+	t.Parallel()
 	t.Run("non-empty set pops and shrinks", func(t *testing.T) {
+		t.Parallel()
 		s := NewString("a", "b", "c")
 		originalLen := s.Len()
 
@@ -477,6 +507,7 @@ func TestString_PopAny(t *testing.T) {
 	})
 
 	t.Run("empty set returns false", func(t *testing.T) {
+		t.Parallel()
 		emptySet := NewString()
 		_, ok := emptySet.PopAny()
 		assert.False(t, ok)
@@ -484,6 +515,7 @@ func TestString_PopAny(t *testing.T) {
 }
 
 func TestString_Len(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		s    String
@@ -508,6 +540,7 @@ func TestString_Len(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.s.Len())
 		})
 	}

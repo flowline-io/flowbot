@@ -10,6 +10,7 @@ import (
 )
 
 func TestScannerDiscoversComposeApps(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -17,6 +18,7 @@ func TestScannerDiscoversComposeApps(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			root := t.TempDir()
 			appsDir := filepath.Join(root, "apps")
 			require.NoError(t, os.MkdirAll(filepath.Join(appsDir, "archivebox"), 0o755))
@@ -49,6 +51,7 @@ networks:
 }
 
 func TestScannerAppliesAllowlist(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -56,6 +59,7 @@ func TestScannerAppliesAllowlist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			root := t.TempDir()
 			appsDir := filepath.Join(root, "apps")
 			writeComposeApp(t, appsDir, "archivebox")
@@ -70,6 +74,7 @@ func TestScannerAppliesAllowlist(t *testing.T) {
 }
 
 func TestScannerRejectsSymlinkEscape(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -77,6 +82,7 @@ func TestScannerRejectsSymlinkEscape(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			root := t.TempDir()
 			appsDir := filepath.Join(root, "apps")
 			escapeDir := filepath.Join(root, "outside")

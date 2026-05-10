@@ -8,6 +8,7 @@ import (
 )
 
 func TestKV_String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -40,6 +41,7 @@ func TestKV_String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.String(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -50,6 +52,7 @@ func TestKV_String(t *testing.T) {
 }
 
 func TestKV_Int64(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		value any
@@ -70,6 +73,7 @@ func TestKV_Int64(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			kv := KV{}
 			if tc.name != "missing" {
 				kv["key"] = tc.value
@@ -84,6 +88,7 @@ func TestKV_Int64(t *testing.T) {
 }
 
 func TestKV_Uint64(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -116,6 +121,7 @@ func TestKV_Uint64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Uint64(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -126,6 +132,7 @@ func TestKV_Uint64(t *testing.T) {
 }
 
 func TestKV_Float64(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -158,6 +165,7 @@ func TestKV_Float64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Float64(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -168,6 +176,7 @@ func TestKV_Float64(t *testing.T) {
 }
 
 func TestKV_Map(t *testing.T) {
+	t.Parallel()
 	nested := map[string]any{"a": "b"}
 
 	tests := []struct {
@@ -202,6 +211,7 @@ func TestKV_Map(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Map(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -212,6 +222,7 @@ func TestKV_Map(t *testing.T) {
 }
 
 func TestKV_Any(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -244,6 +255,7 @@ func TestKV_Any(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Any(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -254,6 +266,7 @@ func TestKV_Any(t *testing.T) {
 }
 
 func TestKV_List(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -286,6 +299,7 @@ func TestKV_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.List(tt.key)
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -296,6 +310,7 @@ func TestKV_List(t *testing.T) {
 }
 
 func TestKV_StringValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -318,6 +333,7 @@ func TestKV_StringValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.StringValue()
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -328,6 +344,7 @@ func TestKV_StringValue(t *testing.T) {
 }
 
 func TestKV_Int64Value(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -350,6 +367,7 @@ func TestKV_Int64Value(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Int64Value()
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -360,6 +378,7 @@ func TestKV_Int64Value(t *testing.T) {
 }
 
 func TestKV_Uint64Value(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -382,6 +401,7 @@ func TestKV_Uint64Value(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Uint64Value()
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -392,6 +412,7 @@ func TestKV_Uint64Value(t *testing.T) {
 }
 
 func TestKV_Float64Value(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		kv      KV
@@ -414,6 +435,7 @@ func TestKV_Float64Value(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			val, ok := tt.kv.Float64Value()
 			assert.Equal(t, tt.wantOk, ok)
 			if ok {
@@ -424,7 +446,9 @@ func TestKV_Float64Value(t *testing.T) {
 }
 
 func TestKV_Merge_Simple(t *testing.T) {
+	t.Parallel()
 	t.Run("simple merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"x": "1"}
 		b := KV{"y": "2"}
 		result := a.Merge(b)
@@ -434,7 +458,9 @@ func TestKV_Merge_Simple(t *testing.T) {
 }
 
 func TestKV_Merge_Override(t *testing.T) {
+	t.Parallel()
 	t.Run("override merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"x": "old"}
 		b := KV{"x": "new"}
 		result := a.Merge(b)
@@ -443,7 +469,9 @@ func TestKV_Merge_Override(t *testing.T) {
 }
 
 func TestKV_Merge_Nested(t *testing.T) {
+	t.Parallel()
 	t.Run("nested merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"nested": map[string]any{"a": 1}}
 		b := KV{"nested": map[string]any{"b": 2}}
 		result := a.Merge(b)
@@ -455,7 +483,9 @@ func TestKV_Merge_Nested(t *testing.T) {
 }
 
 func TestKV_Merge_Lists(t *testing.T) {
+	t.Parallel()
 	t.Run("list merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"items": []any{"a", "b"}}
 		b := KV{"items": []any{"c"}}
 		result := a.Merge(b)
@@ -465,7 +495,9 @@ func TestKV_Merge_Lists(t *testing.T) {
 }
 
 func TestKV_Merge_ListNil(t *testing.T) {
+	t.Parallel()
 	t.Run("nil list merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"items": nil}
 		b := KV{"items": []any{"a"}}
 		result := a.Merge(b)
@@ -475,7 +507,9 @@ func TestKV_Merge_ListNil(t *testing.T) {
 }
 
 func TestKV_Merge_TypeMismatch(t *testing.T) {
+	t.Parallel()
 	t.Run("type mismatch merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"x": "string"}
 		b := KV{"x": []any{"a"}}
 		result := a.Merge(b)
@@ -484,7 +518,9 @@ func TestKV_Merge_TypeMismatch(t *testing.T) {
 }
 
 func TestKV_Merge_TypeMismatchMap(t *testing.T) {
+	t.Parallel()
 	t.Run("type mismatch map merge", func(t *testing.T) {
+		t.Parallel()
 		a := KV{"x": "string"}
 		b := KV{"x": map[string]any{"a": 1}}
 		result := a.Merge(b)
@@ -493,7 +529,9 @@ func TestKV_Merge_TypeMismatchMap(t *testing.T) {
 }
 
 func TestKV_Scan_ValidJSON(t *testing.T) {
+	t.Parallel()
 	t.Run("valid JSON", func(t *testing.T) {
+		t.Parallel()
 		var kv KV
 		err := kv.Scan([]byte(`{"key": "value", "num": 42}`))
 		require.NoError(t, err)
@@ -502,7 +540,9 @@ func TestKV_Scan_ValidJSON(t *testing.T) {
 }
 
 func TestKV_Scan_InvalidJSON(t *testing.T) {
+	t.Parallel()
 	t.Run("invalid JSON", func(t *testing.T) {
+		t.Parallel()
 		var kv KV
 		err := kv.Scan([]byte(`{invalid`))
 		assert.Error(t, err)
@@ -510,7 +550,9 @@ func TestKV_Scan_InvalidJSON(t *testing.T) {
 }
 
 func TestKV_Scan_MapType(t *testing.T) {
+	t.Parallel()
 	t.Run("map type", func(t *testing.T) {
+		t.Parallel()
 		var kv KV
 		err := kv.Scan(map[string]any{"key": "value"})
 		require.NoError(t, err)
@@ -519,7 +561,9 @@ func TestKV_Scan_MapType(t *testing.T) {
 }
 
 func TestKV_Scan_UnknownType(t *testing.T) {
+	t.Parallel()
 	t.Run("unknown type", func(t *testing.T) {
+		t.Parallel()
 		var kv KV
 		err := kv.Scan(42)
 		assert.Error(t, err)
@@ -527,7 +571,9 @@ func TestKV_Scan_UnknownType(t *testing.T) {
 }
 
 func TestKV_Value_Empty(t *testing.T) {
+	t.Parallel()
 	t.Run("empty KV value", func(t *testing.T) {
+		t.Parallel()
 		v, err := (KV{}).Value()
 		require.NoError(t, err)
 		assert.Nil(t, v)
@@ -535,7 +581,9 @@ func TestKV_Value_Empty(t *testing.T) {
 }
 
 func TestKV_Value_Populated(t *testing.T) {
+	t.Parallel()
 	t.Run("populated KV value", func(t *testing.T) {
+		t.Parallel()
 		kv := KV{"key": "value"}
 		v, err := kv.Value()
 		require.NoError(t, err)

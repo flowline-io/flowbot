@@ -10,6 +10,7 @@ import (
 )
 
 func TestParseSchema(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		input  string
@@ -23,6 +24,7 @@ func TestParseSchema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			scheme, err := ParseSchema(tt.input)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expect, scheme)
@@ -31,6 +33,7 @@ func TestParseSchema(t *testing.T) {
 }
 
 func TestParseTemplate(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		input     string
@@ -76,6 +79,7 @@ func TestParseTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := ParseTemplate(tt.input, tt.templates)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expect, result)
@@ -84,6 +88,7 @@ func TestParseTemplate(t *testing.T) {
 }
 
 func TestPriorityConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		priority Priority
@@ -97,13 +102,16 @@ func TestPriorityConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, tt.priority)
 		})
 	}
 }
 
 func TestMessageZeroValue(t *testing.T) {
+	t.Parallel()
 	t.Run("all fields zero/empty", func(t *testing.T) {
+		t.Parallel()
 		m := Message{}
 		assert.Empty(t, m.Title)
 		assert.Empty(t, m.Body)

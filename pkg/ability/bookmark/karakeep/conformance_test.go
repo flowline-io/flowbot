@@ -12,6 +12,7 @@ import (
 )
 
 func TestKarakeepConformance(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -19,6 +20,7 @@ func TestKarakeepConformance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
 				c := &fakeClient{
 					listResp:  cfgToListResponse(cfg),
@@ -117,6 +119,7 @@ func cfgToCheckURLResp(cfg conformance.BookmarkConfig) *string {
 }
 
 func TestConformanceFakeClientInterfaces(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -124,12 +127,14 @@ func TestConformanceFakeClientInterfaces(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var _ client = (*fakeClient)(nil)
 		})
 	}
 }
 
 func TestTestBookmarkHelper(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -137,6 +142,7 @@ func TestTestBookmarkHelper(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			b := testBookmark("1", "https://example.com")
 			assert.Equal(t, "1", b.Id)
 			assert.Equal(t, "https://example.com", b.Content.Url)

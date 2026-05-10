@@ -23,7 +23,9 @@ func skipIfNoNetwork(t *testing.T, url string) {
 }
 
 func TestHtmlRuleRun(t *testing.T) {
+	t.Parallel()
 	t.Run("hackernews page rule", func(t *testing.T) {
+		t.Parallel()
 		const target = "https://news.ycombinator.com/news"
 		skipIfNoNetwork(t, target)
 		var html struct {
@@ -52,7 +54,9 @@ func TestHtmlRuleRun(t *testing.T) {
 }
 
 func TestJsonRuleRun(t *testing.T) {
+	t.Parallel()
 	t.Run("httpbin json rule", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoNetwork(t, "https://httpbin.org/get")
 		var json struct {
 			URL  string

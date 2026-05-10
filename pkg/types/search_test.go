@@ -7,6 +7,7 @@ import (
 )
 
 func TestDocumentList_FillUrlBase(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		list    DocumentList
@@ -48,6 +49,7 @@ func TestDocumentList_FillUrlBase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.list.FillUrlBase(tt.urlBase)
 			if tt.want == nil {
 				assert.Nil(t, tt.list)
@@ -63,6 +65,7 @@ func TestDocumentList_FillUrlBase(t *testing.T) {
 }
 
 func TestRulesetTypeConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant RulesetType
@@ -122,6 +125,7 @@ func TestRulesetTypeConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}

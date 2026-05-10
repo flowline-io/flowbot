@@ -11,6 +11,7 @@ import (
 )
 
 func TestEngineRender(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		templates  []config.NotifyTemplate
@@ -125,6 +126,7 @@ func TestEngineRender(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			err := e.LoadConfig(tt.templates)
 			require.NoError(t, err)
@@ -146,6 +148,7 @@ func TestEngineRender(t *testing.T) {
 }
 
 func TestEngineChannelOverride(t *testing.T) {
+	t.Parallel()
 	templates := []config.NotifyTemplate{
 		{
 			ID:              "test.event",
@@ -185,6 +188,7 @@ func TestEngineChannelOverride(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			err := e.LoadConfig(templates)
 			require.NoError(t, err)
@@ -201,6 +205,7 @@ func TestEngineChannelOverride(t *testing.T) {
 }
 
 func TestEngineShorten(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		text     string
@@ -220,6 +225,7 @@ func TestEngineShorten(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			err := e.LoadConfig([]config.NotifyTemplate{
 				{
@@ -240,6 +246,7 @@ func TestEngineShorten(t *testing.T) {
 }
 
 func TestEngineMissingTemplate(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		templateID string
@@ -259,6 +266,7 @@ func TestEngineMissingTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			result, err := e.Render(tt.templateID, "slack", tt.data)
 		require.NoError(t, err)
@@ -269,6 +277,7 @@ func TestEngineMissingTemplate(t *testing.T) {
 
 func TestEngineLoadConfigError(t *testing.T) {
 	t.Run("bad template parse error", func(t *testing.T) {
+		t.Parallel()
 		e := New()
 		err := e.LoadConfig([]config.NotifyTemplate{
 			{
@@ -284,6 +293,7 @@ func TestEngineLoadConfigError(t *testing.T) {
 }
 
 func TestEngineGetTemplateID(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		eventType string
@@ -295,6 +305,7 @@ func TestEngineGetTemplateID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			err := e.LoadConfig([]config.NotifyTemplate{
 				{
@@ -318,6 +329,7 @@ func TestEngineGetTemplateID(t *testing.T) {
 
 func TestEngineConditionalBodyPrefix(t *testing.T) {
 	t.Run("urgent flag prefixes body with URGENT", func(t *testing.T) {
+		t.Parallel()
 		e := New()
 		err := e.LoadConfig([]config.NotifyTemplate{
 			{
@@ -340,6 +352,7 @@ func TestEngineConditionalBodyPrefix(t *testing.T) {
 
 func TestEngineRenderExtractTitle(t *testing.T) {
 	t.Run("markdown heading becomes plain title", func(t *testing.T) {
+		t.Parallel()
 		e := New()
 		err := e.LoadConfig([]config.NotifyTemplate{
 			{

@@ -10,6 +10,7 @@ import (
 )
 
 func TestCursorRoundTrip(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -17,6 +18,7 @@ func TestCursorRoundTrip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			now := time.Unix(1700000000, 0)
 			cursor, err := EncodeCursor([]byte("secret"), CursorPayload{
 				Capability: "bookmark",
@@ -38,6 +40,7 @@ func TestCursorRoundTrip(t *testing.T) {
 }
 
 func TestCursorRejectsTampering(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -45,6 +48,7 @@ func TestCursorRejectsTampering(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			now := time.Unix(1700000000, 0)
 			cursor, err := EncodeCursor([]byte("secret"), CursorPayload{Capability: "bookmark"})
 			require.NoError(t, err)
@@ -57,6 +61,7 @@ func TestCursorRejectsTampering(t *testing.T) {
 }
 
 func TestCursorRejectsExpired(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -64,6 +69,7 @@ func TestCursorRejectsExpired(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			now := time.Unix(1700000000, 0)
 			cursor, err := EncodeCursor([]byte("secret"), CursorPayload{ExpiresAt: now.Add(-time.Second)})
 			require.NoError(t, err)

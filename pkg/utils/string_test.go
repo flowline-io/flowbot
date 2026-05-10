@@ -8,20 +8,24 @@ import (
 )
 
 func TestHasHan(t *testing.T) {
+	t.Parallel()
 	require.True(t, HasHan("hello, 世界"))
 	require.False(t, HasHan("hello"))
 }
 
 func TestMasker(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, "qwerty**********7890", Masker("qwertyuiop1234567890", 2))
 }
 
 func TestFirstUpper(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, "Test", FirstUpper("test"))
 	require.Empty(t, FirstUpper(""))
 }
 
 func TestMD5(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		txt string
 	}
@@ -40,6 +44,7 @@ func TestMD5(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := MD5(tt.args.txt); got != tt.want {
 				t.Errorf("MD5() = %v, want %v", got, tt.want)
 			}
@@ -48,6 +53,7 @@ func TestMD5(t *testing.T) {
 }
 
 func TestSHA1(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		txt string
 	}
@@ -66,6 +72,7 @@ func TestSHA1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := SHA1(tt.args.txt); got != tt.want {
 				t.Errorf("SHA1() = %v, want %v", got, tt.want)
 			}
@@ -74,6 +81,7 @@ func TestSHA1(t *testing.T) {
 }
 
 func TestMarkdownTitle(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		m string
 	}
@@ -101,6 +109,7 @@ func TestMarkdownTitle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := MarkdownTitle(tt.args.m); got != tt.want {
 				t.Errorf("MarkdownTitle() = %v, want %v", got, tt.want)
 			}
@@ -110,6 +119,7 @@ func TestMarkdownTitle(t *testing.T) {
 
 // TestRandomString tests the RandomString function
 func TestRandomString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		n       int
@@ -134,6 +144,7 @@ func TestRandomString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := RandomString(tt.n)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RandomString() error = %v, wantErr %v", err, tt.wantErr)
@@ -163,6 +174,7 @@ func TestRandomString(t *testing.T) {
 
 // TestIsUrl tests the IsUrl function
 func TestIsUrl(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		text string
@@ -212,6 +224,7 @@ func TestIsUrl(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := IsUrl(tt.text); got != tt.want {
 				t.Errorf("IsUrl() = %v, want %v", got, tt.want)
 			}
@@ -221,6 +234,7 @@ func TestIsUrl(t *testing.T) {
 
 // TestFn tests the Fn function
 func TestFn(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		public any
@@ -262,6 +276,7 @@ func TestFn(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := Fn(tt.public); got != tt.want {
 				t.Errorf("Fn() = %v, want %v", got, tt.want)
 			}
@@ -301,6 +316,7 @@ func TestNewUUID(t *testing.T) {
 
 // TestValidImageContentType tests the ValidImageContentType function
 func TestValidImageContentType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		ct   string
@@ -345,6 +361,7 @@ func TestValidImageContentType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := ValidImageContentType(tt.ct); got != tt.want {
 				t.Errorf("ValidImageContentType() = %v, want %v", got, tt.want)
 			}
@@ -375,6 +392,7 @@ func TestFileAndLine(t *testing.T) {
 
 // TestYamlToJson tests the YamlToJson function
 func TestYamlToJson(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		data    []byte
@@ -399,6 +417,7 @@ func TestYamlToJson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := YamlToJson(tt.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("YamlToJson() error = %v, wantErr %v", err, tt.wantErr)
@@ -412,6 +431,7 @@ func TestYamlToJson(t *testing.T) {
 }
 
 func TestBoolToString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		b    bool
@@ -431,6 +451,7 @@ func TestBoolToString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := BoolToString(tt.b); got != tt.want {
 				t.Errorf("BoolToString() = %v, want %v", got, tt.want)
 			}

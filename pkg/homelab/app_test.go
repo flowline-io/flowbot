@@ -7,6 +7,7 @@ import (
 )
 
 func TestAppStatusConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -19,12 +20,14 @@ func TestAppStatusConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, AppStatus(tt.input))
 		})
 	}
 }
 
 func TestHealthStatusConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -36,12 +39,14 @@ func TestHealthStatusConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, HealthStatus(tt.input))
 		})
 	}
 }
 
 func TestRuntimeModeConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -53,12 +58,14 @@ func TestRuntimeModeConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, RuntimeMode(tt.input))
 		})
 	}
 }
 
 func TestAppZeroValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -66,6 +73,7 @@ func TestAppZeroValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := App{}
 			assert.Equal(t, AppStatus(""), app.Status)
 			assert.Equal(t, HealthStatus(""), app.Health)
@@ -78,6 +86,7 @@ func TestAppZeroValue(t *testing.T) {
 }
 
 func TestComposeServiceZeroValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -85,6 +94,7 @@ func TestComposeServiceZeroValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			svc := ComposeService{}
 			assert.Empty(t, svc.Name)
 			assert.Empty(t, svc.Image)
@@ -94,6 +104,7 @@ func TestComposeServiceZeroValue(t *testing.T) {
 }
 
 func TestPortMappingZeroValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -101,6 +112,7 @@ func TestPortMappingZeroValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pm := PortMapping{}
 			assert.Empty(t, pm.Host)
 			assert.Empty(t, pm.HostPort)
@@ -111,6 +123,7 @@ func TestPortMappingZeroValue(t *testing.T) {
 }
 
 func TestPermissionsZeroValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -118,6 +131,7 @@ func TestPermissionsZeroValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			p := Permissions{}
 			assert.False(t, p.Status)
 			assert.False(t, p.Logs)
@@ -132,6 +146,7 @@ func TestPermissionsZeroValue(t *testing.T) {
 }
 
 func TestConfigDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -139,6 +154,7 @@ func TestConfigDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cfg := Config{}
 			assert.Empty(t, cfg.Root)
 			assert.Empty(t, cfg.AppsDir)
@@ -150,6 +166,7 @@ func TestConfigDefaults(t *testing.T) {
 }
 
 func TestRuntimeConfigDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -157,6 +174,7 @@ func TestRuntimeConfigDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rc := RuntimeConfig{}
 			assert.Equal(t, RuntimeMode(""), rc.Mode)
 			assert.Empty(t, rc.DockerSocket)

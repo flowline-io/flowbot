@@ -121,6 +121,7 @@ func (f *fakeClient) SearchTasks(ctx context.Context, projectID int, query strin
 }
 
 func TestListTasksConvertsProviderTasks(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -128,6 +129,7 @@ func TestListTasksConvertsProviderTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{
 				tasks: []*provider.Task{
 					{ID: 1, Title: "Task 1", ProjectID: 1, ColumnID: 2, Tags: []any{"go", "api"}},
@@ -147,6 +149,7 @@ func TestListTasksConvertsProviderTasks(t *testing.T) {
 }
 
 func TestListTasksEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -154,6 +157,7 @@ func TestListTasksEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{}).(*Adapter)
 			result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{})
 			require.NoError(t, err)
@@ -165,6 +169,7 @@ func TestListTasksEmpty(t *testing.T) {
 }
 
 func TestGetTaskReturnsConvertedTask(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -172,6 +177,7 @@ func TestGetTaskReturnsConvertedTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{
 				task: &provider.Task{ID: 5, Title: "Test", ProjectID: 1},
 			}).(*Adapter)
@@ -186,6 +192,7 @@ func TestGetTaskReturnsConvertedTask(t *testing.T) {
 }
 
 func TestCreateTaskReturnsAbilityTask(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -193,6 +200,7 @@ func TestCreateTaskReturnsAbilityTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := NewWithClient(&fakeClient{
 				createTaskID: 10,
 			}).(*Adapter)
@@ -211,6 +219,7 @@ func TestCreateTaskReturnsAbilityTask(t *testing.T) {
 }
 
 func TestToAbilityTaskNil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -218,6 +227,7 @@ func TestToAbilityTaskNil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := toAbilityTask(nil)
 			assert.Nil(t, result)
 		})
@@ -225,6 +235,7 @@ func TestToAbilityTaskNil(t *testing.T) {
 }
 
 func TestTagsToAnyAndBack(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -232,6 +243,7 @@ func TestTagsToAnyAndBack(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			input := []string{"a", "b", "c"}
 			anyTags := tagsToAny(input)
 			assert.Len(t, anyTags, 3)
@@ -242,6 +254,7 @@ func TestTagsToAnyAndBack(t *testing.T) {
 }
 
 func TestCheckClientWithNilClient(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -249,6 +262,7 @@ func TestCheckClientWithNilClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			adapter := &Adapter{client: nil}
 			err := adapter.checkClient()
 			require.Error(t, err)

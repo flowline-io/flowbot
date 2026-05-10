@@ -8,6 +8,7 @@ import (
 )
 
 func TestLexer(t *testing.T) {
+	t.Parallel()
 	tokens := []string{CharacterToken, CharacterToken, CharacterToken, CharacterToken}
 
 	tests := []struct {
@@ -24,6 +25,7 @@ func TestLexer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			l := NewLexer([]rune(tt.input))
 			for i, wantType := range tt.wantTypes {
 				token, err := l.GetNextToken()
@@ -38,6 +40,7 @@ func TestLexer(t *testing.T) {
 }
 
 func TestParseCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		input      string
@@ -66,6 +69,7 @@ func TestParseCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			c, err := ParseString(tt.input)
 			require.NoError(t, err)
 			require.Len(t, c, tt.wantLen)

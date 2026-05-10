@@ -7,6 +7,7 @@ import (
 )
 
 func TestUid_IsZero(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		uid  Uid
@@ -36,12 +37,14 @@ func TestUid_IsZero(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.uid.IsZero())
 		})
 	}
 }
 
 func TestUid_String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		uid  Uid
@@ -66,6 +69,7 @@ func TestUid_String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.uid.String())
 		})
 	}

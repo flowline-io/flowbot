@@ -10,6 +10,7 @@ import (
 )
 
 func TestKanboardConformance(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -17,6 +18,7 @@ func TestKanboardConformance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			conformance.RunKanbanConformance(t, func(t *testing.T, cfg conformance.KanbanConfig) kb.Service {
 				taskForGet := cfgToProviderTask(cfg.Task)
 				if taskForGet == nil && cfg.UpdateTask != nil {

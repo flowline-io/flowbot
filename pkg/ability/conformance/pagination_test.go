@@ -9,6 +9,7 @@ import (
 )
 
 func TestAssertCursorRoundTrip(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -16,6 +17,7 @@ func TestAssertCursorRoundTrip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			payload := ability.CursorPayload{
 				Capability:     "bookmark",
 				Backend:        "test",
@@ -28,6 +30,7 @@ func TestAssertCursorRoundTrip(t *testing.T) {
 }
 
 func TestAssertCursorEncoding(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -35,6 +38,7 @@ func TestAssertCursorEncoding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cursor := AssertCursorEncoding(t, CursorSecret, ability.CursorPayload{
 				ProviderCursor: "test-cursor",
 			})
@@ -44,6 +48,7 @@ func TestAssertCursorEncoding(t *testing.T) {
 }
 
 func TestAssertPageInfoIsComplete(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		pi    *ability.PageInfo
@@ -54,12 +59,14 @@ func TestAssertPageInfoIsComplete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			AssertPageInfoIsComplete(t, tt.pi, tt.limit)
 		})
 	}
 }
 
 func TestAssertSliceNotNull(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		items []*ability.Bookmark
@@ -69,6 +76,7 @@ func TestAssertSliceNotNull(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			AssertSliceNotNull(t, tt.items)
 		})
 	}

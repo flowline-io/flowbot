@@ -15,6 +15,7 @@ import (
 )
 
 func TestNewRegistry(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -22,6 +23,7 @@ func TestNewRegistry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 			require.NotNil(t, r)
 			assert.NotNil(t, r.handlers)
@@ -31,6 +33,7 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestRegistry_Register(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -38,6 +41,7 @@ func TestRegistry_Register(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			invoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -56,6 +60,7 @@ func TestRegistry_Register(t *testing.T) {
 }
 
 func TestRegistry_RegisterEmptyCapability(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -63,6 +68,7 @@ func TestRegistry_RegisterEmptyCapability(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register("", "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -76,6 +82,7 @@ func TestRegistry_RegisterEmptyCapability(t *testing.T) {
 }
 
 func TestRegistry_RegisterEmptyOperation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -83,6 +90,7 @@ func TestRegistry_RegisterEmptyOperation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -96,6 +104,7 @@ func TestRegistry_RegisterEmptyOperation(t *testing.T) {
 }
 
 func TestRegistry_RegisterNilInvoker(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -103,6 +112,7 @@ func TestRegistry_RegisterNilInvoker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "list", nil)
@@ -114,6 +124,7 @@ func TestRegistry_RegisterNilInvoker(t *testing.T) {
 }
 
 func TestRegistry_RegisterMultipleOperations(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -121,6 +132,7 @@ func TestRegistry_RegisterMultipleOperations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			invoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -139,6 +151,7 @@ func TestRegistry_RegisterMultipleOperations(t *testing.T) {
 }
 
 func TestRegistry_InvokeSuccess(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -146,6 +159,7 @@ func TestRegistry_InvokeSuccess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			expected := &InvokeResult{
@@ -172,6 +186,7 @@ func TestRegistry_InvokeSuccess(t *testing.T) {
 }
 
 func TestRegistry_InvokeCapabilityNotFound(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -179,6 +194,7 @@ func TestRegistry_InvokeCapabilityNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
@@ -191,6 +207,7 @@ func TestRegistry_InvokeCapabilityNotFound(t *testing.T) {
 }
 
 func TestRegistry_InvokeOperationNotFound(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -198,6 +215,7 @@ func TestRegistry_InvokeOperationNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -215,6 +233,7 @@ func TestRegistry_InvokeOperationNotFound(t *testing.T) {
 }
 
 func TestRegistry_InvokeNilParams(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -222,6 +241,7 @@ func TestRegistry_InvokeNilParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -240,6 +260,7 @@ func TestRegistry_InvokeNilParams(t *testing.T) {
 }
 
 func TestRegistry_InvokeNilResultBecomesEmpty(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -247,6 +268,7 @@ func TestRegistry_InvokeNilResultBecomesEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -264,6 +286,7 @@ func TestRegistry_InvokeNilResultBecomesEmpty(t *testing.T) {
 }
 
 func TestRegistry_InvokePropagatesError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -271,6 +294,7 @@ func TestRegistry_InvokePropagatesError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			invokeErr := errors.New("something went wrong")
@@ -288,6 +312,7 @@ func TestRegistry_InvokePropagatesError(t *testing.T) {
 }
 
 func TestRegistry_InvokeEmitsEvents(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -295,6 +320,7 @@ func TestRegistry_InvokeEmitsEvents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			var emitted *InvokeResult
@@ -328,6 +354,7 @@ func TestRegistry_InvokeEmitsEvents(t *testing.T) {
 }
 
 func TestRegistry_InvokeNoEmitWithoutEvents(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -335,6 +362,7 @@ func TestRegistry_InvokeNoEmitWithoutEvents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			emitted := false
@@ -357,6 +385,7 @@ func TestRegistry_InvokeNoEmitWithoutEvents(t *testing.T) {
 }
 
 func TestRegistry_InvokeNoEmitWithoutEmitter(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -364,6 +393,7 @@ func TestRegistry_InvokeNoEmitWithoutEmitter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -381,6 +411,7 @@ func TestRegistry_InvokeNoEmitWithoutEmitter(t *testing.T) {
 }
 
 func TestSetEventEmitter(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -388,6 +419,7 @@ func TestSetEventEmitter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			called := false
 			SetEventEmitter(func(ctx context.Context, result *InvokeResult) {
 				called = true
@@ -403,6 +435,7 @@ func TestSetEventEmitter(t *testing.T) {
 }
 
 func TestRegisterInvoker(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -410,6 +443,7 @@ func TestRegisterInvoker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			invoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{Data: "via convenience"}, nil
 			}
@@ -428,6 +462,7 @@ func TestRegisterInvoker(t *testing.T) {
 }
 
 func TestRegistry_InvokeResultHasCapabilityAndOperation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -435,6 +470,7 @@ func TestRegistry_InvokeResultHasCapabilityAndOperation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewRegistry()
 
 			err := r.Register(hub.CapArchive, "add", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
@@ -452,6 +488,7 @@ func TestRegistry_InvokeResultHasCapabilityAndOperation(t *testing.T) {
 }
 
 func TestInvokeResult_EmptyDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -459,6 +496,7 @@ func TestInvokeResult_EmptyDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := InvokeResult{}
 			assert.Empty(t, r.Capability)
 			assert.Empty(t, r.Operation)

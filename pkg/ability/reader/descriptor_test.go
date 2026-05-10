@@ -11,6 +11,7 @@ import (
 )
 
 func TestDescriptor(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		svc     Service
@@ -21,6 +22,7 @@ func TestDescriptor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			desc := Descriptor("miniflux", "miniflux", tt.svc)
 			assert.Equal(t, hub.CapReader, desc.Type)
 			assert.Equal(t, "miniflux", desc.Backend)
@@ -33,6 +35,7 @@ func TestDescriptor(t *testing.T) {
 }
 
 func TestDescriptor_Operations(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		op   string
@@ -45,6 +48,7 @@ func TestDescriptor_Operations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			desc := Descriptor("m", "m", nil)
 			opNames := make([]string, len(desc.Operations))
 			for i, op := range desc.Operations {

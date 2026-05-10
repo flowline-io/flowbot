@@ -11,6 +11,7 @@ import (
 )
 
 func TestStringListParam_StringSlice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -18,6 +19,7 @@ func TestStringListParam_StringSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, ok := stringListParam(map[string]any{"tags": []string{"a", "b"}}, "tags")
 			assert.True(t, ok)
 			assert.Equal(t, []string{"a", "b"}, v)
@@ -26,6 +28,7 @@ func TestStringListParam_StringSlice(t *testing.T) {
 }
 
 func TestStringListParam_AnySlice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -33,6 +36,7 @@ func TestStringListParam_AnySlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, ok := stringListParam(map[string]any{"tags": []any{"x", "y"}}, "tags")
 			assert.True(t, ok)
 			assert.Equal(t, []string{"x", "y"}, v)
@@ -41,6 +45,7 @@ func TestStringListParam_AnySlice(t *testing.T) {
 }
 
 func TestStringListParam_AnySliceMixedTypes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -48,6 +53,7 @@ func TestStringListParam_AnySliceMixedTypes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, ok := stringListParam(map[string]any{"tags": []any{"a", 42}}, "tags")
 			assert.True(t, ok)
 			assert.Equal(t, []string{"a"}, v)
@@ -56,6 +62,7 @@ func TestStringListParam_AnySliceMixedTypes(t *testing.T) {
 }
 
 func TestStringListParam_Missing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -63,6 +70,7 @@ func TestStringListParam_Missing(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, ok := stringListParam(map[string]any{}, "tags")
 			assert.False(t, ok)
 		})
@@ -70,6 +78,7 @@ func TestStringListParam_Missing(t *testing.T) {
 }
 
 func TestStringListParam_Nil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -77,6 +86,7 @@ func TestStringListParam_Nil(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, ok := stringListParam(map[string]any{"tags": nil}, "tags")
 			assert.False(t, ok)
 		})
@@ -84,6 +94,7 @@ func TestStringListParam_Nil(t *testing.T) {
 }
 
 func TestStringListParam_NonSlice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -91,6 +102,7 @@ func TestStringListParam_NonSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, ok := stringListParam(map[string]any{"tags": "string"}, "tags")
 			assert.False(t, ok)
 		})
@@ -98,6 +110,7 @@ func TestStringListParam_NonSlice(t *testing.T) {
 }
 
 func TestStringListParam_EmptyAnySlice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -105,6 +118,7 @@ func TestStringListParam_EmptyAnySlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			v, ok := stringListParam(map[string]any{"tags": []any{}}, "tags")
 			assert.True(t, ok)
 			assert.Empty(t, v)
@@ -113,6 +127,7 @@ func TestStringListParam_EmptyAnySlice(t *testing.T) {
 }
 
 func TestDescriptor(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		svc         Service
@@ -123,6 +138,7 @@ func TestDescriptor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			desc := Descriptor("kanboard", "kanboard", tt.svc)
 			assert.Equal(t, hub.CapKanban, desc.Type)
 			assert.Equal(t, "kanboard", desc.Backend)
@@ -135,6 +151,7 @@ func TestDescriptor(t *testing.T) {
 }
 
 func TestDescriptor_Operations(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		op   string
@@ -147,6 +164,7 @@ func TestDescriptor_Operations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			desc := Descriptor("k", "k", nil)
 			opNames := make([]string, len(desc.Operations))
 			for i, op := range desc.Operations {

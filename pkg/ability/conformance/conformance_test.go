@@ -12,6 +12,7 @@ import (
 )
 
 func TestCanceledContext(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -19,6 +20,7 @@ func TestCanceledContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ctx := CanceledContext()
 			require.NotNil(t, ctx)
 			assert.Error(t, ctx.Err())
@@ -27,6 +29,7 @@ func TestCanceledContext(t *testing.T) {
 }
 
 func TestTestTime(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -34,6 +37,7 @@ func TestTestTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tm := TestTime()
 			assert.Equal(t, int64(1700000000), tm.Unix())
 		})
@@ -41,6 +45,7 @@ func TestTestTime(t *testing.T) {
 }
 
 func TestRequireListResult(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -48,6 +53,7 @@ func TestRequireListResult(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := &ability.ListResult[ability.Bookmark]{
 				Items: []*ability.Bookmark{},
 				Page:  &ability.PageInfo{Limit: 10, HasMore: true},
@@ -58,6 +64,7 @@ func TestRequireListResult(t *testing.T) {
 }
 
 func TestRequireTimeoutError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -65,12 +72,14 @@ func TestRequireTimeoutError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			RequireTimeoutError(t, types.WrapError(types.ErrTimeout, "test", errors.New("canceled")))
 		})
 	}
 }
 
 func TestRequireProviderError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -78,12 +87,14 @@ func TestRequireProviderError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			RequireProviderError(t, types.WrapError(types.ErrProvider, "test", errors.New("api down")))
 		})
 	}
 }
 
 func TestRequireInvalidArgError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -91,12 +102,14 @@ func TestRequireInvalidArgError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			RequireInvalidArgError(t, types.Errorf(types.ErrInvalidArgument, "field is required"))
 		})
 	}
 }
 
 func TestRequireNotFoundError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -104,12 +117,14 @@ func TestRequireNotFoundError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			RequireNotFoundError(t, types.Errorf(types.ErrNotFound, "item not found"))
 		})
 	}
 }
 
 func TestRequireNotImplementedError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -117,6 +132,7 @@ func TestRequireNotImplementedError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			RequireNotImplementedError(t, types.Errorf(types.ErrNotImplemented, "not implemented"))
 		})
 	}

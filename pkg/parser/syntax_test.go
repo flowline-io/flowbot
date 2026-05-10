@@ -8,6 +8,7 @@ import (
 )
 
 func TestSyntax(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		input      string
@@ -22,6 +23,7 @@ func TestSyntax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			s := NewSyntax([]rune(tt.input))
 			for i, wantVal := range tt.wantValues {
 				token, err := s.GetNextToken()
@@ -33,6 +35,7 @@ func TestSyntax(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
+	t.Parallel()
 	define := "subs open [string] [number] [any] [bool]"
 	tests := []struct {
 		name   string
@@ -47,6 +50,7 @@ func TestCheck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			a, err := ParseString(tt.input)
 			require.NoError(t, err)
 			c, err := SyntaxCheck(tt.define, a)

@@ -25,6 +25,7 @@ func expectSlicesEqual(t *testing.T, name string, expected, gotten []string) {
 }
 
 func TestStringSliceDelta(t *testing.T) {
+	t.Parallel()
 	// Case format:
 	// - inputs: old, new
 	// - expected outputs: added, removed, intersection
@@ -62,6 +63,7 @@ func TestStringSliceDelta(t *testing.T) {
 
 // TestIsNullValue tests the IsNullValue function
 func TestIsNullValue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input any
@@ -96,6 +98,7 @@ func TestIsNullValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := IsNullValue(tt.input); got != tt.want {
 				t.Errorf("IsNullValue() = %v, want %v", got, tt.want)
 			}
@@ -105,6 +108,7 @@ func TestIsNullValue(t *testing.T) {
 
 // TestParseVersionPart tests the ParseVersionPart function
 func TestParseVersionPart(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		vers string
@@ -149,6 +153,7 @@ func TestParseVersionPart(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := ParseVersionPart(tt.vers); got != tt.want {
 				t.Errorf("ParseVersionPart() = %v, want %v", got, tt.want)
 			}
@@ -158,6 +163,7 @@ func TestParseVersionPart(t *testing.T) {
 
 // TestParseVersion tests the ParseVersion function
 func TestParseVersion(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		vers string
@@ -197,6 +203,7 @@ func TestParseVersion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := ParseVersion(tt.vers); got != tt.want {
 				t.Errorf("ParseVersion() = %v, want %v", got, tt.want)
 			}
@@ -206,6 +213,7 @@ func TestParseVersion(t *testing.T) {
 
 // TestBase10Version tests the Base10Version function
 func TestBase10Version(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		hex  int
@@ -230,6 +238,7 @@ func TestBase10Version(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := Base10Version(tt.hex); got != tt.want {
 				t.Errorf("Base10Version() = %v, want %v", got, tt.want)
 			}
@@ -239,6 +248,7 @@ func TestBase10Version(t *testing.T) {
 
 // TestVersionCompare tests the VersionCompare function
 func TestVersionCompare(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		v1   int
@@ -267,6 +277,7 @@ func TestVersionCompare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := VersionCompare(tt.v1, tt.v2); got != tt.want {
 				t.Errorf("VersionCompare() = %v, want %v", got, tt.want)
 			}
@@ -276,6 +287,7 @@ func TestVersionCompare(t *testing.T) {
 
 // TestMax tests the Max function
 func TestMax(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		a    int
@@ -310,6 +322,7 @@ func TestMax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := Max(tt.a, tt.b); got != tt.want {
 				t.Errorf("Max() = %v, want %v", got, tt.want)
 			}
@@ -319,6 +332,7 @@ func TestMax(t *testing.T) {
 
 // TestToAbsolutePath tests the ToAbsolutePath function
 func TestToAbsolutePath(t *testing.T) {
+	t.Parallel()
 	// Use filepath.Join to create platform-appropriate paths
 	tests := []struct {
 		name string
@@ -342,6 +356,7 @@ func TestToAbsolutePath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := ToAbsolutePath(tt.base, tt.path)
 			// Clean both paths to handle platform differences
 			got = filepath.Clean(got)
@@ -354,6 +369,7 @@ func TestToAbsolutePath(t *testing.T) {
 
 	// Test absolute path separately since it behaves differently on Windows vs Unix
 	t.Run("absolute_path", func(t *testing.T) {
+		t.Parallel()
 		if runtime.GOOS == "windows" {
 			base := `C:\home\user`
 			path := `C:\etc\config`
@@ -376,6 +392,7 @@ func TestToAbsolutePath(t *testing.T) {
 
 // TestMergeMaps tests the MergeMaps function
 func TestMergeMaps(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		dst         map[string]any
@@ -424,6 +441,7 @@ func TestMergeMaps(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, changed := MergeMaps(tt.dst, tt.src)
 
 			if changed != tt.wantChanged {

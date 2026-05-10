@@ -102,6 +102,8 @@ func TestInit(t *testing.T) {
 }
 
 func TestLogFunctions(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		fn   func()
@@ -155,6 +157,8 @@ func TestLogFunctions(t *testing.T) {
 }
 
 func TestPanic(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: InfoLevel})
 	assert.Panics(t, func() {
 		Panic("test panic message: %s", "arg")
@@ -162,6 +166,8 @@ func TestPanic(t *testing.T) {
 }
 
 func TestStructuredFields(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: DebugLevel})
 
 	tests := []struct {
@@ -196,6 +202,8 @@ func TestStructuredFields(t *testing.T) {
 }
 
 func TestEventHelpers(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: DebugLevel})
 
 	tests := []struct {
@@ -230,6 +238,8 @@ func TestEventHelpers(t *testing.T) {
 }
 
 func TestModule(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: DebugLevel, ModuleLevel: map[string]string{"testmodule": "warn"}})
 
 	tests := []struct {
@@ -253,6 +263,8 @@ func TestModule(t *testing.T) {
 }
 
 func TestSampled(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: InfoLevel, Sampling: &SamplingConfig{Burst: 3, Period: 0}})
 
 	s := Sampled()
@@ -271,6 +283,8 @@ func TestSetModuleLevel(t *testing.T) {
 }
 
 func TestFatal(t *testing.T) {
+	t.Parallel()
+
 	Init(Config{Level: InfoLevel})
 	assert.NotPanics(t, func() {
 		_ = Fatal
