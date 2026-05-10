@@ -423,6 +423,7 @@ require (
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/ktrysmt/go-bitbucket v0.6.4 // indirect
+	github.com/kunwardeep/paralleltest v1.0.15 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.12.3 // indirect
@@ -677,6 +678,7 @@ tool (
 	github.com/go-task/task/v3/cmd/task
 	github.com/golang-migrate/migrate/v4/cmd/migrate
 	github.com/goreleaser/goreleaser/v2
+	github.com/kunwardeep/paralleltest
 	github.com/mgechev/revive
 	github.com/rhysd/actionlint/cmd/actionlint
 	github.com/riverqueue/river/cmd/river

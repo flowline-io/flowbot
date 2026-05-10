@@ -35,5 +35,5 @@ jobs:
       - name: Test
         run: go tool task test
 
-      - name: Mutation Testing
-        run: go tool gremlins unleash --threshold-efficacy=0.60 --threshold-mcover=0.60 ./pkg/...
+      - name: Race testing
+        run: go tool task test:race

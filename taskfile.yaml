@@ -157,6 +157,11 @@ tasks:
     cmds:
       - go tool gremlins unleash -o mutation-report.json ./...
 
+  test:race:
+    desc: Race testing
+    cmds:
+      - go test -count=10 -race ./...
+
   # Documentation tasks
   swagger:
     desc: Generate Swagger API documentation
