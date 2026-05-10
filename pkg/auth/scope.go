@@ -1,5 +1,11 @@
 package auth
 
+// ScopeInfo describes an available scope for token creation.
+type ScopeInfo struct {
+	Value       string
+	Description string
+}
+
 const (
 	ScopeAdmin = "admin:*"
 
@@ -27,6 +33,36 @@ const (
 	ScopePipelineRun          = "pipeline:run"
 	ScopeWorkflowRun          = "workflow:run"
 )
+
+// AllScopes returns all scopes available for CLI token creation.
+func AllScopes() []ScopeInfo {
+	return []ScopeInfo{
+		{Value: ScopeAdmin, Description: "full access"},
+		{Value: ScopeHubAppsRead, Description: "read apps"},
+		{Value: ScopeHubAppsStatus, Description: "app status"},
+		{Value: ScopeHubAppsLogs, Description: "app logs"},
+		{Value: ScopeHubAppsStart, Description: "start apps"},
+		{Value: ScopeHubAppsStop, Description: "stop apps"},
+		{Value: ScopeHubAppsRestart, Description: "restart apps"},
+		{Value: ScopeHubAppsPull, Description: "pull apps"},
+		{Value: ScopeHubAppsUpdate, Description: "update apps"},
+		{Value: ScopeHubCapabilitiesRead, Description: "read capabilities"},
+		{Value: ScopeHubHealthRead, Description: "read health"},
+		{Value: ScopeServiceBookmarkRead, Description: "read bookmarks"},
+		{Value: ScopeServiceBookmarkWrite, Description: "write bookmarks"},
+		{Value: ScopeServiceArchiveRead, Description: "read archives"},
+		{Value: ScopeServiceArchiveWrite, Description: "write archives"},
+		{Value: ScopeServiceReaderRead, Description: "read feeds"},
+		{Value: ScopeServiceReaderWrite, Description: "write feeds"},
+		{Value: ScopeServiceKanbanRead, Description: "read kanban"},
+		{Value: ScopeServiceKanbanWrite, Description: "write kanban"},
+		{Value: ScopeServiceInfraRead, Description: "read infra"},
+		{Value: ScopeServiceShellRead, Description: "read shell history"},
+		{Value: ScopePipelineRead, Description: "read pipelines"},
+		{Value: ScopePipelineRun, Description: "run pipelines"},
+		{Value: ScopeWorkflowRun, Description: "run workflows"},
+	}
+}
 
 func HasScope(scopes []string, required string) bool {
 	if required == "" {

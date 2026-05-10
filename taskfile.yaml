@@ -55,6 +55,11 @@ tasks:
     cmds:
       - go run -tags swagger ./cmd
 
+  run:composer:
+    desc: Run composer tool (task run:composer -- admin token create -- --help)
+    cmds:
+      - go run ./cmd/composer {{.CLI_ARGS}}
+
   run:cli:
     desc: Run flowbot CLI (task run:cli -- --help)
     cmds:

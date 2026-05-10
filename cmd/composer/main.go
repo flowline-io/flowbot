@@ -7,6 +7,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
 	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
@@ -32,6 +33,7 @@ func NewCommand() *cli.Command {
 		EnableShellCompletion: true,
 		Version:               version.Buildtags,
 		Commands: []*cli.Command{
+			admin.AdminCommand(),
 			{
 				Name:  "dao",
 				Usage: "dao generator",
