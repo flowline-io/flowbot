@@ -9,6 +9,10 @@ import (
 )
 
 func TestSetLevel(t *testing.T) {
+	// Clear stale module levels from other tests that would cause
+	// syncGlobalLevel to compute a lower minimum.
+	moduleLvls.Clear()
+
 	tests := []struct {
 		name          string
 		level         string
