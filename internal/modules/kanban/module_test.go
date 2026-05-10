@@ -61,7 +61,6 @@ func TestBotInit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			if tt.preInit {
 				handler = moduleHandler{initialized: true}
 			} else {
@@ -225,7 +224,6 @@ func TestWebhookRules(t *testing.T) {
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -234,7 +232,6 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
