@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -20,14 +21,16 @@ import (
 )
 
 var (
-	l           zerolog.Logger
-	sampled     zerolog.Logger
-	enableAlarm bool
-	callerOn    bool
-	stackOn     bool
-	moduleLogs  sync.Map // map[string]*zerolog.Logger
-	moduleLvls  sync.Map // map[string]zerolog.Level
-	defaultLvl  zerolog.Level
+	stateMu            sync.RWMutex
+	l                  zerolog.Logger
+	sampled            zerolog.Logger
+	enableAlarm        atomic.Bool
+	callerOn           atomic.Bool
+	stackOn            atomic.Bool
+	moduleLogs         sync.Map // map[string]*zerolog.Logger
+	moduleLvls         sync.Map // map[string]zerolog.Level
+	defaultLvl         zerolog.Level
+	zerologGlobalsInit sync.Once
 )
 
 // Config holds all logging configuration.
@@ -60,12 +63,14 @@ type RotationConfig struct {
 
 // Init initializes the logging subsystem. Must be called once at startup.
 func Init(cfg Config) {
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-	zerolog.InterfaceMarshalFunc = sonic.Marshal
+	zerologGlobalsInit.Do(func() {
+		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+		zerolog.InterfaceMarshalFunc = sonic.Marshal
+	})
 
-	callerOn = cfg.Caller
-	stackOn = cfg.StackTrace || cfg.AlarmEnabled
-	enableAlarm = cfg.AlarmEnabled
+	callerOn.Store(cfg.Caller)
+	stackOn.Store(cfg.StackTrace || cfg.AlarmEnabled)
+	enableAlarm.Store(cfg.AlarmEnabled)
 
 	var writers []io.Writer
 
@@ -114,15 +119,17 @@ func Init(cfg Config) {
 	}
 
 	multi := zerolog.MultiLevelWriter(writers...)
+
+	stateMu.Lock()
+
 	l = zerolog.New(multi).With().Timestamp().Logger()
 
 	// level
 	defaultLvl = zerologLevel(cfg.Level)
-	syncGlobalLevel()
 
 	// per-module levels
 	for name, lvlStr := range cfg.ModuleLevel {
-		SetModuleLevel(name, lvlStr)
+		setModuleLevelLocked(name, lvlStr)
 	}
 
 	// sampling
@@ -138,10 +145,16 @@ func Init(cfg Config) {
 	} else {
 		sampled = l
 	}
+
+	stateMu.Unlock()
+
+	syncGlobalLevelLocked()
 }
 
 // GetLogger returns the underlying zerolog.Logger.
 func GetLogger() zerolog.Logger {
+	stateMu.RLock()
+	defer stateMu.RUnlock()
 	return l
 }
 
@@ -151,9 +164,15 @@ func GetLogger() zerolog.Logger {
 func Ctx(ctx context.Context) *zerolog.Logger {
 	span := trace.SpanFromContext(ctx)
 	if !span.SpanContext().IsValid() {
-		return &l
+		stateMu.RLock()
+		lg := l
+		stateMu.RUnlock()
+		return &lg
 	}
-	lctx := l.With().
+	stateMu.RLock()
+	lg := l
+	stateMu.RUnlock()
+	lctx := lg.With().
 		Str("trace_id", span.SpanContext().TraceID().String()).
 		Str("span_id", span.SpanContext().SpanID().String()).
 		Logger()
@@ -166,12 +185,18 @@ func Module(name string) *zerolog.Logger {
 	if lgr, ok := moduleLogs.Load(name); ok {
 		return lgr.(*zerolog.Logger)
 	}
-	return &l
+	stateMu.RLock()
+	lg := l
+	stateMu.RUnlock()
+	return &lg
 }
 
 // Sampled returns a logger with burst sampling applied.
 func Sampled() *zerolog.Logger {
-	return &sampled
+	stateMu.RLock()
+	s := sampled
+	stateMu.RUnlock()
+	return &s
 }
 
 const (
@@ -185,21 +210,31 @@ const (
 
 // SetLevel sets the global default log level.
 func SetLevel(level string) {
+	stateMu.Lock()
 	defaultLvl = zerologLevel(level)
-	syncGlobalLevel()
+	stateMu.Unlock()
+	syncGlobalLevelLocked()
 }
 
 // SetModuleLevel sets the log level for a specific module.
 func SetModuleLevel(name, lvlStr string) {
+	stateMu.Lock()
+	setModuleLevelLocked(name, lvlStr)
+	stateMu.Unlock()
+	syncGlobalLevelLocked()
+}
+
+func setModuleLevelLocked(name, lvlStr string) {
 	lvl := zerologLevel(lvlStr)
 	moduleLvls.Store(name, lvl)
 	ml := l.Level(lvl)
 	moduleLogs.Store(name, &ml)
-	syncGlobalLevel()
 }
 
-func syncGlobalLevel() {
+func syncGlobalLevelLocked() {
+	stateMu.RLock()
 	minLvl := defaultLvl
+	stateMu.RUnlock()
 	moduleLvls.Range(func(_ any, v any) bool {
 		lvl := v.(zerolog.Level)
 		if lvl < minLvl {
@@ -211,14 +246,14 @@ func syncGlobalLevel() {
 }
 
 func mustCaller() bool {
-	if callerOn {
+	if callerOn.Load() {
 		return true
 	}
 	return zerolog.GlobalLevel() <= zerolog.DebugLevel
 }
 
 func mustStack() bool {
-	return stackOn
+	return stackOn.Load()
 }
 
 // Event helpers for structured logging. Use these when you need to attach
@@ -228,7 +263,9 @@ func mustStack() bool {
 
 // DebugEvt returns a Debug-level event pre-configured with caller info.
 func DebugEvt() *zerolog.Event {
+	stateMu.RLock()
 	evt := l.Debug()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -237,7 +274,9 @@ func DebugEvt() *zerolog.Event {
 
 // InfoEvt returns an Info-level event pre-configured with caller info.
 func InfoEvt() *zerolog.Event {
+	stateMu.RLock()
 	evt := l.Info()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -246,7 +285,9 @@ func InfoEvt() *zerolog.Event {
 
 // WarnEvt returns a Warn-level event pre-configured with caller info.
 func WarnEvt() *zerolog.Event {
+	stateMu.RLock()
 	evt := l.Warn()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -255,7 +296,9 @@ func WarnEvt() *zerolog.Event {
 
 // ErrorEvt returns an Error-level event pre-configured with caller and stack info.
 func ErrorEvt() *zerolog.Event {
+	stateMu.RLock()
 	evt := l.Error()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -275,7 +318,9 @@ func addFields(evt *zerolog.Event, fields map[string]any) {
 
 // DebugFields logs a debug message with structured fields.
 func DebugFields(msg string, fields map[string]any) {
+	stateMu.RLock()
 	evt := l.Debug()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -285,7 +330,9 @@ func DebugFields(msg string, fields map[string]any) {
 
 // InfoFields logs an info message with structured fields.
 func InfoFields(msg string, fields map[string]any) {
+	stateMu.RLock()
 	evt := l.Info()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -295,7 +342,9 @@ func InfoFields(msg string, fields map[string]any) {
 
 // WarnFields logs a warning message with structured fields.
 func WarnFields(msg string, fields map[string]any) {
+	stateMu.RLock()
 	evt := l.Warn()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -305,7 +354,9 @@ func WarnFields(msg string, fields map[string]any) {
 
 // ErrFields logs an error with structured fields, without triggering alarm.
 func ErrFields(err error, msg string, fields map[string]any) {
+	stateMu.RLock()
 	evt := l.Error().Err(err)
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -320,7 +371,9 @@ func ErrFields(err error, msg string, fields map[string]any) {
 
 // Debug logs a formatted debug message.
 func Debug(format string, a ...any) {
+	stateMu.RLock()
 	evt := l.Debug()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -329,7 +382,9 @@ func Debug(format string, a ...any) {
 
 // Info logs a formatted info message.
 func Info(format string, a ...any) {
+	stateMu.RLock()
 	evt := l.Info()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -338,7 +393,9 @@ func Info(format string, a ...any) {
 
 // Warn logs a formatted warning message.
 func Warn(format string, a ...any) {
+	stateMu.RLock()
 	evt := l.Warn()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -347,7 +404,7 @@ func Warn(format string, a ...any) {
 
 // Error logs an error and triggers alarm if enabled.
 func Error(err error) {
-	if enableAlarm {
+	if enableAlarm.Load() {
 		alarm.Alarm(err, 0)
 	}
 	Err(err)
@@ -355,7 +412,9 @@ func Error(err error) {
 
 // Err logs an error without triggering alarm.
 func Err(err error) {
+	stateMu.RLock()
 	evt := l.Error().Err(err)
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -367,7 +426,9 @@ func Err(err error) {
 
 // Fatal logs a formatted fatal message and exits the program.
 func Fatal(format string, a ...any) {
+	stateMu.RLock()
 	evt := l.Fatal()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
@@ -376,7 +437,9 @@ func Fatal(format string, a ...any) {
 
 // Panic logs a formatted panic message and panics.
 func Panic(format string, a ...any) {
+	stateMu.RLock()
 	evt := l.Panic()
+	stateMu.RUnlock()
 	if mustCaller() {
 		evt = evt.Caller(1)
 	}
