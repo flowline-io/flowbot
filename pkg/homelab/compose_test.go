@@ -174,6 +174,48 @@ func TestParseCompose_PortStringFormats(t *testing.T) {
 	}
 }
 
+func TestParseCompose_LabelsListFormat(t *testing.T) {
+	data := []byte(`
+services:
+  web:
+    image: traefik:latest
+    labels:
+      - "traefik.enable=true"
+      - "homepage.group=Server"
+      - "homepage.name=Traefik"
+      - keyonly
+`)
+	_, _, _, labels, err := ParseCompose(data)
+	require.NoError(t, err)
+	assert.Equal(t, "true", labels["traefik.enable"])
+	assert.Equal(t, "Server", labels["homepage.group"])
+	assert.Equal(t, "Traefik", labels["homepage.name"])
+	assert.Equal(t, "", labels["keyonly"])
+}
+
+func TestNormalizeLabels_MapFormat(t *testing.T) {
+	raw := map[string]any{
+		"env": "prod",
+		"tier": 1,
+	}
+	result := normalizeLabels(raw)
+	assert.Equal(t, "prod", result["env"])
+	assert.Equal(t, "1", result["tier"])
+}
+
+func TestNormalizeLabels_ListFormat(t *testing.T) {
+	raw := []any{"key1=val1", "key2=val2 with spaces", "keyonly"}
+	result := normalizeLabels(raw)
+	assert.Equal(t, "val1", result["key1"])
+	assert.Equal(t, "val2 with spaces", result["key2"])
+	assert.Equal(t, "", result["keyonly"])
+}
+
+func TestNormalizeLabels_Nil(t *testing.T) {
+	result := normalizeLabels(nil)
+	assert.Empty(t, result)
+}
+
 func TestParseCompose_LabelsAcrossServices(t *testing.T) {
 	data := []byte(`
 services:

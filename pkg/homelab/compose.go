@@ -14,10 +14,10 @@ type composeDocument struct {
 }
 
 type composeService struct {
-	Image         string         `yaml:"image"`
-	ContainerName string         `yaml:"container_name"`
-	Ports         []any          `yaml:"ports"`
-	Labels        map[string]any `yaml:"labels"`
+	Image         string `yaml:"image"`
+	ContainerName string `yaml:"container_name"`
+	Ports         []any  `yaml:"ports"`
+	Labels        any    `yaml:"labels"`
 }
 
 func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[string]string, error) {
@@ -37,8 +37,8 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 			Ports:     servicePorts,
 		})
 		ports = append(ports, servicePorts...)
-		for key, value := range svc.Labels {
-			labels[key] = fmt.Sprintf("%v", value)
+		for key, value := range normalizeLabels(svc.Labels) {
+			labels[key] = value
 		}
 	}
 	networks := make([]string, 0, len(doc.Networks))
@@ -102,6 +102,29 @@ func stringMapValue(value map[string]any, key string) string {
 	default:
 		return fmt.Sprintf("%v", item)
 	}
+}
+
+// normalizeLabels converts Docker Compose labels from either map or list format
+// into a map[string]string. List format entries use the "key=value" convention.
+func normalizeLabels(raw any) map[string]string {
+	result := make(map[string]string)
+	switch v := raw.(type) {
+	case map[string]any:
+		for key, value := range v {
+			result[key] = fmt.Sprintf("%v", value)
+		}
+	case []any:
+		for _, item := range v {
+			s := fmt.Sprintf("%v", item)
+			key, val, found := strings.Cut(s, "=")
+			if !found {
+				result[s] = ""
+				continue
+			}
+			result[strings.TrimSpace(key)] = strings.TrimSpace(val)
+		}
+	}
+	return result
 }
 
 func defaultProtocol(protocol string) string {
