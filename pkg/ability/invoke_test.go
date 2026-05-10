@@ -425,11 +425,13 @@ func TestSetEventEmitter(t *testing.T) {
 				called = true
 			})
 
+			DefaultRegistry.mu.RLock()
 			require.NotNil(t, DefaultRegistry.emitter)
+			DefaultRegistry.mu.RUnlock()
 			DefaultRegistry.emitter(t.Context(), &InvokeResult{})
 			assert.True(t, called)
 
-			DefaultRegistry.emitter = nil
+			SetEventEmitter(nil)
 		})
 	}
 }
@@ -456,7 +458,9 @@ func TestRegisterInvoker(t *testing.T) {
 			require.NotNil(t, result)
 			assert.Equal(t, "via convenience", result.Data)
 
+			DefaultRegistry.mu.Lock()
 			DefaultRegistry.handlers = make(map[hub.CapabilityType]map[string]Invoker)
+			DefaultRegistry.mu.Unlock()
 		})
 	}
 }
