@@ -4,28 +4,21 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sync/atomic"
 	"testing"
 
 	"gotest.tools/v3/assert"
 )
 
+var registerSeq atomic.Int32
+
 func TestRegister(t *testing.T) {
-	// Test registering a new function (should not panic)
-	testFunc := func() {
-		// Test function that does nothing
-	}
+	testFunc := func() {}
 
-	// Register with a unique name to avoid conflicts
-	// Use a very unique name that won't conflict with any existing registrations
-	uniqueName := fmt.Sprintf("test_unique_%d_%d", os.Getpid(), 12345)
+	uniqueName := fmt.Sprintf("test_unique_%d_%d", os.Getpid(), registerSeq.Add(1))
 
-	// First registration should succeed
 	Register(uniqueName, testFunc)
 	t.Logf("Successfully registered function with name: %s", uniqueName)
-
-	// We can't test duplicate registration because flog.Fatal calls os.Exit()
-	// which cannot be recovered from in a test. This is a limitation of the
-	// current Register implementation.
 }
 
 func TestCommand(t *testing.T) {

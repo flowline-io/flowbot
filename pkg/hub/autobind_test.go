@@ -143,6 +143,10 @@ func TestAutoBind(t *testing.T) {
 			homelab.DefaultRegistry = homelab.NewRegistry()
 			defer func() { homelab.DefaultRegistry = oldRegistry }()
 
+			oldDefault := Default
+			Default = NewRegistry()
+			defer func() { Default = oldDefault }()
+
 			tt.setup(t)
 			bindings := AutoBind()
 			tt.check(t, bindings)
