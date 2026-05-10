@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -10,8 +11,6 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type Querier interface {
@@ -36,31 +35,38 @@ func GenerationAction(cmd *cobra.Command, _ []string) error {
 
 	file, err := os.Open(conffile)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("open config: %w", err)
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("read config: %w", err)
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("parse config: %w", err)
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		flog.Panic("%s", "error adapter")
+		return fmt.Errorf("unsupported adapter: %s", config.StoreConfig.UseAdapter)
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		flog.Panic("%s", "error adapter dsn")
+		return fmt.Errorf("mysql DSN is empty")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("open database: %w", err)
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("get sql.DB: %w", err)
+	}
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("ping database: %w", err)
 	}
 
 	g := gen.NewGenerator(gen.Config{

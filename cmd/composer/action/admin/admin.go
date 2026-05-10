@@ -18,7 +18,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -84,7 +83,14 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("open database: %w", err)
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("get sql.DB: %w", err)
+	}
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("ping database: %w", err)
 	}
 
 	userID, _ := cmd.Flags().GetInt("id")

@@ -13,8 +13,6 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type Column struct {
@@ -80,42 +78,44 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 
 	file, err := os.Open(filepath.Clean(conffile))
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("open config: %w", err)
 	}
 
 	config := configType{}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("read config: %w", err)
 	}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("parse config: %w", err)
 	}
 
 	if config.StoreConfig.UseAdapter != "mysql" {
-		flog.Panic("%s", "error adapter")
+		return fmt.Errorf("unsupported adapter: %s", config.StoreConfig.UseAdapter)
 	}
 	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		flog.Panic("%s", "error adapter dsn")
+		return fmt.Errorf("mysql DSN is empty")
 	}
 	dsn := config.StoreConfig.Adapters.Mysql.DSN
 
-	// Conn
 	db, err := sqlx.Open("mysql", dsn)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("open database: %w", err)
 	}
 	defer func() {
 		_ = db.Close()
 	}()
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("ping database: %w", err)
+	}
 
 	// Tables
 	var tables []Table
 	err = db.Select(&tables, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("query tables: %w", err)
 	}
 
 	// Markdown
@@ -124,7 +124,7 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 		var columns []Column
 		err = db.Select(&columns, "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?", database, table.TableName)
 		if err != nil {
-			flog.Panic("%s", err.Error())
+			return fmt.Errorf("query columns for %s: %w", table.TableName, err)
 		}
 
 		var comment strings.Builder
@@ -145,7 +145,7 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 	// Write File
 	err = os.WriteFile("./docs/schema.md", []byte(markdown.String()), 0644)
 	if err != nil {
-		flog.Panic("%s", err.Error())
+		return fmt.Errorf("write schema.md: %w", err)
 	}
 
 	fmt.Println("See schema.md")

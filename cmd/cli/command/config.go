@@ -141,15 +141,21 @@ func configListCommand() *cobra.Command {
 			}
 			_, _ = fmt.Printf("profile: %s\n", displayProfile)
 
-			token, _ := store.LoadToken(profile)
-			if token == "" {
+			token, err := store.LoadToken(profile)
+			if err != nil {
+				_, _ = fmt.Printf("token: error loading (%v)\n", err)
+			} else if token == "" {
 				_, _ = fmt.Println("token: not logged in")
 			} else {
 				_, _ = fmt.Println("token: [stored]")
 			}
 
-			debug, _ := store.LoadDebug(profile)
-			_, _ = fmt.Printf("debug: %s\n", formatBool(debug))
+			debug, err := store.LoadDebug(profile)
+			if err != nil {
+				_, _ = fmt.Printf("debug: error loading (%v)\n", err)
+			} else {
+				_, _ = fmt.Printf("debug: %s\n", formatBool(debug))
+			}
 
 			return nil
 		},

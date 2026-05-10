@@ -731,7 +731,7 @@ func kanbanSubtaskCreateCommand() *cobra.Command {
 	cmd.Flags().IntP("user", "u", 0, "User ID to assign")
 	cmd.Flags().IntP("time-estimated", "e", 0, "Estimated time (minutes)")
 	cmd.Flags().IntP("time-spent", "s", 0, "Time spent (minutes)")
-	cmd.Flags().IntP("status", "S", 0, "Status (0=Todo, 1=In progress, 2=Done)")
+	cmd.Flags().Int("status", 0, "Status (0=Todo, 1=In progress, 2=Done)")
 	return cmd
 }
 
@@ -792,7 +792,7 @@ func kanbanSubtaskUpdateCommand() *cobra.Command {
 	cmd.Flags().IntP("user", "u", -1, "User ID to assign (-1 to unassign)")
 	cmd.Flags().IntP("time-estimated", "e", -1, "Estimated time (minutes, -1 to clear)")
 	cmd.Flags().IntP("time-spent", "s", -1, "Time spent (minutes, -1 to clear)")
-	cmd.Flags().IntP("status", "S", -1, "Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged)")
+	cmd.Flags().Int("status", -1, "Status (0=Todo, 1=In progress, 2=Done, -1 to leave unchanged)")
 	return cmd
 }
 

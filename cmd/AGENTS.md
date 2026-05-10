@@ -11,5 +11,6 @@
 ## Commands
 
 ```bash
-go tool task build:cli      # Admin CLI
+go tool task build:cli           # Admin CLI
+go tool task build:composer      # Composer CLI
 ```

@@ -86,6 +86,7 @@ func hubAppsStatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status <name>",
 		Short: "Get app status",
+		Long:  "Retrieve the current status and health of a specific homelab application.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return fmt.Errorf("app name is required")
@@ -157,6 +158,7 @@ func hubAppsRestartCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "restart <name>",
 		Short: "Restart a homelab app",
+		Long:  "Trigger a restart of a registered homelab application by name.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return fmt.Errorf("app name is required")

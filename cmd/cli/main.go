@@ -17,11 +17,10 @@ const (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:     appName,
-		Short:   appUsage,
-		Version: version.Buildtags,
+		Use:          appName,
+		Short:        appUsage,
+		SilenceUsage: true,
 	}
-	rootCmd.SetVersionTemplate("flowbot version {{.Version}}\n")
 
 	rootCmd.PersistentFlags().String("profile", "", "Configuration profile name (e.g. dev)")
 	rootCmd.PersistentFlags().String("server-url", "", "Flowbot server URL")

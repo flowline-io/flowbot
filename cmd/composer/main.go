@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
@@ -8,22 +11,23 @@ import (
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/version"
 )
 
 func main() {
 	command := NewCommand()
 	if err := command.Execute(); err != nil {
-		flog.Panic("%s", err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }
 
 func NewCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:     "composer",
-		Short:   "tool cli",
-		Version: version.Buildtags,
+		Use:          "composer",
+		Short:        "tool cli",
+		Version:      version.Buildtags,
+		SilenceUsage: true,
 	}
 	rootCmd.SetVersionTemplate("version={{.Version}}\n")
 
