@@ -10,6 +10,7 @@ import (
 
 // TestSignalHandler tests the SignalHandler function
 func TestSignalHandler(t *testing.T) {
+	t.Parallel()
 	// Test that SignalHandler returns a channel
 	stopChan := SignalHandler()
 	if stopChan == nil {
@@ -60,6 +61,7 @@ func TestSignalHandler(t *testing.T) {
 
 // TestSignalHandlerMultipleSignals tests handling multiple signals
 func TestSignalHandlerMultipleSignals(t *testing.T) {
+	t.Parallel()
 	if runtime.GOOS == "windows" {
 		t.Skip("Signal testing not fully supported on Windows")
 	}
@@ -89,6 +91,7 @@ func TestSignalHandlerMultipleSignals(t *testing.T) {
 
 // TestSignalHandlerChannelType tests the return type of SignalHandler
 func TestSignalHandlerChannelType(t *testing.T) {
+	t.Parallel()
 	stopChan := SignalHandler()
 
 	// Verify it's a receive-only channel of bool

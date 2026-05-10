@@ -36,6 +36,8 @@ func skipIfNoDocker(t *testing.T) {
 }
 
 func TestParseCPUs(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		cpus string
@@ -48,6 +50,7 @@ func TestParseCPUs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			parsed, err := parseCPUs(&types.TaskLimits{CPUs: tt.cpus})
 			require.NoError(t, err)
 			assert.Equal(t, tt.exp, parsed)
@@ -56,7 +59,10 @@ func TestParseCPUs(t *testing.T) {
 }
 
 func TestPrintableReader(t *testing.T) {
+	t.Parallel()
+
 	t.Run("filters null bytes and returns printable content", func(t *testing.T) {
+		t.Parallel()
 		var s []byte
 		for range 1000 {
 			s = append(s, 0)
@@ -79,7 +85,10 @@ func (r eofReader) Read(p []byte) (int, error) {
 }
 
 func TestPrintableReaderEOF(t *testing.T) {
+	t.Parallel()
+
 	t.Run("reader returning EOF with valid data", func(t *testing.T) {
+		t.Parallel()
 		pr := printableReader{reader: eofReader{}}
 		b, err := io.ReadAll(pr)
 		require.NoError(t, err)
@@ -88,6 +97,8 @@ func TestPrintableReaderEOF(t *testing.T) {
 }
 
 func TestParseMemory(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		mem  string
@@ -101,6 +112,7 @@ func TestParseMemory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			parsed, err := parseMemory(&types.TaskLimits{Memory: tt.mem})
 			require.NoError(t, err)
 			assert.Equal(t, tt.exp, parsed)
@@ -109,7 +121,10 @@ func TestParseMemory(t *testing.T) {
 }
 
 func TestNewDockerRuntime(t *testing.T) {
+	t.Parallel()
+
 	t.Run("creates a new Docker runtime", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -118,7 +133,10 @@ func TestNewDockerRuntime(t *testing.T) {
 }
 
 func TestRunTaskCMD(t *testing.T) {
+	t.Parallel()
+
 	t.Run("runs a task with CMD", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -134,7 +152,10 @@ func TestRunTaskCMD(t *testing.T) {
 }
 
 func TestRunTaskConcurrently(t *testing.T) {
+	t.Parallel()
+
 	t.Run("runs multiple tasks concurrently", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -160,7 +181,10 @@ func TestRunTaskConcurrently(t *testing.T) {
 }
 
 func TestRunTaskWithTimeout(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run cancels task on timeout", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -177,7 +201,10 @@ func TestRunTaskWithTimeout(t *testing.T) {
 }
 
 func TestRunTaskWithError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run returns error on invalid command", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -194,7 +221,10 @@ func TestRunTaskWithError(t *testing.T) {
 }
 
 func TestRunAndStopTask(t *testing.T) {
+	t.Parallel()
+
 	t.Run("stop terminates a running task", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -216,7 +246,10 @@ func TestRunAndStopTask(t *testing.T) {
 }
 
 func TestHealthCheck(t *testing.T) {
+	t.Parallel()
+
 	t.Run("docker daemon is healthy", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -228,7 +261,10 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckFailed(t *testing.T) {
+	t.Parallel()
+
 	t.Run("health check fails with cancelled context", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -240,6 +276,8 @@ func TestHealthCheckFailed(t *testing.T) {
 }
 
 func TestRunTaskWithNetwork(t *testing.T) {
+	t.Parallel()
+
 	skipIfNoDocker(t)
 	tests := []struct {
 		name     string
@@ -252,6 +290,7 @@ func TestRunTaskWithNetwork(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rt, err := NewRuntime()
 			require.NoError(t, err)
 			assert.NotNil(t, rt)
@@ -271,7 +310,10 @@ func TestRunTaskWithNetwork(t *testing.T) {
 }
 
 func TestRunTaskWithVolume(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run task with volume mount", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -295,7 +337,10 @@ func TestRunTaskWithVolume(t *testing.T) {
 }
 
 func TestRunTaskWithBind(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run task with bind mount", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		mm := runtime.NewMultiMounter()
 		vm, err := NewVolumeMounter()
@@ -322,7 +367,10 @@ func TestRunTaskWithBind(t *testing.T) {
 }
 
 func TestRunTaskWithTempfs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run task with tmpfs mount", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime(
 			WithMounter(NewTmpfsMounter()),
@@ -348,7 +396,10 @@ func TestRunTaskWithTempfs(t *testing.T) {
 }
 
 func TestRunTaskWithCustomMounter(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run task with custom mounter", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		mounter := runtime.NewMultiMounter()
 		vmounter, err := NewVolumeMounter()
@@ -374,7 +425,10 @@ func TestRunTaskWithCustomMounter(t *testing.T) {
 }
 
 func TestRunTaskInitWorkdir(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run task with input files in workdir", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		rt, err := NewRuntime()
 		require.NoError(t, err)
@@ -395,7 +449,10 @@ func TestRunTaskInitWorkdir(t *testing.T) {
 }
 
 func Test_imagePull(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pull image with retry and concurrency", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		ctx := context.Background()
 
@@ -431,7 +488,10 @@ func Test_imagePull(t *testing.T) {
 }
 
 func Test_imagePullPrivateRegistry(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pull from private registry with auth", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		ctx := context.Background()
 

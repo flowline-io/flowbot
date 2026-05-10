@@ -15,6 +15,7 @@ import (
 )
 
 func TestSlack_GetAuthorizeURL(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		clientID    string
@@ -48,6 +49,7 @@ func TestSlack_GetAuthorizeURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			slack := NewSlack(tt.clientID, "secret", tt.redirectURI, "")
 			if tt.state != "" {
 				slack.SetState(tt.state)
@@ -62,6 +64,7 @@ func TestSlack_GetAuthorizeURL(t *testing.T) {
 }
 
 func TestSlack_completeAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		code       string
@@ -118,6 +121,7 @@ func TestSlack_completeAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/oauth.v2.access", r.URL.Path)
 				assert.Equal(t, http.MethodPost, r.Method)
@@ -152,7 +156,9 @@ func TestSlack_completeAuth(t *testing.T) {
 }
 
 func TestSlack_GetIdentity(t *testing.T) {
+	t.Parallel()
 	t.Run("successful identity retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/users.identity", r.URL.Path)
 			assert.True(t, strings.HasPrefix(r.Header.Get("Authorization"), "Bearer "))
@@ -196,7 +202,9 @@ func TestSlack_GetIdentity(t *testing.T) {
 }
 
 func TestSlack_GetIdentity_Error(t *testing.T) {
+	t.Parallel()
 	t.Run("identity error", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			response := IdentityResponse{
 				OK:    false,
@@ -219,7 +227,9 @@ func TestSlack_GetIdentity_Error(t *testing.T) {
 }
 
 func TestNewSlack(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		slack := NewSlack("123.456", "secret", "https://example.com/callback", "xoxp-token")
 		assert.NotNil(t, slack)
 		assert.NotNil(t, slack.c)

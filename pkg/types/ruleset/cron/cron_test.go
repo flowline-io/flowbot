@@ -9,20 +9,25 @@ import (
 )
 
 func TestRule_ID(t *testing.T) {
+	t.Parallel()
 	t.Run("rule id", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Name: "test_cron"}
 		assert.Equal(t, "test_cron", r.ID())
 	})
 }
 
 func TestRule_TYPE(t *testing.T) {
+	t.Parallel()
 	t.Run("rule type", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Name: "test_cron"}
 		assert.Equal(t, types.CronRule, r.TYPE())
 	})
 }
 
 func TestCronScope_Constants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant CronScope
@@ -42,13 +47,16 @@ func TestCronScope_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}
 }
 
 func TestNewCronRuleset(t *testing.T) {
+	t.Parallel()
 	t.Run("single rule", func(t *testing.T) {
+		t.Parallel()
 		rules := []Rule{
 			{
 				Name:  "rule1",
@@ -71,7 +79,9 @@ func TestNewCronRuleset(t *testing.T) {
 }
 
 func TestNewCronRuleset_EmptyRules(t *testing.T) {
+	t.Parallel()
 	t.Run("empty rules", func(t *testing.T) {
+		t.Parallel()
 		rs := NewCronRuleset("empty", []Rule{})
 		assert.NotNil(t, rs)
 		assert.Equal(t, "empty", rs.Type)
@@ -80,7 +90,9 @@ func TestNewCronRuleset_EmptyRules(t *testing.T) {
 }
 
 func TestNewCronRuleset_MultipleRules(t *testing.T) {
+	t.Parallel()
 	t.Run("multiple rules", func(t *testing.T) {
+		t.Parallel()
 		rules := []Rule{
 			{Name: "rule1", Scope: CronScopeSystem, When: "0 * * * *"},
 			{Name: "rule2", Scope: CronScopeUser, When: "*/5 * * * *"},
@@ -93,7 +105,9 @@ func TestNewCronRuleset_MultipleRules(t *testing.T) {
 }
 
 func TestRule_AllFields(t *testing.T) {
+	t.Parallel()
 	t.Run("all fields", func(t *testing.T) {
+		t.Parallel()
 		called := false
 		r := Rule{
 			Name:  "daily_summary",
@@ -118,6 +132,7 @@ func TestRule_AllFields(t *testing.T) {
 }
 
 func TestUn(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		payload types.MsgPayload
@@ -152,6 +167,7 @@ func TestUn(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := un(tt.payload)
 			assert.Equal(t, tt.want, got)
 		})
@@ -159,7 +175,9 @@ func TestUn(t *testing.T) {
 }
 
 func TestRuleset_Shutdown(t *testing.T) {
+	t.Parallel()
 	t.Run("shutdown", func(t *testing.T) {
+		t.Parallel()
 		rs := NewCronRuleset("test", []Rule{})
 		go func() {
 			rs.Shutdown()
@@ -169,6 +187,7 @@ func TestRuleset_Shutdown(t *testing.T) {
 }
 
 func TestRule_ScopeValues(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant CronScope
@@ -188,24 +207,30 @@ func TestRule_ScopeValues(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}
 
 	t.Run("system and user are not equal", func(t *testing.T) {
+		t.Parallel()
 		assert.NotEqual(t, CronScopeSystem, CronScopeUser)
 	})
 }
 
 func TestNewCronRuleset_ChannelCapacity(t *testing.T) {
+	t.Parallel()
 	t.Run("channel capacity", func(t *testing.T) {
+		t.Parallel()
 		rs := NewCronRuleset("test", []Rule{})
 		assert.Equal(t, 100, cap(rs.outCh))
 	})
 }
 
 func TestRule_ActionReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	t.Run("action returns empty", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{
 			Name:  "empty_action",
 			Scope: CronScopeSystem,
@@ -220,7 +245,9 @@ func TestRule_ActionReturnsEmpty(t *testing.T) {
 }
 
 func TestRule_ActionReturnsMultiple(t *testing.T) {
+	t.Parallel()
 	t.Run("action returns multiple", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{
 			Name:  "multi_action",
 			Scope: CronScopeSystem,

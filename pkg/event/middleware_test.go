@@ -12,6 +12,8 @@ import (
 )
 
 func TestRetry_Fields(t *testing.T) {
+	t.Parallel()
+
 	retry := Retry{
 		MaxRetries:          3,
 		InitialInterval:     1 * time.Second,
@@ -35,12 +37,15 @@ func TestRetry_Fields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.got)
 		})
 	}
 }
 
 func TestRetry_ZeroValues(t *testing.T) {
+	t.Parallel()
+
 	retry := Retry{}
 
 	tests := []struct {
@@ -57,17 +62,21 @@ func TestRetry_ZeroValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.got)
 		})
 	}
 
 	t.Run("hooks and logger are nil", func(t *testing.T) {
+		t.Parallel()
 		assert.Nil(t, retry.OnRetryHook)
 		assert.Nil(t, retry.Logger)
 	})
 }
 
 func TestRetry_OnRetryHook(t *testing.T) {
+	t.Parallel()
+
 	called := false
 	retry := Retry{
 		MaxRetries: 1,
@@ -77,6 +86,7 @@ func TestRetry_OnRetryHook(t *testing.T) {
 	}
 
 	t.Run("hook is set and callable", func(t *testing.T) {
+		t.Parallel()
 		require.NotNil(t, retry.OnRetryHook)
 		retry.OnRetryHook(1, 100*time.Millisecond)
 		assert.True(t, called)
@@ -84,6 +94,8 @@ func TestRetry_OnRetryHook(t *testing.T) {
 }
 
 func TestRetry_Middleware(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		retry   Retry
@@ -142,6 +154,7 @@ func TestRetry_Middleware(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			middleware := tt.retry.Middleware(tt.handler)
 			msg := message.NewMessage("test", []byte("payload"))
 			result, err := middleware(msg)
@@ -157,6 +170,8 @@ func TestRetry_Middleware(t *testing.T) {
 }
 
 func TestRetry_Middleware_EventualSuccess(t *testing.T) {
+	t.Parallel()
+
 	var attempts int
 	retry := Retry{
 		MaxRetries:          3,

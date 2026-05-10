@@ -13,6 +13,7 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -21,12 +22,14 @@ func TestCommandRules_Count(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Len(t, commandRules, 1)
 		})
 	}
 }
 
 func TestCommandRules_Defines(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -35,6 +38,7 @@ func TestCommandRules_Defines(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, "reader", commandRules[0].Define)
 			assert.Equal(t, "show reader id", commandRules[0].Help)
 		})
@@ -42,6 +46,7 @@ func TestCommandRules_Defines(t *testing.T) {
 }
 
 func TestCommandRules_Handlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -50,6 +55,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
@@ -58,6 +64,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		define string
@@ -80,6 +87,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -91,6 +99,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -99,6 +108,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rs := command.Ruleset(commandRules)
 			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
@@ -110,6 +120,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 }
 
 func TestCommandRules_ReaderHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -118,6 +129,7 @@ func TestCommandRules_ReaderHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var readerRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "reader" {

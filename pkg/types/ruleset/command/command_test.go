@@ -12,6 +12,7 @@ import (
 )
 
 func TestRegexRule(t *testing.T) {
+	t.Parallel()
 	testRules := []Rule{
 		{
 			Define: `test`,
@@ -75,6 +76,7 @@ func TestRegexRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			out, err := b.ProcessCommand(types.Context{}, tt.command)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -87,6 +89,7 @@ func TestRegexRule(t *testing.T) {
 }
 
 func TestHelp(t *testing.T) {
+	t.Parallel()
 	testRules := []Rule{
 		{
 			Define: `test`,
@@ -100,6 +103,7 @@ func TestHelp(t *testing.T) {
 	b := Ruleset(testRules)
 
 	t.Run("help returns non-nil", func(t *testing.T) {
+		t.Parallel()
 		help, err := b.Help("help")
 		require.NoError(t, err)
 		assert.NotNil(t, help)

@@ -12,6 +12,7 @@ import (
 )
 
 func TestDrone_CreateBuild(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		namespace  string
@@ -58,6 +59,7 @@ func TestDrone_CreateBuild(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				expectedPath := "/api/repos/" + tt.namespace + "/" + tt.repoName + "/builds"
 				assert.Equal(t, expectedPath, r.URL.Path)
@@ -87,7 +89,9 @@ func TestDrone_CreateBuild(t *testing.T) {
 }
 
 func TestDrone_CreateBuildWithStages(t *testing.T) {
+	t.Parallel()
 	t.Run("build with stages", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			response := Build{
 				ID:     123,
@@ -136,7 +140,9 @@ func TestDrone_CreateBuildWithStages(t *testing.T) {
 }
 
 func TestNewDrone(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewDrone("https://drone.example.com", "my-token")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

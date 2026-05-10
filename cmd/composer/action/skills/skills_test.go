@@ -8,6 +8,7 @@ import (
 )
 
 func TestExtractArgsFromUse(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		use  string
@@ -23,6 +24,7 @@ func TestExtractArgsFromUse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := extractArgsFromUse(tt.use)
 			require.Equal(t, tt.want, got)
 		})
@@ -30,6 +32,7 @@ func TestExtractArgsFromUse(t *testing.T) {
 }
 
 func TestParseArgs(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -44,6 +47,7 @@ func TestParseArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := parseArgs(tt.input)
 			if tt.wantNil {
 				require.Nil(t, got)
@@ -55,6 +59,7 @@ func TestParseArgs(t *testing.T) {
 }
 
 func TestBuildCLIString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		path      string
@@ -108,6 +113,7 @@ func TestBuildCLIString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := buildCLIString(tt.path, tt.argsUsage, tt.flags)
 			require.Equal(t, tt.want, got)
 		})
@@ -115,6 +121,7 @@ func TestBuildCLIString(t *testing.T) {
 }
 
 func TestZeroDefault(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -123,6 +130,7 @@ func TestZeroDefault(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, "hello", zeroDefault("hello", "fallback"))
 			require.Equal(t, "fallback", zeroDefault("", "fallback"))
 		})
@@ -130,6 +138,7 @@ func TestZeroDefault(t *testing.T) {
 }
 
 func TestExtractFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -138,6 +147,7 @@ func TestExtractFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 			fs.StringP("output", "o", "table", "Output format")
 			fs.StringP("url", "u", "", "Bookmark URL")
@@ -189,6 +199,7 @@ func TestExtractFlags(t *testing.T) {
 }
 
 func TestExtractFlagsNoRequiredAnnotation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -197,6 +208,7 @@ func TestExtractFlagsNoRequiredAnnotation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 			fs.StringP("title", "t", "", "Title")
 			fs.IntP("limit", "n", 20, "Limit")

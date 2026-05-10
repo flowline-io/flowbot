@@ -12,6 +12,7 @@ import (
 )
 
 func TestWebhookConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -50,12 +51,14 @@ func TestWebhookConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestWebhookHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		method   string
@@ -92,6 +95,7 @@ func TestWebhookHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler := webhookRules[0].Handler
 			ctx := types.Context{
 				Method: tt.method,
@@ -110,6 +114,7 @@ func TestWebhookHandler(t *testing.T) {
 }
 
 func TestWebhookRule_ImplementsInterface(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -118,6 +123,7 @@ func TestWebhookRule_ImplementsInterface(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var _ webhook.Rule = webhookRules[0]
 		})
 	}

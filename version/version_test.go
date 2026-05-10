@@ -7,6 +7,7 @@ import (
 )
 
 func TestBuildstamp(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,12 +16,14 @@ func TestBuildstamp(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, Buildstamp)
 		})
 	}
 }
 
 func TestBuildtags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -29,6 +32,7 @@ func TestBuildtags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, Buildtags)
 		})
 	}

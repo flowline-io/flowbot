@@ -12,7 +12,10 @@ import (
 )
 
 func TestCreateVolume(t *testing.T) {
+	t.Parallel()
+
 	t.Run("create and remove volume via mounter", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		vm, err := NewVolumeMounter()
 		require.NoError(t, err)
@@ -46,7 +49,10 @@ func TestCreateVolume(t *testing.T) {
 }
 
 func Test_createMountVolume(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mount volume sets target and source", func(t *testing.T) {
+		t.Parallel()
 		skipIfNoDocker(t)
 		m, err := NewVolumeMounter()
 		require.NoError(t, err)

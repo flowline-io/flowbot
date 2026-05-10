@@ -7,6 +7,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		a    int64
@@ -20,6 +21,7 @@ func TestAdd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, add(tt.a, tt.b))
 		})
 	}

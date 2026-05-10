@@ -12,6 +12,7 @@ import (
 )
 
 func TestAdGuardHome_GetStatus(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		response   ServerStatus
@@ -36,6 +37,7 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/status", r.URL.Path)
 				assert.Equal(t, "Basic YWRtaW46cGFzc3dvcmQ=", r.Header.Get("Authorization"))
@@ -62,7 +64,9 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 }
 
 func TestAdGuardHome_GetStats(t *testing.T) {
+	t.Parallel()
 	t.Run("successful stats retrieval", func(t *testing.T) {
+		t.Parallel()
 		timeUnits := "hours"
 		numQueries := int32(1000)
 		numBlocked := int32(100)
@@ -107,7 +111,9 @@ func TestAdGuardHome_GetStats(t *testing.T) {
 }
 
 func TestNewAdGuardHome(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewAdGuardHome("http://localhost:3000", "admin", "pass")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

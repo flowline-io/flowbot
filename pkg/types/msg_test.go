@@ -9,6 +9,7 @@ import (
 )
 
 func TestTypeOf(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		msg  MsgPayload
@@ -73,13 +74,16 @@ func TestTypeOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, TypeOf(tt.msg))
 		})
 	}
 }
 
 func TestToPayload_TextMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("TextMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(TextMsg{Text: "hello"})
 		payload := ToPayload("TextMsg", src)
 		msg, ok := payload.(TextMsg)
@@ -89,7 +93,9 @@ func TestToPayload_TextMsg(t *testing.T) {
 }
 
 func TestToPayload_LinkMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("LinkMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(LinkMsg{Title: "t", Url: "http://x"})
 		payload := ToPayload("LinkMsg", src)
 		msg, ok := payload.(LinkMsg)
@@ -99,7 +105,9 @@ func TestToPayload_LinkMsg(t *testing.T) {
 }
 
 func TestToPayload_TableMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("TableMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(TableMsg{Title: "tbl"})
 		payload := ToPayload("TableMsg", src)
 		msg, ok := payload.(TableMsg)
@@ -109,7 +117,9 @@ func TestToPayload_TableMsg(t *testing.T) {
 }
 
 func TestToPayload_InfoMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("InfoMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(InfoMsg{Title: "info"})
 		payload := ToPayload("InfoMsg", src)
 		msg, ok := payload.(InfoMsg)
@@ -119,7 +129,9 @@ func TestToPayload_InfoMsg(t *testing.T) {
 }
 
 func TestToPayload_ChartMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("ChartMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(ChartMsg{Title: "chart"})
 		payload := ToPayload("ChartMsg", src)
 		msg, ok := payload.(ChartMsg)
@@ -129,7 +141,9 @@ func TestToPayload_ChartMsg(t *testing.T) {
 }
 
 func TestToPayload_KVMsg(t *testing.T) {
+	t.Parallel()
 	t.Run("KVMsg", func(t *testing.T) {
+		t.Parallel()
 		src, _ := sonic.Marshal(KVMsg{"key": "val"})
 		payload := ToPayload("KVMsg", src)
 		msg, ok := payload.(KVMsg)
@@ -139,13 +153,16 @@ func TestToPayload_KVMsg(t *testing.T) {
 }
 
 func TestToPayload_Unknown(t *testing.T) {
+	t.Parallel()
 	t.Run("unknown message type", func(t *testing.T) {
+		t.Parallel()
 		payload := ToPayload("UnknownMsg", []byte(`{}`))
 		assert.Nil(t, payload)
 	})
 }
 
 func TestMsgPayload_Convert(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		payload MsgPayload
@@ -175,12 +192,14 @@ func TestMsgPayload_Convert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.payload.Convert())
 		})
 	}
 }
 
 func TestFormFieldConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant FormFieldType
@@ -225,12 +244,14 @@ func TestFormFieldConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}
 }
 
 func TestFormFieldValueTypeConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant FormFieldValueType
@@ -265,6 +286,7 @@ func TestFormFieldValueTypeConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}

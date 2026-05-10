@@ -8,6 +8,7 @@ import (
 )
 
 func TestErrors(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -15,6 +16,7 @@ func TestErrors(t *testing.T) {
 		{
 			name: "error variables should be non-nil",
 			test: func(t *testing.T) {
+				t.Parallel()
 		require.Error(t, ErrMissingCommitMessage)
 		require.Error(t, ErrMissingDiffContent)
 		require.Error(t, ErrEmptyPrompt)
@@ -23,6 +25,7 @@ func TestErrors(t *testing.T) {
 		{
 			name: "error messages should be correct",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, "missing commit message in metadata", ErrMissingCommitMessage.Error())
 				assert.Equal(t, "missing diff content", ErrMissingDiffContent.Error())
 				assert.Equal(t, "empty prompt after formatting", ErrEmptyPrompt.Error())
@@ -35,6 +38,7 @@ func TestErrors(t *testing.T) {
 }
 
 func TestCodeIssue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -42,6 +46,7 @@ func TestCodeIssue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			issue := CodeIssue{
 				FilePath:    "main.go",
 				StartLine:   10,
@@ -59,6 +64,7 @@ func TestCodeIssue(t *testing.T) {
 }
 
 func TestSecurityIssue(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -66,6 +72,7 @@ func TestSecurityIssue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			issue := SecurityIssue{
 				Severity:    "high",
 				FilePath:    "auth.go",
@@ -81,6 +88,7 @@ func TestSecurityIssue(t *testing.T) {
 }
 
 func TestQualityMetric(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -88,6 +96,7 @@ func TestQualityMetric(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			metric := QualityMetric{
 				SecurityScore:     9.0,
 				PerformanceScore:  8.0,
@@ -103,6 +112,7 @@ func TestQualityMetric(t *testing.T) {
 }
 
 func TestReviewResult(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -110,6 +120,7 @@ func TestReviewResult(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := ReviewResult{
 				Score:    8.5,
 				Comments: []string{"good"},
@@ -121,6 +132,7 @@ func TestReviewResult(t *testing.T) {
 }
 
 func TestCodeContext_Len(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		filesCtx []map[string]any
@@ -142,6 +154,7 @@ func TestCodeContext_Len(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ctx := CodeContext{FilesContext: tt.filesCtx}
 			assert.Equal(t, tt.wantLen, ctx.Len())
 		})
@@ -149,6 +162,7 @@ func TestCodeContext_Len(t *testing.T) {
 }
 
 func TestReviewPrompt(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -156,6 +170,7 @@ func TestReviewPrompt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, ReviewPrompt)
 			assert.Contains(t, ReviewPrompt, "Security")
 			assert.Contains(t, ReviewPrompt, "Performance")
@@ -165,6 +180,7 @@ func TestReviewPrompt(t *testing.T) {
 }
 
 func TestDefaultConfig(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -172,6 +188,7 @@ func TestDefaultConfig(t *testing.T) {
 		{
 			name: "should return non-nil config with correct defaults",
 			test: func(t *testing.T) {
+				t.Parallel()
 				cfg := DefaultConfig()
 				assert.NotNil(t, cfg)
 				assert.Equal(t, 5, cfg.ContextWindow)
@@ -186,6 +203,7 @@ func TestDefaultConfig(t *testing.T) {
 		{
 			name: "scoring rules should have correct weights",
 			test: func(t *testing.T) {
+				t.Parallel()
 				cfg := DefaultConfig()
 				assert.InEpsilon(t, 0.3, cfg.ScoringRules["security"], 0.001)
 				assert.InEpsilon(t, 0.2, cfg.ScoringRules["performance"], 0.001)

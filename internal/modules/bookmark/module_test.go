@@ -13,6 +13,7 @@ import (
 )
 
 func TestBotName(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		expected string
@@ -21,12 +22,14 @@ func TestBotName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, Name)
 		})
 	}
 }
 
 func TestInit(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		config  configType
@@ -63,6 +66,7 @@ func TestInit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.preInit {
 				handler = moduleHandler{initialized: true}
 			} else {
@@ -89,6 +93,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestCommandRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -96,6 +101,7 @@ func TestCommandRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, commandRules)
 
 			defines := make(map[string]string)
@@ -109,6 +115,7 @@ func TestCommandRules_Defined(t *testing.T) {
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -116,6 +123,7 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
@@ -124,6 +132,7 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 }
 
 func TestCronRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -131,6 +140,7 @@ func TestCronRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, cronRules)
 
 			names := make(map[string]bool)
@@ -148,6 +158,7 @@ func TestCronRules_Defined(t *testing.T) {
 }
 
 func TestCronRules_HaveActions(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -155,6 +166,7 @@ func TestCronRules_HaveActions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range cronRules {
 				assert.NotNil(t, r.Action, "action for cron %q should not be nil", r.Name)
 				assert.NotEmpty(t, r.When, "when for cron %q should not be empty", r.Name)
@@ -164,6 +176,7 @@ func TestCronRules_HaveActions(t *testing.T) {
 }
 
 func TestEventRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -171,6 +184,7 @@ func TestEventRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, eventRules)
 
 			ids := make(map[string]bool)
@@ -186,6 +200,7 @@ func TestEventRules_Defined(t *testing.T) {
 }
 
 func TestEventRules_HaveHandlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -193,6 +208,7 @@ func TestEventRules_HaveHandlers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range eventRules {
 				assert.NotNil(t, r.Handler, "handler for event %q should not be nil", r.Id)
 			}
@@ -201,6 +217,7 @@ func TestEventRules_HaveHandlers(t *testing.T) {
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -208,6 +225,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)

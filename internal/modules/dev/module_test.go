@@ -13,6 +13,7 @@ import (
 )
 
 func TestBotName(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		expected string
@@ -21,12 +22,14 @@ func TestBotName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, Name)
 		})
 	}
 }
 
 func TestInit(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		config  configType
@@ -63,6 +66,7 @@ func TestInit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.preInit {
 				handler = moduleHandler{initialized: true}
 			} else {
@@ -89,6 +93,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestCommandRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -96,6 +101,7 @@ func TestCommandRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, commandRules)
 
 			defines := make(map[string]string)
@@ -121,6 +127,7 @@ func TestCommandRules_Defined(t *testing.T) {
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -128,6 +135,7 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
@@ -136,6 +144,7 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 }
 
 func TestFormRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -143,6 +152,7 @@ func TestFormRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, formRules)
 
 			found := false
@@ -160,6 +170,7 @@ func TestFormRules_Defined(t *testing.T) {
 }
 
 func TestEventRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -167,6 +178,7 @@ func TestEventRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, eventRules)
 
 			ids := make(map[string]bool)
@@ -180,6 +192,7 @@ func TestEventRules_Defined(t *testing.T) {
 }
 
 func TestWebhookRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -187,6 +200,7 @@ func TestWebhookRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, webhookRules)
 
 			ids := make(map[string]bool)
@@ -204,6 +218,7 @@ func TestWebhookRules_Defined(t *testing.T) {
 }
 
 func TestPageRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -211,6 +226,7 @@ func TestPageRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, pageRules)
 
 			ids := make(map[string]bool)
@@ -224,6 +240,7 @@ func TestPageRules_Defined(t *testing.T) {
 }
 
 func TestWebserviceRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -231,12 +248,14 @@ func TestWebserviceRules_Defined(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, webserviceRules)
 		})
 	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -244,6 +263,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)

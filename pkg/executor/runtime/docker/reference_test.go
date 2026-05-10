@@ -8,6 +8,8 @@ import (
 )
 
 func TestParse(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		ref       string
@@ -68,6 +70,7 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ref, err := parseRef(tt.ref)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expDomain, ref.domain)

@@ -9,10 +9,13 @@ import (
 )
 
 func TestPublishMessage(t *testing.T) {
+	t.Parallel()
 	t.Skip("requires Redis connection and initialized Publisher")
 }
 
 func TestMessageStruct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		msg     types.Message
@@ -37,6 +40,7 @@ func TestMessageStruct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.wantPl, tt.msg.Platform)
 			assert.Equal(t, tt.wantTpc, tt.msg.Topic)
 			assert.Equal(t, tt.wantTyp, tt.msg.Payload.Typ)
@@ -45,6 +49,8 @@ func TestMessageStruct(t *testing.T) {
 }
 
 func TestBotEventStruct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		event     types.BotEvent
@@ -71,6 +77,7 @@ func TestBotEventStruct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.wantName, tt.event.EventName)
 			assert.Equal(t, tt.wantUID, tt.event.Uid)
 			assert.Equal(t, tt.wantTopic, tt.event.Topic)

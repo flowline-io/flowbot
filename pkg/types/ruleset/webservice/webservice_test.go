@@ -9,6 +9,7 @@ import (
 )
 
 func TestRule_ID(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		method string
@@ -37,6 +38,7 @@ func TestRule_ID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := Rule{Method: tt.method, Path: tt.path}
 			assert.Equal(t, tt.want, r.ID())
 		})
@@ -44,14 +46,18 @@ func TestRule_ID(t *testing.T) {
 }
 
 func TestRule_TYPE(t *testing.T) {
+	t.Parallel()
 	t.Run("rule type", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Method: "GET", Path: "/example"}
 		assert.Equal(t, types.WebserviceRule, r.TYPE())
 	})
 }
 
 func TestGet(t *testing.T) {
+	t.Parallel()
 	t.Run("Get helper", func(t *testing.T) {
+		t.Parallel()
 		r := Get("/api/data", nil)
 		assert.Equal(t, "GET", r.Method)
 		assert.Equal(t, "/api/data", r.Path)
@@ -61,7 +67,9 @@ func TestGet(t *testing.T) {
 }
 
 func TestPost(t *testing.T) {
+	t.Parallel()
 	t.Run("Post helper", func(t *testing.T) {
+		t.Parallel()
 		r := Post("/api/submit", nil)
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, "/api/submit", r.Path)
@@ -69,7 +77,9 @@ func TestPost(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
+	t.Parallel()
 	t.Run("Put helper", func(t *testing.T) {
+		t.Parallel()
 		r := Put("/api/update", nil)
 		assert.Equal(t, "PUT", r.Method)
 		assert.Equal(t, "/api/update", r.Path)
@@ -77,7 +87,9 @@ func TestPut(t *testing.T) {
 }
 
 func TestPatch(t *testing.T) {
+	t.Parallel()
 	t.Run("Patch helper", func(t *testing.T) {
+		t.Parallel()
 		r := Patch("/api/archive", nil)
 		assert.Equal(t, "PATCH", r.Method)
 		assert.Equal(t, "/api/archive", r.Path)
@@ -85,7 +97,9 @@ func TestPatch(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Parallel()
 	t.Run("Delete helper", func(t *testing.T) {
+		t.Parallel()
 		r := Delete("/api/remove", nil)
 		assert.Equal(t, "DELETE", r.Method)
 		assert.Equal(t, "/api/remove", r.Path)
@@ -93,7 +107,9 @@ func TestDelete(t *testing.T) {
 }
 
 func TestRuleset_Creation(t *testing.T) {
+	t.Parallel()
 	t.Run("ruleset creation", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			Get("/query", nil),
 			Post("/submit", nil),
@@ -111,13 +127,16 @@ func TestRuleset_Creation(t *testing.T) {
 }
 
 func TestRuleset_Empty(t *testing.T) {
+	t.Parallel()
 	t.Run("empty ruleset", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{}
 		assert.Empty(t, rules)
 	})
 }
 
 func TestRule_AllMethodTypes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		create func(string, any, ...any) Rule
 		method string
@@ -131,6 +150,7 @@ func TestRule_AllMethodTypes(t *testing.T) {
 
 	for _, m := range tests {
 		t.Run(m.method, func(t *testing.T) {
+			t.Parallel()
 			r := m.create("/test", nil)
 			assert.Equal(t, m.method, r.Method)
 			assert.Equal(t, types.WebserviceRule, r.TYPE())

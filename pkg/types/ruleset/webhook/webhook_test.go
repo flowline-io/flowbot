@@ -10,21 +10,27 @@ import (
 )
 
 func TestRule_ID(t *testing.T) {
+	t.Parallel()
 	t.Run("rule id", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_webhook"}
 		assert.Equal(t, "test_webhook", r.ID())
 	})
 }
 
 func TestRule_TYPE(t *testing.T) {
+	t.Parallel()
 	t.Run("rule type", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_webhook"}
 		assert.Equal(t, types.WebhookRule, r.TYPE())
 	})
 }
 
 func TestRuleset_ProcessRule_MatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("matching rule", func(t *testing.T) {
+		t.Parallel()
 		called := false
 		rules := Ruleset{
 			{
@@ -46,7 +52,9 @@ func TestRuleset_ProcessRule_MatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_NoMatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("no matching rule", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "webhook1",
@@ -64,7 +72,9 @@ func TestRuleset_ProcessRule_NoMatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_MultipleRules(t *testing.T) {
+	t.Parallel()
 	t.Run("multiple rules", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "wh1",
@@ -88,7 +98,9 @@ func TestRuleset_ProcessRule_MultipleRules(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_EmptyRuleset(t *testing.T) {
+	t.Parallel()
 	t.Run("empty ruleset", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{}
 		ctx := types.Context{WebhookRuleId: "wh1"}
 		result, err := rules.ProcessRule(ctx, []byte("data"))
@@ -98,7 +110,9 @@ func TestRuleset_ProcessRule_EmptyRuleset(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_SecretFlag(t *testing.T) {
+	t.Parallel()
 	t.Run("secret flag", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{Id: "public_hook", Secret: false},
 			{Id: "secret_hook", Secret: true},
@@ -109,7 +123,9 @@ func TestRuleset_ProcessRule_SecretFlag(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_EmptyData(t *testing.T) {
+	t.Parallel()
 	t.Run("empty data", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "wh1",
@@ -127,7 +143,9 @@ func TestRuleset_ProcessRule_EmptyData(t *testing.T) {
 }
 
 func TestRuleset_ProcessRule_LargePayload(t *testing.T) {
+	t.Parallel()
 	t.Run("large payload", func(t *testing.T) {
+		t.Parallel()
 		largeData := make([]byte, 1024*1024) // 1MB
 		for i := range largeData {
 			largeData[i] = byte(i % 256)

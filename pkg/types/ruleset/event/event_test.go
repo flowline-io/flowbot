@@ -11,21 +11,27 @@ import (
 )
 
 func TestRule_ID(t *testing.T) {
+	t.Parallel()
 	t.Run("rule id", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_event"}
 		assert.Equal(t, "test_event", r.ID())
 	})
 }
 
 func TestRule_TYPE(t *testing.T) {
+	t.Parallel()
 	t.Run("rule type", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_event"}
 		assert.Equal(t, types.EventRule, r.TYPE())
 	})
 }
 
 func TestRuleset_ProcessEvent_MatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("matching rule", func(t *testing.T) {
+		t.Parallel()
 		called := false
 		rules := Ruleset{
 			{
@@ -45,7 +51,9 @@ func TestRuleset_ProcessEvent_MatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessEvent_NoMatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("no matching rule", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "event1",
@@ -62,7 +70,9 @@ func TestRuleset_ProcessEvent_NoMatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessEvent_HandlerReturnsError(t *testing.T) {
+	t.Parallel()
 	t.Run("handler returns error", func(t *testing.T) {
+		t.Parallel()
 		expectedErr := errors.New("handler error")
 		rules := Ruleset{
 			{
@@ -80,7 +90,9 @@ func TestRuleset_ProcessEvent_HandlerReturnsError(t *testing.T) {
 }
 
 func TestRuleset_ProcessEvent_MultipleRulesStopsOnError(t *testing.T) {
+	t.Parallel()
 	t.Run("multiple rules stops on error", func(t *testing.T) {
+		t.Parallel()
 		callOrder := []string{}
 		rules := Ruleset{
 			{
@@ -107,7 +119,9 @@ func TestRuleset_ProcessEvent_MultipleRulesStopsOnError(t *testing.T) {
 }
 
 func TestRuleset_ProcessEvent_EmptyRuleset(t *testing.T) {
+	t.Parallel()
 	t.Run("empty ruleset", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{}
 		ctx := types.Context{EventRuleId: "event1"}
 		err := rules.ProcessEvent(ctx, types.KV{})
@@ -116,7 +130,9 @@ func TestRuleset_ProcessEvent_EmptyRuleset(t *testing.T) {
 }
 
 func TestRuleset_ProcessEvent_PassesParams(t *testing.T) {
+	t.Parallel()
 	t.Run("passes params", func(t *testing.T) {
+		t.Parallel()
 		var receivedParam types.KV
 		rules := Ruleset{
 			{

@@ -12,6 +12,7 @@ import (
 )
 
 func TestCommandRules_HandlerContent(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		define    string
@@ -52,6 +53,7 @@ func TestCommandRules_HandlerContent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var rule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == tt.define {
@@ -89,6 +91,7 @@ func TestCommandRules_HandlerContent(t *testing.T) {
 }
 
 func TestCronNames(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -154,12 +157,14 @@ func TestCronNames(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestWebserviceRulesEndpoints(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -168,6 +173,7 @@ func TestWebserviceRulesEndpoints(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.GreaterOrEqual(t, len(webserviceRules), 2)
 		})
 	}

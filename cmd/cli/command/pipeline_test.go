@@ -7,6 +7,7 @@ import (
 )
 
 func TestPipelineCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,6 +16,7 @@ func TestPipelineCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := PipelineCommand()
 
 			require.Equal(t, "pipeline", cmd.Use)
@@ -28,6 +30,7 @@ func TestPipelineCommand(t *testing.T) {
 }
 
 func TestPipelineListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -36,6 +39,7 @@ func TestPipelineListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := PipelineCommand()
 			listCmd := findSubcommand(cmd, "list")
 			require.NotNil(t, listCmd)
@@ -48,6 +52,7 @@ func TestPipelineListCommand(t *testing.T) {
 }
 
 func TestPipelineRunCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -56,6 +61,7 @@ func TestPipelineRunCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := PipelineCommand()
 			runCmd := findSubcommand(cmd, "run")
 			require.NotNil(t, runCmd)

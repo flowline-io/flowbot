@@ -2,9 +2,13 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFileExist(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		name string
 	}
@@ -30,15 +34,16 @@ func TestFileExist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FileExist(tt.args.name); got != tt.want {
-				t.Errorf("FileExist() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+			got := FileExist(tt.args.name)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 // TestFileExistEdgeCases tests edge cases for the FileExist function
 func TestFileExistEdgeCases(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		filename string
@@ -68,10 +73,9 @@ func TestFileExistEdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := FileExist(tt.filename)
-			if got != tt.want {
-				t.Errorf("FileExist(%q) = %v, want %v", tt.filename, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -82,15 +86,12 @@ func TestFileExistEdgeCases(t *testing.T) {
 
 // TestDownloadFileBasic tests basic parameter validation for DownloadFile
 func TestDownloadFileBasic(t *testing.T) {
+	t.Parallel()
 	// Test with invalid URL (should return error quickly)
 	err := DownloadFile("invalid-url", "/tmp/test")
-	if err == nil {
-		t.Error("DownloadFile() should return error for invalid URL")
-	}
+	require.Error(t, err, "DownloadFile() should return error for invalid URL")
 
 	// Test with empty filename
 	err = DownloadFile("http://example.com", "")
-	if err == nil {
-		t.Error("DownloadFile() should return error for empty filename")
-	}
+	require.Error(t, err, "DownloadFile() should return error for empty filename")
 }

@@ -24,6 +24,7 @@ func generateTestHostKey(t *testing.T) string {
 }
 
 func TestDockerComposeRuntime_ValidatePath(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "apps")
 	require.NoError(t, os.MkdirAll(appsDir, 0700))
@@ -56,6 +57,7 @@ func TestDockerComposeRuntime_ValidatePath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := r.validatePath(tt.app)
 			if tt.wantErr {
 		require.Error(t, err)
@@ -67,6 +69,7 @@ func TestDockerComposeRuntime_ValidatePath(t *testing.T) {
 }
 
 func TestDockerComposeRuntime_ComposeEnv(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		socket string
@@ -75,6 +78,7 @@ func TestDockerComposeRuntime_ComposeEnv(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewDockerComposeRuntime(RuntimeConfig{Mode: RuntimeModeDockerSocket, DockerSocket: tt.socket}, "/apps")
 			env := r.composeEnv()
 			assert.Contains(t, env, "DOCKER_HOST=unix:///var/run/docker.sock")
@@ -83,6 +87,7 @@ func TestDockerComposeRuntime_ComposeEnv(t *testing.T) {
 }
 
 func TestDockerComposeRuntime_ComposeEnvNoSocket(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -90,6 +95,7 @@ func TestDockerComposeRuntime_ComposeEnvNoSocket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewDockerComposeRuntime(RuntimeConfig{Mode: RuntimeModeDockerSocket}, "/apps")
 			env := r.composeEnv()
 			found := false
@@ -104,6 +110,7 @@ func TestDockerComposeRuntime_ComposeEnvNoSocket(t *testing.T) {
 }
 
 func TestDockerComposeRuntime_StatusNoDocker(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -111,6 +118,7 @@ func TestDockerComposeRuntime_StatusNoDocker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tmpDir := t.TempDir()
 			appDir := filepath.Join(tmpDir, "testapp")
 			require.NoError(t, os.MkdirAll(appDir, 0700))
@@ -129,6 +137,7 @@ func TestDockerComposeRuntime_StatusNoDocker(t *testing.T) {
 }
 
 func TestNoopRuntime_AllOperations(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -136,6 +145,7 @@ func TestNoopRuntime_AllOperations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NoopRuntime{}
 			ctx := t.Context()
 			app := App{Name: "testapp", Path: "/fake/path", Status: AppStatusUnknown}
@@ -157,6 +167,7 @@ func TestNoopRuntime_AllOperations(t *testing.T) {
 }
 
 func TestNewRuntime_ReturnsCorrectType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		mode     RuntimeMode
 		wantType string
@@ -169,6 +180,7 @@ func TestNewRuntime_ReturnsCorrectType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.mode), func(t *testing.T) {
+			t.Parallel()
 			config := RuntimeConfig{Mode: tt.mode}
 			rt := NewRuntime(config, "/apps")
 			assert.Equal(t, tt.wantType, getRuntimeTypeName(rt))
@@ -190,6 +202,7 @@ func getRuntimeTypeName(rt Runtime) string {
 }
 
 func TestSSHRuntime_ConfigDefaults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -197,6 +210,7 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,
 				SSHHost:     "example.com",
@@ -212,6 +226,7 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 }
 
 func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -219,6 +234,7 @@ func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:       RuntimeModeSSH,
 				SSHHost:    "example.com",
@@ -233,6 +249,7 @@ func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
 }
 
 func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -240,6 +257,7 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,
 				SSHHost:     "example.com",
@@ -256,6 +274,7 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 }
 
 func TestSSHRuntime_DefaultPort(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		sshPort  int
@@ -266,6 +285,7 @@ func TestSSHRuntime_DefaultPort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hostKey := generateTestHostKey(t)
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,
@@ -281,6 +301,7 @@ func TestSSHRuntime_DefaultPort(t *testing.T) {
 }
 
 func TestSSHRuntime_ContextCancellation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -288,6 +309,7 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
 
@@ -316,6 +338,7 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 }
 
 func TestSSHRuntime_ClientConfigNoHostKey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -323,6 +346,7 @@ func TestSSHRuntime_ClientConfigNoHostKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,
 				SSHHost:     "example.com",
@@ -337,6 +361,7 @@ func TestSSHRuntime_ClientConfigNoHostKey(t *testing.T) {
 }
 
 func TestSSHRuntime_ClientConfigInvalidHostKey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -344,6 +369,7 @@ func TestSSHRuntime_ClientConfigInvalidHostKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,
 				SSHHost:     "example.com",
@@ -359,6 +385,7 @@ func TestSSHRuntime_ClientConfigInvalidHostKey(t *testing.T) {
 }
 
 func TestSSHRuntime_ClientConfigFixedHostKey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -366,6 +393,7 @@ func TestSSHRuntime_ClientConfigFixedHostKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hostKey := generateTestHostKey(t)
 			r := NewSSHRuntime(RuntimeConfig{
 				Mode:        RuntimeModeSSH,

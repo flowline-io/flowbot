@@ -71,6 +71,7 @@ func decodeResponse(t *testing.T, resp *http.Response) protocol.Response {
 // ---------------------------------------------------------------------------
 
 func TestRootEndpoint(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -79,6 +80,7 @@ func TestRootEndpoint(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/", func(c fiber.Ctx) error { return nil })
 
@@ -91,6 +93,7 @@ func TestRootEndpoint(t *testing.T) {
 }
 
 func TestHealthcheckLiveness(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -99,6 +102,7 @@ func TestHealthcheckLiveness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 
@@ -111,6 +115,7 @@ func TestHealthcheckLiveness(t *testing.T) {
 }
 
 func TestHealthcheckReadiness(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -119,6 +124,7 @@ func TestHealthcheckReadiness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 
@@ -131,6 +137,7 @@ func TestHealthcheckReadiness(t *testing.T) {
 }
 
 func TestHealthcheckStartup(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -139,6 +146,7 @@ func TestHealthcheckStartup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 
@@ -155,6 +163,7 @@ func TestHealthcheckStartup(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestErrorHandler_OopsError_BadRequest(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -163,6 +172,7 @@ func TestErrorHandler_OopsError_BadRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/err", func(_ fiber.Ctx) error {
 				return protocol.ErrBadParam.New("test bad param")
@@ -181,6 +191,7 @@ func TestErrorHandler_OopsError_BadRequest(t *testing.T) {
 }
 
 func TestErrorHandler_OopsError_Unauthorized(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -189,6 +200,7 @@ func TestErrorHandler_OopsError_Unauthorized(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/unauth", func(_ fiber.Ctx) error {
 				return protocol.ErrNotAuthorized.New("not allowed")
@@ -206,6 +218,7 @@ func TestErrorHandler_OopsError_Unauthorized(t *testing.T) {
 }
 
 func TestErrorHandler_GenericError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -214,6 +227,7 @@ func TestErrorHandler_GenericError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/generic", func(_ fiber.Ctx) error {
 				return errors.New("something went wrong") //nolint:err113
@@ -228,6 +242,7 @@ func TestErrorHandler_GenericError(t *testing.T) {
 }
 
 func TestErrorHandler_NoError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -236,6 +251,7 @@ func TestErrorHandler_NoError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/ok", func(c fiber.Ctx) error {
 				return c.JSON(protocol.NewSuccessResponse("hello"))
@@ -257,6 +273,7 @@ func TestErrorHandler_NoError(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestWebhookRoute_NoBot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -265,6 +282,7 @@ func TestWebhookRoute_NoBot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/webhook/:flag", ctl.doWebhook)
@@ -283,6 +301,7 @@ func TestWebhookRoute_NoBot(t *testing.T) {
 }
 
 func TestWebhookRoute_PostNoBot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -291,6 +310,7 @@ func TestWebhookRoute_PostNoBot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/webhook/:flag", ctl.doWebhook)
@@ -310,6 +330,7 @@ func TestWebhookRoute_PostNoBot(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestPlatformCallback_UnknownPlatform(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -318,6 +339,7 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/platform/:platform", ctl.platformCallback)
@@ -338,6 +360,7 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestAgentData_NoAuth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -346,6 +369,7 @@ func TestAgentData_NoAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.Post("/agent", ctl.agentData)
@@ -366,6 +390,7 @@ func TestAgentData_NoAuth(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestGetPage_NoStore(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -374,6 +399,7 @@ func TestGetPage_NoStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.Get("/p/:id", ctl.getPage)
@@ -392,6 +418,7 @@ func TestGetPage_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestOAuth_NoStore(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -400,6 +427,7 @@ func TestOAuth_NoStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
@@ -418,6 +446,7 @@ func TestOAuth_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestPostForm_NoStore(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -426,6 +455,7 @@ func TestPostForm_NoStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.Post("/form", ctl.postForm)
@@ -446,6 +476,7 @@ func TestPostForm_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestRenderPage_NoStore(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -454,6 +485,7 @@ func TestRenderPage_NoStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.Get("/page/:id/:flag", ctl.renderPage)
@@ -472,6 +504,7 @@ func TestRenderPage_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestRouteRegistration(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		expectedPath string
@@ -491,6 +524,7 @@ func TestRouteRegistration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 
 			ctl := &Controller{}
@@ -522,6 +556,7 @@ func TestRouteRegistration(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestNewSuccessResponse(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -530,6 +565,7 @@ func TestNewSuccessResponse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := protocol.NewSuccessResponse("data")
 			assert.Equal(t, protocol.Success, r.Status)
 			assert.Equal(t, "data", r.Data)
@@ -539,6 +575,7 @@ func TestNewSuccessResponse(t *testing.T) {
 }
 
 func TestNewFailedResponse_WithOopsError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -547,6 +584,7 @@ func TestNewFailedResponse_WithOopsError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := protocol.ErrBadRequest.New("test error")
 			r := protocol.NewFailedResponse(err)
 			assert.Equal(t, protocol.Failed, r.Status)
@@ -557,6 +595,7 @@ func TestNewFailedResponse_WithOopsError(t *testing.T) {
 }
 
 func TestNewFailedResponse_NilError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -565,6 +604,7 @@ func TestNewFailedResponse_NilError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := protocol.NewFailedResponse(nil)
 			assert.Equal(t, protocol.Failed, r.Status)
 			assert.Equal(t, "10000", r.RetCode)
@@ -577,6 +617,7 @@ func TestNewFailedResponse_NilError(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestWebhook_MethodRouting(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		method string
@@ -589,6 +630,7 @@ func TestWebhook_MethodRouting(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/webhook/:flag", ctl.doWebhook)
@@ -603,6 +645,7 @@ func TestWebhook_MethodRouting(t *testing.T) {
 }
 
 func TestPlatform_MethodRouting(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		method string
@@ -614,6 +657,7 @@ func TestPlatform_MethodRouting(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			ctl := &Controller{}
 			app.All("/platform/:platform", ctl.platformCallback)
@@ -631,6 +675,7 @@ func TestPlatform_MethodRouting(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestUnregisteredRoute_Returns404(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -639,6 +684,7 @@ func TestUnregisteredRoute_Returns404(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Use a plain fiber app without custom error handler to get default 404.
 			app := fiber.New()
 			app.Get("/", func(c fiber.Ctx) error { return nil })
@@ -656,6 +702,7 @@ func TestUnregisteredRoute_Returns404(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestJSONResponseContentType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -664,6 +711,7 @@ func TestJSONResponseContentType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			app := newTestApp()
 			app.Get("/json", func(c fiber.Ctx) error {
 				return c.JSON(protocol.NewSuccessResponse("test"))

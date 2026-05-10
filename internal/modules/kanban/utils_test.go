@@ -8,6 +8,7 @@ import (
 )
 
 func TestUnmarshal(t *testing.T) {
+	t.Parallel()
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -35,6 +36,7 @@ func TestUnmarshal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var result testStruct
 			err := unmarshal(tt.input, &result)
 			require.NoError(t, err)

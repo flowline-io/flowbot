@@ -9,6 +9,7 @@ import (
 )
 
 func TestKanbanCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -17,6 +18,7 @@ func TestKanbanCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 
 			require.Equal(t, "kanban", cmd.Use)
@@ -40,6 +42,7 @@ func TestKanbanCommand(t *testing.T) {
 }
 
 func TestKanbanListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -48,6 +51,7 @@ func TestKanbanListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			listCmd := findSubcommand(cmd, "list")
 			require.NotNil(t, listCmd)
@@ -67,6 +71,7 @@ func TestKanbanListCommand(t *testing.T) {
 }
 
 func TestKanbanCreateRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -75,6 +80,7 @@ func TestKanbanCreateRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			createCmd := findSubcommand(cmd, "create")
 			require.NotNil(t, createCmd)
@@ -89,6 +95,7 @@ func TestKanbanCreateRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanMoveCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -97,6 +104,7 @@ func TestKanbanMoveCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			moveCmd := findSubcommand(cmd, "move")
 			require.NotNil(t, moveCmd)
@@ -113,6 +121,7 @@ func TestKanbanMoveCommand(t *testing.T) {
 }
 
 func TestKanbanSubtaskCreateRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -121,6 +130,7 @@ func TestKanbanSubtaskCreateRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			subtaskCmd := findSubcommand(cmd, "subtask")
 			require.NotNil(t, subtaskCmd)
@@ -141,6 +151,7 @@ func TestKanbanSubtaskCreateRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanSubtaskTimerCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -149,6 +160,7 @@ func TestKanbanSubtaskTimerCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			subtaskCmd := findSubcommand(cmd, "subtask")
 			require.NotNil(t, subtaskCmd)
@@ -165,6 +177,7 @@ func TestKanbanSubtaskTimerCommand(t *testing.T) {
 }
 
 func TestKanbanTagRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -173,6 +186,7 @@ func TestKanbanTagRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			tagCmd := findSubcommand(cmd, "tag")
 			require.NotNil(t, tagCmd)
@@ -195,6 +209,7 @@ func TestKanbanTagRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanTaskTagSetRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -203,6 +218,7 @@ func TestKanbanTaskTagSetRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			tagCmd := findSubcommand(cmd, "tag")
 			taskCmd := findSubcommand(tagCmd, "task")
@@ -224,6 +240,7 @@ func TestKanbanTaskTagSetRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanCardCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -232,6 +249,7 @@ func TestKanbanCardCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			cardCmd := findSubcommand(cmd, "card")
 			require.NotNil(t, cardCmd)
@@ -245,6 +263,7 @@ func TestKanbanCardCommand(t *testing.T) {
 }
 
 func TestKanbanCardAddRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -253,6 +272,7 @@ func TestKanbanCardAddRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			cardCmd := findSubcommand(cmd, "card")
 			addCmd := findSubcommand(cardCmd, "add")
@@ -267,6 +287,7 @@ func TestKanbanCardAddRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanCardMoveRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -275,6 +296,7 @@ func TestKanbanCardMoveRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			cardCmd := findSubcommand(cmd, "card")
 			moveCmd := findSubcommand(cardCmd, "move")
@@ -289,6 +311,7 @@ func TestKanbanCardMoveRequiredFlags(t *testing.T) {
 }
 
 func TestKanbanColumnListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -297,6 +320,7 @@ func TestKanbanColumnListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			columnCmd := findSubcommand(cmd, "column")
 			require.NotNil(t, columnCmd)
@@ -311,6 +335,7 @@ func TestKanbanColumnListCommand(t *testing.T) {
 }
 
 func TestKanbanMetadataCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -319,6 +344,7 @@ func TestKanbanMetadataCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 			metaCmd := findSubcommand(cmd, "metadata")
 			require.NotNil(t, metaCmd)
@@ -332,6 +358,7 @@ func TestKanbanMetadataCommand(t *testing.T) {
 }
 
 func TestKanbanConfirmCommands(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		parent string
 		leaf   string
@@ -345,6 +372,7 @@ func TestKanbanConfirmCommands(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(strings.Join([]string{tt.parent, tt.leaf}, "/"), func(t *testing.T) {
+			t.Parallel()
 			cmd := KanbanCommand()
 
 			parentCmd := cmd

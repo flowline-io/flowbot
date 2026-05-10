@@ -10,7 +10,9 @@ import (
 )
 
 func TestUptimeKuma_Metrics(t *testing.T) {
+	t.Parallel()
 	t.Run("successful metrics retrieval", func(t *testing.T) {
+		t.Parallel()
 		prometheusMetrics := `# HELP uptimekuma_monitor_status Status of monitored services (1=up, 0=down)
 # TYPE uptimekuma_monitor_status gauge
 uptimekuma_monitor_status{monitor_name="Google",monitor_type="http"} 1
@@ -50,7 +52,9 @@ uptimekuma_monitor_response_time{monitor_name="GitHub"} 45
 }
 
 func TestUptimeKuma_Metrics_InvalidResponse(t *testing.T) {
+	t.Parallel()
 	t.Run("invalid prometheus response", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
@@ -67,7 +71,9 @@ func TestUptimeKuma_Metrics_InvalidResponse(t *testing.T) {
 }
 
 func TestUptimeKuma_Metrics_EmptyResponse(t *testing.T) {
+	t.Parallel()
 	t.Run("empty metrics response", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
@@ -85,7 +91,9 @@ func TestUptimeKuma_Metrics_EmptyResponse(t *testing.T) {
 }
 
 func TestNewUptimeKuma(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewUptimeKuma("https://uptime.example.com", "my-token")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

@@ -7,10 +7,12 @@ import (
 )
 
 func TestStringToBytes(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, []byte("test"), StringToBytes("test"))
 }
 
 func TestBytesToString(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, "test", BytesToString([]byte("test")))
 }
 

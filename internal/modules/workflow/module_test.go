@@ -11,6 +11,7 @@ import (
 )
 
 func TestBotName(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -19,12 +20,14 @@ func TestBotName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, "workflow", Name)
 		})
 	}
 }
 
 func TestBotInit(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		config    configType
@@ -56,6 +59,7 @@ func TestBotInit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.preInit {
 				handler = moduleHandler{initialized: true}
 			} else {
@@ -83,6 +87,7 @@ func TestBotInit(t *testing.T) {
 }
 
 func TestCommandRules(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -120,12 +125,14 @@ func TestCommandRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -134,6 +141,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)

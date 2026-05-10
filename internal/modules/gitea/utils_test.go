@@ -7,6 +7,7 @@ import (
 )
 
 func TestFilterFiles(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		files    []string
@@ -34,6 +35,7 @@ func TestFilterFiles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := filterFiles(tt.files, tt.patterns)
 			assert.Equal(t, tt.want, result)
 		})
@@ -41,6 +43,7 @@ func TestFilterFiles(t *testing.T) {
 }
 
 func TestFilterCommitString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		msg      string
@@ -74,12 +77,14 @@ func TestFilterCommitString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, filterCommitString(tt.msg, tt.patterns))
 		})
 	}
 }
 
 func TestFilterFilesContext(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		ctx     []map[string]any
@@ -107,6 +112,7 @@ func TestFilterFilesContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := filterFilesContext(tt.ctx, tt.files)
 			assert.Len(t, result, tt.wantLen)
 		})
@@ -114,6 +120,7 @@ func TestFilterFilesContext(t *testing.T) {
 }
 
 func TestGetTotalDiffSize(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		chunks []*CodeContext
@@ -135,12 +142,14 @@ func TestGetTotalDiffSize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, getTotalDiffSize(tt.chunks))
 		})
 	}
 }
 
 func TestSplitCodeChunk_EmptyDiff(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -148,6 +157,7 @@ func TestSplitCodeChunk_EmptyDiff(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ctx := CodeContext{
 				Diff:     "",
 				Metadata: map[string]string{"commit_id": "abc12345"},
@@ -159,6 +169,7 @@ func TestSplitCodeChunk_EmptyDiff(t *testing.T) {
 }
 
 func TestGenerateComments_NilInput(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		result *ReviewResult
@@ -170,12 +181,14 @@ func TestGenerateComments_NilInput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Nil(t, generateComments(tt.result, tt.ctx))
 		})
 	}
 }
 
 func TestGenerateComments_ValidInput(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -183,6 +196,7 @@ func TestGenerateComments_ValidInput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := &ReviewResult{
 				Score: 8.5,
 				QualityMetrics: &QualityMetric{

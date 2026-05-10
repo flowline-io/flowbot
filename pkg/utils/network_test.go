@@ -5,10 +5,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestPortAvailable tests the PortAvailable function
 func TestPortAvailable(t *testing.T) {
+	t.Parallel()
 	// Start a test server on a random port
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -17,9 +21,7 @@ func TestPortAvailable(t *testing.T) {
 
 	// Extract port from server URL
 	_, port, err := net.SplitHostPort(server.Listener.Addr().String())
-	if err != nil {
-		t.Fatalf("Failed to extract port: %v", err)
-	}
+	require.NoError(t, err, "Failed to extract port")
 
 	tests := []struct {
 		name string
@@ -40,16 +42,16 @@ func TestPortAvailable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := PortAvailable(tt.port)
-			if got != tt.want {
-				t.Errorf("PortAvailable() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 // TestNetListener tests the NetListener function
 func TestNetListener(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		addr    string
@@ -72,31 +74,26 @@ func TestNetListener(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			listener, err := NetListener(tt.addr)
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NetListener() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
 				return
 			}
+			require.NoError(t, err)
+			require.NotNil(t, listener, "NetListener() returned nil listener")
 
-			if !tt.wantErr {
-				if listener == nil {
-					t.Error("NetListener() returned nil listener")
-				} else {
-					// Check that we can get the address
-					addr := listener.Addr()
-					if addr == nil {
-						t.Error("NetListener() listener has nil address")
-					}
-					listener.Close()
-				}
-			}
+			addr := listener.Addr()
+			assert.NotNil(t, addr, "NetListener() listener has nil address")
+			listener.Close()
 		})
 	}
 }
 
 // TestIsUnixAddr tests the IsUnixAddr function
 func TestIsUnixAddr(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		addr string
@@ -136,15 +133,16 @@ func TestIsUnixAddr(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsUnixAddr(tt.addr); got != tt.want {
-				t.Errorf("IsUnixAddr() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+			got := IsUnixAddr(tt.addr)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 // TestIsRoutableIP tests the IsRoutableIP function
 func TestIsRoutableIP(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		ipStr string
@@ -209,15 +207,16 @@ func TestIsRoutableIP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsRoutableIP(tt.ipStr); got != tt.want {
-				t.Errorf("IsRoutableIP() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+			got := IsRoutableIP(tt.ipStr)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 // TestGetRemoteAddr tests the GetRemoteAddr function
 func TestGetRemoteAddr(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		xForwardedFor  string
@@ -252,6 +251,7 @@ func TestGetRemoteAddr(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Create a mock HTTP request
 			req := &http.Request{
 				Header:     make(http.Header),
@@ -263,9 +263,7 @@ func TestGetRemoteAddr(t *testing.T) {
 			}
 
 			result := GetRemoteAddr(req)
-			if result != tt.expectedResult {
-				t.Errorf("GetRemoteAddr() = %v, want %v", result, tt.expectedResult)
-			}
+			assert.Equal(t, tt.expectedResult, result)
 		})
 	}
 }
@@ -281,11 +279,11 @@ func FuzzIsRoutableIP(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, ip string) {
 		if r := recover(); r != nil {
-			t.Fatalf("IsRoutableIP panicked on %q: %v", ip, r)
+			require.Fail(t, "IsRoutableIP panicked")
 		}
 		got := IsRoutableIP(ip)
 		if got && ip == "" {
-			t.Error("IsRoutableIP() = true for empty string")
+			assert.Fail(t, "IsRoutableIP() = true for empty string")
 		}
 	})
 }
@@ -299,7 +297,7 @@ func FuzzIsUnixAddr(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, addr string) {
 		if r := recover(); r != nil {
-			t.Fatalf("IsUnixAddr panicked on %q: %v", addr, r)
+			require.Fail(t, "IsUnixAddr panicked")
 		}
 		_ = IsUnixAddr(addr)
 	})

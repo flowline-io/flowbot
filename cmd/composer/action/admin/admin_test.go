@@ -8,6 +8,7 @@ import (
 )
 
 func TestParseExpiresDefault(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
@@ -19,6 +20,7 @@ func TestParseExpiresDefault(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expires, err := parseExpires(tt.input)
 			require.NoError(t, err)
 			// Should be ~100 years from now
@@ -29,6 +31,7 @@ func TestParseExpiresDefault(t *testing.T) {
 }
 
 func TestParseExpiresDays(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -37,6 +40,7 @@ func TestParseExpiresDays(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expires, err := parseExpires("365d")
 			require.NoError(t, err)
 
@@ -49,6 +53,7 @@ func TestParseExpiresDays(t *testing.T) {
 }
 
 func TestParseExpiresHours(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -57,6 +62,7 @@ func TestParseExpiresHours(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expires, err := parseExpires("24h")
 			require.NoError(t, err)
 
@@ -69,6 +75,7 @@ func TestParseExpiresHours(t *testing.T) {
 }
 
 func TestParseExpiresMinutes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -77,6 +84,7 @@ func TestParseExpiresMinutes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			expires, err := parseExpires("30m")
 			require.NoError(t, err)
 
@@ -89,6 +97,7 @@ func TestParseExpiresMinutes(t *testing.T) {
 }
 
 func TestParseExpiresErrors(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
@@ -102,6 +111,7 @@ func TestParseExpiresErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := parseExpires(tt.input)
 			require.Error(t, err)
 		})
@@ -109,6 +119,7 @@ func TestParseExpiresErrors(t *testing.T) {
 }
 
 func TestParseExpiresCaseInsensitive(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
@@ -120,6 +131,7 @@ func TestParseExpiresCaseInsensitive(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := parseExpires(tt.input)
 			require.NoError(t, err)
 		})

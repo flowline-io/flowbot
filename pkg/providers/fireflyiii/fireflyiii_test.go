@@ -14,6 +14,7 @@ import (
 )
 
 func TestFireflyIII_About(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		response   Response
@@ -46,6 +47,7 @@ func TestFireflyIII_About(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/v1/about", r.URL.Path)
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
@@ -72,7 +74,9 @@ func TestFireflyIII_About(t *testing.T) {
 }
 
 func TestFireflyIII_CurrentUser(t *testing.T) {
+	t.Parallel()
 	t.Run("successful current user retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/v1/about/user", r.URL.Path)
 			w.Header().Set("Content-Type", "application/json")
@@ -108,6 +112,7 @@ func TestFireflyIII_CurrentUser(t *testing.T) {
 }
 
 func TestFireflyIII_CreateTransaction(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		transaction Transaction
@@ -150,6 +155,7 @@ func TestFireflyIII_CreateTransaction(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/v1/transactions", r.URL.Path)
 				assert.Equal(t, http.MethodPost, r.Method)
@@ -204,6 +210,7 @@ func TestFireflyIII_CreateTransaction(t *testing.T) {
 }
 
 func TestConvertResponseData(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		response   *Response
@@ -243,6 +250,7 @@ func TestConvertResponseData(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := ConvertResponseData[About](tt.response, tt.statusCode)
 
 			if tt.wantErr {
@@ -256,7 +264,9 @@ func TestConvertResponseData(t *testing.T) {
 }
 
 func TestNewFireflyIII(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewFireflyIII("https://firefly.example.com", "my-token")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

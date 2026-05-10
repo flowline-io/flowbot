@@ -10,7 +10,9 @@ import (
 )
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
 	t.Run("karakeep constants", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "karakeep", ID)
 		assert.Equal(t, "endpoint", EndpointKey)
 		assert.Equal(t, "api_key", ApikeyKey)
@@ -19,14 +21,18 @@ func TestConstants(t *testing.T) {
 }
 
 func TestNewKarakeep(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewKarakeep("https://api.karakeep.com", "test-api-key")
 		assert.NotNil(t, client)
 	})
 }
 
 func TestBookmarkUnmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal bookmark", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": "abc123",
 			"createdAt": "2025-01-01T00:00:00Z",
@@ -67,6 +73,7 @@ func TestBookmarkUnmarshal(t *testing.T) {
 }
 
 func TestBookmark_GetTitle(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		title    *string
@@ -86,6 +93,7 @@ func TestBookmark_GetTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			b := Bookmark{Title: tt.title}
 			assert.Equal(t, tt.expected, b.GetTitle())
 		})
@@ -95,6 +103,7 @@ func TestBookmark_GetTitle(t *testing.T) {
 func strptr(s string) *string { return &s }
 
 func TestBookmark_GetSummary(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		summary  *string
@@ -114,6 +123,7 @@ func TestBookmark_GetSummary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			b := Bookmark{Summary: tt.summary}
 			assert.Equal(t, tt.expected, b.GetSummary())
 		})
@@ -121,7 +131,9 @@ func TestBookmark_GetSummary(t *testing.T) {
 }
 
 func TestBookmark_Fields(t *testing.T) {
+	t.Parallel()
 	t.Run("bookmark struct fields", func(t *testing.T) {
+		t.Parallel()
 		b := Bookmark{
 			Id:         "bm1",
 			CreatedAt:  "2025-01-01T00:00:00Z",
@@ -136,7 +148,9 @@ func TestBookmark_Fields(t *testing.T) {
 }
 
 func TestBookmarkContent_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal bookmark content", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"type": "link",
 			"url": "https://example.com",
@@ -160,7 +174,9 @@ func TestBookmarkContent_Unmarshal(t *testing.T) {
 }
 
 func TestBookmarksResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal bookmarks response", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"bookmarks": [
 				{"id": "b1", "createdAt": "2025-01-01T00:00:00Z", "archived": false, "favourited": false}
@@ -179,7 +195,9 @@ func TestBookmarksResponse_Unmarshal(t *testing.T) {
 }
 
 func TestBookmarksResponse_Empty(t *testing.T) {
+	t.Parallel()
 	t.Run("empty bookmarks response", func(t *testing.T) {
+		t.Parallel()
 		data := `{"bookmarks": [], "nextCursor": ""}`
 		var resp BookmarksResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -190,7 +208,9 @@ func TestBookmarksResponse_Empty(t *testing.T) {
 }
 
 func TestTagsResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal tags response", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"tags": [
 				{"id": "t1", "name": "go", "numBookmarks": 5.0}
@@ -209,7 +229,9 @@ func TestTagsResponse_Unmarshal(t *testing.T) {
 }
 
 func TestTagNumBookmarksByAttachedType(t *testing.T) {
+	t.Parallel()
 	t.Run("tag num bookmarks by attached type", func(t *testing.T) {
+		t.Parallel()
 		ai := float32(3.0)
 		human := float32(2.0)
 		nb := TagNumBookmarksByAttachedType{
@@ -222,7 +244,9 @@ func TestTagNumBookmarksByAttachedType(t *testing.T) {
 }
 
 func TestAttachTagsResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal attach tags response", func(t *testing.T) {
+		t.Parallel()
 		data := `{"attached": ["tag1", "tag2"]}`
 		var resp AttachTagsResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -232,7 +256,9 @@ func TestAttachTagsResponse_Unmarshal(t *testing.T) {
 }
 
 func TestDetachTagsResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal detach tags response", func(t *testing.T) {
+		t.Parallel()
 		data := `{"detached": ["tag3"]}`
 		var resp DetachTagsResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -242,7 +268,9 @@ func TestDetachTagsResponse_Unmarshal(t *testing.T) {
 }
 
 func TestArchiveResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal archive response", func(t *testing.T) {
+		t.Parallel()
 		data := `{"archived": true}`
 		var resp ArchiveResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -252,14 +280,18 @@ func TestArchiveResponse_Unmarshal(t *testing.T) {
 }
 
 func TestBookmarkTagRequest(t *testing.T) {
+	t.Parallel()
 	t.Run("bookmark tag request", func(t *testing.T) {
+		t.Parallel()
 		req := BookmarkTagRequest{TagName: "test-tag"}
 		assert.Equal(t, "test-tag", req.TagName)
 	})
 }
 
 func TestBookmarksQuery_Defaults(t *testing.T) {
+	t.Parallel()
 	t.Run("query defaults", func(t *testing.T) {
+		t.Parallel()
 		q := BookmarksQuery{}
 		assert.Equal(t, 0, q.Limit)
 		assert.False(t, q.Archived)
@@ -269,7 +301,9 @@ func TestBookmarksQuery_Defaults(t *testing.T) {
 }
 
 func TestBookmarksQuery_WithValues(t *testing.T) {
+	t.Parallel()
 	t.Run("query with values", func(t *testing.T) {
+		t.Parallel()
 		q := BookmarksQuery{
 			Limit:      10,
 			Archived:   true,
@@ -284,7 +318,9 @@ func TestBookmarksQuery_WithValues(t *testing.T) {
 }
 
 func TestSearchBookmarksQuery_Defaults(t *testing.T) {
+	t.Parallel()
 	t.Run("search query defaults", func(t *testing.T) {
+		t.Parallel()
 		q := SearchBookmarksQuery{}
 		assert.Empty(t, q.Q)
 		assert.Empty(t, q.SortOrder)
@@ -295,7 +331,9 @@ func TestSearchBookmarksQuery_Defaults(t *testing.T) {
 }
 
 func TestSearchBookmarksQuery_WithValues(t *testing.T) {
+	t.Parallel()
 	t.Run("search query with values", func(t *testing.T) {
+		t.Parallel()
 		q := SearchBookmarksQuery{
 			Q:              "golang tutorials",
 			SortOrder:      "relevance",
@@ -312,7 +350,9 @@ func TestSearchBookmarksQuery_WithValues(t *testing.T) {
 }
 
 func TestCheckUrlResponse_Unmarshal_WithBookmarkId(t *testing.T) {
+	t.Parallel()
 	t.Run("check url response with bookmark id", func(t *testing.T) {
+		t.Parallel()
 		data := `{"bookmarkId": "abc123"}`
 		var resp CheckUrlResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -323,7 +363,9 @@ func TestCheckUrlResponse_Unmarshal_WithBookmarkId(t *testing.T) {
 }
 
 func TestCheckUrlResponse_Unmarshal_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Run("check url response not found", func(t *testing.T) {
+		t.Parallel()
 		data := `{"bookmarkId": null}`
 		var resp CheckUrlResponse
 		err := sonic.Unmarshal([]byte(data), &resp)
@@ -333,7 +375,9 @@ func TestCheckUrlResponse_Unmarshal_NotFound(t *testing.T) {
 }
 
 func TestBookmarkTagsInner_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal bookmark tags inner", func(t *testing.T) {
+		t.Parallel()
 		data := `{"id":"t1","name":"go","attachedBy":"ai"}`
 		var tag BookmarkTagsInner
 		err := sonic.Unmarshal([]byte(data), &tag)
@@ -345,7 +389,9 @@ func TestBookmarkTagsInner_Unmarshal(t *testing.T) {
 }
 
 func TestBookmarksBookmarkIdAssets_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal bookmark assets", func(t *testing.T) {
+		t.Parallel()
 		data := `{"id":"a1","assetType":"linkHtmlContent","fileName":"file.html"}`
 		var asset BookmarksBookmarkIdAssets
 		err := sonic.Unmarshal([]byte(data), &asset)

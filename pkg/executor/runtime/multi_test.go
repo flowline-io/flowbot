@@ -20,7 +20,10 @@ func (m *fakeMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
 }
 
 func TestMultiVolumeMount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("successful mount and unmount for registered volume type", func(t *testing.T) {
+		t.Parallel()
 		m := NewMultiMounter()
 		m.RegisterMounter(types.MountTypeVolume, &fakeMounter{})
 		ctx := context.Background()
@@ -38,7 +41,10 @@ func TestMultiVolumeMount(t *testing.T) {
 }
 
 func TestMultiBadTypeMount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mount with unregistered type returns error", func(t *testing.T) {
+		t.Parallel()
 		m := NewMultiMounter()
 		ctx := context.Background()
 		mnt := &types.Mount{Type: "badone", Target: "/mnt"}

@@ -9,6 +9,7 @@ import (
 )
 
 func TestParseProfileTypes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []string
@@ -49,6 +50,7 @@ func TestParseProfileTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parseProfileTypes(tt.input)
 			require.Len(t, result, len(tt.expected))
 			for i, pt := range tt.expected {
@@ -59,6 +61,7 @@ func TestParseProfileTypes(t *testing.T) {
 }
 
 func TestProfileTypeNames(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		types     []pyroscope.ProfileType
@@ -81,6 +84,7 @@ func TestProfileTypeNames(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			names := profileTypeNames(tt.types)
 			assert.Len(t, names, tt.wantLen)
 			if tt.wantNames != nil {
@@ -93,7 +97,9 @@ func TestProfileTypeNames(t *testing.T) {
 }
 
 func TestPyroscopeLogger(t *testing.T) {
+	t.Parallel()
 	t.Run("log adapter does not panic", func(t *testing.T) {
+		t.Parallel()
 		l := pyroscopeLogger{}
 		l.Infof("test info %d", 1)
 		l.Debugf("test debug %s", "arg")

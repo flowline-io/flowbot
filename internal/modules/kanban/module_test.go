@@ -13,6 +13,7 @@ import (
 )
 
 func TestBotName(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -21,12 +22,14 @@ func TestBotName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, "kanban", Name)
 		})
 	}
 }
 
 func TestBotInit(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		config    configType
@@ -58,6 +61,7 @@ func TestBotInit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.preInit {
 				handler = moduleHandler{initialized: true}
 			} else {
@@ -85,6 +89,7 @@ func TestBotInit(t *testing.T) {
 }
 
 func TestCommandRules(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -112,12 +117,14 @@ func TestCommandRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestCronRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -126,6 +133,7 @@ func TestCronRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, cronRules)
 
 			names := make(map[string]bool)
@@ -139,6 +147,7 @@ func TestCronRules_Defined(t *testing.T) {
 }
 
 func TestEventRules_Defined(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -147,6 +156,7 @@ func TestEventRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotEmpty(t, eventRules)
 
 			ids := make(map[string]bool)
@@ -160,6 +170,7 @@ func TestEventRules_Defined(t *testing.T) {
 }
 
 func TestEventRules_HaveHandlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -168,6 +179,7 @@ func TestEventRules_HaveHandlers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range eventRules {
 				assert.NotNil(t, r.Handler, "handler for event %q should not be nil", r.Id)
 			}
@@ -176,6 +188,7 @@ func TestEventRules_HaveHandlers(t *testing.T) {
 }
 
 func TestWebhookRules(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -205,12 +218,14 @@ func TestWebhookRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -219,6 +234,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)

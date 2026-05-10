@@ -7,6 +7,7 @@ import (
 )
 
 func TestHubCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,6 +16,7 @@ func TestHubCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := HubCommand()
 
 			require.Equal(t, "hub", cmd.Use)
@@ -29,6 +31,7 @@ func TestHubCommand(t *testing.T) {
 }
 
 func TestHubAppsCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -37,6 +40,7 @@ func TestHubAppsCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hubCmd := HubCommand()
 			appsCmd := findSubcommand(hubCmd, "apps")
 			require.NotNil(t, appsCmd)
@@ -52,6 +56,7 @@ func TestHubAppsCommand(t *testing.T) {
 }
 
 func TestHubAppsListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -60,6 +65,7 @@ func TestHubAppsListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hubCmd := HubCommand()
 			appsCmd := findSubcommand(hubCmd, "apps")
 			listCmd := findSubcommand(appsCmd, "list")
@@ -77,6 +83,7 @@ func TestHubAppsListCommand(t *testing.T) {
 }
 
 func TestHubAppsStatusCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -85,6 +92,7 @@ func TestHubAppsStatusCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hubCmd := HubCommand()
 			appsCmd := findSubcommand(hubCmd, "apps")
 			statusCmd := findSubcommand(appsCmd, "status")
@@ -96,6 +104,7 @@ func TestHubAppsStatusCommand(t *testing.T) {
 }
 
 func TestHubAppsLogsCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -104,6 +113,7 @@ func TestHubAppsLogsCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hubCmd := HubCommand()
 			appsCmd := findSubcommand(hubCmd, "apps")
 			logsCmd := findSubcommand(appsCmd, "logs")
@@ -121,6 +131,7 @@ func TestHubAppsLogsCommand(t *testing.T) {
 }
 
 func TestHubHealthCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -129,6 +140,7 @@ func TestHubHealthCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hubCmd := HubCommand()
 			healthCmd := findSubcommand(hubCmd, "health")
 			require.NotNil(t, healthCmd)

@@ -10,7 +10,9 @@ import (
 )
 
 func TestTokenResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal token response", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"access_token": "test_token_123",
 			"token_type": "bearer",
@@ -31,7 +33,9 @@ func TestTokenResponse_Unmarshal(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
 	t.Run("dropbox constants", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "dropbox", ID)
 		assert.Equal(t, "key", ClientIdKey)
 		assert.Equal(t, "secret", ClientSecretKey)
@@ -39,7 +43,9 @@ func TestConstants(t *testing.T) {
 }
 
 func TestDropbox_Constructor(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor sets fields", func(t *testing.T) {
+		t.Parallel()
 		clientId := "test_client_id"
 		clientSecret := "test_client_secret"
 		redirectURI := "https://example.com/callback"
@@ -56,7 +62,9 @@ func TestDropbox_Constructor(t *testing.T) {
 }
 
 func TestDropbox_GetAuthorizeURL(t *testing.T) {
+	t.Parallel()
 	t.Run("authorize URL generation", func(t *testing.T) {
+		t.Parallel()
 		dropbox := NewDropbox("client_id", "secret", "https://example.com/callback", "")
 		url := dropbox.GetAuthorizeURL()
 
@@ -68,7 +76,9 @@ func TestDropbox_GetAuthorizeURL(t *testing.T) {
 }
 
 func TestDropbox_Redirect(t *testing.T) {
+	t.Parallel()
 	t.Run("redirect URL generation", func(t *testing.T) {
+		t.Parallel()
 		dropbox := NewDropbox("client_id", "secret", "https://example.com/callback", "")
 		url, err := dropbox.Redirect(nil)
 

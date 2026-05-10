@@ -11,6 +11,8 @@ import (
 
 // TestNewCache tests the NewCache function
 func TestNewCache(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		config  *config.Type
@@ -46,6 +48,7 @@ func TestNewCache(t *testing.T) {
 
 // TestCacheSet tests the Set method
 func TestCacheSet(t *testing.T) {
+	t.Parallel()
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
@@ -96,6 +99,8 @@ func TestCacheSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := cache.Set(tt.key, tt.value, tt.cost)
 			require.True(t, result, "Set should return true")
 			cache.Wait()
@@ -105,6 +110,7 @@ func TestCacheSet(t *testing.T) {
 
 // TestCacheSetWithTTL tests the SetWithTTL method
 func TestCacheSetWithTTL(t *testing.T) {
+	t.Parallel()
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
@@ -141,6 +147,8 @@ func TestCacheSetWithTTL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := cache.SetWithTTL(tt.key, tt.value, tt.cost, tt.ttl)
 			require.True(t, result, "SetWithTTL should return true")
 			cache.Wait()
@@ -150,6 +158,7 @@ func TestCacheSetWithTTL(t *testing.T) {
 
 // TestCacheGet tests the Get method
 func TestCacheGet(t *testing.T) {
+	t.Parallel()
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
@@ -204,6 +213,8 @@ func TestCacheGet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			gotValue, gotOK := cache.Get(tt.key)
 			require.Equal(t, tt.wantOK, gotOK, "Get ok mismatch")
 			if tt.wantOK {
@@ -215,6 +226,7 @@ func TestCacheGet(t *testing.T) {
 
 // TestCacheDel tests the Del method
 func TestCacheDel(t *testing.T) {
+	t.Parallel()
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)
@@ -263,6 +275,8 @@ func TestCacheDel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			cache.Del(tt.delKey)
 			cache.Wait()
 			gotValue, gotOK := cache.Get(tt.checkKey)
@@ -274,7 +288,10 @@ func TestCacheDel(t *testing.T) {
 
 // TestCacheWait tests the Wait method
 func TestCacheWait(t *testing.T) {
+	t.Parallel()
+
 	t.Run("multiple values do not panic", func(t *testing.T) {
+		t.Parallel()
 		cache, err := NewCache(&config.Type{})
 		require.NoError(t, err)
 		require.NotNil(t, cache)
@@ -291,7 +308,10 @@ func TestCacheWait(t *testing.T) {
 
 // TestCacheIntegration tests basic cache operations together
 func TestCacheIntegration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("set get del integration", func(t *testing.T) {
+		t.Parallel()
 		cache, err := NewCache(&config.Type{})
 		require.NoError(t, err)
 		require.NotNil(t, cache)
@@ -317,6 +337,7 @@ func TestCacheIntegration(t *testing.T) {
 
 // TestCacheTTLExpiration tests that TTL actually expires
 func TestCacheTTLExpiration(t *testing.T) {
+	t.Parallel()
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)
 	require.NotNil(t, cache)

@@ -12,6 +12,7 @@ import (
 )
 
 func TestParseAction(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name             string
 		action           string
@@ -88,6 +89,7 @@ func TestParseAction(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			info := ParseAction(tt.action)
 			assert.Equal(t, tt.wantIsCapability, info.IsCapability)
 			assert.Equal(t, tt.wantType, info.Type)
@@ -99,6 +101,7 @@ func TestParseAction(t *testing.T) {
 }
 
 func TestDetermineRuntimeType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		task *types.Task
@@ -128,12 +131,14 @@ func TestDetermineRuntimeType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, DetermineRuntimeType(tt.task))
 		})
 	}
 }
 
 func TestWorkflowTaskToTask(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		wt          types.WorkflowTask
@@ -264,6 +269,7 @@ func TestWorkflowTaskToTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			task, err := WorkflowTaskToTask(tt.wt)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -281,6 +287,7 @@ func TestWorkflowTaskToTask(t *testing.T) {
 }
 
 func TestParseYAML(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		data        []byte
@@ -368,6 +375,7 @@ tasks:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			wf, err := ParseYAML(tt.data)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -385,6 +393,7 @@ tasks:
 }
 
 func TestResolveParams(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		params      types.KV
@@ -584,6 +593,7 @@ func TestResolveParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			resolved, err := resolveParams(tt.params, tt.results, tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -601,6 +611,7 @@ func TestResolveParams(t *testing.T) {
 }
 
 func TestValidateDAG(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		tasks       []types.WorkflowTask
@@ -689,6 +700,7 @@ func TestValidateDAG(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := ValidateDAG(tt.tasks)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -703,7 +715,9 @@ func TestValidateDAG(t *testing.T) {
 }
 
 func TestRunner(t *testing.T) {
+	t.Parallel()
 	t.Run("new-runner-has-engines", func(t *testing.T) {
+		t.Parallel()
 		r := NewRunner()
 		assert.Contains(t, r.engines, "capability")
 		assert.Contains(t, r.engines, "shell")
@@ -712,6 +726,7 @@ func TestRunner(t *testing.T) {
 	})
 
 	t.Run("mapper-step-only", func(t *testing.T) {
+		t.Parallel()
 		runner := NewRunner()
 		wf := types.WorkflowMetadata{
 			Name:     "mapper-only",
@@ -737,6 +752,7 @@ func TestRunner(t *testing.T) {
 	})
 
 	t.Run("mapper-chain-with-jsonpath", func(t *testing.T) {
+		t.Parallel()
 		runner := NewRunner()
 		wf := types.WorkflowMetadata{
 			Name:     "mapper-chain",

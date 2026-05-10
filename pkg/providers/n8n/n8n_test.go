@@ -14,7 +14,9 @@ import (
 )
 
 func TestN8N_ListWorkflows(t *testing.T) {
+	t.Parallel()
 	t.Run("successful list workflows", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows", r.URL.Path)
 			assert.Equal(t, http.MethodGet, r.Method)
@@ -58,7 +60,9 @@ func TestN8N_ListWorkflows(t *testing.T) {
 }
 
 func TestN8N_ListWorkflows_Error(t *testing.T) {
+	t.Parallel()
 	t.Run("unauthorized error", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
@@ -72,7 +76,9 @@ func TestN8N_ListWorkflows_Error(t *testing.T) {
 }
 
 func TestN8N_GetWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful get workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows/workflow-123", r.URL.Path)
 			assert.Equal(t, http.MethodGet, r.Method)
@@ -112,7 +118,9 @@ func TestN8N_GetWorkflow(t *testing.T) {
 }
 
 func TestN8N_CreateWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful create workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows", r.URL.Path)
 			assert.Equal(t, http.MethodPost, r.Method)
@@ -152,7 +160,9 @@ func TestN8N_CreateWorkflow(t *testing.T) {
 }
 
 func TestN8N_UpdateWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful update workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows/workflow-123", r.URL.Path)
 			assert.Equal(t, http.MethodPut, r.Method)
@@ -189,7 +199,9 @@ func TestN8N_UpdateWorkflow(t *testing.T) {
 }
 
 func TestN8N_DeleteWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful delete workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows/workflow-123", r.URL.Path)
 			assert.Equal(t, http.MethodDelete, r.Method)
@@ -205,7 +217,9 @@ func TestN8N_DeleteWorkflow(t *testing.T) {
 }
 
 func TestN8N_ActivateWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful activate workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows/workflow-123/activate", r.URL.Path)
 			assert.Equal(t, http.MethodPost, r.Method)
@@ -221,7 +235,9 @@ func TestN8N_ActivateWorkflow(t *testing.T) {
 }
 
 func TestN8N_DeactivateWorkflow(t *testing.T) {
+	t.Parallel()
 	t.Run("successful deactivate workflow", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/workflows/workflow-123/deactivate", r.URL.Path)
 			assert.Equal(t, http.MethodPost, r.Method)
@@ -237,7 +253,9 @@ func TestN8N_DeactivateWorkflow(t *testing.T) {
 }
 
 func TestN8N_ExecuteWorkflow_WithWebhookPath(t *testing.T) {
+	t.Parallel()
 	t.Run("execute workflow with webhook path", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/workflows/workflow-123":
@@ -284,7 +302,9 @@ func TestN8N_ExecuteWorkflow_WithWebhookPath(t *testing.T) {
 }
 
 func TestN8N_ExecuteWorkflow_WithWebhookID(t *testing.T) {
+	t.Parallel()
 	t.Run("execute workflow with webhook ID", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/workflows/workflow-123":
@@ -321,7 +341,9 @@ func TestN8N_ExecuteWorkflow_WithWebhookID(t *testing.T) {
 }
 
 func TestN8N_ExecuteWorkflow_NoWebhook(t *testing.T) {
+	t.Parallel()
 	t.Run("execute workflow with no webhook", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			workflow := Workflow{
 				ID:     "workflow-123",
@@ -351,7 +373,9 @@ func TestN8N_ExecuteWorkflow_NoWebhook(t *testing.T) {
 }
 
 func TestN8N_GetClient_Disabled(t *testing.T) {
+	t.Parallel()
 	t.Run("get client disabled", func(t *testing.T) {
+		t.Parallel()
 		client, err := GetClient()
 		assert.Nil(t, client)
 		require.Error(t, err)
@@ -360,7 +384,9 @@ func TestN8N_GetClient_Disabled(t *testing.T) {
 }
 
 func TestNewN8N(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewN8N("https://n8n.example.com", "my-api-key")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

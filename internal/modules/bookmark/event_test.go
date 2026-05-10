@@ -9,6 +9,7 @@ import (
 )
 
 func TestEventRules(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -16,12 +17,14 @@ func TestEventRules(t *testing.T) {
 		{
 			name: "should have exactly 3 event rules",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, eventRules, 3)
 			},
 		},
 		{
 			name: "should contain expected event IDs",
 			test: func(t *testing.T) {
+				t.Parallel()
 				ids := make(map[string]bool)
 				for _, r := range eventRules {
 					ids[r.Id] = true
@@ -35,6 +38,7 @@ func TestEventRules(t *testing.T) {
 		{
 			name: "all event rules should have non-nil handlers",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range eventRules {
 					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
 				}

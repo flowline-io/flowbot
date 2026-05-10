@@ -12,6 +12,7 @@ import (
 )
 
 func TestCommandRules_Metadata(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -19,12 +20,14 @@ func TestCommandRules_Metadata(t *testing.T) {
 		{
 			name: "should have exactly 13 command rules",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, commandRules, 13)
 			},
 		},
 		{
 			name: "should contain all expected defines",
 			test: func(t *testing.T) {
+				t.Parallel()
 				expected := []string{
 					"dev setting", "id", "form test", "queue test",
 					"page test", "docker test", "torrent test",
@@ -43,6 +46,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 		{
 			name: "all command rules should have non-nil handlers",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range commandRules {
 					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 				}
@@ -51,6 +55,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 		{
 			name: "all command rules should have non-empty help",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range commandRules {
 					assert.NotEmpty(t, r.Help, "help for %q should not be empty", r.Define)
 				}
@@ -63,6 +68,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		define string
@@ -90,6 +96,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -101,6 +108,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_IDHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -108,6 +116,7 @@ func TestCommandRules_IDHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var idRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "id" {
@@ -139,6 +148,7 @@ func TestCommandRules_IDHandler(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -146,6 +156,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rs := command.Ruleset(commandRules)
 			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
@@ -159,6 +170,8 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 func TestCommandRules_FormTestHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -166,6 +179,7 @@ func TestCommandRules_FormTestHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var formRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "form test" {
@@ -198,6 +212,8 @@ func TestCommandRules_FormTestHandler(t *testing.T) {
 func TestCommandRules_DevSettingHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -205,6 +221,7 @@ func TestCommandRules_DevSettingHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var settingRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "dev setting" {
@@ -235,6 +252,8 @@ func TestCommandRules_DevSettingHandler(t *testing.T) {
 func TestCommandRules_PageTestHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -242,6 +261,7 @@ func TestCommandRules_PageTestHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var pageRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "page test" {
@@ -272,6 +292,8 @@ func TestCommandRules_PageTestHandler(t *testing.T) {
 func TestCommandRules_SlashTestHandler(t *testing.T) {
 	t.Skip("requires external service")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -279,6 +301,7 @@ func TestCommandRules_SlashTestHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var slashRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "slash test" {
@@ -304,6 +327,8 @@ func TestCommandRules_SlashTestHandler(t *testing.T) {
 func TestCommandRules_LLMTestHandler(t *testing.T) {
 	t.Skip("requires agent service")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -311,6 +336,7 @@ func TestCommandRules_LLMTestHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var llmRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "llm test" {

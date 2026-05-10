@@ -10,7 +10,9 @@ import (
 )
 
 func TestGithub_GetAuthenticatedUser(t *testing.T) {
+	t.Parallel()
 	t.Run("successful user retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/user", r.URL.Path)
@@ -41,7 +43,9 @@ func TestGithub_GetAuthenticatedUser(t *testing.T) {
 }
 
 func TestGithub_GetUser(t *testing.T) {
+	t.Parallel()
 	t.Run("get user by username", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/users/octocat", r.URL.Path)
@@ -67,7 +71,9 @@ func TestGithub_GetUser(t *testing.T) {
 }
 
 func TestGithub_GetAuthenticatedUser_Error(t *testing.T) {
+	t.Parallel()
 	t.Run("unauthorized error", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
@@ -83,7 +89,9 @@ func TestGithub_GetAuthenticatedUser_Error(t *testing.T) {
 }
 
 func TestGithub_GetRepository(t *testing.T) {
+	t.Parallel()
 	t.Run("successful repository retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/repos/owner/repo", r.URL.Path)
@@ -111,7 +119,9 @@ func TestGithub_GetRepository(t *testing.T) {
 }
 
 func TestGithub_GetRepository_Error(t *testing.T) {
+	t.Parallel()
 	t.Run("not found error", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
@@ -127,7 +137,9 @@ func TestGithub_GetRepository_Error(t *testing.T) {
 }
 
 func TestGithub_CreateIssue(t *testing.T) {
+	t.Parallel()
 	t.Run("successful issue creation", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method)
 			assert.Equal(t, "/repos/owner/repo/issues", r.URL.Path)
@@ -155,7 +167,9 @@ func TestGithub_CreateIssue(t *testing.T) {
 }
 
 func TestGithub_GetNotifications(t *testing.T) {
+	t.Parallel()
 	t.Run("successful notifications retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/notifications", r.URL.Path)
@@ -181,7 +195,9 @@ func TestGithub_GetNotifications(t *testing.T) {
 }
 
 func TestGithub_GetReleases(t *testing.T) {
+	t.Parallel()
 	t.Run("successful releases retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/repos/owner/repo/releases", r.URL.Path)
@@ -207,7 +223,9 @@ func TestGithub_GetReleases(t *testing.T) {
 }
 
 func TestGithub_GetFollowers(t *testing.T) {
+	t.Parallel()
 	t.Run("successful followers retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/user/followers", r.URL.Path)
@@ -232,7 +250,9 @@ func TestGithub_GetFollowers(t *testing.T) {
 }
 
 func TestGithub_GetStarred(t *testing.T) {
+	t.Parallel()
 	t.Run("successful starred repos retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/users/octocat/starred", r.URL.Path)
@@ -256,7 +276,9 @@ func TestGithub_GetStarred(t *testing.T) {
 }
 
 func TestGithub_GetUserProjects(t *testing.T) {
+	t.Parallel()
 	t.Run("successful user projects retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/users/octocat/projects", r.URL.Path)
@@ -280,7 +302,9 @@ func TestGithub_GetUserProjects(t *testing.T) {
 }
 
 func TestGithub_GetProjectColumns(t *testing.T) {
+	t.Parallel()
 	t.Run("successful project columns retrieval", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "GET", r.Method)
 			assert.Equal(t, "/projects/1/columns", r.URL.Path)
@@ -304,7 +328,9 @@ func TestGithub_GetProjectColumns(t *testing.T) {
 }
 
 func TestGithub_CreateCard(t *testing.T) {
+	t.Parallel()
 	t.Run("successful card creation", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method)
 			assert.Equal(t, "/projects/columns/10/cards", r.URL.Path)

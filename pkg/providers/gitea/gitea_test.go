@@ -8,6 +8,7 @@ import (
 )
 
 func TestHookIssueAction_Constants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		action   HookIssueAction
 		expected string
@@ -31,13 +32,16 @@ func TestHookIssueAction_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.expected, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, string(tt.action))
 		})
 	}
 }
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
 	t.Run("gitea constants", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "gitea", ID)
 		assert.Equal(t, "endpoint", EndpointKey)
 		assert.Equal(t, "token", TokenKey)
@@ -45,7 +49,9 @@ func TestConstants(t *testing.T) {
 }
 
 func TestIssuePayload_JSONPayload(t *testing.T) {
+	t.Parallel()
 	t.Run("marshal issue payload to json", func(t *testing.T) {
+		t.Parallel()
 		payload := &IssuePayload{
 			Action:   HookIssueOpened,
 			Index:    42,
@@ -61,7 +67,9 @@ func TestIssuePayload_JSONPayload(t *testing.T) {
 }
 
 func TestIssuePayload_WithChanges(t *testing.T) {
+	t.Parallel()
 	t.Run("marshal issue payload with changes", func(t *testing.T) {
+		t.Parallel()
 		payload := &IssuePayload{
 			Action: HookIssueEdited,
 			Index:  1,
@@ -84,7 +92,9 @@ func TestIssuePayload_WithChanges(t *testing.T) {
 }
 
 func TestCommit(t *testing.T) {
+	t.Parallel()
 	t.Run("commit struct fields", func(t *testing.T) {
+		t.Parallel()
 		commit := Commit{
 			Id:        "abc123def456",
 			Message:   "Test commit message",
@@ -104,7 +114,9 @@ func TestCommit(t *testing.T) {
 }
 
 func TestCommitDiff(t *testing.T) {
+	t.Parallel()
 	t.Run("commit diff struct fields", func(t *testing.T) {
+		t.Parallel()
 		diff := CommitDiff{
 			CommitID:      "abc123",
 			CommitMessage: "Test commit",
@@ -120,7 +132,9 @@ func TestCommitDiff(t *testing.T) {
 }
 
 func TestChangesPayload(t *testing.T) {
+	t.Parallel()
 	t.Run("changes payload struct", func(t *testing.T) {
+		t.Parallel()
 		changes := &ChangesPayload{
 			Title: &ChangesFromPayload{From: "Old Title"},
 			Body:  &ChangesFromPayload{From: "Old Body"},
@@ -134,14 +148,18 @@ func TestChangesPayload(t *testing.T) {
 }
 
 func TestChangesFromPayload(t *testing.T) {
+	t.Parallel()
 	t.Run("changes from payload field", func(t *testing.T) {
+		t.Parallel()
 		change := ChangesFromPayload{From: "previous value"}
 		assert.Equal(t, "previous value", change.From)
 	})
 }
 
 func TestRepoPayload(t *testing.T) {
+	t.Parallel()
 	t.Run("repo payload struct fields", func(t *testing.T) {
+		t.Parallel()
 		payload := RepoPayload{
 			Ref:          "refs/heads/main",
 			Before:       "abc123",
@@ -160,7 +178,9 @@ func TestRepoPayload(t *testing.T) {
 }
 
 func TestGitea_Constructor(t *testing.T) {
+	t.Parallel()
 	t.Run("struct creation with token", func(t *testing.T) {
+		t.Parallel()
 		// This test would need a mock Gitea server or test instance
 		// For now, we just test the struct creation
 		g := &Gitea{

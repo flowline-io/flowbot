@@ -10,6 +10,8 @@ import (
 )
 
 func TestTypeStruct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		cfg      Type
@@ -34,6 +36,8 @@ func TestTypeStruct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.wantList, tt.cfg.Listen)
 			assert.Equal(t, tt.wantApi, tt.cfg.ApiPath)
 			assert.Equal(t, tt.wantDev, tt.cfg.DevMode)
@@ -41,6 +45,7 @@ func TestTypeStruct(t *testing.T) {
 	}
 
 	t.Run("bots and vendors are not nil", func(t *testing.T) {
+		t.Parallel()
 		cfg := Type{
 			Bots:    map[string]any{"test": "value"},
 			Vendors: map[string]any{"vendor1": "val"},
@@ -51,6 +56,8 @@ func TestTypeStruct(t *testing.T) {
 }
 
 func TestStoreType(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		store     StoreType
@@ -72,6 +79,8 @@ func TestStoreType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.wantMax, tt.store.MaxResults)
 			assert.Equal(t, tt.wantAdapt, tt.store.UseAdapter)
 			if tt.wantMap {
@@ -82,6 +91,8 @@ func TestStoreType(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name  string
 		level string
@@ -92,6 +103,8 @@ func TestLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			log := Log{Level: tt.level}
 			assert.Equal(t, tt.level, log.Level)
 		})
@@ -99,6 +112,8 @@ func TestLog(t *testing.T) {
 }
 
 func TestRedis(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		redis    Redis
@@ -118,6 +133,8 @@ func TestRedis(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.wantHost, tt.redis.Host)
 			assert.Equal(t, tt.wantPort, tt.redis.Port)
 			assert.Equal(t, tt.wantDB, tt.redis.DB)
@@ -127,7 +144,10 @@ func TestRedis(t *testing.T) {
 }
 
 func TestPlatformConfigs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Slack", func(t *testing.T) {
+		t.Parallel()
 		slack := Slack{
 			Enabled:       true,
 			AppID:         "A123",
@@ -142,12 +162,14 @@ func TestPlatformConfigs(t *testing.T) {
 	})
 
 	t.Run("Discord", func(t *testing.T) {
+		t.Parallel()
 		discord := Discord{Enabled: true, AppID: "D123", ClientID: "DC123", ClientSecret: "secret", BotToken: "Bot token"}
 		assert.True(t, discord.Enabled)
 		assert.Equal(t, "D123", discord.AppID)
 	})
 
 	t.Run("Telegram", func(t *testing.T) {
+		t.Parallel()
 		tests := []struct {
 			name   string
 			tg     Telegram
@@ -158,18 +180,21 @@ func TestPlatformConfigs(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, tt.wantOn, tt.tg.Enabled)
 			})
 		}
 	})
 
 	t.Run("Tailchat", func(t *testing.T) {
+		t.Parallel()
 		tailchat := Tailchat{Enabled: true, ApiURL: "https://api.tailchat.com", AppID: "T123", AppSecret: "secret"}
 		assert.True(t, tailchat.Enabled)
 		assert.Equal(t, "https://api.tailchat.com", tailchat.ApiURL)
 	})
 
 	t.Run("Slack all fields", func(t *testing.T) {
+		t.Parallel()
 		slack := Slack{Enabled: true, AppID: "app1", ClientID: "cid1", ClientSecret: "cs1", SigningSecret: "ss1", VerificationToken: "vt1", AppToken: "at1", BotToken: "bt1"}
 		assert.Equal(t, "app1", slack.AppID)
 		assert.Equal(t, "cid1", slack.ClientID)
@@ -181,6 +206,7 @@ func TestPlatformConfigs(t *testing.T) {
 	})
 
 	t.Run("Discord all fields", func(t *testing.T) {
+		t.Parallel()
 		discord := Discord{Enabled: true, AppID: "app1", PublicKey: "pk1", ClientID: "cid1", ClientSecret: "cs1", BotToken: "bt1"}
 		assert.Equal(t, "app1", discord.AppID)
 		assert.Equal(t, "pk1", discord.PublicKey)
@@ -191,7 +217,10 @@ func TestPlatformConfigs(t *testing.T) {
 }
 
 func TestExecutor(t *testing.T) {
+	t.Parallel()
+
 	t.Run("type and limits", func(t *testing.T) {
+		t.Parallel()
 		executor := Executor{Type: "docker"}
 		assert.Equal(t, "docker", executor.Type)
 
@@ -202,6 +231,7 @@ func TestExecutor(t *testing.T) {
 	})
 
 	t.Run("sub-configs", func(t *testing.T) {
+		t.Parallel()
 		executor := Executor{}
 		executor.Docker.Config = "/etc/docker/daemon.json"
 		assert.Equal(t, "/etc/docker/daemon.json", executor.Docker.Config)
@@ -230,6 +260,8 @@ func TestExecutor(t *testing.T) {
 }
 
 func TestMetrics(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		metrics Metrics
@@ -245,6 +277,7 @@ func TestMetrics(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.wantOn, tt.metrics.Enabled)
 			assert.Equal(t, tt.wantEp, tt.metrics.Endpoint)
 		})
@@ -252,6 +285,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
+	t.Parallel()
 	search := Search{
 		Enabled:    true,
 		Endpoint:   "https://search.example.com",
@@ -261,6 +295,7 @@ func TestSearch(t *testing.T) {
 	}
 
 	t.Run("search fields", func(t *testing.T) {
+		t.Parallel()
 		assert.True(t, search.Enabled)
 		assert.Equal(t, "https://search.example.com", search.Endpoint)
 		assert.Equal(t, "key123", search.MasterKey)
@@ -270,9 +305,11 @@ func TestSearch(t *testing.T) {
 }
 
 func TestFlowbot(t *testing.T) {
+	t.Parallel()
 	fb := Flowbot{URL: "https://flowbot.example.com", ChannelPath: "/channels", Language: "en"}
 
 	t.Run("flowbot fields", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "https://flowbot.example.com", fb.URL)
 		assert.Equal(t, "/channels", fb.ChannelPath)
 		assert.Equal(t, "en", fb.Language)
@@ -280,9 +317,11 @@ func TestFlowbot(t *testing.T) {
 }
 
 func TestAlarm(t *testing.T) {
+	t.Parallel()
 	alarm := Alarm{Enabled: true, Filter: "error|fatal", SlackWebhook: "https://hooks.slack.com/test"}
 
 	t.Run("alarm fields", func(t *testing.T) {
+		t.Parallel()
 		assert.True(t, alarm.Enabled)
 		assert.Equal(t, "error|fatal", alarm.Filter)
 		assert.Equal(t, "https://hooks.slack.com/test", alarm.SlackWebhook)
@@ -290,9 +329,11 @@ func TestAlarm(t *testing.T) {
 }
 
 func TestModel(t *testing.T) {
+	t.Parallel()
 	model := Model{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk-test", ModelNames: []string{"gpt-4", "gpt-3.5-turbo"}}
 
 	t.Run("model fields", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "openai", model.Provider)
 		assert.Equal(t, "https://api.openai.com", model.BaseUrl)
 		assert.Equal(t, "sk-test", model.ApiKey)
@@ -301,9 +342,11 @@ func TestModel(t *testing.T) {
 }
 
 func TestAgent(t *testing.T) {
+	t.Parallel()
 	agent := Agent{Name: "assistant", Enabled: true, Model: "gpt-4"}
 
 	t.Run("agent fields", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "assistant", agent.Name)
 		assert.True(t, agent.Enabled)
 		assert.Equal(t, "gpt-4", agent.Model)
@@ -311,6 +354,7 @@ func TestAgent(t *testing.T) {
 }
 
 func TestMediaConfig(t *testing.T) {
+	t.Parallel()
 	media := mediaConfig{
 		UseHandler:        "s3",
 		MaxFileUploadSize: 104857600,
@@ -320,6 +364,7 @@ func TestMediaConfig(t *testing.T) {
 	}
 
 	t.Run("media config fields", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "s3", media.UseHandler)
 		assert.Equal(t, int64(104857600), media.MaxFileUploadSize)
 		assert.Equal(t, 3600, media.GcPeriod)
@@ -329,7 +374,10 @@ func TestMediaConfig(t *testing.T) {
 }
 
 func TestTypeJSONMarshaling(t *testing.T) {
+	t.Parallel()
+
 	t.Run("marshal and unmarshal", func(t *testing.T) {
+		t.Parallel()
 		cfg := Type{
 			Listen: ":9090", ApiPath: "/v1/", DevMode: false,
 			Store: StoreType{MaxResults: 50, UseAdapter: "mysql"},
@@ -350,7 +398,10 @@ func TestTypeJSONMarshaling(t *testing.T) {
 }
 
 func TestModelAndAgentSlices(t *testing.T) {
+	t.Parallel()
+
 	t.Run("models slice", func(t *testing.T) {
+		t.Parallel()
 		cfg := Type{
 			Models: []Model{
 				{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk1", ModelNames: []string{"gpt-4"}},
@@ -363,6 +414,7 @@ func TestModelAndAgentSlices(t *testing.T) {
 	})
 
 	t.Run("agents slice", func(t *testing.T) {
+		t.Parallel()
 		cfg := Type{
 			Agents: []Agent{
 				{Name: "chat", Enabled: true, Model: "gpt-4"},

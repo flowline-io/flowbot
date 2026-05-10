@@ -8,7 +8,9 @@ import (
 )
 
 func TestStatsSystem(t *testing.T) {
+	t.Parallel()
 	t.Run("metrics initialization and counters", func(t *testing.T) {
+		t.Parallel()
 		config := &MetricsConfig{
 			PushGatewayURL: "http://localhost:9091",
 			JobName:        "flowbot-test",
@@ -55,7 +57,9 @@ func TestStatsSystem(t *testing.T) {
 }
 
 func TestMetricInterface(t *testing.T) {
+	t.Parallel()
 	t.Run("counter inc add and gauge set operations", func(t *testing.T) {
+		t.Parallel()
 		metric := BotTotalCounter()
 
 		metric.Inc()

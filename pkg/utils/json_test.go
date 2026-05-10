@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestEncodeJSON tests the EncodeJSON function
@@ -50,14 +53,12 @@ func TestEncodeJSON(t *testing.T) {
 			var buf bytes.Buffer
 			err := EncodeJSON(&buf, tt.input)
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EncodeJSON() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
 				return
 			}
-
-			if !tt.wantErr && buf.Len() == 0 {
-				t.Error("EncodeJSON() produced empty output")
-			}
+			require.NoError(t, err)
+			assert.NotZero(t, buf.Len(), "EncodeJSON() produced empty output")
 		})
 	}
 }
@@ -105,16 +106,15 @@ func TestEncodeJSONEscapeHTML(t *testing.T) {
 			var buf bytes.Buffer
 			err := EncodeJSONEscapeHTML(&buf, tt.args.v, tt.args.esc)
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EncodeJSONEscapeHTML() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
 				return
 			}
+			require.NoError(t, err)
 
-			if !tt.wantErr {
-				output := buf.String()
-				if tt.check != nil && !tt.check(output) {
-					t.Errorf("EncodeJSONEscapeHTML() output check failed: %s", output)
-				}
+			output := buf.String()
+			if tt.check != nil {
+				assert.True(t, tt.check(output), "EncodeJSONEscapeHTML() output check failed: %s", output)
 			}
 		})
 	}
@@ -163,16 +163,15 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 			var buf bytes.Buffer
 			err := EncodeJSONEscapeHTMLIndent(&buf, tt.v, tt.esc, tt.indent)
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EncodeJSONEscapeHTMLIndent() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
 				return
 			}
+			require.NoError(t, err)
 
-			if !tt.wantErr {
-				output := buf.String()
-				if tt.indent == "  " && !strings.Contains(output, "  ") {
-					t.Error("EncodeJSONEscapeHTMLIndent() should contain indentation")
-				}
+			output := buf.String()
+			if tt.indent == "  " {
+				assert.Contains(t, output, "  ", "EncodeJSONEscapeHTMLIndent() should contain indentation")
 			}
 		})
 	}
@@ -218,9 +217,11 @@ func TestDecodeJSON(t *testing.T) {
 			reader := strings.NewReader(tt.input)
 			err := DecodeJSON(reader, tt.target)
 
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DecodeJSON() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
 			}
+			require.NoError(t, err)
 		})
 	}
 }

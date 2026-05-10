@@ -18,6 +18,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cfg  []config.Pipeline
@@ -99,6 +100,7 @@ func TestLoadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			defs := LoadConfig(tt.cfg)
 			tt.test(t, defs)
 		})
@@ -106,7 +108,9 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestFindByEvent(t *testing.T) {
+	t.Parallel()
 	t.Run("method-match", func(t *testing.T) {
+		t.Parallel()
 		d := Definition{Name: "p", Trigger: Trigger{Event: "bookmark.created"}}
 		matched := d.FindByEvent("bookmark.created")
 		require.Len(t, matched, 1)
@@ -114,12 +118,14 @@ func TestFindByEvent(t *testing.T) {
 	})
 
 	t.Run("method-no-match", func(t *testing.T) {
+		t.Parallel()
 		d := Definition{Name: "p", Trigger: Trigger{Event: "bookmark.created"}}
 		matched := d.FindByEvent("archive.created")
 		assert.Empty(t, matched)
 	})
 
 	t.Run("package-multiple-matches", func(t *testing.T) {
+		t.Parallel()
 		defs := []Definition{
 			{Name: "p1", Trigger: Trigger{Event: "e1"}},
 			{Name: "p2", Trigger: Trigger{Event: "e2"}},
@@ -130,6 +136,7 @@ func TestFindByEvent(t *testing.T) {
 	})
 
 	t.Run("package-no-matches", func(t *testing.T) {
+		t.Parallel()
 		defs := []Definition{
 			{Name: "p1", Trigger: Trigger{Event: "e1"}},
 		}
@@ -138,13 +145,16 @@ func TestFindByEvent(t *testing.T) {
 	})
 
 	t.Run("package-empty-slice", func(t *testing.T) {
+		t.Parallel()
 		matched := FindByEvent(nil, "e1")
 		assert.Empty(t, matched)
 	})
 }
 
 func TestRenderContext(t *testing.T) {
+	t.Parallel()
 	t.Run("new-render-context", func(t *testing.T) {
+		t.Parallel()
 		event := types.DataEvent{EventID: "evt1", EventType: "bookmark.created", EntityID: "123"}
 		rc := NewRenderContext(event)
 		assert.Equal(t, "evt1", rc.Event.EventID)
@@ -153,6 +163,7 @@ func TestRenderContext(t *testing.T) {
 	})
 
 	t.Run("record-step-result", func(t *testing.T) {
+		t.Parallel()
 		rc := NewRenderContext(types.DataEvent{})
 		rc.RecordStepResult("step1", map[string]any{"id": "abc", "url": "https://x.com"})
 		assert.Contains(t, rc.Steps, "step1")
@@ -160,6 +171,7 @@ func TestRenderContext(t *testing.T) {
 	})
 
 	t.Run("build-step-results", func(t *testing.T) {
+		t.Parallel()
 		event := types.DataEvent{EventID: "evt-1"}
 		rc := NewRenderContext(event)
 		rc.RecordStepResult("step1", map[string]any{"id": "123"})
@@ -173,6 +185,7 @@ func TestRenderContext(t *testing.T) {
 }
 
 func TestRenderParams(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		event       types.DataEvent
@@ -405,6 +418,7 @@ func TestRenderParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rc := NewRenderContext(tt.event)
 			for name, data := range tt.recordSteps {
 				rc.RecordStepResult(name, data)
@@ -422,6 +436,7 @@ func TestRenderParams(t *testing.T) {
 }
 
 func TestRenderString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		event    types.DataEvent
@@ -460,6 +475,7 @@ func TestRenderString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rc := NewRenderContext(tt.event)
 			result, err := rc.RenderString(tt.template)
 			require.NoError(t, err)
@@ -469,6 +485,7 @@ func TestRenderString(t *testing.T) {
 }
 
 func TestBuildBackoff(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		cfg  *types.RetryConfig
@@ -537,6 +554,7 @@ func TestBuildBackoff(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			bo := tt.cfg.BuildBackOff()
 			tt.test(t, bo)
 		})
@@ -544,6 +562,7 @@ func TestBuildBackoff(t *testing.T) {
 }
 
 func TestIsRetryable(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		err  error
@@ -590,6 +609,7 @@ func TestIsRetryable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.name == "retry-enabled" {
 				assert.False(t, (*types.RetryConfig)(nil).RetryEnabled())
 				assert.False(t, (&types.RetryConfig{}).RetryEnabled())
@@ -603,6 +623,7 @@ func TestIsRetryable(t *testing.T) {
 }
 
 func TestConvertToTypesKV(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		in   map[string]any
@@ -628,6 +649,7 @@ func TestConvertToTypesKV(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := convertToTypesKV(tt.in)
 			tt.test(t, result)
 		})
@@ -635,12 +657,14 @@ func TestConvertToTypesKV(t *testing.T) {
 }
 
 func TestNewEngine(t *testing.T) {
+	t.Parallel()
 	e := NewEngine(nil, nil)
 	assert.NotNil(t, e)
 	assert.NotNil(t, e.Handler())
 }
 
 func TestCheckpointDataMarshaling(t *testing.T) {
+	t.Parallel()
 	cp := &CheckpointData{
 		StepIndex: 2,
 		StepResults: map[string]*StepResult{

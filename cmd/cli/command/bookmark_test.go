@@ -8,6 +8,7 @@ import (
 )
 
 func TestBookmarkCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -16,6 +17,7 @@ func TestBookmarkCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := BookmarkCommand()
 
 			require.Equal(t, "bookmark", cmd.Use)
@@ -34,6 +36,7 @@ func TestBookmarkCommand(t *testing.T) {
 }
 
 func TestBookmarkCreateRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -42,6 +45,7 @@ func TestBookmarkCreateRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := BookmarkCommand()
 			createCmd := findSubcommand(cmd, "create")
 			require.NotNil(t, createCmd)
@@ -59,6 +63,7 @@ func TestBookmarkCreateRequiredFlags(t *testing.T) {
 }
 
 func TestBookmarkListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -67,6 +72,7 @@ func TestBookmarkListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := BookmarkCommand()
 			listCmd := findSubcommand(cmd, "list")
 			require.NotNil(t, listCmd)
@@ -80,6 +86,7 @@ func TestBookmarkListCommand(t *testing.T) {
 }
 
 func TestBookmarkSearchCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -88,6 +95,7 @@ func TestBookmarkSearchCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := BookmarkCommand()
 			searchCmd := findSubcommand(cmd, "search")
 			require.NotNil(t, searchCmd)

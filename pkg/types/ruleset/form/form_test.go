@@ -10,21 +10,27 @@ import (
 )
 
 func TestRule_ID(t *testing.T) {
+	t.Parallel()
 	t.Run("rule id", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_form"}
 		assert.Equal(t, "test_form", r.ID())
 	})
 }
 
 func TestRule_TYPE(t *testing.T) {
+	t.Parallel()
 	t.Run("rule type", func(t *testing.T) {
+		t.Parallel()
 		r := Rule{Id: "test_form"}
 		assert.Equal(t, types.FormRule, r.TYPE())
 	})
 }
 
 func TestRuleset_ProcessForm_MatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("matching rule", func(t *testing.T) {
+		t.Parallel()
 		called := false
 		rules := Ruleset{
 			{
@@ -50,7 +56,9 @@ func TestRuleset_ProcessForm_MatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessForm_NoMatchingRule(t *testing.T) {
+	t.Parallel()
 	t.Run("no matching rule", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "form1",
@@ -68,7 +76,9 @@ func TestRuleset_ProcessForm_NoMatchingRule(t *testing.T) {
 }
 
 func TestRuleset_ProcessForm_MultipleRules(t *testing.T) {
+	t.Parallel()
 	t.Run("multiple rules", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id: "form1",
@@ -92,7 +102,9 @@ func TestRuleset_ProcessForm_MultipleRules(t *testing.T) {
 }
 
 func TestRuleset_ProcessForm_EmptyRuleset(t *testing.T) {
+	t.Parallel()
 	t.Run("empty ruleset", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{}
 		ctx := types.Context{FormRuleId: "form1"}
 		result, err := rules.ProcessForm(ctx, types.KV{})
@@ -102,7 +114,9 @@ func TestRuleset_ProcessForm_EmptyRuleset(t *testing.T) {
 }
 
 func TestRuleset_ProcessForm_LongTermFlag(t *testing.T) {
+	t.Parallel()
 	t.Run("long term flag", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id:         "form_lt",
@@ -124,7 +138,9 @@ func TestRuleset_ProcessForm_LongTermFlag(t *testing.T) {
 }
 
 func TestRuleset_ProcessForm_WithFormFields(t *testing.T) {
+	t.Parallel()
 	t.Run("with form fields", func(t *testing.T) {
+		t.Parallel()
 		rules := Ruleset{
 			{
 				Id:    "form_fields",

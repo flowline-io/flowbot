@@ -14,7 +14,10 @@ import (
 )
 
 func TestMountBindNotAllowed(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mount bind when not allowed returns error", func(t *testing.T) {
+		t.Parallel()
 		m := &BindMounter{cfg: BindConfig{
 			Allowed: false,
 		}}
@@ -29,7 +32,10 @@ func TestMountBindNotAllowed(t *testing.T) {
 }
 
 func TestMountCreate(t *testing.T) {
+	t.Parallel()
+
 	t.Run("concurrent bind mounts succeed", func(t *testing.T) {
+		t.Parallel()
 		m := NewBindMounter(BindConfig{
 			Allowed: true,
 		})

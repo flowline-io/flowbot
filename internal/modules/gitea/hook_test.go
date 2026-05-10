@@ -7,6 +7,7 @@ import (
 )
 
 func TestHookFunctions(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		fn   any
@@ -18,6 +19,7 @@ func TestHookFunctions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.NotNil(t, tt.fn)
 		})
 	}

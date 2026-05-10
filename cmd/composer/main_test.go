@@ -25,6 +25,7 @@ func findSubcommand(cmd *cobra.Command, name string) *cobra.Command {
 }
 
 func TestNewCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -33,6 +34,7 @@ func TestNewCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 
 			require.Equal(t, "composer", cmd.Use)
@@ -51,6 +53,7 @@ func TestNewCommand(t *testing.T) {
 }
 
 func TestDaoCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -59,6 +62,7 @@ func TestDaoCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			daoCmd := findSubcommand(cmd, "dao")
 			require.NotNil(t, daoCmd)
@@ -74,6 +78,7 @@ func TestDaoCommand(t *testing.T) {
 }
 
 func TestWebdocCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -82,6 +87,7 @@ func TestWebdocCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			webdocCmd := findSubcommand(cmd, "webdoc")
 			require.NotNil(t, webdocCmd)
@@ -92,6 +98,7 @@ func TestWebdocCommand(t *testing.T) {
 }
 
 func TestSkillsCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -100,6 +107,7 @@ func TestSkillsCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			skillsCmd := findSubcommand(cmd, "skills")
 			require.NotNil(t, skillsCmd)
@@ -115,6 +123,7 @@ func TestSkillsCommand(t *testing.T) {
 }
 
 func TestDocCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -123,6 +132,7 @@ func TestDocCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			docCmd := findSubcommand(cmd, "doc")
 			require.NotNil(t, docCmd)
@@ -143,6 +153,7 @@ func TestDocCommand(t *testing.T) {
 }
 
 func TestAdminCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -151,6 +162,7 @@ func TestAdminCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			adminCmd := findSubcommand(cmd, "admin")
 			require.NotNil(t, adminCmd)
@@ -163,6 +175,7 @@ func TestAdminCommand(t *testing.T) {
 }
 
 func TestAdminTokenCreateCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -171,6 +184,7 @@ func TestAdminTokenCreateCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := NewCommand()
 			adminCmd := findSubcommand(cmd, "admin")
 			tokenCmd := findSubcommand(adminCmd, "token")

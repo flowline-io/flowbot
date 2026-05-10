@@ -12,6 +12,7 @@ import (
 )
 
 func TestWebhookRules_Metadata(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -19,18 +20,21 @@ func TestWebhookRules_Metadata(t *testing.T) {
 		{
 			name: "should have exactly 1 webhook rule",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, webhookRules, 1)
 			},
 		},
 		{
 			name: "should have correct constant",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, "example", ExampleWebhookID)
 			},
 		},
 		{
 			name: "should contain ExampleWebhookID",
 			test: func(t *testing.T) {
+				t.Parallel()
 				ids := make(map[string]bool)
 				for _, r := range webhookRules {
 					ids[r.Id] = true
@@ -42,6 +46,7 @@ func TestWebhookRules_Metadata(t *testing.T) {
 		{
 			name: "all webhooks should have Secret=true",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range webhookRules {
 					assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
 				}
@@ -50,6 +55,7 @@ func TestWebhookRules_Metadata(t *testing.T) {
 		{
 			name: "all webhook handlers should be non-nil",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range webhookRules {
 					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
 				}
@@ -58,8 +64,10 @@ func TestWebhookRules_Metadata(t *testing.T) {
 		{
 			name: "all webhooks should have non-empty ID, Secret=true, and non-nil handler",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range webhookRules {
 					t.Run(r.Id, func(t *testing.T) {
+						t.Parallel()
 						assert.NotEmpty(t, r.Id)
 						assert.True(t, r.Secret)
 						assert.NotNil(t, r.Handler)
@@ -74,6 +82,7 @@ func TestWebhookRules_Metadata(t *testing.T) {
 }
 
 func TestWebhookRules_ExampleHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		method       string
@@ -106,6 +115,7 @@ func TestWebhookRules_ExampleHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var exampleRule *webhook.Rule
 			for i := range webhookRules {
 				if webhookRules[i].Id == ExampleWebhookID {
@@ -136,6 +146,7 @@ func TestWebhookRules_ExampleHandler(t *testing.T) {
 }
 
 func TestWebhookRuleset_ProcessRule(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		ruleID      string
@@ -161,6 +172,7 @@ func TestWebhookRuleset_ProcessRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rs := webhook.Ruleset(webhookRules)
 			ctx := types.Context{
 				Platform:      "test",

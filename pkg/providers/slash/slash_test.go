@@ -15,6 +15,7 @@ import (
 )
 
 func TestSlash_CreateShortcut(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		shortcut   Shortcut
@@ -54,6 +55,7 @@ func TestSlash_CreateShortcut(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/api/v1/shortcuts", r.URL.Path)
 				assert.Equal(t, http.MethodPost, r.Method)
@@ -84,7 +86,9 @@ func TestSlash_CreateShortcut(t *testing.T) {
 }
 
 func TestSlash_UpdateShortcut(t *testing.T) {
+	t.Parallel()
 	t.Run("successful update shortcut", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			expectedPath := "/api/v1/shortcuts/123"
 			assert.Equal(t, expectedPath, r.URL.Path)
@@ -116,6 +120,7 @@ func TestSlash_UpdateShortcut(t *testing.T) {
 }
 
 func TestSlash_DeleteShortcut(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		id         int32
@@ -138,6 +143,7 @@ func TestSlash_DeleteShortcut(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				expectedPath := fmt.Sprintf("/api/v1/shortcuts/%d", tt.id)
 				assert.Equal(t, expectedPath, r.URL.Path)
@@ -160,7 +166,9 @@ func TestSlash_DeleteShortcut(t *testing.T) {
 }
 
 func TestSlash_GetShortcut(t *testing.T) {
+	t.Parallel()
 	t.Run("successful get shortcut", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/api/v1/shortcuts/456", r.URL.Path)
 			assert.Equal(t, http.MethodGet, r.Method)
@@ -207,7 +215,9 @@ func TestSlash_GetShortcut(t *testing.T) {
 }
 
 func TestSlash_GetShortcut_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Run("shortcut not found", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
@@ -221,7 +231,9 @@ func TestSlash_GetShortcut_NotFound(t *testing.T) {
 }
 
 func TestSlash_ListShortcuts(t *testing.T) {
+	t.Parallel()
 	t.Run("successful list shortcuts", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/api/v1/shortcuts", r.URL.Path)
 			assert.Equal(t, http.MethodGet, r.Method)
@@ -272,7 +284,9 @@ func TestSlash_ListShortcuts(t *testing.T) {
 }
 
 func TestSlash_ListShortcuts_Empty(t *testing.T) {
+	t.Parallel()
 	t.Run("empty list shortcuts", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		shortcuts := []*Shortcut{}
 		w.Header().Set("Content-Type", "application/json")
@@ -291,7 +305,9 @@ func TestSlash_ListShortcuts_Empty(t *testing.T) {
 }
 
 func TestNewSlash(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewSlash("https://slash.example.com", "my-token")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

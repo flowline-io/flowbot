@@ -13,6 +13,7 @@ import (
 )
 
 func TestArchiveBox_Add(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		request    Data
@@ -63,6 +64,7 @@ func TestArchiveBox_Add(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/api/v1/cli/add", r.URL.Path)
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
@@ -97,7 +99,9 @@ func TestArchiveBox_Add(t *testing.T) {
 }
 
 func TestArchiveBox_AddMultipleUrls(t *testing.T) {
+	t.Parallel()
 	t.Run("add multiple URLs", func(t *testing.T) {
+		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		assert.NoError(t, err)
@@ -134,7 +138,9 @@ func TestArchiveBox_AddMultipleUrls(t *testing.T) {
 }
 
 func TestNewArchiveBox(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor creates client", func(t *testing.T) {
+		t.Parallel()
 		client := NewArchiveBox("http://localhost:8000", "my-token")
 		assert.NotNil(t, client)
 		assert.NotNil(t, client.c)

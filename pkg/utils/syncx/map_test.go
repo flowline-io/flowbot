@@ -14,6 +14,7 @@ import (
 )
 
 func TestGetNonExistent(t *testing.T) {
+	t.Parallel()
 	m := syncx.Map[string, int]{}
 	v, ok := m.Get("nothing")
 	assert.False(t, ok)
@@ -21,6 +22,7 @@ func TestGetNonExistent(t *testing.T) {
 }
 
 func TestSetAndGet(t *testing.T) {
+	t.Parallel()
 	m := syncx.Map[string, int]{}
 	m.Set("somekey", 100)
 	v, ok := m.Get("somekey")
@@ -29,6 +31,7 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestSetAndDelete(t *testing.T) {
+	t.Parallel()
 	m := syncx.Map[string, int]{}
 	m.Set("somekey", 100)
 	v, ok := m.Get("somekey")
@@ -41,6 +44,7 @@ func TestSetAndDelete(t *testing.T) {
 }
 
 func TestConcurrentSetAndGet(t *testing.T) {
+	t.Parallel()
 	m := syncx.Map[string, int]{}
 	wg := sync.WaitGroup{}
 	wg.Add(1000)
@@ -59,6 +63,7 @@ func TestConcurrentSetAndGet(t *testing.T) {
 }
 
 func TestIterate(t *testing.T) {
+	t.Parallel()
 	m := syncx.Map[string, int]{}
 	m.Set("k1", 100)
 	m.Set("k2", 200)

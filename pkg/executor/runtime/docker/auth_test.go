@@ -9,8 +9,11 @@ import (
 )
 
 func TestDecodeBase64Auth(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range base64TestCases() {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			u, p, err := decodeBase64Auth(tc.config)
 			if tc.expErr {
 				require.Error(t, err)
@@ -24,8 +27,11 @@ func TestDecodeBase64Auth(t *testing.T) {
 }
 
 func TestGetRegistryCredentials(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range base64TestCases() {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			config := config{
 				AuthConfigs: map[string]authConfig{
 					"some.domain": tc.config,

@@ -7,6 +7,7 @@ import (
 )
 
 func TestConfigCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,6 +16,7 @@ func TestConfigCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ConfigCommand()
 
 			require.Equal(t, "config", cmd.Use)
@@ -29,6 +31,7 @@ func TestConfigCommand(t *testing.T) {
 }
 
 func TestConfigGetCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -37,6 +40,7 @@ func TestConfigGetCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ConfigCommand()
 			getCmd := findSubcommand(cmd, "get")
 			require.NotNil(t, getCmd)
@@ -47,6 +51,7 @@ func TestConfigGetCommand(t *testing.T) {
 }
 
 func TestConfigSetCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -55,6 +60,7 @@ func TestConfigSetCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ConfigCommand()
 			setCmd := findSubcommand(cmd, "set")
 			require.NotNil(t, setCmd)
@@ -65,6 +71,7 @@ func TestConfigSetCommand(t *testing.T) {
 }
 
 func TestConfigListCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -73,6 +80,7 @@ func TestConfigListCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ConfigCommand()
 			listCmd := findSubcommand(cmd, "list")
 			require.NotNil(t, listCmd)
@@ -83,6 +91,7 @@ func TestConfigListCommand(t *testing.T) {
 }
 
 func TestVersionCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -91,6 +100,7 @@ func TestVersionCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := VersionCommand("1.0.0")
 
 			require.Equal(t, "version", cmd.Use)

@@ -8,6 +8,7 @@ import (
 )
 
 func TestTaskState_IsActive(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		state TaskState
@@ -47,13 +48,16 @@ func TestTaskState_IsActive(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.state.IsActive())
 		})
 	}
 }
 
 func TestTask_Clone_AllFields(t *testing.T) {
+	t.Parallel()
 	t.Run("clone all fields", func(t *testing.T) {
+		t.Parallel()
 		createdAt := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 		startedAt := time.Date(2024, 1, 1, 1, 0, 0, 0, time.UTC)
 
@@ -98,7 +102,9 @@ func TestTask_Clone_AllFields(t *testing.T) {
 }
 
 func TestTask_Clone_NilOptionalFields(t *testing.T) {
+	t.Parallel()
 	t.Run("clone with nil optional fields", func(t *testing.T) {
+		t.Parallel()
 		task := &Task{
 			ID:    "minimal",
 			State: TaskStatePending,
@@ -116,7 +122,9 @@ func TestTask_Clone_NilOptionalFields(t *testing.T) {
 }
 
 func TestTask_Clone_NilEnvSafe(t *testing.T) {
+	t.Parallel()
 	t.Run("clone with nil env and files", func(t *testing.T) {
+		t.Parallel()
 		task := &Task{ID: "x", Env: nil, Files: nil}
 		clone := task.Clone()
 		assert.Nil(t, clone.Env)
@@ -125,7 +133,9 @@ func TestTask_Clone_NilEnvSafe(t *testing.T) {
 }
 
 func TestTask_Clone_PrePostTasks(t *testing.T) {
+	t.Parallel()
 	t.Run("clone with pre and post tasks", func(t *testing.T) {
+		t.Parallel()
 		pre := &Task{ID: "pre-1", State: TaskStateCompleted}
 		post := &Task{ID: "post-1", State: TaskStatePending}
 		task := &Task{
@@ -147,7 +157,9 @@ func TestTask_Clone_PrePostTasks(t *testing.T) {
 }
 
 func TestCloneTasks(t *testing.T) {
+	t.Parallel()
 	t.Run("clone tasks slice", func(t *testing.T) {
+		t.Parallel()
 		tasks := []*Task{
 			{ID: "a", State: TaskStatePending},
 			{ID: "b", State: TaskStateRunning},
@@ -163,7 +175,9 @@ func TestCloneTasks(t *testing.T) {
 }
 
 func TestTaskRetry_Clone(t *testing.T) {
+	t.Parallel()
 	t.Run("clone task retry", func(t *testing.T) {
+		t.Parallel()
 		r := &TaskRetry{Limit: 5, Attempts: 2}
 		c := r.Clone()
 		assert.Equal(t, r.Limit, c.Limit)
@@ -173,7 +187,9 @@ func TestTaskRetry_Clone(t *testing.T) {
 }
 
 func TestTaskLimits_Clone(t *testing.T) {
+	t.Parallel()
 	t.Run("clone task limits", func(t *testing.T) {
+		t.Parallel()
 		l := &TaskLimits{CPUs: "4", Memory: "1g"}
 		c := l.Clone()
 		assert.Equal(t, l.CPUs, c.CPUs)
@@ -183,7 +199,9 @@ func TestTaskLimits_Clone(t *testing.T) {
 }
 
 func TestRegistry_Clone(t *testing.T) {
+	t.Parallel()
 	t.Run("clone registry", func(t *testing.T) {
+		t.Parallel()
 		r := &Registry{Username: "admin", Password: "s3cret"}
 		c := r.Clone()
 		assert.Equal(t, r.Username, c.Username)
@@ -193,6 +211,7 @@ func TestRegistry_Clone(t *testing.T) {
 }
 
 func TestMountTypeConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant string
@@ -217,6 +236,7 @@ func TestMountTypeConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.constant)
 		})
 	}

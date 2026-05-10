@@ -16,6 +16,7 @@ type eventFieldTest struct {
 }
 
 func TestRenderString_EventFields(t *testing.T) {
+	t.Parallel()
 	tests := []eventFieldTest{
 		{
 			name:     "EventField",
@@ -57,6 +58,7 @@ func TestRenderString_EventFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			var data *TemplateData
 			if tt.event != nil {
@@ -78,6 +80,7 @@ type stepFieldTest struct {
 }
 
 func TestRenderString_StepFields(t *testing.T) {
+	t.Parallel()
 	tests := []stepFieldTest{
 		{
 			name:     "StepField",
@@ -119,6 +122,7 @@ func TestRenderString_StepFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Steps: tt.steps}
 			result, err := e.RenderString(tt.template, data)
@@ -137,6 +141,7 @@ type conditionalTest struct {
 }
 
 func TestRenderString_Conditionals(t *testing.T) {
+	t.Parallel()
 	tests := []conditionalTest{
 		{
 			name:     "If",
@@ -208,6 +213,7 @@ func TestRenderString_Conditionals(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Event: tt.event}
 			result, err := e.RenderString(tt.template, data)
@@ -227,6 +233,7 @@ type loopTest struct {
 }
 
 func TestRenderString_Loops(t *testing.T) {
+	t.Parallel()
 	tests := []loopTest{
 		{
 			name:     "Range",
@@ -256,6 +263,7 @@ func TestRenderString_Loops(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Event: tt.event}
 			result, err := e.RenderString(tt.template, data)
@@ -280,6 +288,7 @@ type functionTest struct {
 }
 
 func TestRenderString_Functions(t *testing.T) {
+	t.Parallel()
 	tests := []functionTest{
 		{
 			name:     "Join",
@@ -375,6 +384,7 @@ func TestRenderString_Functions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Event: tt.event}
 			result, err := e.RenderString(tt.template, data)
@@ -394,6 +404,7 @@ type jsonpathTest struct {
 }
 
 func TestRenderString_Jsonpath(t *testing.T) {
+	t.Parallel()
 	tests := []jsonpathTest{
 		{
 			name:     "Simple",
@@ -500,6 +511,7 @@ func TestRenderString_Jsonpath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Event: tt.event, Steps: tt.steps}
 			result, err := e.RenderString(tt.template, data)
@@ -521,6 +533,7 @@ type inputFieldTest struct {
 }
 
 func TestRenderString_InputFields(t *testing.T) {
+	t.Parallel()
 	tests := []inputFieldTest{
 		{
 			name:     "InputField",
@@ -594,6 +607,7 @@ func TestRenderString_InputFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			var data *TemplateData
 			if !tt.nilData {
@@ -622,6 +636,7 @@ type paramsTest struct {
 }
 
 func TestRender_Params(t *testing.T) {
+	t.Parallel()
 	tests := []paramsTest{
 		{
 			name: "ParamsWithTemplates",
@@ -743,6 +758,7 @@ func TestRender_Params(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Event: tt.event, Steps: tt.steps}
 			result, err := e.Render(tt.params, data)
@@ -771,6 +787,7 @@ type paramsInputTest struct {
 }
 
 func TestRender_ParamsInput(t *testing.T) {
+	t.Parallel()
 	tests := []paramsInputTest{
 		{
 			name: "ParamsWithInput",
@@ -839,6 +856,7 @@ func TestRender_ParamsInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			data := &TemplateData{Input: tt.input}
 			result, err := e.Render(tt.params, data)
@@ -858,6 +876,7 @@ type preprocessTest struct {
 }
 
 func TestPreprocessTemplate(t *testing.T) {
+	t.Parallel()
 	tests := []preprocessTest{
 		// Event
 		{
@@ -964,6 +983,7 @@ func TestPreprocessTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := preprocessTemplate(tt.input)
 			assert.Equal(t, tt.want, result)
 		})
@@ -981,6 +1001,7 @@ type edgeCaseTest struct {
 }
 
 func TestRenderString_EdgeCases(t *testing.T) {
+	t.Parallel()
 	tests := []edgeCaseTest{
 		{
 			name:     "MissingEventField_OldSyntax",
@@ -1029,6 +1050,7 @@ func TestRenderString_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			result, err := e.RenderString(tt.template, tt.data)
 			if tt.wantErr {
@@ -1054,6 +1076,7 @@ type maxDepthTest struct {
 }
 
 func TestRender_MaxDepth(t *testing.T) {
+	t.Parallel()
 	tests := []maxDepthTest{
 		{
 			name: "MaxDepth",
@@ -1089,6 +1112,7 @@ func TestRender_MaxDepth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			e := New()
 			params := tt.buildParams()
 			result, err := e.Render(params, nil)

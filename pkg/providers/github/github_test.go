@@ -11,7 +11,9 @@ import (
 )
 
 func TestTokenResponse_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal token response", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"access_token": "gho_test_token",
 			"scope": "repo,user",
@@ -29,7 +31,9 @@ func TestTokenResponse_Unmarshal(t *testing.T) {
 }
 
 func TestUser_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal user", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"login": "testuser",
 			"id": 12345,
@@ -64,7 +68,9 @@ func TestUser_Unmarshal(t *testing.T) {
 }
 
 func TestRepository_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal repository", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 123456789,
 			"node_id": "MDEwOlJlcG9zaXRvcnkxMjM0NTY3ODk=",
@@ -98,7 +104,9 @@ func TestRepository_Unmarshal(t *testing.T) {
 }
 
 func TestIssue_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal issue", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 123456,
 			"node_id": "MDU6SXNzdWUxMjM0NTY=",
@@ -137,7 +145,9 @@ func TestIssue_Unmarshal(t *testing.T) {
 }
 
 func TestLabel_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal label", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 123,
 			"node_id": "MDU6TGFiZWwxMjM=",
@@ -159,7 +169,9 @@ func TestLabel_Unmarshal(t *testing.T) {
 }
 
 func TestProject_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal project", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 1234567,
 			"node_id": "MDc6UHJvamVjdDEyMzQ1Njc=",
@@ -181,7 +193,9 @@ func TestProject_Unmarshal(t *testing.T) {
 }
 
 func TestProjectColumn_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal project column", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 12345678,
 			"node_id": "MDEzOlByb2plY3RDb2x1bW4xMjM0NTY3OA==",
@@ -199,7 +213,9 @@ func TestProjectColumn_Unmarshal(t *testing.T) {
 }
 
 func TestProjectCard_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal project card", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 123456789,
 			"node_id": "MDExOlByb2plY3RDYXJkMTIzNDU2Nzg5",
@@ -219,7 +235,9 @@ func TestProjectCard_Unmarshal(t *testing.T) {
 }
 
 func TestNotification_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal notification", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": "123456789",
 			"repository": {
@@ -248,7 +266,9 @@ func TestNotification_Unmarshal(t *testing.T) {
 }
 
 func TestRepositoryRelease_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal repository release", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 123456,
 			"tag_name": "v1.0.0",
@@ -273,7 +293,9 @@ func TestRepositoryRelease_Unmarshal(t *testing.T) {
 }
 
 func TestPackageWebhook_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal package webhook", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"action": "published",
 			"package": {
@@ -312,7 +334,9 @@ func TestPackageWebhook_Unmarshal(t *testing.T) {
 }
 
 func TestMilestone_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal milestone", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 12345,
 			"number": 1,
@@ -336,7 +360,9 @@ func TestMilestone_Unmarshal(t *testing.T) {
 }
 
 func TestReactions_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal reactions", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"total_count": 10,
 			"+1": 5,
@@ -361,7 +387,9 @@ func TestReactions_Unmarshal(t *testing.T) {
 }
 
 func TestReleaseAsset_Unmarshal(t *testing.T) {
+	t.Parallel()
 	t.Run("json unmarshal release asset", func(t *testing.T) {
+		t.Parallel()
 		data := `{
 			"id": 12345,
 			"name": "test-asset.zip",
@@ -385,7 +413,9 @@ func TestReleaseAsset_Unmarshal(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
 	t.Run("github constants", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, "github", ID)
 		assert.Equal(t, "id", ClientIdKey)
 		assert.Equal(t, "secret", ClientSecretKey)
@@ -393,7 +423,9 @@ func TestConstants(t *testing.T) {
 }
 
 func TestGithub_Constructor(t *testing.T) {
+	t.Parallel()
 	t.Run("constructor sets fields", func(t *testing.T) {
+		t.Parallel()
 		clientId := "test_client_id"
 		clientSecret := "test_client_secret"
 		redirectURI := "https://example.com/callback"
@@ -410,7 +442,9 @@ func TestGithub_Constructor(t *testing.T) {
 }
 
 func TestGithub_GetAuthorizeURL(t *testing.T) {
+	t.Parallel()
 	t.Run("authorize URL generation", func(t *testing.T) {
+		t.Parallel()
 		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
 		url := github.GetAuthorizeURL()
 
@@ -422,7 +456,9 @@ func TestGithub_GetAuthorizeURL(t *testing.T) {
 }
 
 func TestGithub_Redirect(t *testing.T) {
+	t.Parallel()
 	t.Run("redirect URL generation", func(t *testing.T) {
+		t.Parallel()
 		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
 	url, err := github.Redirect(nil)
 
@@ -432,7 +468,9 @@ func TestGithub_Redirect(t *testing.T) {
 }
 
 func TestTimePointer(t *testing.T) {
+	t.Parallel()
 	t.Run("time pointer parsing", func(t *testing.T) {
+		t.Parallel()
 		now := time.Now()
 		data := `{"created_at": "` + now.Format(time.RFC3339) + `"}`
 

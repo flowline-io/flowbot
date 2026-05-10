@@ -10,6 +10,7 @@ import (
 
 // Test FormState
 func TestFormState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    FormState
 		expected int64
@@ -22,6 +23,7 @@ func TestFormState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -46,6 +48,7 @@ func (f FormState) String() string {
 
 // Test ActionState
 func TestActionState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    ActionState
 		expected int64
@@ -58,6 +61,7 @@ func TestActionState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -82,6 +86,7 @@ func (a ActionState) String() string {
 
 // Test SessionState
 func TestSessionState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    SessionState
 		expected int64
@@ -94,6 +99,7 @@ func TestSessionState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -118,6 +124,7 @@ func (s SessionState) String() string {
 
 // Test PageType
 func TestPageType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		pageType PageType
 		expected string
@@ -129,6 +136,7 @@ func TestPageType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.pageType), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.pageType.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -138,6 +146,7 @@ func TestPageType(t *testing.T) {
 
 // Test PageState
 func TestPageState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    PageState
 		expected int64
@@ -150,6 +159,7 @@ func TestPageState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -174,6 +184,7 @@ func (p PageState) String() string {
 
 // Test UrlState
 func TestUrlState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    UrlState
 		expected int64
@@ -185,6 +196,7 @@ func TestUrlState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -207,6 +219,7 @@ func (u UrlState) String() string {
 
 // Test InstructState
 func TestInstructState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    InstructState
 		expected int64
@@ -219,6 +232,7 @@ func TestInstructState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -243,6 +257,7 @@ func (i InstructState) String() string {
 
 // Test InstructObject
 func TestInstructObject(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		obj      InstructObject
 		expected string
@@ -252,6 +267,7 @@ func TestInstructObject(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.obj), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.obj.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -261,6 +277,7 @@ func TestInstructObject(t *testing.T) {
 
 // Test InstructPriority
 func TestInstructPriority(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		priority InstructPriority
 		expected int64
@@ -272,6 +289,7 @@ func TestInstructPriority(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.priority.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.priority.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -294,6 +312,7 @@ func (i InstructPriority) String() string {
 
 // Test PipelineState
 func TestPipelineState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    PipelineState
 		expected int64
@@ -306,6 +325,7 @@ func TestPipelineState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -330,6 +350,7 @@ func (p PipelineState) String() string {
 
 // Test ValueModeType
 func TestValueModeType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		mode     ValueModeType
 		expected string
@@ -342,6 +363,7 @@ func TestValueModeType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.mode), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.mode.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -351,6 +373,7 @@ func TestValueModeType(t *testing.T) {
 
 // Test CycleState
 func TestCycleState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    CycleState
 		expected int64
@@ -363,6 +386,7 @@ func TestCycleState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -387,6 +411,7 @@ func (c CycleState) String() string {
 
 // Test ReviewType
 func TestReviewType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		reviewType ReviewType
 		expected   int64
@@ -398,6 +423,7 @@ func TestReviewType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.reviewType.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.reviewType.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -420,6 +446,7 @@ func (r ReviewType) String() string {
 
 // Test WorkflowState
 func TestWorkflowState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    WorkflowState
 		expected int64
@@ -431,6 +458,7 @@ func TestWorkflowState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -453,6 +481,7 @@ func (w WorkflowState) String() string {
 
 // Test WorkflowTriggerState
 func TestWorkflowTriggerState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    WorkflowTriggerState
 		expected int64
@@ -464,6 +493,7 @@ func TestWorkflowTriggerState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -486,6 +516,7 @@ func (w WorkflowTriggerState) String() string {
 
 // Test WorkflowScriptLang
 func TestWorkflowScriptLang(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		lang     WorkflowScriptLang
 		expected string
@@ -495,6 +526,7 @@ func TestWorkflowScriptLang(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.lang), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.lang.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -504,6 +536,7 @@ func TestWorkflowScriptLang(t *testing.T) {
 
 // Test JobState
 func TestJobState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    JobState
 		expected int64
@@ -519,6 +552,7 @@ func TestJobState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -549,6 +583,7 @@ func (j JobState) String() string {
 
 // Test StepState
 func TestStepState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    StepState
 		expected int64
@@ -566,6 +601,7 @@ func TestStepState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -600,6 +636,7 @@ func (s StepState) String() string {
 
 // Test TriggerType
 func TestTriggerType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		trigger  TriggerType
 		expected string
@@ -611,6 +648,7 @@ func TestTriggerType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.trigger), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.trigger.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -620,6 +658,7 @@ func TestTriggerType(t *testing.T) {
 
 // Test TriggerCronRule
 func TestTriggerCronRule(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -628,6 +667,7 @@ func TestTriggerCronRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rule := TriggerCronRule{
 				Spec: "0 0 * * *",
 			}
@@ -638,6 +678,7 @@ func TestTriggerCronRule(t *testing.T) {
 
 // Test NodeStatus
 func TestNodeStatus(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		status   NodeStatus
 		expected string
@@ -651,6 +692,7 @@ func TestNodeStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.status), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.status.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -660,6 +702,7 @@ func TestNodeStatus(t *testing.T) {
 
 // Test UserState
 func TestUserState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    UserState
 		expected int64
@@ -671,6 +714,7 @@ func TestUserState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -693,6 +737,7 @@ func (u UserState) String() string {
 
 // Test TopicState
 func TestTopicState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -701,6 +746,7 @@ func TestTopicState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			state := TopicState(1)
 			val, err := state.Value()
 			require.NoError(t, err)
@@ -711,6 +757,7 @@ func TestTopicState(t *testing.T) {
 
 // Test MessageState
 func TestMessageState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    MessageState
 		expected int64
@@ -721,6 +768,7 @@ func TestMessageState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -741,6 +789,7 @@ func (m MessageState) String() string {
 
 // Test FileState
 func TestFileState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    FileState
 		expected int64
@@ -753,6 +802,7 @@ func TestFileState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -777,6 +827,7 @@ func (f FileState) String() string {
 
 // Test BotState
 func TestBotState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    BotState
 		expected int64
@@ -788,6 +839,7 @@ func TestBotState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -810,6 +862,7 @@ func (b BotState) String() string {
 
 // Test ChannelState
 func TestChannelState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    ChannelState
 		expected int64
@@ -821,6 +874,7 @@ func TestChannelState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -843,6 +897,7 @@ func (c ChannelState) String() string {
 
 // Test WebhookState
 func TestWebhookState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    WebhookState
 		expected int64
@@ -854,6 +909,7 @@ func TestWebhookState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -876,6 +932,7 @@ func (w WebhookState) String() string {
 
 // Test AppStatus
 func TestAppStatus(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		status   AppStatus
 		expected string
@@ -890,6 +947,7 @@ func TestAppStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.status), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.status.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -899,6 +957,7 @@ func TestAppStatus(t *testing.T) {
 
 // Test FlowState
 func TestFlowState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    FlowState
 		expected int64
@@ -910,6 +969,7 @@ func TestFlowState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -932,6 +992,7 @@ func (f FlowState) String() string {
 
 // Test ExecutionState
 func TestExecutionState(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		state    ExecutionState
 		expected int64
@@ -946,6 +1007,7 @@ func TestExecutionState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.state.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -974,6 +1036,7 @@ func (e ExecutionState) String() string {
 
 // Test NodeType
 func TestNodeType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		nodeType NodeType
 		expected string
@@ -986,6 +1049,7 @@ func TestNodeType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.nodeType), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.nodeType.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -995,6 +1059,7 @@ func TestNodeType(t *testing.T) {
 
 // Test RateLimitType
 func TestRateLimitType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		rlType   RateLimitType
 		expected string
@@ -1005,6 +1070,7 @@ func TestRateLimitType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.rlType), func(t *testing.T) {
+			t.Parallel()
 			val, err := tt.rlType.Value()
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
@@ -1014,6 +1080,7 @@ func TestRateLimitType(t *testing.T) {
 
 // Test Node struct
 func TestNode(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -1022,6 +1089,7 @@ func TestNode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			node := Node{
 				Id:        "node-1",
 				Describe:  "Test Node",
@@ -1063,6 +1131,7 @@ func TestNode(t *testing.T) {
 
 // Test Edge struct
 func TestEdge(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -1071,6 +1140,7 @@ func TestEdge(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			edge := Edge{
 				Id:                "edge-1",
 				Source:            "source-node",
@@ -1092,6 +1162,7 @@ func TestEdge(t *testing.T) {
 
 // Test Parameter IsExpired
 func TestParameter_IsExpired(t *testing.T) {
+	t.Parallel()
 	past := time.Now().Add(-time.Hour)
 	future := time.Now().Add(time.Hour)
 
@@ -1114,6 +1185,7 @@ func TestParameter_IsExpired(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			p := &Parameter{
 				ExpiredAt: tt.expiredAt,
 			}
@@ -1124,6 +1196,7 @@ func TestParameter_IsExpired(t *testing.T) {
 
 // Test Job MarshalBinary
 func TestJob_MarshalBinary(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -1132,6 +1205,7 @@ func TestJob_MarshalBinary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			job := &Job{
 				ID:        1,
 				CreatedAt: time.Now(),

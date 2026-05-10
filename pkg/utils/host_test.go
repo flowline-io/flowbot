@@ -8,7 +8,9 @@ import (
 )
 
 func TestHostInfo(t *testing.T) {
+	t.Parallel()
 	t.Run("returns valid host info", func(t *testing.T) {
+		t.Parallel()
 		hostID, hostname, err := HostInfo()
 
 		require.NoError(t, err)

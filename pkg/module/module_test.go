@@ -15,6 +15,7 @@ import (
 )
 
 func TestHelp(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		rules        []any
@@ -66,6 +67,7 @@ func TestHelp(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := Help(tt.rules)
 			require.NoError(t, err)
 			for k, wantLen := range tt.wantKV {
@@ -85,6 +87,7 @@ func TestHelp(t *testing.T) {
 }
 
 func TestBase_DefaultMethodsReturnZero(t *testing.T) {
+	t.Parallel()
 	var b Base
 
 	tests := []struct {
@@ -182,12 +185,14 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_ = tt.call()
 		})
 	}
 }
 
 func TestFindRuleAndHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		handlers    map[string]Handler
@@ -230,6 +235,7 @@ func TestFindRuleAndHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rule, handler := FindRuleAndHandler[form.Rule](tt.flag, tt.handlers)
 			assert.Equal(t, tt.wantRuleID, rule.Id)
 			if tt.wantRuleID != "" {
@@ -242,7 +248,9 @@ func TestFindRuleAndHandler(t *testing.T) {
 }
 
 func TestFindRuleAndHandler_MultipleHandlersSelectsCorrect(t *testing.T) {
+	t.Parallel()
 	t.Run("picks correct handler from multiple", func(t *testing.T) {
+		t.Parallel()
 		a := &testHandler{rules: []any{[]form.Rule{{Id: "a1"}}}}
 		b := &testHandler{rules: []any{[]form.Rule{{Id: "b1"}}}}
 

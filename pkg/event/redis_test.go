@@ -9,6 +9,8 @@ import (
 )
 
 func TestMessageTypeConstants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		got  string
@@ -19,12 +21,15 @@ func TestMessageTypeConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, tt.got)
 		})
 	}
 }
 
 func TestEventPayloadStruct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		payload types.EventPayload
@@ -43,6 +48,7 @@ func TestEventPayloadStruct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.wantTyp, tt.payload.Typ)
 			assert.Equal(t, tt.wantSrc, tt.payload.Src)
 		})

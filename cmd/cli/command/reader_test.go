@@ -8,6 +8,7 @@ import (
 )
 
 func TestReaderCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -16,6 +17,7 @@ func TestReaderCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ReaderCommand()
 
 			require.Equal(t, "reader", cmd.Use)
@@ -35,6 +37,7 @@ func TestReaderCommand(t *testing.T) {
 }
 
 func TestReaderCreateRequiredFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -43,6 +46,7 @@ func TestReaderCreateRequiredFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ReaderCommand()
 			createCmd := findSubcommand(cmd, "create")
 			require.NotNil(t, createCmd)
@@ -57,6 +61,7 @@ func TestReaderCreateRequiredFlags(t *testing.T) {
 }
 
 func TestReaderUpdateEntriesCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -65,6 +70,7 @@ func TestReaderUpdateEntriesCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := ReaderCommand()
 			updateCmd := findSubcommand(cmd, "update-entries")
 			require.NotNil(t, updateCmd)

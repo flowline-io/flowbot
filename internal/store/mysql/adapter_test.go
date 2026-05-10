@@ -911,5 +911,6 @@ func (s *AdapterTestSuite) TestAdapter_InvalidConfig() {
 
 // Run the test suite
 func TestAdapterTestSuite(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(AdapterTestSuite))
 }

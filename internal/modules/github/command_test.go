@@ -12,6 +12,7 @@ import (
 )
 
 func TestCommandRules_Metadata(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -19,12 +20,14 @@ func TestCommandRules_Metadata(t *testing.T) {
 		{
 			name: "should have exactly 7 command rules",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, commandRules, 7)
 			},
 		},
 		{
 			name: "should contain all expected defines",
 			test: func(t *testing.T) {
+				t.Parallel()
 				defines := make(map[string]string)
 				for _, r := range commandRules {
 					defines[r.Define] = r.Help
@@ -42,6 +45,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 		{
 			name: "all command rules should have non-nil handlers",
 			test: func(t *testing.T) {
+				t.Parallel()
 				for _, r := range commandRules {
 					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 				}
@@ -54,6 +58,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		define string
@@ -75,6 +80,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -86,6 +92,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -93,6 +100,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rs := command.Ruleset(commandRules)
 			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
@@ -106,6 +114,8 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 func TestCommandRules_GithubSettingHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -113,6 +123,7 @@ func TestCommandRules_GithubSettingHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var settingRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github setting" {
@@ -137,6 +148,8 @@ func TestCommandRules_GithubSettingHandler(t *testing.T) {
 func TestCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -144,6 +157,7 @@ func TestCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var oauthRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github oauth" {
@@ -176,6 +190,8 @@ func TestCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
 func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -183,6 +199,7 @@ func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var userRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github user" {
@@ -215,6 +232,8 @@ func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 func TestCommandRules_GithubCardHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -222,6 +241,7 @@ func TestCommandRules_GithubCardHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var cardRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github card [string]" {
@@ -246,6 +266,8 @@ func TestCommandRules_GithubCardHandler(t *testing.T) {
 func TestCommandRules_GithubRepoHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -253,6 +275,7 @@ func TestCommandRules_GithubRepoHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var repoRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github repo [string]" {
@@ -277,6 +300,8 @@ func TestCommandRules_GithubRepoHandler(t *testing.T) {
 func TestCommandRules_GithubUserStrHandler(t *testing.T) {
 	t.Skip("requires database connection")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -284,6 +309,7 @@ func TestCommandRules_GithubUserStrHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var userStrRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "github user [string]" {
@@ -308,6 +334,8 @@ func TestCommandRules_GithubUserStrHandler(t *testing.T) {
 func TestCommandRules_DeployHandler(t *testing.T) {
 	t.Skip("requires external service")
 
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -315,6 +343,7 @@ func TestCommandRules_DeployHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var deployRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "deploy" {

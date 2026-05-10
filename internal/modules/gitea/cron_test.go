@@ -9,6 +9,7 @@ import (
 )
 
 func TestCronRules(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -16,30 +17,35 @@ func TestCronRules(t *testing.T) {
 		{
 			name: "should have exactly 1 cron rule",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, cronRules, 1)
 			},
 		},
 		{
 			name: "should have name gitea_metrics",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, "gitea_metrics", cronRules[0].Name)
 			},
 		},
 		{
 			name: "should have system scope",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, cron.CronScopeSystem, cronRules[0].Scope)
 			},
 		},
 		{
 			name: "should have every minute cron expression",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, "* * * * *", cronRules[0].When)
 			},
 		},
 		{
 			name: "should have non-nil action",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.NotNil(t, cronRules[0].Action)
 			},
 		},

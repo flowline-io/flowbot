@@ -7,6 +7,7 @@ import (
 )
 
 func TestWorkflowCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -15,6 +16,7 @@ func TestWorkflowCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := WorkflowCommand()
 
 			require.Equal(t, "workflow", cmd.Use)
@@ -27,6 +29,7 @@ func TestWorkflowCommand(t *testing.T) {
 }
 
 func TestWorkflowRunCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -35,6 +38,7 @@ func TestWorkflowRunCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := WorkflowCommand()
 			runCmd := findSubcommand(cmd, "run")
 			require.NotNil(t, runCmd)

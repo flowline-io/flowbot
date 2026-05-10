@@ -7,6 +7,7 @@ import (
 )
 
 func TestParseFrontMatter(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		input  string
@@ -73,6 +74,7 @@ Start of content.`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			gotFM, gotMD := parseFrontMatter([]byte(tt.input))
 			assert.Equal(t, tt.wantFM, gotFM)
 			assert.Equal(t, tt.wantMD, string(gotMD))
@@ -81,6 +83,7 @@ Start of content.`,
 }
 
 func TestExtractTitle(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input string
@@ -115,6 +118,7 @@ func TestExtractTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := extractTitle([]byte(tt.input), tt.fm)
 			assert.Equal(t, tt.want, got)
 		})
@@ -122,6 +126,7 @@ func TestExtractTitle(t *testing.T) {
 }
 
 func TestRelPathToOut(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		relPath string
@@ -151,6 +156,7 @@ func TestRelPathToOut(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := relPathToOut(tt.relPath)
 			assert.Equal(t, tt.want, got)
 		})
@@ -158,6 +164,7 @@ func TestRelPathToOut(t *testing.T) {
 }
 
 func TestOutURL(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		relPath string
@@ -182,6 +189,7 @@ func TestOutURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := outURL(tt.relPath)
 			assert.Equal(t, tt.want, got)
 		})
@@ -189,6 +197,7 @@ func TestOutURL(t *testing.T) {
 }
 
 func TestDirToTitle(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		dir  string
@@ -202,6 +211,7 @@ func TestDirToTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := dirToTitle(tt.dir)
 			assert.Equal(t, tt.want, got)
 		})

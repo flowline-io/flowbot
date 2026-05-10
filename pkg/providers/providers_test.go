@@ -12,6 +12,7 @@ import (
 )
 
 func TestRedirectURI(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		provider string
@@ -47,6 +48,7 @@ func TestRedirectURI(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		configs   json.RawMessage
@@ -105,6 +107,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestGetConfig_MultipleCalls(t *testing.T) {
+	t.Parallel()
 	t.Run("multiple config calls", func(t *testing.T) {
 		Configs = json.RawMessage(`{
 			"github": {
@@ -131,6 +134,7 @@ func TestGetConfig_MultipleCalls(t *testing.T) {
 }
 
 func TestOAuthProviderInterface(t *testing.T) {
+	t.Parallel()
 	t.Run("interface compile-time check", func(t *testing.T) {
 		var _ OAuthProvider = (*mockOAuthProvider)(nil)
 	})

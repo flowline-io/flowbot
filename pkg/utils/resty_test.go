@@ -3,16 +3,17 @@ package utils
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestDefaultRestyClient tests the DefaultRestyClient function
 func TestDefaultRestyClient(t *testing.T) {
+	t.Parallel()
 	client := DefaultRestyClient()
 
-	// Test that client is not nil
-	if client == nil {
-		t.Fatal("DefaultRestyClient() returned nil")
-	}
+	require.NotNil(t, client, "DefaultRestyClient() returned nil")
 
 	// Test that timeout is set correctly
 	// Note: We can't directly access private fields, so we test behavior
@@ -24,25 +25,20 @@ func TestDefaultRestyClient(t *testing.T) {
 
 	// Create a simple test to verify client is properly configured
 	req := client.R()
-	if req == nil {
-		t.Error("DefaultRestyClient() client.R() returned nil")
-	}
+	assert.NotNil(t, req, "DefaultRestyClient() client.R() returned nil")
 
 	// Test that headers are set
 	// The X-Trace-Id header should be set automatically
 	headers := req.Header
-	if headers == nil {
-		t.Error("DefaultRestyClient() request headers are nil")
-	}
+	assert.NotNil(t, headers, "DefaultRestyClient() request headers are nil")
 
 	// Verify that the client is not nil (type check is implicit since it compiled)
-	if client == nil {
-		t.Error("DefaultRestyClient() returned nil client")
-	}
+	assert.NotNil(t, client, "DefaultRestyClient() returned nil client")
 }
 
 // TestDefaultRestyClientTimeout tests that the client respects timeout
 func TestDefaultRestyClientTimeout(t *testing.T) {
+	t.Parallel()
 	client := DefaultRestyClient()
 	// Force a very small timeout to deterministically trigger a timeout error
 	client.SetTimeout(1 * time.Nanosecond)
@@ -52,31 +48,24 @@ func TestDefaultRestyClientTimeout(t *testing.T) {
 	elapsed := time.Since(start)
 
 	// Should timeout and return an error
-	if err == nil {
-		t.Error("Expected timeout error but got nil")
-	}
+	require.Error(t, err, "Expected timeout error but got nil")
 
 	// Ensure the request returned quickly due to timeout
-	if elapsed > 5*time.Second {
-		t.Errorf("Request took too long: %v, expected immediate timeout", elapsed)
-	}
+	assert.LessOrEqual(t, elapsed, 5*time.Second, "Request took too long: %v, expected immediate timeout", elapsed)
 }
 
 // TestDefaultRestyClientHeaders tests that headers are properly set
 func TestDefaultRestyClientHeaders(t *testing.T) {
+	t.Parallel()
 	client := DefaultRestyClient()
 
 	// Since we can't easily access the headers directly from the client,
 	// we'll test that the client is properly configured by checking it doesn't panic
 	// and can create requests
 	req := client.R()
-	if req == nil {
-		t.Error("DefaultRestyClient() should be able to create requests")
-	}
+	assert.NotNil(t, req, "DefaultRestyClient() should be able to create requests")
 
 	// Test that we can set a header on the request
 	req.SetHeader("Test-Header", "test-value")
-	if req.Header.Get("Test-Header") != "test-value" {
-		t.Error("Should be able to set headers on requests")
-	}
+	assert.Equal(t, "test-value", req.Header.Get("Test-Header"), "Should be able to set headers on requests")
 }

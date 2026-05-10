@@ -11,7 +11,10 @@ import (
 )
 
 func TestMountTmpfs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mount tmpfs with target only", func(t *testing.T) {
+		t.Parallel()
 		mounter := NewTmpfsMounter()
 		ctx := context.Background()
 		mnt := &types.Mount{
@@ -24,7 +27,10 @@ func TestMountTmpfs(t *testing.T) {
 }
 
 func TestMountTmpfsWithSource(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mount tmpfs with source returns error", func(t *testing.T) {
+		t.Parallel()
 		mounter := NewTmpfsMounter()
 		ctx := context.Background()
 		mnt := &types.Mount{
@@ -38,7 +44,10 @@ func TestMountTmpfsWithSource(t *testing.T) {
 }
 
 func TestUnmountTmpfs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("unmount tmpfs after mount", func(t *testing.T) {
+		t.Parallel()
 		mounter := NewTmpfsMounter()
 		ctx := context.Background()
 		mnt := &types.Mount{

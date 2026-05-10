@@ -61,7 +61,10 @@ exec bash -c "$@"
 }
 
 func TestShellRuntimeRunResult(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run script with output capture", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{
 			UID:   DefaultUid,
@@ -82,7 +85,10 @@ func TestShellRuntimeRunResult(t *testing.T) {
 }
 
 func TestShellRuntimeRunFile(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run script with input files", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{
 			UID:   DefaultUid,
@@ -106,7 +112,10 @@ func TestShellRuntimeRunFile(t *testing.T) {
 }
 
 func TestShellRuntimeRunNotSupported(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run with unsupported network returns error", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{})
 
@@ -123,7 +132,10 @@ func TestShellRuntimeRunNotSupported(t *testing.T) {
 }
 
 func TestShellRuntimeRunError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run with invalid command returns error", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{
 			UID:   DefaultUid,
@@ -143,7 +155,10 @@ func TestShellRuntimeRunError(t *testing.T) {
 }
 
 func TestShellRuntimeRunTimeout(t *testing.T) {
+	t.Parallel()
+
 	t.Run("run with timeout returns error", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{
 			UID:   DefaultUid,
@@ -166,7 +181,10 @@ func TestShellRuntimeRunTimeout(t *testing.T) {
 }
 
 func TestShellRuntimeStop(t *testing.T) {
+	t.Parallel()
+
 	t.Run("stop running task", func(t *testing.T) {
+		t.Parallel()
 		skipIfWindows(t)
 		rt := NewShellRuntime(Config{
 			UID:   DefaultUid,

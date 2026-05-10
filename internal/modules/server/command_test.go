@@ -12,6 +12,7 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -20,12 +21,14 @@ func TestCommandRules_Count(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Len(t, commandRules, 9)
 		})
 	}
 }
 
 func TestCommandRules_Defines(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -34,6 +37,7 @@ func TestCommandRules_Defines(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			defines := make(map[string]string)
 			for _, r := range commandRules {
 				defines[r.Define] = r.Help
@@ -53,6 +57,7 @@ func TestCommandRules_Defines(t *testing.T) {
 }
 
 func TestCommandRules_Handlers(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -61,6 +66,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
@@ -69,6 +75,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		define string
@@ -151,6 +158,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -162,6 +170,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -170,6 +179,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rs := command.Ruleset(commandRules)
 			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
@@ -181,6 +191,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 }
 
 func TestCommandRules_VersionHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -189,6 +200,7 @@ func TestCommandRules_VersionHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var versionRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "version" {
@@ -212,6 +224,7 @@ func TestCommandRules_VersionHandler(t *testing.T) {
 }
 
 func TestCommandRules_MemStatsHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -220,6 +233,7 @@ func TestCommandRules_MemStatsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var memRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "mem stats" {
@@ -243,6 +257,7 @@ func TestCommandRules_MemStatsHandler(t *testing.T) {
 }
 
 func TestCommandRules_GolangStatsHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -251,6 +266,7 @@ func TestCommandRules_GolangStatsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var golangRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "golang stats" {
@@ -274,6 +290,7 @@ func TestCommandRules_GolangStatsHandler(t *testing.T) {
 }
 
 func TestCommandRules_ServerStatsHandler(t *testing.T) {
+	t.Parallel()
 	t.Skip("requires database connection")
 
 	tests := []struct {
@@ -284,6 +301,7 @@ func TestCommandRules_ServerStatsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var serverRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "server stats" {
@@ -306,6 +324,7 @@ func TestCommandRules_ServerStatsHandler(t *testing.T) {
 }
 
 func TestCommandRules_OnlineStatsHandler(t *testing.T) {
+	t.Parallel()
 	t.Skip("requires redis service")
 
 	tests := []struct {
@@ -316,6 +335,7 @@ func TestCommandRules_OnlineStatsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var onlineRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "online stats" {
@@ -338,6 +358,7 @@ func TestCommandRules_OnlineStatsHandler(t *testing.T) {
 }
 
 func TestCommandRules_AdguardStatusHandler(t *testing.T) {
+	t.Parallel()
 	t.Skip("requires adguard service")
 
 	tests := []struct {
@@ -348,6 +369,7 @@ func TestCommandRules_AdguardStatusHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var adguardRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "adguard status" {
@@ -371,6 +393,7 @@ func TestCommandRules_AdguardStatusHandler(t *testing.T) {
 }
 
 func TestCommandRules_QueueStatsHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -379,6 +402,7 @@ func TestCommandRules_QueueStatsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var queueRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "queue stats" {
@@ -402,6 +426,7 @@ func TestCommandRules_QueueStatsHandler(t *testing.T) {
 }
 
 func TestCommandRules_CheckHandler(t *testing.T) {
+	t.Parallel()
 	t.Skip("requires external services")
 
 	tests := []struct {
@@ -412,6 +437,7 @@ func TestCommandRules_CheckHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var checkRule *command.Rule
 			for i := range commandRules {
 				if commandRules[i].Define == "check" {

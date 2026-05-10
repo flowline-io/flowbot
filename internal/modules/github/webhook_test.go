@@ -12,6 +12,7 @@ import (
 )
 
 func TestWebhookConstants(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		got      string
@@ -21,12 +22,14 @@ func TestWebhookConstants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, tt.got)
 		})
 	}
 }
 
 func TestWebhookRules_Metadata(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -34,24 +37,28 @@ func TestWebhookRules_Metadata(t *testing.T) {
 		{
 			name: "should have exactly 1 webhook rule",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Len(t, webhookRules, 1)
 			},
 		},
 		{
 			name: "should have correct ID",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.Equal(t, PackageWebhookID, webhookRules[0].Id)
 			},
 		},
 		{
 			name: "should have Secret=true",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.True(t, webhookRules[0].Secret)
 			},
 		},
 		{
 			name: "should have non-nil handler",
 			test: func(t *testing.T) {
+				t.Parallel()
 				assert.NotNil(t, webhookRules[0].Handler)
 			},
 		},
@@ -62,6 +69,7 @@ func TestWebhookRules_Metadata(t *testing.T) {
 }
 
 func TestWebhookHandler(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		method   string
@@ -122,6 +130,7 @@ func TestWebhookHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler := webhookRules[0].Handler
 			var headers map[string][]string
 			if tt.event == "empty_sentinel" {
@@ -150,6 +159,7 @@ func TestWebhookHandler(t *testing.T) {
 }
 
 func TestWebhookRule_ImplementsInterface(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -157,6 +167,7 @@ func TestWebhookRule_ImplementsInterface(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var _ webhook.Rule = webhookRules[0]
 		})
 	}
