@@ -11,29 +11,48 @@ import (
 )
 
 func TestDescriptor(t *testing.T) {
-	desc := Descriptor("miniflux", "miniflux", nil)
-	assert.Equal(t, hub.CapReader, desc.Type)
-	assert.Equal(t, "miniflux", desc.Backend)
-	assert.Equal(t, "miniflux", desc.App)
-	assert.False(t, desc.Healthy)
-	assert.Equal(t, "Reader capability", desc.Description)
-	assert.Len(t, desc.Operations, 7)
-
-	desc2 := Descriptor("miniflux", "miniflux", &mockReaderService{})
-	assert.True(t, desc2.Healthy)
+	tests := []struct {
+		name    string
+		svc     Service
+		healthy bool
+	}{
+		{"nil service produces unhealthy descriptor", nil, false},
+		{"non-nil service produces healthy descriptor", &mockReaderService{}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			desc := Descriptor("miniflux", "miniflux", tt.svc)
+			assert.Equal(t, hub.CapReader, desc.Type)
+			assert.Equal(t, "miniflux", desc.Backend)
+			assert.Equal(t, "miniflux", desc.App)
+			assert.Equal(t, tt.healthy, desc.Healthy)
+			assert.Equal(t, "Reader capability", desc.Description)
+			assert.Len(t, desc.Operations, 7)
+		})
+	}
 }
 
 func TestDescriptor_Operations(t *testing.T) {
-	desc := Descriptor("m", "m", nil)
-	opNames := make([]string, len(desc.Operations))
-	for i, op := range desc.Operations {
-		opNames[i] = op.Name
+	tests := []struct {
+		name string
+		op   string
+	}{
+		{"has list_feeds operation", ability.OpReaderListFeeds},
+		{"has create_feed operation", ability.OpReaderCreateFeed},
+		{"has list_entries operation", ability.OpReaderListEntries},
+		{"has mark_entry_read operation", ability.OpReaderMarkEntryRead},
+		{"has star_entry operation", ability.OpReaderStarEntry},
 	}
-	assert.Contains(t, opNames, ability.OpReaderListFeeds)
-	assert.Contains(t, opNames, ability.OpReaderCreateFeed)
-	assert.Contains(t, opNames, ability.OpReaderListEntries)
-	assert.Contains(t, opNames, ability.OpReaderMarkEntryRead)
-	assert.Contains(t, opNames, ability.OpReaderStarEntry)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			desc := Descriptor("m", "m", nil)
+			opNames := make([]string, len(desc.Operations))
+			for i, op := range desc.Operations {
+				opNames[i] = op.Name
+			}
+			assert.Contains(t, opNames, tt.op)
+		})
+	}
 }
 
 type mockReaderService struct{}

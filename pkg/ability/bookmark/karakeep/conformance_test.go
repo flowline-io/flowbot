@@ -12,34 +12,43 @@ import (
 )
 
 func TestKarakeepConformance(t *testing.T) {
-	conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
-		c := &fakeClient{
-			listResp:  cfgToListResponse(cfg),
-			listErr:   cfg.ListErr,
-			getItem:   cfgToProviderBookmark(cfg.GetItem),
-			getErr:    cfg.GetErr,
-			created:   cfgToProviderBookmark(cfg.CreateItem),
-			createErr: cfg.CreateErr,
-			deleteErr: cfg.DeleteErr,
-			archiveResp: func() bool {
-				if cfg.ArchiveResult != nil {
-					return *cfg.ArchiveResult
+	tests := []struct {
+		name string
+	}{
+		{"runs bookmark conformance test suite"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
+				c := &fakeClient{
+					listResp:  cfgToListResponse(cfg),
+					listErr:   cfg.ListErr,
+					getItem:   cfgToProviderBookmark(cfg.GetItem),
+					getErr:    cfg.GetErr,
+					created:   cfgToProviderBookmark(cfg.CreateItem),
+					createErr: cfg.CreateErr,
+					deleteErr: cfg.DeleteErr,
+					archiveResp: func() bool {
+						if cfg.ArchiveResult != nil {
+							return *cfg.ArchiveResult
+						}
+						return true
+					}(),
+					archiveErr:    cfg.ArchiveErr,
+					searchResp:    cfgToSearchResponse(cfg),
+					searchErr:     cfg.SearchErr,
+					attachTagsErr: cfg.AttachTagsErr,
+					detachTagsErr: cfg.DetachTagsErr,
+					checkURLResp:  cfgToCheckURLResp(cfg),
+					checkURLErr:   cfg.CheckURLErr,
 				}
-				return true
-			}(),
-			archiveErr:    cfg.ArchiveErr,
-			searchResp:    cfgToSearchResponse(cfg),
-			searchErr:     cfg.SearchErr,
-			attachTagsErr: cfg.AttachTagsErr,
-			detachTagsErr: cfg.DetachTagsErr,
-			checkURLResp:  cfgToCheckURLResp(cfg),
-			checkURLErr:   cfg.CheckURLErr,
-		}
-		a := NewWithClient(c).(*Adapter)
-		a.cursorSecret = conformance.CursorSecret
-		a.now = conformance.TestTime
-		return a
-	})
+				a := NewWithClient(c).(*Adapter)
+				a.cursorSecret = conformance.CursorSecret
+				a.now = conformance.TestTime
+				return a
+			})
+		})
+	}
 }
 
 func cfgToListResponse(cfg conformance.BookmarkConfig) *provider.BookmarksResponse {
@@ -108,11 +117,29 @@ func cfgToCheckURLResp(cfg conformance.BookmarkConfig) *string {
 }
 
 func TestConformanceFakeClientInterfaces(t *testing.T) {
-	var _ client = (*fakeClient)(nil)
+	tests := []struct {
+		name string
+	}{
+		{"fake client satisfies client interface"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var _ client = (*fakeClient)(nil)
+		})
+	}
 }
 
 func TestTestBookmarkHelper(t *testing.T) {
-	b := testBookmark("1", "https://example.com")
-	assert.Equal(t, "1", b.Id)
-	assert.Equal(t, "https://example.com", b.Content.Url)
+	tests := []struct {
+		name string
+	}{
+		{"testBookmark helper returns correct id and url"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := testBookmark("1", "https://example.com")
+			assert.Equal(t, "1", b.Id)
+			assert.Equal(t, "https://example.com", b.Content.Url)
+		})
+	}
 }

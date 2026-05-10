@@ -11,85 +11,202 @@ import (
 )
 
 func TestTagsParam_StringSlice(t *testing.T) {
-	v, err := tagsParam(map[string]any{"tags": []string{"a", "b"}})
-	require.NoError(t, err)
-	assert.Equal(t, []string{"a", "b"}, v)
+	tests := []struct {
+		name string
+	}{
+		{"string slice tags are returned as-is"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := tagsParam(map[string]any{"tags": []string{"a", "b"}})
+			require.NoError(t, err)
+			assert.Equal(t, []string{"a", "b"}, v)
+		})
+	}
 }
 
 func TestTagsParam_AnySlice(t *testing.T) {
-	v, err := tagsParam(map[string]any{"tags": []any{"x", "y"}})
-	require.NoError(t, err)
-	assert.Equal(t, []string{"x", "y"}, v)
+	tests := []struct {
+		name string
+	}{
+		{"any slice tags are converted to strings"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := tagsParam(map[string]any{"tags": []any{"x", "y"}})
+			require.NoError(t, err)
+			assert.Equal(t, []string{"x", "y"}, v)
+		})
+	}
 }
 
 func TestTagsParam_AnySliceMixedTypes(t *testing.T) {
-	v, err := tagsParam(map[string]any{"tags": []any{"a", 42, true}})
-	require.NoError(t, err)
-	assert.Equal(t, []string{"a", "42", "true"}, v)
+	tests := []struct {
+		name string
+	}{
+		{"mixed type any slice is converted to strings"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := tagsParam(map[string]any{"tags": []any{"a", 42, true}})
+			require.NoError(t, err)
+			assert.Equal(t, []string{"a", "42", "true"}, v)
+		})
+	}
 }
 
 func TestTagsParam_EmptyStringSlice(t *testing.T) {
-	_, err := tagsParam(map[string]any{"tags": []string{}})
-	require.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "tags are required"))
+	tests := []struct {
+		name string
+	}{
+		{"empty string slice returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tagsParam(map[string]any{"tags": []string{}})
+			require.Error(t, err)
+			assert.True(t, strings.Contains(err.Error(), "tags are required"))
+		})
+	}
 }
 
 func TestTagsParam_EmptyAnySlice(t *testing.T) {
-	_, err := tagsParam(map[string]any{"tags": []any{}})
-	require.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "tags are required"))
+	tests := []struct {
+		name string
+	}{
+		{"empty any slice returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tagsParam(map[string]any{"tags": []any{}})
+			require.Error(t, err)
+			assert.True(t, strings.Contains(err.Error(), "tags are required"))
+		})
+	}
 }
 
 func TestTagsParam_Missing(t *testing.T) {
-	_, err := tagsParam(map[string]any{})
-	require.Error(t, err)
+	tests := []struct {
+		name string
+	}{
+		{"missing tags returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tagsParam(map[string]any{})
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestTagsParam_WrongType(t *testing.T) {
-	_, err := tagsParam(map[string]any{"tags": "not-an-array"})
-	require.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "must be an array"))
+	tests := []struct {
+		name string
+	}{
+		{"non-slice type returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tagsParam(map[string]any{"tags": "not-an-array"})
+			require.Error(t, err)
+			assert.True(t, strings.Contains(err.Error(), "must be an array"))
+		})
+	}
 }
 
 func TestTagsParam_Nil(t *testing.T) {
-	_, err := tagsParam(map[string]any{"tags": nil})
-	require.Error(t, err)
+	tests := []struct {
+		name string
+	}{
+		{"nil tags returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tagsParam(map[string]any{"tags": nil})
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestIDAndTags_Valid(t *testing.T) {
-	id, tags, err := idAndTags(map[string]any{"id": "bm1", "tags": []string{"tag1"}})
-	require.NoError(t, err)
-	assert.Equal(t, "bm1", id)
-	assert.Equal(t, []string{"tag1"}, tags)
+	tests := []struct {
+		name string
+	}{
+		{"valid id and tags returns both values"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id, tags, err := idAndTags(map[string]any{"id": "bm1", "tags": []string{"tag1"}})
+			require.NoError(t, err)
+			assert.Equal(t, "bm1", id)
+			assert.Equal(t, []string{"tag1"}, tags)
+		})
+	}
 }
 
 func TestIDAndTags_MissingID(t *testing.T) {
-	_, _, err := idAndTags(map[string]any{"tags": []string{"t"}})
-	require.Error(t, err)
+	tests := []struct {
+		name string
+	}{
+		{"missing id returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := idAndTags(map[string]any{"tags": []string{"t"}})
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestIDAndTags_MissingTags(t *testing.T) {
-	_, _, err := idAndTags(map[string]any{"id": "bm1"})
-	require.Error(t, err)
+	tests := []struct {
+		name string
+	}{
+		{"missing tags returns error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := idAndTags(map[string]any{"id": "bm1"})
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestListInvokeResult_Nil(t *testing.T) {
-	result := listInvokeResult("list", nil)
-	assert.NotNil(t, result)
-	assert.Equal(t, "list", result.Operation)
-	items, ok := result.Data.([]*ability.Bookmark)
-	assert.True(t, ok)
-	assert.Empty(t, items)
-	assert.NotNil(t, result.Page)
+	tests := []struct {
+		name string
+	}{
+		{"nil list result returns empty items"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := listInvokeResult("list", nil)
+			assert.NotNil(t, result)
+			assert.Equal(t, "list", result.Operation)
+			items, ok := result.Data.([]*ability.Bookmark)
+			assert.True(t, ok)
+			assert.Empty(t, items)
+			assert.NotNil(t, result.Page)
+		})
+	}
 }
 
 func TestListInvokeResult_NonNil(t *testing.T) {
-	bms := &ability.ListResult[ability.Bookmark]{
-		Items: []*ability.Bookmark{{ID: "1", URL: "https://x.com"}},
-		Page:  &ability.PageInfo{Limit: 10, HasMore: false},
+	tests := []struct {
+		name string
+	}{
+		{"non-nil list result preserves items and page"},
 	}
-	result := listInvokeResult("list", bms)
-	items := result.Data.([]*ability.Bookmark)
-	assert.Len(t, items, 1)
-	assert.Equal(t, 10, result.Page.Limit)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bms := &ability.ListResult[ability.Bookmark]{
+				Items: []*ability.Bookmark{{ID: "1", URL: "https://x.com"}},
+				Page:  &ability.PageInfo{Limit: 10, HasMore: false},
+			}
+			result := listInvokeResult("list", bms)
+			items := result.Data.([]*ability.Bookmark)
+			assert.Len(t, items, 1)
+			assert.Equal(t, 10, result.Page.Limit)
+		})
+	}
 }

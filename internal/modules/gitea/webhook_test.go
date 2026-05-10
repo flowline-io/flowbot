@@ -7,32 +7,62 @@ import (
 )
 
 func TestWebhookConstants(t *testing.T) {
-	assert.Equal(t, "issue", IssueWebhookID)
-	assert.Equal(t, "repo", RepoWebhookID)
-}
-
-func TestWebhookRules_Count(t *testing.T) {
-	assert.Len(t, webhookRules, 2)
-}
-
-func TestWebhookRules_IDs(t *testing.T) {
-	ids := make(map[string]bool)
-	for _, r := range webhookRules {
-		ids[r.Id] = true
+	tests := []struct {
+		name     string
+		got      string
+		expected string
+	}{
+		{name: "IssueWebhookID should equal issue", got: IssueWebhookID, expected: "issue"},
+		{name: "RepoWebhookID should equal repo", got: RepoWebhookID, expected: "repo"},
 	}
-
-	assert.True(t, ids[IssueWebhookID])
-	assert.True(t, ids[RepoWebhookID])
-}
-
-func TestWebhookRules_Secret(t *testing.T) {
-	for _, r := range webhookRules {
-		assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.got)
+		})
 	}
 }
 
-func TestWebhookRules_Handlers(t *testing.T) {
-	for _, r := range webhookRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
+func TestWebhookRules(t *testing.T) {
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 2 webhook rules",
+			test: func(t *testing.T) {
+				assert.Len(t, webhookRules, 2)
+			},
+		},
+		{
+			name: "should contain expected webhook IDs",
+			test: func(t *testing.T) {
+				ids := make(map[string]bool)
+				for _, r := range webhookRules {
+					ids[r.Id] = true
+				}
+
+				assert.True(t, ids[IssueWebhookID])
+				assert.True(t, ids[RepoWebhookID])
+			},
+		},
+		{
+			name: "all webhooks should have Secret=true",
+			test: func(t *testing.T) {
+				for _, r := range webhookRules {
+					assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
+				}
+			},
+		},
+		{
+			name: "all webhooks should have non-nil handlers",
+			test: func(t *testing.T) {
+				for _, r := range webhookRules {
+					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
 	}
 }

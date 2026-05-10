@@ -7,6 +7,14 @@ import (
 )
 
 func TestDeploy_FunctionExists(t *testing.T) {
-	// deploy depends on external services (gitea, drone), so we only verify the function exists
-	assert.NotNil(t, deploy)
+	tests := []struct {
+		name string
+	}{
+		{name: "deploy function should be defined"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotNil(t, deploy)
+		})
+	}
 }

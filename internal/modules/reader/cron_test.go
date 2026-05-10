@@ -9,27 +9,57 @@ import (
 )
 
 func TestCronRules_Count(t *testing.T) {
-	assert.Len(t, cronRules, 2)
-}
-
-func TestCronRules_Names(t *testing.T) {
-	names := make(map[string]bool)
-	for _, r := range cronRules {
-		names[r.Name] = true
+	tests := []struct {
+		name string
+	}{
+		{name: "two cron rules"},
 	}
 
-	assert.True(t, names["reader_metrics"])
-	assert.True(t, names["reader_daily_summary"])
-}
-
-func TestCronRules_Scopes(t *testing.T) {
-	for _, r := range cronRules {
-		assert.Equal(t, cron.CronScopeSystem, r.Scope)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Len(t, cronRules, 2)
+		})
 	}
 }
 
-func TestCronRules_Actions(t *testing.T) {
-	for _, r := range cronRules {
-		assert.NotNil(t, r.Action, "action for %q should not be nil", r.Name)
+func TestCronRules(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func(t *testing.T)
+	}{
+		{
+			name: "names are reader_metrics and reader_daily_summary",
+			fn: func(t *testing.T) {
+				names := make(map[string]bool)
+				for _, r := range cronRules {
+					names[r.Name] = true
+				}
+
+				assert.True(t, names["reader_metrics"])
+				assert.True(t, names["reader_daily_summary"])
+			},
+		},
+		{
+			name: "all scopes are system",
+			fn: func(t *testing.T) {
+				for _, r := range cronRules {
+					assert.Equal(t, cron.CronScopeSystem, r.Scope)
+				}
+			},
+		},
+		{
+			name: "all actions are not nil",
+			fn: func(t *testing.T) {
+				for _, r := range cronRules {
+					assert.NotNil(t, r.Action, "action for %q should not be nil", r.Name)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.fn(t)
+		})
 	}
 }

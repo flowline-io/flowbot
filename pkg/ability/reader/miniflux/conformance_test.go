@@ -11,19 +11,28 @@ import (
 )
 
 func TestMinifluxConformance(t *testing.T) {
-	conformance.RunReaderConformance(t, func(t *testing.T, cfg conformance.ReaderConfig) rdr.Service {
-		c := &fakeClient{
-			feeds:         cfgToFeeds(cfg),
-			feedsErr:      cfg.FeedsErr,
-			createFeedID:  cfg.CreateFeedID,
-			createFeedErr: cfg.CreateFeedErr,
-			entries:       cfgToEntryResultSet(cfg),
-			entriesErr:    cfg.EntriesErr,
-			markReadErr:   cfg.MarkReadErr,
-			markUnreadErr: cfg.MarkUnreadErr,
-		}
-		return NewWithClient(c)
-	})
+	tests := []struct {
+		name string
+	}{
+		{"runs reader conformance test suite"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conformance.RunReaderConformance(t, func(t *testing.T, cfg conformance.ReaderConfig) rdr.Service {
+				c := &fakeClient{
+					feeds:         cfgToFeeds(cfg),
+					feedsErr:      cfg.FeedsErr,
+					createFeedID:  cfg.CreateFeedID,
+					createFeedErr: cfg.CreateFeedErr,
+					entries:       cfgToEntryResultSet(cfg),
+					entriesErr:    cfg.EntriesErr,
+					markReadErr:   cfg.MarkReadErr,
+					markUnreadErr: cfg.MarkUnreadErr,
+				}
+				return NewWithClient(c)
+			})
+		})
+	}
 }
 
 func cfgToFeeds(cfg conformance.ReaderConfig) rssClient.Feeds {

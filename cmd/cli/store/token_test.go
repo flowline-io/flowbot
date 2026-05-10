@@ -9,140 +9,260 @@ import (
 )
 
 func TestSaveLoadToken(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load token"},
+	}
 
-	err := SaveToken("test-token-123", "")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	token, err := LoadToken("")
-	require.NoError(t, err)
-	require.Equal(t, "test-token-123", token)
+			err := SaveToken("test-token-123", "")
+			require.NoError(t, err)
+
+			token, err := LoadToken("")
+			require.NoError(t, err)
+			require.Equal(t, "test-token-123", token)
+		})
+	}
 }
 
 func TestSaveLoadTokenWithProfile(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load token with profile"},
+	}
 
-	err := SaveToken("dev-token-abc", "dev")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	token, err := LoadToken("dev")
-	require.NoError(t, err)
-	require.Equal(t, "dev-token-abc", token)
+			err := SaveToken("dev-token-abc", "dev")
+			require.NoError(t, err)
+
+			token, err := LoadToken("dev")
+			require.NoError(t, err)
+			require.Equal(t, "dev-token-abc", token)
+		})
+	}
 }
 
 func TestLoadTokenNotExist(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "load token when file does not exist returns empty"},
+	}
 
-	token, err := LoadToken("")
-	require.NoError(t, err)
-	require.Empty(t, token)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			token, err := LoadToken("")
+			require.NoError(t, err)
+			require.Empty(t, token)
+		})
+	}
 }
 
 func TestProfileIsolation(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "token profiles are isolated from each other"},
+	}
 
-	require.NoError(t, SaveToken("default-token", ""))
-	require.NoError(t, SaveToken("dev-token", "dev"))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	defaultToken, err := LoadToken("")
-	require.NoError(t, err)
-	require.Equal(t, "default-token", defaultToken)
+			require.NoError(t, SaveToken("default-token", ""))
+			require.NoError(t, SaveToken("dev-token", "dev"))
 
-	devToken, err := LoadToken("dev")
-	require.NoError(t, err)
-	require.Equal(t, "dev-token", devToken)
+			defaultToken, err := LoadToken("")
+			require.NoError(t, err)
+			require.Equal(t, "default-token", defaultToken)
+
+			devToken, err := LoadToken("dev")
+			require.NoError(t, err)
+			require.Equal(t, "dev-token", devToken)
+		})
+	}
 }
 
 func TestSaveLoadServerURL(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load server URL"},
+	}
 
-	err := SaveServerURL("https://flowbot.example.com", "")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	url, err := LoadServerURL("")
-	require.NoError(t, err)
-	require.Equal(t, "https://flowbot.example.com", url)
+			err := SaveServerURL("https://flowbot.example.com", "")
+			require.NoError(t, err)
+
+			url, err := LoadServerURL("")
+			require.NoError(t, err)
+			require.Equal(t, "https://flowbot.example.com", url)
+		})
+	}
 }
 
 func TestSaveLoadServerURLWithProfile(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load server URL with profile"},
+	}
 
-	err := SaveServerURL("https://dev.flowbot.example.com", "dev")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	url, err := LoadServerURL("dev")
-	require.NoError(t, err)
-	require.Equal(t, "https://dev.flowbot.example.com", url)
+			err := SaveServerURL("https://dev.flowbot.example.com", "dev")
+			require.NoError(t, err)
+
+			url, err := LoadServerURL("dev")
+			require.NoError(t, err)
+			require.Equal(t, "https://dev.flowbot.example.com", url)
+		})
+	}
 }
 
 func TestLoadServerURLNotExist(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "load server URL when file does not exist returns empty"},
+	}
 
-	url, err := LoadServerURL("")
-	require.NoError(t, err)
-	require.Empty(t, url)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			url, err := LoadServerURL("")
+			require.NoError(t, err)
+			require.Empty(t, url)
+		})
+	}
 }
 
 func TestGetTokenPath(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get token path for default profile"},
+	}
 
-	path, err := GetTokenPath("")
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "token"), path)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			path, err := GetTokenPath("")
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "token"), path)
+		})
+	}
 }
 
 func TestGetTokenPathWithProfile(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get token path with profile"},
+	}
 
-	path, err := GetTokenPath("prod")
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "token.prod"), path)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			path, err := GetTokenPath("prod")
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "token.prod"), path)
+		})
+	}
 }
 
 func TestGetServerURLPath(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get server URL path for default profile"},
+	}
 
-	path, err := GetServerURLPath("")
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "server_url"), path)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			path, err := GetServerURLPath("")
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "server_url"), path)
+		})
+	}
 }
 
 func TestAcquireLock(t *testing.T) {
-	tmpDir := t.TempDir()
-	lockPath := filepath.Join(tmpDir, "test")
+	tests := []struct {
+		name string
+	}{
+		{name: "acquire lock creates and releases lock file"},
+	}
 
-	unlock, err := AcquireLock(lockPath)
-	require.NoError(t, err)
-	require.NotNil(t, unlock)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			lockPath := filepath.Join(tmpDir, "test")
 
-	_, err = os.Stat(lockPath + ".lock")
-	require.NoError(t, err, "lock file should exist")
+			unlock, err := AcquireLock(lockPath)
+			require.NoError(t, err)
+			require.NotNil(t, unlock)
 
-	unlock()
+			_, err = os.Stat(lockPath + ".lock")
+			require.NoError(t, err, "lock file should exist")
 
-	_, err = os.Stat(lockPath + ".lock")
-	require.True(t, os.IsNotExist(err), "lock file should be removed")
+			unlock()
+
+			_, err = os.Stat(lockPath + ".lock")
+			require.True(t, os.IsNotExist(err), "lock file should be removed")
+		})
+	}
 }
 
 func TestGetConfigDir(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get config dir creates and returns directory"},
+	}
 
-	cfgDir, err := GetConfigDir()
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot"), cfgDir)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	stat, err := os.Stat(cfgDir)
-	require.NoError(t, err)
-	require.True(t, stat.IsDir())
+			cfgDir, err := GetConfigDir()
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot"), cfgDir)
+
+			stat, err := os.Stat(cfgDir)
+			require.NoError(t, err)
+			require.True(t, stat.IsDir())
+		})
+	}
 }

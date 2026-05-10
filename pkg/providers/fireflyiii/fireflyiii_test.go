@@ -72,37 +72,39 @@ func TestFireflyIII_About(t *testing.T) {
 }
 
 func TestFireflyIII_CurrentUser(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/v1/about/user", r.URL.Path)
-		w.Header().Set("Content-Type", "application/json")
+	t.Run("successful current user retrieval", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/v1/about/user", r.URL.Path)
+			w.Header().Set("Content-Type", "application/json")
 
-		response := Response{
-			Data: map[string]any{
-				"type": "users",
-				"id":   "1",
-				"attributes": map[string]any{
-					"created_at":   time.Now().Format(time.RFC3339),
-					"updated_at":   time.Now().Format(time.RFC3339),
-					"email":        "user@example.com",
-					"blocked":      false,
-					"blocked_code": "",
-					"role":         "owner",
+			response := Response{
+				Data: map[string]any{
+					"type": "users",
+					"id":   "1",
+					"attributes": map[string]any{
+						"created_at":   time.Now().Format(time.RFC3339),
+						"updated_at":   time.Now().Format(time.RFC3339),
+						"email":        "user@example.com",
+						"blocked":      false,
+						"blocked_code": "",
+						"role":         "owner",
+					},
 				},
-			},
-			Message:   "",
-			Exception: "",
-		}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+				Message:   "",
+				Exception: "",
+			}
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := NewFireflyIII(server.URL, "test-token")
+		result, err := client.CurrentUser()
+
 		require.NoError(t, err)
-	}))
-	defer server.Close()
-
-	client := NewFireflyIII(server.URL, "test-token")
-	result, err := client.CurrentUser()
-
-	require.NoError(t, err)
-	assert.NotNil(t, result)
+		assert.NotNil(t, result)
+	})
 }
 
 func TestFireflyIII_CreateTransaction(t *testing.T) {
@@ -254,7 +256,9 @@ func TestConvertResponseData(t *testing.T) {
 }
 
 func TestNewFireflyIII(t *testing.T) {
-	client := NewFireflyIII("https://firefly.example.com", "my-token")
-	assert.NotNil(t, client)
-	assert.NotNil(t, client.c)
+	t.Run("constructor creates client", func(t *testing.T) {
+		client := NewFireflyIII("https://firefly.example.com", "my-token")
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.c)
+	})
 }

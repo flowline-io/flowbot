@@ -8,18 +8,43 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func TestMessageTypes_Constants(t *testing.T) {
-	// Test event type constants
-	assert.Equal(t, "message:send", types.MessageSendEvent)
-	assert.Equal(t, "bot:event", types.BotRunEvent)
+func TestMessageTypeConstants(t *testing.T) {
+	tests := []struct {
+		name string
+		got  string
+		want string
+	}{
+		{name: "MessageSendEvent", got: types.MessageSendEvent, want: "message:send"},
+		{name: "BotRunEvent", got: types.BotRunEvent, want: "bot:event"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.got)
+		})
+	}
 }
 
-func TestEventPayload(t *testing.T) {
-	payload := types.EventPayload{
-		Typ: "text",
-		Src: []byte("test data"),
+func TestEventPayloadStruct(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload types.EventPayload
+		wantTyp string
+		wantSrc []byte
+	}{
+		{
+			name: "text payload",
+			payload: types.EventPayload{
+				Typ: "text",
+				Src: []byte("test data"),
+			},
+			wantTyp: "text",
+			wantSrc: []byte("test data"),
+		},
 	}
-
-	assert.Equal(t, "text", payload.Typ)
-	assert.Equal(t, []byte("test data"), payload.Src)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.wantTyp, tt.payload.Typ)
+			assert.Equal(t, tt.wantSrc, tt.payload.Src)
+		})
+	}
 }

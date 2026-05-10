@@ -6,6 +6,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -20,56 +21,139 @@ func TestRetry_Fields(t *testing.T) {
 		RandomizationFactor: 0.5,
 	}
 
-	assert.Equal(t, 3, retry.MaxRetries)
-	assert.Equal(t, 1*time.Second, retry.InitialInterval)
-	assert.Equal(t, 30*time.Second, retry.MaxInterval)
-	assert.Equal(t, 2.0, retry.Multiplier)
-	assert.Equal(t, 2*time.Minute, retry.MaxElapsedTime)
-	assert.Equal(t, 0.5, retry.RandomizationFactor)
+	tests := []struct {
+		name string
+		got  any
+		want any
+	}{
+		{name: "MaxRetries", got: retry.MaxRetries, want: 3},
+		{name: "InitialInterval", got: retry.InitialInterval, want: 1 * time.Second},
+		{name: "MaxInterval", got: retry.MaxInterval, want: 30 * time.Second},
+		{name: "Multiplier", got: retry.Multiplier, want: 2.0},
+		{name: "MaxElapsedTime", got: retry.MaxElapsedTime, want: 2 * time.Minute},
+		{name: "RandomizationFactor", got: retry.RandomizationFactor, want: 0.5},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.got)
+		})
+	}
 }
 
 func TestRetry_ZeroValues(t *testing.T) {
 	retry := Retry{}
-	assert.Equal(t, 0, retry.MaxRetries)
-	assert.Equal(t, time.Duration(0), retry.InitialInterval)
-	assert.Equal(t, time.Duration(0), retry.MaxInterval)
-	assert.Equal(t, 0.0, retry.Multiplier)
-	assert.Equal(t, time.Duration(0), retry.MaxElapsedTime)
-	assert.Equal(t, 0.0, retry.RandomizationFactor)
-	assert.Nil(t, retry.OnRetryHook)
-	assert.Nil(t, retry.Logger)
+
+	tests := []struct {
+		name string
+		got  any
+		want any
+	}{
+		{name: "MaxRetries", got: retry.MaxRetries, want: 0},
+		{name: "InitialInterval", got: retry.InitialInterval, want: time.Duration(0)},
+		{name: "MaxInterval", got: retry.MaxInterval, want: time.Duration(0)},
+		{name: "Multiplier", got: retry.Multiplier, want: 0.0},
+		{name: "MaxElapsedTime", got: retry.MaxElapsedTime, want: time.Duration(0)},
+		{name: "RandomizationFactor", got: retry.RandomizationFactor, want: 0.0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.got)
+		})
+	}
+
+	t.Run("hooks and logger are nil", func(t *testing.T) {
+		assert.Nil(t, retry.OnRetryHook)
+		assert.Nil(t, retry.Logger)
+	})
 }
 
-func TestRetry_WithOnRetryHook(t *testing.T) {
+func TestRetry_OnRetryHook(t *testing.T) {
 	called := false
 	retry := Retry{
-		MaxRetries:  1,
-		OnRetryHook: func(retryNum int, delay time.Duration) { called = true },
+		MaxRetries: 1,
+		OnRetryHook: func(retryNum int, delay time.Duration) {
+			called = true
+		},
 	}
-	assert.NotNil(t, retry.OnRetryHook)
-	retry.OnRetryHook(1, 100*time.Millisecond)
-	assert.True(t, called)
+
+	t.Run("hook is set and callable", func(t *testing.T) {
+		require.NotNil(t, retry.OnRetryHook)
+		retry.OnRetryHook(1, 100*time.Millisecond)
+		assert.True(t, called)
+	})
 }
 
-func TestRetry_Middleware_Success(t *testing.T) {
-	retry := Retry{
-		MaxRetries:      3,
-		InitialInterval: 100 * time.Millisecond,
-		MaxInterval:     1 * time.Second,
-		Multiplier:      2.0,
-		Logger:          flog.WatermillLogger,
+func TestRetry_Middleware(t *testing.T) {
+	tests := []struct {
+		name    string
+		retry   Retry
+		handler func(msg *message.Message) ([]*message.Message, error)
+		wantErr bool
+		wantLen int
+	}{
+		{
+			name: "success on first attempt",
+			retry: Retry{
+				MaxRetries:      3,
+				InitialInterval: 100 * time.Millisecond,
+				MaxInterval:     1 * time.Second,
+				Multiplier:      2.0,
+				Logger:          flog.WatermillLogger,
+			},
+			handler: func(msg *message.Message) ([]*message.Message, error) {
+				return []*message.Message{msg}, nil
+			},
+			wantErr: false,
+			wantLen: 1,
+		},
+		{
+			name: "all retries fail",
+			retry: Retry{
+				MaxRetries:          1,
+				InitialInterval:     10 * time.Millisecond,
+				MaxInterval:         50 * time.Millisecond,
+				Multiplier:          1.0,
+				MaxElapsedTime:      200 * time.Millisecond,
+				RandomizationFactor: 0.0,
+				Logger:              flog.WatermillLogger,
+			},
+			handler: func(msg *message.Message) ([]*message.Message, error) {
+				return nil, assert.AnError
+			},
+			wantErr: true,
+			wantLen: 0,
+		},
+		{
+			name: "context timeout exhausted",
+			retry: Retry{
+				MaxRetries:      100,
+				MaxElapsedTime:  50 * time.Millisecond,
+				InitialInterval: 10 * time.Millisecond,
+				MaxInterval:     20 * time.Millisecond,
+				Multiplier:      1.0,
+				Logger:          flog.WatermillLogger,
+			},
+			handler: func(msg *message.Message) ([]*message.Message, error) {
+				return nil, assert.AnError
+			},
+			wantErr: true,
+			wantLen: 0,
+		},
 	}
-
-	handler := func(msg *message.Message) ([]*message.Message, error) {
-		return []*message.Message{msg}, nil
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			middleware := tt.retry.Middleware(tt.handler)
+			msg := message.NewMessage("test", []byte("payload"))
+			result, err := middleware(msg)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+				return
+			}
+			require.NoError(t, err)
+			assert.Len(t, result, tt.wantLen)
+		})
 	}
-
-	middleware := retry.Middleware(handler)
-	msg := message.NewMessage("test", []byte("payload"))
-
-	result, err := middleware(msg)
-	assert.NoError(t, err)
-	assert.Len(t, result, 1)
 }
 
 func TestRetry_Middleware_EventualSuccess(t *testing.T) {
@@ -96,50 +180,6 @@ func TestRetry_Middleware_EventualSuccess(t *testing.T) {
 	msg := message.NewMessage("test", []byte("payload"))
 
 	result, err := middleware(msg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, result, 1)
-}
-
-func TestRetry_Middleware_AllRetriesFail(t *testing.T) {
-	retry := Retry{
-		MaxRetries:          1,
-		InitialInterval:     10 * time.Millisecond,
-		MaxInterval:         50 * time.Millisecond,
-		Multiplier:          1.0,
-		MaxElapsedTime:      200 * time.Millisecond,
-		RandomizationFactor: 0.0,
-		Logger:              flog.WatermillLogger,
-	}
-
-	handler := func(msg *message.Message) ([]*message.Message, error) {
-		return nil, assert.AnError
-	}
-
-	middleware := retry.Middleware(handler)
-	msg := message.NewMessage("test", []byte("payload"))
-
-	result, err := middleware(msg)
-	assert.Error(t, err)
-	assert.Nil(t, result)
-}
-
-func TestRetry_Middleware_WithContextTimeout(t *testing.T) {
-	retry := Retry{
-		MaxRetries:      100,
-		MaxElapsedTime:  50 * time.Millisecond,
-		InitialInterval: 10 * time.Millisecond,
-		MaxInterval:     20 * time.Millisecond,
-		Multiplier:      1.0,
-		Logger:          flog.WatermillLogger,
-	}
-
-	handler := func(msg *message.Message) ([]*message.Message, error) {
-		return nil, assert.AnError
-	}
-
-	middleware := retry.Middleware(handler)
-	msg := message.NewMessage("test", []byte("payload"))
-
-	_, err := middleware(msg)
-	assert.Error(t, err)
 }

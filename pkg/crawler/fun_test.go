@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,9 +18,7 @@ func TestParseFun(t *testing.T) {
 		<span class="sitebit comhead"> (<a href="from?site=demo.com">
 		<span class="sitestr">demo.com</span></a>)
 		</span></td></tr>`))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	sel := doc.First()
 	t.Parallel()
@@ -29,19 +28,19 @@ func TestParseFun(t *testing.T) {
 		expect string
 	}{
 		{
-			"text",
-			`$("a.storylink").text`,
-			"demo",
+			name:   "text selector",
+			fun:    `$("a.storylink").text`,
+			expect: "demo",
 		},
 		{
-			"expand",
-			`$(".rank").text.expand("(\d+)", "#$1")`,
-			"#3",
+			name:   "expand regex capture",
+			fun:    `$(".rank").text.expand("(\d+)", "#$1")`,
+			expect: "#3",
 		},
 		{
-			"match",
-			`$(".rank").text.match("(\d+)")`,
-			"3",
+			name:   "match regex capture",
+			fun:    `$(".rank").text.match("(\d+)")`,
+			expect: "3",
 		},
 	}
 	for _, tt := range tests {
@@ -49,10 +48,8 @@ func TestParseFun(t *testing.T) {
 			t.Parallel()
 			f := ParseFun(sel, tt.fun)
 			r, err := f.Invoke()
-			if err != nil {
-				t.Fatal(err)
-			}
-			require.Equal(t, r, tt.expect)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expect, r)
 		})
 	}
 }

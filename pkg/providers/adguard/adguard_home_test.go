@@ -62,50 +62,54 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 }
 
 func TestAdGuardHome_GetStats(t *testing.T) {
-	timeUnits := "hours"
-	numQueries := int32(1000)
-	numBlocked := int32(100)
-	avgTime := float32(0.5)
+	t.Run("successful stats retrieval", func(t *testing.T) {
+		timeUnits := "hours"
+		numQueries := int32(1000)
+		numBlocked := int32(100)
+		avgTime := float32(0.5)
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/stats", r.URL.Path)
-		w.Header().Set("Content-Type", "application/json")
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/stats", r.URL.Path)
+			w.Header().Set("Content-Type", "application/json")
 
-		response := Stats{
-			TimeUnits:             &timeUnits,
-			NumDnsQueries:         &numQueries,
-			NumBlockedFiltering:   &numBlocked,
-			AvgProcessingTime:     &avgTime,
-			TopQueriedDomains:     []TopArrayEntry{},
-			TopClients:            []TopArrayEntry{},
-			TopBlockedDomains:     []TopArrayEntry{},
-			TopUpstreamsResponses: []TopArrayEntry{},
-			TopUpstreamsAvgTime:   []TopArrayEntry{},
-			DnsQueries:            []int32{10, 20, 30},
-			BlockedFiltering:      []int32{1, 2, 3},
-			ReplacedSafebrowsing:  []int32{},
-			ReplacedParental:      []int32{},
-		}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			response := Stats{
+				TimeUnits:             &timeUnits,
+				NumDnsQueries:         &numQueries,
+				NumBlockedFiltering:   &numBlocked,
+				AvgProcessingTime:     &avgTime,
+				TopQueriedDomains:     []TopArrayEntry{},
+				TopClients:            []TopArrayEntry{},
+				TopBlockedDomains:     []TopArrayEntry{},
+				TopUpstreamsResponses: []TopArrayEntry{},
+				TopUpstreamsAvgTime:   []TopArrayEntry{},
+				DnsQueries:            []int32{10, 20, 30},
+				BlockedFiltering:      []int32{1, 2, 3},
+				ReplacedSafebrowsing:  []int32{},
+				ReplacedParental:      []int32{},
+			}
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := NewAdGuardHome(server.URL, "admin", "password")
+		result, err := client.GetStats()
+
 		require.NoError(t, err)
-	}))
-	defer server.Close()
-
-	client := NewAdGuardHome(server.URL, "admin", "password")
-	result, err := client.GetStats()
-
-	require.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, "hours", *result.TimeUnits)
-	assert.Equal(t, int32(1000), *result.NumDnsQueries)
-	assert.Equal(t, int32(100), *result.NumBlockedFiltering)
-	assert.Equal(t, float32(0.5), *result.AvgProcessingTime)
-	assert.Len(t, result.DnsQueries, 3)
+		assert.NotNil(t, result)
+		assert.Equal(t, "hours", *result.TimeUnits)
+		assert.Equal(t, int32(1000), *result.NumDnsQueries)
+		assert.Equal(t, int32(100), *result.NumBlockedFiltering)
+		assert.Equal(t, float32(0.5), *result.AvgProcessingTime)
+		assert.Len(t, result.DnsQueries, 3)
+	})
 }
 
 func TestNewAdGuardHome(t *testing.T) {
-	client := NewAdGuardHome("http://localhost:3000", "admin", "pass")
-	assert.NotNil(t, client)
-	assert.NotNil(t, client.c)
+	t.Run("constructor creates client", func(t *testing.T) {
+		client := NewAdGuardHome("http://localhost:3000", "admin", "pass")
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.c)
+	})
 }

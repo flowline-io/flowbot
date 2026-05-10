@@ -6,14 +6,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPageRules_Count(t *testing.T) {
-	assert.Len(t, pageRules, 1)
-}
-
-func TestPageRules_ID(t *testing.T) {
-	assert.Equal(t, "dev", pageRules[0].Id)
-}
-
-func TestPageRules_UI(t *testing.T) {
-	assert.NotNil(t, pageRules[0].UI)
+func TestPageRules(t *testing.T) {
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 1 page rule",
+			test: func(t *testing.T) {
+				assert.Len(t, pageRules, 1)
+			},
+		},
+		{
+			name: "should have id dev",
+			test: func(t *testing.T) {
+				assert.Equal(t, "dev", pageRules[0].Id)
+			},
+		},
+		{
+			name: "should have non-nil UI",
+			test: func(t *testing.T) {
+				assert.NotNil(t, pageRules[0].UI)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
 }

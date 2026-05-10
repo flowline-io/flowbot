@@ -13,32 +13,73 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 1)
+	tests := []struct {
+		name string
+	}{
+		{name: "one command rule"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Len(t, commandRules, 1)
+		})
+	}
 }
 
 func TestCommandRules_Defines(t *testing.T) {
-	assert.Equal(t, "reader", commandRules[0].Define)
-	assert.Equal(t, "show reader id", commandRules[0].Help)
+	tests := []struct {
+		name string
+	}{
+		{name: "reader command defined with help"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, "reader", commandRules[0].Define)
+			assert.Equal(t, "show reader id", commandRules[0].Help)
+		})
+	}
 }
 
 func TestCommandRules_Handlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+	tests := []struct {
+		name string
+	}{
+		{name: "all command rules have handlers"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, r := range commandRules {
+				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+			}
+		})
 	}
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
 	tests := []struct {
+		name   string
 		define string
 		input  string
 		want   bool
 	}{
-		{"reader", "reader", true},
-		{"reader", "reader extra", false},
+		{
+			name:   "reader exact match",
+			define: "reader",
+			input:  "reader",
+			want:   true,
+		},
+		{
+			name:   "reader with extra tokens fails",
+			define: "reader",
+			input:  "reader extra",
+			want:   false,
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.define+"_"+tt.input, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -50,31 +91,51 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
-	rs := command.Ruleset(commandRules)
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+	tests := []struct {
+		name string
+	}{
+		{name: "unknown command returns nil result"},
+	}
 
-	result, err := rs.ProcessCommand(ctx, "unknown command xyz")
-	require.NoError(t, err)
-	assert.Nil(t, result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rs := command.Ruleset(commandRules)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+
+			result, err := rs.ProcessCommand(ctx, "unknown command xyz")
+			require.NoError(t, err)
+			assert.Nil(t, result)
+		})
+	}
 }
 
 func TestCommandRules_ReaderHandler(t *testing.T) {
-	var readerRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "reader" {
-			readerRule = &commandRules[i]
-			break
-		}
+	tests := []struct {
+		name string
+	}{
+		{name: "reader handler returns miniflux id as text"},
 	}
-	require.NotNil(t, readerRule)
 
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("reader")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var readerRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "reader" {
+					readerRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, readerRule)
 
-	payload := readerRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			tokens, _ := parser.ParseString("reader")
 
-	msg, ok := payload.(types.TextMsg)
-	require.True(t, ok)
-	assert.Equal(t, miniflux.ID, msg.Text)
+			payload := readerRule.Handler(ctx, tokens)
+			require.NotNil(t, payload)
+
+			msg, ok := payload.(types.TextMsg)
+			require.True(t, ok)
+			assert.Equal(t, miniflux.ID, msg.Text)
+		})
+	}
 }

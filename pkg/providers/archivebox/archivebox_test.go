@@ -97,42 +97,46 @@ func TestArchiveBox_Add(t *testing.T) {
 }
 
 func TestArchiveBox_AddMultipleUrls(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		var reqData Data
-		err = sonic.Unmarshal(body, &reqData)
-		require.NoError(t, err)
+	t.Run("add multiple URLs", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			var reqData Data
+			err = sonic.Unmarshal(body, &reqData)
+			require.NoError(t, err)
 
-		assert.Len(t, reqData.Urls, 3)
+			assert.Len(t, reqData.Urls, 3)
 
-		response := Response{
-			Success: true,
-			Result:  reqData.Urls,
+			response := Response{
+				Success: true,
+				Result:  reqData.Urls,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err = sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := NewArchiveBox(server.URL, "test-token")
+		data := Data{
+			Urls: []string{
+				"https://example1.com",
+				"https://example2.com",
+				"https://example3.com",
+			},
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err = sonic.ConfigDefault.NewEncoder(w).Encode(response)
+		result, err := client.Add(data)
+
 		require.NoError(t, err)
-	}))
-	defer server.Close()
-
-	client := NewArchiveBox(server.URL, "test-token")
-	data := Data{
-		Urls: []string{
-			"https://example1.com",
-			"https://example2.com",
-			"https://example3.com",
-		},
-	}
-	result, err := client.Add(data)
-
-	require.NoError(t, err)
-	assert.True(t, result.Success)
+		assert.True(t, result.Success)
+	})
 }
 
 func TestNewArchiveBox(t *testing.T) {
-	client := NewArchiveBox("http://localhost:8000", "my-token")
-	assert.NotNil(t, client)
-	assert.NotNil(t, client.c)
+	t.Run("constructor creates client", func(t *testing.T) {
+		client := NewArchiveBox("http://localhost:8000", "my-token")
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.c)
+	})
 }

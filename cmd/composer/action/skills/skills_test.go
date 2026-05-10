@@ -115,68 +115,98 @@ func TestBuildCLIString(t *testing.T) {
 }
 
 func TestZeroDefault(t *testing.T) {
-	require.Equal(t, "hello", zeroDefault("hello", "fallback"))
-	require.Equal(t, "fallback", zeroDefault("", "fallback"))
+	tests := []struct {
+		name string
+	}{
+		{name: "zeroDefault returns value or fallback"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, "hello", zeroDefault("hello", "fallback"))
+			require.Equal(t, "fallback", zeroDefault("", "fallback"))
+		})
+	}
 }
 
 func TestExtractFlags(t *testing.T) {
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	fs.StringP("output", "o", "table", "Output format")
-	fs.StringP("url", "u", "", "Bookmark URL")
-	fs.String("name", "", "Tag name")
-	fs.BoolP("force", "f", false, "Force")
-
-	result := extractFlags(fs)
-
-	// "output" should be skipped
-	for _, f := range result {
-		require.NotEqual(t, "output", f.Name, "output flag should be skipped")
+	tests := []struct {
+		name string
+	}{
+		{name: "extractFlags returns correct flag specs"},
 	}
 
-	// Check "url" is present
-	var urlSpec *flagSpec
-	for i := range result {
-		if result[i].Name == "url" {
-			urlSpec = &result[i]
-			break
-		}
-	}
-	require.NotNil(t, urlSpec)
-	require.Equal(t, "u", urlSpec.Shorthand)
-	require.Equal(t, "string", urlSpec.Type)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+			fs.StringP("output", "o", "table", "Output format")
+			fs.StringP("url", "u", "", "Bookmark URL")
+			fs.String("name", "", "Tag name")
+			fs.BoolP("force", "f", false, "Force")
 
-	// Check "name" is present
-	var nameSpec *flagSpec
-	for i := range result {
-		if result[i].Name == "name" {
-			nameSpec = &result[i]
-			break
-		}
-	}
-	require.NotNil(t, nameSpec)
+			result := extractFlags(fs)
 
-	// Check "force" is present
-	var forceSpec *flagSpec
-	for i := range result {
-		if result[i].Name == "force" {
-			forceSpec = &result[i]
-			break
-		}
+			// "output" should be skipped
+			for _, f := range result {
+				require.NotEqual(t, "output", f.Name, "output flag should be skipped")
+			}
+
+			// Check "url" is present
+			var urlSpec *flagSpec
+			for i := range result {
+				if result[i].Name == "url" {
+					urlSpec = &result[i]
+					break
+				}
+			}
+			require.NotNil(t, urlSpec)
+			require.Equal(t, "u", urlSpec.Shorthand)
+			require.Equal(t, "string", urlSpec.Type)
+
+			// Check "name" is present
+			var nameSpec *flagSpec
+			for i := range result {
+				if result[i].Name == "name" {
+					nameSpec = &result[i]
+					break
+				}
+			}
+			require.NotNil(t, nameSpec)
+
+			// Check "force" is present
+			var forceSpec *flagSpec
+			for i := range result {
+				if result[i].Name == "force" {
+					forceSpec = &result[i]
+					break
+				}
+			}
+			require.NotNil(t, forceSpec)
+			require.Equal(t, "f", forceSpec.Shorthand)
+			require.Equal(t, "bool", forceSpec.Type)
+		})
 	}
-	require.NotNil(t, forceSpec)
-	require.Equal(t, "f", forceSpec.Shorthand)
-	require.Equal(t, "bool", forceSpec.Type)
 }
 
 func TestExtractFlagsNoRequiredAnnotation(t *testing.T) {
-	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	fs.StringP("title", "t", "", "Title")
-	fs.IntP("limit", "n", 20, "Limit")
+	tests := []struct {
+		name string
+	}{
+		{name: "extractFlags does not set required annotation by default"},
+	}
 
-	result := extractFlags(fs)
-	require.Len(t, result, 2)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+			fs.StringP("title", "t", "", "Title")
+			fs.IntP("limit", "n", 20, "Limit")
 
-	for _, f := range result {
-		require.False(t, f.Required, "flag %s should not be required", f.Name)
+			result := extractFlags(fs)
+			require.Len(t, result, 2)
+
+			for _, f := range result {
+				require.False(t, f.Required, "flag %s should not be required", f.Name)
+			}
+		})
 	}
 }

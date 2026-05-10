@@ -11,67 +11,133 @@ import (
 )
 
 func TestBotName(t *testing.T) {
-	assert.Equal(t, "workflow", Name)
-}
-
-func TestBotInit_Enabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: true}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.True(t, handler.IsReady())
-}
-
-func TestBotInit_Disabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: false}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.False(t, handler.IsReady())
-}
-
-func TestBotInit_InvalidJSON(t *testing.T) {
-	handler = moduleHandler{} // reset
-	err := handler.Init(json.RawMessage(`{invalid`))
-	assert.Error(t, err)
-}
-
-func TestBotInit_AlreadyInitialized(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	err := handler.Init(json.RawMessage(`{"enabled":true}`))
-	assert.Error(t, err)
-}
-
-func TestCommandRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, commandRules)
-
-	defines := make(map[string]string)
-	for _, r := range commandRules {
-		defines[r.Define] = r.Help
+	tests := []struct {
+		name string
+	}{
+		{name: "name equals workflow"},
 	}
 
-	assert.Contains(t, defines, "workflow list")
-	assert.Contains(t, defines, "workflow get [id]")
-	assert.Contains(t, defines, "workflow create [name]")
-	assert.Contains(t, defines, "workflow update [id] [name]")
-	assert.Contains(t, defines, "workflow delete [id]")
-	assert.Contains(t, defines, "workflow activate [id]")
-	assert.Contains(t, defines, "workflow deactivate [id]")
-	assert.Contains(t, defines, "workflow execute [id]")
-	assert.Contains(t, defines, "workflow stat")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, "workflow", Name)
+		})
+	}
 }
 
-func TestCommandRules_HaveHandlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+func TestBotInit(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    configType
+		preInit   bool
+		wantErr   bool
+		wantReady bool
+	}{
+		{
+			name:      "enabled config makes handler ready",
+			config:    configType{Enabled: true},
+			wantReady: true,
+		},
+		{
+			name:      "disabled config makes handler not ready",
+			config:    configType{Enabled: false},
+			wantReady: false,
+		},
+		{
+			name:    "invalid JSON returns error",
+			wantErr: true,
+		},
+		{
+			name:    "already initialized returns error",
+			preInit: true,
+			config:  configType{Enabled: true},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.preInit {
+				handler = moduleHandler{initialized: true}
+			} else {
+				handler = moduleHandler{}
+			}
+
+			var data json.RawMessage
+			if tt.name == "invalid JSON returns error" {
+				data = json.RawMessage(`{invalid`)
+			} else if !tt.preInit || tt.config.Enabled {
+				data, _ = sonic.Marshal(tt.config)
+			} else {
+				data, _ = sonic.Marshal(configType{Enabled: true})
+			}
+
+			err := handler.Init(data)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantReady, handler.IsReady())
+			}
+		})
+	}
+}
+
+func TestCommandRules(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func(t *testing.T)
+	}{
+		{
+			name: "all expected workflow commands defined",
+			fn: func(t *testing.T) {
+				assert.NotEmpty(t, commandRules)
+
+				defines := make(map[string]string)
+				for _, r := range commandRules {
+					defines[r.Define] = r.Help
+				}
+
+				assert.Contains(t, defines, "workflow list")
+				assert.Contains(t, defines, "workflow get [id]")
+				assert.Contains(t, defines, "workflow create [name]")
+				assert.Contains(t, defines, "workflow update [id] [name]")
+				assert.Contains(t, defines, "workflow delete [id]")
+				assert.Contains(t, defines, "workflow activate [id]")
+				assert.Contains(t, defines, "workflow deactivate [id]")
+				assert.Contains(t, defines, "workflow execute [id]")
+				assert.Contains(t, defines, "workflow stat")
+			},
+		},
+		{
+			name: "all command rules have handlers",
+			fn: func(t *testing.T) {
+				for _, r := range commandRules {
+					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.fn(t)
+		})
 	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	rules := handler.Rules()
-	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 3) // commandRules, cronRules, webserviceRules
+	tests := []struct {
+		name string
+	}{
+		{name: "handler returns three rulesets"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler = moduleHandler{initialized: true}
+			rules := handler.Rules()
+			assert.NotEmpty(t, rules)
+			assert.Len(t, rules, 3)
+		})
+	}
 }

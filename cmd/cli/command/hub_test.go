@@ -7,75 +7,135 @@ import (
 )
 
 func TestHubCommand(t *testing.T) {
-	cmd := HubCommand()
+	tests := []struct {
+		name string
+	}{
+		{name: "hub command has correct use and subcommands"},
+	}
 
-	require.Equal(t, "hub", cmd.Use)
-	require.True(t, cmd.HasSubCommands())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := HubCommand()
 
-	subNames := subcommandNames(cmd)
-	require.Contains(t, subNames, "apps")
-	require.Contains(t, subNames, "capabilities")
-	require.Contains(t, subNames, "health")
+			require.Equal(t, "hub", cmd.Use)
+			require.True(t, cmd.HasSubCommands())
+
+			subNames := subcommandNames(cmd)
+			require.Contains(t, subNames, "apps")
+			require.Contains(t, subNames, "capabilities")
+			require.Contains(t, subNames, "health")
+		})
+	}
 }
 
 func TestHubAppsCommand(t *testing.T) {
-	hubCmd := HubCommand()
-	appsCmd := findSubcommand(hubCmd, "apps")
-	require.NotNil(t, appsCmd)
-	require.True(t, appsCmd.HasSubCommands())
+	tests := []struct {
+		name string
+	}{
+		{name: "hub apps has correct subcommands"},
+	}
 
-	subNames := subcommandNames(appsCmd)
-	require.Contains(t, subNames, "list")
-	require.Contains(t, subNames, "status")
-	require.Contains(t, subNames, "logs")
-	require.Contains(t, subNames, "restart")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hubCmd := HubCommand()
+			appsCmd := findSubcommand(hubCmd, "apps")
+			require.NotNil(t, appsCmd)
+			require.True(t, appsCmd.HasSubCommands())
+
+			subNames := subcommandNames(appsCmd)
+			require.Contains(t, subNames, "list")
+			require.Contains(t, subNames, "status")
+			require.Contains(t, subNames, "logs")
+			require.Contains(t, subNames, "restart")
+		})
+	}
 }
 
 func TestHubAppsListCommand(t *testing.T) {
-	hubCmd := HubCommand()
-	appsCmd := findSubcommand(hubCmd, "apps")
-	listCmd := findSubcommand(appsCmd, "list")
-	require.NotNil(t, listCmd)
-	require.NotNil(t, listCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "hub apps list has correct flags"},
+	}
 
-	output := listCmd.Flags().Lookup("output")
-	require.NotNil(t, output)
-	require.Equal(t, "output", output.Name)
-	require.Equal(t, "o", output.Shorthand)
-	defVal, _ := listCmd.Flags().GetString("output")
-	require.Equal(t, "table", defVal)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hubCmd := HubCommand()
+			appsCmd := findSubcommand(hubCmd, "apps")
+			listCmd := findSubcommand(appsCmd, "list")
+			require.NotNil(t, listCmd)
+			require.NotNil(t, listCmd.RunE)
+
+			output := listCmd.Flags().Lookup("output")
+			require.NotNil(t, output)
+			require.Equal(t, "output", output.Name)
+			require.Equal(t, "o", output.Shorthand)
+			defVal, _ := listCmd.Flags().GetString("output")
+			require.Equal(t, "table", defVal)
+		})
+	}
 }
 
 func TestHubAppsStatusCommand(t *testing.T) {
-	hubCmd := HubCommand()
-	appsCmd := findSubcommand(hubCmd, "apps")
-	statusCmd := findSubcommand(appsCmd, "status")
-	require.NotNil(t, statusCmd)
-	require.Contains(t, statusCmd.Use, "status")
-	require.NotNil(t, statusCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "hub apps status has correct use and RunE"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hubCmd := HubCommand()
+			appsCmd := findSubcommand(hubCmd, "apps")
+			statusCmd := findSubcommand(appsCmd, "status")
+			require.NotNil(t, statusCmd)
+			require.Contains(t, statusCmd.Use, "status")
+			require.NotNil(t, statusCmd.RunE)
+		})
+	}
 }
 
 func TestHubAppsLogsCommand(t *testing.T) {
-	hubCmd := HubCommand()
-	appsCmd := findSubcommand(hubCmd, "apps")
-	logsCmd := findSubcommand(appsCmd, "logs")
-	require.NotNil(t, logsCmd)
-	require.NotNil(t, logsCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "hub apps logs has correct flags"},
+	}
 
-	tail := logsCmd.Flags().Lookup("tail")
-	require.NotNil(t, tail)
-	require.Equal(t, "tail", tail.Name)
-	require.Equal(t, "n", tail.Shorthand)
-	tailVal, _ := logsCmd.Flags().GetInt("tail")
-	require.Equal(t, 100, tailVal)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hubCmd := HubCommand()
+			appsCmd := findSubcommand(hubCmd, "apps")
+			logsCmd := findSubcommand(appsCmd, "logs")
+			require.NotNil(t, logsCmd)
+			require.NotNil(t, logsCmd.RunE)
+
+			tail := logsCmd.Flags().Lookup("tail")
+			require.NotNil(t, tail)
+			require.Equal(t, "tail", tail.Name)
+			require.Equal(t, "n", tail.Shorthand)
+			tailVal, _ := logsCmd.Flags().GetInt("tail")
+			require.Equal(t, 100, tailVal)
+		})
+	}
 }
 
 func TestHubHealthCommand(t *testing.T) {
-	hubCmd := HubCommand()
-	healthCmd := findSubcommand(hubCmd, "health")
-	require.NotNil(t, healthCmd)
-	require.NotNil(t, healthCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "hub health has correct flags and RunE"},
+	}
 
-	output := healthCmd.Flags().Lookup("output")
-	require.NotNil(t, output)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hubCmd := HubCommand()
+			healthCmd := findSubcommand(hubCmd, "health")
+			require.NotNil(t, healthCmd)
+			require.NotNil(t, healthCmd.RunE)
+
+			output := healthCmd.Flags().Lookup("output")
+			require.NotNil(t, output)
+		})
+	}
 }

@@ -3,31 +3,43 @@ package docker
 import (
 	"encoding/base64"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeBase64Auth(t *testing.T) {
 	for _, tc := range base64TestCases() {
-		t.Run(tc.name, testBase64Case(tc, func() (string, string, error) {
-			return decodeBase64Auth(tc.config)
-		}))
+		t.Run(tc.name, func(t *testing.T) {
+			u, p, err := decodeBase64Auth(tc.config)
+			if tc.expErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tc.expUser, u)
+			assert.Equal(t, tc.expPass, p)
+		})
 	}
 }
 
 func TestGetRegistryCredentials(t *testing.T) {
-	t.Run("from base64 auth", func(t *testing.T) {
-		for _, tc := range base64TestCases() {
-			t.Run(tc.name, func(T *testing.T) {
-				config := config{
-					AuthConfigs: map[string]authConfig{
-						"some.domain": tc.config,
-					},
-				}
-				testBase64Case(tc, func() (string, string, error) {
-					return config.getRegistryCredentials("some.domain")
-				})
-			})
-		}
-	})
+	for _, tc := range base64TestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			config := config{
+				AuthConfigs: map[string]authConfig{
+					"some.domain": tc.config,
+				},
+			}
+			u, p, err := config.getRegistryCredentials("some.domain")
+			if tc.expErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tc.expUser, u)
+			assert.Equal(t, tc.expPass, p)
+		})
+	}
 }
 
 type base64TestCase struct {
@@ -51,19 +63,4 @@ func base64TestCases() []base64TestCase {
 	}
 
 	return cases
-}
-
-type testAuthFn func() (string, string, error)
-
-func testBase64Case(tc base64TestCase, authFn testAuthFn) func(t *testing.T) {
-	return func(t *testing.T) {
-		u, p, err := authFn()
-		if tc.expErr && err == nil {
-			t.Fatal("expected error")
-		}
-
-		if u != tc.expUser || p != tc.expPass {
-			t.Errorf("decoded username and password do not match, expected user: %s, password: %s, got user: %s, password: %s", tc.expUser, tc.expPass, u, p)
-		}
-	}
 }

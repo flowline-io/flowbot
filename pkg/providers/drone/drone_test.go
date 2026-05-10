@@ -87,54 +87,58 @@ func TestDrone_CreateBuild(t *testing.T) {
 }
 
 func TestDrone_CreateBuildWithStages(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := Build{
-			ID:     123,
-			Number: 1,
-			Status: "running",
-			Stages: []Stage{
-				{
-					ID:        1,
-					RepoID:    456,
-					BuildID:   123,
-					Number:    1,
-					Name:      "build",
-					Kind:      "pipeline",
-					Type:      "docker",
-					Status:    "running",
-					ErrIgnore: false,
-					ExitCode:  0,
-					Machine:   "drone-runner",
-					OS:        "linux",
-					Arch:      "amd64",
-					Started:   1234567890,
-					Stopped:   0,
-					Created:   1234567890,
-					Updated:   1234567890,
-					Version:   1,
-					OnSuccess: true,
-					OnFailure: false,
+	t.Run("build with stages", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			response := Build{
+				ID:     123,
+				Number: 1,
+				Status: "running",
+				Stages: []Stage{
+					{
+						ID:        1,
+						RepoID:    456,
+						BuildID:   123,
+						Number:    1,
+						Name:      "build",
+						Kind:      "pipeline",
+						Type:      "docker",
+						Status:    "running",
+						ErrIgnore: false,
+						ExitCode:  0,
+						Machine:   "drone-runner",
+						OS:        "linux",
+						Arch:      "amd64",
+						Started:   1234567890,
+						Stopped:   0,
+						Created:   1234567890,
+						Updated:   1234567890,
+						Version:   1,
+						OnSuccess: true,
+						OnFailure: false,
+					},
 				},
-			},
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := NewDrone(server.URL, "test-token")
+		result, err := client.CreateBuild("myorg", "myrepo")
+
 		require.NoError(t, err)
-	}))
-	defer server.Close()
-
-	client := NewDrone(server.URL, "test-token")
-	result, err := client.CreateBuild("myorg", "myrepo")
-
-	require.NoError(t, err)
-	assert.Len(t, result.Stages, 1)
-	assert.Equal(t, "build", result.Stages[0].Name)
-	assert.Equal(t, "running", result.Stages[0].Status)
+		assert.Len(t, result.Stages, 1)
+		assert.Equal(t, "build", result.Stages[0].Name)
+		assert.Equal(t, "running", result.Stages[0].Status)
+	})
 }
 
 func TestNewDrone(t *testing.T) {
-	client := NewDrone("https://drone.example.com", "my-token")
-	assert.NotNil(t, client)
-	assert.NotNil(t, client.c)
+	t.Run("constructor creates client", func(t *testing.T) {
+		client := NewDrone("https://drone.example.com", "my-token")
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.c)
+	})
 }

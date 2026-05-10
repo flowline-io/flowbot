@@ -6,10 +6,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWebserviceRules_Count(t *testing.T) {
-	assert.Len(t, webserviceRules, 2)
-}
+func TestWebserviceRules(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func(t *testing.T)
+	}{
+		{
+			name: "exactly two webservice rules",
+			fn: func(t *testing.T) {
+				assert.Len(t, webserviceRules, 2)
+			},
+		},
+		{
+			name: "webservice rules are not empty",
+			fn: func(t *testing.T) {
+				assert.NotEmpty(t, webserviceRules)
+			},
+		},
+	}
 
-func TestWebserviceRules_NotEmpty(t *testing.T) {
-	assert.NotEmpty(t, webserviceRules)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.fn(t)
+		})
+	}
 }

@@ -11,56 +11,69 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 )
 
-func TestWebhookRules_Count(t *testing.T) {
-	assert.Len(t, webhookRules, 1)
-}
+func TestWebhookRules_Metadata(t *testing.T) {
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 1 webhook rule",
+			test: func(t *testing.T) {
+				assert.Len(t, webhookRules, 1)
+			},
+		},
+		{
+			name: "should have correct constant",
+			test: func(t *testing.T) {
+				assert.Equal(t, "example", ExampleWebhookID)
+			},
+		},
+		{
+			name: "should contain ExampleWebhookID",
+			test: func(t *testing.T) {
+				ids := make(map[string]bool)
+				for _, r := range webhookRules {
+					ids[r.Id] = true
+				}
 
-func TestWebhookRules_Constants(t *testing.T) {
-	assert.Equal(t, "example", ExampleWebhookID)
-}
-
-func TestWebhookRules_IDs(t *testing.T) {
-	ids := make(map[string]bool)
-	for _, r := range webhookRules {
-		ids[r.Id] = true
+				assert.True(t, ids[ExampleWebhookID])
+			},
+		},
+		{
+			name: "all webhooks should have Secret=true",
+			test: func(t *testing.T) {
+				for _, r := range webhookRules {
+					assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
+				}
+			},
+		},
+		{
+			name: "all webhook handlers should be non-nil",
+			test: func(t *testing.T) {
+				for _, r := range webhookRules {
+					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
+				}
+			},
+		},
+		{
+			name: "all webhooks should have non-empty ID, Secret=true, and non-nil handler",
+			test: func(t *testing.T) {
+				for _, r := range webhookRules {
+					t.Run(r.Id, func(t *testing.T) {
+						assert.NotEmpty(t, r.Id)
+						assert.True(t, r.Secret)
+						assert.NotNil(t, r.Handler)
+					})
+				}
+			},
+		},
 	}
-
-	assert.True(t, ids[ExampleWebhookID])
-}
-
-func TestWebhookRules_Secret(t *testing.T) {
-	for _, r := range webhookRules {
-		assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
-	}
-}
-
-func TestWebhookRules_Handlers(t *testing.T) {
-	for _, r := range webhookRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Id)
-	}
-}
-
-func TestWebhookRules_Comprehensive(t *testing.T) {
-	for _, r := range webhookRules {
-		t.Run(r.Id, func(t *testing.T) {
-			assert.NotEmpty(t, r.Id)
-			assert.True(t, r.Secret)
-			assert.NotNil(t, r.Handler)
-		})
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
 	}
 }
 
 func TestWebhookRules_ExampleHandler(t *testing.T) {
-	var exampleRule *webhook.Rule
-	for i := range webhookRules {
-		if webhookRules[i].Id == ExampleWebhookID {
-			exampleRule = &webhookRules[i]
-			break
-		}
-	}
-	require.NotNil(t, exampleRule)
-	require.NotNil(t, exampleRule.Handler)
-
 	tests := []struct {
 		name         string
 		method       string
@@ -93,6 +106,16 @@ func TestWebhookRules_ExampleHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var exampleRule *webhook.Rule
+			for i := range webhookRules {
+				if webhookRules[i].Id == ExampleWebhookID {
+					exampleRule = &webhookRules[i]
+					break
+				}
+			}
+			require.NotNil(t, exampleRule)
+			require.NotNil(t, exampleRule.Handler)
+
 			ctx := types.Context{
 				Platform: "test",
 				Topic:    "test",
@@ -113,35 +136,57 @@ func TestWebhookRules_ExampleHandler(t *testing.T) {
 }
 
 func TestWebhookRuleset_ProcessRule(t *testing.T) {
-	rs := webhook.Ruleset(webhookRules)
-	ctx := types.Context{
-		Platform:      "test",
-		Topic:         "test",
-		AsUser:        types.Uid("test_user"),
-		WebhookRuleId: ExampleWebhookID,
-		Method:        http.MethodPost,
+	tests := []struct {
+		name        string
+		ruleID      string
+		wantErr     bool
+		wantNil     bool
+		wantContain string
+	}{
+		{
+			name:        "existing rule returns payload",
+			ruleID:      ExampleWebhookID,
+			wantErr:     false,
+			wantNil:     false,
+			wantContain: "POST",
+		},
+		{
+			name:        "nonexistent rule returns nil payload",
+			ruleID:      "nonexistent",
+			wantErr:     false,
+			wantNil:     true,
+			wantContain: "",
+		},
 	}
 
-	payload, err := rs.ProcessRule(ctx, []byte(`test data`))
-	require.NoError(t, err)
-	require.NotNil(t, payload)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rs := webhook.Ruleset(webhookRules)
+			ctx := types.Context{
+				Platform:      "test",
+				Topic:         "test",
+				AsUser:        types.Uid("test_user"),
+				WebhookRuleId: tt.ruleID,
+				Method:        http.MethodPost,
+			}
 
-	msg, ok := payload.(types.TextMsg)
-	require.True(t, ok)
-	assert.Contains(t, msg.Text, "POST")
-}
+			payload, err := rs.ProcessRule(ctx, []byte(`test data`))
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 
-func TestWebhookRuleset_ProcessRule_NotFound(t *testing.T) {
-	rs := webhook.Ruleset(webhookRules)
-	ctx := types.Context{
-		Platform:      "test",
-		Topic:         "test",
-		AsUser:        types.Uid("test_user"),
-		WebhookRuleId: "nonexistent",
-		Method:        http.MethodPost,
+			if tt.wantNil {
+				assert.Nil(t, payload)
+			} else {
+				require.NotNil(t, payload)
+				msg, ok := payload.(types.TextMsg)
+				require.True(t, ok)
+				if tt.wantContain != "" {
+					assert.Contains(t, msg.Text, tt.wantContain)
+				}
+			}
+		})
 	}
-
-	payload, err := rs.ProcessRule(ctx, []byte(`test data`))
-	require.NoError(t, err)
-	assert.Nil(t, payload)
 }

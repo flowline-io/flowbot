@@ -71,43 +71,83 @@ func decodeResponse(t *testing.T, resp *http.Response) protocol.Response {
 // ---------------------------------------------------------------------------
 
 func TestRootEndpoint(t *testing.T) {
-	app := newTestApp()
-	app.Get("/", func(c fiber.Ctx) error { return nil })
+	tests := []struct {
+		name string
+	}{
+		{name: "root returns 200 OK"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/", func(c fiber.Ctx) error { return nil })
+
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+		})
+	}
 }
 
 func TestHealthcheckLiveness(t *testing.T) {
-	app := newTestApp()
-	app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
+	tests := []struct {
+		name string
+	}{
+		{name: "liveness endpoint returns 200"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, healthcheck.LivenessEndpoint, nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
+
+			req := httptest.NewRequest(http.MethodGet, healthcheck.LivenessEndpoint, nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+		})
+	}
 }
 
 func TestHealthcheckReadiness(t *testing.T) {
-	app := newTestApp()
-	app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
+	tests := []struct {
+		name string
+	}{
+		{name: "readiness endpoint returns 200"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, healthcheck.ReadinessEndpoint, nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
+
+			req := httptest.NewRequest(http.MethodGet, healthcheck.ReadinessEndpoint, nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+		})
+	}
 }
 
 func TestHealthcheckStartup(t *testing.T) {
-	app := newTestApp()
-	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
+	tests := []struct {
+		name string
+	}{
+		{name: "startup endpoint returns 200"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, healthcheck.StartupEndpoint, nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
+
+			req := httptest.NewRequest(http.MethodGet, healthcheck.StartupEndpoint, nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -115,61 +155,101 @@ func TestHealthcheckStartup(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestErrorHandler_OopsError_BadRequest(t *testing.T) {
-	app := newTestApp()
-	app.Get("/err", func(_ fiber.Ctx) error {
-		return protocol.ErrBadParam.New("test bad param")
-	})
+	tests := []struct {
+		name string
+	}{
+		{name: "OopsError returns 400 BadRequest"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/err", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/err", func(_ fiber.Ctx) error {
+				return protocol.ErrBadParam.New("test bad param")
+			})
 
-	r := decodeResponse(t, resp)
-	assert.Equal(t, protocol.Failed, r.Status)
-	assert.NotEmpty(t, r.Message)
+			req := httptest.NewRequest(http.MethodGet, "/err", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+			r := decodeResponse(t, resp)
+			assert.Equal(t, protocol.Failed, r.Status)
+			assert.NotEmpty(t, r.Message)
+		})
+	}
 }
 
 func TestErrorHandler_OopsError_Unauthorized(t *testing.T) {
-	app := newTestApp()
-	app.Get("/unauth", func(_ fiber.Ctx) error {
-		return protocol.ErrNotAuthorized.New("not allowed")
-	})
+	tests := []struct {
+		name string
+	}{
+		{name: "ErrNotAuthorized returns 401 Unauthorized"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/unauth", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/unauth", func(_ fiber.Ctx) error {
+				return protocol.ErrNotAuthorized.New("not allowed")
+			})
 
-	r := decodeResponse(t, resp)
-	assert.Equal(t, protocol.Failed, r.Status)
+			req := httptest.NewRequest(http.MethodGet, "/unauth", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+			r := decodeResponse(t, resp)
+			assert.Equal(t, protocol.Failed, r.Status)
+		})
+	}
 }
 
 func TestErrorHandler_GenericError(t *testing.T) {
-	app := newTestApp()
-	app.Get("/generic", func(_ fiber.Ctx) error {
-		return errors.New("something went wrong") //nolint:err113
-	})
+	tests := []struct {
+		name string
+	}{
+		{name: "generic error returns 400 BadRequest"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/generic", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/generic", func(_ fiber.Ctx) error {
+				return errors.New("something went wrong") //nolint:err113
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/generic", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 func TestErrorHandler_NoError(t *testing.T) {
-	app := newTestApp()
-	app.Get("/ok", func(c fiber.Ctx) error {
-		return c.JSON(protocol.NewSuccessResponse("hello"))
-	})
+	tests := []struct {
+		name string
+	}{
+		{name: "no error returns success response"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/ok", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/ok", func(c fiber.Ctx) error {
+				return c.JSON(protocol.NewSuccessResponse("hello"))
+			})
 
-	r := decodeResponse(t, resp)
-	assert.Equal(t, protocol.Success, r.Status)
+			req := httptest.NewRequest(http.MethodGet, "/ok", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+			r := decodeResponse(t, resp)
+			assert.Equal(t, protocol.Success, r.Status)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -177,32 +257,52 @@ func TestErrorHandler_NoError(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestWebhookRoute_NoBot(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/webhook/:flag", ctl.doWebhook)
+	tests := []struct {
+		name string
+	}{
+		{name: "webhook with nonexistent flag returns error"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/webhook/nonexistent-flag", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// The handler returns ErrNotFound when bot is not found → error handler returns 400
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/webhook/:flag", ctl.doWebhook)
 
-	r := decodeResponse(t, resp)
-	assert.Equal(t, protocol.Failed, r.Status)
-	assert.Contains(t, r.Message, "not found")
+			req := httptest.NewRequest(http.MethodGet, "/webhook/nonexistent-flag", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// The handler returns ErrNotFound when bot is not found → error handler returns 400
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+			r := decodeResponse(t, resp)
+			assert.Equal(t, protocol.Failed, r.Status)
+			assert.Contains(t, r.Message, "not found")
+		})
+	}
 }
 
 func TestWebhookRoute_PostNoBot(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/webhook/:flag", ctl.doWebhook)
+	tests := []struct {
+		name string
+	}{
+		{name: "POST webhook with unknown flag returns error"},
+	}
 
-	body := strings.NewReader(`{"key":"value"}`)
-	req := httptest.NewRequest(http.MethodPost, "/webhook/unknown-flag", body)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/webhook/:flag", ctl.doWebhook)
+
+			body := strings.NewReader(`{"key":"value"}`)
+			req := httptest.NewRequest(http.MethodPost, "/webhook/unknown-flag", body)
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -210,17 +310,27 @@ func TestWebhookRoute_PostNoBot(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestPlatformCallback_UnknownPlatform(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/platform/:platform", ctl.platformCallback)
+	tests := []struct {
+		name string
+	}{
+		{name: "unknown platform returns error"},
+	}
 
-	req := httptest.NewRequest(http.MethodPost, "/platform/unknown_platform", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/platform/:platform", ctl.platformCallback)
 
-	r := decodeResponse(t, resp)
-	assert.Contains(t, r.Message, "platform not found")
+			req := httptest.NewRequest(http.MethodPost, "/platform/unknown_platform", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+			r := decodeResponse(t, resp)
+			assert.Contains(t, r.Message, "platform not found")
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -228,17 +338,27 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestAgentData_NoAuth(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.Post("/agent", ctl.agentData)
+	tests := []struct {
+		name string
+	}{
+		{name: "agent data without auth returns error"},
+	}
 
-	body := strings.NewReader(`{"type":"ping"}`)
-	req := httptest.NewRequest(http.MethodPost, "/agent", body)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// Without store.Database initialized, the handler panics (recovered → 400 via error handler)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.Post("/agent", ctl.agentData)
+
+			body := strings.NewReader(`{"type":"ping"}`)
+			req := httptest.NewRequest(http.MethodPost, "/agent", body)
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// Without store.Database initialized, the handler panics (recovered → 400 via error handler)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -246,15 +366,25 @@ func TestAgentData_NoAuth(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestGetPage_NoStore(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.Get("/p/:id", ctl.getPage)
+	tests := []struct {
+		name string
+	}{
+		{name: "getPage without store returns error"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/p/test-page-id", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// Without database, store.Database is nil → panics (recovered → 400 via error handler)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.Get("/p/:id", ctl.getPage)
+
+			req := httptest.NewRequest(http.MethodGet, "/p/test-page-id", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// Without database, store.Database is nil → panics (recovered → 400 via error handler)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -262,15 +392,25 @@ func TestGetPage_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestOAuth_NoStore(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/oauth/:provider/:flag", ctl.storeOAuth)
+	tests := []struct {
+		name string
+	}{
+		{name: "OAuth without store returns error"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/oauth/github/test-flag", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// Without database → panics (recovered → 400 via error handler)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
+
+			req := httptest.NewRequest(http.MethodGet, "/oauth/github/test-flag", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// Without database → panics (recovered → 400 via error handler)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -278,17 +418,27 @@ func TestOAuth_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestPostForm_NoStore(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.Post("/form", ctl.postForm)
+	tests := []struct {
+		name string
+	}{
+		{name: "POST form without store returns error"},
+	}
 
-	formBody := "x-form_id=abc&x-uid=user1&x-topic=test"
-	req := httptest.NewRequest(http.MethodPost, "/form", strings.NewReader(formBody))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// Without database → panics (recovered → 400 via error handler)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.Post("/form", ctl.postForm)
+
+			formBody := "x-form_id=abc&x-uid=user1&x-topic=test"
+			req := httptest.NewRequest(http.MethodPost, "/form", strings.NewReader(formBody))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// Without database → panics (recovered → 400 via error handler)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -296,15 +446,25 @@ func TestPostForm_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestRenderPage_NoStore(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.Get("/page/:id/:flag", ctl.renderPage)
+	tests := []struct {
+		name string
+	}{
+		{name: "renderPage without store returns error"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/page/rule-id/flag-value", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	// Without database → panics (recovered → 400 via error handler)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.Get("/page/:id/:flag", ctl.renderPage)
+
+			req := httptest.NewRequest(http.MethodGet, "/page/rule-id/flag-value", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			// Without database → panics (recovered → 400 via error handler)
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -312,45 +472,48 @@ func TestRenderPage_NoStore(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestRouteRegistration(t *testing.T) {
-	// Verify that common routes are present after handleRoutes call
-	// (we verify route patterns manually)
-	app := newTestApp()
-
-	// Register routes the same way as in production
-	ctl := &Controller{}
-	app.Get("/", func(c fiber.Ctx) error { return nil })
-	app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
-	app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
-	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
-	app.All("/oauth/:provider/:flag", ctl.storeOAuth)
-	app.Get("/p/:id", ctl.getPage)
-	app.Post("/form", ctl.postForm)
-	app.Get("/page/:id/:flag", ctl.renderPage)
-	app.Post("/agent", ctl.agentData)
-	app.All("/webhook/:flag", ctl.doWebhook)
-	app.All("/platform/:platform", ctl.platformCallback)
-
-	routes := app.GetRoutes()
-	routePaths := make(map[string]bool)
-	for _, r := range routes {
-		routePaths[r.Path] = true
+	tests := []struct {
+		name         string
+		expectedPath string
+	}{
+		{name: "root", expectedPath: "/"},
+		{name: "liveness", expectedPath: "/livez"},
+		{name: "readiness", expectedPath: "/readyz"},
+		{name: "startup", expectedPath: "/startupz"},
+		{name: "oauth", expectedPath: "/oauth/:provider/:flag"},
+		{name: "page by id", expectedPath: "/p/:id"},
+		{name: "form", expectedPath: "/form"},
+		{name: "render page", expectedPath: "/page/:id/:flag"},
+		{name: "agent", expectedPath: "/agent"},
+		{name: "webhook", expectedPath: "/webhook/:flag"},
+		{name: "platform", expectedPath: "/platform/:platform"},
 	}
 
-	expectedPaths := []string{
-		"/",
-		"/livez",
-		"/readyz",
-		"/startupz",
-		"/oauth/:provider/:flag",
-		"/p/:id",
-		"/form",
-		"/page/:id/:flag",
-		"/agent",
-		"/webhook/:flag",
-		"/platform/:platform",
-	}
-	for _, p := range expectedPaths {
-		assert.True(t, routePaths[p], "expected route %q to be registered", p)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+
+			ctl := &Controller{}
+			app.Get("/", func(c fiber.Ctx) error { return nil })
+			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
+			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
+			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
+			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
+			app.Get("/p/:id", ctl.getPage)
+			app.Post("/form", ctl.postForm)
+			app.Get("/page/:id/:flag", ctl.renderPage)
+			app.Post("/agent", ctl.agentData)
+			app.All("/webhook/:flag", ctl.doWebhook)
+			app.All("/platform/:platform", ctl.platformCallback)
+
+			routes := app.GetRoutes()
+			routePaths := make(map[string]bool)
+			for _, r := range routes {
+				routePaths[r.Path] = true
+			}
+
+			assert.True(t, routePaths[tt.expectedPath], "expected route %q to be registered", tt.expectedPath)
+		})
 	}
 }
 
@@ -359,24 +522,54 @@ func TestRouteRegistration(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestNewSuccessResponse(t *testing.T) {
-	r := protocol.NewSuccessResponse("data")
-	assert.Equal(t, protocol.Success, r.Status)
-	assert.Equal(t, "data", r.Data)
-	assert.Empty(t, r.Message)
+	tests := []struct {
+		name string
+	}{
+		{name: "success response has correct status and data"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := protocol.NewSuccessResponse("data")
+			assert.Equal(t, protocol.Success, r.Status)
+			assert.Equal(t, "data", r.Data)
+			assert.Empty(t, r.Message)
+		})
+	}
 }
 
 func TestNewFailedResponse_WithOopsError(t *testing.T) {
-	err := protocol.ErrBadRequest.New("test error")
-	r := protocol.NewFailedResponse(err)
-	assert.Equal(t, protocol.Failed, r.Status)
-	assert.NotEmpty(t, r.RetCode)
-	assert.NotEmpty(t, r.Message)
+	tests := []struct {
+		name string
+	}{
+		{name: "failed response with OopsError has ret code and message"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := protocol.ErrBadRequest.New("test error")
+			r := protocol.NewFailedResponse(err)
+			assert.Equal(t, protocol.Failed, r.Status)
+			assert.NotEmpty(t, r.RetCode)
+			assert.NotEmpty(t, r.Message)
+		})
+	}
 }
 
 func TestNewFailedResponse_NilError(t *testing.T) {
-	r := protocol.NewFailedResponse(nil)
-	assert.Equal(t, protocol.Failed, r.Status)
-	assert.Equal(t, "10000", r.RetCode)
+	tests := []struct {
+		name string
+	}{
+		{name: "failed response with nil error has default ret code"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := protocol.NewFailedResponse(nil)
+			assert.Equal(t, protocol.Failed, r.Status)
+			assert.Equal(t, "10000", r.RetCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -384,14 +577,23 @@ func TestNewFailedResponse_NilError(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestWebhook_MethodRouting(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/webhook/:flag", ctl.doWebhook)
+	tests := []struct {
+		name   string
+		method string
+	}{
+		{name: "GET", method: http.MethodGet},
+		{name: "POST", method: http.MethodPost},
+		{name: "PUT", method: http.MethodPut},
+		{name: "DELETE", method: http.MethodDelete},
+	}
 
-	methods := []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete}
-	for _, method := range methods {
-		t.Run(method, func(t *testing.T) {
-			req := httptest.NewRequest(method, "/webhook/test-flag", nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/webhook/:flag", ctl.doWebhook)
+
+			req := httptest.NewRequest(tt.method, "/webhook/test-flag", nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			// All methods should reach the handler (which returns bot not found)
@@ -401,14 +603,22 @@ func TestWebhook_MethodRouting(t *testing.T) {
 }
 
 func TestPlatform_MethodRouting(t *testing.T) {
-	app := newTestApp()
-	ctl := &Controller{}
-	app.All("/platform/:platform", ctl.platformCallback)
+	tests := []struct {
+		name   string
+		method string
+	}{
+		{name: "GET", method: http.MethodGet},
+		{name: "POST", method: http.MethodPost},
+		{name: "PUT", method: http.MethodPut},
+	}
 
-	methods := []string{http.MethodGet, http.MethodPost, http.MethodPut}
-	for _, method := range methods {
-		t.Run(method, func(t *testing.T) {
-			req := httptest.NewRequest(method, "/platform/unknown", nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			ctl := &Controller{}
+			app.All("/platform/:platform", ctl.platformCallback)
+
+			req := httptest.NewRequest(tt.method, "/platform/unknown", nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -421,14 +631,24 @@ func TestPlatform_MethodRouting(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestUnregisteredRoute_Returns404(t *testing.T) {
-	// Use a plain fiber app without custom error handler to get default 404.
-	app := fiber.New()
-	app.Get("/", func(c fiber.Ctx) error { return nil })
+	tests := []struct {
+		name string
+	}{
+		{name: "unregistered route returns 404 Not Found"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Use a plain fiber app without custom error handler to get default 404.
+			app := fiber.New()
+			app.Get("/", func(c fiber.Ctx) error { return nil })
+
+			req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -436,14 +656,24 @@ func TestUnregisteredRoute_Returns404(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestJSONResponseContentType(t *testing.T) {
-	app := newTestApp()
-	app.Get("/json", func(c fiber.Ctx) error {
-		return c.JSON(protocol.NewSuccessResponse("test"))
-	})
+	tests := []struct {
+		name string
+	}{
+		{name: "JSON response has application/json content type"},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/json", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApp()
+			app.Get("/json", func(c fiber.Ctx) error {
+				return c.JSON(protocol.NewSuccessResponse("test"))
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/json", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
+		})
+	}
 }

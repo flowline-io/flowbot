@@ -11,34 +11,52 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 1)
-}
-
-func TestCommandRules_Defines(t *testing.T) {
-	assert.Equal(t, "bookmark list", commandRules[0].Define)
-	assert.Equal(t, "newest 10", commandRules[0].Help)
-}
-
-func TestCommandRules_Handlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+func TestCommandRules_Metadata(t *testing.T) {
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 1 command rule",
+			test: func(t *testing.T) {
+				assert.Len(t, commandRules, 1)
+			},
+		},
+		{
+			name: "should have correct define and help",
+			test: func(t *testing.T) {
+				assert.Equal(t, "bookmark list", commandRules[0].Define)
+				assert.Equal(t, "newest 10", commandRules[0].Help)
+			},
+		},
+		{
+			name: "all command rules should have non-nil handlers",
+			test: func(t *testing.T) {
+				for _, r := range commandRules {
+					assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
 	}
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
 	tests := []struct {
+		name   string
 		define string
 		input  string
 		want   bool
 	}{
-		{"bookmark list", "bookmark list", true},
-		{"bookmark list", "bookmark list extra", false},
-		{"bookmark list", "bookmark", false},
+		{name: "exact match bookmark list", define: "bookmark list", input: "bookmark list", want: true},
+		{name: "extra tokens should not match", define: "bookmark list", input: "bookmark list extra", want: false},
+		{name: "partial match should not match", define: "bookmark list", input: "bookmark", want: false},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.define+"_"+tt.input, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -50,32 +68,50 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
-	rs := command.Ruleset(commandRules)
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+	tests := []struct {
+		name string
+	}{
+		{name: "unknown command should return nil result"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rs := command.Ruleset(commandRules)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
-	result, err := rs.ProcessCommand(ctx, "unknown command xyz")
-	require.NoError(t, err)
-	assert.Nil(t, result)
+			result, err := rs.ProcessCommand(ctx, "unknown command xyz")
+			require.NoError(t, err)
+			assert.Nil(t, result)
+		})
+	}
 }
 
 func TestCommandRules_ListHandler(t *testing.T) {
 	t.Skip("requires karakeep service")
 
-	var listRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "bookmark list" {
-			listRule = &commandRules[i]
-			break
-		}
+	tests := []struct {
+		name string
+	}{
+		{name: "list handler should return valid message type"},
 	}
-	require.NotNil(t, listRule)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var listRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "bookmark list" {
+					listRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, listRule)
 
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("bookmark list")
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			tokens, _ := parser.ParseString("bookmark list")
 
-	payload := listRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
+			payload := listRule.Handler(ctx, tokens)
+			require.NotNil(t, payload)
 
-	msgType := types.TypeOf(payload)
-	assert.Contains(t, []string{"TextMsg", "LinkMsg"}, msgType)
+			msgType := types.TypeOf(payload)
+			assert.Contains(t, []string{"TextMsg", "LinkMsg"}, msgType)
+		})
+	}
 }

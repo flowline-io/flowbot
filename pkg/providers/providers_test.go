@@ -105,33 +105,35 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestGetConfig_MultipleCalls(t *testing.T) {
-	Configs = json.RawMessage(`{
-		"github": {
-			"client_id": "id123",
-			"client_secret": "secret456"
-		},
-		"slack": {
-			"token": "xoxb-test"
-		}
-	}`)
+	t.Run("multiple config calls", func(t *testing.T) {
+		Configs = json.RawMessage(`{
+			"github": {
+				"client_id": "id123",
+				"client_secret": "secret456"
+			},
+			"slack": {
+				"token": "xoxb-test"
+			}
+		}`)
 
-	githubID, err := GetConfig("github", "client_id")
-	require.NoError(t, err)
-	assert.Equal(t, "id123", githubID.String())
+		githubID, err := GetConfig("github", "client_id")
+		require.NoError(t, err)
+		assert.Equal(t, "id123", githubID.String())
 
-	githubSecret, err := GetConfig("github", "client_secret")
-	require.NoError(t, err)
-	assert.Equal(t, "secret456", githubSecret.String())
+		githubSecret, err := GetConfig("github", "client_secret")
+		require.NoError(t, err)
+		assert.Equal(t, "secret456", githubSecret.String())
 
-	slackToken, err := GetConfig("slack", "token")
-	require.NoError(t, err)
-	assert.Equal(t, "xoxb-test", slackToken.String())
+		slackToken, err := GetConfig("slack", "token")
+		require.NoError(t, err)
+		assert.Equal(t, "xoxb-test", slackToken.String())
+	})
 }
 
 func TestOAuthProviderInterface(t *testing.T) {
-	// Test that OAuthProvider interface is defined correctly
-	// This is a compile-time check
-	var _ OAuthProvider = (*mockOAuthProvider)(nil)
+	t.Run("interface compile-time check", func(t *testing.T) {
+		var _ OAuthProvider = (*mockOAuthProvider)(nil)
+	})
 }
 
 type mockOAuthProvider struct{}

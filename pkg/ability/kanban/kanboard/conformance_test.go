@@ -10,37 +10,43 @@ import (
 )
 
 func TestKanboardConformance(t *testing.T) {
-	conformance.RunKanbanConformance(t, func(t *testing.T, cfg conformance.KanbanConfig) kb.Service {
-		// UpdateTask and MoveTask internally call GetTask after the mutation.
-		// Use the config's UpdateTask or MoveTask as the GetTask response so
-		// the returned task reflects the expected post-mutation state.
-		taskForGet := cfgToProviderTask(cfg.Task)
-		if taskForGet == nil && cfg.UpdateTask != nil {
-			taskForGet = cfgToProviderTask(cfg.UpdateTask)
-		}
-		if taskForGet == nil && cfg.MoveTask != nil {
-			taskForGet = cfgToProviderTask(cfg.MoveTask)
-		}
-		c := &fakeClient{
-			tasks:        cfgToProviderTasks(cfg.Tasks),
-			tasksErr:     cfg.TasksErr,
-			task:         taskForGet,
-			taskErr:      cfg.TaskErr,
-			createTaskID: int64(cfg.CreateTaskID),
-			createErr:    cfg.CreateErr,
-			updateResult: true,
-			updateErr:    cfg.UpdateErr,
-			moveResult:   true,
-			moveErr:      cfg.MoveErr,
-			deleteErr:    cfg.DeleteErr,
-			closeErr:     cfg.CloseErr,
-			columns:      cfgToColumns(cfg.Columns),
-			columnsErr:   cfg.ColumnsErr,
-			searchTasks:  cfgToProviderTasks(cfg.SearchTasks),
-			searchErr:    cfg.SearchErr,
-		}
-		return NewWithClient(c)
-	})
+	tests := []struct {
+		name string
+	}{
+		{"runs kanban conformance test suite"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conformance.RunKanbanConformance(t, func(t *testing.T, cfg conformance.KanbanConfig) kb.Service {
+				taskForGet := cfgToProviderTask(cfg.Task)
+				if taskForGet == nil && cfg.UpdateTask != nil {
+					taskForGet = cfgToProviderTask(cfg.UpdateTask)
+				}
+				if taskForGet == nil && cfg.MoveTask != nil {
+					taskForGet = cfgToProviderTask(cfg.MoveTask)
+				}
+				c := &fakeClient{
+					tasks:        cfgToProviderTasks(cfg.Tasks),
+					tasksErr:     cfg.TasksErr,
+					task:         taskForGet,
+					taskErr:      cfg.TaskErr,
+					createTaskID: int64(cfg.CreateTaskID),
+					createErr:    cfg.CreateErr,
+					updateResult: true,
+					updateErr:    cfg.UpdateErr,
+					moveResult:   true,
+					moveErr:      cfg.MoveErr,
+					deleteErr:    cfg.DeleteErr,
+					closeErr:     cfg.CloseErr,
+					columns:      cfgToColumns(cfg.Columns),
+					columnsErr:   cfg.ColumnsErr,
+					searchTasks:  cfgToProviderTasks(cfg.SearchTasks),
+					searchErr:    cfg.SearchErr,
+				}
+				return NewWithClient(c)
+			})
+		})
+	}
 }
 
 func cfgToProviderTasks(items []*ability.Task) []*provider.Task {

@@ -20,25 +20,29 @@ func (m *fakeMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
 }
 
 func TestMultiVolumeMount(t *testing.T) {
-	m := NewMultiMounter()
-	m.RegisterMounter(types.MountTypeVolume, &fakeMounter{})
-	ctx := context.Background()
-	mnt := &types.Mount{
-		Type:   types.MountTypeVolume,
-		Target: "/mnt",
-	}
-	err := m.Mount(ctx, mnt)
-	defer func() {
-		err := m.Unmount(ctx, mnt)
+	t.Run("successful mount and unmount for registered volume type", func(t *testing.T) {
+		m := NewMultiMounter()
+		m.RegisterMounter(types.MountTypeVolume, &fakeMounter{})
+		ctx := context.Background()
+		mnt := &types.Mount{
+			Type:   types.MountTypeVolume,
+			Target: "/mnt",
+		}
+		err := m.Mount(ctx, mnt)
+		defer func() {
+			err := m.Unmount(ctx, mnt)
+			assert.NoError(t, err)
+		}()
 		assert.NoError(t, err)
-	}()
-	assert.NoError(t, err)
+	})
 }
 
 func TestMultiBadTypeMount(t *testing.T) {
-	m := NewMultiMounter()
-	ctx := context.Background()
-	mnt := &types.Mount{Type: "badone", Target: "/mnt"}
-	err := m.Mount(ctx, mnt)
-	assert.Error(t, err)
+	t.Run("mount with unregistered type returns error", func(t *testing.T) {
+		m := NewMultiMounter()
+		ctx := context.Background()
+		mnt := &types.Mount{Type: "badone", Target: "/mnt"}
+		err := m.Mount(ctx, mnt)
+		assert.Error(t, err)
+	})
 }

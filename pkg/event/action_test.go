@@ -8,16 +8,32 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func TestConstants(t *testing.T) {
-	// Test that event types are defined
-	// These constants are defined in pkg/types/event.go
-	assert.NotEmpty(t, types.MessageSendEvent)
-	assert.NotEmpty(t, types.BotRunEvent)
+func TestEventConstants(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+	}{
+		{name: "MessageSendEvent", value: types.MessageSendEvent},
+		{name: "BotRunEvent", value: types.BotRunEvent},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, tt.value)
+		})
+	}
 }
 
-func TestActionFunctions_Exist(t *testing.T) {
-	// Test that action functions exist and have correct signatures
-	// We can't fully test these without database connections
-	assert.NotNil(t, SendMessage)
-	assert.NotNil(t, BotEventFire)
+func TestActionFunctions(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   any
+	}{
+		{name: "SendMessage", fn: SendMessage},
+		{name: "BotEventFire", fn: BotEventFire},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotNil(t, tt.fn)
+		})
+	}
 }

@@ -1,12 +1,13 @@
 package sets
 
 import (
-	"reflect"
 	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestNewString tests the NewString function
 func TestNewString(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -14,22 +15,22 @@ func TestNewString(t *testing.T) {
 		want  String
 	}{
 		{
-			name:  "empty_set",
+			name:  "empty set",
 			items: []string{},
 			want:  String{},
 		},
 		{
-			name:  "single_item",
+			name:  "single item",
 			items: []string{"a"},
 			want:  String{"a": struct{}{}},
 		},
 		{
-			name:  "multiple_items",
+			name:  "multiple items",
 			items: []string{"a", "b", "c"},
 			want:  String{"a": struct{}{}, "b": struct{}{}, "c": struct{}{}},
 		},
 		{
-			name:  "duplicate_items",
+			name:  "duplicate items",
 			items: []string{"a", "b", "b", "c"},
 			want:  String{"a": struct{}{}, "b": struct{}{}, "c": struct{}{}},
 		},
@@ -38,14 +39,11 @@ func TestNewString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewString(tt.items...)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewString() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-// TestStringKeySet tests the StringKeySet function
 func TestStringKeySet(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -53,12 +51,12 @@ func TestStringKeySet(t *testing.T) {
 		want   String
 	}{
 		{
-			name:   "valid_string_map",
+			name:   "valid string map",
 			theMap: map[string]int{"a": 1, "b": 2, "c": 3},
 			want:   String{"a": struct{}{}, "b": struct{}{}, "c": struct{}{}},
 		},
 		{
-			name:   "empty_map",
+			name:   "empty map",
 			theMap: map[string]int{},
 			want:   String{},
 		},
@@ -67,58 +65,103 @@ func TestStringKeySet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := StringKeySet(tt.theMap)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("StringKeySet() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-// TestString_Insert tests the Insert method
 func TestString_Insert(t *testing.T) {
-	s := NewString("a", "b")
-	result := s.Insert("c", "d", "b") // "b" is duplicate
-
-	expected := String{"a": struct{}{}, "b": struct{}{}, "c": struct{}{}, "d": struct{}{}}
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Insert() = %v, want %v", result, expected)
+	tests := []struct {
+		name    string
+		initial []string
+		insert  []string
+		want    String
+	}{
+		{
+			name:    "insert new items",
+			initial: []string{"a", "b"},
+			insert:  []string{"c", "d", "b"},
+			want:    String{"a": struct{}{}, "b": struct{}{}, "c": struct{}{}, "d": struct{}{}},
+		},
+		{
+			name:    "insert duplicate only",
+			initial: []string{"a", "b"},
+			insert:  []string{"a"},
+			want:    String{"a": struct{}{}, "b": struct{}{}},
+		},
+		{
+			name:    "insert into empty set",
+			initial: []string{},
+			insert:  []string{"a", "b"},
+			want:    String{"a": struct{}{}, "b": struct{}{}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewString(tt.initial...)
+			got := s.Insert(tt.insert...)
+			assert.Equal(t, tt.want, got)
+		})
 	}
 }
 
-// TestString_Delete tests the Delete method
 func TestString_Delete(t *testing.T) {
-	s := NewString("a", "b", "c", "d")
-	result := s.Delete("b", "d", "e") // "e" doesn't exist
-
-	expected := String{"a": struct{}{}, "c": struct{}{}}
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Delete() = %v, want %v", result, expected)
+	tests := []struct {
+		name    string
+		initial []string
+		delete  []string
+		want    String
+	}{
+		{
+			name:    "delete existing items",
+			initial: []string{"a", "b", "c", "d"},
+			delete:  []string{"b", "d", "e"},
+			want:    String{"a": struct{}{}, "c": struct{}{}},
+		},
+		{
+			name:    "delete from empty set",
+			initial: []string{},
+			delete:  []string{"a"},
+			want:    String{},
+		},
+		{
+			name:    "delete all items",
+			initial: []string{"a", "b"},
+			delete:  []string{"a", "b"},
+			want:    String{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewString(tt.initial...)
+			got := s.Delete(tt.delete...)
+			assert.Equal(t, tt.want, got)
+		})
 	}
 }
 
-// TestString_Has tests the Has method
 func TestString_Has(t *testing.T) {
 	s := NewString("a", "b", "c")
 
 	tests := []struct {
+		name string
 		item string
 		want bool
 	}{
-		{"a", true},
-		{"b", true},
-		{"c", true},
-		{"d", false},
-		{"", false},
+		{name: "existing a", item: "a", want: true},
+		{name: "existing b", item: "b", want: true},
+		{name: "existing c", item: "c", want: true},
+		{name: "missing d", item: "d", want: false},
+		{name: "empty string", item: "", want: false},
 	}
 
 	for _, tt := range tests {
-		if got := s.Has(tt.item); got != tt.want {
-			t.Errorf("Has(%v) = %v, want %v", tt.item, got, tt.want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, s.Has(tt.item))
+		})
 	}
 }
 
-// TestString_HasAll tests the HasAll method
 func TestString_HasAll(t *testing.T) {
 	s := NewString("a", "b", "c", "d")
 
@@ -128,22 +171,22 @@ func TestString_HasAll(t *testing.T) {
 		want  bool
 	}{
 		{
-			name:  "all_present",
+			name:  "all present",
 			items: []string{"a", "b", "c"},
 			want:  true,
 		},
 		{
-			name:  "some_missing",
+			name:  "some missing",
 			items: []string{"a", "b", "e"},
 			want:  false,
 		},
 		{
-			name:  "empty_items",
+			name:  "empty items",
 			items: []string{},
 			want:  true,
 		},
 		{
-			name:  "all_missing",
+			name:  "all missing",
 			items: []string{"e", "f", "g"},
 			want:  false,
 		},
@@ -151,14 +194,11 @@ func TestString_HasAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := s.HasAll(tt.items...); got != tt.want {
-				t.Errorf("HasAll() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, s.HasAll(tt.items...))
 		})
 	}
 }
 
-// TestString_HasAny tests the HasAny method
 func TestString_HasAny(t *testing.T) {
 	s := NewString("a", "b", "c")
 
@@ -168,22 +208,22 @@ func TestString_HasAny(t *testing.T) {
 		want  bool
 	}{
 		{
-			name:  "some_present",
+			name:  "some present",
 			items: []string{"a", "e", "f"},
 			want:  true,
 		},
 		{
-			name:  "none_present",
+			name:  "none present",
 			items: []string{"e", "f", "g"},
 			want:  false,
 		},
 		{
-			name:  "empty_items",
+			name:  "empty items",
 			items: []string{},
 			want:  false,
 		},
 		{
-			name:  "all_present",
+			name:  "all present",
 			items: []string{"a", "b", "c"},
 			want:  true,
 		},
@@ -191,140 +231,258 @@ func TestString_HasAny(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := s.HasAny(tt.items...); got != tt.want {
-				t.Errorf("HasAny() = %v, want %v", got, tt.want)
+			assert.Equal(t, tt.want, s.HasAny(tt.items...))
+		})
+	}
+}
+
+func TestString_Difference(t *testing.T) {
+	tests := []struct {
+		name string
+		s1   String
+		s2   String
+		want String
+	}{
+		{
+			name: "partial overlap",
+			s1:   NewString("a", "b", "c", "d"),
+			s2:   NewString("c", "d", "e", "f"),
+			want: NewString("a", "b"),
+		},
+		{
+			name: "no overlap",
+			s1:   NewString("a", "b"),
+			s2:   NewString("c", "d"),
+			want: NewString("a", "b"),
+		},
+		{
+			name: "complete overlap",
+			s1:   NewString("a", "b"),
+			s2:   NewString("a", "b"),
+			want: NewString(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.s1.Difference(tt.s2)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestString_Union(t *testing.T) {
+	tests := []struct {
+		name string
+		s1   String
+		s2   String
+		want String
+	}{
+		{
+			name: "partial overlap",
+			s1:   NewString("a", "b", "c"),
+			s2:   NewString("c", "d", "e"),
+			want: NewString("a", "b", "c", "d", "e"),
+		},
+		{
+			name: "no overlap",
+			s1:   NewString("a"),
+			s2:   NewString("b"),
+			want: NewString("a", "b"),
+		},
+		{
+			name: "identical sets",
+			s1:   NewString("a", "b"),
+			s2:   NewString("a", "b"),
+			want: NewString("a", "b"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.s1.Union(tt.s2)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestString_Intersection(t *testing.T) {
+	tests := []struct {
+		name string
+		s1   String
+		s2   String
+		want String
+	}{
+		{
+			name: "partial overlap",
+			s1:   NewString("a", "b", "c", "d"),
+			s2:   NewString("c", "d", "e", "f"),
+			want: NewString("c", "d"),
+		},
+		{
+			name: "no overlap",
+			s1:   NewString("a", "b"),
+			s2:   NewString("c", "d"),
+			want: NewString(),
+		},
+		{
+			name: "identical sets",
+			s1:   NewString("a", "b"),
+			s2:   NewString("a", "b"),
+			want: NewString("a", "b"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.s1.Intersection(tt.s2)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestString_IsSuperset(t *testing.T) {
+	s := NewString("a", "b", "c", "d", "e")
+
+	tests := []struct {
+		name  string
+		other String
+		want  bool
+	}{
+		{
+			name:  "is superset",
+			other: NewString("b", "c", "d"),
+			want:  true,
+		},
+		{
+			name:  "not superset",
+			other: NewString("b", "c", "f"),
+			want:  false,
+		},
+		{
+			name:  "empty set",
+			other: NewString(),
+			want:  true,
+		},
+		{
+			name:  "equal sets",
+			other: NewString("a", "b", "c", "d", "e"),
+			want:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, s.IsSuperset(tt.other))
+		})
+	}
+}
+
+func TestString_Equal(t *testing.T) {
+	tests := []struct {
+		name string
+		s1   String
+		s2   String
+		want bool
+	}{
+		{
+			name: "equal different order",
+			s1:   NewString("a", "b", "c"),
+			s2:   NewString("c", "b", "a"),
+			want: true,
+		},
+		{
+			name: "not equal",
+			s1:   NewString("a", "b", "c"),
+			s2:   NewString("a", "b", "d"),
+			want: false,
+		},
+		{
+			name: "both empty",
+			s1:   NewString(),
+			s2:   NewString(),
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.s1.Equal(tt.s2))
+		})
+	}
+}
+
+func TestString_List(t *testing.T) {
+	tests := []struct {
+		name string
+		s    String
+		want []string
+	}{
+		{
+			name: "unsorted input returns sorted",
+			s:    NewString("c", "a", "d", "b"),
+			want: []string{"a", "b", "c", "d"},
+		},
+		{
+			name: "empty set",
+			s:    NewString(),
+			want: []string{},
+		},
+		{
+			name: "single item",
+			s:    NewString("a"),
+			want: []string{"a"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.s.List()
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestString_UnsortedList(t *testing.T) {
+	tests := []struct {
+		name string
+		s    String
+		want []string
+	}{
+		{
+			name: "typical set",
+			s:    NewString("a", "b", "c"),
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "empty set",
+			s:    NewString(),
+			want: []string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.s.UnsortedList()
+			assert.Len(t, got, len(tt.want))
+			for _, item := range tt.want {
+				assert.True(t, slices.Contains(got, item), "missing item %v", item)
 			}
 		})
 	}
 }
 
-// TestString_Difference tests the Difference method
-func TestString_Difference(t *testing.T) {
-	s1 := NewString("a", "b", "c", "d")
-	s2 := NewString("c", "d", "e", "f")
-
-	result := s1.Difference(s2)
-	expected := NewString("a", "b")
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Difference() = %v, want %v", result, expected)
-	}
-}
-
-// TestString_Union tests the Union method
-func TestString_Union(t *testing.T) {
-	s1 := NewString("a", "b", "c")
-	s2 := NewString("c", "d", "e")
-
-	result := s1.Union(s2)
-	expected := NewString("a", "b", "c", "d", "e")
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Union() = %v, want %v", result, expected)
-	}
-}
-
-// TestString_Intersection tests the Intersection method
-func TestString_Intersection(t *testing.T) {
-	s1 := NewString("a", "b", "c", "d")
-	s2 := NewString("c", "d", "e", "f")
-
-	result := s1.Intersection(s2)
-	expected := NewString("c", "d")
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Intersection() = %v, want %v", result, expected)
-	}
-}
-
-// TestString_IsSuperset tests the IsSuperset method
-func TestString_IsSuperset(t *testing.T) {
-	s1 := NewString("a", "b", "c", "d", "e")
-	s2 := NewString("b", "c", "d")
-	s3 := NewString("b", "c", "f")
-
-	if !s1.IsSuperset(s2) {
-		t.Error("IsSuperset() should return true when s1 contains all elements of s2")
-	}
-
-	if s1.IsSuperset(s3) {
-		t.Error("IsSuperset() should return false when s1 doesn't contain all elements of s3")
-	}
-}
-
-// TestString_Equal tests the Equal method
-func TestString_Equal(t *testing.T) {
-	s1 := NewString("a", "b", "c")
-	s2 := NewString("c", "b", "a") // Same elements, different order
-	s3 := NewString("a", "b", "d") // Different elements
-
-	if !s1.Equal(s2) {
-		t.Error("Equal() should return true for sets with same elements")
-	}
-
-	if s1.Equal(s3) {
-		t.Error("Equal() should return false for sets with different elements")
-	}
-}
-
-// TestString_List tests the List method
-func TestString_List(t *testing.T) {
-	s := NewString("c", "a", "d", "b")
-	result := s.List()
-	expected := []string{"a", "b", "c", "d"}
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("List() = %v, want %v", result, expected)
-	}
-}
-
-// TestString_UnsortedList tests the UnsortedList method
-func TestString_UnsortedList(t *testing.T) {
-	s := NewString("a", "b", "c")
-	result := s.UnsortedList()
-
-	// Should have all elements
-	if len(result) != 3 {
-		t.Errorf("UnsortedList() length = %v, want 3", len(result))
-	}
-
-	// Should contain all original elements
-	for _, item := range []string{"a", "b", "c"} {
-		found := slices.Contains(result, item)
-		if !found {
-			t.Errorf("UnsortedList() missing item %v", item)
-		}
-	}
-}
-
-// TestString_PopAny tests the PopAny method
 func TestString_PopAny(t *testing.T) {
-	// Test with non-empty set
-	s := NewString("a", "b", "c")
-	originalLen := s.Len()
+	t.Run("non-empty set pops and shrinks", func(t *testing.T) {
+		s := NewString("a", "b", "c")
+		originalLen := s.Len()
 
-	item, ok := s.PopAny()
-	if !ok {
-		t.Error("PopAny() should return true for non-empty set")
-	}
+		item, ok := s.PopAny()
+		require.True(t, ok)
+		assert.Equal(t, originalLen-1, s.Len())
+		assert.False(t, s.Has(item))
+	})
 
-	if s.Len() != originalLen-1 {
-		t.Errorf("PopAny() should reduce set size by 1")
-	}
-
-	if s.Has(item) {
-		t.Errorf("PopAny() should remove the returned item from set")
-	}
-
-	// Test with empty set
-	emptySet := NewString()
-	_, ok = emptySet.PopAny()
-	if ok {
-		t.Error("PopAny() should return false for empty set")
-	}
+	t.Run("empty set returns false", func(t *testing.T) {
+		emptySet := NewString()
+		_, ok := emptySet.PopAny()
+		assert.False(t, ok)
+	})
 }
 
-// TestString_Len tests the Len method
 func TestString_Len(t *testing.T) {
 	tests := []struct {
 		name string
@@ -332,17 +490,17 @@ func TestString_Len(t *testing.T) {
 		want int
 	}{
 		{
-			name: "empty_set",
+			name: "empty set",
 			s:    NewString(),
 			want: 0,
 		},
 		{
-			name: "single_item",
+			name: "single item",
 			s:    NewString("a"),
 			want: 1,
 		},
 		{
-			name: "multiple_items",
+			name: "multiple items",
 			s:    NewString("a", "b", "c", "d", "e"),
 			want: 5,
 		},
@@ -350,9 +508,7 @@ func TestString_Len(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.s.Len(); got != tt.want {
-				t.Errorf("Len() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, tt.s.Len())
 		})
 	}
 }

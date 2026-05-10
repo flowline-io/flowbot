@@ -12,25 +12,38 @@ func TestUnmarshal(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
-	input := map[string]any{
-		"name": "test",
-		"age":  25,
+	tests := []struct {
+		name     string
+		input    map[string]any
+		expected testStruct
+	}{
+		{
+			name: "full struct",
+			input: map[string]any{
+				"name": "test",
+				"age":  25,
+			},
+			expected: testStruct{Name: "test", Age: 25},
+		},
+		{
+			name:     "empty map",
+			input:    map[string]any{},
+			expected: testStruct{},
+		},
 	}
 
-	var result testStruct
-	err := unmarshal(input, &result)
-	assert.NoError(t, err)
-	assert.Equal(t, "test", result.Name)
-	assert.Equal(t, 25, result.Age)
-}
-
-func TestUnmarshal_EmptyMap(t *testing.T) {
-	type testStruct struct {
-		Name string `json:"name"`
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var result testStruct
+			err := unmarshal(tt.input, &result)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected.Name, result.Name)
+			if tt.expected.Age != 0 {
+				assert.Equal(t, tt.expected.Age, result.Age)
+			}
+			if tt.name == "empty map" {
+				assert.Empty(t, result.Name)
+			}
+		})
 	}
-
-	var result testStruct
-	err := unmarshal(map[string]any{}, &result)
-	assert.NoError(t, err)
-	assert.Empty(t, result.Name)
 }

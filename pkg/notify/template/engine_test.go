@@ -10,33 +10,143 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-func TestEngineLoadConfig(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
+func TestEngineRender(t *testing.T) {
+	tests := []struct {
+		name       string
+		templates  []config.NotifyTemplate
+		templateID string
+		channel    string
+		data       map[string]any
+		wantTitle  string
+		wantBody   string
+		wantFormat string
+		wantNil    bool
+	}{
 		{
-			ID:              "test.event",
-			Name:            "Test Event",
-			Description:     "A test notification",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
+			name: "basic markdown template",
+			templates: []config.NotifyTemplate{
+				{
+					ID:              "test.event",
+					Name:            "Test Event",
+					Description:     "A test notification",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
+				},
+			},
+			templateID: "test.event",
+			channel:    "slack",
+			data: map[string]any{
+				"title": "Hello World",
+				"body":  "This is a test",
+			},
+			wantTitle:  "Hello World",
+			wantBody:   "**Hello World**\nThis is a test",
+			wantFormat: "markdown",
 		},
-	})
-	require.NoError(t, err)
+		{
+			name: "sprig functions",
+			templates: []config.NotifyTemplate{
+				{
+					ID:              "sprig.test",
+					Name:            "Sprig Test",
+					Description:     "Test sprig functions",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "{{ .name | upper }}\n{{ .count | default 0 }}\n{{ join \", \" .tags }}",
+				},
+			},
+			templateID: "sprig.test",
+			channel:    "slack",
+			data: map[string]any{
+				"name": "hello",
+				"tags": []string{"a", "b", "c"},
+			},
+			wantTitle:  "HELLO",
+			wantBody:   "HELLO\n0\na, b, c",
+			wantFormat: "markdown",
+		},
+		{
+			name: "title extraction from markdown heading",
+			templates: []config.NotifyTemplate{
+				{
+					ID:              "title.test",
+					Name:            "Title Test",
+					Description:     "Test title extraction",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "# My Title\n\nBody content here",
+				},
+			},
+			templateID: "title.test",
+			channel:    "slack",
+			data:       nil,
+			wantTitle:  "My Title",
+			wantBody:   "# My Title\n\nBody content here",
+			wantFormat: "markdown",
+		},
+		{
+			name: "conditional template urgent true",
+			templates: []config.NotifyTemplate{
+				{
+					ID:              "conditional.test",
+					Name:            "Conditional Test",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "{{ if .urgent }}URGENT: {{ end }}{{ .title }}",
+				},
+			},
+			templateID: "conditional.test",
+			channel:    "slack",
+			data: map[string]any{
+				"title":  "Task",
+				"urgent": true,
+			},
+			wantTitle:  "URGENT: Task",
+			wantFormat: "markdown",
+		},
+		{
+			name: "conditional template urgent false",
+			templates: []config.NotifyTemplate{
+				{
+					ID:              "conditional.test",
+					Name:            "Conditional Test",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "{{ if .urgent }}URGENT: {{ end }}{{ .title }}",
+				},
+			},
+			templateID: "conditional.test",
+			channel:    "slack",
+			data: map[string]any{
+				"title":  "Task",
+				"urgent": false,
+			},
+			wantTitle:  "Task",
+			wantBody:   "Task",
+			wantFormat: "markdown",
+		},
+	}
 
-	result, err := e.Render("test.event", "slack", map[string]any{
-		"title": "Hello World",
-		"body":  "This is a test",
-	})
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	assert.Equal(t, "Hello World", result.Title)
-	assert.Equal(t, "**Hello World**\nThis is a test", result.Body)
-	assert.Equal(t, "markdown", result.Format)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			err := e.LoadConfig(tt.templates)
+			require.NoError(t, err)
+
+			result, err := e.Render(tt.templateID, tt.channel, tt.data)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			if tt.wantTitle != "" {
+				assert.Equal(t, tt.wantTitle, result.Title)
+			}
+			if tt.wantBody != "" {
+				assert.Equal(t, tt.wantBody, result.Body)
+			}
+			if tt.wantFormat != "" {
+				assert.Equal(t, tt.wantFormat, result.Format)
+			}
+		})
+	}
 }
 
 func TestEngineChannelOverride(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
+	templates := []config.NotifyTemplate{
 		{
 			ID:              "test.event",
 			Name:            "Test Event",
@@ -51,177 +161,200 @@ func TestEngineChannelOverride(t *testing.T) {
 				},
 			},
 		},
-	})
-	require.NoError(t, err)
+	}
 
-	// default channel uses default template
-	result, err := e.Render("test.event", "slack", map[string]any{
-		"title": "Hello",
-		"body":  "World",
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "markdown", result.Format)
-	assert.Contains(t, result.Body, "**Hello**")
-
-	// telegram channel uses override
-	result, err = e.Render("test.event", "telegram", map[string]any{
-		"title": "Hello",
-		"body":  "World",
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "html", result.Format)
-	assert.Contains(t, result.Body, "<b>Hello</b>")
-}
-
-func TestEngineSpriteFunctions(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
+	tests := []struct {
+		name        string
+		channel     string
+		wantFormat  string
+		wantContain string
+	}{
 		{
-			ID:              "sprig.test",
-			Name:            "Sprig Test",
-			Description:     "Test sprig functions",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "{{ .name | upper }}\n{{ .count | default 0 }}\n{{ join \", \" .tags }}",
+			name:        "default channel uses default template",
+			channel:     "slack",
+			wantFormat:  "markdown",
+			wantContain: "**Hello**",
 		},
-	})
-	require.NoError(t, err)
+		{
+			name:        "telegram channel uses override",
+			channel:     "telegram",
+			wantFormat:  "html",
+			wantContain: "<b>Hello</b>",
+		},
+	}
 
-	result, err := e.Render("sprig.test", "slack", map[string]any{
-		"name": "hello",
-		"tags": []string{"a", "b", "c"},
-	})
-	require.NoError(t, err)
-	assert.Contains(t, result.Body, "HELLO")
-	assert.Contains(t, result.Body, "0") // default
-	assert.Contains(t, result.Body, "a, b, c")
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			err := e.LoadConfig(templates)
+			require.NoError(t, err)
 
-func TestEngineMissingTemplate(t *testing.T) {
-	e := New()
-	result, err := e.Render("nonexistent", "slack", nil)
-	assert.NoError(t, err)
-	assert.Nil(t, result)
+			result, err := e.Render("test.event", tt.channel, map[string]any{
+				"title": "Hello",
+				"body":  "World",
+			})
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantFormat, result.Format)
+			assert.Contains(t, result.Body, tt.wantContain)
+		})
+	}
 }
 
 func TestEngineShorten(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
+	tests := []struct {
+		name     string
+		text     string
+		wantBody string
+	}{
 		{
-			ID:              "shorten.test",
-			Name:            "Shorten Test",
-			Description:     "Test shorten",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "{{ shorten .text 10 }}",
+			name:     "long text is truncated",
+			text:     "this is a very long string",
+			wantBody: "this is...",
 		},
-	})
-	require.NoError(t, err)
+		{
+			name:     "short text is unchanged",
+			text:     "hi",
+			wantBody: "hi",
+		},
+	}
 
-	result, err := e.Render("shorten.test", "slack", map[string]any{
-		"text": "this is a very long string",
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "this is...", result.Body)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			err := e.LoadConfig([]config.NotifyTemplate{
+				{
+					ID:              "shorten.test",
+					Name:            "Shorten Test",
+					Description:     "Test shorten",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "{{ shorten .text 10 }}",
+				},
+			})
+			require.NoError(t, err)
+
+			result, err := e.Render("shorten.test", "slack", map[string]any{"text": tt.text})
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantBody, result.Body)
+		})
+	}
 }
 
-func TestEngineShortenShort(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
+func TestEngineMissingTemplate(t *testing.T) {
+	tests := []struct {
+		name       string
+		templateID string
+		data       map[string]any
+	}{
 		{
-			ID:              "shorten.short",
-			Name:            "Shorten Short",
-			Description:     "Test shorten short",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "{{ shorten .text 10 }}",
+			name:       "nonexistent template returns nil",
+			templateID: "nonexistent",
+			data:       nil,
 		},
-	})
-	require.NoError(t, err)
-
-	result, err := e.Render("shorten.short", "slack", map[string]any{
-		"text": "hi",
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "hi", result.Body)
-}
-
-func TestEngineExtractTitle(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
 		{
-			ID:              "title.test",
-			Name:            "Title Test",
-			Description:     "Test title extraction",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "# My Title\n\nBody content here",
+			name:       "does not exist returns nil",
+			templateID: "does.not.exist",
+			data:       map[string]any{},
 		},
-	})
-	require.NoError(t, err)
+	}
 
-	result, err := e.Render("title.test", "slack", nil)
-	require.NoError(t, err)
-	assert.Equal(t, "My Title", result.Title)
-	assert.Contains(t, result.Body, "Body content here")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			result, err := e.Render(tt.templateID, "slack", tt.data)
+			assert.NoError(t, err)
+			assert.Nil(t, result)
+		})
+	}
 }
 
 func TestEngineLoadConfigError(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
-		{
-			ID:              "bad.template",
-			Name:            "Bad Template",
-			Description:     "A bad template",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "{{ .nonexistent | invalid_func }}",
-		},
+	t.Run("bad template parse error", func(t *testing.T) {
+		e := New()
+		err := e.LoadConfig([]config.NotifyTemplate{
+			{
+				ID:              "bad.template",
+				Name:            "Bad Template",
+				Description:     "A bad template",
+				DefaultFormat:   "markdown",
+				DefaultTemplate: "{{ .nonexistent | invalid_func }}",
+			},
+		})
+		assert.Error(t, err)
 	})
-	assert.Error(t, err)
 }
 
 func TestEngineGetTemplateID(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
-		{
-			ID:              "bookmark.created",
-			Name:            "Bookmark Created",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "test",
-		},
-	})
-	require.NoError(t, err)
+	tests := []struct {
+		name      string
+		eventType string
+		wantEmpty bool
+	}{
+		{name: "existing template", eventType: "bookmark.created", wantEmpty: false},
+		{name: "nonexistent template", eventType: "nonexistent", wantEmpty: true},
+	}
 
-	assert.Equal(t, "bookmark.created", e.GetTemplateID("bookmark.created"))
-	assert.Equal(t, "", e.GetTemplateID("nonexistent"))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			err := e.LoadConfig([]config.NotifyTemplate{
+				{
+					ID:              "bookmark.created",
+					Name:            "Bookmark Created",
+					DefaultFormat:   "markdown",
+					DefaultTemplate: "test",
+				},
+			})
+			require.NoError(t, err)
+
+			got := e.GetTemplateID(tt.eventType)
+			if tt.wantEmpty {
+				assert.Equal(t, "", got)
+			} else {
+				assert.Equal(t, tt.eventType, got)
+			}
+		})
+	}
 }
 
-func TestRenderResultNilOnMissingTemplate(t *testing.T) {
-	e := New()
-	result, err := e.Render("does.not.exist", "slack", map[string]any{})
-	assert.NoError(t, err)
-	assert.Nil(t, result)
+func TestEngineConditionalBodyPrefix(t *testing.T) {
+	t.Run("urgent flag prefixes body with URGENT", func(t *testing.T) {
+		e := New()
+		err := e.LoadConfig([]config.NotifyTemplate{
+			{
+				ID:              "conditional.test",
+				Name:            "Conditional Test",
+				DefaultFormat:   "markdown",
+				DefaultTemplate: "{{ if .urgent }}URGENT: {{ end }}{{ .title }}",
+			},
+		})
+		require.NoError(t, err)
+
+		result, err := e.Render("conditional.test", "slack", map[string]any{
+			"title":  "Task",
+			"urgent": true,
+		})
+		require.NoError(t, err)
+		assert.True(t, strings.HasPrefix(result.Body, "URGENT: "))
+	})
 }
 
-func TestEngineConditionalTemplate(t *testing.T) {
-	e := New()
-	err := e.LoadConfig([]config.NotifyTemplate{
-		{
-			ID:              "conditional.test",
-			Name:            "Conditional Test",
-			DefaultFormat:   "markdown",
-			DefaultTemplate: "{{ if .urgent }}URGENT: {{ end }}{{ .title }}",
-		},
-	})
-	require.NoError(t, err)
+func TestEngineRenderExtractTitle(t *testing.T) {
+	t.Run("markdown heading becomes plain title", func(t *testing.T) {
+		e := New()
+		err := e.LoadConfig([]config.NotifyTemplate{
+			{
+				ID:              "title.test",
+				Name:            "Title Test",
+				Description:     "Test title extraction",
+				DefaultFormat:   "markdown",
+				DefaultTemplate: "# My Title\n\nBody content here",
+			},
+		})
+		require.NoError(t, err)
 
-	result, err := e.Render("conditional.test", "slack", map[string]any{
-		"title":  "Task",
-		"urgent": true,
+		result, err := e.Render("title.test", "slack", nil)
+		require.NoError(t, err)
+		assert.Equal(t, "My Title", result.Title)
+		assert.Contains(t, result.Body, "Body content here")
 	})
-	require.NoError(t, err)
-	assert.True(t, strings.HasPrefix(result.Body, "URGENT: "))
-
-	result, err = e.Render("conditional.test", "slack", map[string]any{
-		"title":  "Task",
-		"urgent": false,
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "Task", result.Body)
 }

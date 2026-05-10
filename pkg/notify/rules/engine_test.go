@@ -11,25 +11,26 @@ import (
 
 func TestMatchPattern(t *testing.T) {
 	tests := []struct {
+		name    string
 		pattern string
 		value   string
 		want    bool
 	}{
-		{"*", "anything", true},
-		{"*", "server.offline", true},
-		{"bookmark.created", "bookmark.created", true},
-		{"bookmark.created", "bookmark.archived", false},
-		{"infra.*", "infra.host.down", true},
-		{"infra.*", "infra.host.up", true},
-		{"infra.*", "bookmark.created", false},
-		{"infra.*", "infra", false},
-		{"*.created", "bookmark.created", true},
-		{"*.created", "kanban.task.created", true},
-		{"*.created", "server.offline", false},
+		{name: "star matches anything", pattern: "*", value: "anything", want: true},
+		{name: "star matches dotted event", pattern: "*", value: "server.offline", want: true},
+		{name: "exact match", pattern: "bookmark.created", value: "bookmark.created", want: true},
+		{name: "exact mismatch", pattern: "bookmark.created", value: "bookmark.archived", want: false},
+		{name: "prefix star matches host.down", pattern: "infra.*", value: "infra.host.down", want: true},
+		{name: "prefix star matches host.up", pattern: "infra.*", value: "infra.host.up", want: true},
+		{name: "prefix star does not match unrelated", pattern: "infra.*", value: "bookmark.created", want: false},
+		{name: "prefix star does not match bare prefix", pattern: "infra.*", value: "infra", want: false},
+		{name: "suffix star matches bookmark.created", pattern: "*.created", value: "bookmark.created", want: true},
+		{name: "suffix star matches kanban.task.created", pattern: "*.created", value: "kanban.task.created", want: true},
+		{name: "suffix star does not match different suffix", pattern: "*.created", value: "server.offline", want: false},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.pattern+"_"+tt.value, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			got := matchPattern(tt.pattern, tt.value)
 			assert.Equal(t, tt.want, got)
 		})
@@ -37,103 +38,211 @@ func TestMatchPattern(t *testing.T) {
 }
 
 func TestEngineEvaluate(t *testing.T) {
-	e := New(nil)
-	err := e.LoadConfig([]config.NotifyRule{
+	tests := []struct {
+		name       string
+		rules      []config.NotifyRule
+		eventType  string
+		channel    string
+		wantAction config.NotifyRuleAction
+		wantWindow string
+		wantLimit  int
+		wantMuted  bool
+		wantNil    bool
+	}{
 		{
-			ID:        "night_mute",
-			Action:    config.NotifyRuleActionMute,
-			Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
-			Condition: "time.hour >= 25",
-			Priority:  100,
+			name: "infra throttle rule matches infra.host.down",
+			rules: []config.NotifyRule{
+				{
+					ID:        "night_mute",
+					Action:    config.NotifyRuleActionMute,
+					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Condition: "time.hour >= 25",
+					Priority:  100,
+				},
+				{
+					ID:       "infra_throttle",
+					Action:   config.NotifyRuleActionThrottle,
+					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Priority: 50,
+					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+				},
+				{
+					ID:       "drop_rule",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Priority: 10,
+				},
+			},
+			eventType:  "infra.host.down",
+			channel:    "slack",
+			wantAction: config.NotifyRuleActionThrottle,
+			wantWindow: "5m",
+			wantLimit:  1,
+			wantMuted:  false,
 		},
 		{
-			ID:       "infra_throttle",
-			Action:   config.NotifyRuleActionThrottle,
-			Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
-			Priority: 50,
-			Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+			name: "drop rule matches test.drop",
+			rules: []config.NotifyRule{
+				{
+					ID:        "night_mute",
+					Action:    config.NotifyRuleActionMute,
+					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Condition: "time.hour >= 25",
+					Priority:  100,
+				},
+				{
+					ID:       "infra_throttle",
+					Action:   config.NotifyRuleActionThrottle,
+					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Priority: 50,
+					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+				},
+				{
+					ID:       "drop_rule",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Priority: 10,
+				},
+			},
+			eventType:  "test.drop",
+			channel:    "slack",
+			wantAction: config.NotifyRuleActionDrop,
 		},
 		{
-			ID:       "drop_rule",
-			Action:   config.NotifyRuleActionDrop,
-			Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
-			Priority: 10,
+			name: "no match for unlisted event",
+			rules: []config.NotifyRule{
+				{
+					ID:        "night_mute",
+					Action:    config.NotifyRuleActionMute,
+					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Condition: "time.hour >= 25",
+					Priority:  100,
+				},
+				{
+					ID:       "infra_throttle",
+					Action:   config.NotifyRuleActionThrottle,
+					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Priority: 50,
+					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+				},
+				{
+					ID:       "drop_rule",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Priority: 10,
+				},
+			},
+			eventType: "bookmark.created",
+			channel:   "slack",
+			wantNil:   true,
 		},
-	})
-	require.NoError(t, err)
-
-	// night_mute rule has condition that does not match current hour
-	// so infra throttle rule should match for infra.* events
-	result := e.Evaluate(nil, "infra.host.down", "slack")
-	require.NotNil(t, result)
-	assert.Equal(t, config.NotifyRuleActionThrottle, result.Action)
-	assert.Equal(t, "5m", result.Window)
-	assert.Equal(t, 1, result.Limit)
-	assert.False(t, result.Muted)
-
-	// test drop rule
-	result = e.Evaluate(nil, "test.drop", "slack")
-	require.NotNil(t, result)
-	assert.Equal(t, config.NotifyRuleActionDrop, result.Action)
-
-	// no match for unlisted events
-	result = e.Evaluate(nil, "bookmark.created", "slack")
-	assert.Nil(t, result)
-}
-
-func TestEngineEvaluateNoMatch(t *testing.T) {
-	e := New(nil)
-	err := e.LoadConfig([]config.NotifyRule{
 		{
-			ID:       "specific_rule",
-			Action:   config.NotifyRuleActionDrop,
-			Match:    config.NotifyRuleMatch{Event: "specific.event", Channel: "slack"},
-			Priority: 10,
+			name: "no match when event and channel differ",
+			rules: []config.NotifyRule{
+				{
+					ID:       "specific_rule",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "specific.event", Channel: "slack"},
+					Priority: 10,
+				},
+			},
+			eventType: "other.event",
+			channel:   "ntfy",
+			wantNil:   true,
 		},
-	})
-	require.NoError(t, err)
-
-	result := e.Evaluate(nil, "other.event", "ntfy")
-	assert.Nil(t, result)
-}
-
-func TestEngineEvaluateChannelMatch(t *testing.T) {
-	e := New(nil)
-	err := e.LoadConfig([]config.NotifyRule{
 		{
-			ID:       "slack_only",
-			Action:   config.NotifyRuleActionDrop,
-			Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
-			Priority: 10,
+			name: "channel-specific rule matches correct channel",
+			rules: []config.NotifyRule{
+				{
+					ID:       "slack_only",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
+					Priority: 10,
+				},
+			},
+			eventType:  "any.event",
+			channel:    "slack",
+			wantAction: config.NotifyRuleActionDrop,
 		},
-	})
-	require.NoError(t, err)
+		{
+			name: "channel-specific rule does not match different channel",
+			rules: []config.NotifyRule{
+				{
+					ID:       "slack_only",
+					Action:   config.NotifyRuleActionDrop,
+					Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
+					Priority: 10,
+				},
+			},
+			eventType: "any.event",
+			channel:   "ntfy",
+			wantNil:   true,
+		},
+	}
 
-	// matches slack
-	result := e.Evaluate(nil, "any.event", "slack")
-	require.NotNil(t, result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New(nil)
+			err := e.LoadConfig(tt.rules)
+			require.NoError(t, err)
 
-	// doesn't match ntfy
-	result = e.Evaluate(nil, "any.event", "ntfy")
-	assert.Nil(t, result)
+			result := e.Evaluate(nil, tt.eventType, tt.channel)
+			if tt.wantNil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Equal(t, tt.wantAction, result.Action)
+			if tt.wantWindow != "" {
+				assert.Equal(t, tt.wantWindow, result.Window)
+			}
+			if tt.wantLimit != 0 {
+				assert.Equal(t, tt.wantLimit, result.Limit)
+			}
+			assert.Equal(t, tt.wantMuted, result.Muted)
+		})
+	}
 }
 
 func TestParseHour(t *testing.T) {
-	assert.Equal(t, 23, parseHour("23"))
-	assert.Equal(t, 8, parseHour("8"))
-	assert.Equal(t, 0, parseHour("0"))
+	tests := []struct {
+		name  string
+		input string
+		want  int
+	}{
+		{name: "two-digit hour", input: "23", want: 23},
+		{name: "single-digit hour", input: "8", want: 8},
+		{name: "zero hour", input: "0", want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, parseHour(tt.input))
+		})
+	}
 }
 
 func TestEvalTimeCondition(t *testing.T) {
-	// save and restore currentHour
 	origHour := currentHour
-	currentHour = func() int { return 14 } // 2pm
+	currentHour = func() int { return 14 }
 	defer func() { currentHour = origHour }()
 
-	assert.True(t, evalTimeCondition("time.hour >= 10"))
-	assert.False(t, evalTimeCondition("time.hour >= 20"))
-	assert.True(t, evalTimeCondition("time.hour < 16"))
-	assert.False(t, evalTimeCondition("time.hour < 10"))
-	assert.True(t, evalTimeCondition("time.hour == 14"))
-	assert.False(t, evalTimeCondition("time.hour == 15"))
+	tests := []struct {
+		name      string
+		condition string
+		want      bool
+	}{
+		{name: "hour >= 10 when hour is 14", condition: "time.hour >= 10", want: true},
+		{name: "hour >= 20 when hour is 14", condition: "time.hour >= 20", want: false},
+		{name: "hour < 16 when hour is 14", condition: "time.hour < 16", want: true},
+		{name: "hour < 10 when hour is 14", condition: "time.hour < 10", want: false},
+		{name: "hour == 14 when hour is 14", condition: "time.hour == 14", want: true},
+		{name: "hour == 15 when hour is 14", condition: "time.hour == 15", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, evalTimeCondition(tt.condition))
+		})
+	}
 }

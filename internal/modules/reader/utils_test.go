@@ -7,6 +7,15 @@ import (
 )
 
 func TestGetAIResult_FunctionExists(t *testing.T) {
-	// getAIResult depends on external LLM services, so we only verify the function exists
-	assert.NotNil(t, getAIResult)
+	tests := []struct {
+		name string
+	}{
+		{name: "getAIResult function exists"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotNil(t, getAIResult)
+		})
+	}
 }

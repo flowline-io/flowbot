@@ -2,10 +2,9 @@ package kanboard
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"testing"
-
-	"errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -123,77 +122,140 @@ func (f *fakeClient) SearchTasks(ctx context.Context, projectID int, query strin
 }
 
 func TestListTasksConvertsProviderTasks(t *testing.T) {
-	adapter := NewWithClient(&fakeClient{
-		tasks: []*provider.Task{
-			{ID: 1, Title: "Task 1", ProjectID: 1, ColumnID: 2, Tags: []any{"go", "api"}},
-		},
-	}).(*Adapter)
+	tests := []struct {
+		name string
+	}{
+		{"converts kanboard provider tasks to ability tasks"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adapter := NewWithClient(&fakeClient{
+				tasks: []*provider.Task{
+					{ID: 1, Title: "Task 1", ProjectID: 1, ColumnID: 2, Tags: []any{"go", "api"}},
+				},
+			}).(*Adapter)
 
-	result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{ProjectID: 1})
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.Len(t, result.Items, 1)
-	assert.Equal(t, 1, result.Items[0].ID)
-	assert.Equal(t, "Task 1", result.Items[0].Title)
-	assert.Equal(t, 1, result.Items[0].ProjectID)
-	assert.Equal(t, 2, result.Items[0].ColumnID)
+			result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{ProjectID: 1})
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Len(t, result.Items, 1)
+			assert.Equal(t, 1, result.Items[0].ID)
+			assert.Equal(t, "Task 1", result.Items[0].Title)
+			assert.Equal(t, 1, result.Items[0].ProjectID)
+			assert.Equal(t, 2, result.Items[0].ColumnID)
+		})
+	}
 }
 
 func TestListTasksEmpty(t *testing.T) {
-	adapter := NewWithClient(&fakeClient{}).(*Adapter)
-	result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{})
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	assert.Empty(t, result.Items)
-	assert.NotNil(t, result.Page)
+	tests := []struct {
+		name string
+	}{
+		{"empty task list returns empty items"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adapter := NewWithClient(&fakeClient{}).(*Adapter)
+			result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{})
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Empty(t, result.Items)
+			assert.NotNil(t, result.Page)
+		})
+	}
 }
 
 func TestGetTaskReturnsConvertedTask(t *testing.T) {
-	adapter := NewWithClient(&fakeClient{
-		task: &provider.Task{ID: 5, Title: "Test", ProjectID: 1},
-	}).(*Adapter)
+	tests := []struct {
+		name string
+	}{
+		{"get task returns converted ability task"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adapter := NewWithClient(&fakeClient{
+				task: &provider.Task{ID: 5, Title: "Test", ProjectID: 1},
+			}).(*Adapter)
 
-	task, err := adapter.GetTask(t.Context(), 5)
-	require.NoError(t, err)
-	require.NotNil(t, task)
-	assert.Equal(t, 5, task.ID)
-	assert.Equal(t, "Test", task.Title)
+			task, err := adapter.GetTask(t.Context(), 5)
+			require.NoError(t, err)
+			require.NotNil(t, task)
+			assert.Equal(t, 5, task.ID)
+			assert.Equal(t, "Test", task.Title)
+		})
+	}
 }
 
 func TestCreateTaskReturnsAbilityTask(t *testing.T) {
-	adapter := NewWithClient(&fakeClient{
-		createTaskID: 10,
-	}).(*Adapter)
+	tests := []struct {
+		name string
+	}{
+		{"create task returns ability task with assigned id"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adapter := NewWithClient(&fakeClient{
+				createTaskID: 10,
+			}).(*Adapter)
 
-	task, err := adapter.CreateTask(t.Context(), kb.CreateTaskRequest{
-		Title:     "New Task",
-		ProjectID: 1,
-		Tags:      []string{"go"},
-	})
-	require.NoError(t, err)
-	require.NotNil(t, task)
-	assert.Equal(t, 10, task.ID)
-	assert.Equal(t, "New Task", task.Title)
+			task, err := adapter.CreateTask(t.Context(), kb.CreateTaskRequest{
+				Title:     "New Task",
+				ProjectID: 1,
+				Tags:      []string{"go"},
+			})
+			require.NoError(t, err)
+			require.NotNil(t, task)
+			assert.Equal(t, 10, task.ID)
+			assert.Equal(t, "New Task", task.Title)
+		})
+	}
 }
 
 func TestToAbilityTaskNil(t *testing.T) {
-	result := toAbilityTask(nil)
-	assert.Nil(t, result)
+	tests := []struct {
+		name string
+	}{
+		{"nil provider task returns nil"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := toAbilityTask(nil)
+			assert.Nil(t, result)
+		})
+	}
 }
 
 func TestTagsToAnyAndBack(t *testing.T) {
-	input := []string{"a", "b", "c"}
-	anyTags := tagsToAny(input)
-	assert.Len(t, anyTags, 3)
-	result := anyToStringSlice(anyTags)
-	assert.Equal(t, input, result)
+	tests := []struct {
+		name string
+	}{
+		{"round trip string tags to any and back"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := []string{"a", "b", "c"}
+			anyTags := tagsToAny(input)
+			assert.Len(t, anyTags, 3)
+			result := anyToStringSlice(anyTags)
+			assert.Equal(t, input, result)
+		})
+	}
 }
 
 func TestCheckClientWithNilClient(t *testing.T) {
-	adapter := &Adapter{client: nil}
-	err := adapter.checkClient()
-	require.Error(t, err)
-	assert.True(t, errors.Is(err, types.ErrUnavailable))
+	tests := []struct {
+		name string
+	}{
+		{"nil client returns unavailable error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			adapter := &Adapter{client: nil}
+			err := adapter.checkClient()
+			require.Error(t, err)
+			assert.True(t, errors.Is(err, types.ErrUnavailable))
+		})
+	}
 }
 
 // Compile-time interface check.

@@ -13,129 +13,241 @@ import (
 )
 
 func TestBotName(t *testing.T) {
-	assert.Equal(t, "dev", Name)
+	tests := []struct {
+		name     string
+		expected string
+	}{
+		{name: "should equal dev", expected: "dev"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, Name)
+		})
+	}
 }
 
-func TestBotInit_Enabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: true}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.True(t, handler.IsReady())
-}
+func TestInit(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  configType
+		rawJSON json.RawMessage
+		preInit bool
+		wantErr bool
+		ready   bool
+	}{
+		{
+			name:    "enabled config",
+			config:  configType{Enabled: true},
+			wantErr: false,
+			ready:   true,
+		},
+		{
+			name:    "disabled config",
+			config:  configType{Enabled: false},
+			wantErr: false,
+			ready:   false,
+		},
+		{
+			name:    "invalid JSON",
+			rawJSON: json.RawMessage(`{invalid`),
+			wantErr: true,
+			ready:   false,
+		},
+		{
+			name:    "already initialized",
+			rawJSON: json.RawMessage(`{"enabled":true}`),
+			preInit: true,
+			wantErr: true,
+			ready:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.preInit {
+				handler = moduleHandler{initialized: true}
+			} else {
+				handler = moduleHandler{}
+			}
 
-func TestBotInit_Disabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: false}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.False(t, handler.IsReady())
-}
+			var data json.RawMessage
+			if tt.rawJSON != nil {
+				data = tt.rawJSON
+			} else {
+				d, _ := sonic.Marshal(tt.config)
+				data = d
+			}
 
-func TestBotInit_InvalidJSON(t *testing.T) {
-	handler = moduleHandler{} // reset
-	err := handler.Init(json.RawMessage(`{invalid`))
-	assert.Error(t, err)
-}
-
-func TestBotInit_AlreadyInitialized(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	err := handler.Init(json.RawMessage(`{"enabled":true}`))
-	assert.Error(t, err)
+			err := handler.Init(data)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.ready, handler.IsReady())
+			}
+		})
+	}
 }
 
 func TestCommandRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, commandRules)
-
-	defines := make(map[string]string)
-	for _, r := range commandRules {
-		defines[r.Define] = r.Help
+	tests := []struct {
+		name string
+	}{
+		{name: "should contain all expected command defines"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, commandRules)
 
-	assert.Contains(t, defines, "dev setting")
-	assert.Contains(t, defines, "id")
-	assert.Contains(t, defines, "form test")
-	assert.Contains(t, defines, "queue test")
-	assert.Contains(t, defines, "page test")
-	assert.Contains(t, defines, "docker test")
-	assert.Contains(t, defines, "torrent test")
-	assert.Contains(t, defines, "slash test")
-	assert.Contains(t, defines, "llm test")
-	assert.Contains(t, defines, "notify test")
-	assert.Contains(t, defines, "fs test")
-	assert.Contains(t, defines, "event test")
-	assert.Contains(t, defines, "test")
+			defines := make(map[string]string)
+			for _, r := range commandRules {
+				defines[r.Define] = r.Help
+			}
+
+			assert.Contains(t, defines, "dev setting")
+			assert.Contains(t, defines, "id")
+			assert.Contains(t, defines, "form test")
+			assert.Contains(t, defines, "queue test")
+			assert.Contains(t, defines, "page test")
+			assert.Contains(t, defines, "docker test")
+			assert.Contains(t, defines, "torrent test")
+			assert.Contains(t, defines, "slash test")
+			assert.Contains(t, defines, "llm test")
+			assert.Contains(t, defines, "notify test")
+			assert.Contains(t, defines, "fs test")
+			assert.Contains(t, defines, "event test")
+			assert.Contains(t, defines, "test")
+		})
+	}
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+	tests := []struct {
+		name string
+	}{
+		{name: "all command rules should have non-nil handlers"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, r := range commandRules {
+				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+			}
+		})
 	}
 }
 
 func TestFormRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, formRules)
-
-	found := false
-	for _, r := range formRules {
-		if r.Id == devFormID {
-			found = true
-			assert.NotEmpty(t, r.Title)
-			assert.NotEmpty(t, r.Field)
-			assert.NotNil(t, r.Handler)
-		}
+	tests := []struct {
+		name string
+	}{
+		{name: "should define dev_form rule with title, fields, and handler"},
 	}
-	assert.True(t, found, "dev_form rule should be defined")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, formRules)
+
+			found := false
+			for _, r := range formRules {
+				if r.Id == devFormID {
+					found = true
+					assert.NotEmpty(t, r.Title)
+					assert.NotEmpty(t, r.Field)
+					assert.NotNil(t, r.Handler)
+				}
+			}
+			assert.True(t, found, "dev_form rule should be defined")
+		})
+	}
 }
 
 func TestEventRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, eventRules)
-
-	ids := make(map[string]bool)
-	for _, r := range eventRules {
-		ids[r.Id] = true
+	tests := []struct {
+		name string
+	}{
+		{name: "should contain ExampleBotEventID"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, eventRules)
 
-	assert.True(t, ids[types.ExampleBotEventID])
+			ids := make(map[string]bool)
+			for _, r := range eventRules {
+				ids[r.Id] = true
+			}
+
+			assert.True(t, ids[types.ExampleBotEventID])
+		})
+	}
 }
 
 func TestWebhookRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, webhookRules)
-
-	ids := make(map[string]bool)
-	for _, r := range webhookRules {
-		ids[r.Id] = true
+	tests := []struct {
+		name string
+	}{
+		{name: "should contain ExampleWebhookID and have Secret=true"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, webhookRules)
 
-	assert.True(t, ids[ExampleWebhookID])
-}
+			ids := make(map[string]bool)
+			for _, r := range webhookRules {
+				ids[r.Id] = true
+			}
 
-func TestWebhookRules_SecretFlags(t *testing.T) {
-	for _, r := range webhookRules {
-		assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
+			assert.True(t, ids[ExampleWebhookID])
+
+			for _, r := range webhookRules {
+				assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
+			}
+		})
 	}
 }
 
 func TestPageRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, pageRules)
-
-	ids := make(map[string]bool)
-	for _, r := range pageRules {
-		ids[r.Id] = true
+	tests := []struct {
+		name string
+	}{
+		{name: "should contain dev page"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, pageRules)
 
-	assert.True(t, ids["dev"])
+			ids := make(map[string]bool)
+			for _, r := range pageRules {
+				ids[r.Id] = true
+			}
+
+			assert.True(t, ids["dev"])
+		})
+	}
 }
 
 func TestWebserviceRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, webserviceRules)
+	tests := []struct {
+		name string
+	}{
+		{name: "should not be empty"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, webserviceRules)
+		})
+	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	rules := handler.Rules()
-	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 6) // commandRules, formRules, pageRules, webserviceRules, webhookRules, eventRules
+	tests := []struct {
+		name string
+	}{
+		{name: "should return 6 rulesets"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler = moduleHandler{initialized: true}
+			rules := handler.Rules()
+			assert.NotEmpty(t, rules)
+			assert.Len(t, rules, 6) // commandRules, formRules, pageRules, webserviceRules, webhookRules, eventRules
+		})
+	}
 }

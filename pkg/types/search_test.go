@@ -7,46 +7,122 @@ import (
 )
 
 func TestDocumentList_FillUrlBase(t *testing.T) {
-	list := DocumentList{
-		{Source: "github", Url: "/repos/foo"},
-		{Source: "gitlab", Url: "/projects/1"},
-		{Source: "unknown", Url: "/path"},
+	tests := []struct {
+		name    string
+		list    DocumentList
+		urlBase map[string]string
+		want    []string
+	}{
+		{
+			name: "fills URLs from base map",
+			list: DocumentList{
+				{Source: "github", Url: "/repos/foo"},
+				{Source: "gitlab", Url: "/projects/1"},
+				{Source: "unknown", Url: "/path"},
+			},
+			urlBase: map[string]string{
+				"github": "https://github.com",
+				"gitlab": "https://gitlab.com",
+			},
+			want: []string{
+				"https://github.com/repos/foo",
+				"https://gitlab.com/projects/1",
+				"/path",
+			},
+		},
+		{
+			name:    "empty list",
+			list:    nil,
+			urlBase: map[string]string{"x": "y"},
+			want:    nil,
+		},
+		{
+			name: "no matching base URL",
+			list: DocumentList{
+				{Source: "bitbucket", Url: "/repo"},
+			},
+			urlBase: map[string]string{"github": "https://github.com"},
+			want:    []string{"/repo"},
+		},
 	}
-	urlBase := map[string]string{
-		"github": "https://github.com",
-		"gitlab": "https://gitlab.com",
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.list.FillUrlBase(tt.urlBase)
+			if tt.want == nil {
+				assert.Nil(t, tt.list)
+			} else {
+				urls := make([]string, len(tt.list))
+				for i, d := range tt.list {
+					urls[i] = d.Url
+				}
+				assert.Equal(t, tt.want, urls)
+			}
+		})
 	}
-
-	list.FillUrlBase(urlBase)
-
-	assert.Equal(t, "https://github.com/repos/foo", list[0].Url)
-	assert.Equal(t, "https://gitlab.com/projects/1", list[1].Url)
-	assert.Equal(t, "/path", list[2].Url)
-}
-
-func TestDocumentList_FillUrlBase_Empty(t *testing.T) {
-	var list DocumentList
-	list.FillUrlBase(map[string]string{"x": "y"})
-	assert.Nil(t, list)
-}
-
-func TestDocumentList_FillUrlBase_NoMatch(t *testing.T) {
-	list := DocumentList{
-		{Source: "bitbucket", Url: "/repo"},
-	}
-	list.FillUrlBase(map[string]string{"github": "https://github.com"})
-	assert.Equal(t, "/repo", list[0].Url)
 }
 
 func TestRulesetTypeConstants(t *testing.T) {
-	assert.Equal(t, RulesetType("action"), ActionRule)
-	assert.Equal(t, RulesetType("command"), CommandRule)
-	assert.Equal(t, RulesetType("cron"), CronRule)
-	assert.Equal(t, RulesetType("event"), EventRule)
-	assert.Equal(t, RulesetType("form"), FormRule)
-	assert.Equal(t, RulesetType("page"), PageRule)
-	assert.Equal(t, RulesetType("trigger"), TriggerRule)
-	assert.Equal(t, RulesetType("webhook"), WebhookRule)
-	assert.Equal(t, RulesetType("webservice"), WebserviceRule)
-	assert.Equal(t, RulesetType("workflow"), WorkflowRule)
+	tests := []struct {
+		name     string
+		constant RulesetType
+		want     RulesetType
+	}{
+		{
+			name:     "ActionRule",
+			constant: ActionRule,
+			want:     RulesetType("action"),
+		},
+		{
+			name:     "CommandRule",
+			constant: CommandRule,
+			want:     RulesetType("command"),
+		},
+		{
+			name:     "CronRule",
+			constant: CronRule,
+			want:     RulesetType("cron"),
+		},
+		{
+			name:     "EventRule",
+			constant: EventRule,
+			want:     RulesetType("event"),
+		},
+		{
+			name:     "FormRule",
+			constant: FormRule,
+			want:     RulesetType("form"),
+		},
+		{
+			name:     "PageRule",
+			constant: PageRule,
+			want:     RulesetType("page"),
+		},
+		{
+			name:     "TriggerRule",
+			constant: TriggerRule,
+			want:     RulesetType("trigger"),
+		},
+		{
+			name:     "WebhookRule",
+			constant: WebhookRule,
+			want:     RulesetType("webhook"),
+		},
+		{
+			name:     "WebserviceRule",
+			constant: WebserviceRule,
+			want:     RulesetType("webservice"),
+		},
+		{
+			name:     "WorkflowRule",
+			constant: WorkflowRule,
+			want:     RulesetType("workflow"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.constant)
+		})
+	}
 }

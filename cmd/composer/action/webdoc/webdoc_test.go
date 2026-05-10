@@ -1,8 +1,9 @@
 package webdoc
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseFrontMatter(t *testing.T) {
@@ -73,12 +74,8 @@ Start of content.`,
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotFM, gotMD := parseFrontMatter([]byte(tt.input))
-			if !reflect.DeepEqual(gotFM, tt.wantFM) {
-				t.Errorf("parseFrontMatter() fm = %+v, want %+v", gotFM, tt.wantFM)
-			}
-			if string(gotMD) != tt.wantMD {
-				t.Errorf("parseFrontMatter() md = %q, want %q", string(gotMD), tt.wantMD)
-			}
+			assert.Equal(t, tt.wantFM, gotFM)
+			assert.Equal(t, tt.wantMD, string(gotMD))
 		})
 	}
 }
@@ -119,9 +116,7 @@ func TestExtractTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := extractTitle([]byte(tt.input), tt.fm)
-			if got != tt.want {
-				t.Errorf("extractTitle() = %q, want %q", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -157,9 +152,7 @@ func TestRelPathToOut(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := relPathToOut(tt.relPath)
-			if got != tt.want {
-				t.Errorf("relPathToOut(%q) = %q, want %q", tt.relPath, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -190,9 +183,7 @@ func TestOutURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := outURL(tt.relPath)
-			if got != tt.want {
-				t.Errorf("outURL(%q) = %q, want %q", tt.relPath, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -212,9 +203,7 @@ func TestDirToTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := dirToTitle(tt.dir)
-			if got != tt.want {
-				t.Errorf("dirToTitle(%q) = %q, want %q", tt.dir, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

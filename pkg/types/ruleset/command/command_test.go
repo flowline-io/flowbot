@@ -41,33 +41,67 @@ func TestRegexRule(t *testing.T) {
 
 	b := Ruleset(testRules)
 
-	out, err := b.ProcessCommand(types.Context{}, "test")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name    string
+		command string
+		want    types.MsgPayload
+		wantErr bool
+	}{
+		{
+			name:    "simple test command",
+			command: "test",
+			want:    types.TextMsg{Text: "test"},
+			wantErr: false,
+		},
+		{
+			name:    "add two numbers",
+			command: "add 1 2",
+			want:    types.TextMsg{Text: "3"},
+			wantErr: false,
+		},
+		{
+			name:    "help returns nil",
+			command: "help",
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name:    "todo with quoted string",
+			command: `todo "a b c"`,
+			want:    types.TextMsg{Text: "a b c"},
+			wantErr: false,
+		},
 	}
-	require.Equal(t, out, types.TextMsg{Text: "test"})
 
-	out2, err := b.ProcessCommand(types.Context{}, "add 1 2")
-	if err != nil {
-		t.Fatal(err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, err := b.ProcessCommand(types.Context{}, tt.command)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.want, out)
+		})
 	}
-	require.Equal(t, out2, types.TextMsg{Text: "3"})
+}
 
-	out3, err := b.ProcessCommand(types.Context{}, "help")
-	if err != nil {
-		t.Fatal(err)
+func TestHelp(t *testing.T) {
+	testRules := []Rule{
+		{
+			Define: `test`,
+			Help:   `Test info`,
+			Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+				return types.TextMsg{Text: "test"}
+			},
+		},
 	}
-	assert.True(t, out3 == nil)
 
-	help, err := b.Help("help")
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.True(t, help != nil)
+	b := Ruleset(testRules)
 
-	out4, err := b.ProcessCommand(types.Context{}, `todo "a b c"`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, out4, types.TextMsg{Text: "a b c"})
+	t.Run("help returns non-nil", func(t *testing.T) {
+		help, err := b.Help("help")
+		require.NoError(t, err)
+		assert.True(t, help != nil)
+	})
 }

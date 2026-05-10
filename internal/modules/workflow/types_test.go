@@ -9,33 +9,51 @@ import (
 )
 
 func TestRuleType_Fields(t *testing.T) {
-	r := rule{
-		Bot:   "test_bot",
-		Id:    "test_id",
-		Title: "Test Title",
-		Desc:  "Test Description",
-		InputSchema: []types.FormField{
-			{Key: "input1", Type: types.FormFieldText},
+	tests := []struct {
+		name string
+		r    rule
+		fn   func(t *testing.T, r rule)
+	}{
+		{
+			name: "all fields populated",
+			r: rule{
+				Bot:   "test_bot",
+				Id:    "test_id",
+				Title: "Test Title",
+				Desc:  "Test Description",
+				InputSchema: []types.FormField{
+					{Key: "input1", Type: types.FormFieldText},
+				},
+				OutputSchema: []types.FormField{
+					{Key: "output1", Type: types.FormFieldText},
+				},
+			},
+			fn: func(t *testing.T, r rule) {
+				assert.Equal(t, "test_bot", r.Bot)
+				assert.Equal(t, "test_id", r.Id)
+				assert.Equal(t, "Test Title", r.Title)
+				assert.Equal(t, "Test Description", r.Desc)
+				assert.Len(t, r.InputSchema, 1)
+				assert.Len(t, r.OutputSchema, 1)
+			},
 		},
-		OutputSchema: []types.FormField{
-			{Key: "output1", Type: types.FormFieldText},
+		{
+			name: "empty fields are zero values",
+			r:    rule{},
+			fn: func(t *testing.T, r rule) {
+				assert.Empty(t, r.Bot)
+				assert.Empty(t, r.Id)
+				assert.Empty(t, r.Title)
+				assert.Empty(t, r.Desc)
+				assert.Nil(t, r.InputSchema)
+				assert.Nil(t, r.OutputSchema)
+			},
 		},
 	}
 
-	assert.Equal(t, "test_bot", r.Bot)
-	assert.Equal(t, "test_id", r.Id)
-	assert.Equal(t, "Test Title", r.Title)
-	assert.Equal(t, "Test Description", r.Desc)
-	assert.Len(t, r.InputSchema, 1)
-	assert.Len(t, r.OutputSchema, 1)
-}
-
-func TestRuleType_EmptyFields(t *testing.T) {
-	r := rule{}
-	assert.Empty(t, r.Bot)
-	assert.Empty(t, r.Id)
-	assert.Empty(t, r.Title)
-	assert.Empty(t, r.Desc)
-	assert.Nil(t, r.InputSchema)
-	assert.Nil(t, r.OutputSchema)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.fn(t, tt.r)
+		})
+	}
 }

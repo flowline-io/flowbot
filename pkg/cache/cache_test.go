@@ -274,48 +274,45 @@ func TestCacheDel(t *testing.T) {
 
 // TestCacheWait tests the Wait method
 func TestCacheWait(t *testing.T) {
-	cache, err := NewCache(&config.Type{})
-	require.NoError(t, err)
-	require.NotNil(t, cache)
+	t.Run("multiple values do not panic", func(t *testing.T) {
+		cache, err := NewCache(&config.Type{})
+		require.NoError(t, err)
+		require.NotNil(t, cache)
 
-	// Set multiple values
-	for i := range 100 {
-		cache.Set(string(rune('a'+i%26)), i, 1)
-	}
+		for i := range 100 {
+			cache.Set(string(rune('a'+i%26)), i, 1)
+		}
 
-	// Wait for all operations to complete
-	require.NotPanics(t, func() {
-		cache.Wait()
+		require.NotPanics(t, func() {
+			cache.Wait()
+		})
 	})
 }
 
 // TestCacheIntegration tests basic cache operations together
 func TestCacheIntegration(t *testing.T) {
-	cache, err := NewCache(&config.Type{})
-	require.NoError(t, err)
-	require.NotNil(t, cache)
+	t.Run("set get del integration", func(t *testing.T) {
+		cache, err := NewCache(&config.Type{})
+		require.NoError(t, err)
+		require.NotNil(t, cache)
 
-	// Set a value
-	ok := cache.Set("integration_key", "integration_value", 1)
-	require.True(t, ok)
-	cache.Wait()
+		ok := cache.Set("integration_key", "integration_value", 1)
+		require.True(t, ok)
+		cache.Wait()
 
-	// Get the value
-	value, ok := cache.Get("integration_key")
-	require.True(t, ok)
-	require.Equal(t, "integration_value", value)
+		value, ok := cache.Get("integration_key")
+		require.True(t, ok)
+		require.Equal(t, "integration_value", value)
 
-	// Delete the value
-	cache.Del("integration_key")
-	cache.Wait()
+		cache.Del("integration_key")
+		cache.Wait()
 
-	// Verify deletion
-	value, ok = cache.Get("integration_key")
-	require.False(t, ok)
-	require.Nil(t, value)
+		value, ok = cache.Get("integration_key")
+		require.False(t, ok)
+		require.Nil(t, value)
 
-	// Wait for all operations to complete
-	cache.Wait()
+		cache.Wait()
+	})
 }
 
 // TestCacheTTLExpiration tests that TTL actually expires

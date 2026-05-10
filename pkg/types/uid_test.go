@@ -7,14 +7,66 @@ import (
 )
 
 func TestUid_IsZero(t *testing.T) {
-	assert.True(t, ZeroUid.IsZero())
-	assert.True(t, Uid("").IsZero())
-	assert.False(t, Uid("user-1").IsZero())
-	assert.False(t, Uid("x").IsZero())
+	tests := []struct {
+		name string
+		uid  Uid
+		want bool
+	}{
+		{
+			name: "ZeroUid is zero",
+			uid:  ZeroUid,
+			want: true,
+		},
+		{
+			name: "empty string is zero",
+			uid:  Uid(""),
+			want: true,
+		},
+		{
+			name: "non-empty uid is not zero",
+			uid:  Uid("user-1"),
+			want: false,
+		},
+		{
+			name: "single character is not zero",
+			uid:  Uid("x"),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.uid.IsZero())
+		})
+	}
 }
 
 func TestUid_String(t *testing.T) {
-	assert.Equal(t, "test-id", Uid("test-id").String())
-	assert.Equal(t, "", Uid("").String())
-	assert.Equal(t, string(ZeroUid), ZeroUid.String())
+	tests := []struct {
+		name string
+		uid  Uid
+		want string
+	}{
+		{
+			name: "normal uid",
+			uid:  Uid("test-id"),
+			want: "test-id",
+		},
+		{
+			name: "empty uid",
+			uid:  Uid(""),
+			want: "",
+		},
+		{
+			name: "ZeroUid",
+			uid:  ZeroUid,
+			want: string(ZeroUid),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.uid.String())
+		})
+	}
 }

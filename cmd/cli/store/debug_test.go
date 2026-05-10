@@ -9,108 +9,198 @@ import (
 )
 
 func TestSaveLoadDebug(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load debug true"},
+	}
 
-	err := SaveDebug(true, "")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	enabled, err := LoadDebug("")
-	require.NoError(t, err)
-	require.True(t, enabled)
+			err := SaveDebug(true, "")
+			require.NoError(t, err)
+
+			enabled, err := LoadDebug("")
+			require.NoError(t, err)
+			require.True(t, enabled)
+		})
+	}
 }
 
 func TestSaveLoadDebugFalse(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load debug false"},
+	}
 
-	err := SaveDebug(false, "")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	enabled, err := LoadDebug("")
-	require.NoError(t, err)
-	require.False(t, enabled)
+			err := SaveDebug(false, "")
+			require.NoError(t, err)
+
+			enabled, err := LoadDebug("")
+			require.NoError(t, err)
+			require.False(t, enabled)
+		})
+	}
 }
 
 func TestLoadDebugNotExist(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "load debug when file does not exist returns false"},
+	}
 
-	enabled, err := LoadDebug("")
-	require.NoError(t, err)
-	require.False(t, enabled)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			enabled, err := LoadDebug("")
+			require.NoError(t, err)
+			require.False(t, enabled)
+		})
+	}
 }
 
 func TestSaveLoadDebugWithProfile(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save and load debug with profile"},
+	}
 
-	err := SaveDebug(true, "dev")
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	enabled, err := LoadDebug("dev")
-	require.NoError(t, err)
-	require.True(t, enabled)
+			err := SaveDebug(true, "dev")
+			require.NoError(t, err)
+
+			enabled, err := LoadDebug("dev")
+			require.NoError(t, err)
+			require.True(t, enabled)
+		})
+	}
 }
 
 func TestDebugProfileIsolation(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "debug profiles are isolated from each other"},
+	}
 
-	require.NoError(t, SaveDebug(true, ""))
-	require.NoError(t, SaveDebug(false, "dev"))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	defaultDebug, err := LoadDebug("")
-	require.NoError(t, err)
-	require.True(t, defaultDebug)
+			require.NoError(t, SaveDebug(true, ""))
+			require.NoError(t, SaveDebug(false, "dev"))
 
-	devDebug, err := LoadDebug("dev")
-	require.NoError(t, err)
-	require.False(t, devDebug)
+			defaultDebug, err := LoadDebug("")
+			require.NoError(t, err)
+			require.True(t, defaultDebug)
+
+			devDebug, err := LoadDebug("dev")
+			require.NoError(t, err)
+			require.False(t, devDebug)
+		})
+	}
 }
 
 func TestGetDebugPath(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get debug path for default profile"},
+	}
 
-	path, err := GetDebugPath("")
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "debug"), path)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			path, err := GetDebugPath("")
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "debug"), path)
+		})
+	}
 }
 
 func TestGetDebugPathWithProfile(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "get debug path with profile"},
+	}
 
-	path, err := GetDebugPath("staging")
-	require.NoError(t, err)
-	require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "debug.staging"), path)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			path, err := GetDebugPath("staging")
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(tmpDir, ".config", "flowbot", "debug.staging"), path)
+		})
+	}
 }
 
 func TestSaveDebugFileContent(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save debug writes true to file"},
+	}
 
-	require.NoError(t, SaveDebug(true, ""))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	path, err := GetDebugPath("")
-	require.NoError(t, err)
+			require.NoError(t, SaveDebug(true, ""))
 
-	data, err := os.ReadFile(path)
-	require.NoError(t, err)
-	require.Equal(t, "true", string(data))
+			path, err := GetDebugPath("")
+			require.NoError(t, err)
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+			require.Equal(t, "true", string(data))
+		})
+	}
 }
 
 func TestSaveDebugFileContentFalse(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "save debug writes false to file"},
+	}
 
-	require.NoError(t, SaveDebug(false, ""))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	path, err := GetDebugPath("")
-	require.NoError(t, err)
+			require.NoError(t, SaveDebug(false, ""))
 
-	data, err := os.ReadFile(path)
-	require.NoError(t, err)
-	require.Equal(t, "false", string(data))
+			path, err := GetDebugPath("")
+			require.NoError(t, err)
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+			require.Equal(t, "false", string(data))
+		})
+	}
 }

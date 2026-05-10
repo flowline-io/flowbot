@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStringParam(t *testing.T) {
@@ -29,14 +30,28 @@ func TestStringParam(t *testing.T) {
 }
 
 func TestRequiredString(t *testing.T) {
-	_, err := RequiredString(map[string]any{"key": "val"}, "key")
-	assert.NoError(t, err)
-
-	_, err = RequiredString(map[string]any{}, "key")
-	assert.Error(t, err)
-
-	_, err = RequiredString(map[string]any{"key": ""}, "key")
-	assert.Error(t, err)
+	tests := []struct {
+		name    string
+		params  map[string]any
+		key     string
+		wantErr bool
+		want    string
+	}{
+		{"valid string returns value", map[string]any{"key": "val"}, "key", false, "val"},
+		{"missing key returns error", map[string]any{}, "key", true, ""},
+		{"empty string returns error", map[string]any{"key": ""}, "key", true, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := RequiredString(tt.params, tt.key)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
 }
 
 func TestIntParam(t *testing.T) {
@@ -87,29 +102,61 @@ func TestBoolParam(t *testing.T) {
 }
 
 func TestPageRequestFromParams(t *testing.T) {
-	params := map[string]any{
-		"limit":      20,
-		"cursor":     "next-page",
-		"sort_by":    "created_at",
-		"sort_order": "desc",
+	tests := []struct {
+		name   string
+		params map[string]any
+		want   PageRequest
+	}{
+		{
+			"populated params",
+			map[string]any{
+				"limit":      20,
+				"cursor":     "next-page",
+				"sort_by":    "created_at",
+				"sort_order": "desc",
+			},
+			PageRequest{Limit: 20, Cursor: "next-page", SortBy: "created_at", SortOrder: "desc"},
+		},
+		{
+			"empty params",
+			map[string]any{},
+			PageRequest{},
+		},
 	}
-	pr := PageRequestFromParams(params)
-	assert.Equal(t, 20, pr.Limit)
-	assert.Equal(t, "next-page", pr.Cursor)
-	assert.Equal(t, "created_at", pr.SortBy)
-	assert.Equal(t, "desc", pr.SortOrder)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pr := PageRequestFromParams(tt.params)
+			assert.Equal(t, tt.want.Limit, pr.Limit)
+			assert.Equal(t, tt.want.Cursor, pr.Cursor)
+			assert.Equal(t, tt.want.SortBy, pr.SortBy)
+			assert.Equal(t, tt.want.SortOrder, pr.SortOrder)
+		})
+	}
 }
 
 func TestRequiredInt(t *testing.T) {
-	v, err := RequiredInt(map[string]any{"key": 42}, "key")
-	assert.NoError(t, err)
-	assert.Equal(t, 42, v)
-
-	_, err = RequiredInt(map[string]any{}, "key")
-	assert.Error(t, err)
-
-	_, err = RequiredInt(map[string]any{"key": "abc"}, "key")
-	assert.Error(t, err)
+	tests := []struct {
+		name    string
+		params  map[string]any
+		key     string
+		wantErr bool
+		want    int
+	}{
+		{"valid int returns value", map[string]any{"key": 42}, "key", false, 42},
+		{"missing key returns error", map[string]any{}, "key", true, 0},
+		{"invalid type returns error", map[string]any{"key": "abc"}, "key", true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := RequiredInt(tt.params, tt.key)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, v)
+			}
+		})
+	}
 }
 
 func TestInt64Param(t *testing.T) {
@@ -136,21 +183,26 @@ func TestInt64Param(t *testing.T) {
 }
 
 func TestRequiredInt64(t *testing.T) {
-	v, err := RequiredInt64(map[string]any{"key": int64(100)}, "key")
-	assert.NoError(t, err)
-	assert.Equal(t, int64(100), v)
-
-	_, err = RequiredInt64(map[string]any{}, "key")
-	assert.Error(t, err)
-
-	_, err = RequiredInt64(map[string]any{"key": nil}, "key")
-	assert.Error(t, err)
-}
-
-func TestPageRequestFromParamsEmpty(t *testing.T) {
-	pr := PageRequestFromParams(map[string]any{})
-	assert.Equal(t, 0, pr.Limit)
-	assert.Equal(t, "", pr.Cursor)
-	assert.Equal(t, "", pr.SortBy)
-	assert.Equal(t, "", pr.SortOrder)
+	tests := []struct {
+		name    string
+		params  map[string]any
+		key     string
+		wantErr bool
+		want    int64
+	}{
+		{"valid int64 returns value", map[string]any{"key": int64(100)}, "key", false, 100},
+		{"missing key returns error", map[string]any{}, "key", true, 0},
+		{"nil value returns error", map[string]any{"key": nil}, "key", true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := RequiredInt64(tt.params, tt.key)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, v)
+			}
+		})
+	}
 }

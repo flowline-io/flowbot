@@ -1,74 +1,57 @@
 package parser
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSyntax(t *testing.T) {
-	s := NewSyntax([]rune("subs open [string] [number] [any] [bool]"))
-	token, err := s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name       string
+		input      string
+		wantValues []string
+	}{
+		{
+			name:       "parses command with typed parameters",
+			input:      "subs open [string] [number] [any] [bool]",
+			wantValues: []string{"subs", "open", "string", "number", "any", "bool"},
+		},
 	}
-	require.Equal(t, Variable("subs"), token.Value)
 
-	token, err = s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewSyntax([]rune(tt.input))
+			for i, wantVal := range tt.wantValues {
+				token, err := s.GetNextToken()
+				require.NoError(t, err, "token %d", i)
+				assert.Equal(t, Variable(wantVal), token.Value, "token %d", i)
+			}
+		})
 	}
-	require.Equal(t, Variable("open"), token.Value)
-
-	token, err = s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, Variable("string"), token.Value)
-
-	token, err = s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, Variable("number"), token.Value)
-
-	token, err = s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, Variable("any"), token.Value)
-
-	token, err = s.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, Variable("bool"), token.Value)
 }
 
 func TestCheck(t *testing.T) {
 	define := "subs open [string] [number] [any] [bool]"
 	tests := []struct {
+		name   string
 		define string
 		input  string
 		want   bool
 	}{
-		{define, "subs open abc 123 demo true", true},
-		{define, "subs open abc no_num demo true", false},
-		{define, "subs open abc 123 demo t", false},
+		{name: "valid args pass check", define: define, input: "subs open abc 123 demo true", want: true},
+		{name: "non-numeric where number expected fails", define: define, input: "subs open abc no_num demo true", want: false},
+		{name: "non-boolean where bool expected fails", define: define, input: "subs open abc 123 demo t", want: false},
 	}
 
-	for i, tt := range tests {
-		t.Run(fmt.Sprintf("Syntax Check #%d", i), func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			a, err := ParseString(tt.input)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 			c, err := SyntaxCheck(tt.define, a)
-			if err != nil {
-				t.Fatal(err)
-			}
-			require.Equal(t, tt.want, c)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, c)
 		})
 	}
 }

@@ -8,14 +8,32 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
-func TestStateStr_Active(t *testing.T) {
-	assert.Equal(t, "active", stateStr(model.WebhookActive))
-}
+func TestStateStr(t *testing.T) {
+	tests := []struct {
+		name  string
+		state model.WebhookState
+		want  string
+	}{
+		{
+			name:  "active state returns active",
+			state: model.WebhookActive,
+			want:  "active",
+		},
+		{
+			name:  "inactive state returns inactive",
+			state: model.WebhookInactive,
+			want:  "inactive",
+		},
+		{
+			name:  "unknown state returns unknown",
+			state: model.WebhookState(99),
+			want:  "unknown",
+		},
+	}
 
-func TestStateStr_Inactive(t *testing.T) {
-	assert.Equal(t, "inactive", stateStr(model.WebhookInactive))
-}
-
-func TestStateStr_Unknown(t *testing.T) {
-	assert.Equal(t, "unknown", stateStr(model.WebhookState(99)))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, stateStr(tt.state))
+		})
+	}
 }

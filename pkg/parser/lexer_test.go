@@ -3,58 +3,78 @@ package parser
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLexer(t *testing.T) {
-	l := NewLexer([]rune("subs  open abc \"a b c\""))
-	token, err := l.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
+	tokens := []string{CharacterToken, CharacterToken, CharacterToken, CharacterToken}
+
+	tests := []struct {
+		name      string
+		input     string
+		wantTypes []string
+	}{
+		{
+			name:      "lexes simple command with quoted string",
+			input:     "subs  open abc \"a b c\"",
+			wantTypes: tokens,
+		},
 	}
-	require.Equal(t, CharacterToken, token.Type)
-	token, err = l.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := NewLexer([]rune(tt.input))
+			for i, wantType := range tt.wantTypes {
+				token, err := l.GetNextToken()
+				require.NoError(t, err, "token %d", i)
+				assert.Equal(t, wantType, token.Type, "token %d", i)
+			}
+			token, err := l.GetNextToken()
+			require.NoError(t, err)
+			assert.Equal(t, EOFToken, token.Type)
+		})
 	}
-	require.Equal(t, CharacterToken, token.Type)
-	token, err = l.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, CharacterToken, token.Type)
-	token, err = l.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, CharacterToken, token.Type)
-	token, err = l.GetNextToken()
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Equal(t, EOFToken, token.Type)
 }
 
 func TestParseCommand(t *testing.T) {
-	c, err := ParseString("subs")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name       string
+		input      string
+		wantLen    int
+		wantValues []string
+	}{
+		{
+			name:       "single word command",
+			input:      "subs",
+			wantLen:    1,
+			wantValues: []string{"subs"},
+		},
+		{
+			name:       "two word command",
+			input:      "subs list",
+			wantLen:    2,
+			wantValues: nil,
+		},
+		{
+			name:       "three word command",
+			input:      "subs open abc",
+			wantLen:    3,
+			wantValues: []string{"subs", "open", "abc"},
+		},
 	}
-	require.Len(t, c, 1)
 
-	c, err = ParseString("subs list")
-	if err != nil {
-		t.Fatal(err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := ParseString(tt.input)
+			require.NoError(t, err)
+			require.Len(t, c, tt.wantLen)
+
+			if tt.wantValues != nil {
+				for i, want := range tt.wantValues {
+					assert.Equal(t, Variable(want), c[i].Value)
+				}
+			}
+		})
 	}
-	require.Len(t, c, 2)
-
-	c, err = ParseString("subs open abc")
-	if err != nil {
-		t.Fatal(err)
-	}
-	require.Len(t, c, 3)
-
-	require.Equal(t, Variable("subs"), c[0].Value)
-	require.Equal(t, Variable("open"), c[1].Value)
-	require.Equal(t, Variable("abc"), c[2].Value)
 }

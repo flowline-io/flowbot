@@ -7,1146 +7,1102 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRenderString_NoTemplate(t *testing.T) {
-	e := New()
-	result, err := e.RenderString("plain text", nil)
-	require.NoError(t, err)
-	assert.Equal(t, "plain text", result)
+// --- eventFieldTest holds cases for TestRenderString_EventFields ---
+type eventFieldTest struct {
+	name     string
+	template string
+	event    map[string]any
+	want     string
 }
 
-func TestRenderString_EventField(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"url": "https://example.com", "id": "123"},
-	}
-	result, err := e.RenderString("{{event \"url\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result)
-}
-
-func TestRenderString_EventField_OldSyntax(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"url": "https://example.com", "id": "123"},
-	}
-	result, err := e.RenderString("{{event.url}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result)
-}
-
-func TestRenderString_EventDotAccess(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"url": "https://example.com", "id": "123"},
-	}
-	result, err := e.RenderString("{{.Event.url}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result)
-}
-
-func TestRenderString_EventIndex(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123"},
-	}
-	result, err := e.RenderString("{{index .Event \"id\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "123", result)
-}
-
-func TestRenderString_StepField(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"archive": {"url": "https://archived.example.com", "id": "a1"},
+func TestRenderString_EventFields(t *testing.T) {
+	tests := []eventFieldTest{
+		{
+			name:     "EventField",
+			template: `{{event "url"}}`,
+			event:    map[string]any{"url": "https://example.com", "id": "123"},
+			want:     "https://example.com",
+		},
+		{
+			name:     "EventField_OldSyntax",
+			template: `{{event.url}}`,
+			event:    map[string]any{"url": "https://example.com", "id": "123"},
+			want:     "https://example.com",
+		},
+		{
+			name:     "EventDotAccess",
+			template: `{{.Event.url}}`,
+			event:    map[string]any{"url": "https://example.com", "id": "123"},
+			want:     "https://example.com",
+		},
+		{
+			name:     "EventIndex",
+			template: `{{index .Event "id"}}`,
+			event:    map[string]any{"id": "123"},
+			want:     "123",
+		},
+		{
+			name:     "NoTemplate",
+			template: "plain text",
+			event:    nil,
+			want:     "plain text",
+		},
+		{
+			name:     "MultipleEventFields",
+			template: `id={{event "id"}} url={{event "url"}} title={{event "title"}}`,
+			event:    map[string]any{"id": "123", "url": "https://x.com", "title": "Test"},
+			want:     "id=123 url=https://x.com title=Test",
 		},
 	}
-	result, err := e.RenderString("{{step \"archive\" \"url\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://archived.example.com", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			var data *TemplateData
+			if tt.event != nil {
+				data = &TemplateData{Event: tt.event}
+			}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestRenderString_StepField_OldSyntax(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"archive": {"url": "https://archived.example.com", "id": "a1"},
+// --- stepFieldTest holds cases for TestRenderString_StepFields ---
+type stepFieldTest struct {
+	name     string
+	template string
+	steps    map[string]map[string]any
+	want     string
+}
+
+func TestRenderString_StepFields(t *testing.T) {
+	tests := []stepFieldTest{
+		{
+			name:     "StepField",
+			template: `{{step "archive" "url"}}`,
+			steps:    map[string]map[string]any{"archive": {"url": "https://archived.example.com", "id": "a1"}},
+			want:     "https://archived.example.com",
+		},
+		{
+			name:     "StepField_OldSyntax",
+			template: `{{steps.archive.url}}`,
+			steps:    map[string]map[string]any{"archive": {"url": "https://archived.example.com", "id": "a1"}},
+			want:     "https://archived.example.com",
+		},
+		{
+			name:     "StepDotAccess",
+			template: `{{index .Steps.archive "url"}}`,
+			steps:    map[string]map[string]any{"archive": {"url": "https://archived.example.com"}},
+			want:     "https://archived.example.com",
+		},
+		{
+			name:     "MultipleSteps",
+			template: `{{step "step1" "id"}}-{{step "step2" "id"}}`,
+			steps:    map[string]map[string]any{"step1": {"id": "abc"}, "step2": {"id": "def"}},
+			want:     "abc-def",
+		},
+		{
+			name:     "MissingStepField",
+			template: `{{step "nonexistent" "id"}}`,
+			steps:    map[string]map[string]any{},
+			want:     "",
+		},
+		{
+			name:     "StepIndexAccess",
+			template: `{{index .Steps.archive "url"}}`,
+			steps:    map[string]map[string]any{"archive": {"url": "https://a.example.com"}},
+			want:     "https://a.example.com",
 		},
 	}
-	result, err := e.RenderString("{{steps.archive.url}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://archived.example.com", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Steps: tt.steps}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestRenderString_StepDotAccess(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"archive": {"url": "https://archived.example.com"},
+// --- conditionalTest holds cases for TestRenderString_Conditionals ---
+type conditionalTest struct {
+	name     string
+	template string
+	event    map[string]any
+	want     string
+}
+
+func TestRenderString_Conditionals(t *testing.T) {
+	tests := []conditionalTest{
+		{
+			name:     "If",
+			template: `{{if .Event.url}}has-url{{else}}no-url{{end}}`,
+			event:    map[string]any{"url": "https://example.com"},
+			want:     "has-url",
+		},
+		{
+			name:     "IfEmpty",
+			template: `{{if .Event.url}}has-url{{else}}no-url{{end}}`,
+			event:    map[string]any{"url": ""},
+			want:     "no-url",
+		},
+		{
+			name:     "IfMissing",
+			template: `{{if .Event.url}}has-url{{else}}no-url{{end}}`,
+			event:    map[string]any{},
+			want:     "no-url",
+		},
+		{
+			name:     "Eq",
+			template: `{{if eq .Event.status "done"}}completed{{else}}pending{{end}}`,
+			event:    map[string]any{"status": "done"},
+			want:     "completed",
+		},
+		{
+			name:     "Ne",
+			template: `{{if ne .Event.status "done"}}not-done{{end}}`,
+			event:    map[string]any{"status": "pending"},
+			want:     "not-done",
+		},
+		{
+			name:     "And",
+			template: `{{if and .Event.a .Event.b}}both{{end}}`,
+			event:    map[string]any{"a": "x", "b": "y"},
+			want:     "both",
+		},
+		{
+			name:     "Or",
+			template: `{{if or .Event.a .Event.b}}either{{end}}`,
+			event:    map[string]any{"a": "x"},
+			want:     "either",
+		},
+		{
+			name:     "Not",
+			template: `{{if not .Event.a}}missing{{end}}`,
+			event:    map[string]any{},
+			want:     "missing",
+		},
+		{
+			name:     "Gt",
+			template: `{{if gt .Event.count 3.0}}high{{end}}`,
+			event:    map[string]any{"count": float64(5)},
+			want:     "high",
+		},
+		{
+			name:     "With",
+			template: `{{with .Event.user}}{{.name}} is {{.role}}{{end}}`,
+			event:    map[string]any{"user": map[string]any{"name": "Alice", "role": "admin"}},
+			want:     "Alice is admin",
+		},
+		{
+			name:     "WithEmpty",
+			template: `{{with .Event.user}}found{{else}}not-found{{end}}`,
+			event:    map[string]any{},
+			want:     "not-found",
 		},
 	}
-	result, err := e.RenderString("{{index .Steps.archive \"url\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://archived.example.com", result)
-}
 
-func TestRenderString_EnvField(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Env: map[string]string{"HOME": "/home/user", "USER": "test"},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Event: tt.event}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
 	}
-	result, err := e.RenderString("{{.Env.HOME}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "/home/user", result)
 }
 
-func TestRenderString_Condition_If(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"url": "https://example.com"},
-	}
-	result, err := e.RenderString("{{if .Event.url}}has-url{{else}}no-url{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "has-url", result)
+// --- loopTest holds cases for TestRenderString_Loops ---
+type loopTest struct {
+	name         string
+	template     string
+	event        map[string]any
+	want         string
+	wantContains []string
 }
 
-func TestRenderString_Condition_IfEmpty(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"url": ""},
-	}
-	result, err := e.RenderString("{{if .Event.url}}has-url{{else}}no-url{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "no-url", result)
-}
-
-func TestRenderString_Condition_IfMissing(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// .Event.url returns zero value (nil) when key is missing, which is falsy in conditionals
-	result, err := e.RenderString("{{if .Event.url}}has-url{{else}}no-url{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "no-url", result)
-}
-
-func TestRenderString_Condition_Eq(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"status": "done"},
-	}
-	result, err := e.RenderString("{{if eq .Event.status \"done\"}}completed{{else}}pending{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "completed", result)
-}
-
-func TestRenderString_Condition_Ne(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"status": "pending"},
-	}
-	result, err := e.RenderString("{{if ne .Event.status \"done\"}}not-done{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "not-done", result)
-}
-
-func TestRenderString_Condition_And(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"a": "x", "b": "y"},
-	}
-	result, err := e.RenderString("{{if and .Event.a .Event.b}}both{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "both", result)
-}
-
-func TestRenderString_Condition_Or(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"a": "x"},
-	}
-	result, err := e.RenderString("{{if or .Event.a .Event.b}}either{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "either", result)
-}
-
-func TestRenderString_Condition_Not(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// .Event.a returns zero value (nil) when key is missing; nil is falsy, so not-nil is truthy
-	result, err := e.RenderString("{{if not .Event.a}}missing{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "missing", result)
-}
-
-func TestRenderString_Condition_Gt(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"count": float64(5)},
-	}
-	result, err := e.RenderString("{{if gt .Event.count 3.0}}high{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "high", result)
-}
-
-func TestRenderString_Loop_Range(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{"a", "b", "c"},
+func TestRenderString_Loops(t *testing.T) {
+	tests := []loopTest{
+		{
+			name:     "Range",
+			template: `{{range $i, $v := .Event.items}}{{$i}}:{{$v}},{{end}}`,
+			event:    map[string]any{"items": []any{"a", "b", "c"}},
+			want:     "0:a,1:b,2:c,",
+		},
+		{
+			name:         "RangeMap",
+			template:     `{{range $k, $v := .Event.tags}}{{$k}}={{$v}};{{end}}`,
+			event:        map[string]any{"tags": map[string]any{"env": "prod", "region": "us"}},
+			wantContains: []string{"env=prod", "region=us"},
+		},
+		{
+			name:     "Else",
+			template: `{{range .Event.items}}x{{else}}empty{{end}}`,
+			event:    map[string]any{"items": []any{}},
+			want:     "empty",
+		},
+		{
+			name:     "NestedConditionAndLoop",
+			template: `{{range .Event.items}}{{if .}}{{.}},{{end}}{{end}}`,
+			event:    map[string]any{"items": []any{"a", "b", ""}},
+			want:     "a,b,",
 		},
 	}
-	result, err := e.RenderString("{{range $i, $v := .Event.items}}{{$i}}:{{$v}},{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "0:a,1:b,2:c,", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Event: tt.event}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			if tt.wantContains != nil {
+				for _, s := range tt.wantContains {
+					assert.Contains(t, result, s)
+				}
+			} else {
+				assert.Equal(t, tt.want, result)
+			}
+		})
+	}
 }
 
-func TestRenderString_Loop_RangeMap(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"tags": map[string]any{"env": "prod", "region": "us"},
+// --- functionTest holds cases for TestRenderString_Functions ---
+type functionTest struct {
+	name     string
+	template string
+	event    map[string]any
+	want     string
+}
+
+func TestRenderString_Functions(t *testing.T) {
+	tests := []functionTest{
+		{
+			name:     "Join",
+			template: `{{join .Event.tags ", "}}`,
+			event:    map[string]any{"tags": []any{"a", "b", "c"}},
+			want:     "a, b, c",
+		},
+		{
+			name:     "Split",
+			template: `{{index (split .Event.csv ",") 0}}`,
+			event:    map[string]any{"csv": "a,b,c"},
+			want:     "a",
+		},
+		{
+			name:     "Contains",
+			template: `{{if contains .Event.title "World"}}found{{end}}`,
+			event:    map[string]any{"title": "Hello World"},
+			want:     "found",
+		},
+		{
+			name:     "ContainsFalse",
+			template: `{{if contains .Event.title "xyz"}}found{{else}}not-found{{end}}`,
+			event:    map[string]any{"title": "Hello World"},
+			want:     "not-found",
+		},
+		{
+			name:     "Default_Nil",
+			template: `{{default "fallback" .Event.missing}}`,
+			event:    map[string]any{},
+			want:     "fallback",
+		},
+		{
+			name:     "Default_Empty",
+			template: `{{default "anonymous" .Event.name}}`,
+			event:    map[string]any{"name": ""},
+			want:     "anonymous",
+		},
+		{
+			name:     "Default_WithValue",
+			template: `{{default "anonymous" .Event.name}}`,
+			event:    map[string]any{"name": "Alice"},
+			want:     "Alice",
+		},
+		{
+			name:     "JSON",
+			template: `{{json .Event.obj}}`,
+			event:    map[string]any{"obj": map[string]any{"key": "value"}},
+			want:     `{"key":"value"}`,
+		},
+		{
+			name:     "Len_String",
+			template: `{{len .Event.name}}`,
+			event:    map[string]any{"name": "hello"},
+			want:     "5",
+		},
+		{
+			name:     "Len_Slice",
+			template: `{{len .Event.items}}`,
+			event:    map[string]any{"items": []any{1, 2, 3}},
+			want:     "3",
+		},
+		{
+			name:     "Len_Map",
+			template: `{{len .Event.tags}}`,
+			event:    map[string]any{"tags": map[string]any{"a": 1, "b": 2}},
+			want:     "2",
+		},
+		{
+			name:     "Len_Nil",
+			template: `{{len .Event.missing}}`,
+			event:    map[string]any{},
+			want:     "0",
+		},
+		{
+			name:     "printf",
+			template: `{{printf "id-%s" .Event.id}}`,
+			event:    map[string]any{"id": "123"},
+			want:     "id-123",
+		},
+		{
+			name:     "StringWithWhitespaceInTemplate",
+			template: "Hello {{ .Event.name }}!",
+			event:    map[string]any{"name": "test"},
+			want:     "Hello test!",
+		},
+		{
+			name:     "EscapedBraces",
+			template: `start {{event "id"}} end`,
+			event:    map[string]any{"id": "123"},
+			want:     "start 123 end",
 		},
 	}
-	result, err := e.RenderString("{{range $k, $v := .Event.tags}}{{$k}}={{$v}};{{end}}", data)
-	require.NoError(t, err)
-	assert.Contains(t, result, "env=prod")
-	assert.Contains(t, result, "region=us")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Event: tt.event}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestRenderString_Loop_Else(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{},
+// --- jsonpathTest holds cases for TestRenderString_Jsonpath ---
+type jsonpathTest struct {
+	name     string
+	template string
+	event    map[string]any
+	steps    map[string]map[string]any
+	want     string
+}
+
+func TestRenderString_Jsonpath(t *testing.T) {
+	tests := []jsonpathTest{
+		{
+			name:     "Simple",
+			template: `{{jsonpath (json .Event.nested) "key"}}`,
+			event:    map[string]any{"nested": map[string]any{"key": "hello"}},
+			want:     "hello",
+		},
+		{
+			name:     "ArrayIndex",
+			template: `{{jsonpath (json .Event.items) "1"}}`,
+			event:    map[string]any{"items": []any{"a", "b", "c"}},
+			want:     "b",
+		},
+		{
+			name:     "ArrayNestedAccess",
+			template: `{{jsonpath (json .Event.items) "1.name"}}`,
+			event: map[string]any{
+				"items": []any{
+					map[string]any{"name": "a"},
+					map[string]any{"name": "b"},
+				},
+			},
+			want: "b",
+		},
+		{
+			name:     "ArrayWildcard",
+			template: `{{jsonpath (json .Event.items) "#.name"}}`,
+			event: map[string]any{
+				"items": []any{
+					map[string]any{"name": "a"},
+					map[string]any{"name": "b"},
+				},
+			},
+			want: `["a","b"]`,
+		},
+		{
+			name:     "ArrayLength",
+			template: `{{jsonpath (json .Event.items) "#"}}`,
+			event:    map[string]any{"items": []any{float64(1), float64(2), float64(3)}},
+			want:     "3",
+		},
+		{
+			name:     "MissingPath",
+			template: `{{jsonpath (json .Event.data) "x.y"}}`,
+			event:    map[string]any{"data": map[string]any{"a": float64(1)}},
+			want:     "",
+		},
+		{
+			name:     "EmptyJSON",
+			template: `{{jsonpath "" "x"}}`,
+			event:    map[string]any{},
+			want:     "",
+		},
+		{
+			name:     "Exists_True",
+			template: `{{if jsonpathExists (json .Event.data) "a"}}yes{{else}}no{{end}}`,
+			event:    map[string]any{"data": map[string]any{"a": float64(1)}},
+			want:     "yes",
+		},
+		{
+			name:     "Exists_False",
+			template: `{{if jsonpathExists (json .Event.data) "x"}}yes{{else}}no{{end}}`,
+			event:    map[string]any{"data": map[string]any{"a": float64(1)}},
+			want:     "no",
+		},
+		{
+			name:     "RawObject",
+			template: `{{json (jsonpathRaw (json .Event.nested) "key")}}`,
+			event:    map[string]any{"nested": map[string]any{"key": "value"}},
+			want:     `"value"`,
+		},
+		{
+			name:     "RawNumber",
+			template: `{{jsonpathRaw (json .Event.data) "count"}}`,
+			event:    map[string]any{"data": map[string]any{"count": float64(42)}},
+			want:     "42",
+		},
+		{
+			name:     "WithJsonFunction",
+			template: `{{jsonpath (json .Event.data) "nested.deep"}}`,
+			event:    map[string]any{"data": map[string]any{"nested": map[string]any{"deep": "found"}}},
+			want:     "found",
+		},
+		{
+			name:     "WithStepResult",
+			template: `{{jsonpath (step "src" "result") "title"}}-{{jsonpath (step "src" "result") "tags.0"}}`,
+			steps: map[string]map[string]any{
+				"src": {"result": `{"title":"Hello","tags":["a","b"]}`},
+			},
+			want: "Hello-a",
+		},
+		{
+			name:     "FilteredArray",
+			template: `{{jsonpath (json .Event.users) "#(age>28).name"}}`,
+			event: map[string]any{
+				"users": []any{
+					map[string]any{"name": "Alice", "age": float64(30)},
+					map[string]any{"name": "Bob", "age": float64(25)},
+				},
+			},
+			want: "Alice",
 		},
 	}
-	result, err := e.RenderString("{{range .Event.items}}x{{else}}empty{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "empty", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Event: tt.event, Steps: tt.steps}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestRenderString_Join(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"tags": []any{"a", "b", "c"},
+// --- inputFieldTest holds cases for TestRenderString_InputFields ---
+type inputFieldTest struct {
+	name     string
+	template string
+	input    map[string]any
+	event    map[string]any
+	steps    map[string]map[string]any
+	nilData  bool
+	want     string
+}
+
+func TestRenderString_InputFields(t *testing.T) {
+	tests := []inputFieldTest{
+		{
+			name:     "InputField",
+			template: `{{input "url"}}`,
+			input:    map[string]any{"url": "https://example.com", "title": "Test"},
+			want:     "https://example.com",
+		},
+		{
+			name:     "InputField_DotSyntax",
+			template: `{{input.url}}`,
+			input:    map[string]any{"url": "https://example.com"},
+			want:     "https://example.com",
+		},
+		{
+			name:     "InputField_MultipleFields",
+			template: `url={{input "url"}} title={{input "title"}}`,
+			input:    map[string]any{"url": "https://x.com", "title": "Hello"},
+			want:     "url=https://x.com title=Hello",
+		},
+		{
+			name:     "InputField_Missing",
+			template: `{{input "missing"}}`,
+			input:    map[string]any{},
+			want:     "",
+		},
+		{
+			name:     "InputField_NilInput",
+			template: `{{input "any"}}`,
+			input:    nil,
+			want:     "",
+		},
+		{
+			name:     "InputField_NilData",
+			template: `{{input "url"}}`,
+			nilData:  true,
+			want:     "",
+		},
+		{
+			name:     "InputField_WithDefault",
+			template: `{{default "fallback" (input "title")}}`,
+			input:    map[string]any{},
+			want:     "fallback",
+		},
+		{
+			name:     "InputField_Conditional",
+			template: `{{if (input "url")}}has-input{{else}}no-input{{end}}`,
+			input:    map[string]any{"url": "https://x.com"},
+			want:     "has-input",
+		},
+		{
+			name:     "InputField_ConditionalMissing",
+			template: `{{if (input "url")}}has-input{{else}}no-input{{end}}`,
+			input:    map[string]any{},
+			want:     "no-input",
+		},
+		{
+			name:     "InputField_CombinedWithStep",
+			template: `input={{input "url"}} step={{step "save" "id"}}`,
+			input:    map[string]any{"url": "https://example.com"},
+			steps:    map[string]map[string]any{"save": {"id": "saved-123"}},
+			want:     "input=https://example.com step=saved-123",
+		},
+		{
+			name:     "InputField_CombinedWithEvent",
+			template: `title={{input "title"}} source={{event "source"}}`,
+			input:    map[string]any{"title": "My Title"},
+			event:    map[string]any{"source": "web"},
+			want:     "title=My Title source=web",
 		},
 	}
-	result, err := e.RenderString("{{join .Event.tags \", \"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "a, b, c", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			var data *TemplateData
+			if !tt.nilData {
+				data = &TemplateData{
+					Input: tt.input,
+					Event: tt.event,
+					Steps: tt.steps,
+				}
+			}
+			result, err := e.RenderString(tt.template, data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestRenderString_Split(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"csv": "a,b,c",
+// --- paramsTest holds cases for TestRender_Params ---
+type paramsTest struct {
+	name       string
+	params     map[string]any
+	event      map[string]any
+	steps      map[string]map[string]any
+	wantErr    bool
+	errMsg     string
+	wantAssert func(t *testing.T, result map[string]any)
+}
+
+func TestRender_Params(t *testing.T) {
+	tests := []paramsTest{
+		{
+			name: "ParamsWithTemplates",
+			params: map[string]any{
+				"entity": `{{event "id"}}`,
+				"link":   `{{event "url"}}`,
+			},
+			event: map[string]any{"id": "123", "url": "https://x.com"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "123", result["entity"])
+				assert.Equal(t, "https://x.com", result["link"])
+			},
+		},
+		{
+			name: "ParamsNoTemplates",
+			params: map[string]any{
+				"key": "value",
+				"num": 42,
+			},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "value", result["key"])
+				assert.Equal(t, 42, result["num"])
+			},
+		},
+		{
+			name: "ParamsNestedMap",
+			params: map[string]any{
+				"nested": map[string]any{
+					"inner": `{{event "id"}}`,
+				},
+			},
+			event: map[string]any{"id": "123"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				nested := result["nested"].(map[string]any)
+				assert.Equal(t, "123", nested["inner"])
+			},
+		},
+		{
+			name: "ParamsStringSlice",
+			params: map[string]any{
+				"items": []any{`{{event "id"}}`, "static"},
+			},
+			event: map[string]any{"id": "eid"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				items := result["items"].([]any)
+				assert.Equal(t, "eid", items[0])
+				assert.Equal(t, "static", items[1])
+			},
+		},
+		{
+			name: "ParamsError_Propagated",
+			params: map[string]any{
+				"bad": "{{if .Event.x}}}",
+			},
+			event:   map[string]any{},
+			wantErr: true,
+			errMsg:  `key "bad"`,
+		},
+		{
+			name: "ParamsStepReferences",
+			params: map[string]any{
+				"ref_id":  "{{steps.archive.id}}",
+				"ref_url": "{{steps.archive.url}}",
+			},
+			steps: map[string]map[string]any{
+				"archive": {"id": "archive-1", "url": "https://archived.example.com"},
+			},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "archive-1", result["ref_id"])
+				assert.Equal(t, "https://archived.example.com", result["ref_url"])
+			},
+		},
+		{
+			name: "ParamsConditionInParams",
+			params: map[string]any{
+				"action": `{{if eq .Event.status "done"}}archive{{else}}skip{{end}}`,
+			},
+			event: map[string]any{"status": "done"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "archive", result["action"])
+			},
+		},
+		{
+			name: "ParamsLoopInParams",
+			params: map[string]any{
+				"joined": "{{range .Event.items}}{{.}}-{{end}}",
+			},
+			event: map[string]any{"items": []any{"a", "b", "c"}},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "a-b-c-", result["joined"])
+			},
+		},
+		{
+			name: "ParamsDefaultInParams",
+			params: map[string]any{
+				"name": `{{default "guest" .Event.name}}`,
+			},
+			event: map[string]any{},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "guest", result["name"])
+			},
+		},
+		{
+			name: "ParamsWithJsonpath",
+			params: map[string]any{
+				"extracted": `{{jsonpath (json .Event.items) "1.id"}}`,
+			},
+			event: map[string]any{
+				"items": []any{
+					map[string]any{"id": "x"},
+					map[string]any{"id": "y"},
+				},
+			},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "y", result["extracted"])
+			},
 		},
 	}
-	result, err := e.RenderString("{{index (split .Event.csv \",\") 0}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "a", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Event: tt.event, Steps: tt.steps}
+			result, err := e.Render(tt.params, data)
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+				return
+			}
+			require.NoError(t, err)
+			if tt.wantAssert != nil {
+				tt.wantAssert(t, result)
+			}
+		})
+	}
 }
 
-func TestRenderString_Contains(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"title": "Hello World",
+// --- paramsInputTest holds cases for TestRender_ParamsInput ---
+type paramsInputTest struct {
+	name       string
+	params     map[string]any
+	input      map[string]any
+	wantErr    bool
+	wantAssert func(t *testing.T, result map[string]any)
+}
+
+func TestRender_ParamsInput(t *testing.T) {
+	tests := []paramsInputTest{
+		{
+			name: "ParamsWithInput",
+			params: map[string]any{
+				"link":     `{{input "url"}}`,
+				"headline": `{{input "title"}}`,
+				"static":   "no-template",
+			},
+			input: map[string]any{"url": "https://x.com", "title": "Hello"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "https://x.com", result["link"])
+				assert.Equal(t, "Hello", result["headline"])
+				assert.Equal(t, "no-template", result["static"])
+			},
+		},
+		{
+			name: "ParamsWithInputDotSyntax",
+			params: map[string]any{
+				"link": "{{input.url}}",
+			},
+			input: map[string]any{"url": "https://x.com"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "https://x.com", result["link"])
+			},
+		},
+		{
+			name: "ParamsWithInputAndCondition",
+			params: map[string]any{
+				"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
+			},
+			input: map[string]any{"env": "prod"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "high", result["level"])
+			},
+		},
+		{
+			name: "ParamsWithInputElseBranch",
+			params: map[string]any{
+				"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
+			},
+			input: map[string]any{"env": "dev"},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "low", result["level"])
+			},
+		},
+		{
+			name: "WorkflowStyleInputParams",
+			params: map[string]any{
+				"url":         "{{input.url}}",
+				"title":       `Read: {{input "title"}}`,
+				"description": `Bookmark: {{input "url"}}`,
+				"tags":        []any{"reading", "bookmark"},
+			},
+			input: map[string]any{
+				"url":   "https://example.com",
+				"title": "Read This Article",
+			},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "https://example.com", result["url"])
+				assert.Equal(t, "Read: Read This Article", result["title"])
+				assert.Equal(t, "Bookmark: https://example.com", result["description"])
+				assert.Equal(t, []any{"reading", "bookmark"}, result["tags"])
+			},
 		},
 	}
-	result, err := e.RenderString("{{if contains .Event.title \"World\"}}found{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "found", result)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			data := &TemplateData{Input: tt.input}
+			result, err := e.Render(tt.params, data)
+			require.NoError(t, err)
+			if tt.wantAssert != nil {
+				tt.wantAssert(t, result)
+			}
+		})
+	}
 }
 
-func TestRenderString_ContainsFalse(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"title": "Hello World",
+// --- preprocessTest holds cases for TestPreprocessTemplate ---
+type preprocessTest struct {
+	name  string
+	input string
+	want  string
+}
+
+func TestPreprocessTemplate(t *testing.T) {
+	tests := []preprocessTest{
+		// Event
+		{
+			name:  "Event_Single",
+			input: "{{event.url}}",
+			want:  `{{event "url"}}`,
+		},
+		{
+			name:  "Event_WithPrefixSuffix",
+			input: "prefix {{event.url}} suffix",
+			want:  `prefix {{event "url"}} suffix`,
+		},
+		{
+			name:  "Event_Multiple",
+			input: "{{event.url}} {{event.id}}",
+			want:  `{{event "url"}} {{event "id"}}`,
+		},
+		// Steps
+		{
+			name:  "Steps_Single",
+			input: "{{steps.archive.url}}",
+			want:  `{{step "archive" "url"}}`,
+		},
+		{
+			name:  "Steps_Multiple",
+			input: "{{steps.s1.id}} {{steps.s2.result}}",
+			want:  `{{step "s1" "id"}} {{step "s2" "result"}}`,
+		},
+		// StepLegacy
+		{
+			name:  "StepLegacy_Single",
+			input: "{{step1.id}}",
+			want:  `{{step "step1" "id"}}`,
+		},
+		{
+			name:  "StepLegacy_CamelCase",
+			input: "{{myStep.result}}",
+			want:  `{{step "myStep" "result"}}`,
+		},
+		{
+			name:  "StepLegacy_Multiple",
+			input: "{{step1.id}} {{step2.result}}",
+			want:  `{{step "step1" "id"}} {{step "step2" "result"}}`,
+		},
+		{
+			name:  "StepLegacy_NonIdOrResult",
+			input: "{{foo.bar}}",
+			want:  "{{foo.bar}}",
+		},
+		// Mixed
+		{
+			name:  "Mixed",
+			input: "id={{event.id}} ref={{steps.step1.url}} legacy={{s1.result}}",
+			want:  `id={{event "id"}} ref={{step "step1" "url"}} legacy={{step "s1" "result"}}`,
+		},
+		// NoMatch
+		{
+			name:  "NoMatch",
+			input: `{{.Event.url}} {{step "a" "b"}} {{.Env.HOME}}`,
+			want:  `{{.Event.url}} {{step "a" "b"}} {{.Env.HOME}}`,
+		},
+		// Input
+		{
+			name:  "Input_Single",
+			input: "{{input.url}}",
+			want:  `{{input "url"}}`,
+		},
+		{
+			name:  "Input_WithPrefixSuffix",
+			input: "prefix {{input.url}} suffix",
+			want:  `prefix {{input "url"}} suffix`,
+		},
+		{
+			name:  "Input_Multiple",
+			input: "{{input.url}} {{input.title}}",
+			want:  `{{input "url"}} {{input "title"}}`,
+		},
+		{
+			name:  "Input_UnderscoreKey",
+			input: "{{input.user_id}}",
+			want:  `{{input "user_id"}}`,
+		},
+		{
+			name:  "Input_NoMatch_BareInput",
+			input: "{{input}}",
+			want:  "{{input}}",
+		},
+		{
+			name:  "Input_NoMatch_Whitespace",
+			input: "{{ input.url }}",
+			want:  "{{ input.url }}",
+		},
+		{
+			name:  "Input_DoesNotConflictWithStepLegacy_Result",
+			input: "{{input.result}}",
+			want:  `{{input "result"}}`,
+		},
+		{
+			name:  "Input_DoesNotConflictWithStepLegacy_Id",
+			input: "{{input.id}}",
+			want:  `{{input "id"}}`,
 		},
 	}
-	result, err := e.RenderString("{{if contains .Event.title \"xyz\"}}found{{else}}not-found{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "not-found", result)
-}
 
-func TestRenderString_Default_Nil(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := preprocessTemplate(tt.input)
+			assert.Equal(t, tt.want, result)
+		})
 	}
-	// .Event.missing returns nil for missing key; default returns the fallback for nil
-	result, err := e.RenderString("{{default \"fallback\" .Event.missing}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "fallback", result)
 }
 
-func TestRenderString_Default_EmptyString(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"name": ""},
-	}
-	result, err := e.RenderString("{{default \"anonymous\" .Event.name}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "anonymous", result)
+// --- edgeCaseTest holds cases for TestRenderString_EdgeCases ---
+type edgeCaseTest struct {
+	name     string
+	template string
+	data     *TemplateData
+	want     string
+	wantErr  bool
+	errMsg   string
 }
 
-func TestRenderString_Default_WithValue(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"name": "Alice"},
-	}
-	result, err := e.RenderString("{{default \"anonymous\" .Event.name}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "Alice", result)
-}
-
-func TestRenderString_JSON(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"obj": map[string]any{"key": "value"},
+func TestRenderString_EdgeCases(t *testing.T) {
+	tests := []edgeCaseTest{
+		{
+			name:     "MissingEventField_OldSyntax",
+			template: "{{event.url}}",
+			data:     &TemplateData{Event: map[string]any{}},
+			want:     "",
+		},
+		{
+			name:     "MissingKey_ZeroValue",
+			template: "{{.Event.missing}}",
+			data:     &TemplateData{Event: map[string]any{}},
+			want:     "<no value>",
+		},
+		{
+			name:     "InvalidTemplate_Error",
+			template: "{{if .Event.x}}}",
+			data:     nil,
+			wantErr:  true,
+			errMsg:   "template parse",
+		},
+		{
+			name:     "NilData",
+			template: "static text",
+			data:     nil,
+			want:     "static text",
+		},
+		{
+			name:     "EmptyData",
+			template: "{{.Event.x}}",
+			data:     &TemplateData{},
+			want:     "<no value>",
+		},
+		{
+			name:     "EnvField",
+			template: "{{.Env.HOME}}",
+			data:     &TemplateData{Env: map[string]string{"HOME": "/home/user", "USER": "test"}},
+			want:     "/home/user",
+		},
+		{
+			name:     "RangeWithSplit",
+			template: `{{range split .Event.csv ","}}{{.}}-{{end}}`,
+			data:     &TemplateData{Event: map[string]any{"csv": "a,b,c"}},
+			want:     "a-b-c-",
 		},
 	}
-	result, err := e.RenderString("{{json .Event.obj}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, `{"key":"value"}`, result)
-}
 
-func TestRenderString_Len_String(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"name": "hello"},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			result, err := e.RenderString(tt.template, tt.data)
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, result)
+		})
 	}
-	result, err := e.RenderString("{{len .Event.name}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "5", result)
 }
 
-func TestRenderString_Len_Slice(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"items": []any{1, 2, 3}},
-	}
-	result, err := e.RenderString("{{len .Event.items}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "3", result)
-}
-
-func TestRenderString_Len_Map(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"tags": map[string]any{"a": 1, "b": 2}},
-	}
-	result, err := e.RenderString("{{len .Event.tags}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "2", result)
-}
-
-func TestRenderString_Len_Nil(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// .Event.missing returns nil for missing key; len handles nil -> 0
-	result, err := e.RenderString("{{len .Event.missing}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "0", result)
-}
-
-func TestRenderString_NestedConditionAndLoop(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{"a", "b", ""},
-		},
-	}
-	result, err := e.RenderString("{{range .Event.items}}{{if .}}{{.}},{{end}}{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "a,b,", result)
-}
-
-func TestRenderString_MultipleEventFields(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123", "url": "https://x.com", "title": "Test"},
-	}
-	result, err := e.RenderString("id={{event \"id\"}} url={{event \"url\"}} title={{event \"title\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "id=123 url=https://x.com title=Test", result)
-}
-
-func TestRenderString_MultipleSteps(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"step1": {"id": "abc"},
-			"step2": {"id": "def"},
-		},
-	}
-	result, err := e.RenderString("{{step \"step1\" \"id\"}}-{{step \"step2\" \"id\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "abc-def", result)
-}
-
-func TestRenderString_MissingEventField_OldSyntax(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	result, err := e.RenderString("{{event.url}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_MissingKey_ZeroValue(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// Dot-access on missing key renders as "<no value>" in text/template.
-	// Pipeline authors should use {{event "field"}} for safe rendering.
-	result, err := e.RenderString("{{.Event.missing}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "<no value>", result)
-}
-
-func TestRenderString_MissingStepField(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{},
-	}
-	result, err := e.RenderString("{{step \"nonexistent\" \"id\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_InvalidTemplate_Error(t *testing.T) {
-	e := New()
-	_, err := e.RenderString("{{if .Event.x}}}", nil)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "template parse")
-}
-
-func TestRenderString_NilData(t *testing.T) {
-	e := New()
-	result, err := e.RenderString("static text", nil)
-	require.NoError(t, err)
-	assert.Equal(t, "static text", result)
-}
-
-func TestRenderString_EmptyData(t *testing.T) {
-	e := New()
-	data := &TemplateData{}
-	// RenderString passes nil Event map, so .Event is nil; accessing .Event.x renders zero value
-	result, err := e.RenderString("{{.Event.x}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "<no value>", result)
-}
-
-func TestRenderString_StepIndexAccess(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"archive": {"url": "https://a.example.com"},
-		},
-	}
-	result, err := e.RenderString("{{index .Steps.archive \"url\"}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://a.example.com", result)
-}
-
-func TestRenderString_With_Semantic(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"user": map[string]any{"name": "Alice", "role": "admin"},
-		},
-	}
-	result, err := e.RenderString("{{with .Event.user}}{{.name}} is {{.role}}{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "Alice is admin", result)
-}
-
-func TestRenderString_With_Empty(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// .Event.user returns nil for missing key; with redirects to else branch for nil
-	result, err := e.RenderString("{{with .Event.user}}found{{else}}not-found{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "not-found", result)
-}
-
-func TestRenderString_printf(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123"},
-	}
-	result, err := e.RenderString("{{printf \"id-%s\" .Event.id}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "id-123", result)
-}
-
-func TestRender_ParamsWithTemplates(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123", "url": "https://x.com"},
-	}
-	params := map[string]any{
-		"entity": "{{event \"id\"}}",
-		"link":   "{{event \"url\"}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "123", result["entity"])
-	assert.Equal(t, "https://x.com", result["link"])
-}
-
-func TestRender_ParamsNoTemplates(t *testing.T) {
-	e := New()
-	params := map[string]any{"key": "value", "num": 42}
-	result, err := e.Render(params, nil)
-	require.NoError(t, err)
-	assert.Equal(t, "value", result["key"])
-	assert.Equal(t, 42, result["num"])
-}
-
-func TestRender_ParamsNestedMap(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123"},
-	}
-	params := map[string]any{
-		"nested": map[string]any{
-			"inner": "{{event \"id\"}}",
-		},
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	nested := result["nested"].(map[string]any)
-	assert.Equal(t, "123", nested["inner"])
-}
-
-func TestRender_ParamsStringSlice(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "eid"},
-	}
-	params := map[string]any{
-		"items": []any{"{{event \"id\"}}", "static"},
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	items := result["items"].([]any)
-	assert.Equal(t, "eid", items[0])
-	assert.Equal(t, "static", items[1])
-}
-
-func TestRender_ParamsError_Propagated(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	params := map[string]any{
-		"bad": "{{if .Event.x}}}",
-	}
-	_, err := e.Render(params, data)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "key \"bad\"")
-}
-
-func TestRender_ParamsStepReferences(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"archive": {"id": "archive-1", "url": "https://archived.example.com"},
-		},
-	}
-	params := map[string]any{
-		"ref_id":  "{{steps.archive.id}}",
-		"ref_url": "{{steps.archive.url}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "archive-1", result["ref_id"])
-	assert.Equal(t, "https://archived.example.com", result["ref_url"])
-}
-
-func TestRender_ParamsConditionInParams(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"status": "done"},
-	}
-	params := map[string]any{
-		"action": "{{if eq .Event.status \"done\"}}archive{{else}}skip{{end}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "archive", result["action"])
-}
-
-func TestRender_ParamsLoopInParams(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"items": []any{"a", "b", "c"}},
-	}
-	params := map[string]any{
-		"joined": "{{range .Event.items}}{{.}}-{{end}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "a-b-c-", result["joined"])
-}
-
-func TestRender_ParamsDefaultInParams(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{},
-	}
-	// .Event.name returns nil for missing key; default returns fallback for nil
-	params := map[string]any{
-		"name": "{{default \"guest\" .Event.name}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "guest", result["name"])
-}
-
-func TestPreprocessTemplate_Event(t *testing.T) {
-	result := preprocessTemplate("{{event.url}}")
-	assert.Equal(t, `{{event "url"}}`, result)
-
-	result = preprocessTemplate("prefix {{event.url}} suffix")
-	assert.Equal(t, `prefix {{event "url"}} suffix`, result)
-
-	result = preprocessTemplate("{{event.url}} {{event.id}}")
-	assert.Equal(t, `{{event "url"}} {{event "id"}}`, result)
-}
-
-func TestPreprocessTemplate_Steps(t *testing.T) {
-	result := preprocessTemplate("{{steps.archive.url}}")
-	assert.Equal(t, `{{step "archive" "url"}}`, result)
-
-	result = preprocessTemplate("{{steps.s1.id}} {{steps.s2.result}}")
-	assert.Equal(t, `{{step "s1" "id"}} {{step "s2" "result"}}`, result)
-}
-
-func TestPreprocessTemplate_StepLegacy(t *testing.T) {
-	result := preprocessTemplate("{{step1.id}}")
-	assert.Equal(t, `{{step "step1" "id"}}`, result)
-
-	result = preprocessTemplate("{{myStep.result}}")
-	assert.Equal(t, `{{step "myStep" "result"}}`, result)
-
-	result = preprocessTemplate("{{step1.id}} {{step2.result}}")
-	assert.Equal(t, `{{step "step1" "id"}} {{step "step2" "result"}}`, result)
-
-	// Only matches .id or .result suffixes
-	result = preprocessTemplate("{{foo.bar}}")
-	assert.Equal(t, "{{foo.bar}}", result)
-}
-
-func TestPreprocessTemplate_Mixed(t *testing.T) {
-	result := preprocessTemplate("id={{event.id}} ref={{steps.step1.url}} legacy={{s1.result}}")
-	assert.Equal(t, `id={{event "id"}} ref={{step "step1" "url"}} legacy={{step "s1" "result"}}`, result)
-}
-
-func TestPreprocessTemplate_NoMatch(t *testing.T) {
-	input := "{{.Event.url}} {{step \"a\" \"b\"}} {{.Env.HOME}}"
-	result := preprocessTemplate(input)
-	assert.Equal(t, input, result)
-}
-
-func TestRenderString_StringWithWhitespaceInTemplate(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"name": "test"},
-	}
-	result, err := e.RenderString("Hello {{ .Event.name }}!", data)
-	require.NoError(t, err)
-	assert.Equal(t, "Hello test!", result)
+// --- maxDepthTest holds cases for TestRender_MaxDepth ---
+type maxDepthTest struct {
+	name        string
+	buildParams func() map[string]any
+	wantErr     bool
+	errMsg      string
+	wantAssert  func(t *testing.T, result map[string]any)
 }
 
 func TestRender_MaxDepth(t *testing.T) {
-	e := New()
-	// Build a deeply nested map
-	params := map[string]any{"x": map[string]any{}}
-	inner := params["x"].(map[string]any)
-	for i := range maxRenderDepth + 5 {
-		next := map[string]any{"x": map[string]any{}}
-		inner["x"] = next
-		inner = next["x"].(map[string]any)
-		_ = i
-	}
-	_, err := e.Render(params, nil)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "max render depth")
-}
-
-func TestRender_MaxDepth_NormalParams(t *testing.T) {
-	e := New()
-	params := map[string]any{
-		"a": "value",
-		"b": map[string]any{"c": "d"},
-		"e": []any{"f", "g"},
-	}
-	result, err := e.Render(params, nil)
-	require.NoError(t, err)
-	assert.Equal(t, "value", result["a"])
-	assert.Equal(t, "d", result["b"].(map[string]any)["c"])
-}
-
-func TestRenderString_RangeWithSplit(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"csv": "a,b,c"},
-	}
-	result, err := e.RenderString("{{range split .Event.csv \",\"}}{{.}}-{{end}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "a-b-c-", result)
-}
-
-func TestRenderString_EscapedBraces(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{"id": "123"},
-	}
-	result, err := e.RenderString("start {{event \"id\"}} end", data)
-	require.NoError(t, err)
-	assert.Equal(t, "start 123 end", result)
-}
-
-func TestRenderString_Jsonpath_Simple(t *testing.T) {
-	e := New()
-	// Use the json function to produce a JSON string, avoiding inline quote escaping issues.
-	data := &TemplateData{
-		Event: map[string]any{
-			"nested": map[string]any{"key": "hello"},
+	tests := []maxDepthTest{
+		{
+			name: "MaxDepth",
+			buildParams: func() map[string]any {
+				params := map[string]any{"x": map[string]any{}}
+				inner := params["x"].(map[string]any)
+				for i := range maxRenderDepth + 5 {
+					next := map[string]any{"x": map[string]any{}}
+					inner["x"] = next
+					inner = next["x"].(map[string]any)
+					_ = i
+				}
+				return params
+			},
+			wantErr: true,
+			errMsg:  "max render depth",
 		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.nested) "key"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "hello", result)
-}
-
-func TestRenderString_Jsonpath_ArrayIndex(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{"a", "b", "c"},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.items) "1"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "b", result)
-}
-
-func TestRenderString_Jsonpath_ArrayNestedAccess(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{
-				map[string]any{"name": "a"},
-				map[string]any{"name": "b"},
+		{
+			name: "MaxDepth_NormalParams",
+			buildParams: func() map[string]any {
+				return map[string]any{
+					"a": "value",
+					"b": map[string]any{"c": "d"},
+					"e": []any{"f", "g"},
+				}
+			},
+			wantAssert: func(t *testing.T, result map[string]any) {
+				assert.Equal(t, "value", result["a"])
+				assert.Equal(t, "d", result["b"].(map[string]any)["c"])
 			},
 		},
 	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.items) "1.name"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "b", result)
-}
 
-func TestRenderString_Jsonpath_ArrayWildcard(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{
-				map[string]any{"name": "a"},
-				map[string]any{"name": "b"},
-			},
-		},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := New()
+			params := tt.buildParams()
+			result, err := e.Render(params, nil)
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+				return
+			}
+			require.NoError(t, err)
+			if tt.wantAssert != nil {
+				tt.wantAssert(t, result)
+			}
+		})
 	}
-	// #.name extracts all array elements' name fields as a JSON array string.
-	result, err := e.RenderString(`{{jsonpath (json .Event.items) "#.name"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, `["a","b"]`, result)
-}
-
-func TestRenderString_Jsonpath_ArrayLength(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{float64(1), float64(2), float64(3)},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.items) "#"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "3", result)
-}
-
-func TestRenderString_Jsonpath_MissingPath(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"data": map[string]any{"a": float64(1)},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.data) "x.y"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_JsonpathEmptyJSON(t *testing.T) {
-	e := New()
-	result, err := e.RenderString(`{{jsonpath "" "x"}}`, &TemplateData{})
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_JsonpathExists_True(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"data": map[string]any{"a": float64(1)},
-		},
-	}
-	result, err := e.RenderString(`{{if jsonpathExists (json .Event.data) "a"}}yes{{else}}no{{end}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "yes", result)
-}
-
-func TestRenderString_JsonpathExists_False(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"data": map[string]any{"a": float64(1)},
-		},
-	}
-	result, err := e.RenderString(`{{if jsonpathExists (json .Event.data) "x"}}yes{{else}}no{{end}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "no", result)
-}
-
-func TestRenderString_JsonpathRaw_Object(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"nested": map[string]any{"key": "value"},
-		},
-	}
-	result, err := e.RenderString(`{{json (jsonpathRaw (json .Event.nested) "key")}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, `"value"`, result)
-}
-
-func TestRenderString_JsonpathRaw_Number(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"data": map[string]any{"count": float64(42)},
-		},
-	}
-	// jsonpathRaw returns the raw gjson.Value() (float64), rendered as "42" by text/template.
-	result, err := e.RenderString(`{{jsonpathRaw (json .Event.data) "count"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "42", result)
-}
-
-func TestRenderString_JsonpathWithJsonFunction(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"data": map[string]any{"nested": map[string]any{"deep": "found"}},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.data) "nested.deep"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "found", result)
-}
-
-func TestRenderString_JsonpathWithStepResult(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Steps: map[string]map[string]any{
-			"src": {"result": `{"title":"Hello","tags":["a","b"]}`},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (step "src" "result") "title"}}-{{jsonpath (step "src" "result") "tags.0"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "Hello-a", result)
-}
-
-func TestRenderString_JsonpathFilteredArray(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"users": []any{
-				map[string]any{"name": "Alice", "age": float64(30)},
-				map[string]any{"name": "Bob", "age": float64(25)},
-			},
-		},
-	}
-	result, err := e.RenderString(`{{jsonpath (json .Event.users) "#(age>28).name"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "Alice", result)
-}
-
-// ---- input function tests ----
-
-func TestRenderString_InputField(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://example.com", "title": "Test"},
-	}
-	result, err := e.RenderString(`{{input "url"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result)
-}
-
-func TestRenderString_InputField_DotSyntax(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://example.com"},
-	}
-	result, err := e.RenderString("{{input.url}}", data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result)
-}
-
-func TestRenderString_InputField_MultipleFields(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://x.com", "title": "Hello"},
-	}
-	result, err := e.RenderString(`url={{input "url"}} title={{input "title"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "url=https://x.com title=Hello", result)
-}
-
-func TestRenderString_InputField_Missing(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{},
-	}
-	result, err := e.RenderString(`{{input "missing"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_InputField_NilInput(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: nil,
-	}
-	result, err := e.RenderString(`{{input "any"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_InputField_NilData(t *testing.T) {
-	e := New()
-	result, err := e.RenderString(`{{input "url"}}`, nil)
-	require.NoError(t, err)
-	assert.Equal(t, "", result)
-}
-
-func TestRenderString_InputField_WithDefault(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{},
-	}
-	result, err := e.RenderString(`{{default "fallback" (input "title")}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "fallback", result)
-}
-
-func TestRenderString_InputField_Conditional(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://x.com"},
-	}
-	result, err := e.RenderString(`{{if (input "url")}}has-input{{else}}no-input{{end}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "has-input", result)
-}
-
-func TestRenderString_InputField_ConditionalMissing(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{},
-	}
-	result, err := e.RenderString(`{{if (input "url")}}has-input{{else}}no-input{{end}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "no-input", result)
-}
-
-func TestRenderString_InputField_CombinedWithStep(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://example.com"},
-		Steps: map[string]map[string]any{
-			"save": {"id": "saved-123"},
-		},
-	}
-	result, err := e.RenderString(`input={{input "url"}} step={{step "save" "id"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "input=https://example.com step=saved-123", result)
-}
-
-func TestRenderString_InputField_CombinedWithEvent(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"title": "My Title"},
-		Event: map[string]any{"source": "web"},
-	}
-	result, err := e.RenderString(`title={{input "title"}} source={{event "source"}}`, data)
-	require.NoError(t, err)
-	assert.Equal(t, "title=My Title source=web", result)
-}
-
-func TestRender_ParamsWithInput(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://x.com", "title": "Hello"},
-	}
-	params := map[string]any{
-		"link":     `{{input "url"}}`,
-		"headline": `{{input "title"}}`,
-		"static":   "no-template",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://x.com", result["link"])
-	assert.Equal(t, "Hello", result["headline"])
-	assert.Equal(t, "no-template", result["static"])
-}
-
-func TestRender_ParamsWithInputDotSyntax(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"url": "https://x.com"},
-	}
-	params := map[string]any{
-		"link": "{{input.url}}",
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://x.com", result["link"])
-}
-
-func TestRender_ParamsWithInputAndCondition(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"env": "prod"},
-	}
-	params := map[string]any{
-		"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "high", result["level"])
-}
-
-func TestRender_ParamsWithInputElseBranch(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Input: map[string]any{"env": "dev"},
-	}
-	params := map[string]any{
-		"level": `{{if eq (input "env") "prod"}}high{{else}}low{{end}}`,
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "low", result["level"])
-}
-
-// ---- preprocess input.X ----
-
-func TestPreprocessTemplate_Input(t *testing.T) {
-	result := preprocessTemplate("{{input.url}}")
-	assert.Equal(t, `{{input "url"}}`, result)
-
-	result = preprocessTemplate("prefix {{input.url}} suffix")
-	assert.Equal(t, `prefix {{input "url"}} suffix`, result)
-
-	result = preprocessTemplate("{{input.url}} {{input.title}}")
-	assert.Equal(t, `{{input "url"}} {{input "title"}}`, result)
-}
-
-func TestPreprocessTemplate_InputUnderscoreKey(t *testing.T) {
-	// \w+ matches word characters including underscore
-	result := preprocessTemplate("{{input.user_id}}")
-	assert.Equal(t, `{{input "user_id"}}`, result)
-}
-
-func TestPreprocessTemplate_InputNoMatch(t *testing.T) {
-	// Only transforms {{input.X}} where there is a dot. {{input}} is left as-is.
-	result := preprocessTemplate("{{input}}")
-	assert.Equal(t, "{{input}}", result)
-
-	// Input with whitespace is not matched
-	result = preprocessTemplate("{{ input.url }}")
-	assert.Equal(t, "{{ input.url }}", result)
-}
-
-func TestPreprocessTemplate_InputDoesNotConflictWithStepLegacy(t *testing.T) {
-	// input.result matches the legacy step pattern but input is handled first
-	result := preprocessTemplate("{{input.result}}")
-	assert.Equal(t, `{{input "result"}}`, result)
-
-	// input.id should also be handled as input, not step
-	result = preprocessTemplate("{{input.id}}")
-	assert.Equal(t, `{{input "id"}}`, result)
-}
-
-// ---- workflow-style end-to-end input test ----
-
-func TestRender_WorkflowStyleInputParams(t *testing.T) {
-	e := New()
-	// Simulates the save_and_track.yaml workflow: params with input.url and input.title
-	data := &TemplateData{
-		Input: map[string]any{
-			"url":   "https://example.com",
-			"title": "Read This Article",
-		},
-	}
-	params := map[string]any{
-		"url":         "{{input.url}}",
-		"title":       `Read: {{input "title"}}`,
-		"description": `Bookmark: {{input "url"}}`,
-		"tags":        []any{"reading", "bookmark"},
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "https://example.com", result["url"])
-	assert.Equal(t, "Read: Read This Article", result["title"])
-	assert.Equal(t, "Bookmark: https://example.com", result["description"])
-	assert.Equal(t, []any{"reading", "bookmark"}, result["tags"])
-}
-
-func TestRender_ParamsWithJsonpath(t *testing.T) {
-	e := New()
-	data := &TemplateData{
-		Event: map[string]any{
-			"items": []any{
-				map[string]any{"id": "x"},
-				map[string]any{"id": "y"},
-			},
-		},
-	}
-	params := map[string]any{
-		"extracted": `{{jsonpath (json .Event.items) "1.id"}}`,
-	}
-	result, err := e.Render(params, data)
-	require.NoError(t, err)
-	assert.Equal(t, "y", result["extracted"])
 }

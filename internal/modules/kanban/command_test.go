@@ -12,33 +12,79 @@ import (
 )
 
 func TestCommandRules_Count(t *testing.T) {
-	assert.Len(t, commandRules, 1)
+	tests := []struct {
+		name string
+	}{
+		{name: "has one command rule"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Len(t, commandRules, 1)
+		})
+	}
 }
 
 func TestCommandRules_Defines(t *testing.T) {
-	assert.Equal(t, "kanban status", commandRules[0].Define)
-	assert.Equal(t, "Show kanban status", commandRules[0].Help)
+	tests := []struct {
+		name string
+	}{
+		{name: "kanban status defined with help text"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, "kanban status", commandRules[0].Define)
+			assert.Equal(t, "Show kanban status", commandRules[0].Help)
+		})
+	}
 }
 
 func TestCommandRules_Handlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+	tests := []struct {
+		name string
+	}{
+		{name: "all command rules have handlers"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, r := range commandRules {
+				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+			}
+		})
 	}
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
 	tests := []struct {
+		name   string
 		define string
 		input  string
 		want   bool
 	}{
-		{"kanban status", "kanban status", true},
-		{"kanban status", "kanban status extra", false},
-		{"kanban status", "kanban", false},
+		{
+			name:   "kanban status exact match",
+			define: "kanban status",
+			input:  "kanban status",
+			want:   true,
+		},
+		{
+			name:   "kanban status with extra tokens",
+			define: "kanban status",
+			input:  "kanban status extra",
+			want:   false,
+		},
+		{
+			name:   "kanban partial match fails",
+			define: "kanban status",
+			input:  "kanban",
+			want:   false,
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.define+"_"+tt.input, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -50,30 +96,50 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
-	rs := command.Ruleset(commandRules)
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+	tests := []struct {
+		name string
+	}{
+		{name: "unknown command returns nil result"},
+	}
 
-	result, err := rs.ProcessCommand(ctx, "unknown command xyz")
-	require.NoError(t, err)
-	assert.Nil(t, result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rs := command.Ruleset(commandRules)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+
+			result, err := rs.ProcessCommand(ctx, "unknown command xyz")
+			require.NoError(t, err)
+			assert.Nil(t, result)
+		})
+	}
 }
 
 func TestCommandRules_StatusHandler(t *testing.T) {
-	var statusRule *command.Rule
-	for i := range commandRules {
-		if commandRules[i].Define == "kanban status" {
-			statusRule = &commandRules[i]
-			break
-		}
+	tests := []struct {
+		name string
+	}{
+		{name: "status handler returns empty message type"},
 	}
-	require.NotNil(t, statusRule)
 
-	ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-	tokens, _ := parser.ParseString("kanban status")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var statusRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "kanban status" {
+					statusRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, statusRule)
 
-	payload := statusRule.Handler(ctx, tokens)
-	require.NotNil(t, payload)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			tokens, _ := parser.ParseString("kanban status")
 
-	msgType := types.TypeOf(payload)
-	assert.Equal(t, "EmptyMsg", msgType)
+			payload := statusRule.Handler(ctx, tokens)
+			require.NotNil(t, payload)
+
+			msgType := types.TypeOf(payload)
+			assert.Equal(t, "EmptyMsg", msgType)
+		})
+	}
 }

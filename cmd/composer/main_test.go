@@ -25,107 +25,177 @@ func findSubcommand(cmd *cobra.Command, name string) *cobra.Command {
 }
 
 func TestNewCommand(t *testing.T) {
-	cmd := NewCommand()
+	tests := []struct {
+		name string
+	}{
+		{name: "composer command has correct use, short, version, and subcommands"},
+	}
 
-	require.Equal(t, "composer", cmd.Use)
-	require.Equal(t, "tool cli", cmd.Short)
-	require.NotEmpty(t, cmd.Version)
-	require.True(t, cmd.HasSubCommands())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
 
-	subNames := subcommandNames(cmd)
-	require.Contains(t, subNames, "admin")
-	require.Contains(t, subNames, "dao")
-	require.Contains(t, subNames, "webdoc")
-	require.Contains(t, subNames, "skills")
-	require.Contains(t, subNames, "doc")
+			require.Equal(t, "composer", cmd.Use)
+			require.Equal(t, "tool cli", cmd.Short)
+			require.NotEmpty(t, cmd.Version)
+			require.True(t, cmd.HasSubCommands())
+
+			subNames := subcommandNames(cmd)
+			require.Contains(t, subNames, "admin")
+			require.Contains(t, subNames, "dao")
+			require.Contains(t, subNames, "webdoc")
+			require.Contains(t, subNames, "skills")
+			require.Contains(t, subNames, "doc")
+		})
+	}
 }
 
 func TestDaoCommand(t *testing.T) {
-	cmd := NewCommand()
-	daoCmd := findSubcommand(cmd, "dao")
-	require.NotNil(t, daoCmd)
-	require.Equal(t, "dao", daoCmd.Use)
-	require.NotNil(t, daoCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "dao command has correct use and config flag"},
+	}
 
-	configFlag := daoCmd.Flags().Lookup("config")
-	require.NotNil(t, configFlag)
-	val, _ := daoCmd.Flags().GetString("config")
-	require.Equal(t, "./flowbot.yaml", val)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			daoCmd := findSubcommand(cmd, "dao")
+			require.NotNil(t, daoCmd)
+			require.Equal(t, "dao", daoCmd.Use)
+			require.NotNil(t, daoCmd.RunE)
+
+			configFlag := daoCmd.Flags().Lookup("config")
+			require.NotNil(t, configFlag)
+			val, _ := daoCmd.Flags().GetString("config")
+			require.Equal(t, "./flowbot.yaml", val)
+		})
+	}
 }
 
 func TestWebdocCommand(t *testing.T) {
-	cmd := NewCommand()
-	webdocCmd := findSubcommand(cmd, "webdoc")
-	require.NotNil(t, webdocCmd)
-	require.Equal(t, "webdoc", webdocCmd.Use)
-	require.NotNil(t, webdocCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "webdoc command has correct use and RunE"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			webdocCmd := findSubcommand(cmd, "webdoc")
+			require.NotNil(t, webdocCmd)
+			require.Equal(t, "webdoc", webdocCmd.Use)
+			require.NotNil(t, webdocCmd.RunE)
+		})
+	}
 }
 
 func TestSkillsCommand(t *testing.T) {
-	cmd := NewCommand()
-	skillsCmd := findSubcommand(cmd, "skills")
-	require.NotNil(t, skillsCmd)
-	require.Equal(t, "skills", skillsCmd.Use)
-	require.NotNil(t, skillsCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "skills command has correct use, RunE, and output flag"},
+	}
 
-	outputFlag := skillsCmd.Flags().Lookup("output")
-	require.NotNil(t, outputFlag)
-	val, _ := skillsCmd.Flags().GetString("output")
-	require.Equal(t, "./docs/skills", val)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			skillsCmd := findSubcommand(cmd, "skills")
+			require.NotNil(t, skillsCmd)
+			require.Equal(t, "skills", skillsCmd.Use)
+			require.NotNil(t, skillsCmd.RunE)
+
+			outputFlag := skillsCmd.Flags().Lookup("output")
+			require.NotNil(t, outputFlag)
+			val, _ := skillsCmd.Flags().GetString("output")
+			require.Equal(t, "./docs/skills", val)
+		})
+	}
 }
 
 func TestDocCommand(t *testing.T) {
-	cmd := NewCommand()
-	docCmd := findSubcommand(cmd, "doc")
-	require.NotNil(t, docCmd)
-	require.Equal(t, "doc", docCmd.Use)
-	require.NotNil(t, docCmd.RunE)
+	tests := []struct {
+		name string
+	}{
+		{name: "doc command has correct flags"},
+	}
 
-	configFlag := docCmd.Flags().Lookup("config")
-	require.NotNil(t, configFlag)
-	val, _ := docCmd.Flags().GetString("config")
-	require.Equal(t, "./flowbot.yaml", val)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			docCmd := findSubcommand(cmd, "doc")
+			require.NotNil(t, docCmd)
+			require.Equal(t, "doc", docCmd.Use)
+			require.NotNil(t, docCmd.RunE)
 
-	dbFlag := docCmd.Flags().Lookup("database")
-	require.NotNil(t, dbFlag)
-	dbVal, _ := docCmd.Flags().GetString("database")
-	require.Equal(t, "flowbot", dbVal)
+			configFlag := docCmd.Flags().Lookup("config")
+			require.NotNil(t, configFlag)
+			val, _ := docCmd.Flags().GetString("config")
+			require.Equal(t, "./flowbot.yaml", val)
+
+			dbFlag := docCmd.Flags().Lookup("database")
+			require.NotNil(t, dbFlag)
+			dbVal, _ := docCmd.Flags().GetString("database")
+			require.Equal(t, "flowbot", dbVal)
+		})
+	}
 }
 
 func TestAdminCommand(t *testing.T) {
-	cmd := NewCommand()
-	adminCmd := findSubcommand(cmd, "admin")
-	require.NotNil(t, adminCmd)
-	require.True(t, adminCmd.HasSubCommands())
+	tests := []struct {
+		name string
+	}{
+		{name: "admin command has token subcommand"},
+	}
 
-	subNames := subcommandNames(adminCmd)
-	require.Contains(t, subNames, "token")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			adminCmd := findSubcommand(cmd, "admin")
+			require.NotNil(t, adminCmd)
+			require.True(t, adminCmd.HasSubCommands())
+
+			subNames := subcommandNames(adminCmd)
+			require.Contains(t, subNames, "token")
+		})
+	}
 }
 
 func TestAdminTokenCreateCommand(t *testing.T) {
-	cmd := NewCommand()
-	adminCmd := findSubcommand(cmd, "admin")
-	tokenCmd := findSubcommand(adminCmd, "token")
-	require.NotNil(t, tokenCmd)
-	require.True(t, tokenCmd.HasSubCommands())
+	tests := []struct {
+		name string
+	}{
+		{name: "admin token create has correct flags"},
+	}
 
-	createCmd := findSubcommand(tokenCmd, "create")
-	require.NotNil(t, createCmd)
-	require.NotNil(t, createCmd.RunE)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			adminCmd := findSubcommand(cmd, "admin")
+			tokenCmd := findSubcommand(adminCmd, "token")
+			require.NotNil(t, tokenCmd)
+			require.True(t, tokenCmd.HasSubCommands())
 
-	id := createCmd.Flags().Lookup("id")
-	require.NotNil(t, id)
-	ann := id.Annotations[cobra.BashCompOneRequiredFlag]
-	require.NotNil(t, ann)
-	require.Contains(t, ann, "true")
+			createCmd := findSubcommand(tokenCmd, "create")
+			require.NotNil(t, createCmd)
+			require.NotNil(t, createCmd.RunE)
 
-	expires := createCmd.Flags().Lookup("expires")
-	require.NotNil(t, expires)
-	val, _ := createCmd.Flags().GetString("expires")
-	require.Equal(t, "0d", val)
+			id := createCmd.Flags().Lookup("id")
+			require.NotNil(t, id)
+			ann := id.Annotations[cobra.BashCompOneRequiredFlag]
+			require.NotNil(t, ann)
+			require.Contains(t, ann, "true")
 
-	configFlag := createCmd.Flags().Lookup("config")
-	require.NotNil(t, configFlag)
-	val, _ = createCmd.Flags().GetString("config")
-	require.Equal(t, "./flowbot.yaml", val)
+			expires := createCmd.Flags().Lookup("expires")
+			require.NotNil(t, expires)
+			val, _ := createCmd.Flags().GetString("expires")
+			require.Equal(t, "0d", val)
+
+			configFlag := createCmd.Flags().Lookup("config")
+			require.NotNil(t, configFlag)
+			val, _ = createCmd.Flags().GetString("config")
+			require.Equal(t, "./flowbot.yaml", val)
+		})
+	}
 }

@@ -620,10 +620,20 @@ func TestTriggerType(t *testing.T) {
 
 // Test TriggerCronRule
 func TestTriggerCronRule(t *testing.T) {
-	rule := TriggerCronRule{
-		Spec: "0 0 * * *",
+	tests := []struct {
+		name string
+	}{
+		{name: "TriggerCronRule has correct Spec"},
 	}
-	assert.Equal(t, "0 0 * * *", rule.Spec)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rule := TriggerCronRule{
+				Spec: "0 0 * * *",
+			}
+			assert.Equal(t, "0 0 * * *", rule.Spec)
+		})
+	}
 }
 
 // Test NodeStatus
@@ -683,10 +693,20 @@ func (u UserState) String() string {
 
 // Test TopicState
 func TestTopicState(t *testing.T) {
-	state := TopicState(1)
-	val, err := state.Value()
-	require.NoError(t, err)
-	assert.Equal(t, int64(1), val)
+	tests := []struct {
+		name string
+	}{
+		{name: "TopicState Value returns correct int64"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			state := TopicState(1)
+			val, err := state.Value()
+			require.NoError(t, err)
+			assert.Equal(t, int64(1), val)
+		})
+	}
 }
 
 // Test MessageState
@@ -994,60 +1014,80 @@ func TestRateLimitType(t *testing.T) {
 
 // Test Node struct
 func TestNode(t *testing.T) {
-	node := Node{
-		Id:        "node-1",
-		Describe:  "Test Node",
-		X:         100,
-		Y:         200,
-		Width:     300,
-		Height:    400,
-		Label:     "Test",
-		RenderKey: "render-1",
-		IsGroup:   false,
-		Group:     "group-1",
-		ParentId:  "parent-1",
-		Ports: []struct {
-			Id        string `json:"id,omitempty"`
-			Group     string `json:"group,omitempty"`
-			Type      string `json:"type,omitempty"`
-			Tooltip   string `json:"tooltip,omitempty"`
-			Connected bool   `json:"connected,omitempty"`
-		}{
-			{Id: "port-1", Group: "group", Type: "type", Tooltip: "tooltip", Connected: true},
-		},
-		Order:       1,
-		Bot:         "test-bot",
-		RuleId:      "rule-1",
-		Parameters:  map[string]any{"key": "value"},
-		Variables:   []string{"var1", "var2"},
-		Connections: []string{"conn1", "conn2"},
-		Status:      NodeSuccess,
+	tests := []struct {
+		name string
+	}{
+		{name: "Node struct fields have correct values"},
 	}
 
-	assert.Equal(t, "node-1", node.Id)
-	assert.Equal(t, "Test Node", node.Describe)
-	assert.Equal(t, 100, node.X)
-	assert.Equal(t, 200, node.Y)
-	assert.Equal(t, NodeSuccess, node.Status)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := Node{
+				Id:        "node-1",
+				Describe:  "Test Node",
+				X:         100,
+				Y:         200,
+				Width:     300,
+				Height:    400,
+				Label:     "Test",
+				RenderKey: "render-1",
+				IsGroup:   false,
+				Group:     "group-1",
+				ParentId:  "parent-1",
+				Ports: []struct {
+					Id        string `json:"id,omitempty"`
+					Group     string `json:"group,omitempty"`
+					Type      string `json:"type,omitempty"`
+					Tooltip   string `json:"tooltip,omitempty"`
+					Connected bool   `json:"connected,omitempty"`
+				}{
+					{Id: "port-1", Group: "group", Type: "type", Tooltip: "tooltip", Connected: true},
+				},
+				Order:       1,
+				Bot:         "test-bot",
+				RuleId:      "rule-1",
+				Parameters:  map[string]any{"key": "value"},
+				Variables:   []string{"var1", "var2"},
+				Connections: []string{"conn1", "conn2"},
+				Status:      NodeSuccess,
+			}
+
+			assert.Equal(t, "node-1", node.Id)
+			assert.Equal(t, "Test Node", node.Describe)
+			assert.Equal(t, 100, node.X)
+			assert.Equal(t, 200, node.Y)
+			assert.Equal(t, NodeSuccess, node.Status)
+		})
+	}
 }
 
 // Test Edge struct
 func TestEdge(t *testing.T) {
-	edge := Edge{
-		Id:                "edge-1",
-		Source:            "source-node",
-		Target:            "target-node",
-		SourcePortId:      "source-port",
-		TargetPortId:      "target-port",
-		Label:             "Test Edge",
-		EdgeContentWidth:  100,
-		EdgeContentHeight: 50,
+	tests := []struct {
+		name string
+	}{
+		{name: "Edge struct fields have correct values"},
 	}
 
-	assert.Equal(t, "edge-1", edge.Id)
-	assert.Equal(t, "source-node", edge.Source)
-	assert.Equal(t, "target-node", edge.Target)
-	assert.Equal(t, "Test Edge", edge.Label)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			edge := Edge{
+				Id:                "edge-1",
+				Source:            "source-node",
+				Target:            "target-node",
+				SourcePortId:      "source-port",
+				TargetPortId:      "target-port",
+				Label:             "Test Edge",
+				EdgeContentWidth:  100,
+				EdgeContentHeight: 50,
+			}
+
+			assert.Equal(t, "edge-1", edge.Id)
+			assert.Equal(t, "source-node", edge.Source)
+			assert.Equal(t, "target-node", edge.Target)
+			assert.Equal(t, "Test Edge", edge.Label)
+		})
+	}
 }
 
 // Test Parameter IsExpired
@@ -1084,14 +1124,24 @@ func TestParameter_IsExpired(t *testing.T) {
 
 // Test Job MarshalBinary
 func TestJob_MarshalBinary(t *testing.T) {
-	job := &Job{
-		ID:        1,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	tests := []struct {
+		name string
+	}{
+		{name: "Job MarshalBinary returns non-empty data"},
 	}
 
-	data, err := job.MarshalBinary()
-	require.NoError(t, err)
-	assert.NotNil(t, data)
-	assert.Greater(t, len(data), 0)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			job := &Job{
+				ID:        1,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			}
+
+			data, err := job.MarshalBinary()
+			require.NoError(t, err)
+			assert.NotNil(t, data)
+			assert.Greater(t, len(data), 0)
+		})
+	}
 }

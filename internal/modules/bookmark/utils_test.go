@@ -6,43 +6,61 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReplaceSimilarTags_EmptyInput(t *testing.T) {
-	result := replaceSimilarTags(nil, map[string]string{"a": "b"})
-	assert.Nil(t, result)
+func TestReplaceSimilarTags(t *testing.T) {
+	tests := []struct {
+		name    string
+		tags    []string
+		similar map[string]string
+		want    []string
+	}{
+		{
+			name:    "nil input returns nil",
+			tags:    nil,
+			similar: map[string]string{"a": "b"},
+			want:    nil,
+		},
+		{
+			name:    "empty mapping returns original tags",
+			tags:    []string{"go", "rust", "python"},
+			similar: map[string]string{},
+			want:    []string{"go", "rust", "python"},
+		},
+		{
+			name:    "replaces tag with mapped value",
+			tags:    []string{"golang", "rust", "python"},
+			similar: map[string]string{"golang": "go"},
+			want:    []string{"go", "rust", "python"},
+		},
+		{
+			name:    "deduplicates after mapping",
+			tags:    []string{"golang", "go", "rust"},
+			similar: map[string]string{"golang": "go"},
+			want:    []string{"go", "rust"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := replaceSimilarTags(tt.tags, tt.similar)
+			assert.Equal(t, tt.want, result)
+		})
+	}
 }
 
-func TestReplaceSimilarTags_NoMapping(t *testing.T) {
-	tags := []string{"go", "rust", "python"}
-	result := replaceSimilarTags(tags, map[string]string{})
-	assert.Equal(t, tags, result)
-}
-
-func TestReplaceSimilarTags_WithMapping(t *testing.T) {
-	tags := []string{"golang", "rust", "python"}
-	similar := map[string]string{"golang": "go"}
-	result := replaceSimilarTags(tags, similar)
-	assert.Equal(t, []string{"go", "rust", "python"}, result)
-}
-
-func TestReplaceSimilarTags_DeduplicatesAfterMapping(t *testing.T) {
-	tags := []string{"golang", "go", "rust"}
-	similar := map[string]string{"golang": "go"}
-	result := replaceSimilarTags(tags, similar)
-	assert.Equal(t, []string{"go", "rust"}, result)
-}
-
-func TestSliceEqual_Equal(t *testing.T) {
-	assert.True(t, sliceEqual([]string{"a", "b"}, []string{"a", "b"}))
-}
-
-func TestSliceEqual_NotEqual(t *testing.T) {
-	assert.False(t, sliceEqual([]string{"a", "b"}, []string{"a", "c"}))
-}
-
-func TestSliceEqual_DifferentLengths(t *testing.T) {
-	assert.False(t, sliceEqual([]string{"a"}, []string{"a", "b"}))
-}
-
-func TestSliceEqual_Empty(t *testing.T) {
-	assert.True(t, sliceEqual([]string{}, []string{}))
+func TestSliceEqual(t *testing.T) {
+	tests := []struct {
+		name string
+		a    []string
+		b    []string
+		want bool
+	}{
+		{name: "equal slices", a: []string{"a", "b"}, b: []string{"a", "b"}, want: true},
+		{name: "different elements", a: []string{"a", "b"}, b: []string{"a", "c"}, want: false},
+		{name: "different lengths", a: []string{"a"}, b: []string{"a", "b"}, want: false},
+		{name: "both empty", a: []string{}, b: []string{}, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, sliceEqual(tt.a, tt.b))
+		})
+	}
 }

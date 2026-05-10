@@ -7,9 +7,29 @@ import (
 )
 
 func TestBuildstamp(t *testing.T) {
-	assert.NotEmpty(t, Buildstamp)
+	tests := []struct {
+		name string
+	}{
+		{name: "Buildstamp is not empty"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, Buildstamp)
+		})
+	}
 }
 
 func TestBuildtags(t *testing.T) {
-	assert.NotEmpty(t, Buildtags)
+	tests := []struct {
+		name string
+	}{
+		{name: "Buildtags is not empty"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, Buildtags)
+		})
+	}
 }

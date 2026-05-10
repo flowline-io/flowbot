@@ -152,74 +152,80 @@ func TestSlack_completeAuth(t *testing.T) {
 }
 
 func TestSlack_GetIdentity(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/users.identity", r.URL.Path)
-		assert.True(t, strings.HasPrefix(r.Header.Get("Authorization"), "Bearer "))
+	t.Run("successful identity retrieval", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/users.identity", r.URL.Path)
+			assert.True(t, strings.HasPrefix(r.Header.Get("Authorization"), "Bearer "))
 
-		response := IdentityResponse{
-			OK:    true,
-			Error: "",
-			User: struct {
-				Name    string `json:"name"`
-				ID      string `json:"id"`
-				Image48 string `json:"image_48"`
-			}{
-				Name:    "Test User",
-				ID:      "U123456",
-				Image48: "https://example.com/avatar.png",
-			},
-			Team: struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			}{
-				ID:   "T123",
-				Name: "Test Team",
-			},
-		}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			response := IdentityResponse{
+				OK:    true,
+				Error: "",
+				User: struct {
+					Name    string `json:"name"`
+					ID      string `json:"id"`
+					Image48 string `json:"image_48"`
+				}{
+					Name:    "Test User",
+					ID:      "U123456",
+					Image48: "https://example.com/avatar.png",
+				},
+				Team: struct {
+					ID   string `json:"id"`
+					Name string `json:"name"`
+				}{
+					ID:   "T123",
+					Name: "Test Team",
+				},
+			}
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		slack := NewSlack("client-id", "secret", "https://example.com/callback", "xoxp-access-token")
+		slack.c.SetBaseURL(server.URL)
+
+		result, err := slack.GetIdentity()
+
 		require.NoError(t, err)
-	}))
-	defer server.Close()
-
-	slack := NewSlack("client-id", "secret", "https://example.com/callback", "xoxp-access-token")
-	slack.c.SetBaseURL(server.URL)
-
-	result, err := slack.GetIdentity()
-
-	require.NoError(t, err)
-	assert.Equal(t, "Test User", result.User.Name)
-	assert.Equal(t, "U123456", result.User.ID)
-	assert.Equal(t, "Test Team", result.Team.Name)
+		assert.Equal(t, "Test User", result.User.Name)
+		assert.Equal(t, "U123456", result.User.ID)
+		assert.Equal(t, "Test Team", result.Team.Name)
+	})
 }
 
 func TestSlack_GetIdentity_Error(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := IdentityResponse{
-			OK:    false,
-			Error: "account_inactive",
-		}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		require.NoError(t, err)
-	}))
-	defer server.Close()
+	t.Run("identity error", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			response := IdentityResponse{
+				OK:    false,
+				Error: "account_inactive",
+			}
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
 
-	slack := NewSlack("client-id", "secret", "https://example.com/callback", "invalid-token")
-	slack.c.SetBaseURL(server.URL)
+		slack := NewSlack("client-id", "secret", "https://example.com/callback", "invalid-token")
+		slack.c.SetBaseURL(server.URL)
 
-	_, err := slack.GetIdentity()
+		_, err := slack.GetIdentity()
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "account_inactive")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "account_inactive")
+	})
 }
 
 func TestNewSlack(t *testing.T) {
-	slack := NewSlack("123.456", "secret", "https://example.com/callback", "xoxp-token")
-	assert.NotNil(t, slack)
-	assert.NotNil(t, slack.c)
-	assert.Equal(t, "123.456", slack.clientId)
-	assert.Equal(t, "secret", slack.clientSecret)
-	assert.Equal(t, "https://example.com/callback", slack.redirectURI)
-	assert.Equal(t, "xoxp-token", slack.accessToken)
+	t.Run("constructor creates client", func(t *testing.T) {
+		slack := NewSlack("123.456", "secret", "https://example.com/callback", "xoxp-token")
+		assert.NotNil(t, slack)
+		assert.NotNil(t, slack.c)
+		assert.Equal(t, "123.456", slack.clientId)
+		assert.Equal(t, "secret", slack.clientSecret)
+		assert.Equal(t, "https://example.com/callback", slack.redirectURI)
+		assert.Equal(t, "xoxp-token", slack.accessToken)
+	})
 }

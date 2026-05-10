@@ -11,81 +11,169 @@ import (
 )
 
 func TestBotName(t *testing.T) {
-	assert.Equal(t, "notify", Name)
+	tests := []struct {
+		name string
+	}{
+		{name: "name equals notify"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, "notify", Name)
+		})
+	}
 }
 
-func TestBotInit_Enabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: true}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.True(t, handler.IsReady())
-}
+func TestBotInit(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    configType
+		preInit   bool
+		wantErr   bool
+		wantReady bool
+	}{
+		{
+			name:      "enabled config makes handler ready",
+			config:    configType{Enabled: true},
+			wantReady: true,
+		},
+		{
+			name:      "disabled config makes handler not ready",
+			config:    configType{Enabled: false},
+			wantReady: false,
+		},
+		{
+			name:    "invalid JSON returns error",
+			wantErr: true,
+		},
+		{
+			name:    "already initialized returns error",
+			preInit: true,
+			config:  configType{Enabled: true},
+			wantErr: true,
+		},
+	}
 
-func TestBotInit_Disabled(t *testing.T) {
-	handler = moduleHandler{} // reset
-	config := configType{Enabled: false}
-	data, _ := sonic.Marshal(config)
-	err := handler.Init(data)
-	require.NoError(t, err)
-	assert.False(t, handler.IsReady())
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.preInit {
+				handler = moduleHandler{initialized: true}
+			} else {
+				handler = moduleHandler{}
+			}
 
-func TestBotInit_InvalidJSON(t *testing.T) {
-	handler = moduleHandler{} // reset
-	err := handler.Init(json.RawMessage(`{invalid`))
-	assert.Error(t, err)
-}
+			var data json.RawMessage
+			if tt.name == "invalid JSON returns error" {
+				data = json.RawMessage(`{invalid`)
+			} else if !tt.preInit || tt.config.Enabled {
+				data, _ = sonic.Marshal(tt.config)
+			} else {
+				data, _ = sonic.Marshal(configType{Enabled: true})
+			}
 
-func TestBotInit_AlreadyInitialized(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	err := handler.Init(json.RawMessage(`{"enabled":true}`))
-	assert.Error(t, err)
+			err := handler.Init(data)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantReady, handler.IsReady())
+			}
+		})
+	}
 }
 
 func TestCommandRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, commandRules)
-
-	defines := make(map[string]string)
-	for _, r := range commandRules {
-		defines[r.Define] = r.Help
+	tests := []struct {
+		name string
+	}{
+		{name: "notify list, delete, and config commands defined"},
 	}
 
-	assert.Contains(t, defines, "notify list")
-	assert.Contains(t, defines, "notify delete [string]")
-	assert.Contains(t, defines, "notify config")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, commandRules)
+
+			defines := make(map[string]string)
+			for _, r := range commandRules {
+				defines[r.Define] = r.Help
+			}
+
+			assert.Contains(t, defines, "notify list")
+			assert.Contains(t, defines, "notify delete [string]")
+			assert.Contains(t, defines, "notify config")
+		})
+	}
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
-	for _, r := range commandRules {
-		assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+	tests := []struct {
+		name string
+	}{
+		{name: "all command rules have handlers"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, r := range commandRules {
+				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
+			}
+		})
 	}
 }
 
 func TestFormRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, formRules)
-
-	found := false
-	for _, r := range formRules {
-		if r.Id == createNotifyFormID {
-			found = true
-			assert.True(t, r.IsLongTerm)
-			assert.NotEmpty(t, r.Title)
-			assert.NotEmpty(t, r.Field)
-			assert.NotNil(t, r.Handler)
-		}
+	tests := []struct {
+		name string
+	}{
+		{name: "create_notify form rule is defined with fields"},
 	}
-	assert.True(t, found, "create_notify form rule should be defined")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, formRules)
+
+			found := false
+			for _, r := range formRules {
+				if r.Id == createNotifyFormID {
+					found = true
+					assert.True(t, r.IsLongTerm)
+					assert.NotEmpty(t, r.Title)
+					assert.NotEmpty(t, r.Field)
+					assert.NotNil(t, r.Handler)
+				}
+			}
+			assert.True(t, found, "create_notify form rule should be defined")
+		})
+	}
 }
 
 func TestCronRules_Defined(t *testing.T) {
-	assert.NotEmpty(t, cronRules)
+	tests := []struct {
+		name string
+	}{
+		{name: "cron rules are defined"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, cronRules)
+		})
+	}
 }
 
 func TestRules_ReturnsAllRulesets(t *testing.T) {
-	handler = moduleHandler{initialized: true}
-	rules := handler.Rules()
-	assert.NotEmpty(t, rules)
-	assert.Len(t, rules, 3) // commandRules, formRules, cronRules
+	tests := []struct {
+		name string
+	}{
+		{name: "handler returns three rulesets"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler = moduleHandler{initialized: true}
+			rules := handler.Rules()
+			assert.NotEmpty(t, rules)
+			assert.Len(t, rules, 3)
+		})
+	}
 }

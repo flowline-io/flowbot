@@ -1,39 +1,47 @@
 package utils
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestSameStringSlice(t *testing.T) {
-	type args struct {
-		x []string
-		y []string
-	}
 	tests := []struct {
 		name string
-		args args
+		x    []string
+		y    []string
 		want bool
 	}{
 		{
-			name: "equal",
-			args: args{
-				x: []string{"a", "b", "c", "d", "e"},
-				y: []string{"d", "a", "e", "b", "c"},
-			},
+			name: "equal sets",
+			x:    []string{"a", "b", "c", "d", "e"},
+			y:    []string{"d", "a", "e", "b", "c"},
 			want: true,
 		},
 		{
-			name: "not-equal",
-			args: args{
-				x: []string{"a", "b", "c", "d", "e"},
-				y: []string{"d", "a", "f", "b", "c"},
-			},
+			name: "different sets",
+			x:    []string{"a", "b", "c", "d", "e"},
+			y:    []string{"d", "a", "f", "b", "c"},
+			want: false,
+		},
+		{
+			name: "empty slices",
+			x:    []string{},
+			y:    []string{},
+			want: true,
+		},
+		{
+			name: "one empty",
+			x:    []string{"a"},
+			y:    []string{},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SameStringSlice(tt.args.x, tt.args.y); got != tt.want {
-				t.Errorf("SameStringSlice() = %v, want %v", got, tt.want)
-			}
+			got := SameStringSlice(tt.x, tt.y)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

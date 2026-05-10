@@ -20,108 +20,188 @@ func newTestCmd(serverURL, profile string, debug bool) *cobra.Command {
 }
 
 func TestNewClientErrorNoServerURL(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "missing server URL returns error"},
+	}
 
-	cmd := newTestCmd("", "", false)
-	c, err := NewClient(cmd)
-	require.Error(t, err)
-	require.Nil(t, c)
-	require.Contains(t, err.Error(), "server URL is required")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			cmd := newTestCmd("", "", false)
+			c, err := NewClient(cmd)
+			require.Error(t, err)
+			require.Nil(t, c)
+			require.Contains(t, err.Error(), "server URL is required")
+		})
+	}
 }
 
 func TestNewClientErrorNoToken(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "missing token returns error"},
+	}
 
-	cmd := newTestCmd("https://flowbot.example.com", "", false)
-	c, err := NewClient(cmd)
-	require.Error(t, err)
-	require.Nil(t, c)
-	require.Contains(t, err.Error(), "not logged in")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			cmd := newTestCmd("https://flowbot.example.com", "", false)
+			c, err := NewClient(cmd)
+			require.Error(t, err)
+			require.Nil(t, c)
+			require.Contains(t, err.Error(), "not logged in")
+		})
+	}
 }
 
 func TestNewClientWithEnvServerURL(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
-	t.Setenv("FLOWBOT_SERVER_URL", "https://env.flowbot.example.com")
+	tests := []struct {
+		name string
+	}{
+		{name: "env server URL still fails without token"},
+	}
 
-	cmd := newTestCmd("", "", false)
-	c, err := NewClient(cmd)
-	require.Error(t, err) // still fails because no token
-	require.Nil(t, c)
-	require.Contains(t, err.Error(), "not logged in")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+			t.Setenv("FLOWBOT_SERVER_URL", "https://env.flowbot.example.com")
+
+			cmd := newTestCmd("", "", false)
+			c, err := NewClient(cmd)
+			require.Error(t, err) // still fails because no token
+			require.Nil(t, c)
+			require.Contains(t, err.Error(), "not logged in")
+		})
+	}
 }
 
 func TestNewClientWithEnvDebug(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
-	t.Setenv("FLOWBOT_DEBUG", "true")
+	tests := []struct {
+		name string
+	}{
+		{name: "env debug flag still fails without token"},
+	}
 
-	cmd := newTestCmd("https://flowbot.example.com", "", false)
-	c, err := NewClient(cmd)
-	require.Error(t, err) // still fails because no token
-	require.Nil(t, c)
-	require.Contains(t, err.Error(), "not logged in")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+			t.Setenv("FLOWBOT_DEBUG", "true")
+
+			cmd := newTestCmd("https://flowbot.example.com", "", false)
+			c, err := NewClient(cmd)
+			require.Error(t, err) // still fails because no token
+			require.Nil(t, c)
+			require.Contains(t, err.Error(), "not logged in")
+		})
+	}
 }
 
 func TestNewClientWithStoredConfig(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "stored config creates client successfully"},
+	}
 
-	cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
-	require.NoError(t, os.MkdirAll(cfgDir, 0750))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://stored.flowbot.example.com"), 0600))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	cmd := newTestCmd("", "", false)
-	c, err := NewClient(cmd)
-	require.NoError(t, err)
-	require.NotNil(t, c)
+			cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+			require.NoError(t, os.MkdirAll(cfgDir, 0750))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://stored.flowbot.example.com"), 0600))
+
+			cmd := newTestCmd("", "", false)
+			c, err := NewClient(cmd)
+			require.NoError(t, err)
+			require.NotNil(t, c)
+		})
+	}
 }
 
 func TestNewClientWithDebugFlag(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "debug flag from CLI with stored config creates client"},
+	}
 
-	cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
-	require.NoError(t, os.MkdirAll(cfgDir, 0750))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://s.example.com"), 0600))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	cmd := newTestCmd("", "", true)
-	c, err := NewClient(cmd)
-	require.NoError(t, err)
-	require.NotNil(t, c)
+			cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+			require.NoError(t, os.MkdirAll(cfgDir, 0750))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://s.example.com"), 0600))
+
+			cmd := newTestCmd("", "", true)
+			c, err := NewClient(cmd)
+			require.NoError(t, err)
+			require.NotNil(t, c)
+		})
+	}
 }
 
 func TestNewClientWithStoredDebug(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "stored debug config creates client"},
+	}
 
-	cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
-	require.NoError(t, os.MkdirAll(cfgDir, 0750))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://s.example.com"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "debug"), []byte("true"), 0600))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	cmd := newTestCmd("", "", false)
-	c, err := NewClient(cmd)
-	require.NoError(t, err)
-	require.NotNil(t, c)
+			cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+			require.NoError(t, os.MkdirAll(cfgDir, 0750))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://s.example.com"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "debug"), []byte("true"), 0600))
+
+			cmd := newTestCmd("", "", false)
+			c, err := NewClient(cmd)
+			require.NoError(t, err)
+			require.NotNil(t, c)
+		})
+	}
 }
 
 func TestNewClientFlagOverridesStored(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	tests := []struct {
+		name string
+	}{
+		{name: "CLI flag overrides stored server URL"},
+	}
 
-	cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
-	require.NoError(t, os.MkdirAll(cfgDir, 0750))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://stored.example.com"), 0600))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
 
-	cmd := newTestCmd("https://flag.example.com", "", false)
-	c, err := NewClient(cmd)
-	require.NoError(t, err)
-	require.NotNil(t, c)
+			cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+			require.NoError(t, os.MkdirAll(cfgDir, 0750))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte("test-token"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://stored.example.com"), 0600))
+
+			cmd := newTestCmd("https://flag.example.com", "", false)
+			c, err := NewClient(cmd)
+			require.NoError(t, err)
+			require.NotNil(t, c)
+		})
+	}
 }

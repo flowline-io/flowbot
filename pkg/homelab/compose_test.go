@@ -22,42 +22,70 @@ networks:
   proxy: {}
   backend: {}
 `)
-	services, networks, ports, labels, err := ParseCompose(data)
-	require.NoError(t, err)
-	require.Len(t, services, 1)
 
-	assert.Equal(t, "web", services[0].Name)
-	assert.Equal(t, "archivebox/archivebox:latest", services[0].Image)
-	assert.Equal(t, "archivebox", services[0].Container)
-	require.Len(t, services[0].Ports, 1)
-	assert.Equal(t, "8080", services[0].Ports[0].HostPort)
-	assert.Equal(t, "8000", services[0].Ports[0].Container)
-	assert.Equal(t, "tcp", services[0].Ports[0].Protocol)
+	tests := []struct {
+		name string
+	}{
+		{name: "valid compose document with all fields"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			services, networks, ports, labels, err := ParseCompose(data)
+			require.NoError(t, err)
+			require.Len(t, services, 1)
 
-	require.Len(t, ports, 1)
-	assert.Equal(t, "8080", ports[0].HostPort)
+			assert.Equal(t, "web", services[0].Name)
+			assert.Equal(t, "archivebox/archivebox:latest", services[0].Image)
+			assert.Equal(t, "archivebox", services[0].Container)
+			require.Len(t, services[0].Ports, 1)
+			assert.Equal(t, "8080", services[0].Ports[0].HostPort)
+			assert.Equal(t, "8000", services[0].Ports[0].Container)
+			assert.Equal(t, "tcp", services[0].Ports[0].Protocol)
 
-	assert.ElementsMatch(t, []string{"proxy", "backend"}, networks)
+			require.Len(t, ports, 1)
+			assert.Equal(t, "8080", ports[0].HostPort)
 
-	assert.Equal(t, "archive", labels["flowbot.capability"])
-	assert.Equal(t, "production", labels["flowbot.env"])
+			assert.ElementsMatch(t, []string{"proxy", "backend"}, networks)
+
+			assert.Equal(t, "archive", labels["flowbot.capability"])
+			assert.Equal(t, "production", labels["flowbot.env"])
+		})
+	}
 }
 
 func TestParseCompose_InvalidYAML(t *testing.T) {
-	data := []byte(`services: {{{invalid`)
-	_, _, _, _, err := ParseCompose(data)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "parse compose")
+	tests := []struct {
+		name string
+		data []byte
+	}{
+		{name: "invalid YAML content", data: []byte(`services: {{{invalid`)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, _, _, err := ParseCompose(tt.data)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "parse compose")
+		})
+	}
 }
 
 func TestParseCompose_EmptyDocument(t *testing.T) {
-	data := []byte(``)
-	services, networks, ports, labels, err := ParseCompose(data)
-	require.NoError(t, err)
-	assert.Empty(t, services)
-	assert.Empty(t, networks)
-	assert.Empty(t, ports)
-	assert.Empty(t, labels)
+	tests := []struct {
+		name string
+		data []byte
+	}{
+		{name: "empty document", data: []byte(``)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			services, networks, ports, labels, err := ParseCompose(tt.data)
+			require.NoError(t, err)
+			assert.Empty(t, services)
+			assert.Empty(t, networks)
+			assert.Empty(t, ports)
+			assert.Empty(t, labels)
+		})
+	}
 }
 
 func TestParseCompose_NoServices(t *testing.T) {
@@ -65,14 +93,24 @@ func TestParseCompose_NoServices(t *testing.T) {
 networks:
   proxy: {}
 `)
-	services, networks, ports, labels, err := ParseCompose(data)
-	require.NoError(t, err)
-	assert.Empty(t, services)
-	assert.Equal(t, []string{"proxy"}, networks)
-	assert.Empty(t, ports)
-	assert.Empty(t, labels)
-	_ = networks
-	_ = labels
+
+	tests := []struct {
+		name string
+	}{
+		{name: "compose with no services section"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			services, networks, ports, labels, err := ParseCompose(data)
+			require.NoError(t, err)
+			assert.Empty(t, services)
+			assert.Equal(t, []string{"proxy"}, networks)
+			assert.Empty(t, ports)
+			assert.Empty(t, labels)
+			_ = networks
+			_ = labels
+		})
+	}
 }
 
 func TestParseCompose_MultipleServices(t *testing.T) {
@@ -86,22 +124,32 @@ services:
     image: postgres:15
     container_name: postgres
 `)
-	services, _, ports, _, err := ParseCompose(data)
-	require.NoError(t, err)
-	require.Len(t, services, 2)
 
-	svcMap := make(map[string]ComposeService)
-	for _, s := range services {
-		svcMap[s.Name] = s
+	tests := []struct {
+		name string
+	}{
+		{name: "compose with multiple services"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			services, _, ports, _, err := ParseCompose(data)
+			require.NoError(t, err)
+			require.Len(t, services, 2)
 
-	assert.Equal(t, "nginx:latest", svcMap["web"].Image)
-	assert.Equal(t, "postgres:15", svcMap["db"].Image)
-	assert.Equal(t, "postgres", svcMap["db"].Container)
-	assert.Empty(t, svcMap["web"].Container)
+			svcMap := make(map[string]ComposeService)
+			for _, s := range services {
+				svcMap[s.Name] = s
+			}
 
-	require.Len(t, ports, 1)
-	assert.Equal(t, "80", ports[0].HostPort)
+			assert.Equal(t, "nginx:latest", svcMap["web"].Image)
+			assert.Equal(t, "postgres:15", svcMap["db"].Image)
+			assert.Equal(t, "postgres", svcMap["db"].Container)
+			assert.Empty(t, svcMap["web"].Container)
+
+			require.Len(t, ports, 1)
+			assert.Equal(t, "80", ports[0].HostPort)
+		})
+	}
 }
 
 func TestParseCompose_PortMapFormat(t *testing.T) {
@@ -114,12 +162,22 @@ services:
         target: 3000
         protocol: udp
 `)
-	_, _, ports, _, err := ParseCompose(data)
-	require.NoError(t, err)
-	require.Len(t, ports, 1)
-	assert.Equal(t, "8080", ports[0].HostPort)
-	assert.Equal(t, "3000", ports[0].Container)
-	assert.Equal(t, "udp", ports[0].Protocol)
+
+	tests := []struct {
+		name string
+	}{
+		{name: "port map format"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, ports, _, err := ParseCompose(data)
+			require.NoError(t, err)
+			require.Len(t, ports, 1)
+			assert.Equal(t, "8080", ports[0].HostPort)
+			assert.Equal(t, "3000", ports[0].Container)
+			assert.Equal(t, "udp", ports[0].Protocol)
+		})
+	}
 }
 
 func TestParseCompose_PortStringFormats(t *testing.T) {
@@ -161,15 +219,15 @@ func TestParseCompose_PortStringFormats(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			_, _, ports, _, err := ParseCompose([]byte(tc.yaml))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, ports, _, err := ParseCompose([]byte(tt.yaml))
 			require.NoError(t, err)
 			require.Len(t, ports, 1)
-			assert.Equal(t, tc.hostPort, ports[0].HostPort)
-			assert.Equal(t, tc.container, ports[0].Container)
-			assert.Equal(t, tc.host, ports[0].Host)
-			assert.Equal(t, tc.protocol, ports[0].Protocol)
+			assert.Equal(t, tt.hostPort, ports[0].HostPort)
+			assert.Equal(t, tt.container, ports[0].Container)
+			assert.Equal(t, tt.host, ports[0].Host)
+			assert.Equal(t, tt.protocol, ports[0].Protocol)
 		})
 	}
 }
@@ -185,35 +243,72 @@ services:
       - "homepage.name=Traefik"
       - keyonly
 `)
-	_, _, _, labels, err := ParseCompose(data)
-	require.NoError(t, err)
-	assert.Equal(t, "true", labels["traefik.enable"])
-	assert.Equal(t, "Server", labels["homepage.group"])
-	assert.Equal(t, "Traefik", labels["homepage.name"])
-	assert.Equal(t, "", labels["keyonly"])
+
+	tests := []struct {
+		name string
+	}{
+		{name: "labels in list format"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, _, labels, err := ParseCompose(data)
+			require.NoError(t, err)
+			assert.Equal(t, "true", labels["traefik.enable"])
+			assert.Equal(t, "Server", labels["homepage.group"])
+			assert.Equal(t, "Traefik", labels["homepage.name"])
+			assert.Equal(t, "", labels["keyonly"])
+		})
+	}
 }
 
 func TestNormalizeLabels_MapFormat(t *testing.T) {
-	raw := map[string]any{
-		"env":  "prod",
-		"tier": 1,
+	tests := []struct {
+		name string
+		raw  map[string]any
+	}{
+		{name: "map format labels", raw: map[string]any{
+			"env":  "prod",
+			"tier": 1,
+		}},
 	}
-	result := normalizeLabels(raw)
-	assert.Equal(t, "prod", result["env"])
-	assert.Equal(t, "1", result["tier"])
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := normalizeLabels(tt.raw)
+			assert.Equal(t, "prod", result["env"])
+			assert.Equal(t, "1", result["tier"])
+		})
+	}
 }
 
 func TestNormalizeLabels_ListFormat(t *testing.T) {
-	raw := []any{"key1=val1", "key2=val2 with spaces", "keyonly"}
-	result := normalizeLabels(raw)
-	assert.Equal(t, "val1", result["key1"])
-	assert.Equal(t, "val2 with spaces", result["key2"])
-	assert.Equal(t, "", result["keyonly"])
+	tests := []struct {
+		name string
+		raw  []any
+	}{
+		{name: "list format labels", raw: []any{"key1=val1", "key2=val2 with spaces", "keyonly"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := normalizeLabels(tt.raw)
+			assert.Equal(t, "val1", result["key1"])
+			assert.Equal(t, "val2 with spaces", result["key2"])
+			assert.Equal(t, "", result["keyonly"])
+		})
+	}
 }
 
 func TestNormalizeLabels_Nil(t *testing.T) {
-	result := normalizeLabels(nil)
-	assert.Empty(t, result)
+	tests := []struct {
+		name string
+	}{
+		{name: "nil input returns empty map"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := normalizeLabels(nil)
+			assert.Empty(t, result)
+		})
+	}
 }
 
 func TestParseCompose_LabelsAcrossServices(t *testing.T) {
@@ -229,8 +324,18 @@ services:
       env: prod
       tier: backend
 `)
-	_, _, _, labels, err := ParseCompose(data)
-	require.NoError(t, err)
-	assert.Equal(t, "prod", labels["env"])
-	assert.Equal(t, "backend", labels["tier"])
+
+	tests := []struct {
+		name string
+	}{
+		{name: "labels merged across services"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, _, labels, err := ParseCompose(data)
+			require.NoError(t, err)
+			assert.Equal(t, "prod", labels["env"])
+			assert.Equal(t, "backend", labels["tier"])
+		})
+	}
 }
