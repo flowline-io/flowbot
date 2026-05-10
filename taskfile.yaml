@@ -139,22 +139,17 @@ tasks:
   test:mutation:
     desc: Run mutation testing with survival rate check (threshold 60%)
     cmds:
-      - go tool gremlins unleash --threshold-efficacy=0.60 --threshold-mcover=0.60 ./pkg/...
-
-  test:mutation:pkg:
-    desc: Run mutation testing on pkg/ only
-    cmds:
-      - go tool gremlins unleash --threshold-efficacy=0.60 --threshold-mcover=0.60 ./pkg/...
+      - go tool gremlins unleash --threshold-efficacy=0.60 --threshold-mcover=0.60 --timeout-coefficient=10 ./...
 
   test:mutation:score:
     desc: Show mutation score without enforcing threshold
     cmds:
-      - go tool gremlins unleash --threshold-efficacy=0 --threshold-mcover=0 ./pkg/...
+      - go tool gremlins unleash --threshold-efficacy=0 --threshold-mcover=0 --timeout-coefficient=10 ./...
 
   test:mutation:report:
     desc: Mutation report to file
     cmds:
-      - go tool gremlins unleash -o mutation-report.json ./pkg/...
+      - go tool gremlins unleash -o mutation-report.json ./...
 
   # Documentation tasks
   swagger:

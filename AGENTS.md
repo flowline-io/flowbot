@@ -36,15 +36,11 @@ Homelab Data Hub & Capability Orchestration Center.
 - **Events**: DataEvent → MySQL data_events → Redis Stream → pipeline_runs
 - **Testing**: `*_test.go` next to code, table-driven, testify require/assert, `gotestsum`
 - **Table-driven**: All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`.
-- **Mutation testing**: `gremlins` enforces >= 60% mutation survival rate in CI (`threshold-efficacy=0.60`, `threshold-mcover=0.60`). See `docs/testing/table-driven-standard.md` for full standard.
 
 ```bash
 go test ./pkg/utils
 go test -run ^TestFoo$ ./pkg/utils
 go tool task test              # All tests
-go tool task test:integration  # Integration tests (requires Docker)
-go tool task test:mutation     # Mutation testing with threshold check
-go tool task test:mutation:pkg # Mutation testing on pkg/ only
 ```
 
 ## Anti-Patterns
