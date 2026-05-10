@@ -5,9 +5,13 @@ on:
     branches:
       - '*'
     paths-ignore:
+      - 'cmd/cli/**'
+      - 'cmd/composer/**'
       - 'docs/**'
   pull_request:
     paths-ignore:
+      - 'cmd/cli/**'
+      - 'cmd/composer/**'
       - 'docs/**'
 
 permissions:
