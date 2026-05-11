@@ -14,15 +14,19 @@ func TestStringListParam_StringSlice(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		tags any
+		want []string
 	}{
-		{"string slice tags are returned as-is"},
+		{"string slice tags are returned as-is", []string{"a", "b"}, []string{"a", "b"}},
+		{"single element string slice returns correctly", []string{"only"}, []string{"only"}},
+		{"multi-element with empty strings returns correctly", []string{"a", "", "c"}, []string{"a", "", "c"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			v, ok := stringListParam(map[string]any{"tags": []string{"a", "b"}}, "tags")
+			v, ok := stringListParam(map[string]any{"tags": tt.tags}, "tags")
 			assert.True(t, ok)
-			assert.Equal(t, []string{"a", "b"}, v)
+			assert.Equal(t, tt.want, v)
 		})
 	}
 }
@@ -31,15 +35,19 @@ func TestStringListParam_AnySlice(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		tags any
+		want []string
 	}{
-		{"any slice tags are converted to strings"},
+		{"any slice tags are converted to strings", []any{"x", "y"}, []string{"x", "y"}},
+		{"single element any slice converted correctly", []any{"single"}, []string{"single"}},
+		{"any slice with empty string preserved", []any{"a", "", "c"}, []string{"a", "", "c"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			v, ok := stringListParam(map[string]any{"tags": []any{"x", "y"}}, "tags")
+			v, ok := stringListParam(map[string]any{"tags": tt.tags}, "tags")
 			assert.True(t, ok)
-			assert.Equal(t, []string{"x", "y"}, v)
+			assert.Equal(t, tt.want, v)
 		})
 	}
 }
@@ -48,15 +56,19 @@ func TestStringListParam_AnySliceMixedTypes(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		tags any
+		want []string
 	}{
-		{"mixed type any slice with non-string values skipped"},
+		{"mixed type any slice with non-string values skipped", []any{"a", 42}, []string{"a"}},
+		{"mixed types with float and string returns only strings", []any{"a", 3.14, "b"}, []string{"a", "b"}},
+		{"mixed types all non-string returns empty", []any{1, true, 3.5}, []string{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			v, ok := stringListParam(map[string]any{"tags": []any{"a", 42}}, "tags")
+			v, ok := stringListParam(map[string]any{"tags": tt.tags}, "tags")
 			assert.True(t, ok)
-			assert.Equal(t, []string{"a"}, v)
+			assert.Equal(t, tt.want, v)
 		})
 	}
 }
@@ -64,14 +76,17 @@ func TestStringListParam_AnySliceMixedTypes(t *testing.T) {
 func TestStringListParam_Missing(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name   string
+		params map[string]any
 	}{
-		{"missing key returns false"},
+		{"missing key returns false", map[string]any{}},
+		{"missing key with other keys present returns false", map[string]any{"other": "val"}},
+		{"empty params map returns false", map[string]any{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, ok := stringListParam(map[string]any{}, "tags")
+			_, ok := stringListParam(tt.params, "tags")
 			assert.False(t, ok)
 		})
 	}
@@ -80,14 +95,17 @@ func TestStringListParam_Missing(t *testing.T) {
 func TestStringListParam_Nil(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name   string
+		params map[string]any
 	}{
-		{"nil value returns false"},
+		{"nil value returns false", map[string]any{"tags": nil}},
+		{"nil map returns false for any key", nil},
+		{"nil value in populated map returns false", map[string]any{"tags": nil, "other": "val"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, ok := stringListParam(map[string]any{"tags": nil}, "tags")
+			_, ok := stringListParam(tt.params, "tags")
 			assert.False(t, ok)
 		})
 	}
@@ -97,13 +115,16 @@ func TestStringListParam_NonSlice(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		val  any
 	}{
-		{"non-slice value returns false"},
+		{"non-slice value returns false", "string"},
+		{"integer value returns false", 42},
+		{"boolean value returns false", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, ok := stringListParam(map[string]any{"tags": "string"}, "tags")
+			_, ok := stringListParam(map[string]any{"tags": tt.val}, "tags")
 			assert.False(t, ok)
 		})
 	}
@@ -113,13 +134,20 @@ func TestStringListParam_EmptyAnySlice(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		tags any
 	}{
-		{"empty any slice returns true with empty result"},
+		{"empty any slice returns true with empty result", []any{}},
+		{"empty string slice returns true with empty result", []string{}},
+		{"empty any slice with other keys returns true with empty result", []any{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			v, ok := stringListParam(map[string]any{"tags": []any{}}, "tags")
+			params := map[string]any{"tags": tt.tags}
+			if tt.name == "empty any slice with other keys returns true with empty result" {
+				params["other"] = "val"
+			}
+			v, ok := stringListParam(params, "tags")
 			assert.True(t, ok)
 			assert.Empty(t, v)
 		})
@@ -130,19 +158,22 @@ func TestDescriptor(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name        string
+		backend     string
+		app         string
 		svc         Service
 		wantHealthy bool
 	}{
-		{"nil service produces unhealthy descriptor", nil, false},
-		{"non-nil service produces healthy descriptor", &mockService{}, true},
+		{"nil service produces unhealthy descriptor", "kanboard", "kanboard", nil, false},
+		{"non-nil service produces healthy descriptor", "kanboard", "kanboard", &mockService{}, true},
+		{"different backend and app names produce correct descriptor", "wekan", "wekan-instance", &mockService{}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			desc := Descriptor("kanboard", "kanboard", tt.svc)
+			desc := Descriptor(tt.backend, tt.app, tt.svc)
 			assert.Equal(t, hub.CapKanban, desc.Type)
-			assert.Equal(t, "kanboard", desc.Backend)
-			assert.Equal(t, "kanboard", desc.App)
+			assert.Equal(t, tt.backend, desc.Backend)
+			assert.Equal(t, tt.app, desc.App)
 			assert.Equal(t, tt.wantHealthy, desc.Healthy)
 			assert.Equal(t, "Kanban capability", desc.Description)
 			assert.Len(t, desc.Operations, 9)

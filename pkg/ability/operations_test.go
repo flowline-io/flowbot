@@ -113,6 +113,8 @@ func TestOpFinanceCapability(t *testing.T) {
 		want string
 	}{
 		{"CreateTransaction returns create_transaction", hub.CapFinance, "CreateTransaction", "create_transaction"},
+		{"unknown key returns empty", hub.CapFinance, "UnknownOperation", ""},
+		{"empty key returns empty", hub.CapFinance, "", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -131,6 +133,8 @@ func TestOpUnknownCapability(t *testing.T) {
 		want string
 	}{
 		{"unknown capability returns empty", "unknown_cap", "SomeKey", ""},
+		{"numeric capability string returns empty", "cap_123", "List", ""},
+		{"completely bogus capability returns empty", "???#$%", "AnyOp", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -149,6 +153,8 @@ func TestOpUnknownKey(t *testing.T) {
 		want string
 	}{
 		{"unknown key returns empty", hub.CapBookmark, "UnknownKey", ""},
+		{"unknown key on reader returns empty", hub.CapReader, "NonExistent", ""},
+		{"unknown key on kanban returns empty", hub.CapKanban, "InvalidOp", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -167,6 +173,8 @@ func TestOpEmptyCapability(t *testing.T) {
 		want string
 	}{
 		{"empty capability returns empty", "", "anything", ""},
+		{"empty capability with empty key returns empty", "", "", ""},
+		{"empty capability with valid known key returns empty", "", "List", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -7,32 +7,65 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var registerSeq atomic.Int32
 
 func TestRegister(t *testing.T) {
-	testFunc := func() {}
+	tests := []struct {
+		name      string
+		testFunc  func()
+	}{
+		{name: "registers function successfully", testFunc: func() {}},
+		{name: "registers second function with unique name", testFunc: func() {}},
+		{name: "registers nil func", testFunc: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			uniqueName := fmt.Sprintf("test_unique_%d_%d", os.Getpid(), registerSeq.Add(1))
 
-	uniqueName := fmt.Sprintf("test_unique_%d_%d", os.Getpid(), registerSeq.Add(1))
+			Register(uniqueName, tt.testFunc)
+			t.Logf("Successfully registered function with name: %s", uniqueName)
+		})
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testFunc := func() {}
 
-	Register(uniqueName, testFunc)
-	t.Logf("Successfully registered function with name: %s", uniqueName)
+			uniqueName := fmt.Sprintf("test_unique_%d_%d", os.Getpid(), registerSeq.Add(1))
+
+			Register(uniqueName, testFunc)
+			t.Logf("Successfully registered function with name: %s", uniqueName)
+		})
+	}
 }
 
 func TestCommand(t *testing.T) {
 	t.Parallel()
 
-	cmd := Command("nonexistent")
-	// On unsupported platforms (like Windows), Command returns nil
-	if cmd == nil {
-		t.Skip("Command not supported on this platform")
-		return
+	tests := []struct {
+		name     string
+		cmdName  string
+	}{
+		{name: "creates command for nonexistent", cmdName: "nonexistent"},
+		{name: "creates command for empty string", cmdName: ""},
+		{name: "creates command for native command", cmdName: "echo"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := Command(tt.cmdName)
+			// On unsupported platforms (like Windows), Command returns nil
+			if cmd == nil {
+				t.Skip("Command not supported on this platform")
+				return
+			}
 
-	// Test that we can create a command - if we reach here, cmd is not nil
-	t.Logf("Command created successfully for nonexistent command")
+			// Test that we can create a command - if we reach here, cmd is not nil
+			t.Logf("Command created successfully for %q", tt.cmdName)
+		})
+	}
 }
 
 func TestNaiveSelf(t *testing.T) {
@@ -40,23 +73,42 @@ func TestNaiveSelf(t *testing.T) {
 		os.Exit(2)
 	}
 
-	selfPath := naiveSelf()
-	if selfPath == "" {
-		t.Skip("naiveSelf returned empty string on this platform")
-		return
+	tests := []struct {
+		name       string
+		performCmdExec bool
+		checkFallback bool
+	}{
+		{name: "naiveSelf returns correct path and handles args", performCmdExec: true, checkFallback: true},
+		{name: "naiveSelf falls back when os.Args[0] is not self", performCmdExec: false, checkFallback: true},
+		{name: "naiveSelf returns non-empty on linux", performCmdExec: false, checkFallback: false},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			selfPath := naiveSelf()
+			if selfPath == "" {
+				t.Skip("naiveSelf returned empty string on this platform")
+				return
+			}
 
-	cmd := exec.Command(selfPath, "-test.run=TestNaiveSelf")
-	cmd.Env = append(os.Environ(), "TEST_CHECK=1")
-	err := cmd.Start()
-	assert.NilError(t, err, "Unable to start command")
-	err = cmd.Wait()
-	assert.Error(t, err, "exit status 2")
+			if tt.performCmdExec {
+				cmd := exec.Command(selfPath, "-test.run=TestNaiveSelf")
+				cmd.Env = append(os.Environ(), "TEST_CHECK=1")
+				err := cmd.Start()
+				require.NoError(t, err, "Unable to start command")
+				err = cmd.Wait()
+				require.ErrorContains(t, err, "exit status 2")
+			}
 
-	originalArg := os.Args[0]
-	os.Args[0] = "mkdir"
-	assert.Check(t, naiveSelf() != os.Args[0])
-	os.Args[0] = originalArg // Restore original value
+			if tt.checkFallback {
+				originalArg := os.Args[0]
+				os.Args[0] = "mkdir"
+				assert.NotEqual(t, os.Args[0], naiveSelf())
+				os.Args[0] = originalArg // Restore original value
+			} else {
+				require.NotEmpty(t, selfPath)
+			}
+		})
+	}
 }
 
 // TestInit tests the Init function behavior
@@ -67,14 +119,24 @@ func TestInit(t *testing.T) {
 		os.Args = originalArgs
 	}()
 
-	// Test with a non-existent command name
-	os.Args = []string{"nonexistent_command_test"}
-	result := Init()
-
-	// Should return false because no initializer is registered for this name
-	if result {
-		t.Error("Init() should return false for unregistered command")
+	tests := []struct {
+		name    string
+		cmdName string
+	}{
+		{name: "returns false for unregistered command", cmdName: "nonexistent_command_test"},
+		{name: "returns false for empty args", cmdName: ""},
+		{name: "returns false for another unregistered command", cmdName: "another_nonexistent"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Args = []string{tt.cmdName}
+			result := Init()
 
-	t.Logf("Init() correctly returned false for unregistered command")
+			if result {
+				assert.Fail(t, "Init() should return false for unregistered command")
+			}
+
+			t.Logf("Init() correctly returned false for command %q", tt.cmdName)
+		})
+	}
 }

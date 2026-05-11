@@ -1,27 +1,120 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHasHan(t *testing.T) {
 	t.Parallel()
-	require.True(t, HasHan("hello, 世界"))
-	require.False(t, HasHan("hello"))
+	tests := []struct {
+		name string
+		txt  string
+		want bool
+	}{
+		{
+			name: "with_chinese",
+			txt:  "hello, 世界",
+			want: true,
+		},
+		{
+			name: "no_chinese",
+			txt:  "hello",
+			want: false,
+		},
+		{
+			name: "empty_string",
+			txt:  "",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, HasHan(tt.txt))
+		})
+	}
 }
 
 func TestMasker(t *testing.T) {
 	t.Parallel()
-	require.Equal(t, "qwerty**********7890", Masker("qwertyuiop1234567890", 2))
+	tests := []struct {
+		name  string
+		input string
+		start int
+		want  string
+	}{
+		{
+			name:  "large_string",
+			input: "qwertyuiop1234567890",
+			start: 2,
+			want:  "qwerty**********7890",
+		},
+		{
+			name:  "empty_string",
+			input: "",
+			start: 0,
+			want:  "",
+		},
+		{
+			name:  "start_beyond_length",
+			input: "abc",
+			start: 5,
+			want:  "abc",
+		},
+		{
+			name:  "start_zero",
+			input: "abcdefghijk",
+			start: 0,
+			want:  "abcd***hijk",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, Masker(tt.input, tt.start))
+		})
+	}
 }
 
 func TestFirstUpper(t *testing.T) {
 	t.Parallel()
-	require.Equal(t, "Test", FirstUpper("test"))
-	require.Empty(t, FirstUpper(""))
+	tests := []struct {
+		name string
+		s    string
+		want string
+	}{
+		{
+			name: "lowercase",
+			s:    "test",
+			want: "Test",
+		},
+		{
+			name: "empty",
+			s:    "",
+			want: "",
+		},
+		{
+			name: "already_uppercase",
+			s:    "Test",
+			want: "Test",
+		},
+		{
+			name: "single_char",
+			s:    "a",
+			want: "A",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, FirstUpper(tt.s))
+		})
+	}
 }
 
 func TestMD5(t *testing.T) {
@@ -41,13 +134,25 @@ func TestMD5(t *testing.T) {
 			},
 			want: "e10adc3949ba59abbe56e057f20f883e",
 		},
+		{
+			name: "empty_string",
+			args: args{
+				txt: "",
+			},
+			want: "d41d8cd98f00b204e9800998ecf8427e",
+		},
+		{
+			name: "unicode_string",
+			args: args{
+				txt: "hello世界",
+			},
+			want: "e2c314313e19e12ed756183798a004d6",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := MD5(tt.args.txt); got != tt.want {
-				t.Errorf("MD5() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, MD5(tt.args.txt))
 		})
 	}
 }
@@ -69,13 +174,25 @@ func TestSHA1(t *testing.T) {
 			},
 			want: "7c4a8d09ca3762af61e59520943dc26494f8941b",
 		},
+		{
+			name: "empty_string",
+			args: args{
+				txt: "",
+			},
+			want: "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+		},
+		{
+			name: "unicode_string",
+			args: args{
+				txt: "hello世界",
+			},
+			want: "975930521ec6304d233626b03fafddce5c4d6bc7",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := SHA1(tt.args.txt); got != tt.want {
-				t.Errorf("SHA1() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, SHA1(tt.args.txt))
 		})
 	}
 }
@@ -106,13 +223,18 @@ func TestMarkdownTitle(t *testing.T) {
 			},
 			want: "test title",
 		},
+		{
+			name: "title_only_no_body",
+			args: args{
+				m: "# simple title",
+			},
+			want: "simple title",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := MarkdownTitle(tt.args.m); got != tt.want {
-				t.Errorf("MarkdownTitle() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, MarkdownTitle(tt.args.m))
 		})
 	}
 }
@@ -146,14 +268,13 @@ func TestRandomString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := RandomString(tt.n)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RandomString() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 			if !tt.wantErr {
-				if len(got) != tt.n {
-					t.Errorf("RandomString() length = %v, want %v", len(got), tt.n)
-				}
+				assert.Len(t, got, tt.n)
 				// Check that all characters are from the allowed set
 				for _, char := range got {
 					found := false
@@ -164,7 +285,7 @@ func TestRandomString(t *testing.T) {
 						}
 					}
 					if !found {
-						t.Errorf("RandomString() contains invalid character: %c", char)
+						assert.Fail(t, fmt.Sprintf("RandomString() contains invalid character: %c", char))
 					}
 				}
 			}
@@ -225,9 +346,7 @@ func TestIsUrl(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := IsUrl(tt.text); got != tt.want {
-				t.Errorf("IsUrl() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, IsUrl(tt.text))
 		})
 	}
 }
@@ -277,41 +396,39 @@ func TestFn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Fn(tt.public); got != tt.want {
-				t.Errorf("Fn() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, Fn(tt.public))
 		})
 	}
 }
 
-// TestNewUUID tests the NewUUID function
 func TestNewUUID(t *testing.T) {
-	uuid1 := NewUUID()
-	uuid2 := NewUUID()
+	t.Parallel()
 
-	// Test that UUIDs are not empty
-	if uuid1 == "" {
-		t.Error("NewUUID() returned empty string")
-	}
+	t.Run("not_empty", func(t *testing.T) {
+		t.Parallel()
+		assert.NotEmpty(t, NewUUID())
+	})
 
-	if uuid2 == "" {
-		t.Error("NewUUID() returned empty string")
-	}
+	t.Run("length_36", func(t *testing.T) {
+		t.Parallel()
+		assert.Len(t, NewUUID(), 36)
+	})
 
-	// Test that UUIDs are different
-	if uuid1 == uuid2 {
-		t.Error("NewUUID() returned same UUID twice")
-	}
+	t.Run("format", func(t *testing.T) {
+		t.Parallel()
+		uuid := NewUUID()
+		assert.Equal(t, byte('-'), uuid[8])
+		assert.Equal(t, byte('-'), uuid[13])
+		assert.Equal(t, byte('-'), uuid[18])
+		assert.Equal(t, byte('-'), uuid[23])
+	})
 
-	// Test UUID format (basic check for length and hyphens)
-	if len(uuid1) != 36 {
-		t.Errorf("NewUUID() length = %v, want 36", len(uuid1))
-	}
-
-	// Check for hyphens in correct positions
-	if uuid1[8] != '-' || uuid1[13] != '-' || uuid1[18] != '-' || uuid1[23] != '-' {
-		t.Errorf("NewUUID() format incorrect: %v", uuid1)
-	}
+	t.Run("unique", func(t *testing.T) {
+		t.Parallel()
+		uuid1 := NewUUID()
+		uuid2 := NewUUID()
+		assert.NotEqual(t, uuid1, uuid2)
+	})
 }
 
 // TestValidImageContentType tests the ValidImageContentType function
@@ -362,31 +479,44 @@ func TestValidImageContentType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := ValidImageContentType(tt.ct); got != tt.want {
-				t.Errorf("ValidImageContentType() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, ValidImageContentType(tt.ct))
 		})
 	}
 }
 
 // TestFileAndLine tests the FileAndLine function
 func TestFileAndLine(t *testing.T) {
-	result := FileAndLine()
-
-	// Should not be empty
-	if result == "" {
-		t.Error("FileAndLine() returned empty string")
+	t.Parallel()
+	tests := []struct {
+		name  string
+		check func(t *testing.T, result string)
+	}{
+		{
+			name: "non_empty",
+			check: func(t *testing.T, result string) {
+				assert.NotEmpty(t, result)
+			},
+		},
+		{
+			name: "contains_colon",
+			check: func(t *testing.T, result string) {
+				assert.Contains(t, result, ":")
+			},
+		},
+		{
+			name: "file_line_format",
+			check: func(t *testing.T, result string) {
+				parts := strings.Split(result, ":")
+				assert.GreaterOrEqual(t, len(parts), 2, "FileAndLine() should have file:line format: %v", result)
+			},
+		},
 	}
-
-	// Should contain a colon (separating file and line)
-	if !strings.Contains(result, ":") {
-		t.Errorf("FileAndLine() should contain colon: %v", result)
-	}
-
-	// Should end with a number (line number)
-	parts := strings.Split(result, ":")
-	if len(parts) < 2 {
-		t.Errorf("FileAndLine() should have file:line format: %v", result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := FileAndLine()
+			tt.check(t, result)
+		})
 	}
 }
 
@@ -419,12 +549,13 @@ func TestYamlToJson(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := YamlToJson(tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("YamlToJson() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 			if !tt.wantErr && got == nil {
-				t.Error("YamlToJson() returned nil data")
+				assert.Fail(t, "YamlToJson() returned nil data")
 			}
 		})
 	}
@@ -439,9 +570,8 @@ func FuzzHasHan(f *testing.F) {
 	f.Fuzz(func(t *testing.T, s string) {
 		got := HasHan(s)
 		if got && len(s) == 0 {
-			t.Error("HasHan() = true for empty string")
+			assert.Fail(t, "HasHan() = true for empty string")
 		}
-		// ASCII-only strings should not have Han characters
 		ascii := true
 		for _, r := range s {
 			if r > 127 {
@@ -449,9 +579,7 @@ func FuzzHasHan(f *testing.F) {
 				break
 			}
 		}
-		if ascii && got {
-			t.Errorf("HasHan(%q) = true for pure ASCII string", s)
-		}
+		assert.False(t, ascii && got, "HasHan(%q) = true for pure ASCII string", s)
 	})
 }
 
@@ -464,7 +592,7 @@ func FuzzIsUrl(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		if r := recover(); r != nil {
-			t.Fatalf("IsUrl panicked on %q: %v", s, r)
+			require.FailNow(t, fmt.Sprintf("IsUrl panicked on %q: %v", s, r))
 		}
 		_ = IsUrl(s)
 	})
@@ -478,12 +606,8 @@ func FuzzFirstUpper(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		got := FirstUpper(s)
-		if s == "" && got != "" {
-			t.Errorf("FirstUpper(%q) = %q, expected empty", s, got)
-		}
-		if s != "" && got == "" {
-			t.Errorf("FirstUpper(%q) = %q, expected non-empty", s, got)
-		}
+		assert.False(t, s == "" && got != "", "FirstUpper(%q) = %q, expected empty", s, got)
+		assert.False(t, s != "" && got == "", "FirstUpper(%q) = %q, expected non-empty", s, got)
 	})
 }
 
@@ -495,9 +619,8 @@ func FuzzMasker(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string, start int) {
 		got := Masker(input, start)
-		if len(got) != len(input) && input != "" && start < len(input) {
-			t.Errorf("Masker(%q, %d) len=%d, expected len=%d", input, start, len(got), len(input))
-		}
+		condition := len(got) != len(input) && input != "" && start < len(input)
+		assert.False(t, condition, "Masker(%q, %d) len=%d, expected len=%d", input, start, len(got), len(input))
 	})
 }
 
@@ -508,12 +631,8 @@ func FuzzMD5(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		got := MD5(s)
-		if len(got) != 32 {
-			t.Errorf("MD5(%q) = %q, len=%d, expected 32", s, got, len(got))
-		}
-		if got2 := MD5(s); got != got2 {
-			t.Errorf("MD5(%q) not deterministic: %q vs %q", s, got, got2)
-		}
+		assert.Len(t, got, 32)
+		assert.Equal(t, got, MD5(s))
 	})
 }
 
@@ -524,12 +643,8 @@ func FuzzSHA1(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		got := SHA1(s)
-		if len(got) != 40 {
-			t.Errorf("SHA1(%q) = %q, len=%d, expected 40", s, got, len(got))
-		}
-		if got2 := SHA1(s); got != got2 {
-			t.Errorf("SHA1(%q) not deterministic: %q vs %q", s, got, got2)
-		}
+		assert.Len(t, got, 40)
+		assert.Equal(t, got, SHA1(s))
 	})
 }
 
@@ -542,7 +657,7 @@ func FuzzMarkdownTitle(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		if r := recover(); r != nil {
-			t.Fatalf("MarkdownTitle panicked on %q: %v", s, r)
+			require.FailNow(t, fmt.Sprintf("MarkdownTitle panicked on %q: %v", s, r))
 		}
 		_ = MarkdownTitle(s)
 	})
@@ -555,7 +670,7 @@ func FuzzValidImageContentType(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		if r := recover(); r != nil {
-			t.Fatalf("ValidImageContentType panicked on %q: %v", s, r)
+			require.FailNow(t, fmt.Sprintf("ValidImageContentType panicked on %q: %v", s, r))
 		}
 		_ = ValidImageContentType(s)
 	})
@@ -569,9 +684,8 @@ func FuzzYamlToJson(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, data []byte) {
 		got, err := YamlToJson(data)
-		if err == nil && got == nil && len(data) > 0 {
-			t.Errorf("YamlToJson(%q) returned nil result with no error", data)
-		}
+		condition := err == nil && got == nil && len(data) > 0
+		assert.False(t, condition, "YamlToJson(%q) returned nil result with no error", data)
 	})
 }
 
@@ -581,7 +695,7 @@ func FuzzFn(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		if r := recover(); r != nil {
-			t.Fatalf("Fn panicked on %q: %v", s, r)
+			require.FailNow(t, fmt.Sprintf("Fn panicked on %q: %v", s, r))
 		}
 		_ = Fn(s)
 
@@ -607,14 +721,17 @@ func TestBoolToString(t *testing.T) {
 			b:    false,
 			want: "false",
 		},
+		{
+			name: "consistent_output",
+			b:    true,
+			want: "true",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := BoolToString(tt.b); got != tt.want {
-				t.Errorf("BoolToString() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, BoolToString(tt.b))
 		})
 	}
 }

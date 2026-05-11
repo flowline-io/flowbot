@@ -97,13 +97,13 @@ func TestFireflyIII_CurrentUser(t *testing.T) {
 				Message:   "",
 				Exception: "",
 			}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		assert.NoError(t, err)
-	}))
-	defer server.Close()
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
-	client := NewFireflyIII(server.URL, "test-token")
+		client := NewFireflyIII(server.URL, "test-token")
 		result, err := client.CurrentUser()
 
 		require.NoError(t, err)
@@ -161,10 +161,10 @@ func TestFireflyIII_CreateTransaction(t *testing.T) {
 				assert.Equal(t, http.MethodPost, r.Method)
 				w.Header().Set("Content-Type", "application/json")
 
-			body, _ := io.ReadAll(r.Body)
-			var reqData Transaction
-			err := sonic.Unmarshal(body, &reqData)
-			assert.NoError(t, err)
+				body, _ := io.ReadAll(r.Body)
+				var reqData Transaction
+				err := sonic.Unmarshal(body, &reqData)
+				assert.NoError(t, err)
 				assert.Equal(t, tt.transaction.ApplyRules, reqData.ApplyRules)
 				assert.Len(t, reqData.Transactions, len(tt.transaction.Transactions))
 

@@ -14,7 +14,6 @@ import (
 )
 
 func TestCommandRules_Metadata(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
@@ -53,14 +52,12 @@ func TestCommandRules_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			tt.test(t)
 		})
 	}
 }
 
 func TestCommandRules_TokenParsing(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name   string
 		define string
@@ -82,7 +79,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			tokens, err := parser.ParseString(tt.input)
 			require.NoError(t, err)
 
@@ -94,7 +90,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 }
 
 func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -102,7 +97,6 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			rs := command.Ruleset(commandRules)
 			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
 
@@ -114,7 +108,6 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 }
 
 func TestHubHealthHandler(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -122,7 +115,6 @@ func TestHubHealthHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldHubList := hub.Default.List()
 			oldHlList := homelab.DefaultRegistry.List()
 			defer func() {
@@ -160,7 +152,6 @@ func TestHubHealthHandler(t *testing.T) {
 }
 
 func TestHubAppsHandler(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name      string
 		apps      []homelab.App
@@ -187,7 +178,6 @@ func TestHubAppsHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := homelab.DefaultRegistry.List()
 			defer homelab.DefaultRegistry.Replace(oldList)
 
@@ -221,7 +211,6 @@ func TestHubAppsHandler(t *testing.T) {
 }
 
 func TestHubAppHandler(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name      string
 		appName   string
@@ -250,7 +239,6 @@ func TestHubAppHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := homelab.DefaultRegistry.List()
 			defer homelab.DefaultRegistry.Replace(oldList)
 
@@ -284,7 +272,6 @@ func TestHubAppHandler(t *testing.T) {
 }
 
 func TestHubCapabilitiesHandler(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -292,7 +279,6 @@ func TestHubCapabilitiesHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := hub.Default.List()
 			defer func() {
 				for _, d := range oldList {
@@ -329,7 +315,6 @@ func TestHubCapabilitiesHandler(t *testing.T) {
 }
 
 func TestHubAppStartHandler_PermissionDenied(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -337,7 +322,6 @@ func TestHubAppStartHandler_PermissionDenied(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := homelab.DefaultRegistry.List()
 			oldPerm := homelab.DefaultRegistry.Permissions()
 			defer func() {
@@ -372,7 +356,6 @@ func TestHubAppStartHandler_PermissionDenied(t *testing.T) {
 }
 
 func TestHubAppStopHandler_NotFound(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -380,7 +363,6 @@ func TestHubAppStopHandler_NotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := homelab.DefaultRegistry.List()
 			defer homelab.DefaultRegistry.Replace(oldList)
 
@@ -408,7 +390,6 @@ func TestHubAppStopHandler_NotFound(t *testing.T) {
 }
 
 func TestHubAppRestartHandler_PermissionDenied(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -416,7 +397,6 @@ func TestHubAppRestartHandler_PermissionDenied(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			oldList := homelab.DefaultRegistry.List()
 			oldPerm := homelab.DefaultRegistry.Permissions()
 			defer func() {
@@ -451,7 +431,6 @@ func TestHubAppRestartHandler_PermissionDenied(t *testing.T) {
 }
 
 func TestCheckLifecyclePermission(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name   string
 		perm   homelab.Permissions
@@ -469,7 +448,6 @@ func TestCheckLifecyclePermission(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.Equal(t, tt.want, checkLifecyclePermission(tt.perm, tt.action))
 		})
 	}

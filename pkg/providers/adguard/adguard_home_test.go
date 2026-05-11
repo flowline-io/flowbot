@@ -33,6 +33,26 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 			statusCode: http.StatusOK,
 			wantErr:    false,
 		},
+		{
+			name: "protection disabled and server not running",
+			response: ServerStatus{
+				DnsAddresses:      []string{"10.0.0.1"},
+				DnsPort:           5353,
+				HttpPort:          8080,
+				ProtectionEnabled: false,
+				Running:           false,
+				Version:           "v0.108.0",
+				Language:          "de",
+			},
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name:       "server returns empty body with zero values",
+			response:   ServerStatus{},
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -44,17 +64,17 @@ func TestAdGuardHome_GetStatus(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(tt.statusCode)
 				err := sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
-			assert.NoError(t, err)
-		}))
-		defer server.Close()
+				assert.NoError(t, err)
+			}))
+			defer server.Close()
 
-		client := NewAdGuardHome(server.URL, "admin", "password")
-		result, err := client.GetStatus()
+			client := NewAdGuardHome(server.URL, "admin", "password")
+			result, err := client.GetStatus()
 
-		if tt.wantErr {
-			assert.Error(t, err)
-		} else {
-			require.NoError(t, err)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
 				assert.Equal(t, tt.response.Version, result.Version)
 				assert.Equal(t, tt.response.ProtectionEnabled, result.ProtectionEnabled)
 				assert.Equal(t, tt.response.Running, result.Running)
@@ -91,11 +111,11 @@ func TestAdGuardHome_GetStats(t *testing.T) {
 				ReplacedSafebrowsing:  []int32{},
 				ReplacedParental:      []int32{},
 			}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		assert.NoError(t, err)
-	}))
-	defer server.Close()
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
 		client := NewAdGuardHome(server.URL, "admin", "password")
 		result, err := client.GetStats()

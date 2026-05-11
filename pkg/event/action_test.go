@@ -17,6 +17,7 @@ func TestEventConstants(t *testing.T) {
 	}{
 		{name: "MessageSendEvent", value: types.MessageSendEvent},
 		{name: "BotRunEvent", value: types.BotRunEvent},
+		{name: "InstructPushEvent", value: types.InstructPushEvent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -35,6 +36,7 @@ func TestActionFunctions(t *testing.T) {
 	}{
 		{name: "SendMessage", fn: SendMessage},
 		{name: "BotEventFire", fn: BotEventFire},
+		{name: "PublishMessage", fn: PublishMessage},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -37,6 +37,27 @@ func TestMessageStruct(t *testing.T) {
 			wantTpc: "general",
 			wantTyp: "text",
 		},
+		{
+			name:    "empty message",
+			msg:     types.Message{},
+			wantPl:  "",
+			wantTpc: "",
+			wantTyp: "",
+		},
+		{
+			name: "message with binary payload",
+			msg: types.Message{
+				Platform: "discord",
+				Topic:    "bot-log",
+				Payload: types.EventPayload{
+					Typ: "binary",
+					Src: []byte{0x01, 0x02, 0x03},
+				},
+			},
+			wantPl:  "discord",
+			wantTpc: "bot-log",
+			wantTyp: "binary",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -57,7 +78,7 @@ func TestBotEventStruct(t *testing.T) {
 		wantName  string
 		wantUID   string
 		wantTopic string
-		wantMsg   string
+		wantMsg   any
 	}{
 		{
 			name: "bot event with params",
@@ -73,6 +94,33 @@ func TestBotEventStruct(t *testing.T) {
 			wantUID:   "user123",
 			wantTopic: "personal",
 			wantMsg:   "Don't forget the meeting",
+		},
+		{
+			name: "empty bot event",
+			event: types.BotEvent{
+				Param: types.KV{},
+			},
+			wantName:  "",
+			wantUID:   "",
+			wantTopic: "",
+			wantMsg:   nil,
+		},
+		{
+			name: "bot event with multiple params",
+			event: types.BotEvent{
+				EventName: "notify",
+				Uid:       "user456",
+				Topic:     "alerts",
+				Param: types.KV{
+					"message":  "Server CPU > 90%",
+					"severity": "critical",
+					"action":   "scale_up",
+				},
+			},
+			wantName:  "notify",
+			wantUID:   "user456",
+			wantTopic: "alerts",
+			wantMsg:   "Server CPU > 90%",
 		},
 	}
 	for _, tt := range tests {

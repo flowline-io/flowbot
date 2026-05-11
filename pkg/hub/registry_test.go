@@ -162,14 +162,22 @@ func TestRegistry_Get(t *testing.T) {
 			capType: CapReader,
 			wantOk:  false,
 		},
+		{
+			name:    "retrieves registered capability",
+			capType: CapBookmark,
+			wantOk:  true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
+			if tt.wantOk {
+				require.NoError(t, r.Register(Descriptor{Type: tt.capType, Backend: "test"}))
+			}
 			_, ok := r.Get(tt.capType)
-			assert.False(t, ok)
+			assert.Equal(t, tt.wantOk, ok)
 		})
 	}
 }
@@ -201,6 +209,17 @@ func TestRegistry_List(t *testing.T) {
 			descriptors: nil,
 			check: func(t *testing.T, list []Descriptor) {
 				assert.Empty(t, list)
+			},
+		},
+		{
+			name: "single capability",
+			descriptors: []Descriptor{
+				{Type: CapBookmark, Backend: "karakeep"},
+			},
+			check: func(t *testing.T, list []Descriptor) {
+				require.Len(t, list, 1)
+				assert.Equal(t, CapBookmark, list[0].Type)
+				assert.Equal(t, "karakeep", list[0].Backend)
 			},
 		},
 	}

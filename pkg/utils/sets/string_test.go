@@ -64,6 +64,11 @@ func TestStringKeySet(t *testing.T) {
 			theMap: map[string]int{},
 			want:   String{},
 		},
+		{
+			name:   "single entry map",
+			theMap: map[string]int{"only": 1},
+			want:   String{"only": struct{}{}},
+		},
 	}
 
 	for _, tt := range tests {
@@ -481,6 +486,11 @@ func TestString_UnsortedList(t *testing.T) {
 			s:    NewString(),
 			want: []string{},
 		},
+		{
+			name: "single item set",
+			s:    NewString("z"),
+			want: []string{"z"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -565,72 +575,45 @@ func FuzzStringSet(f *testing.F) {
 		s2 := NewString(b...)
 
 		for _, v := range a {
-			if !s1.Has(v) {
-				t.Errorf("Set constructed from %v missing element %q", a, v)
-			}
+			assert.Truef(t, s1.Has(v), "Set constructed from %v missing element %q", a, v)
 		}
 
-		if !s1.HasAll(a...) {
-			t.Errorf("HasAll failed for self-elements: %v", a)
-		}
+		assert.Truef(t, s1.HasAll(a...), "HasAll failed for self-elements: %v", a)
 
 		u1 := s1.Union(s2)
 		u2 := s2.Union(s1)
-		if !u1.Equal(u2) {
-			t.Errorf("Union not commutative")
-		}
+		assert.Equal(t, u1, u2, "Union not commutative")
 
-		if u1.Len() > s1.Len()+s2.Len() {
-			t.Errorf("Union size %d > sum of sizes %d+%d", u1.Len(), s1.Len(), s2.Len())
-		}
-		if u1.Len() < max(s1.Len(), s2.Len()) {
-			t.Errorf("Union size %d < max(%d, %d)", u1.Len(), s1.Len(), s2.Len())
-		}
+		assert.LessOrEqualf(t, u1.Len(), s1.Len()+s2.Len(), "Union size %d > sum of sizes %d+%d", u1.Len(), s1.Len(), s2.Len())
+		assert.GreaterOrEqualf(t, u1.Len(), max(s1.Len(), s2.Len()), "Union size %d < max(%d, %d)", u1.Len(), s1.Len(), s2.Len())
 
 		i1 := s1.Intersection(s2)
 		i2 := s2.Intersection(s1)
-		if !i1.Equal(i2) {
-			t.Errorf("Intersection not commutative")
-		}
+		assert.Equal(t, i1, i2, "Intersection not commutative")
 
-		if i1.Len() > min(s1.Len(), s2.Len()) {
-			t.Errorf("Intersection size %d > min(%d, %d)", i1.Len(), s1.Len(), s2.Len())
-		}
+		assert.LessOrEqualf(t, i1.Len(), min(s1.Len(), s2.Len()), "Intersection size %d > min(%d, %d)", i1.Len(), s1.Len(), s2.Len())
 
 		diff := s1.Difference(s2)
 		reconstructed := diff.Union(i1)
-		if !reconstructed.Equal(s1) {
-			t.Errorf("Difference+Intersection != original")
-		}
+		assert.Equal(t, reconstructed, s1, "Difference+Intersection != original")
 
-		if !s1.Equal(s1) {
-			t.Errorf("Set not equal to itself")
-		}
+		assert.True(t, s1.Equal(s1), "Set not equal to itself")
 
 		lst := s1.List()
 		for i := 1; i < len(lst); i++ {
-			if lst[i-1] > lst[i] {
-				t.Errorf("List not sorted")
-				break
-			}
+			assert.LessOrEqual(t, lst[i-1], lst[i], "List not sorted")
 		}
 
 		if s1.Len() == 0 {
 			_, ok := s1.PopAny()
-			if ok {
-				t.Error("PopAny on empty set returned ok=true")
-			}
+			assert.False(t, ok, "PopAny on empty set returned ok=true")
 		}
 
-		if !s1.IsSuperset(NewString()) {
-			t.Errorf("Every set should be superset of empty")
-		}
+		assert.True(t, s1.IsSuperset(NewString()), "Every set should be superset of empty")
 
 		sCopy := NewString(a...)
 		sCopy.Delete(a...)
-		if sCopy.Len() > 0 {
-			t.Errorf("Delete all elements left %d items", sCopy.Len())
-		}
+		assert.Zerof(t, sCopy.Len(), "Delete all elements left %d items", sCopy.Len())
 	})
 }
 
@@ -645,13 +628,9 @@ func FuzzStringKeySet(f *testing.F) {
 			theMap[k] = 0
 		}
 		result := StringKeySet(theMap)
-		if result.Len() != len(theMap) {
-			t.Errorf("StringKeySet size %d != map size %d", result.Len(), len(theMap))
-		}
+		assert.Lenf(t, result, len(theMap), "StringKeySet size %d != map size %d", result.Len(), len(theMap))
 		for k := range theMap {
-			if !result.Has(k) {
-				t.Errorf("StringKeySet missing key %q", k)
-			}
+			assert.Truef(t, result.Has(k), "StringKeySet missing key %q", k)
 		}
 	})
 }

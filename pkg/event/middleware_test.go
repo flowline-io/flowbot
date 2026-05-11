@@ -171,30 +171,44 @@ func TestRetry_Middleware(t *testing.T) {
 
 func TestRetry_Middleware_EventualSuccess(t *testing.T) {
 	t.Parallel()
-
-	var attempts int
-	retry := Retry{
-		MaxRetries:          3,
-		InitialInterval:     10 * time.Millisecond,
-		MaxInterval:         50 * time.Millisecond,
-		Multiplier:          1.0,
-		MaxElapsedTime:      1 * time.Second,
-		RandomizationFactor: 0.0,
-		Logger:              flog.WatermillLogger,
+	tests := []struct {
+		name         string
+		successAfter int
+	}{
+		{
+			name:         "success_after_retries",
+			successAfter: 3,
+		},
+		{
+			name:         "success_first_try",
+			successAfter: 1,
+		},
 	}
-
-	handler := func(msg *message.Message) ([]*message.Message, error) {
-		attempts++
-		if attempts < 3 {
-			return nil, assert.AnError
-		}
-		return []*message.Message{msg}, nil
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var attempts int
+			retry := Retry{
+				MaxRetries:          3,
+				InitialInterval:     10 * time.Millisecond,
+				MaxInterval:         50 * time.Millisecond,
+				Multiplier:          1.0,
+				MaxElapsedTime:      1 * time.Second,
+				RandomizationFactor: 0.0,
+				Logger:              flog.WatermillLogger,
+			}
+			handler := func(msg *message.Message) ([]*message.Message, error) {
+				attempts++
+				if attempts < tt.successAfter {
+					return nil, assert.AnError
+				}
+				return []*message.Message{msg}, nil
+			}
+			middleware := retry.Middleware(handler)
+			msg := message.NewMessage("test", []byte("payload"))
+			result, err := middleware(msg)
+			require.NoError(t, err)
+			assert.Len(t, result, 1)
+		})
 	}
-
-	middleware := retry.Middleware(handler)
-	msg := message.NewMessage("test", []byte("payload"))
-
-	result, err := middleware(msg)
-	require.NoError(t, err)
-	assert.Len(t, result, 1)
 }

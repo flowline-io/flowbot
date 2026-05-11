@@ -11,7 +11,6 @@ import (
 )
 
 func TestBotName(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -20,14 +19,12 @@ func TestBotName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.Equal(t, "notify", Name)
 		})
 	}
 }
 
 func TestBotInit(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name      string
 		config    configType
@@ -86,7 +83,6 @@ func TestBotInit(t *testing.T) {
 }
 
 func TestCommandRules_Defined(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -95,7 +91,6 @@ func TestCommandRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.NotEmpty(t, commandRules)
 
 			defines := make(map[string]string)
@@ -111,7 +106,6 @@ func TestCommandRules_Defined(t *testing.T) {
 }
 
 func TestCommandRules_HaveHandlers(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -120,7 +114,6 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
@@ -129,7 +122,6 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 }
 
 func TestFormRules_Defined(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -138,7 +130,6 @@ func TestFormRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.NotEmpty(t, formRules)
 
 			found := false
@@ -157,7 +148,6 @@ func TestFormRules_Defined(t *testing.T) {
 }
 
 func TestCronRules_Defined(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -166,7 +156,6 @@ func TestCronRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.NotEmpty(t, cronRules)
 		})
 	}

@@ -11,7 +11,6 @@ import (
 )
 
 func TestBotName(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -20,14 +19,12 @@ func TestBotName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.Equal(t, "server", Name)
 		})
 	}
 }
 
 func TestBotInit(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name      string
 		config    configType
@@ -86,7 +83,6 @@ func TestBotInit(t *testing.T) {
 }
 
 func TestCommandRules(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T)
@@ -124,14 +120,12 @@ func TestCommandRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			tt.fn(t)
 		})
 	}
 }
 
 func TestCronRules_Defined(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -140,7 +134,6 @@ func TestCronRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.NotEmpty(t, cronRules)
 
 			names := make(map[string]bool)
@@ -158,7 +151,6 @@ func TestCronRules_Defined(t *testing.T) {
 }
 
 func TestWebserviceRules_Defined(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -167,7 +159,6 @@ func TestWebserviceRules_Defined(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			assert.NotEmpty(t, webserviceRules)
 			assert.GreaterOrEqual(t, len(webserviceRules), 2)
 		})

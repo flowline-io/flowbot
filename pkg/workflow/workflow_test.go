@@ -799,16 +799,12 @@ func FuzzParseAction(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, action string) {
 		info := ParseAction(action)
-		// If IsCapability is true, Type must be "capability"
-		if info.IsCapability && info.Type != "capability" {
-			t.Errorf("IsCapability=true but Type=%q", info.Type)
+		if info.IsCapability {
+			assert.Equal(t, "capability", info.Type, "IsCapability=true but Type mismatch")
 		}
-		// If there's both CapType and Operation, they should join to form Details
 		if info.CapType != "" && info.Operation != "" {
 			expected := info.CapType + "." + info.Operation
-			if info.Details != expected {
-				t.Errorf("CapType+Operation=%q != Details=%q", expected, info.Details)
-			}
+			assert.Equal(t, expected, info.Details, "CapType+Operation != Details")
 		}
 	})
 }
@@ -886,16 +882,12 @@ func FuzzResultCopy(f *testing.F) {
 			t.Skip()
 		}
 		dst := resultCopy(src)
-		if len(dst) != len(src) {
-			t.Errorf("resultCopy len=%d, want %d", len(dst), len(src))
-		}
+		assert.Len(t, dst, len(src), "resultCopy length mismatch")
 		for k, v := range src {
-			if dst[k] != v {
-				t.Errorf("resultCopy[%q]=%q, want %q", k, dst[k], v)
-			}
+			assert.Equal(t, v, dst[k], "resultCopy[%s]", k)
 		}
-		if dst == nil && src != nil {
-			t.Error("resultCopy returned nil for non-nil source")
+		if src != nil {
+			assert.NotNil(t, dst, "resultCopy returned nil for non-nil source")
 		}
 	})
 }

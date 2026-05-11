@@ -172,12 +172,12 @@ func TestRunTaskConcurrently(t *testing.T) {
 					Run:   "echo -n hello > $OUTPUT",
 				}
 				err := rt.Run(context.Background(), tk)
-			assert.NoError(t, err)
-			assert.Equal(t, "hello", tk.Result)
-		}()
-	}
-	wg.Wait()
-})
+				assert.NoError(t, err)
+				assert.Equal(t, "hello", tk.Result)
+			}()
+		}
+		wg.Wait()
+	})
 }
 
 func TestRunTaskWithTimeout(t *testing.T) {
@@ -235,10 +235,10 @@ func TestRunAndStopTask(t *testing.T) {
 			CMD:   []string{"sleep", "10"},
 		}
 		go func() {
-		err := rt.Run(context.Background(), t1)
-		assert.Error(t, err)
-	}()
-	// give the task a chance to get started
+			err := rt.Run(context.Background(), t1)
+			assert.Error(t, err)
+		}()
+		// give the task a chance to get started
 		time.Sleep(time.Second)
 		err = rt.Stop(context.Background(), t1)
 		require.NoError(t, err)
@@ -480,11 +480,11 @@ func Test_imagePull(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				err := rt.imagePull(ctx, &types.Task{Image: "busybox:1.36"})
-			assert.NoError(t, err)
-		}()
-	}
-	wg.Wait()
-})
+				assert.NoError(t, err)
+			}()
+		}
+		wg.Wait()
+	})
 }
 
 func Test_imagePullPrivateRegistry(t *testing.T) {

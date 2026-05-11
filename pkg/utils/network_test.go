@@ -38,6 +38,11 @@ func TestPortAvailable(t *testing.T) {
 			port: "99999", // Assuming this port is not in use
 			want: false,   // PortAvailable returns false when connection fails
 		},
+		{
+			name: "empty_port_string",
+			port: "",
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -69,6 +74,12 @@ func TestNetListener(t *testing.T) {
 			addr:    "invalid:addr:format",
 			wantErr: true,
 			network: "tcp",
+		},
+		{
+			name:    "unix_socket_address",
+			addr:    "unix:/tmp/flowbot-test.sock",
+			wantErr: false,
+			network: "unix",
 		},
 	}
 

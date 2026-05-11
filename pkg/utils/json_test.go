@@ -98,6 +98,17 @@ func TestEncodeJSONEscapeHTML(t *testing.T) {
 				return strings.Contains(output, "<script>")
 			},
 		},
+		{
+			name: "simple_struct_no_html",
+			args: args{
+				v:   map[string]string{"name": "hello"},
+				esc: true,
+			},
+			wantErr: false,
+			check: func(output string) bool {
+				return strings.Contains(output, `"name":"hello"`)
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -153,6 +164,13 @@ func TestEncodeJSONEscapeHTMLIndent(t *testing.T) {
 			},
 			esc:     false,
 			indent:  "\t",
+			wantErr: false,
+		},
+		{
+			name:    "empty_indent_compact",
+			v:       map[string]any{"key": "value"},
+			esc:     true,
+			indent:  "",
 			wantErr: false,
 		},
 	}

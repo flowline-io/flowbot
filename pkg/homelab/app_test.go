@@ -68,19 +68,21 @@ func TestAppZeroValue(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
+		app  App
 	}{
-		{name: "zero value app has empty/default fields"},
+		{name: "zero value app has empty/default fields", app: App{}},
+		{name: "app with name only, other fields zero", app: App{Name: "test-app"}},
+		{name: "app with empty capabilities slice", app: App{Capabilities: []AppCapability{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			app := App{}
-			assert.Equal(t, AppStatus(""), app.Status)
-			assert.Equal(t, HealthStatus(""), app.Health)
-			assert.Nil(t, app.Services)
-			assert.Nil(t, app.Networks)
-			assert.Nil(t, app.Ports)
-			assert.Nil(t, app.Labels)
+			assert.Equal(t, AppStatus(""), tt.app.Status)
+			assert.Equal(t, HealthStatus(""), tt.app.Health)
+			assert.Nil(t, tt.app.Services)
+			assert.Nil(t, tt.app.Networks)
+			assert.Nil(t, tt.app.Ports)
+			assert.Nil(t, tt.app.Labels)
 		})
 	}
 }
@@ -88,17 +90,21 @@ func TestAppZeroValue(t *testing.T) {
 func TestComposeServiceZeroValue(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name          string
+		svc           ComposeService
+		expectedImage string
+		expectedName  string
 	}{
-		{name: "zero value compose service"},
+		{name: "zero value compose service", svc: ComposeService{}, expectedImage: "", expectedName: ""},
+		{name: "service with name only, rest empty", svc: ComposeService{Name: "web"}, expectedImage: "", expectedName: "web"},
+		{name: "service with image only, rest empty", svc: ComposeService{Image: "nginx:latest"}, expectedImage: "nginx:latest", expectedName: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			svc := ComposeService{}
-			assert.Empty(t, svc.Name)
-			assert.Empty(t, svc.Image)
-			assert.Empty(t, svc.Container)
+			assert.Equal(t, tt.expectedName, tt.svc.Name)
+			assert.Equal(t, tt.expectedImage, tt.svc.Image)
+			assert.Empty(t, tt.svc.Container)
 		})
 	}
 }
@@ -106,18 +112,22 @@ func TestComposeServiceZeroValue(t *testing.T) {
 func TestPortMappingZeroValue(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name           string
+		pm             PortMapping
+		expectHost     string
+		expectProtocol string
 	}{
-		{name: "zero value port mapping"},
+		{name: "zero value port mapping", pm: PortMapping{}, expectHost: "", expectProtocol: ""},
+		{name: "port mapping with host only", pm: PortMapping{Host: "0.0.0.0"}, expectHost: "0.0.0.0", expectProtocol: ""},
+		{name: "port mapping with protocol only", pm: PortMapping{Protocol: "udp"}, expectHost: "", expectProtocol: "udp"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			pm := PortMapping{}
-			assert.Empty(t, pm.Host)
-			assert.Empty(t, pm.HostPort)
-			assert.Empty(t, pm.Container)
-			assert.Empty(t, pm.Protocol)
+			assert.Equal(t, tt.expectHost, tt.pm.Host)
+			assert.Equal(t, tt.expectProtocol, tt.pm.Protocol)
+			assert.Empty(t, tt.pm.HostPort)
+			assert.Empty(t, tt.pm.Container)
 		})
 	}
 }
@@ -125,22 +135,26 @@ func TestPortMappingZeroValue(t *testing.T) {
 func TestPermissionsZeroValue(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name        string
+		p           Permissions
+		expectStart bool
+		expectExec  bool
 	}{
-		{name: "zero value permissions are all false"},
+		{name: "zero value permissions are all false", p: Permissions{}, expectStart: false, expectExec: false},
+		{name: "only start true, rest false", p: Permissions{Start: true}, expectStart: true, expectExec: false},
+		{name: "only exec true, rest false", p: Permissions{Exec: true}, expectStart: false, expectExec: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			p := Permissions{}
-			assert.False(t, p.Status)
-			assert.False(t, p.Logs)
-			assert.False(t, p.Start)
-			assert.False(t, p.Stop)
-			assert.False(t, p.Restart)
-			assert.False(t, p.Pull)
-			assert.False(t, p.Update)
-			assert.False(t, p.Exec)
+			assert.False(t, tt.p.Status)
+			assert.False(t, tt.p.Logs)
+			assert.Equal(t, tt.expectStart, tt.p.Start)
+			assert.False(t, tt.p.Stop)
+			assert.False(t, tt.p.Restart)
+			assert.False(t, tt.p.Pull)
+			assert.False(t, tt.p.Update)
+			assert.Equal(t, tt.expectExec, tt.p.Exec)
 		})
 	}
 }
@@ -148,19 +162,21 @@ func TestPermissionsZeroValue(t *testing.T) {
 func TestConfigDefaults(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name       string
+		cfg        Config
+		expectRoot string
 	}{
-		{name: "zero value config"},
+		{name: "zero value config", cfg: Config{}, expectRoot: ""},
+		{name: "config with root set, others default", cfg: Config{Root: "/data"}, expectRoot: "/data"},
+		{name: "config with empty allowlist", cfg: Config{Allowlist: []string{}}, expectRoot: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg := Config{}
-			assert.Empty(t, cfg.Root)
-			assert.Empty(t, cfg.AppsDir)
-			assert.Empty(t, cfg.ComposeFile)
-			assert.Nil(t, cfg.Allowlist)
-			assert.Equal(t, RuntimeMode(""), cfg.Runtime.Mode)
+			assert.Equal(t, tt.expectRoot, tt.cfg.Root)
+			assert.Empty(t, tt.cfg.AppsDir)
+			assert.Empty(t, tt.cfg.ComposeFile)
+			assert.Equal(t, RuntimeMode(""), tt.cfg.Runtime.Mode)
 		})
 	}
 }
@@ -168,17 +184,21 @@ func TestConfigDefaults(t *testing.T) {
 func TestRuntimeConfigDefaults(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name         string
+		rc           RuntimeConfig
+		expectPort   int
+		expectSocket string
 	}{
-		{name: "zero value runtime config"},
+		{name: "zero value runtime config", rc: RuntimeConfig{}, expectPort: 0, expectSocket: ""},
+		{name: "runtime config with ssh port", rc: RuntimeConfig{SSHPort: 22}, expectPort: 22, expectSocket: ""},
+		{name: "runtime config with docker socket", rc: RuntimeConfig{DockerSocket: "/var/run/docker.sock"}, expectPort: 0, expectSocket: "/var/run/docker.sock"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			rc := RuntimeConfig{}
-			assert.Equal(t, RuntimeMode(""), rc.Mode)
-			assert.Empty(t, rc.DockerSocket)
-			assert.Equal(t, 0, rc.SSHPort)
+			assert.Equal(t, RuntimeMode(""), tt.rc.Mode)
+			assert.Equal(t, tt.expectSocket, tt.rc.DockerSocket)
+			assert.Equal(t, tt.expectPort, tt.rc.SSHPort)
 		})
 	}
 }

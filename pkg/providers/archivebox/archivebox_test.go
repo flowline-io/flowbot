@@ -70,16 +70,16 @@ func TestArchiveBox_Add(t *testing.T) {
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
 
-			body, err := io.ReadAll(r.Body)
-			assert.NoError(t, err)
-			var reqData Data
-			err = sonic.Unmarshal(body, &reqData)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.request.Urls, reqData.Urls)
+				body, err := io.ReadAll(r.Body)
+				assert.NoError(t, err)
+				var reqData Data
+				err = sonic.Unmarshal(body, &reqData)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.request.Urls, reqData.Urls)
 
-			w.WriteHeader(tt.statusCode)
-			err = sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
-			assert.NoError(t, err)
+				w.WriteHeader(tt.statusCode)
+				err = sonic.ConfigDefault.NewEncoder(w).Encode(tt.response)
+				assert.NoError(t, err)
 			}))
 			defer server.Close()
 
@@ -103,22 +103,22 @@ func TestArchiveBox_AddMultipleUrls(t *testing.T) {
 	t.Run("add multiple URLs", func(t *testing.T) {
 		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		assert.NoError(t, err)
-		var reqData Data
-		err = sonic.Unmarshal(body, &reqData)
-		assert.NoError(t, err)
+			body, err := io.ReadAll(r.Body)
+			assert.NoError(t, err)
+			var reqData Data
+			err = sonic.Unmarshal(body, &reqData)
+			assert.NoError(t, err)
 
-		assert.Len(t, reqData.Urls, 3)
+			assert.Len(t, reqData.Urls, 3)
 
-		response := Response{
-			Success: true,
-			Result:  reqData.Urls,
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err = sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		assert.NoError(t, err)
+			response := Response{
+				Success: true,
+				Result:  reqData.Urls,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err = sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			assert.NoError(t, err)
 		}))
 		defer server.Close()
 

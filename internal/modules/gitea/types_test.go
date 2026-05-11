@@ -17,9 +17,9 @@ func TestErrors(t *testing.T) {
 			name: "error variables should be non-nil",
 			test: func(t *testing.T) {
 				t.Parallel()
-		require.Error(t, ErrMissingCommitMessage)
-		require.Error(t, ErrMissingDiffContent)
-		require.Error(t, ErrEmptyPrompt)
+				require.Error(t, ErrMissingCommitMessage)
+				require.Error(t, ErrMissingDiffContent)
+				require.Error(t, ErrEmptyPrompt)
 			},
 		},
 		{

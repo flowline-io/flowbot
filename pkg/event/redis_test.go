@@ -18,6 +18,7 @@ func TestMessageTypeConstants(t *testing.T) {
 	}{
 		{name: "MessageSendEvent", got: types.MessageSendEvent, want: "message:send"},
 		{name: "BotRunEvent", got: types.BotRunEvent, want: "bot:event"},
+		{name: "InstructPushEvent", got: types.InstructPushEvent, want: "instruct:push"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -44,6 +45,21 @@ func TestEventPayloadStruct(t *testing.T) {
 			},
 			wantTyp: "text",
 			wantSrc: []byte("test data"),
+		},
+		{
+			name:    "empty payload",
+			payload: types.EventPayload{},
+			wantTyp: "",
+			wantSrc: nil,
+		},
+		{
+			name: "binary payload",
+			payload: types.EventPayload{
+				Typ: "binary",
+				Src: []byte{0x00, 0xFF, 0xAB},
+			},
+			wantTyp: "binary",
+			wantSrc: []byte{0x00, 0xFF, 0xAB},
 		},
 	}
 	for _, tt := range tests {

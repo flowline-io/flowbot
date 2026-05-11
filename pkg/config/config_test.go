@@ -33,6 +33,13 @@ func TestTypeStruct(t *testing.T) {
 			wantApi:  "",
 			wantDev:  false,
 		},
+		{
+			name:     "non-default port with trailing slash api",
+			cfg:      Type{Listen: ":3000", ApiPath: "/api/v2/", DevMode: false},
+			wantList: ":3000",
+			wantApi:  "/api/v2/",
+			wantDev:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,6 +81,27 @@ func TestStoreType(t *testing.T) {
 			},
 			wantMax:   100,
 			wantAdapt: "mysql",
+			wantMap:   true,
+		},
+		{
+			name:      "empty adapter",
+			store:     StoreType{MaxResults: 0, UseAdapter: "", Adapters: nil},
+			wantMax:   0,
+			wantAdapt: "",
+			wantMap:   false,
+		},
+		{
+			name: "multiple adapters",
+			store: StoreType{
+				MaxResults: 200,
+				UseAdapter: "postgres",
+				Adapters: map[string]any{
+					"mysql":    map[string]string{"host": "db1", "port": "3306"},
+					"postgres": map[string]string{"host": "db2", "port": "5432"},
+				},
+			},
+			wantMax:   200,
+			wantAdapt: "postgres",
 			wantMap:   true,
 		},
 	}
@@ -130,6 +158,22 @@ func TestRedis(t *testing.T) {
 			wantDB:   0,
 			wantPass: "secret",
 		},
+		{
+			name:     "remote redis with different db",
+			redis:    Redis{Host: "redis.example.com", Port: 6380, DB: 1, Password: ""},
+			wantHost: "redis.example.com",
+			wantPort: 6380,
+			wantDB:   1,
+			wantPass: "",
+		},
+		{
+			name:     "zero value config",
+			redis:    Redis{},
+			wantHost: "",
+			wantPort: 0,
+			wantDB:   0,
+			wantPass: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -177,6 +221,7 @@ func TestPlatformConfigs(t *testing.T) {
 		}{
 			{name: "enabled", tg: Telegram{Enabled: true}, wantOn: true},
 			{name: "disabled", tg: Telegram{Enabled: false}, wantOn: false},
+			{name: "zero value defaults to disabled", tg: Telegram{}, wantOn: false},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -273,6 +318,18 @@ func TestMetrics(t *testing.T) {
 			metrics: Metrics{Enabled: true, Endpoint: "/metrics"},
 			wantOn:  true,
 			wantEp:  "/metrics",
+		},
+		{
+			name:    "disabled with custom endpoint",
+			metrics: Metrics{Enabled: false, Endpoint: "/custom-metrics"},
+			wantOn:  false,
+			wantEp:  "/custom-metrics",
+		},
+		{
+			name:    "enabled with empty endpoint",
+			metrics: Metrics{Enabled: true, Endpoint: ""},
+			wantOn:  true,
+			wantEp:  "",
 		},
 	}
 	for _, tt := range tests {

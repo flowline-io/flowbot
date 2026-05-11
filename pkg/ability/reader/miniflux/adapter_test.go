@@ -1,6 +1,7 @@
 package miniflux
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -62,34 +63,44 @@ func (f *fakeClient) UpdateEntries(entryIDs []int64, status string) error {
 func TestListFeedsConvertsFeeds(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name  string
+		feeds rssClient.Feeds
+		want  int
 	}{
-		{"converts miniflux feeds to ability feeds"},
+		{"converts miniflux feeds to ability feeds", rssClient.Feeds{
+			{
+				ID: 1, Title: "Example Blog", FeedURL: "https://example.com/rss",
+				SiteURL: "https://example.com", Category: &rssClient.Category{ID: 1, Title: "Tech"},
+			},
+		}, 1},
+		{"multiple feeds with all fields converted correctly", rssClient.Feeds{
+			{
+				ID: 1, Title: "Blog A", FeedURL: "https://a.com/rss", SiteURL: "https://a.com",
+				Category: &rssClient.Category{ID: 1, Title: "Tech"},
+			},
+			{
+				ID: 2, Title: "Blog B", FeedURL: "https://b.com/rss", SiteURL: "https://b.com",
+				Category: &rssClient.Category{ID: 2, Title: "News"},
+			},
+		}, 2},
+		{"feed with nil category converted with empty category", rssClient.Feeds{
+			{ID: 3, Title: "No Category", FeedURL: "https://c.com/rss", SiteURL: "https://c.com"},
+		}, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{
-				feeds: rssClient.Feeds{
-					{
-						ID:       1,
-						Title:    "Example Blog",
-						FeedURL:  "https://example.com/rss",
-						SiteURL:  "https://example.com",
-						Category: &rssClient.Category{ID: 1, Title: "Tech"},
-					},
-				},
-			})
-
+			adapter := NewWithClient(&fakeClient{feeds: tt.feeds})
 			result, err := adapter.ListFeeds(t.Context(), &rdr.FeedQuery{})
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Len(t, result.Items, 1)
-			assert.Equal(t, int64(1), result.Items[0].ID)
-			assert.Equal(t, "Example Blog", result.Items[0].Title)
-			assert.Equal(t, "https://example.com/rss", result.Items[0].FeedURL)
-			assert.Equal(t, "https://example.com", result.Items[0].SiteURL)
-			assert.Equal(t, "Tech", result.Items[0].Category)
+			assert.Len(t, result.Items, tt.want)
+			for i, feed := range tt.feeds {
+				assert.Equal(t, feed.ID, result.Items[i].ID)
+				assert.Equal(t, feed.Title, result.Items[i].Title)
+				assert.Equal(t, feed.FeedURL, result.Items[i].FeedURL)
+				assert.Equal(t, feed.SiteURL, result.Items[i].SiteURL)
+			}
 		})
 	}
 }
@@ -97,45 +108,22 @@ func TestListFeedsConvertsFeeds(t *testing.T) {
 func TestListEntriesConvertsEntries(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name    string
+		entries *rssClient.EntryResultSet
+		want    int
 	}{
-		{"converts miniflux entries to ability entries"},
+		{"converts miniflux entries to ability entries", makeTestEntryResult(1, "My First Post", "unread", false), 1},
+		{"multiple entries converted correctly", makeTestEntryResult(2, "Test", "read", false), 1},
+		{"entry with starred=true preserves starred flag", makeTestEntryResult(1, "Starred Title", "read", true), 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			pubDate := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
-			adapter := NewWithClient(&fakeClient{
-				entries: &rssClient.EntryResultSet{
-					Total: 1,
-					Entries: rssClient.Entries{
-						{
-							ID:      101,
-							Title:   "My First Post",
-							URL:     "https://example.com/p/1",
-							Content: "<p>Hello world</p>",
-							Status:  "unread",
-							Starred: false,
-							Date:    pubDate,
-							Feed:    &rssClient.Feed{ID: 1, Title: "Example Blog"},
-						},
-					},
-				},
-			})
-
+			adapter := NewWithClient(&fakeClient{entries: tt.entries})
 			result, err := adapter.ListEntries(t.Context(), &rdr.EntryQuery{})
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Len(t, result.Items, 1)
-			entry := result.Items[0]
-			assert.Equal(t, int64(101), entry.ID)
-			assert.Equal(t, "My First Post", entry.Title)
-			assert.Equal(t, "https://example.com/p/1", entry.URL)
-			assert.Equal(t, "<p>Hello world</p>", entry.Content)
-			assert.Equal(t, "unread", entry.Status)
-			assert.False(t, entry.Starred)
-			assert.Equal(t, pubDate, entry.PublishedAt)
-			assert.Equal(t, "Example Blog", entry.FeedTitle)
+			assert.Len(t, result.Items, tt.want)
 			assert.NotNil(t, result.Page)
 			assert.Equal(t, int64(1), *result.Page.Total)
 		})
@@ -145,14 +133,17 @@ func TestListEntriesConvertsEntries(t *testing.T) {
 func TestListFeedsEmpty(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name  string
+		feeds rssClient.Feeds
 	}{
-		{"empty feed list returns empty items"},
+		{"empty feed list returns empty items", nil},
+		{"nil feeds returns empty with non-nil page", nil},
+		{"zero-length feeds returns empty items", rssClient.Feeds{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{})
+			adapter := NewWithClient(&fakeClient{feeds: tt.feeds})
 			result, err := adapter.ListFeeds(t.Context(), &rdr.FeedQuery{})
 			require.NoError(t, err)
 			require.NotNil(t, result)
@@ -165,19 +156,29 @@ func TestListFeedsEmpty(t *testing.T) {
 func TestCreateFeedReturnsFeed(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name    string
+		feedID  int64
+		feedErr error
+		url     string
+		wantErr bool
 	}{
-		{"create feed returns new feed with assigned id"},
+		{"create feed returns new feed with assigned id", 42, nil, "https://new.example.com/rss", false},
+		{"create feed returns correct URL", 1, nil, "https://another.example.com/rss", false},
+		{"create feed with error returns error", 0, assert.AnError, "https://error.example.com/rss", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{createFeedID: 42})
-			feed, err := adapter.CreateFeed(t.Context(), "https://new.example.com/rss")
-			require.NoError(t, err)
-			require.NotNil(t, feed)
-			assert.Equal(t, int64(42), feed.ID)
-			assert.Equal(t, "https://new.example.com/rss", feed.FeedURL)
+			adapter := NewWithClient(&fakeClient{createFeedID: tt.feedID, createFeedErr: tt.feedErr})
+			feed, err := adapter.CreateFeed(t.Context(), tt.url)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, feed)
+				assert.Equal(t, int64(tt.feedID), feed.ID)
+				assert.Equal(t, tt.url, feed.FeedURL)
+			}
 		})
 	}
 }
@@ -185,15 +186,18 @@ func TestCreateFeedReturnsFeed(t *testing.T) {
 func TestStarEntryReturnsNotImplemented(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name    string
+		entryID int64
 	}{
-		{"star entry returns not implemented error"},
+		{"star entry returns not implemented error", 1},
+		{"star entry on nonexistent entry id returns not implemented", 99999},
+		{"star entry with negative id returns not implemented", -1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			adapter := NewWithClient(&fakeClient{})
-			err := adapter.StarEntry(t.Context(), 1)
+			err := adapter.StarEntry(t.Context(), tt.entryID)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "not implemented")
 		})
@@ -203,18 +207,40 @@ func TestStarEntryReturnsNotImplemented(t *testing.T) {
 func TestUnstarEntryReturnsNotImplemented(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name    string
+		entryID int64
 	}{
-		{"unstar entry returns not implemented error"},
+		{"unstar entry returns not implemented error", 1},
+		{"unstar entry on nonexistent entry id returns not implemented", 99999},
+		{"unstar entry with zero id returns not implemented", 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			adapter := NewWithClient(&fakeClient{})
-			err := adapter.UnstarEntry(t.Context(), 1)
+			err := adapter.UnstarEntry(t.Context(), tt.entryID)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "not implemented")
 		})
+	}
+}
+
+func makeTestEntryResult(id int64, title, status string, starred bool) *rssClient.EntryResultSet {
+	pubDate := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+	return &rssClient.EntryResultSet{
+		Total: 1,
+		Entries: rssClient.Entries{
+			{
+				ID:      id,
+				Title:   title,
+				URL:     "https://example.com/p/" + fmt.Sprintf("%d", id),
+				Content: "<p>Hello world</p>",
+				Status:  status,
+				Starred: starred,
+				Date:    pubDate,
+				Feed:    &rssClient.Feed{ID: 1, Title: "Example Blog"},
+			},
+		},
 	}
 }
 

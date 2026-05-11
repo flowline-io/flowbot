@@ -59,9 +59,21 @@ func TestLevelConstants(t *testing.T) {
 }
 
 func TestGetLogger(t *testing.T) {
-	Init(Config{Level: "info"})
-	logger := GetLogger()
-	assert.NotNil(t, logger)
+	tests := []struct {
+		name   string
+		config Config
+	}{
+		{name: "info level", config: Config{Level: "info"}},
+		{name: "debug level", config: Config{Level: "debug"}},
+		{name: "with sampling", config: Config{Level: "info", Sampling: &SamplingConfig{Burst: 3, Period: 0}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Init(tt.config)
+			logger := GetLogger()
+			assert.NotNil(t, logger)
+		})
+	}
 }
 
 func TestInit(t *testing.T) {
@@ -159,10 +171,22 @@ func TestLogFunctions(t *testing.T) {
 func TestPanic(t *testing.T) {
 	t.Parallel()
 
-	Init(Config{Level: InfoLevel})
-	assert.Panics(t, func() {
-		Panic("test panic message: %s", "arg")
-	})
+	tests := []struct {
+		name  string
+		level string
+	}{
+		{name: "panic at info level", level: InfoLevel},
+		{name: "panic at debug level", level: DebugLevel},
+		{name: "panic at warn level", level: WarnLevel},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Init(Config{Level: tt.level})
+			assert.Panics(t, func() {
+				Panic("test panic message: %s", "arg")
+			})
+		})
+	}
 }
 
 func TestStructuredFields(t *testing.T) {
@@ -249,6 +273,7 @@ func TestModule(t *testing.T) {
 	}{
 		{name: "configured module", moduleName: "testmodule", wantNil: false},
 		{name: "nonexistent module", moduleName: "nonexistent", wantNil: false},
+		{name: "empty module name falls back to parent", moduleName: "", wantNil: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -265,28 +290,80 @@ func TestModule(t *testing.T) {
 func TestSampled(t *testing.T) {
 	t.Parallel()
 
-	Init(Config{Level: InfoLevel, Sampling: &SamplingConfig{Burst: 3, Period: 0}})
-
-	s := Sampled()
-	assert.NotNil(t, s)
-
-	assert.NotPanics(t, func() {
-		s.Info().Msg("sampled info")
-	})
+	tests := []struct {
+		name    string
+		config  Config
+		wantNil bool
+	}{
+		{
+			name:    "with burst sampling",
+			config:  Config{Level: InfoLevel, Sampling: &SamplingConfig{Burst: 3, Period: 0}},
+			wantNil: false,
+		},
+		{
+			name:    "with higher burst sampling",
+			config:  Config{Level: InfoLevel, Sampling: &SamplingConfig{Burst: 10, Period: 0}},
+			wantNil: false,
+		},
+		{
+			name:    "without sampling falls back to logger",
+			config:  Config{Level: InfoLevel},
+			wantNil: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Init(tt.config)
+			s := Sampled()
+			if tt.wantNil {
+				assert.Nil(t, s)
+			} else {
+				assert.NotNil(t, s)
+			}
+			assert.NotPanics(t, func() {
+				s.Info().Msg("sampled info")
+			})
+		})
+	}
 }
 
 func TestSetModuleLevel(t *testing.T) {
-	Init(Config{Level: InfoLevel})
-	SetModuleLevel("m1", "debug")
-	m := Module("m1")
-	assert.NotNil(t, m)
+	tests := []struct {
+		name       string
+		moduleName string
+		level      string
+	}{
+		{name: "set module to debug", moduleName: "m1", level: DebugLevel},
+		{name: "set module to warn", moduleName: "m2", level: WarnLevel},
+		{name: "set module to error", moduleName: "m3", level: ErrorLevel},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Init(Config{Level: InfoLevel})
+			SetModuleLevel(tt.moduleName, tt.level)
+			m := Module(tt.moduleName)
+			assert.NotNil(t, m)
+		})
+	}
 }
 
 func TestFatal(t *testing.T) {
 	t.Parallel()
 
-	Init(Config{Level: InfoLevel})
-	assert.NotPanics(t, func() {
-		_ = Fatal
-	})
+	tests := []struct {
+		name   string
+		config Config
+	}{
+		{name: "fatal reference at info", config: Config{Level: InfoLevel}},
+		{name: "fatal reference at debug", config: Config{Level: DebugLevel}},
+		{name: "fatal reference at warn", config: Config{Level: WarnLevel}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Init(tt.config)
+			assert.NotPanics(t, func() {
+				_ = Fatal
+			})
+		})
+	}
 }

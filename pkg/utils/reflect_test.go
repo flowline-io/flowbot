@@ -1,6 +1,10 @@
 package utils
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func foo1() {}
 func foo2(a, b string) string {
@@ -45,9 +49,7 @@ func TestGetFunctionName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := GetFunctionName(tt.args.i); got != tt.want {
-				t.Errorf("GetFunctionName() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, GetFunctionName(tt.args.i))
 		})
 	}
 }
@@ -79,17 +81,21 @@ func TestParseFunctionName(t *testing.T) {
 			want:  "dev.github.com/flowline-io/flowbot/pkg/utils",
 			want1: "foo2",
 		},
+		{
+			name: "no_dots_in_name",
+			args: args{
+				name: "SingleFunc",
+			},
+			want:  "",
+			want1: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, got1 := ParseFunctionName(tt.args.name)
-			if got != tt.want {
-				t.Errorf("ParseFunctionName() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("ParseFunctionName() got1 = %v, want %v", got1, tt.want1)
-			}
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.want1, got1)
 		})
 	}
 }

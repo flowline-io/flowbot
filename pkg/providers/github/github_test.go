@@ -460,9 +460,9 @@ func TestGithub_Redirect(t *testing.T) {
 	t.Run("redirect URL generation", func(t *testing.T) {
 		t.Parallel()
 		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
-	url, err := github.Redirect(nil)
+		url, err := github.Redirect(nil)
 
-	require.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, url, "github.com/login/oauth/authorize")
 	})
 }

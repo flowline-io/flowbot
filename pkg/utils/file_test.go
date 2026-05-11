@@ -31,6 +31,13 @@ func TestFileExist(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "directory_exists",
+			args: args{
+				name: ".",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -87,11 +94,32 @@ func TestFileExistEdgeCases(t *testing.T) {
 // TestDownloadFileBasic tests basic parameter validation for DownloadFile
 func TestDownloadFileBasic(t *testing.T) {
 	t.Parallel()
-	// Test with invalid URL (should return error quickly)
-	err := DownloadFile("invalid-url", "/tmp/test")
-	require.Error(t, err, "DownloadFile() should return error for invalid URL")
-
-	// Test with empty filename
-	err = DownloadFile("http://example.com", "")
-	require.Error(t, err, "DownloadFile() should return error for empty filename")
+	tests := []struct {
+		name     string
+		url      string
+		filename string
+	}{
+		{
+			name:     "invalid_url",
+			url:      "invalid-url",
+			filename: "/tmp/test",
+		},
+		{
+			name:     "empty_filename",
+			url:      "http://example.com",
+			filename: "",
+		},
+		{
+			name:     "malformed_url_scheme",
+			url:      "://badurl",
+			filename: "/tmp/test",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := DownloadFile(tt.url, tt.filename)
+			require.Error(t, err, "DownloadFile() should return error for %s", tt.name)
+		})
+	}
 }

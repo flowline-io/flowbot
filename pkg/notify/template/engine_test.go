@@ -269,8 +269,8 @@ func TestEngineMissingTemplate(t *testing.T) {
 			t.Parallel()
 			e := New()
 			result, err := e.Render(tt.templateID, "slack", tt.data)
-		require.NoError(t, err)
-		assert.Nil(t, result)
+			require.NoError(t, err)
+			assert.Nil(t, result)
 		})
 	}
 }

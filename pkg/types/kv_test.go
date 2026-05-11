@@ -329,6 +329,12 @@ func TestKV_StringValue(t *testing.T) {
 			wantVal: "",
 			wantOk:  false,
 		},
+		{
+			name:    "non-string value returns false",
+			kv:      KV{"value": 42},
+			wantVal: "",
+			wantOk:  false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -360,6 +366,12 @@ func TestKV_Int64Value(t *testing.T) {
 		{
 			name:    "empty KV",
 			kv:      KV{},
+			wantVal: 0,
+			wantOk:  false,
+		},
+		{
+			name:    "string value returns false",
+			kv:      KV{"value": "64"},
 			wantVal: 0,
 			wantOk:  false,
 		},
@@ -397,6 +409,12 @@ func TestKV_Uint64Value(t *testing.T) {
 			wantVal: 0,
 			wantOk:  false,
 		},
+		{
+			name:    "string value returns false",
+			kv:      KV{"value": "100"},
+			wantVal: 0,
+			wantOk:  false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -428,6 +446,12 @@ func TestKV_Float64Value(t *testing.T) {
 		{
 			name:    "empty KV",
 			kv:      KV{},
+			wantVal: 0,
+			wantOk:  false,
+		},
+		{
+			name:    "string value returns false",
+			kv:      KV{"value": "3.14"},
 			wantVal: 0,
 			wantOk:  false,
 		},

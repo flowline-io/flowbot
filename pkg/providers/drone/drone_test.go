@@ -55,6 +55,30 @@ func TestDrone_CreateBuild(t *testing.T) {
 			statusCode: http.StatusOK,
 			wantErr:    false,
 		},
+		{
+			name:      "build creation with running status",
+			namespace: "myorg",
+			repoName:  "myrepo",
+			response: Build{
+				ID:     456,
+				RepoID: 456,
+				Number: 2,
+				Status: "running",
+				Event:  "tag",
+				Ref:    "refs/tags/v1.0.0",
+				Stages: []Stage{},
+			},
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name:       "build creation with minimal response",
+			namespace:  "otherorg",
+			repoName:   "otherrepo",
+			response:   Build{ID: 789, Number: 3, Status: "error"},
+			statusCode: http.StatusOK,
+			wantErr:    false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -123,13 +147,13 @@ func TestDrone_CreateBuildWithStages(t *testing.T) {
 				},
 			}
 			w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		assert.NoError(t, err)
-	}))
-	defer server.Close()
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
-	client := NewDrone(server.URL, "test-token")
+		client := NewDrone(server.URL, "test-token")
 		result, err := client.CreateBuild("myorg", "myrepo")
 
 		require.NoError(t, err)

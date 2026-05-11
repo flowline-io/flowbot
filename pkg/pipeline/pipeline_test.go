@@ -645,6 +645,14 @@ func TestConvertToTypesKV(t *testing.T) {
 				assert.Empty(t, result)
 			},
 		},
+		{
+			name: "nil map",
+			in:   nil,
+			test: func(t *testing.T, result types.KV) {
+				assert.NotNil(t, result)
+				assert.Empty(t, result)
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -658,29 +666,114 @@ func TestConvertToTypesKV(t *testing.T) {
 
 func TestNewEngine(t *testing.T) {
 	t.Parallel()
-	e := NewEngine(nil, nil)
-	assert.NotNil(t, e)
-	assert.NotNil(t, e.Handler())
+	tests := []struct {
+		name  string
+		defs  []Definition
+		store RunStore
+	}{
+		{
+			name:  "nil-params",
+			defs:  nil,
+			store: nil,
+		},
+		{
+			name:  "empty-defs",
+			defs:  []Definition{},
+			store: nil,
+		},
+		{
+			name: "with-defs",
+			defs: []Definition{
+				{Name: "p1", Trigger: Trigger{Event: "e1"}},
+			},
+			store: nil,
+		},
+		{
+			name: "mixed-enabled-defs",
+			defs: []Definition{
+				{Name: "enabled", Enabled: true},
+				{Name: "disabled", Enabled: false},
+			},
+			store: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngine(tt.defs, tt.store)
+			assert.NotNil(t, e)
+			assert.NotNil(t, e.Handler())
+		})
+	}
 }
 
 func TestCheckpointDataMarshaling(t *testing.T) {
 	t.Parallel()
-	cp := &CheckpointData{
-		StepIndex: 2,
-		StepResults: map[string]*StepResult{
-			"step1": {Name: "step1", Output: map[string]any{"id": "123"}},
+	tests := []struct {
+		name  string
+		cp    *CheckpointData
+		check func(t *testing.T, restored CheckpointData)
+	}{
+		{
+			name: "basic",
+			cp: &CheckpointData{
+				StepIndex: 2,
+				StepResults: map[string]*StepResult{
+					"step1": {Name: "step1", Output: map[string]any{"id": "123"}},
+				},
+				HeartbeatAt: time.Now(),
+			},
+			check: func(t *testing.T, restored CheckpointData) {
+				assert.Equal(t, 2, restored.StepIndex)
+				assert.Equal(t, "step1", restored.StepResults["step1"].Name)
+				assert.NotNil(t, restored.StepResults["step1"].Output)
+				assert.Equal(t, "123", restored.StepResults["step1"].Output["id"])
+			},
 		},
-		HeartbeatAt: time.Now(),
+		{
+			name: "empty-step-results",
+			cp: &CheckpointData{
+				StepIndex:   0,
+				HeartbeatAt: time.Now(),
+			},
+			check: func(t *testing.T, restored CheckpointData) {
+				assert.Equal(t, 0, restored.StepIndex)
+				assert.Empty(t, restored.StepResults)
+			},
+		},
+		{
+			name: "multiple-steps",
+			cp: &CheckpointData{
+				StepIndex: 5,
+				StepResults: map[string]*StepResult{
+					"step1": {Name: "step1", Output: map[string]any{"a": "1"}},
+					"step2": {Name: "step2", Output: map[string]any{"b": "2"}},
+				},
+				HeartbeatAt: time.Now(),
+			},
+			check: func(t *testing.T, restored CheckpointData) {
+				assert.Equal(t, 5, restored.StepIndex)
+				assert.Len(t, restored.StepResults, 2)
+				assert.Equal(t, "step1", restored.StepResults["step1"].Name)
+				assert.Equal(t, "step2", restored.StepResults["step2"].Name)
+			},
+		},
 	}
-	data, err := sonic.Marshal(cp)
-	require.NoError(t, err)
-	assert.NotEmpty(t, data)
 
-	var restored CheckpointData
-	err = sonic.Unmarshal(data, &restored)
-	require.NoError(t, err)
-	assert.Equal(t, 2, restored.StepIndex)
-	assert.Equal(t, "step1", restored.StepResults["step1"].Name)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			data, err := sonic.Marshal(tt.cp)
+			require.NoError(t, err)
+			assert.NotEmpty(t, data)
+
+			var restored CheckpointData
+			err = sonic.Unmarshal(data, &restored)
+			require.NoError(t, err)
+			tt.check(t, restored)
+		})
+	}
 }
 
 func FuzzIsRetryable(f *testing.F) {
@@ -735,9 +828,7 @@ func FuzzExtractResult(f *testing.F) {
 		}
 		res := &ability.InvokeResult{Data: val}
 		result := extractResult(res)
-		if result == nil {
-			t.Error("extractResult returned nil")
-		}
+		assert.NotNil(t, result, "extractResult returned nil")
 	})
 }
 
@@ -761,12 +852,9 @@ func FuzzFindByEvent(f *testing.F) {
 			}
 		}
 		result := FindByEvent(defs, eventType)
-		// Each matched definition should have the trigger event matching eventType
 		for _, d := range result {
-			if d.Trigger.Event != eventType {
-				t.Errorf("FindByEvent matched definition %q with event %q, expected %q",
-					d.Name, d.Trigger.Event, eventType)
-			}
+			assert.Equal(t, eventType, d.Trigger.Event,
+				"FindByEvent matched definition %s with wrong event", d.Name)
 		}
 	})
 }
@@ -786,13 +874,9 @@ func FuzzBuildStepResults(f *testing.F) {
 			rc.RecordStepResult(name, data)
 		}
 		results := buildStepResults(rc)
-		if len(results) != len(raw) {
-			t.Errorf("buildStepResults len=%d, want %d", len(results), len(raw))
-		}
+		assert.Len(t, results, len(raw), "buildStepResults")
 		for name, sr := range results {
-			if sr.Name != name {
-				t.Errorf("StepResult name mismatch: %q != %q", sr.Name, name)
-			}
+			assert.Equal(t, name, sr.Name, "StepResult name mismatch")
 		}
 	})
 }

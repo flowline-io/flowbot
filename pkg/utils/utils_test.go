@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func slicesEqual(expected, gotten []string) bool {
@@ -19,9 +21,7 @@ func slicesEqual(expected, gotten []string) bool {
 }
 
 func expectSlicesEqual(t *testing.T, name string, expected, gotten []string) {
-	if !slicesEqual(expected, gotten) {
-		t.Errorf("%s: expected %+v, got %+v", name, expected, gotten)
-	}
+	assert.True(t, slicesEqual(expected, gotten), "%s: expected %+v, got %+v", name, expected, gotten)
 }
 
 func TestStringSliceDelta(t *testing.T) {
@@ -99,9 +99,7 @@ func TestIsNullValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := IsNullValue(tt.input); got != tt.want {
-				t.Errorf("IsNullValue() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, IsNullValue(tt.input))
 		})
 	}
 }
@@ -154,9 +152,7 @@ func TestParseVersionPart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := ParseVersionPart(tt.vers); got != tt.want {
-				t.Errorf("ParseVersionPart() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, ParseVersionPart(tt.vers))
 		})
 	}
 }
@@ -204,9 +200,7 @@ func TestParseVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := ParseVersion(tt.vers); got != tt.want {
-				t.Errorf("ParseVersion() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, ParseVersion(tt.vers))
 		})
 	}
 }
@@ -239,9 +233,7 @@ func TestBase10Version(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Base10Version(tt.hex); got != tt.want {
-				t.Errorf("Base10Version() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, Base10Version(tt.hex))
 		})
 	}
 }
@@ -278,9 +270,7 @@ func TestVersionCompare(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := VersionCompare(tt.v1, tt.v2); got != tt.want {
-				t.Errorf("VersionCompare() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, VersionCompare(tt.v1, tt.v2))
 		})
 	}
 }
@@ -323,9 +313,7 @@ func TestMax(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Max(tt.a, tt.b); got != tt.want {
-				t.Errorf("Max() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, Max(tt.a, tt.b))
 		})
 	}
 }
@@ -352,6 +340,12 @@ func TestToAbsolutePath(t *testing.T) {
 			path: "./file.txt",
 			want: filepath.Join("home", "user", "file.txt"),
 		},
+		{
+			name: "parent_directory",
+			base: filepath.Join("home", "user", "projects"),
+			path: filepath.Join("..", "documents", "file.txt"),
+			want: filepath.Join("home", "user", "documents", "file.txt"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -361,9 +355,7 @@ func TestToAbsolutePath(t *testing.T) {
 			// Clean both paths to handle platform differences
 			got = filepath.Clean(got)
 			want := filepath.Clean(tt.want)
-			if got != want {
-				t.Errorf("ToAbsolutePath() = %v, want %v", got, want)
-			}
+			assert.Equal(t, want, got)
 		})
 	}
 
@@ -375,17 +367,13 @@ func TestToAbsolutePath(t *testing.T) {
 			path := `C:\etc\config`
 			want := `C:\etc\config`
 			got := ToAbsolutePath(base, path)
-			if got != want {
-				t.Errorf("ToAbsolutePath() = %v, want %v", got, want)
-			}
+			assert.Equal(t, want, got)
 		} else {
 			base := "/home/user"
 			path := "/etc/config"
 			want := "/etc/config"
 			got := ToAbsolutePath(base, path)
-			if got != want {
-				t.Errorf("ToAbsolutePath() = %v, want %v", got, want)
-			}
+			assert.Equal(t, want, got)
 		}
 	})
 }
@@ -444,12 +432,10 @@ func TestMergeMaps(t *testing.T) {
 			t.Parallel()
 			result, changed := MergeMaps(tt.dst, tt.src)
 
-			if changed != tt.wantChanged {
-				t.Errorf("MergeMaps() changed = %v, want %v", changed, tt.wantChanged)
-			}
+			assert.Equal(t, tt.wantChanged, changed, "MergeMaps() changed")
 
 			if result == nil && tt.src != nil && len(tt.src) > 0 {
-				t.Error("MergeMaps() should not return nil result when there's source data")
+				assert.Fail(t, "MergeMaps() should not return nil result when there's source data")
 			}
 		})
 	}
@@ -465,9 +451,7 @@ func FuzzParseVersionPart(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, vers string) {
 		got := ParseVersionPart(vers)
-		if got > 0x1fff {
-			t.Errorf("ParseVersionPart(%q) = %d, exceeds max 0x1fff", vers, got)
-		}
+		assert.LessOrEqual(t, got, 0x1fff, "ParseVersionPart(%q) = %d, exceeds max 0x1fff", vers, got)
 	})
 }
 
@@ -481,14 +465,10 @@ func FuzzParseVersion(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, vers string) {
 		got := ParseVersion(vers)
-		if got < 0 {
-			t.Errorf("ParseVersion(%q) = %d, negative result", vers, got)
-		}
+		assert.GreaterOrEqual(t, got, 0, "ParseVersion(%q) = %d, negative result", vers, got)
 
 		b10 := Base10Version(got)
-		if b10 < 0 {
-			t.Errorf("Base10Version(%d) = %d, should be >= 0", got, b10)
-		}
+		assert.GreaterOrEqual(t, b10, int64(0), "Base10Version(%d) = %d, should be >= 0", got, b10)
 	})
 }
 
@@ -501,14 +481,16 @@ func FuzzVersionCompare(f *testing.F) {
 	f.Fuzz(func(t *testing.T, v1, v2 int) {
 		got := VersionCompare(v1, v2)
 		if got > 0 && !(v1>>8 > v2>>8) {
-			t.Errorf("VersionCompare(%d,%d)=%d but v1>>8=%d not > v2>>8=%d", v1, v2, got, v1>>8, v2>>8)
+			assert.Fail(t, "VersionCompare: got>0 but v1>>8 not > v2>>8",
+				"v1", v1, "v2", v2, "got", got)
 		}
 		if got < 0 && !(v1>>8 < v2>>8) {
-			t.Errorf("VersionCompare(%d,%d)=%d but v1>>8=%d not < v2>>8=%d", v1, v2, got, v1>>8, v2>>8)
+			assert.Fail(t, "VersionCompare: got<0 but v1>>8 not < v2>>8",
+				"v1", v1, "v2", v2, "got", got)
 		}
 		if got == 0 && v1>>8 != v2>>8 {
-			t.Errorf("VersionCompare(%d,%d)=0 but v1>>8=%d != v2>>8=%d",
-				v1, v2, v1>>8, v2>>8)
+			assert.Fail(t, "VersionCompare: got==0 but v1>>8 != v2>>8",
+				"v1", v1, "v2", v2)
 		}
 	})
 }
@@ -521,11 +503,10 @@ func FuzzMax(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, a, b int) {
 		got := Max(a, b)
-		if got < a || got < b {
-			t.Errorf("Max(%d,%d)=%d, less than one of the inputs", a, b, got)
-		}
+		assert.GreaterOrEqual(t, got, a, "Max result less than one of the inputs", "a", a, "b", b, "got", got)
+		assert.GreaterOrEqual(t, got, b, "Max result less than one of the inputs", "a", a, "b", b, "got", got)
 		if got != a && got != b {
-			t.Errorf("Max(%d,%d)=%d, not equal to either input", a, b, got)
+			assert.Fail(t, "Max result not equal to either input", "a", a, "b", b, "got", got)
 		}
 	})
 }
@@ -537,11 +518,7 @@ func FuzzIsNullValue(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		got := IsNullValue(s)
-		if got && s != "\u2421" {
-			t.Errorf("IsNullValue(%q) = true, only %q should return true", s, "\u2421")
-		}
-		if !got && s == "\u2421" {
-			t.Errorf("IsNullValue(%q) = false, should return true", s)
-		}
+		assert.False(t, got && s != "\u2421", "IsNullValue(%q) = true, only %q should return true", s, "\u2421")
+		assert.False(t, !got && s == "\u2421", "IsNullValue(%q) = false, should return true", s)
 	})
 }

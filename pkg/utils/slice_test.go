@@ -5,6 +5,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSameStringSlice(t *testing.T) {
@@ -65,16 +66,15 @@ func FuzzSameStringSlice(f *testing.F) {
 		}
 
 		if recovered := safeCall(func() { SameStringSlice(x, y) }); recovered != nil {
-			t.Fatalf("SameStringSlice panicked: %v", recovered)
+			require.FailNow(t, "SameStringSlice panicked", "recovered", recovered)
 		}
 
-		if !SameStringSlice(x, x) {
-			t.Errorf("not reflexive: x=%v", x)
-		}
+		symmetric1 := SameStringSlice(x, x)
+		assert.True(t, symmetric1, "not reflexive", "x", x)
 
-		if SameStringSlice(x, y) != SameStringSlice(y, x) {
-			t.Errorf("not symmetric: x=%v, y=%v", x, y)
-		}
+		symmetricLeft := SameStringSlice(x, y)
+		symmetricRight := SameStringSlice(y, x)
+		assert.Equal(t, symmetricRight, symmetricLeft, "not symmetric", "x", x, "y", y)
 	})
 }
 

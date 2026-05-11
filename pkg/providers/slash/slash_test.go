@@ -62,12 +62,12 @@ func TestSlash_CreateShortcut(t *testing.T) {
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
 
-			body, _ := io.ReadAll(r.Body)
-			var reqData Shortcut
-			err := sonic.Unmarshal(body, &reqData)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.shortcut.Name, reqData.Name)
-			assert.Equal(t, tt.shortcut.Link, reqData.Link)
+				body, _ := io.ReadAll(r.Body)
+				var reqData Shortcut
+				err := sonic.Unmarshal(body, &reqData)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.shortcut.Name, reqData.Name)
+				assert.Equal(t, tt.shortcut.Link, reqData.Link)
 
 				w.WriteHeader(tt.statusCode)
 			}))
@@ -94,14 +94,14 @@ func TestSlash_UpdateShortcut(t *testing.T) {
 			assert.Equal(t, expectedPath, r.URL.Path)
 			assert.Equal(t, http.MethodPut, r.Method)
 
-		body, err := io.ReadAll(r.Body)
-		assert.NoError(t, err)
-		var reqData Shortcut
-		err = sonic.Unmarshal(body, &reqData)
-		assert.NoError(t, err)
+			body, err := io.ReadAll(r.Body)
+			assert.NoError(t, err)
+			var reqData Shortcut
+			err = sonic.Unmarshal(body, &reqData)
+			assert.NoError(t, err)
 
-		assert.Equal(t, int32(123), reqData.Id)
-		assert.Equal(t, "updated-shortcut", reqData.Name)
+			assert.Equal(t, int32(123), reqData.Id)
+			assert.Equal(t, "updated-shortcut", reqData.Name)
 
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -196,14 +196,14 @@ func TestSlash_GetShortcut(t *testing.T) {
 					Image:       "https://example.com/image.png",
 				},
 			}
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
-		assert.NoError(t, err)
-	}))
-	defer server.Close()
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(response)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
-	client := NewSlash(server.URL, "test-token")
-	result, err := client.GetShortcut(456)
+		client := NewSlash(server.URL, "test-token")
+		result, err := client.GetShortcut(456)
 
 		require.NoError(t, err)
 		assert.Equal(t, int32(456), result.Id)
@@ -288,13 +288,13 @@ func TestSlash_ListShortcuts_Empty(t *testing.T) {
 	t.Run("empty list shortcuts", func(t *testing.T) {
 		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		shortcuts := []*Shortcut{}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err := sonic.ConfigDefault.NewEncoder(w).Encode(shortcuts)
-		assert.NoError(t, err)
-	}))
-	defer server.Close()
+			shortcuts := []*Shortcut{}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err := sonic.ConfigDefault.NewEncoder(w).Encode(shortcuts)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
 
 		client := NewSlash(server.URL, "test-token")
 		result, err := client.ListShortcuts()
