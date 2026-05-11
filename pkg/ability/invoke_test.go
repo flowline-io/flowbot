@@ -496,7 +496,6 @@ func TestRegistry_InvokeNoEmitWithoutEmitter(t *testing.T) {
 }
 
 func TestSetEventEmitter(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 	}{
@@ -506,15 +505,15 @@ func TestSetEventEmitter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			called := false
 			SetEventEmitter(func(ctx context.Context, result *InvokeResult) {
 				called = true
 			})
 			DefaultRegistry.mu.RLock()
-			require.NotNil(t, DefaultRegistry.emitter)
+			em := DefaultRegistry.emitter
 			DefaultRegistry.mu.RUnlock()
-			DefaultRegistry.emitter(t.Context(), &InvokeResult{})
+			require.NotNil(t, em)
+			em(t.Context(), &InvokeResult{})
 			assert.True(t, called)
 
 			if tt.name == "clearing emitter with nil stops emission" {
@@ -529,7 +528,10 @@ func TestSetEventEmitter(t *testing.T) {
 				SetEventEmitter(func(ctx context.Context, result *InvokeResult) {
 					newCalled = true
 				})
-				DefaultRegistry.emitter(t.Context(), &InvokeResult{})
+				DefaultRegistry.mu.RLock()
+				em2 := DefaultRegistry.emitter
+				DefaultRegistry.mu.RUnlock()
+				em2(t.Context(), &InvokeResult{})
 				assert.True(t, newCalled)
 			}
 			SetEventEmitter(nil)
@@ -538,7 +540,6 @@ func TestSetEventEmitter(t *testing.T) {
 }
 
 func TestRegisterInvoker(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name       string
 		capability hub.CapabilityType
@@ -556,7 +557,6 @@ func TestRegisterInvoker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			err := RegisterInvoker(tt.capability, tt.operation, tt.invoker)
 			if tt.wantErr {
 				require.Error(t, err)

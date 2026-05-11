@@ -238,19 +238,13 @@ func TestRegistry_List(t *testing.T) {
 }
 
 func TestDefaultRegistryIsNotNil(t *testing.T) {
-	t.Parallel()
-
 	t.Run("default registry is not nil", func(t *testing.T) {
-		t.Parallel()
 		assert.NotNil(t, Default)
 	})
 }
 
 func TestDescriptorZeroValue(t *testing.T) {
-	t.Parallel()
-
 	t.Run("descriptor fields are zero values", func(t *testing.T) {
-		t.Parallel()
 		var d Descriptor
 		assert.Empty(t, d.Type)
 		assert.Empty(t, d.Backend)

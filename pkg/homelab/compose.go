@@ -2,6 +2,7 @@ package homelab
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -25,10 +26,17 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 	if err := yaml.Unmarshal(data, &doc); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("parse compose: %w", err)
 	}
+	serviceNames := make([]string, 0, len(doc.Services))
+	for name := range doc.Services {
+		serviceNames = append(serviceNames, name)
+	}
+	sort.Strings(serviceNames)
+
 	services := make([]ComposeService, 0, len(doc.Services))
 	ports := make([]PortMapping, 0, len(doc.Services)*2)
 	labels := make(map[string]string)
-	for name, svc := range doc.Services {
+	for _, name := range serviceNames {
+		svc := doc.Services[name]
 		servicePorts := parsePorts(svc.Ports)
 		services = append(services, ComposeService{
 			Name:      name,

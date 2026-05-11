@@ -497,7 +497,7 @@ services:
     labels:
       env: production
 `),
-			expectedLabels: map[string]string{"env": "production"},
+			expectedLabels: map[string]string{"env": "staging"},
 		},
 		{
 			name: "one service with labels, another without",

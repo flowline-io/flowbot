@@ -20,7 +20,8 @@ func TestScannerDiscoversComposeApps(t *testing.T) {
 		{
 			name: "discovers a single compose app",
 			setup: func(t *testing.T, appsDir string) []string {
-				writeComposeAppWithContent(t, appsDir, "archivebox", `services: { web: { image: archivebox/archivebox:latest, ports: ["8080:8000/tcp"], labels: {"flowbot.capability": "archive"} }, networks: { proxy: {} } }`)
+				writeComposeAppWithContent(t, appsDir, "archivebox", `services: { web: { image: archivebox/archivebox:latest, ports: ["8080:8000/tcp"], labels: {"flowbot.capability": "archive"} } }
+networks: { proxy: {} }`)
 				return []string{"archivebox"}
 			},
 			wantLen: 1,

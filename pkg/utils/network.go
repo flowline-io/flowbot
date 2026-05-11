@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,7 +36,22 @@ func IsUnixAddr(addr string) bool {
 	return len(addrParts) == 2 && addrParts[0] == "unix"
 }
 
-var privateIPBlocks []*net.IPNet
+var (
+	privateIPBlocks     []*net.IPNet
+	privateIPBlocksOnce sync.Once
+)
+
+func initPrivateIPBlocks() {
+	for _, cidr := range []string{
+		"10.0.0.0/8",     // RFC1918
+		"172.16.0.0/12",  // RFC1918
+		"192.168.0.0/16", // RFC1918
+		"fc00::/7",       // RFC4193, IPv6 unique local addr
+	} {
+		_, block, _ := net.ParseCIDR(cidr)
+		privateIPBlocks = append(privateIPBlocks, block)
+	}
+}
 
 func IsRoutableIP(ipStr string) bool {
 	ip := net.ParseIP(ipStr)
@@ -47,17 +63,7 @@ func IsRoutableIP(ipStr string) bool {
 		return false
 	}
 
-	if privateIPBlocks == nil {
-		for _, cidr := range []string{
-			"10.0.0.0/8",     // RFC1918
-			"172.16.0.0/12",  // RFC1918
-			"192.168.0.0/16", // RFC1918
-			"fc00::/7",       // RFC4193, IPv6 unique local addr
-		} {
-			_, block, _ := net.ParseCIDR(cidr)
-			privateIPBlocks = append(privateIPBlocks, block)
-		}
-	}
+	privateIPBlocksOnce.Do(initPrivateIPBlocks)
 
 	for _, block := range privateIPBlocks {
 		if block.Contains(ip) {
