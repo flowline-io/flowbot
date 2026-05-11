@@ -35,7 +35,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - **AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
 - **Events**: DataEvent → MySQL data_events → Redis Stream → pipeline_runs
 - **Testing**: `*_test.go` next to code, table-driven, testify require/assert, `gotestsum`
-- **Table-driven**: All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`.
+- **Table-driven**: All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`. Each table must contain at least 3 cases
 
 ```bash
 go test ./pkg/utils
