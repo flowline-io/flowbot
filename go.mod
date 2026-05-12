@@ -58,7 +58,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
-	github.com/tidwall/gjson v1.18.0
+	github.com/tidwall/gjson v1.19.0
 	github.com/valyala/fasthttp v1.71.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0
 	go.opentelemetry.io/otel v1.43.0
@@ -79,7 +79,6 @@ require (
 	gorm.io/gorm v1.31.1
 	gorm.io/plugin/dbresolver v1.6.2
 	gorm.io/plugin/opentelemetry v0.1.16
-	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.19
 	resty.dev/v3 v3.0.0-beta.6
 )
