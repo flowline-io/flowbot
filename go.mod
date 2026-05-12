@@ -50,7 +50,7 @@ require (
 	github.com/samber/oops v1.21.0
 	github.com/schollz/progressbar/v3 v3.19.0
 	github.com/shirou/gopsutil/v4 v4.26.4
-	github.com/slack-go/slack v0.23.0
+	github.com/slack-go/slack v0.23.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
@@ -79,7 +79,6 @@ require (
 	gorm.io/gorm v1.31.1
 	gorm.io/plugin/dbresolver v1.6.2
 	gorm.io/plugin/opentelemetry v0.1.16
-	gotest.tools/v3 v3.5.2
 	miniflux.app/v2 v2.2.19
 	resty.dev/v3 v3.0.0-beta.6
 )
