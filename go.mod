@@ -3,7 +3,7 @@ module github.com/flowline-io/flowbot
 go 1.26.3
 
 require (
-	code.gitea.io/sdk/gitea v0.25.0
+	code.gitea.io/sdk/gitea v0.25.1
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/RealAlexandreAI/json-repair v0.0.15
