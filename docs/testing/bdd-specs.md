@@ -5,27 +5,27 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
 ## Test Pyramid
 
 ```
-                         ┌──────────────────────────┐
+                         ┌───────────────────────────┐
                          │  BDD Acceptance Tests     │
                          │  Ginkgo + Gomega          │
                          │  tests/specs/             │
                          │  Requires Docker          │
-                         ├──────────────────────────┤
+                         ├───────────────────────────┤
                          │  Integration Tests        │
                          │  testify/suite            │
                          │  tests/integration/       │
                          │  Requires Docker          │
-                         ├──────────────────────────┤
+                         ├───────────────────────────┤
                          │  Unit Tests               │
                          │  testify table-driven     │
                          │  pkg/** / *_test.go       │
                          │  No external deps         │
-                         ├──────────────────────────┤
+                         ├───────────────────────────┤
                          │  Fuzz Tests               │
                          │  testing.F                │
                          │  pkg/** / *_test.go       │
                          │  Retained permanently     │
-                         └──────────────────────────┘
+                         └───────────────────────────┘
 ```
 
 | Layer | Framework | Location | Migration |
@@ -45,10 +45,8 @@ tests/
 │   │                                   #   + per-process database isolation
 │   ├── fixtures.go                     # HTTP request helpers
 │   ├── health_spec_test.go             # Health check acceptance spec
-│   ├── database_spec_test.go           # Database CRUD acceptance specs (planned)
-│   └── modules/                        # Module-level behavior specs (planned)
-│       ├── bookmark_spec_test.go
-│       └── ...
+│   ├── database_spec_test.go           # Database CRUD acceptance specs
+│   └── bookmark_spec_test.go           # Module-level behavior specs
 ├── integration/                        # Legacy testify/suite integration tests
 │   ├── suite_test.go
 │   ├── health_test.go
@@ -66,30 +64,30 @@ All files under `tests/specs/` use `//go:build integration` to prevent compilati
 Ginkgo's `--procs=N` flag runs N independent test processes. To prevent data conflicts, each process operates on an isolated database namespace using `GinkgoParallelProcess()`.
 
 ```
-                     ┌─────────────────────┐
+                     ┌──────────────────────┐
                      │  Process 1           │
                      │  SBS process1        │  Start PostgreSQL + Redis containers
                      │                      │  Serialize DSN → all processes
-                     └──────────┬──────────┘
+                     └──────────┬───────────┘
                                 │
           ┌─────────────────────┼─────────────────────┐
-          ▼                     ▼                     ▼
-   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+          ▼                    ▼                    ▼
+   ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
    │  Process 1    │   │  Process 2    │   │  Process 3    │
    │  DB:          │   │  DB:          │   │  DB:          │
    │  flowbot      │   │  flowbot      │   │  flowbot      │
    │  _test_1      │   │  _test_2      │   │  _test_3      │
    │  Redis DB: 1  │   │  Redis DB: 2  │   │  Redis DB: 3  │
    │  Run specs    │   │  Run specs    │   │  Run specs    │
-   └──────────────┘   └──────────────┘   └──────────────┘
+   └───────────────┘   └───────────────┘   └───────────────┘
           │                     │                     │
           └─────────────────────┼─────────────────────┘
                                 ▼
-                     ┌─────────────────────┐
+                     ┌──────────────────────┐
                      │  Process 1           │
                      │  SAS process1        │  Wait all done
                      │                      │  Terminate containers
-                     └─────────────────────┘
+                     └──────────────────────┘
 ```
 
 **Key mechanism**:
