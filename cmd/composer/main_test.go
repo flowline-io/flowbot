@@ -44,35 +44,9 @@ func TestNewCommand(t *testing.T) {
 
 			subNames := subcommandNames(cmd)
 			require.Contains(t, subNames, "admin")
-			require.Contains(t, subNames, "dao")
 			require.Contains(t, subNames, "webdoc")
 			require.Contains(t, subNames, "skills")
 			require.Contains(t, subNames, "doc")
-		})
-	}
-}
-
-func TestDaoCommand(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "dao command has correct use and config flag"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			cmd := NewCommand()
-			daoCmd := findSubcommand(cmd, "dao")
-			require.NotNil(t, daoCmd)
-			require.Equal(t, "dao", daoCmd.Use)
-			require.NotNil(t, daoCmd.RunE)
-
-			configFlag := daoCmd.Flags().Lookup("config")
-			require.NotNil(t, configFlag)
-			val, _ := daoCmd.Flags().GetString("config")
-			require.Equal(t, "./flowbot.yaml", val)
 		})
 	}
 }
