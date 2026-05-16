@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -21,8 +22,8 @@ func (Dag) Fields() []ent.Field {
 		field.Int32("script_version").Default(0),
 		field.JSON("nodes", []map[string]any{}).StorageKey("nodes"),
 		field.JSON("edges_data", []map[string]any{}).StorageKey("edges"),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

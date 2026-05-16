@@ -46,9 +46,25 @@ func (_c *BotCreate) SetCreatedAt(v time.Time) *BotCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *BotCreate) SetNillableCreatedAt(v *time.Time) *BotCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *BotCreate) SetUpdatedAt(v time.Time) *BotCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *BotCreate) SetNillableUpdatedAt(v *time.Time) *BotCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -96,6 +112,14 @@ func (_c *BotCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := bot.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := bot.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := bot.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -172,14 +172,6 @@ func (_u *TopicUpdate) SetUpdatedAt(v time.Time) *TopicUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *TopicUpdate) SetNillableUpdatedAt(v *time.Time) *TopicUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the TopicMutation object of the builder.
 func (_u *TopicUpdate) Mutation() *TopicMutation {
 	return _u.mutation
@@ -187,6 +179,7 @@ func (_u *TopicUpdate) Mutation() *TopicMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *TopicUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -209,6 +202,14 @@ func (_u *TopicUpdate) Exec(ctx context.Context) error {
 func (_u *TopicUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *TopicUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := topic.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -452,14 +453,6 @@ func (_u *TopicUpdateOne) SetUpdatedAt(v time.Time) *TopicUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *TopicUpdateOne) SetNillableUpdatedAt(v *time.Time) *TopicUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the TopicMutation object of the builder.
 func (_u *TopicUpdateOne) Mutation() *TopicMutation {
 	return _u.mutation
@@ -480,6 +473,7 @@ func (_u *TopicUpdateOne) Select(field string, fields ...string) *TopicUpdateOne
 
 // Save executes the query and returns the updated Topic entity.
 func (_u *TopicUpdateOne) Save(ctx context.Context) (*Topic, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -502,6 +496,14 @@ func (_u *TopicUpdateOne) Exec(ctx context.Context) error {
 func (_u *TopicUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *TopicUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := topic.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -9,7 +9,8 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -38,7 +39,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			err := eventStore.AppendDataEvent(event)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = EntClient.DataEvent.Query().Where(gen.DataEventEventID(event.EventID)).Only(context.Background())
+			_, err = EntClient.DataEvent.Query().Where(dataevent.EventID(event.EventID)).Only(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -83,7 +84,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			err := eventStore.AppendDataEvent(event)
 			Expect(err).NotTo(HaveOccurred())
 
-			saved, err := EntClient.DataEvent.Query().Where(gen.DataEventEventID(event.EventID)).Only(context.Background())
+			saved, err := EntClient.DataEvent.Query().Where(dataevent.EventID(event.EventID)).Only(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(saved.Source).To(Equal("test-source"))
 			Expect(saved.CreatedAt).NotTo(BeNil())
@@ -210,7 +211,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			err := eventStore.AppendEventOutbox(event)
 			Expect(err).NotTo(HaveOccurred())
 
-			outbox, err := EntClient.EventOutbox.Query().Where(gen.EventOutboxEventID(event.EventID)).Only(context.Background())
+			outbox, err := EntClient.EventOutbox.Query().Where(eventoutbox.EventID(event.EventID)).Only(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(outbox.Published).To(BeFalse())
 		})
@@ -229,7 +230,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			err = eventStore.MarkOutboxPublished(event.EventID)
 			Expect(err).NotTo(HaveOccurred())
 
-			outbox, err := EntClient.EventOutbox.Query().Where(gen.EventOutboxEventID(event.EventID)).Only(context.Background())
+			outbox, err := EntClient.EventOutbox.Query().Where(eventoutbox.EventID(event.EventID)).Only(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(outbox.Published).To(BeTrue())
 		})

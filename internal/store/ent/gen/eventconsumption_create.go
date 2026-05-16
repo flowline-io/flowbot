@@ -38,6 +38,14 @@ func (_c *EventConsumptionCreate) SetCreatedAt(v time.Time) *EventConsumptionCre
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *EventConsumptionCreate) SetNillableCreatedAt(v *time.Time) *EventConsumptionCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *EventConsumptionCreate) SetID(v int64) *EventConsumptionCreate {
 	_c.mutation.SetID(v)
@@ -51,6 +59,7 @@ func (_c *EventConsumptionCreate) Mutation() *EventConsumptionMutation {
 
 // Save creates the EventConsumption in the database.
 func (_c *EventConsumptionCreate) Save(ctx context.Context) (*EventConsumption, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -73,6 +82,14 @@ func (_c *EventConsumptionCreate) Exec(ctx context.Context) error {
 func (_c *EventConsumptionCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *EventConsumptionCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := eventconsumption.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 
@@ -162,6 +179,7 @@ func (_c *EventConsumptionCreateBulk) Save(ctx context.Context) ([]*EventConsump
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*EventConsumptionMutation)
 				if !ok {

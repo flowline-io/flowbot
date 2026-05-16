@@ -98,19 +98,19 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 		It("creates text messages for chat output", func() {
 			msg := types.TextMsg{Text: "hello world"}
 			Expect(msg.Text).To(Equal("hello world"))
-			Expect(types.TypeOf(msg)).To(Equal("text"))
+			Expect(types.TypeOf(msg)).To(Equal("TextMsg"))
 		})
 
 		It("creates info messages", func() {
 			msg := types.InfoMsg{Title: "Stats", Model: map[string]any{"count": 42}}
 			Expect(msg.Title).To(Equal("Stats"))
-			Expect(types.TypeOf(msg)).To(Equal("info"))
+			Expect(types.TypeOf(msg)).To(Equal("InfoMsg"))
 		})
 
 		It("creates link messages", func() {
 			msg := types.LinkMsg{Title: "Example", Url: "https://example.com"}
 			Expect(msg.Title).To(Equal("Example"))
-			Expect(types.TypeOf(msg)).To(Equal("link"))
+			Expect(types.TypeOf(msg)).To(Equal("LinkMsg"))
 		})
 
 		It("creates table messages", func() {
@@ -120,7 +120,7 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 				Row:    [][]any{{"key1", "val1"}, {"key2", "val2"}},
 			}
 			Expect(msg.Title).To(Equal("Data"))
-			Expect(types.TypeOf(msg)).To(Equal("table"))
+			Expect(types.TypeOf(msg)).To(Equal("TableMsg"))
 		})
 	})
 })

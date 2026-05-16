@@ -110,14 +110,6 @@ func (_u *ConnectionUpdate) SetUpdatedAt(v time.Time) *ConnectionUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ConnectionUpdate) SetNillableUpdatedAt(v *time.Time) *ConnectionUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the ConnectionMutation object of the builder.
 func (_u *ConnectionUpdate) Mutation() *ConnectionMutation {
 	return _u.mutation
@@ -125,6 +117,7 @@ func (_u *ConnectionUpdate) Mutation() *ConnectionMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ConnectionUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -147,6 +140,14 @@ func (_u *ConnectionUpdate) Exec(ctx context.Context) error {
 func (_u *ConnectionUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ConnectionUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := connection.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -310,14 +311,6 @@ func (_u *ConnectionUpdateOne) SetUpdatedAt(v time.Time) *ConnectionUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ConnectionUpdateOne) SetNillableUpdatedAt(v *time.Time) *ConnectionUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the ConnectionMutation object of the builder.
 func (_u *ConnectionUpdateOne) Mutation() *ConnectionMutation {
 	return _u.mutation
@@ -338,6 +331,7 @@ func (_u *ConnectionUpdateOne) Select(field string, fields ...string) *Connectio
 
 // Save executes the query and returns the updated Connection entity.
 func (_u *ConnectionUpdateOne) Save(ctx context.Context) (*Connection, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -360,6 +354,14 @@ func (_u *ConnectionUpdateOne) Exec(ctx context.Context) error {
 func (_u *ConnectionUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ConnectionUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := connection.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

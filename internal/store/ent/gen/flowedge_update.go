@@ -157,14 +157,6 @@ func (_u *FlowEdgeUpdate) SetUpdatedAt(v time.Time) *FlowEdgeUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowEdgeUpdate) SetNillableUpdatedAt(v *time.Time) *FlowEdgeUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowEdgeMutation object of the builder.
 func (_u *FlowEdgeUpdate) Mutation() *FlowEdgeMutation {
 	return _u.mutation
@@ -172,6 +164,7 @@ func (_u *FlowEdgeUpdate) Mutation() *FlowEdgeMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FlowEdgeUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -194,6 +187,14 @@ func (_u *FlowEdgeUpdate) Exec(ctx context.Context) error {
 func (_u *FlowEdgeUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowEdgeUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flowedge.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -414,14 +415,6 @@ func (_u *FlowEdgeUpdateOne) SetUpdatedAt(v time.Time) *FlowEdgeUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowEdgeUpdateOne) SetNillableUpdatedAt(v *time.Time) *FlowEdgeUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowEdgeMutation object of the builder.
 func (_u *FlowEdgeUpdateOne) Mutation() *FlowEdgeMutation {
 	return _u.mutation
@@ -442,6 +435,7 @@ func (_u *FlowEdgeUpdateOne) Select(field string, fields ...string) *FlowEdgeUpd
 
 // Save executes the query and returns the updated FlowEdge entity.
 func (_u *FlowEdgeUpdateOne) Save(ctx context.Context) (*FlowEdge, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -464,6 +458,14 @@ func (_u *FlowEdgeUpdateOne) Exec(ctx context.Context) error {
 func (_u *FlowEdgeUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowEdgeUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flowedge.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

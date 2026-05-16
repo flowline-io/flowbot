@@ -125,14 +125,6 @@ func (_u *ReviewEvaluationUpdate) SetUpdatedAt(v time.Time) *ReviewEvaluationUpd
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ReviewEvaluationUpdate) SetNillableUpdatedAt(v *time.Time) *ReviewEvaluationUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetReview sets the "review" edge to the Review entity.
 func (_u *ReviewEvaluationUpdate) SetReview(v *Review) *ReviewEvaluationUpdate {
 	return _u.SetReviewID(v.ID)
@@ -151,6 +143,7 @@ func (_u *ReviewEvaluationUpdate) ClearReview() *ReviewEvaluationUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ReviewEvaluationUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -173,6 +166,14 @@ func (_u *ReviewEvaluationUpdate) Exec(ctx context.Context) error {
 func (_u *ReviewEvaluationUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ReviewEvaluationUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := reviewevaluation.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -371,14 +372,6 @@ func (_u *ReviewEvaluationUpdateOne) SetUpdatedAt(v time.Time) *ReviewEvaluation
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ReviewEvaluationUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReviewEvaluationUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetReview sets the "review" edge to the Review entity.
 func (_u *ReviewEvaluationUpdateOne) SetReview(v *Review) *ReviewEvaluationUpdateOne {
 	return _u.SetReviewID(v.ID)
@@ -410,6 +403,7 @@ func (_u *ReviewEvaluationUpdateOne) Select(field string, fields ...string) *Rev
 
 // Save executes the query and returns the updated ReviewEvaluation entity.
 func (_u *ReviewEvaluationUpdateOne) Save(ctx context.Context) (*ReviewEvaluation, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -432,6 +426,14 @@ func (_u *ReviewEvaluationUpdateOne) Exec(ctx context.Context) error {
 func (_u *ReviewEvaluationUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ReviewEvaluationUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := reviewevaluation.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

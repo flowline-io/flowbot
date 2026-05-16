@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -19,8 +20,8 @@ func (App) Fields() []ent.Field {
 		field.String("container_id").Optional().Default(""),
 		field.String("status").Default("unknown"),
 		field.JSON("docker_info", map[string]any{}).Optional(),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

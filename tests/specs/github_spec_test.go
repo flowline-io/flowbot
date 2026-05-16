@@ -147,7 +147,7 @@ var _ = Describe("GitHub Module", Label("module", "github"), func() {
 				},
 			}
 			Expect(msg.Title).To(Equal("GitHub User"))
-			Expect(types.TypeOf(msg)).To(Equal("info"))
+			Expect(types.TypeOf(msg)).To(Equal("InfoMsg"))
 		})
 	})
 })

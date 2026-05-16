@@ -125,14 +125,6 @@ func (_u *AgentUpdate) SetUpdatedAt(v time.Time) *AgentUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AgentUpdate) SetNillableUpdatedAt(v *time.Time) *AgentUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AgentMutation object of the builder.
 func (_u *AgentUpdate) Mutation() *AgentMutation {
 	return _u.mutation
@@ -140,6 +132,7 @@ func (_u *AgentUpdate) Mutation() *AgentMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AgentUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -162,6 +155,14 @@ func (_u *AgentUpdate) Exec(ctx context.Context) error {
 func (_u *AgentUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AgentUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := agent.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -343,14 +344,6 @@ func (_u *AgentUpdateOne) SetUpdatedAt(v time.Time) *AgentUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AgentUpdateOne) SetNillableUpdatedAt(v *time.Time) *AgentUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AgentMutation object of the builder.
 func (_u *AgentUpdateOne) Mutation() *AgentMutation {
 	return _u.mutation
@@ -371,6 +364,7 @@ func (_u *AgentUpdateOne) Select(field string, fields ...string) *AgentUpdateOne
 
 // Save executes the query and returns the updated Agent entity.
 func (_u *AgentUpdateOne) Save(ctx context.Context) (*Agent, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -393,6 +387,14 @@ func (_u *AgentUpdateOne) Exec(ctx context.Context) error {
 func (_u *AgentUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AgentUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := agent.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

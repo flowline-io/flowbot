@@ -227,12 +227,6 @@ tasks:
     cmds:
       - go run ./cmd/composer doc
 
-  # Code generation tasks
-  dao:
-    desc: Generate DAO code from database
-    cmds:
-      - go run ./cmd/composer dao
-
   skills:
     desc: Generate SKILLS.md to cmd/cli
     cmds:

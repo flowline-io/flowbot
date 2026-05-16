@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -27,8 +28,8 @@ func (KeyResult) Fields() []ent.Field {
 		field.Int32("current_value").Default(0),
 		field.String("value_mode").Default(""),
 		field.String("tag").Default(""),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

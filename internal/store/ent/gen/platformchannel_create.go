@@ -52,9 +52,25 @@ func (_c *PlatformChannelCreate) SetCreatedAt(v time.Time) *PlatformChannelCreat
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PlatformChannelCreate) SetNillableCreatedAt(v *time.Time) *PlatformChannelCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PlatformChannelCreate) SetUpdatedAt(v time.Time) *PlatformChannelCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PlatformChannelCreate) SetNillableUpdatedAt(v *time.Time) *PlatformChannelCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -102,6 +118,14 @@ func (_c *PlatformChannelCreate) defaults() {
 	if _, ok := _c.mutation.Flag(); !ok {
 		v := platformchannel.DefaultFlag
 		_c.mutation.SetFlag(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := platformchannel.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := platformchannel.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

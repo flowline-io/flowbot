@@ -78,9 +78,25 @@ func (_c *WebhookCreate) SetCreatedAt(v time.Time) *WebhookCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *WebhookCreate) SetNillableCreatedAt(v *time.Time) *WebhookCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *WebhookCreate) SetUpdatedAt(v time.Time) *WebhookCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *WebhookCreate) SetNillableUpdatedAt(v *time.Time) *WebhookCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -132,6 +148,14 @@ func (_c *WebhookCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := webhook.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := webhook.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := webhook.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -122,14 +122,6 @@ func (_u *DagUpdate) SetUpdatedAt(v time.Time) *DagUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *DagUpdate) SetNillableUpdatedAt(v *time.Time) *DagUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetWorkflow sets the "workflow" edge to the Workflow entity.
 func (_u *DagUpdate) SetWorkflow(v *Workflow) *DagUpdate {
 	return _u.SetWorkflowID(v.ID)
@@ -148,6 +140,7 @@ func (_u *DagUpdate) ClearWorkflow() *DagUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *DagUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -170,6 +163,14 @@ func (_u *DagUpdate) Exec(ctx context.Context) error {
 func (_u *DagUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *DagUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := dag.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -354,14 +355,6 @@ func (_u *DagUpdateOne) SetUpdatedAt(v time.Time) *DagUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *DagUpdateOne) SetNillableUpdatedAt(v *time.Time) *DagUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetWorkflow sets the "workflow" edge to the Workflow entity.
 func (_u *DagUpdateOne) SetWorkflow(v *Workflow) *DagUpdateOne {
 	return _u.SetWorkflowID(v.ID)
@@ -393,6 +386,7 @@ func (_u *DagUpdateOne) Select(field string, fields ...string) *DagUpdateOne {
 
 // Save executes the query and returns the updated Dag entity.
 func (_u *DagUpdateOne) Save(ctx context.Context) (*Dag, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -415,6 +409,14 @@ func (_u *DagUpdateOne) Exec(ctx context.Context) error {
 func (_u *DagUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *DagUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := dag.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

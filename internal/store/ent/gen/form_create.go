@@ -76,9 +76,25 @@ func (_c *FormCreate) SetCreatedAt(v time.Time) *FormCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *FormCreate) SetNillableCreatedAt(v *time.Time) *FormCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *FormCreate) SetUpdatedAt(v time.Time) *FormCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *FormCreate) SetNillableUpdatedAt(v *time.Time) *FormCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -126,6 +142,14 @@ func (_c *FormCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := form.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := form.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := form.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

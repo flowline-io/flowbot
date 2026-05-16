@@ -72,9 +72,25 @@ func (_c *PipelineDefinitionCreate) SetCreatedAt(v time.Time) *PipelineDefinitio
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableCreatedAt(v *time.Time) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PipelineDefinitionCreate) SetUpdatedAt(v time.Time) *PipelineDefinitionCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableUpdatedAt(v *time.Time) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -126,6 +142,14 @@ func (_c *PipelineDefinitionCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := pipelinedefinition.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := pipelinedefinition.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := pipelinedefinition.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

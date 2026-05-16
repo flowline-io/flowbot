@@ -86,9 +86,25 @@ func (_c *FlowCreate) SetCreatedAt(v time.Time) *FlowCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *FlowCreate) SetNillableCreatedAt(v *time.Time) *FlowCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *FlowCreate) SetUpdatedAt(v time.Time) *FlowCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *FlowCreate) SetNillableUpdatedAt(v *time.Time) *FlowCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -144,6 +160,14 @@ func (_c *FlowCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := flow.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := flow.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := flow.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

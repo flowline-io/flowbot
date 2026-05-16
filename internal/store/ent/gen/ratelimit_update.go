@@ -151,14 +151,6 @@ func (_u *RateLimitUpdate) SetUpdatedAt(v time.Time) *RateLimitUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *RateLimitUpdate) SetNillableUpdatedAt(v *time.Time) *RateLimitUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the RateLimitMutation object of the builder.
 func (_u *RateLimitUpdate) Mutation() *RateLimitMutation {
 	return _u.mutation
@@ -166,6 +158,7 @@ func (_u *RateLimitUpdate) Mutation() *RateLimitMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *RateLimitUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -188,6 +181,14 @@ func (_u *RateLimitUpdate) Exec(ctx context.Context) error {
 func (_u *RateLimitUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *RateLimitUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := ratelimit.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -392,14 +393,6 @@ func (_u *RateLimitUpdateOne) SetUpdatedAt(v time.Time) *RateLimitUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *RateLimitUpdateOne) SetNillableUpdatedAt(v *time.Time) *RateLimitUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the RateLimitMutation object of the builder.
 func (_u *RateLimitUpdateOne) Mutation() *RateLimitMutation {
 	return _u.mutation
@@ -420,6 +413,7 @@ func (_u *RateLimitUpdateOne) Select(field string, fields ...string) *RateLimitU
 
 // Save executes the query and returns the updated RateLimit entity.
 func (_u *RateLimitUpdateOne) Save(ctx context.Context) (*RateLimit, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -442,6 +436,14 @@ func (_u *RateLimitUpdateOne) Exec(ctx context.Context) error {
 func (_u *RateLimitUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *RateLimitUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := ratelimit.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

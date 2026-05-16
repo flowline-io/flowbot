@@ -64,6 +64,14 @@ func (_c *AuditLogCreate) SetCreatedAt(v time.Time) *AuditLogCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *AuditLogCreate) SetNillableCreatedAt(v *time.Time) *AuditLogCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AuditLogCreate) SetID(v int64) *AuditLogCreate {
 	_c.mutation.SetID(v)
@@ -108,6 +116,10 @@ func (_c *AuditLogCreate) defaults() {
 	if _, ok := _c.mutation.ActorUID(); !ok {
 		v := auditlog.DefaultActorUID
 		_c.mutation.SetActorUID(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := auditlog.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

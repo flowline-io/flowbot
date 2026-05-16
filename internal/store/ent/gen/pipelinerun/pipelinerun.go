@@ -3,6 +3,8 @@
 package pipelinerun
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -71,6 +73,8 @@ var (
 	DefaultStatus int
 	// DefaultError holds the default value on creation for the "error" field.
 	DefaultError string
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the PipelineRun queries.

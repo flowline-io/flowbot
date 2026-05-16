@@ -46,6 +46,14 @@ func (_c *CounterRecordCreate) SetCreatedAt(v time.Time) *CounterRecordCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *CounterRecordCreate) SetNillableCreatedAt(v *time.Time) *CounterRecordCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // Mutation returns the CounterRecordMutation object of the builder.
 func (_c *CounterRecordCreate) Mutation() *CounterRecordMutation {
 	return _c.mutation
@@ -84,6 +92,10 @@ func (_c *CounterRecordCreate) defaults() {
 	if _, ok := _c.mutation.Digit(); !ok {
 		v := counterrecord.DefaultDigit
 		_c.mutation.SetDigit(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := counterrecord.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

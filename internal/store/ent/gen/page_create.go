@@ -70,9 +70,25 @@ func (_c *PageCreate) SetCreatedAt(v time.Time) *PageCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PageCreate) SetNillableCreatedAt(v *time.Time) *PageCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PageCreate) SetUpdatedAt(v time.Time) *PageCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PageCreate) SetNillableUpdatedAt(v *time.Time) *PageCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -120,6 +136,14 @@ func (_c *PageCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := page.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := page.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := page.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

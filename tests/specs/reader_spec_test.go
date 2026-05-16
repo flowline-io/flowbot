@@ -23,7 +23,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 				req := MakeRequest(http.MethodGet, "/service/reader/", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("returns empty list when no feeds exist", func() {

@@ -62,9 +62,25 @@ func (_c *OAuthCreate) SetCreatedAt(v time.Time) *OAuthCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableCreatedAt(v *time.Time) *OAuthCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *OAuthCreate) SetUpdatedAt(v time.Time) *OAuthCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableUpdatedAt(v *time.Time) *OAuthCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -81,6 +97,7 @@ func (_c *OAuthCreate) Mutation() *OAuthMutation {
 
 // Save creates the OAuth in the database.
 func (_c *OAuthCreate) Save(ctx context.Context) (*OAuth, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -103,6 +120,18 @@ func (_c *OAuthCreate) Exec(ctx context.Context) error {
 func (_c *OAuthCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *OAuthCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := oauth.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := oauth.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -242,6 +271,7 @@ func (_c *OAuthCreateBulk) Save(ctx context.Context) ([]*OAuth, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*OAuthMutation)
 				if !ok {

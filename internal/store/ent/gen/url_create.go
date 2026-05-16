@@ -66,9 +66,25 @@ func (_c *URLCreate) SetCreatedAt(v time.Time) *URLCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *URLCreate) SetNillableCreatedAt(v *time.Time) *URLCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *URLCreate) SetUpdatedAt(v time.Time) *URLCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *URLCreate) SetNillableUpdatedAt(v *time.Time) *URLCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -120,6 +136,14 @@ func (_c *URLCreate) defaults() {
 	if _, ok := _c.mutation.ViewCount(); !ok {
 		v := url.DefaultViewCount
 		_c.mutation.SetViewCount(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := url.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := url.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

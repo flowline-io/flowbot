@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -21,8 +22,8 @@ func (FlowEdge) Fields() []ent.Field {
 		field.String("source_port").Optional().Default(""),
 		field.String("target_port").Optional().Default(""),
 		field.String("label").Optional().Default(""),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

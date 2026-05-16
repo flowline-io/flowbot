@@ -267,14 +267,6 @@ func (_u *ObjectiveUpdate) SetUpdatedDate(v time.Time) *ObjectiveUpdate {
 	return _u
 }
 
-// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
-func (_u *ObjectiveUpdate) SetNillableUpdatedDate(v *time.Time) *ObjectiveUpdate {
-	if v != nil {
-		_u.SetUpdatedDate(*v)
-	}
-	return _u
-}
-
 // AddKeyResultIDs adds the "key_results" edge to the KeyResult entity by IDs.
 func (_u *ObjectiveUpdate) AddKeyResultIDs(ids ...int64) *ObjectiveUpdate {
 	_u.mutation.AddKeyResultIDs(ids...)
@@ -354,6 +346,7 @@ func (_u *ObjectiveUpdate) RemoveReviews(v ...*Review) *ObjectiveUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ObjectiveUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -376,6 +369,14 @@ func (_u *ObjectiveUpdate) Exec(ctx context.Context) error {
 func (_u *ObjectiveUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ObjectiveUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedDate(); !ok {
+		v := objective.UpdateDefaultUpdatedDate()
+		_u.mutation.SetUpdatedDate(v)
 	}
 }
 
@@ -818,14 +819,6 @@ func (_u *ObjectiveUpdateOne) SetUpdatedDate(v time.Time) *ObjectiveUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
-func (_u *ObjectiveUpdateOne) SetNillableUpdatedDate(v *time.Time) *ObjectiveUpdateOne {
-	if v != nil {
-		_u.SetUpdatedDate(*v)
-	}
-	return _u
-}
-
 // AddKeyResultIDs adds the "key_results" edge to the KeyResult entity by IDs.
 func (_u *ObjectiveUpdateOne) AddKeyResultIDs(ids ...int64) *ObjectiveUpdateOne {
 	_u.mutation.AddKeyResultIDs(ids...)
@@ -918,6 +911,7 @@ func (_u *ObjectiveUpdateOne) Select(field string, fields ...string) *ObjectiveU
 
 // Save executes the query and returns the updated Objective entity.
 func (_u *ObjectiveUpdateOne) Save(ctx context.Context) (*Objective, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -940,6 +934,14 @@ func (_u *ObjectiveUpdateOne) Exec(ctx context.Context) error {
 func (_u *ObjectiveUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ObjectiveUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedDate(); !ok {
+		v := objective.UpdateDefaultUpdatedDate()
+		_u.mutation.SetUpdatedDate(v)
 	}
 }
 

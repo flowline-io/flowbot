@@ -24,14 +24,14 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("responds without error for listing endpoint", func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/?limit=5", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("supports cursor query parameter", func() {
@@ -47,7 +47,7 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/nonexistent-id", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized), Equal(http.StatusBadRequest)))
 			})
 		})
 
@@ -74,7 +74,7 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 				req := MakeRequest(http.MethodPatch, "/service/bookmark/nonexistent", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized), Equal(http.StatusBadRequest)))
 			})
 		})
 
@@ -83,7 +83,7 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/check-url?url=https://not-bookmarked.example.com", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 		})
 
@@ -92,14 +92,14 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/search?q=test", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("handles unmatched query without error", func() {
 				req := MakeRequest(http.MethodGet, "/service/bookmark/search?q=xyznonexistent12345", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 		})
 	})

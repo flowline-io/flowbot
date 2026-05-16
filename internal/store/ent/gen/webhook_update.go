@@ -132,14 +132,6 @@ func (_u *WebhookUpdate) SetUpdatedAt(v time.Time) *WebhookUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WebhookUpdate) SetNillableUpdatedAt(v *time.Time) *WebhookUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the WebhookMutation object of the builder.
 func (_u *WebhookUpdate) Mutation() *WebhookMutation {
 	return _u.mutation
@@ -147,6 +139,7 @@ func (_u *WebhookUpdate) Mutation() *WebhookMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *WebhookUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -169,6 +162,14 @@ func (_u *WebhookUpdate) Exec(ctx context.Context) error {
 func (_u *WebhookUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WebhookUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := webhook.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -360,14 +361,6 @@ func (_u *WebhookUpdateOne) SetUpdatedAt(v time.Time) *WebhookUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WebhookUpdateOne) SetNillableUpdatedAt(v *time.Time) *WebhookUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the WebhookMutation object of the builder.
 func (_u *WebhookUpdateOne) Mutation() *WebhookMutation {
 	return _u.mutation
@@ -388,6 +381,7 @@ func (_u *WebhookUpdateOne) Select(field string, fields ...string) *WebhookUpdat
 
 // Save executes the query and returns the updated Webhook entity.
 func (_u *WebhookUpdateOne) Save(ctx context.Context) (*Webhook, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -410,6 +404,14 @@ func (_u *WebhookUpdateOne) Exec(ctx context.Context) error {
 func (_u *WebhookUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WebhookUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := webhook.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -123,14 +123,6 @@ func (_u *WorkflowTriggerUpdate) SetUpdatedAt(v time.Time) *WorkflowTriggerUpdat
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowTriggerUpdate) SetNillableUpdatedAt(v *time.Time) *WorkflowTriggerUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetWorkflow sets the "workflow" edge to the Workflow entity.
 func (_u *WorkflowTriggerUpdate) SetWorkflow(v *Workflow) *WorkflowTriggerUpdate {
 	return _u.SetWorkflowID(v.ID)
@@ -149,6 +141,7 @@ func (_u *WorkflowTriggerUpdate) ClearWorkflow() *WorkflowTriggerUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *WorkflowTriggerUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -171,6 +164,14 @@ func (_u *WorkflowTriggerUpdate) Exec(ctx context.Context) error {
 func (_u *WorkflowTriggerUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowTriggerUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflowtrigger.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -363,14 +364,6 @@ func (_u *WorkflowTriggerUpdateOne) SetUpdatedAt(v time.Time) *WorkflowTriggerUp
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowTriggerUpdateOne) SetNillableUpdatedAt(v *time.Time) *WorkflowTriggerUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetWorkflow sets the "workflow" edge to the Workflow entity.
 func (_u *WorkflowTriggerUpdateOne) SetWorkflow(v *Workflow) *WorkflowTriggerUpdateOne {
 	return _u.SetWorkflowID(v.ID)
@@ -402,6 +395,7 @@ func (_u *WorkflowTriggerUpdateOne) Select(field string, fields ...string) *Work
 
 // Save executes the query and returns the updated WorkflowTrigger entity.
 func (_u *WorkflowTriggerUpdateOne) Save(ctx context.Context) (*WorkflowTrigger, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -424,6 +418,14 @@ func (_u *WorkflowTriggerUpdateOne) Exec(ctx context.Context) error {
 func (_u *WorkflowTriggerUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowTriggerUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflowtrigger.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

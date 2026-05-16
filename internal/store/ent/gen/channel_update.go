@@ -83,14 +83,6 @@ func (_u *ChannelUpdate) SetUpdatedAt(v time.Time) *ChannelUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ChannelUpdate) SetNillableUpdatedAt(v *time.Time) *ChannelUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the ChannelMutation object of the builder.
 func (_u *ChannelUpdate) Mutation() *ChannelMutation {
 	return _u.mutation
@@ -98,6 +90,7 @@ func (_u *ChannelUpdate) Mutation() *ChannelMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ChannelUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -120,6 +113,14 @@ func (_u *ChannelUpdate) Exec(ctx context.Context) error {
 func (_u *ChannelUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ChannelUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := channel.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -240,14 +241,6 @@ func (_u *ChannelUpdateOne) SetUpdatedAt(v time.Time) *ChannelUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ChannelUpdateOne) SetNillableUpdatedAt(v *time.Time) *ChannelUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the ChannelMutation object of the builder.
 func (_u *ChannelUpdateOne) Mutation() *ChannelMutation {
 	return _u.mutation
@@ -268,6 +261,7 @@ func (_u *ChannelUpdateOne) Select(field string, fields ...string) *ChannelUpdat
 
 // Save executes the query and returns the updated Channel entity.
 func (_u *ChannelUpdateOne) Save(ctx context.Context) (*Channel, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -290,6 +284,14 @@ func (_u *ChannelUpdateOne) Exec(ctx context.Context) error {
 func (_u *ChannelUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ChannelUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := channel.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

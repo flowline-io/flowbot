@@ -138,6 +138,14 @@ func (_c *WorkflowStepRunCreate) SetCreatedAt(v time.Time) *WorkflowStepRunCreat
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *WorkflowStepRunCreate) SetNillableCreatedAt(v *time.Time) *WorkflowStepRunCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *WorkflowStepRunCreate) SetID(v int64) *WorkflowStepRunCreate {
 	_c.mutation.SetID(v)
@@ -194,6 +202,10 @@ func (_c *WorkflowStepRunCreate) defaults() {
 	if _, ok := _c.mutation.Error(); !ok {
 		v := workflowsteprun.DefaultError
 		_c.mutation.SetError(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := workflowsteprun.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

@@ -3,6 +3,8 @@
 package gen
 
 import (
+	"time"
+
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
@@ -88,6 +90,16 @@ func init() {
 	agentDescOnlineDuration := agentFields[5].Descriptor()
 	// agent.DefaultOnlineDuration holds the default value on creation for the online_duration field.
 	agent.DefaultOnlineDuration = agentDescOnlineDuration.Default.(int32)
+	// agentDescCreatedAt is the schema descriptor for created_at field.
+	agentDescCreatedAt := agentFields[7].Descriptor()
+	// agent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agent.DefaultCreatedAt = agentDescCreatedAt.Default.(func() time.Time)
+	// agentDescUpdatedAt is the schema descriptor for updated_at field.
+	agentDescUpdatedAt := agentFields[8].Descriptor()
+	// agent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agent.DefaultUpdatedAt = agentDescUpdatedAt.Default.(func() time.Time)
+	// agent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agent.UpdateDefaultUpdatedAt = agentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	appFields := schema.App{}.Fields()
 	_ = appFields
 	// appDescName is the schema descriptor for name field.
@@ -106,6 +118,16 @@ func init() {
 	appDescStatus := appFields[4].Descriptor()
 	// app.DefaultStatus holds the default value on creation for the status field.
 	app.DefaultStatus = appDescStatus.Default.(string)
+	// appDescCreatedAt is the schema descriptor for created_at field.
+	appDescCreatedAt := appFields[6].Descriptor()
+	// app.DefaultCreatedAt holds the default value on creation for the created_at field.
+	app.DefaultCreatedAt = appDescCreatedAt.Default.(func() time.Time)
+	// appDescUpdatedAt is the schema descriptor for updated_at field.
+	appDescUpdatedAt := appFields[7].Descriptor()
+	// app.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	app.DefaultUpdatedAt = appDescUpdatedAt.Default.(func() time.Time)
+	// app.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	app.UpdateDefaultUpdatedAt = appDescUpdatedAt.UpdateDefault.(func() time.Time)
 	auditlogFields := schema.AuditLog{}.Fields()
 	_ = auditlogFields
 	// auditlogDescAction is the schema descriptor for action field.
@@ -124,6 +146,10 @@ func init() {
 	auditlogDescActorUID := auditlogFields[4].Descriptor()
 	// auditlog.DefaultActorUID holds the default value on creation for the actor_uid field.
 	auditlog.DefaultActorUID = auditlogDescActorUID.Default.(string)
+	// auditlogDescCreatedAt is the schema descriptor for created_at field.
+	auditlogDescCreatedAt := auditlogFields[6].Descriptor()
+	// auditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	auditlog.DefaultCreatedAt = auditlogDescCreatedAt.Default.(func() time.Time)
 	authenticationFields := schema.Authentication{}.Fields()
 	_ = authenticationFields
 	// authenticationDescUID is the schema descriptor for uid field.
@@ -146,6 +172,16 @@ func init() {
 	authenticationDescEnabled := authenticationFields[8].Descriptor()
 	// authentication.DefaultEnabled holds the default value on creation for the enabled field.
 	authentication.DefaultEnabled = authenticationDescEnabled.Default.(bool)
+	// authenticationDescCreatedAt is the schema descriptor for created_at field.
+	authenticationDescCreatedAt := authenticationFields[9].Descriptor()
+	// authentication.DefaultCreatedAt holds the default value on creation for the created_at field.
+	authentication.DefaultCreatedAt = authenticationDescCreatedAt.Default.(func() time.Time)
+	// authenticationDescUpdatedAt is the schema descriptor for updated_at field.
+	authenticationDescUpdatedAt := authenticationFields[10].Descriptor()
+	// authentication.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	authentication.DefaultUpdatedAt = authenticationDescUpdatedAt.Default.(func() time.Time)
+	// authentication.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	authentication.UpdateDefaultUpdatedAt = authenticationDescUpdatedAt.UpdateDefault.(func() time.Time)
 	behaviorFields := schema.Behavior{}.Fields()
 	_ = behaviorFields
 	// behaviorDescUID is the schema descriptor for uid field.
@@ -160,6 +196,16 @@ func init() {
 	behaviorDescCount := behaviorFields[3].Descriptor()
 	// behavior.DefaultCount holds the default value on creation for the count field.
 	behavior.DefaultCount = behaviorDescCount.Default.(int32)
+	// behaviorDescCreatedAt is the schema descriptor for created_at field.
+	behaviorDescCreatedAt := behaviorFields[5].Descriptor()
+	// behavior.DefaultCreatedAt holds the default value on creation for the created_at field.
+	behavior.DefaultCreatedAt = behaviorDescCreatedAt.Default.(func() time.Time)
+	// behaviorDescUpdatedAt is the schema descriptor for updated_at field.
+	behaviorDescUpdatedAt := behaviorFields[6].Descriptor()
+	// behavior.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	behavior.DefaultUpdatedAt = behaviorDescUpdatedAt.Default.(func() time.Time)
+	// behavior.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	behavior.UpdateDefaultUpdatedAt = behaviorDescUpdatedAt.UpdateDefault.(func() time.Time)
 	botFields := schema.Bot{}.Fields()
 	_ = botFields
 	// botDescName is the schema descriptor for name field.
@@ -170,6 +216,16 @@ func init() {
 	botDescState := botFields[2].Descriptor()
 	// bot.DefaultState holds the default value on creation for the state field.
 	bot.DefaultState = botDescState.Default.(int)
+	// botDescCreatedAt is the schema descriptor for created_at field.
+	botDescCreatedAt := botFields[3].Descriptor()
+	// bot.DefaultCreatedAt holds the default value on creation for the created_at field.
+	bot.DefaultCreatedAt = botDescCreatedAt.Default.(func() time.Time)
+	// botDescUpdatedAt is the schema descriptor for updated_at field.
+	botDescUpdatedAt := botFields[4].Descriptor()
+	// bot.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	bot.DefaultUpdatedAt = botDescUpdatedAt.Default.(func() time.Time)
+	// bot.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	bot.UpdateDefaultUpdatedAt = botDescUpdatedAt.UpdateDefault.(func() time.Time)
 	capabilitybindingFields := schema.CapabilityBinding{}.Fields()
 	_ = capabilitybindingFields
 	// capabilitybindingDescCapability is the schema descriptor for capability field.
@@ -188,6 +244,16 @@ func init() {
 	capabilitybindingDescHealthy := capabilitybindingFields[4].Descriptor()
 	// capabilitybinding.DefaultHealthy holds the default value on creation for the healthy field.
 	capabilitybinding.DefaultHealthy = capabilitybindingDescHealthy.Default.(bool)
+	// capabilitybindingDescCreatedAt is the schema descriptor for created_at field.
+	capabilitybindingDescCreatedAt := capabilitybindingFields[5].Descriptor()
+	// capabilitybinding.DefaultCreatedAt holds the default value on creation for the created_at field.
+	capabilitybinding.DefaultCreatedAt = capabilitybindingDescCreatedAt.Default.(func() time.Time)
+	// capabilitybindingDescUpdatedAt is the schema descriptor for updated_at field.
+	capabilitybindingDescUpdatedAt := capabilitybindingFields[6].Descriptor()
+	// capabilitybinding.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	capabilitybinding.DefaultUpdatedAt = capabilitybindingDescUpdatedAt.Default.(func() time.Time)
+	// capabilitybinding.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	capabilitybinding.UpdateDefaultUpdatedAt = capabilitybindingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	channelFields := schema.Channel{}.Fields()
 	_ = channelFields
 	// channelDescName is the schema descriptor for name field.
@@ -202,6 +268,16 @@ func init() {
 	channelDescState := channelFields[3].Descriptor()
 	// channel.DefaultState holds the default value on creation for the state field.
 	channel.DefaultState = channelDescState.Default.(int)
+	// channelDescCreatedAt is the schema descriptor for created_at field.
+	channelDescCreatedAt := channelFields[4].Descriptor()
+	// channel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	channel.DefaultCreatedAt = channelDescCreatedAt.Default.(func() time.Time)
+	// channelDescUpdatedAt is the schema descriptor for updated_at field.
+	channelDescUpdatedAt := channelFields[5].Descriptor()
+	// channel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	channel.DefaultUpdatedAt = channelDescUpdatedAt.Default.(func() time.Time)
+	// channel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	channel.UpdateDefaultUpdatedAt = channelDescUpdatedAt.UpdateDefault.(func() time.Time)
 	configdataFields := schema.ConfigData{}.Fields()
 	_ = configdataFields
 	// configdataDescUID is the schema descriptor for uid field.
@@ -216,6 +292,16 @@ func init() {
 	configdataDescKey := configdataFields[3].Descriptor()
 	// configdata.KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	configdata.KeyValidator = configdataDescKey.Validators[0].(func(string) error)
+	// configdataDescCreatedAt is the schema descriptor for created_at field.
+	configdataDescCreatedAt := configdataFields[5].Descriptor()
+	// configdata.DefaultCreatedAt holds the default value on creation for the created_at field.
+	configdata.DefaultCreatedAt = configdataDescCreatedAt.Default.(func() time.Time)
+	// configdataDescUpdatedAt is the schema descriptor for updated_at field.
+	configdataDescUpdatedAt := configdataFields[6].Descriptor()
+	// configdata.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	configdata.DefaultUpdatedAt = configdataDescUpdatedAt.Default.(func() time.Time)
+	// configdata.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	configdata.UpdateDefaultUpdatedAt = configdataDescUpdatedAt.UpdateDefault.(func() time.Time)
 	connectionFields := schema.Connection{}.Fields()
 	_ = connectionFields
 	// connectionDescUID is the schema descriptor for uid field.
@@ -238,6 +324,16 @@ func init() {
 	connectionDescEnabled := connectionFields[6].Descriptor()
 	// connection.DefaultEnabled holds the default value on creation for the enabled field.
 	connection.DefaultEnabled = connectionDescEnabled.Default.(bool)
+	// connectionDescCreatedAt is the schema descriptor for created_at field.
+	connectionDescCreatedAt := connectionFields[7].Descriptor()
+	// connection.DefaultCreatedAt holds the default value on creation for the created_at field.
+	connection.DefaultCreatedAt = connectionDescCreatedAt.Default.(func() time.Time)
+	// connectionDescUpdatedAt is the schema descriptor for updated_at field.
+	connectionDescUpdatedAt := connectionFields[8].Descriptor()
+	// connection.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	connection.DefaultUpdatedAt = connectionDescUpdatedAt.Default.(func() time.Time)
+	// connection.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	connection.UpdateDefaultUpdatedAt = connectionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	counterFields := schema.Counter{}.Fields()
 	_ = counterFields
 	// counterDescUID is the schema descriptor for uid field.
@@ -260,12 +356,26 @@ func init() {
 	counterDescStatus := counterFields[5].Descriptor()
 	// counter.DefaultStatus holds the default value on creation for the status field.
 	counter.DefaultStatus = counterDescStatus.Default.(int32)
+	// counterDescCreatedAt is the schema descriptor for created_at field.
+	counterDescCreatedAt := counterFields[6].Descriptor()
+	// counter.DefaultCreatedAt holds the default value on creation for the created_at field.
+	counter.DefaultCreatedAt = counterDescCreatedAt.Default.(func() time.Time)
+	// counterDescUpdatedAt is the schema descriptor for updated_at field.
+	counterDescUpdatedAt := counterFields[7].Descriptor()
+	// counter.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	counter.DefaultUpdatedAt = counterDescUpdatedAt.Default.(func() time.Time)
+	// counter.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	counter.UpdateDefaultUpdatedAt = counterDescUpdatedAt.UpdateDefault.(func() time.Time)
 	counterrecordFields := schema.CounterRecord{}.Fields()
 	_ = counterrecordFields
 	// counterrecordDescDigit is the schema descriptor for digit field.
 	counterrecordDescDigit := counterrecordFields[1].Descriptor()
 	// counterrecord.DefaultDigit holds the default value on creation for the digit field.
 	counterrecord.DefaultDigit = counterrecordDescDigit.Default.(int32)
+	// counterrecordDescCreatedAt is the schema descriptor for created_at field.
+	counterrecordDescCreatedAt := counterrecordFields[2].Descriptor()
+	// counterrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
+	counterrecord.DefaultCreatedAt = counterrecordDescCreatedAt.Default.(func() time.Time)
 	cycleFields := schema.Cycle{}.Fields()
 	_ = cycleFields
 	// cycleDescUID is the schema descriptor for uid field.
@@ -284,12 +394,32 @@ func init() {
 	cycleDescState := cycleFields[6].Descriptor()
 	// cycle.DefaultState holds the default value on creation for the state field.
 	cycle.DefaultState = cycleDescState.Default.(int)
+	// cycleDescCreatedAt is the schema descriptor for created_at field.
+	cycleDescCreatedAt := cycleFields[7].Descriptor()
+	// cycle.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cycle.DefaultCreatedAt = cycleDescCreatedAt.Default.(func() time.Time)
+	// cycleDescUpdatedAt is the schema descriptor for updated_at field.
+	cycleDescUpdatedAt := cycleFields[8].Descriptor()
+	// cycle.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cycle.DefaultUpdatedAt = cycleDescUpdatedAt.Default.(func() time.Time)
+	// cycle.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cycle.UpdateDefaultUpdatedAt = cycleDescUpdatedAt.UpdateDefault.(func() time.Time)
 	dagFields := schema.Dag{}.Fields()
 	_ = dagFields
 	// dagDescScriptVersion is the schema descriptor for script_version field.
 	dagDescScriptVersion := dagFields[3].Descriptor()
 	// dag.DefaultScriptVersion holds the default value on creation for the script_version field.
 	dag.DefaultScriptVersion = dagDescScriptVersion.Default.(int32)
+	// dagDescCreatedAt is the schema descriptor for created_at field.
+	dagDescCreatedAt := dagFields[6].Descriptor()
+	// dag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dag.DefaultCreatedAt = dagDescCreatedAt.Default.(func() time.Time)
+	// dagDescUpdatedAt is the schema descriptor for updated_at field.
+	dagDescUpdatedAt := dagFields[7].Descriptor()
+	// dag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dag.DefaultUpdatedAt = dagDescUpdatedAt.Default.(func() time.Time)
+	// dag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dag.UpdateDefaultUpdatedAt = dagDescUpdatedAt.UpdateDefault.(func() time.Time)
 	dataFields := schema.Data{}.Fields()
 	_ = dataFields
 	// dataDescUID is the schema descriptor for uid field.
@@ -304,6 +434,16 @@ func init() {
 	dataDescKey := dataFields[3].Descriptor()
 	// data.KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	data.KeyValidator = dataDescKey.Validators[0].(func(string) error)
+	// dataDescCreatedAt is the schema descriptor for created_at field.
+	dataDescCreatedAt := dataFields[5].Descriptor()
+	// data.DefaultCreatedAt holds the default value on creation for the created_at field.
+	data.DefaultCreatedAt = dataDescCreatedAt.Default.(func() time.Time)
+	// dataDescUpdatedAt is the schema descriptor for updated_at field.
+	dataDescUpdatedAt := dataFields[6].Descriptor()
+	// data.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	data.DefaultUpdatedAt = dataDescUpdatedAt.Default.(func() time.Time)
+	// data.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	data.UpdateDefaultUpdatedAt = dataDescUpdatedAt.UpdateDefault.(func() time.Time)
 	dataeventFields := schema.DataEvent{}.Fields()
 	_ = dataeventFields
 	// dataeventDescEventID is the schema descriptor for event_id field.
@@ -350,6 +490,10 @@ func init() {
 	dataeventDescTopic := dataeventFields[11].Descriptor()
 	// dataevent.DefaultTopic holds the default value on creation for the topic field.
 	dataevent.DefaultTopic = dataeventDescTopic.Default.(string)
+	// dataeventDescCreatedAt is the schema descriptor for created_at field.
+	dataeventDescCreatedAt := dataeventFields[13].Descriptor()
+	// dataevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dataevent.DefaultCreatedAt = dataeventDescCreatedAt.Default.(func() time.Time)
 	eventconsumptionFields := schema.EventConsumption{}.Fields()
 	_ = eventconsumptionFields
 	// eventconsumptionDescConsumerName is the schema descriptor for consumer_name field.
@@ -360,6 +504,10 @@ func init() {
 	eventconsumptionDescEventID := eventconsumptionFields[2].Descriptor()
 	// eventconsumption.EventIDValidator is a validator for the "event_id" field. It is called by the builders before save.
 	eventconsumption.EventIDValidator = eventconsumptionDescEventID.Validators[0].(func(string) error)
+	// eventconsumptionDescCreatedAt is the schema descriptor for created_at field.
+	eventconsumptionDescCreatedAt := eventconsumptionFields[3].Descriptor()
+	// eventconsumption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	eventconsumption.DefaultCreatedAt = eventconsumptionDescCreatedAt.Default.(func() time.Time)
 	eventoutboxFields := schema.EventOutbox{}.Fields()
 	_ = eventoutboxFields
 	// eventoutboxDescEventID is the schema descriptor for event_id field.
@@ -370,6 +518,10 @@ func init() {
 	eventoutboxDescPublished := eventoutboxFields[3].Descriptor()
 	// eventoutbox.DefaultPublished holds the default value on creation for the published field.
 	eventoutbox.DefaultPublished = eventoutboxDescPublished.Default.(bool)
+	// eventoutboxDescCreatedAt is the schema descriptor for created_at field.
+	eventoutboxDescCreatedAt := eventoutboxFields[4].Descriptor()
+	// eventoutbox.DefaultCreatedAt holds the default value on creation for the created_at field.
+	eventoutbox.DefaultCreatedAt = eventoutboxDescCreatedAt.Default.(func() time.Time)
 	executionFields := schema.Execution{}.Fields()
 	_ = executionFields
 	// executionDescExecutionID is the schema descriptor for execution_id field.
@@ -392,6 +544,16 @@ func init() {
 	executionDescError := executionFields[9].Descriptor()
 	// execution.DefaultError holds the default value on creation for the error field.
 	execution.DefaultError = executionDescError.Default.(string)
+	// executionDescCreatedAt is the schema descriptor for created_at field.
+	executionDescCreatedAt := executionFields[12].Descriptor()
+	// execution.DefaultCreatedAt holds the default value on creation for the created_at field.
+	execution.DefaultCreatedAt = executionDescCreatedAt.Default.(func() time.Time)
+	// executionDescUpdatedAt is the schema descriptor for updated_at field.
+	executionDescUpdatedAt := executionFields[13].Descriptor()
+	// execution.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	execution.DefaultUpdatedAt = executionDescUpdatedAt.Default.(func() time.Time)
+	// execution.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	execution.UpdateDefaultUpdatedAt = executionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	fileuploadFields := schema.Fileupload{}.Fields()
 	_ = fileuploadFields
 	// fileuploadDescUID is the schema descriptor for uid field.
@@ -422,6 +584,16 @@ func init() {
 	fileuploadDescState := fileuploadFields[7].Descriptor()
 	// fileupload.DefaultState holds the default value on creation for the state field.
 	fileupload.DefaultState = fileuploadDescState.Default.(int)
+	// fileuploadDescCreatedAt is the schema descriptor for created_at field.
+	fileuploadDescCreatedAt := fileuploadFields[8].Descriptor()
+	// fileupload.DefaultCreatedAt holds the default value on creation for the created_at field.
+	fileupload.DefaultCreatedAt = fileuploadDescCreatedAt.Default.(func() time.Time)
+	// fileuploadDescUpdatedAt is the schema descriptor for updated_at field.
+	fileuploadDescUpdatedAt := fileuploadFields[9].Descriptor()
+	// fileupload.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	fileupload.DefaultUpdatedAt = fileuploadDescUpdatedAt.Default.(func() time.Time)
+	// fileupload.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	fileupload.UpdateDefaultUpdatedAt = fileuploadDescUpdatedAt.UpdateDefault.(func() time.Time)
 	flowFields := schema.Flow{}.Fields()
 	_ = flowFields
 	// flowDescUID is the schema descriptor for uid field.
@@ -448,6 +620,16 @@ func init() {
 	flowDescEnabled := flowFields[6].Descriptor()
 	// flow.DefaultEnabled holds the default value on creation for the enabled field.
 	flow.DefaultEnabled = flowDescEnabled.Default.(bool)
+	// flowDescCreatedAt is the schema descriptor for created_at field.
+	flowDescCreatedAt := flowFields[7].Descriptor()
+	// flow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	flow.DefaultCreatedAt = flowDescCreatedAt.Default.(func() time.Time)
+	// flowDescUpdatedAt is the schema descriptor for updated_at field.
+	flowDescUpdatedAt := flowFields[8].Descriptor()
+	// flow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	flow.DefaultUpdatedAt = flowDescUpdatedAt.Default.(func() time.Time)
+	// flow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	flow.UpdateDefaultUpdatedAt = flowDescUpdatedAt.UpdateDefault.(func() time.Time)
 	flowedgeFields := schema.FlowEdge{}.Fields()
 	_ = flowedgeFields
 	// flowedgeDescEdgeID is the schema descriptor for edge_id field.
@@ -474,6 +656,16 @@ func init() {
 	flowedgeDescLabel := flowedgeFields[7].Descriptor()
 	// flowedge.DefaultLabel holds the default value on creation for the label field.
 	flowedge.DefaultLabel = flowedgeDescLabel.Default.(string)
+	// flowedgeDescCreatedAt is the schema descriptor for created_at field.
+	flowedgeDescCreatedAt := flowedgeFields[8].Descriptor()
+	// flowedge.DefaultCreatedAt holds the default value on creation for the created_at field.
+	flowedge.DefaultCreatedAt = flowedgeDescCreatedAt.Default.(func() time.Time)
+	// flowedgeDescUpdatedAt is the schema descriptor for updated_at field.
+	flowedgeDescUpdatedAt := flowedgeFields[9].Descriptor()
+	// flowedge.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	flowedge.DefaultUpdatedAt = flowedgeDescUpdatedAt.Default.(func() time.Time)
+	// flowedge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	flowedge.UpdateDefaultUpdatedAt = flowedgeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	flowjobFields := schema.FlowJob{}.Fields()
 	_ = flowjobFields
 	// flowjobDescExecutionID is the schema descriptor for execution_id field.
@@ -508,6 +700,16 @@ func init() {
 	flowjobDescError := flowjobFields[11].Descriptor()
 	// flowjob.DefaultError holds the default value on creation for the error field.
 	flowjob.DefaultError = flowjobDescError.Default.(string)
+	// flowjobDescCreatedAt is the schema descriptor for created_at field.
+	flowjobDescCreatedAt := flowjobFields[14].Descriptor()
+	// flowjob.DefaultCreatedAt holds the default value on creation for the created_at field.
+	flowjob.DefaultCreatedAt = flowjobDescCreatedAt.Default.(func() time.Time)
+	// flowjobDescUpdatedAt is the schema descriptor for updated_at field.
+	flowjobDescUpdatedAt := flowjobFields[15].Descriptor()
+	// flowjob.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	flowjob.DefaultUpdatedAt = flowjobDescUpdatedAt.Default.(func() time.Time)
+	// flowjob.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	flowjob.UpdateDefaultUpdatedAt = flowjobDescUpdatedAt.UpdateDefault.(func() time.Time)
 	flownodeFields := schema.FlowNode{}.Fields()
 	_ = flownodeFields
 	// flownodeDescNodeID is the schema descriptor for node_id field.
@@ -538,6 +740,16 @@ func init() {
 	flownodeDescPositionY := flownodeFields[8].Descriptor()
 	// flownode.DefaultPositionY holds the default value on creation for the position_y field.
 	flownode.DefaultPositionY = flownodeDescPositionY.Default.(int)
+	// flownodeDescCreatedAt is the schema descriptor for created_at field.
+	flownodeDescCreatedAt := flownodeFields[12].Descriptor()
+	// flownode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	flownode.DefaultCreatedAt = flownodeDescCreatedAt.Default.(func() time.Time)
+	// flownodeDescUpdatedAt is the schema descriptor for updated_at field.
+	flownodeDescUpdatedAt := flownodeFields[13].Descriptor()
+	// flownode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	flownode.DefaultUpdatedAt = flownodeDescUpdatedAt.Default.(func() time.Time)
+	// flownode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	flownode.UpdateDefaultUpdatedAt = flownodeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	formFields := schema.Form{}.Fields()
 	_ = formFields
 	// formDescFormID is the schema descriptor for form_id field.
@@ -556,6 +768,16 @@ func init() {
 	formDescState := formFields[7].Descriptor()
 	// form.DefaultState holds the default value on creation for the state field.
 	form.DefaultState = formDescState.Default.(int)
+	// formDescCreatedAt is the schema descriptor for created_at field.
+	formDescCreatedAt := formFields[8].Descriptor()
+	// form.DefaultCreatedAt holds the default value on creation for the created_at field.
+	form.DefaultCreatedAt = formDescCreatedAt.Default.(func() time.Time)
+	// formDescUpdatedAt is the schema descriptor for updated_at field.
+	formDescUpdatedAt := formFields[9].Descriptor()
+	// form.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	form.DefaultUpdatedAt = formDescUpdatedAt.Default.(func() time.Time)
+	// form.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	form.UpdateDefaultUpdatedAt = formDescUpdatedAt.UpdateDefault.(func() time.Time)
 	instructFields := schema.Instruct{}.Fields()
 	_ = instructFields
 	// instructDescNo is the schema descriptor for no field.
@@ -586,6 +808,16 @@ func init() {
 	instructDescState := instructFields[8].Descriptor()
 	// instruct.DefaultState holds the default value on creation for the state field.
 	instruct.DefaultState = instructDescState.Default.(int)
+	// instructDescCreatedAt is the schema descriptor for created_at field.
+	instructDescCreatedAt := instructFields[10].Descriptor()
+	// instruct.DefaultCreatedAt holds the default value on creation for the created_at field.
+	instruct.DefaultCreatedAt = instructDescCreatedAt.Default.(func() time.Time)
+	// instructDescUpdatedAt is the schema descriptor for updated_at field.
+	instructDescUpdatedAt := instructFields[11].Descriptor()
+	// instruct.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	instruct.DefaultUpdatedAt = instructDescUpdatedAt.Default.(func() time.Time)
+	// instruct.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	instruct.UpdateDefaultUpdatedAt = instructDescUpdatedAt.UpdateDefault.(func() time.Time)
 	jobFields := schema.Job{}.Fields()
 	_ = jobFields
 	// jobDescUID is the schema descriptor for uid field.
@@ -604,6 +836,16 @@ func init() {
 	jobDescState := jobFields[7].Descriptor()
 	// job.DefaultState holds the default value on creation for the state field.
 	job.DefaultState = jobDescState.Default.(int)
+	// jobDescCreatedAt is the schema descriptor for created_at field.
+	jobDescCreatedAt := jobFields[10].Descriptor()
+	// job.DefaultCreatedAt holds the default value on creation for the created_at field.
+	job.DefaultCreatedAt = jobDescCreatedAt.Default.(func() time.Time)
+	// jobDescUpdatedAt is the schema descriptor for updated_at field.
+	jobDescUpdatedAt := jobFields[11].Descriptor()
+	// job.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	job.DefaultUpdatedAt = jobDescUpdatedAt.Default.(func() time.Time)
+	// job.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	job.UpdateDefaultUpdatedAt = jobDescUpdatedAt.UpdateDefault.(func() time.Time)
 	keyresultFields := schema.KeyResult{}.Fields()
 	_ = keyresultFields
 	// keyresultDescUID is the schema descriptor for uid field.
@@ -646,6 +888,16 @@ func init() {
 	keyresultDescTag := keyresultFields[11].Descriptor()
 	// keyresult.DefaultTag holds the default value on creation for the tag field.
 	keyresult.DefaultTag = keyresultDescTag.Default.(string)
+	// keyresultDescCreatedAt is the schema descriptor for created_at field.
+	keyresultDescCreatedAt := keyresultFields[12].Descriptor()
+	// keyresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	keyresult.DefaultCreatedAt = keyresultDescCreatedAt.Default.(func() time.Time)
+	// keyresultDescUpdatedAt is the schema descriptor for updated_at field.
+	keyresultDescUpdatedAt := keyresultFields[13].Descriptor()
+	// keyresult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	keyresult.DefaultUpdatedAt = keyresultDescUpdatedAt.Default.(func() time.Time)
+	// keyresult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	keyresult.UpdateDefaultUpdatedAt = keyresultDescUpdatedAt.UpdateDefault.(func() time.Time)
 	keyresultvalueFields := schema.KeyResultValue{}.Fields()
 	_ = keyresultvalueFields
 	// keyresultvalueDescValue is the schema descriptor for value field.
@@ -656,6 +908,16 @@ func init() {
 	keyresultvalueDescMemo := keyresultvalueFields[3].Descriptor()
 	// keyresultvalue.DefaultMemo holds the default value on creation for the memo field.
 	keyresultvalue.DefaultMemo = keyresultvalueDescMemo.Default.(string)
+	// keyresultvalueDescCreatedAt is the schema descriptor for created_at field.
+	keyresultvalueDescCreatedAt := keyresultvalueFields[4].Descriptor()
+	// keyresultvalue.DefaultCreatedAt holds the default value on creation for the created_at field.
+	keyresultvalue.DefaultCreatedAt = keyresultvalueDescCreatedAt.Default.(func() time.Time)
+	// keyresultvalueDescUpdatedAt is the schema descriptor for updated_at field.
+	keyresultvalueDescUpdatedAt := keyresultvalueFields[5].Descriptor()
+	// keyresultvalue.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	keyresultvalue.DefaultUpdatedAt = keyresultvalueDescUpdatedAt.Default.(func() time.Time)
+	// keyresultvalue.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	keyresultvalue.UpdateDefaultUpdatedAt = keyresultvalueDescUpdatedAt.UpdateDefault.(func() time.Time)
 	messageFields := schema.Message{}.Fields()
 	_ = messageFields
 	// messageDescFlag is the schema descriptor for flag field.
@@ -684,6 +946,16 @@ func init() {
 	messageDescState := messageFields[8].Descriptor()
 	// message.DefaultState holds the default value on creation for the state field.
 	message.DefaultState = messageDescState.Default.(int)
+	// messageDescCreatedAt is the schema descriptor for created_at field.
+	messageDescCreatedAt := messageFields[9].Descriptor()
+	// message.DefaultCreatedAt holds the default value on creation for the created_at field.
+	message.DefaultCreatedAt = messageDescCreatedAt.Default.(func() time.Time)
+	// messageDescUpdatedAt is the schema descriptor for updated_at field.
+	messageDescUpdatedAt := messageFields[10].Descriptor()
+	// message.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	message.DefaultUpdatedAt = messageDescUpdatedAt.Default.(func() time.Time)
+	// message.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	message.UpdateDefaultUpdatedAt = messageDescUpdatedAt.UpdateDefault.(func() time.Time)
 	oauthFields := schema.OAuth{}.Fields()
 	_ = oauthFields
 	// oauthDescUID is the schema descriptor for uid field.
@@ -706,6 +978,16 @@ func init() {
 	oauthDescToken := oauthFields[5].Descriptor()
 	// oauth.TokenValidator is a validator for the "token" field. It is called by the builders before save.
 	oauth.TokenValidator = oauthDescToken.Validators[0].(func(string) error)
+	// oauthDescCreatedAt is the schema descriptor for created_at field.
+	oauthDescCreatedAt := oauthFields[7].Descriptor()
+	// oauth.DefaultCreatedAt holds the default value on creation for the created_at field.
+	oauth.DefaultCreatedAt = oauthDescCreatedAt.Default.(func() time.Time)
+	// oauthDescUpdatedAt is the schema descriptor for updated_at field.
+	oauthDescUpdatedAt := oauthFields[8].Descriptor()
+	// oauth.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	oauth.DefaultUpdatedAt = oauthDescUpdatedAt.Default.(func() time.Time)
+	// oauth.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	oauth.UpdateDefaultUpdatedAt = oauthDescUpdatedAt.UpdateDefault.(func() time.Time)
 	objectiveFields := schema.Objective{}.Fields()
 	_ = objectiveFields
 	// objectiveDescUID is the schema descriptor for uid field.
@@ -756,6 +1038,16 @@ func init() {
 	objectiveDescTag := objectiveFields[14].Descriptor()
 	// objective.DefaultTag holds the default value on creation for the tag field.
 	objective.DefaultTag = objectiveDescTag.Default.(string)
+	// objectiveDescCreatedData is the schema descriptor for created_data field.
+	objectiveDescCreatedData := objectiveFields[15].Descriptor()
+	// objective.DefaultCreatedData holds the default value on creation for the created_data field.
+	objective.DefaultCreatedData = objectiveDescCreatedData.Default.(func() time.Time)
+	// objectiveDescUpdatedDate is the schema descriptor for updated_date field.
+	objectiveDescUpdatedDate := objectiveFields[16].Descriptor()
+	// objective.DefaultUpdatedDate holds the default value on creation for the updated_date field.
+	objective.DefaultUpdatedDate = objectiveDescUpdatedDate.Default.(func() time.Time)
+	// objective.UpdateDefaultUpdatedDate holds the default value on update for the updated_date field.
+	objective.UpdateDefaultUpdatedDate = objectiveDescUpdatedDate.UpdateDefault.(func() time.Time)
 	pageFields := schema.Page{}.Fields()
 	_ = pageFields
 	// pageDescPageID is the schema descriptor for page_id field.
@@ -778,12 +1070,32 @@ func init() {
 	pageDescState := pageFields[6].Descriptor()
 	// page.DefaultState holds the default value on creation for the state field.
 	page.DefaultState = pageDescState.Default.(int)
+	// pageDescCreatedAt is the schema descriptor for created_at field.
+	pageDescCreatedAt := pageFields[7].Descriptor()
+	// page.DefaultCreatedAt holds the default value on creation for the created_at field.
+	page.DefaultCreatedAt = pageDescCreatedAt.Default.(func() time.Time)
+	// pageDescUpdatedAt is the schema descriptor for updated_at field.
+	pageDescUpdatedAt := pageFields[8].Descriptor()
+	// page.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	page.DefaultUpdatedAt = pageDescUpdatedAt.Default.(func() time.Time)
+	// page.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	page.UpdateDefaultUpdatedAt = pageDescUpdatedAt.UpdateDefault.(func() time.Time)
 	parameterFields := schema.Parameter{}.Fields()
 	_ = parameterFields
 	// parameterDescFlag is the schema descriptor for flag field.
 	parameterDescFlag := parameterFields[1].Descriptor()
 	// parameter.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
 	parameter.FlagValidator = parameterDescFlag.Validators[0].(func(string) error)
+	// parameterDescCreatedAt is the schema descriptor for created_at field.
+	parameterDescCreatedAt := parameterFields[3].Descriptor()
+	// parameter.DefaultCreatedAt holds the default value on creation for the created_at field.
+	parameter.DefaultCreatedAt = parameterDescCreatedAt.Default.(func() time.Time)
+	// parameterDescUpdatedAt is the schema descriptor for updated_at field.
+	parameterDescUpdatedAt := parameterFields[4].Descriptor()
+	// parameter.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	parameter.DefaultUpdatedAt = parameterDescUpdatedAt.Default.(func() time.Time)
+	// parameter.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	parameter.UpdateDefaultUpdatedAt = parameterDescUpdatedAt.UpdateDefault.(func() time.Time)
 	pipelinedefinitionFields := schema.PipelineDefinition{}.Fields()
 	_ = pipelinedefinitionFields
 	// pipelinedefinitionDescName is the schema descriptor for name field.
@@ -798,6 +1110,16 @@ func init() {
 	pipelinedefinitionDescEnabled := pipelinedefinitionFields[3].Descriptor()
 	// pipelinedefinition.DefaultEnabled holds the default value on creation for the enabled field.
 	pipelinedefinition.DefaultEnabled = pipelinedefinitionDescEnabled.Default.(bool)
+	// pipelinedefinitionDescCreatedAt is the schema descriptor for created_at field.
+	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[6].Descriptor()
+	// pipelinedefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelinedefinition.DefaultCreatedAt = pipelinedefinitionDescCreatedAt.Default.(func() time.Time)
+	// pipelinedefinitionDescUpdatedAt is the schema descriptor for updated_at field.
+	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[7].Descriptor()
+	// pipelinedefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	pipelinedefinition.DefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.Default.(func() time.Time)
+	// pipelinedefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	pipelinedefinition.UpdateDefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	pipelinerunFields := schema.PipelineRun{}.Fields()
 	_ = pipelinerunFields
 	// pipelinerunDescPipelineName is the schema descriptor for pipeline_name field.
@@ -820,6 +1142,10 @@ func init() {
 	pipelinerunDescError := pipelinerunFields[5].Descriptor()
 	// pipelinerun.DefaultError holds the default value on creation for the error field.
 	pipelinerun.DefaultError = pipelinerunDescError.Default.(string)
+	// pipelinerunDescCreatedAt is the schema descriptor for created_at field.
+	pipelinerunDescCreatedAt := pipelinerunFields[10].Descriptor()
+	// pipelinerun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelinerun.DefaultCreatedAt = pipelinerunDescCreatedAt.Default.(func() time.Time)
 	pipelinesteprunFields := schema.PipelineStepRun{}.Fields()
 	_ = pipelinesteprunFields
 	// pipelinesteprunDescStepName is the schema descriptor for step_name field.
@@ -846,12 +1172,26 @@ func init() {
 	pipelinesteprunDescError := pipelinesteprunFields[10].Descriptor()
 	// pipelinesteprun.DefaultError holds the default value on creation for the error field.
 	pipelinesteprun.DefaultError = pipelinesteprunDescError.Default.(string)
+	// pipelinesteprunDescCreatedAt is the schema descriptor for created_at field.
+	pipelinesteprunDescCreatedAt := pipelinesteprunFields[13].Descriptor()
+	// pipelinesteprun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelinesteprun.DefaultCreatedAt = pipelinesteprunDescCreatedAt.Default.(func() time.Time)
 	platformFields := schema.Platform{}.Fields()
 	_ = platformFields
 	// platformDescName is the schema descriptor for name field.
 	platformDescName := platformFields[1].Descriptor()
 	// platform.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	platform.NameValidator = platformDescName.Validators[0].(func(string) error)
+	// platformDescCreatedAt is the schema descriptor for created_at field.
+	platformDescCreatedAt := platformFields[2].Descriptor()
+	// platform.DefaultCreatedAt holds the default value on creation for the created_at field.
+	platform.DefaultCreatedAt = platformDescCreatedAt.Default.(func() time.Time)
+	// platformDescUpdatedAt is the schema descriptor for updated_at field.
+	platformDescUpdatedAt := platformFields[3].Descriptor()
+	// platform.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	platform.DefaultUpdatedAt = platformDescUpdatedAt.Default.(func() time.Time)
+	// platform.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	platform.UpdateDefaultUpdatedAt = platformDescUpdatedAt.UpdateDefault.(func() time.Time)
 	platformbotFields := schema.PlatformBot{}.Fields()
 	_ = platformbotFields
 	// platformbotDescFlag is the schema descriptor for flag field.
@@ -860,6 +1200,16 @@ func init() {
 	platformbot.DefaultFlag = platformbotDescFlag.Default.(string)
 	// platformbot.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
 	platformbot.FlagValidator = platformbotDescFlag.Validators[0].(func(string) error)
+	// platformbotDescCreatedAt is the schema descriptor for created_at field.
+	platformbotDescCreatedAt := platformbotFields[4].Descriptor()
+	// platformbot.DefaultCreatedAt holds the default value on creation for the created_at field.
+	platformbot.DefaultCreatedAt = platformbotDescCreatedAt.Default.(func() time.Time)
+	// platformbotDescUpdatedAt is the schema descriptor for updated_at field.
+	platformbotDescUpdatedAt := platformbotFields[5].Descriptor()
+	// platformbot.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	platformbot.DefaultUpdatedAt = platformbotDescUpdatedAt.Default.(func() time.Time)
+	// platformbot.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	platformbot.UpdateDefaultUpdatedAt = platformbotDescUpdatedAt.UpdateDefault.(func() time.Time)
 	platformchannelFields := schema.PlatformChannel{}.Fields()
 	_ = platformchannelFields
 	// platformchannelDescFlag is the schema descriptor for flag field.
@@ -868,6 +1218,16 @@ func init() {
 	platformchannel.DefaultFlag = platformchannelDescFlag.Default.(string)
 	// platformchannel.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
 	platformchannel.FlagValidator = platformchannelDescFlag.Validators[0].(func(string) error)
+	// platformchannelDescCreatedAt is the schema descriptor for created_at field.
+	platformchannelDescCreatedAt := platformchannelFields[4].Descriptor()
+	// platformchannel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	platformchannel.DefaultCreatedAt = platformchannelDescCreatedAt.Default.(func() time.Time)
+	// platformchannelDescUpdatedAt is the schema descriptor for updated_at field.
+	platformchannelDescUpdatedAt := platformchannelFields[5].Descriptor()
+	// platformchannel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	platformchannel.DefaultUpdatedAt = platformchannelDescUpdatedAt.Default.(func() time.Time)
+	// platformchannel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	platformchannel.UpdateDefaultUpdatedAt = platformchannelDescUpdatedAt.UpdateDefault.(func() time.Time)
 	platformchanneluserFields := schema.PlatformChannelUser{}.Fields()
 	_ = platformchanneluserFields
 	// platformchanneluserDescChannelFlag is the schema descriptor for channel_flag field.
@@ -878,6 +1238,16 @@ func init() {
 	platformchanneluserDescUserFlag := platformchanneluserFields[3].Descriptor()
 	// platformchanneluser.UserFlagValidator is a validator for the "user_flag" field. It is called by the builders before save.
 	platformchanneluser.UserFlagValidator = platformchanneluserDescUserFlag.Validators[0].(func(string) error)
+	// platformchanneluserDescCreatedAt is the schema descriptor for created_at field.
+	platformchanneluserDescCreatedAt := platformchanneluserFields[4].Descriptor()
+	// platformchanneluser.DefaultCreatedAt holds the default value on creation for the created_at field.
+	platformchanneluser.DefaultCreatedAt = platformchanneluserDescCreatedAt.Default.(func() time.Time)
+	// platformchanneluserDescUpdatedAt is the schema descriptor for updated_at field.
+	platformchanneluserDescUpdatedAt := platformchanneluserFields[5].Descriptor()
+	// platformchanneluser.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	platformchanneluser.DefaultUpdatedAt = platformchanneluserDescUpdatedAt.Default.(func() time.Time)
+	// platformchanneluser.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	platformchanneluser.UpdateDefaultUpdatedAt = platformchanneluserDescUpdatedAt.UpdateDefault.(func() time.Time)
 	platformuserFields := schema.PlatformUser{}.Fields()
 	_ = platformuserFields
 	// platformuserDescFlag is the schema descriptor for flag field.
@@ -900,6 +1270,16 @@ func init() {
 	platformuserDescIsBot := platformuserFields[7].Descriptor()
 	// platformuser.DefaultIsBot holds the default value on creation for the is_bot field.
 	platformuser.DefaultIsBot = platformuserDescIsBot.Default.(bool)
+	// platformuserDescCreatedAt is the schema descriptor for created_at field.
+	platformuserDescCreatedAt := platformuserFields[8].Descriptor()
+	// platformuser.DefaultCreatedAt holds the default value on creation for the created_at field.
+	platformuser.DefaultCreatedAt = platformuserDescCreatedAt.Default.(func() time.Time)
+	// platformuserDescUpdatedAt is the schema descriptor for updated_at field.
+	platformuserDescUpdatedAt := platformuserFields[9].Descriptor()
+	// platformuser.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	platformuser.DefaultUpdatedAt = platformuserDescUpdatedAt.Default.(func() time.Time)
+	// platformuser.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	platformuser.UpdateDefaultUpdatedAt = platformuserDescUpdatedAt.UpdateDefault.(func() time.Time)
 	ratelimitFields := schema.RateLimit{}.Fields()
 	_ = ratelimitFields
 	// ratelimitDescNodeID is the schema descriptor for node_id field.
@@ -922,6 +1302,16 @@ func init() {
 	ratelimitDescWindowUnit := ratelimitFields[6].Descriptor()
 	// ratelimit.DefaultWindowUnit holds the default value on creation for the window_unit field.
 	ratelimit.DefaultWindowUnit = ratelimitDescWindowUnit.Default.(string)
+	// ratelimitDescCreatedAt is the schema descriptor for created_at field.
+	ratelimitDescCreatedAt := ratelimitFields[7].Descriptor()
+	// ratelimit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ratelimit.DefaultCreatedAt = ratelimitDescCreatedAt.Default.(func() time.Time)
+	// ratelimitDescUpdatedAt is the schema descriptor for updated_at field.
+	ratelimitDescUpdatedAt := ratelimitFields[8].Descriptor()
+	// ratelimit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ratelimit.DefaultUpdatedAt = ratelimitDescUpdatedAt.Default.(func() time.Time)
+	// ratelimit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ratelimit.UpdateDefaultUpdatedAt = ratelimitDescUpdatedAt.UpdateDefault.(func() time.Time)
 	reviewFields := schema.Review{}.Fields()
 	_ = reviewFields
 	// reviewDescUID is the schema descriptor for uid field.
@@ -940,6 +1330,16 @@ func init() {
 	reviewDescRating := reviewFields[5].Descriptor()
 	// review.DefaultRating holds the default value on creation for the rating field.
 	review.DefaultRating = reviewDescRating.Default.(int32)
+	// reviewDescCreatedAt is the schema descriptor for created_at field.
+	reviewDescCreatedAt := reviewFields[6].Descriptor()
+	// review.DefaultCreatedAt holds the default value on creation for the created_at field.
+	review.DefaultCreatedAt = reviewDescCreatedAt.Default.(func() time.Time)
+	// reviewDescUpdatedAt is the schema descriptor for updated_at field.
+	reviewDescUpdatedAt := reviewFields[7].Descriptor()
+	// review.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	review.DefaultUpdatedAt = reviewDescUpdatedAt.Default.(func() time.Time)
+	// review.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	review.UpdateDefaultUpdatedAt = reviewDescUpdatedAt.UpdateDefault.(func() time.Time)
 	reviewevaluationFields := schema.ReviewEvaluation{}.Fields()
 	_ = reviewevaluationFields
 	// reviewevaluationDescUID is the schema descriptor for uid field.
@@ -962,6 +1362,16 @@ func init() {
 	reviewevaluationDescSolving := reviewevaluationFields[6].Descriptor()
 	// reviewevaluation.DefaultSolving holds the default value on creation for the solving field.
 	reviewevaluation.DefaultSolving = reviewevaluationDescSolving.Default.(string)
+	// reviewevaluationDescCreatedAt is the schema descriptor for created_at field.
+	reviewevaluationDescCreatedAt := reviewevaluationFields[7].Descriptor()
+	// reviewevaluation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	reviewevaluation.DefaultCreatedAt = reviewevaluationDescCreatedAt.Default.(func() time.Time)
+	// reviewevaluationDescUpdatedAt is the schema descriptor for updated_at field.
+	reviewevaluationDescUpdatedAt := reviewevaluationFields[8].Descriptor()
+	// reviewevaluation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	reviewevaluation.DefaultUpdatedAt = reviewevaluationDescUpdatedAt.Default.(func() time.Time)
+	// reviewevaluation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	reviewevaluation.UpdateDefaultUpdatedAt = reviewevaluationDescUpdatedAt.UpdateDefault.(func() time.Time)
 	stepFields := schema.Step{}.Fields()
 	_ = stepFields
 	// stepDescUID is the schema descriptor for uid field.
@@ -992,6 +1402,16 @@ func init() {
 	stepDescState := stepFields[12].Descriptor()
 	// step.DefaultState holds the default value on creation for the state field.
 	step.DefaultState = stepDescState.Default.(int)
+	// stepDescCreatedAt is the schema descriptor for created_at field.
+	stepDescCreatedAt := stepFields[15].Descriptor()
+	// step.DefaultCreatedAt holds the default value on creation for the created_at field.
+	step.DefaultCreatedAt = stepDescCreatedAt.Default.(func() time.Time)
+	// stepDescUpdatedAt is the schema descriptor for updated_at field.
+	stepDescUpdatedAt := stepFields[16].Descriptor()
+	// step.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	step.DefaultUpdatedAt = stepDescUpdatedAt.Default.(func() time.Time)
+	// step.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	step.UpdateDefaultUpdatedAt = stepDescUpdatedAt.UpdateDefault.(func() time.Time)
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescUID is the schema descriptor for uid field.
@@ -1046,6 +1466,16 @@ func init() {
 	todoDescComplete := todoFields[15].Descriptor()
 	// todo.DefaultComplete holds the default value on creation for the complete field.
 	todo.DefaultComplete = todoDescComplete.Default.(int32)
+	// todoDescCreatedAt is the schema descriptor for created_at field.
+	todoDescCreatedAt := todoFields[16].Descriptor()
+	// todo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	todo.DefaultCreatedAt = todoDescCreatedAt.Default.(func() time.Time)
+	// todoDescUpdatedAt is the schema descriptor for updated_at field.
+	todoDescUpdatedAt := todoFields[17].Descriptor()
+	// todo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	todo.DefaultUpdatedAt = todoDescUpdatedAt.Default.(func() time.Time)
+	// todo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	todo.UpdateDefaultUpdatedAt = todoDescUpdatedAt.UpdateDefault.(func() time.Time)
 	topicFields := schema.Topic{}.Fields()
 	_ = topicFields
 	// topicDescFlag is the schema descriptor for flag field.
@@ -1072,6 +1502,16 @@ func init() {
 	topicDescState := topicFields[7].Descriptor()
 	// topic.DefaultState holds the default value on creation for the state field.
 	topic.DefaultState = topicDescState.Default.(int)
+	// topicDescCreatedAt is the schema descriptor for created_at field.
+	topicDescCreatedAt := topicFields[9].Descriptor()
+	// topic.DefaultCreatedAt holds the default value on creation for the created_at field.
+	topic.DefaultCreatedAt = topicDescCreatedAt.Default.(func() time.Time)
+	// topicDescUpdatedAt is the schema descriptor for updated_at field.
+	topicDescUpdatedAt := topicFields[10].Descriptor()
+	// topic.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	topic.DefaultUpdatedAt = topicDescUpdatedAt.Default.(func() time.Time)
+	// topic.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	topic.UpdateDefaultUpdatedAt = topicDescUpdatedAt.UpdateDefault.(func() time.Time)
 	urlFields := schema.Url{}.Fields()
 	_ = urlFields
 	// urlDescFlag is the schema descriptor for flag field.
@@ -1090,6 +1530,16 @@ func init() {
 	urlDescViewCount := urlFields[4].Descriptor()
 	// url.DefaultViewCount holds the default value on creation for the view_count field.
 	url.DefaultViewCount = urlDescViewCount.Default.(int32)
+	// urlDescCreatedAt is the schema descriptor for created_at field.
+	urlDescCreatedAt := urlFields[5].Descriptor()
+	// url.DefaultCreatedAt holds the default value on creation for the created_at field.
+	url.DefaultCreatedAt = urlDescCreatedAt.Default.(func() time.Time)
+	// urlDescUpdatedAt is the schema descriptor for updated_at field.
+	urlDescUpdatedAt := urlFields[6].Descriptor()
+	// url.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	url.DefaultUpdatedAt = urlDescUpdatedAt.Default.(func() time.Time)
+	// url.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	url.UpdateDefaultUpdatedAt = urlDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescFlag is the schema descriptor for flag field.
@@ -1108,6 +1558,16 @@ func init() {
 	userDescState := userFields[4].Descriptor()
 	// user.DefaultState holds the default value on creation for the state field.
 	user.DefaultState = userDescState.Default.(int)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[5].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[6].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	webhookFields := schema.Webhook{}.Fields()
 	_ = webhookFields
 	// webhookDescUID is the schema descriptor for uid field.
@@ -1134,6 +1594,16 @@ func init() {
 	webhookDescState := webhookFields[6].Descriptor()
 	// webhook.DefaultState holds the default value on creation for the state field.
 	webhook.DefaultState = webhookDescState.Default.(int)
+	// webhookDescCreatedAt is the schema descriptor for created_at field.
+	webhookDescCreatedAt := webhookFields[7].Descriptor()
+	// webhook.DefaultCreatedAt holds the default value on creation for the created_at field.
+	webhook.DefaultCreatedAt = webhookDescCreatedAt.Default.(func() time.Time)
+	// webhookDescUpdatedAt is the schema descriptor for updated_at field.
+	webhookDescUpdatedAt := webhookFields[8].Descriptor()
+	// webhook.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	webhook.DefaultUpdatedAt = webhookDescUpdatedAt.Default.(func() time.Time)
+	// webhook.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	webhook.UpdateDefaultUpdatedAt = webhookDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowFields := schema.Workflow{}.Fields()
 	_ = workflowFields
 	// workflowDescUID is the schema descriptor for uid field.
@@ -1176,6 +1646,16 @@ func init() {
 	workflowDescState := workflowFields[10].Descriptor()
 	// workflow.DefaultState holds the default value on creation for the state field.
 	workflow.DefaultState = workflowDescState.Default.(int)
+	// workflowDescCreatedAt is the schema descriptor for created_at field.
+	workflowDescCreatedAt := workflowFields[11].Descriptor()
+	// workflow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflow.DefaultCreatedAt = workflowDescCreatedAt.Default.(func() time.Time)
+	// workflowDescUpdatedAt is the schema descriptor for updated_at field.
+	workflowDescUpdatedAt := workflowFields[12].Descriptor()
+	// workflow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workflow.DefaultUpdatedAt = workflowDescUpdatedAt.Default.(func() time.Time)
+	// workflow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workflow.UpdateDefaultUpdatedAt = workflowDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowrunFields := schema.WorkflowRun{}.Fields()
 	_ = workflowrunFields
 	// workflowrunDescWorkflowName is the schema descriptor for workflow_name field.
@@ -1198,6 +1678,10 @@ func init() {
 	workflowrunDescError := workflowrunFields[9].Descriptor()
 	// workflowrun.DefaultError holds the default value on creation for the error field.
 	workflowrun.DefaultError = workflowrunDescError.Default.(string)
+	// workflowrunDescCreatedAt is the schema descriptor for created_at field.
+	workflowrunDescCreatedAt := workflowrunFields[12].Descriptor()
+	// workflowrun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflowrun.DefaultCreatedAt = workflowrunDescCreatedAt.Default.(func() time.Time)
 	workflowscriptFields := schema.WorkflowScript{}.Fields()
 	_ = workflowscriptFields
 	// workflowscriptDescLang is the schema descriptor for lang field.
@@ -1212,6 +1696,16 @@ func init() {
 	workflowscriptDescVersion := workflowscriptFields[4].Descriptor()
 	// workflowscript.DefaultVersion holds the default value on creation for the version field.
 	workflowscript.DefaultVersion = workflowscriptDescVersion.Default.(int32)
+	// workflowscriptDescCreatedAt is the schema descriptor for created_at field.
+	workflowscriptDescCreatedAt := workflowscriptFields[5].Descriptor()
+	// workflowscript.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflowscript.DefaultCreatedAt = workflowscriptDescCreatedAt.Default.(func() time.Time)
+	// workflowscriptDescUpdatedAt is the schema descriptor for updated_at field.
+	workflowscriptDescUpdatedAt := workflowscriptFields[6].Descriptor()
+	// workflowscript.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workflowscript.DefaultUpdatedAt = workflowscriptDescUpdatedAt.Default.(func() time.Time)
+	// workflowscript.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workflowscript.UpdateDefaultUpdatedAt = workflowscriptDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowsteprunFields := schema.WorkflowStepRun{}.Fields()
 	_ = workflowsteprunFields
 	// workflowsteprunDescStepID is the schema descriptor for step_id field.
@@ -1242,6 +1736,10 @@ func init() {
 	workflowsteprunDescError := workflowsteprunFields[10].Descriptor()
 	// workflowsteprun.DefaultError holds the default value on creation for the error field.
 	workflowsteprun.DefaultError = workflowsteprunDescError.Default.(string)
+	// workflowsteprunDescCreatedAt is the schema descriptor for created_at field.
+	workflowsteprunDescCreatedAt := workflowsteprunFields[13].Descriptor()
+	// workflowsteprun.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflowsteprun.DefaultCreatedAt = workflowsteprunDescCreatedAt.Default.(func() time.Time)
 	workflowtriggerFields := schema.WorkflowTrigger{}.Fields()
 	_ = workflowtriggerFields
 	// workflowtriggerDescType is the schema descriptor for type field.
@@ -1256,4 +1754,14 @@ func init() {
 	workflowtriggerDescState := workflowtriggerFields[5].Descriptor()
 	// workflowtrigger.DefaultState holds the default value on creation for the state field.
 	workflowtrigger.DefaultState = workflowtriggerDescState.Default.(int)
+	// workflowtriggerDescCreatedAt is the schema descriptor for created_at field.
+	workflowtriggerDescCreatedAt := workflowtriggerFields[6].Descriptor()
+	// workflowtrigger.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflowtrigger.DefaultCreatedAt = workflowtriggerDescCreatedAt.Default.(func() time.Time)
+	// workflowtriggerDescUpdatedAt is the schema descriptor for updated_at field.
+	workflowtriggerDescUpdatedAt := workflowtriggerFields[7].Descriptor()
+	// workflowtrigger.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workflowtrigger.DefaultUpdatedAt = workflowtriggerDescUpdatedAt.Default.(func() time.Time)
+	// workflowtrigger.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workflowtrigger.UpdateDefaultUpdatedAt = workflowtriggerDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

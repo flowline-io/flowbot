@@ -102,9 +102,25 @@ func (_c *RateLimitCreate) SetCreatedAt(v time.Time) *RateLimitCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *RateLimitCreate) SetNillableCreatedAt(v *time.Time) *RateLimitCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *RateLimitCreate) SetUpdatedAt(v time.Time) *RateLimitCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *RateLimitCreate) SetNillableUpdatedAt(v *time.Time) *RateLimitCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -164,6 +180,14 @@ func (_c *RateLimitCreate) defaults() {
 	if _, ok := _c.mutation.WindowUnit(); !ok {
 		v := ratelimit.DefaultWindowUnit
 		_c.mutation.SetWindowUnit(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := ratelimit.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := ratelimit.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

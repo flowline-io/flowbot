@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -17,7 +18,7 @@ func (EventConsumption) Fields() []ent.Field {
 		field.Int64("id").Immutable(),
 		field.String("consumer_name").NotEmpty(),
 		field.String("event_id").NotEmpty(),
-		field.Time("created_at").Immutable(),
+		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
 

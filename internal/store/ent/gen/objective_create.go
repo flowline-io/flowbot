@@ -184,9 +184,25 @@ func (_c *ObjectiveCreate) SetCreatedData(v time.Time) *ObjectiveCreate {
 	return _c
 }
 
+// SetNillableCreatedData sets the "created_data" field if the given value is not nil.
+func (_c *ObjectiveCreate) SetNillableCreatedData(v *time.Time) *ObjectiveCreate {
+	if v != nil {
+		_c.SetCreatedData(*v)
+	}
+	return _c
+}
+
 // SetUpdatedDate sets the "updated_date" field.
 func (_c *ObjectiveCreate) SetUpdatedDate(v time.Time) *ObjectiveCreate {
 	_c.mutation.SetUpdatedDate(v)
+	return _c
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (_c *ObjectiveCreate) SetNillableUpdatedDate(v *time.Time) *ObjectiveCreate {
+	if v != nil {
+		_c.SetUpdatedDate(*v)
+	}
 	return _c
 }
 
@@ -296,6 +312,14 @@ func (_c *ObjectiveCreate) defaults() {
 	if _, ok := _c.mutation.Tag(); !ok {
 		v := objective.DefaultTag
 		_c.mutation.SetTag(v)
+	}
+	if _, ok := _c.mutation.CreatedData(); !ok {
+		v := objective.DefaultCreatedData()
+		_c.mutation.SetCreatedData(v)
+	}
+	if _, ok := _c.mutation.UpdatedDate(); !ok {
+		v := objective.DefaultUpdatedDate()
+		_c.mutation.SetUpdatedDate(v)
 	}
 }
 

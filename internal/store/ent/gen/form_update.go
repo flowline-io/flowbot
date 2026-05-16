@@ -127,14 +127,6 @@ func (_u *FormUpdate) SetUpdatedAt(v time.Time) *FormUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FormUpdate) SetNillableUpdatedAt(v *time.Time) *FormUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FormMutation object of the builder.
 func (_u *FormUpdate) Mutation() *FormMutation {
 	return _u.mutation
@@ -142,6 +134,7 @@ func (_u *FormUpdate) Mutation() *FormMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FormUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -164,6 +157,14 @@ func (_u *FormUpdate) Exec(ctx context.Context) error {
 func (_u *FormUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FormUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := form.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -351,14 +352,6 @@ func (_u *FormUpdateOne) SetUpdatedAt(v time.Time) *FormUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FormUpdateOne) SetNillableUpdatedAt(v *time.Time) *FormUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FormMutation object of the builder.
 func (_u *FormUpdateOne) Mutation() *FormMutation {
 	return _u.mutation
@@ -379,6 +372,7 @@ func (_u *FormUpdateOne) Select(field string, fields ...string) *FormUpdateOne {
 
 // Save executes the query and returns the updated Form entity.
 func (_u *FormUpdateOne) Save(ctx context.Context) (*Form, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -401,6 +395,14 @@ func (_u *FormUpdateOne) Exec(ctx context.Context) error {
 func (_u *FormUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FormUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := form.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

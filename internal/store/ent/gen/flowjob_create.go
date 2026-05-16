@@ -144,9 +144,25 @@ func (_c *FlowJobCreate) SetCreatedAt(v time.Time) *FlowJobCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *FlowJobCreate) SetNillableCreatedAt(v *time.Time) *FlowJobCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *FlowJobCreate) SetUpdatedAt(v time.Time) *FlowJobCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *FlowJobCreate) SetNillableUpdatedAt(v *time.Time) *FlowJobCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -202,6 +218,14 @@ func (_c *FlowJobCreate) defaults() {
 	if _, ok := _c.mutation.Error(); !ok {
 		v := flowjob.DefaultError
 		_c.mutation.SetError(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := flowjob.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := flowjob.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

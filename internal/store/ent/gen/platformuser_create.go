@@ -76,9 +76,25 @@ func (_c *PlatformUserCreate) SetCreatedAt(v time.Time) *PlatformUserCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PlatformUserCreate) SetNillableCreatedAt(v *time.Time) *PlatformUserCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PlatformUserCreate) SetUpdatedAt(v time.Time) *PlatformUserCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PlatformUserCreate) SetNillableUpdatedAt(v *time.Time) *PlatformUserCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -126,6 +142,14 @@ func (_c *PlatformUserCreate) defaults() {
 	if _, ok := _c.mutation.IsBot(); !ok {
 		v := platformuser.DefaultIsBot
 		_c.mutation.SetIsBot(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := platformuser.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := platformuser.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

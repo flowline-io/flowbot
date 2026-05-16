@@ -211,14 +211,6 @@ func (_u *WorkflowUpdate) SetUpdatedAt(v time.Time) *WorkflowUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowUpdate) SetNillableUpdatedAt(v *time.Time) *WorkflowUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetDagID sets the "dag" edge to the Dag entity by ID.
 func (_u *WorkflowUpdate) SetDagID(id int64) *WorkflowUpdate {
 	_u.mutation.SetDagID(id)
@@ -287,6 +279,7 @@ func (_u *WorkflowUpdate) RemoveTriggers(v ...*WorkflowTrigger) *WorkflowUpdate 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *WorkflowUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -309,6 +302,14 @@ func (_u *WorkflowUpdate) Exec(ctx context.Context) error {
 func (_u *WorkflowUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflow.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -672,14 +673,6 @@ func (_u *WorkflowUpdateOne) SetUpdatedAt(v time.Time) *WorkflowUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowUpdateOne) SetNillableUpdatedAt(v *time.Time) *WorkflowUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetDagID sets the "dag" edge to the Dag entity by ID.
 func (_u *WorkflowUpdateOne) SetDagID(id int64) *WorkflowUpdateOne {
 	_u.mutation.SetDagID(id)
@@ -761,6 +754,7 @@ func (_u *WorkflowUpdateOne) Select(field string, fields ...string) *WorkflowUpd
 
 // Save executes the query and returns the updated Workflow entity.
 func (_u *WorkflowUpdateOne) Save(ctx context.Context) (*Workflow, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -783,6 +777,14 @@ func (_u *WorkflowUpdateOne) Exec(ctx context.Context) error {
 func (_u *WorkflowUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflow.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

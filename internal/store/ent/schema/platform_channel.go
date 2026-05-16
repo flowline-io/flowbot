@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -18,8 +19,8 @@ func (PlatformChannel) Fields() []ent.Field {
 		field.Int64("platform_id"),
 		field.Int64("channel_id"),
 		field.String("flag").NotEmpty().Default("0"),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

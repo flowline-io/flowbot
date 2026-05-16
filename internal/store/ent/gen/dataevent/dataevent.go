@@ -3,6 +3,8 @@
 package dataevent
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -92,6 +94,8 @@ var (
 	DefaultUID string
 	// DefaultTopic holds the default value on creation for the "topic" field.
 	DefaultTopic string
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the DataEvent queries.

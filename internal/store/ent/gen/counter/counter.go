@@ -3,6 +3,8 @@
 package counter
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -62,6 +64,12 @@ var (
 	DefaultDigit int64
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus int32
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the Counter queries.

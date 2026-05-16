@@ -69,14 +69,6 @@ func (_u *BotUpdate) SetUpdatedAt(v time.Time) *BotUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *BotUpdate) SetNillableUpdatedAt(v *time.Time) *BotUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the BotMutation object of the builder.
 func (_u *BotUpdate) Mutation() *BotMutation {
 	return _u.mutation
@@ -84,6 +76,7 @@ func (_u *BotUpdate) Mutation() *BotMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *BotUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -106,6 +99,14 @@ func (_u *BotUpdate) Exec(ctx context.Context) error {
 func (_u *BotUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *BotUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := bot.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -204,14 +205,6 @@ func (_u *BotUpdateOne) SetUpdatedAt(v time.Time) *BotUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *BotUpdateOne) SetNillableUpdatedAt(v *time.Time) *BotUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the BotMutation object of the builder.
 func (_u *BotUpdateOne) Mutation() *BotMutation {
 	return _u.mutation
@@ -232,6 +225,7 @@ func (_u *BotUpdateOne) Select(field string, fields ...string) *BotUpdateOne {
 
 // Save executes the query and returns the updated Bot entity.
 func (_u *BotUpdateOne) Save(ctx context.Context) (*Bot, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -254,6 +248,14 @@ func (_u *BotUpdateOne) Exec(ctx context.Context) error {
 func (_u *BotUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *BotUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := bot.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -80,7 +79,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 	Describe("Fileupload", func() {
 		It("creates a new file upload record", func() {
 			f, err := EntClient.Fileupload.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFid("fid-" + types.Id()).
 				SetName("test.txt").
 				SetMimetype("text/plain").
@@ -95,7 +94,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("retrieves a file upload by ID", func() {
 			f, err := EntClient.Fileupload.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFid("fid-get-" + types.Id()).
 				SetName("get.txt").
 				SetMimetype("text/plain").
@@ -113,7 +112,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("transitions file state", func() {
 			f, err := EntClient.Fileupload.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFid("fid-state-" + types.Id()).
 				SetName("state.txt").
 				SetMimetype("text/plain").
@@ -131,7 +130,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("deletes a file upload record", func() {
 			f, err := EntClient.Fileupload.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFid("fid-del-" + types.Id()).
 				SetName("del.txt").
 				SetMimetype("text/plain").
@@ -147,63 +146,63 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 	Describe("URL", func() {
 		It("creates a new URL record", func() {
-			u, err := EntClient.URL.Create().
+			u, err := EntClient.Url.Create().
 				SetFlag("url-" + types.Id()).
 				SetURL("https://example.com").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(u.ID).NotTo(BeZero())
 
-			EntClient.URL.DeleteOne(u).Exec(ctx)
+			EntClient.Url.DeleteOne(u).Exec(ctx)
 		})
 
 		It("defaults view count to zero on creation", func() {
-			u, err := EntClient.URL.Create().
+			u, err := EntClient.Url.Create().
 				SetFlag("url-view-" + types.Id()).
 				SetURL("https://example.com/page").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(u.ViewCount).To(Equal(int32(0)))
 
-			EntClient.URL.DeleteOne(u).Exec(ctx)
+			EntClient.Url.DeleteOne(u).Exec(ctx)
 		})
 
 		It("increments view count", func() {
-			u, err := EntClient.URL.Create().
+			u, err := EntClient.Url.Create().
 				SetFlag("url-inc-" + types.Id()).
 				SetURL("https://example.com/inc").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			updated, err := EntClient.URL.UpdateOne(u).SetViewCount(5).Save(ctx)
+			updated, err := EntClient.Url.UpdateOne(u).SetViewCount(5).Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(updated.ViewCount).To(Equal(int32(5)))
 
-			EntClient.URL.DeleteOne(u).Exec(ctx)
+			EntClient.Url.DeleteOne(u).Exec(ctx)
 		})
 
 		It("updates URL fields", func() {
-			u, err := EntClient.URL.Create().
+			u, err := EntClient.Url.Create().
 				SetFlag("url-upd-" + types.Id()).
 				SetURL("https://example.com/old").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			updated, err := EntClient.URL.UpdateOne(u).SetURL("https://example.com/new").Save(ctx)
+			updated, err := EntClient.Url.UpdateOne(u).SetURL("https://example.com/new").Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(updated.URL).To(Equal("https://example.com/new"))
 
-			EntClient.URL.DeleteOne(u).Exec(ctx)
+			EntClient.Url.DeleteOne(u).Exec(ctx)
 		})
 
 		It("deletes a URL record", func() {
-			u, err := EntClient.URL.Create().
+			u, err := EntClient.Url.Create().
 				SetFlag("url-del-" + types.Id()).
 				SetURL("https://example.com/del").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = EntClient.URL.DeleteOne(u).Exec(ctx)
+			err = EntClient.Url.DeleteOne(u).Exec(ctx)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -434,7 +433,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 	Describe("Connection", func() {
 		It("creates a new connection", func() {
 			c, err := EntClient.Connection.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("conn-topic").
 				SetName("test-conn").
 				SetType("slack").
@@ -448,7 +447,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("retrieves a connection by ID", func() {
 			c, err := EntClient.Connection.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("conn-get").
 				SetName("get-conn").
 				SetType("discord").
@@ -465,7 +464,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("updates connection fields", func() {
 			c, err := EntClient.Connection.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("conn-upd").
 				SetName("upd-conn").
 				SetType("email").
@@ -482,7 +481,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("deletes a connection", func() {
 			c, err := EntClient.Connection.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("conn-del").
 				SetName("del-conn").
 				SetType("webhook").

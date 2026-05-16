@@ -70,9 +70,25 @@ func (_c *AgentCreate) SetCreatedAt(v time.Time) *AgentCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *AgentCreate) SetNillableCreatedAt(v *time.Time) *AgentCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *AgentCreate) SetUpdatedAt(v time.Time) *AgentCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *AgentCreate) SetNillableUpdatedAt(v *time.Time) *AgentCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -120,6 +136,14 @@ func (_c *AgentCreate) defaults() {
 	if _, ok := _c.mutation.OnlineDuration(); !ok {
 		v := agent.DefaultOnlineDuration
 		_c.mutation.SetOnlineDuration(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := agent.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := agent.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

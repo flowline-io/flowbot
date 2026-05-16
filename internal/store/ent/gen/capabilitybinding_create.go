@@ -58,9 +58,25 @@ func (_c *CapabilityBindingCreate) SetCreatedAt(v time.Time) *CapabilityBindingC
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *CapabilityBindingCreate) SetNillableCreatedAt(v *time.Time) *CapabilityBindingCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *CapabilityBindingCreate) SetUpdatedAt(v time.Time) *CapabilityBindingCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *CapabilityBindingCreate) SetNillableUpdatedAt(v *time.Time) *CapabilityBindingCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -108,6 +124,14 @@ func (_c *CapabilityBindingCreate) defaults() {
 	if _, ok := _c.mutation.Healthy(); !ok {
 		v := capabilitybinding.DefaultHealthy
 		_c.mutation.SetHealthy(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := capabilitybinding.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := capabilitybinding.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

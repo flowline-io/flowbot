@@ -81,9 +81,25 @@ func (_c *WorkflowTriggerCreate) SetCreatedAt(v time.Time) *WorkflowTriggerCreat
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *WorkflowTriggerCreate) SetNillableCreatedAt(v *time.Time) *WorkflowTriggerCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *WorkflowTriggerCreate) SetUpdatedAt(v time.Time) *WorkflowTriggerCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *WorkflowTriggerCreate) SetNillableUpdatedAt(v *time.Time) *WorkflowTriggerCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -140,6 +156,14 @@ func (_c *WorkflowTriggerCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := workflowtrigger.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := workflowtrigger.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := workflowtrigger.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

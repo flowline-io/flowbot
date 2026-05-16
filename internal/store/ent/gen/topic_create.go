@@ -98,9 +98,25 @@ func (_c *TopicCreate) SetCreatedAt(v time.Time) *TopicCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *TopicCreate) SetNillableCreatedAt(v *time.Time) *TopicCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *TopicCreate) SetUpdatedAt(v time.Time) *TopicCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *TopicCreate) SetNillableUpdatedAt(v *time.Time) *TopicCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -152,6 +168,14 @@ func (_c *TopicCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := topic.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := topic.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := topic.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

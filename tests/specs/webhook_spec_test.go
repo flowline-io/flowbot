@@ -6,7 +6,7 @@ package specs
 import (
 	"context"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -83,7 +83,7 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 	Describe("Webhook database operations", func() {
 		It("creates a webhook record", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("webhook-test-uid").
+				SetUID("webhook-test-uid").
 				SetTopic("webhook-test-topic").
 				SetFlag("test-flag").
 				SetSecret("test-secret-12345").
@@ -96,7 +96,7 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 
 		It("activates and deactivates webhooks", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("active-test-uid").
+				SetUID("active-test-uid").
 				SetTopic("active-test").
 				SetFlag("active-flag").
 				SetSecret("active-secret").
@@ -116,7 +116,7 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 
 		It("deletes a webhook by ID", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("del-test-uid").
+				SetUID("del-test-uid").
 				SetTopic("del-test").
 				SetFlag("del-flag").
 				SetSecret("del-secret").
@@ -146,14 +146,14 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 		It("queries webhooks by uid", func() {
 			uid := "query-uid-" + types.Id()
 			w, err := EntClient.Webhook.Create().
-				SetUid(uid).
+				SetUID(uid).
 				SetTopic("query-topic").
 				SetFlag("query-flag").
 				SetSecret("query-secret").
 				Save(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 
-			webhooks, err := EntClient.Webhook.Query().Where(gen.WebhookUID(uid)).All(context.Background())
+			webhooks, err := EntClient.Webhook.Query().Where(webhook.UID(uid)).All(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(len(webhooks)).To(Equal(1))
 			Expect(webhooks[0].Secret).To(Equal("query-secret"))
@@ -165,7 +165,7 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 	Describe("Webhook secret uniqueness", func() {
 		It("creates webhooks with unique secrets", func() {
 			w1, err := EntClient.Webhook.Create().
-				SetUid("unique-uid-1").
+				SetUID("unique-uid-1").
 				SetTopic("unique-topic").
 				SetFlag("unique-flag-1").
 				SetSecret("unique-secret-1").
@@ -173,7 +173,7 @@ var _ = Describe("Webhook Module", Label("module", "webhook"), func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			w2, err := EntClient.Webhook.Create().
-				SetUid("unique-uid-2").
+				SetUID("unique-uid-2").
 				SetTopic("unique-topic-2").
 				SetFlag("unique-flag-2").
 				SetSecret("unique-secret-2").

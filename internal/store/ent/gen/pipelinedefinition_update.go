@@ -106,14 +106,6 @@ func (_u *PipelineDefinitionUpdate) SetUpdatedAt(v time.Time) *PipelineDefinitio
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PipelineDefinitionUpdate) SetNillableUpdatedAt(v *time.Time) *PipelineDefinitionUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PipelineDefinitionMutation object of the builder.
 func (_u *PipelineDefinitionUpdate) Mutation() *PipelineDefinitionMutation {
 	return _u.mutation
@@ -121,6 +113,7 @@ func (_u *PipelineDefinitionUpdate) Mutation() *PipelineDefinitionMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PipelineDefinitionUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -143,6 +136,14 @@ func (_u *PipelineDefinitionUpdate) Exec(ctx context.Context) error {
 func (_u *PipelineDefinitionUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PipelineDefinitionUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := pipelinedefinition.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -293,14 +294,6 @@ func (_u *PipelineDefinitionUpdateOne) SetUpdatedAt(v time.Time) *PipelineDefini
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PipelineDefinitionUpdateOne) SetNillableUpdatedAt(v *time.Time) *PipelineDefinitionUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PipelineDefinitionMutation object of the builder.
 func (_u *PipelineDefinitionUpdateOne) Mutation() *PipelineDefinitionMutation {
 	return _u.mutation
@@ -321,6 +314,7 @@ func (_u *PipelineDefinitionUpdateOne) Select(field string, fields ...string) *P
 
 // Save executes the query and returns the updated PipelineDefinition entity.
 func (_u *PipelineDefinitionUpdateOne) Save(ctx context.Context) (*PipelineDefinition, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -343,6 +337,14 @@ func (_u *PipelineDefinitionUpdateOne) Exec(ctx context.Context) error {
 func (_u *PipelineDefinitionUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PipelineDefinitionUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := pipelinedefinition.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

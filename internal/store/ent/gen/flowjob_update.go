@@ -251,14 +251,6 @@ func (_u *FlowJobUpdate) SetUpdatedAt(v time.Time) *FlowJobUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowJobUpdate) SetNillableUpdatedAt(v *time.Time) *FlowJobUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowJobMutation object of the builder.
 func (_u *FlowJobUpdate) Mutation() *FlowJobMutation {
 	return _u.mutation
@@ -266,6 +258,7 @@ func (_u *FlowJobUpdate) Mutation() *FlowJobMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FlowJobUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -288,6 +281,14 @@ func (_u *FlowJobUpdate) Exec(ctx context.Context) error {
 func (_u *FlowJobUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowJobUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flowjob.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -642,14 +643,6 @@ func (_u *FlowJobUpdateOne) SetUpdatedAt(v time.Time) *FlowJobUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowJobUpdateOne) SetNillableUpdatedAt(v *time.Time) *FlowJobUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowJobMutation object of the builder.
 func (_u *FlowJobUpdateOne) Mutation() *FlowJobMutation {
 	return _u.mutation
@@ -670,6 +663,7 @@ func (_u *FlowJobUpdateOne) Select(field string, fields ...string) *FlowJobUpdat
 
 // Save executes the query and returns the updated FlowJob entity.
 func (_u *FlowJobUpdateOne) Save(ctx context.Context) (*FlowJob, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -692,6 +686,14 @@ func (_u *FlowJobUpdateOne) Exec(ctx context.Context) error {
 func (_u *FlowJobUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowJobUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flowjob.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -108,14 +108,6 @@ func (_u *AppUpdate) SetUpdatedAt(v time.Time) *AppUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AppUpdate) SetNillableUpdatedAt(v *time.Time) *AppUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AppMutation object of the builder.
 func (_u *AppUpdate) Mutation() *AppMutation {
 	return _u.mutation
@@ -123,6 +115,7 @@ func (_u *AppUpdate) Mutation() *AppMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AppUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -145,6 +138,14 @@ func (_u *AppUpdate) Exec(ctx context.Context) error {
 func (_u *AppUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AppUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := app.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -299,14 +300,6 @@ func (_u *AppUpdateOne) SetUpdatedAt(v time.Time) *AppUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AppUpdateOne) SetNillableUpdatedAt(v *time.Time) *AppUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AppMutation object of the builder.
 func (_u *AppUpdateOne) Mutation() *AppMutation {
 	return _u.mutation
@@ -327,6 +320,7 @@ func (_u *AppUpdateOne) Select(field string, fields ...string) *AppUpdateOne {
 
 // Save executes the query and returns the updated App entity.
 func (_u *AppUpdateOne) Save(ctx context.Context) (*App, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -349,6 +343,14 @@ func (_u *AppUpdateOne) Exec(ctx context.Context) error {
 func (_u *AppUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AppUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := app.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

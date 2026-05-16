@@ -146,14 +146,6 @@ func (_u *FileuploadUpdate) SetUpdatedAt(v time.Time) *FileuploadUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FileuploadUpdate) SetNillableUpdatedAt(v *time.Time) *FileuploadUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FileuploadMutation object of the builder.
 func (_u *FileuploadUpdate) Mutation() *FileuploadMutation {
 	return _u.mutation
@@ -161,6 +153,7 @@ func (_u *FileuploadUpdate) Mutation() *FileuploadMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FileuploadUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -183,6 +176,14 @@ func (_u *FileuploadUpdate) Exec(ctx context.Context) error {
 func (_u *FileuploadUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FileuploadUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := fileupload.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -396,14 +397,6 @@ func (_u *FileuploadUpdateOne) SetUpdatedAt(v time.Time) *FileuploadUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FileuploadUpdateOne) SetNillableUpdatedAt(v *time.Time) *FileuploadUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FileuploadMutation object of the builder.
 func (_u *FileuploadUpdateOne) Mutation() *FileuploadMutation {
 	return _u.mutation
@@ -424,6 +417,7 @@ func (_u *FileuploadUpdateOne) Select(field string, fields ...string) *Fileuploa
 
 // Save executes the query and returns the updated Fileupload entity.
 func (_u *FileuploadUpdateOne) Save(ctx context.Context) (*Fileupload, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -446,6 +440,14 @@ func (_u *FileuploadUpdateOne) Exec(ctx context.Context) error {
 func (_u *FileuploadUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FileuploadUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := fileupload.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

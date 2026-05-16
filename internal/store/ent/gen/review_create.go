@@ -82,9 +82,25 @@ func (_c *ReviewCreate) SetCreatedAt(v time.Time) *ReviewCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *ReviewCreate) SetNillableCreatedAt(v *time.Time) *ReviewCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *ReviewCreate) SetUpdatedAt(v time.Time) *ReviewCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *ReviewCreate) SetNillableUpdatedAt(v *time.Time) *ReviewCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -156,6 +172,14 @@ func (_c *ReviewCreate) defaults() {
 	if _, ok := _c.mutation.Rating(); !ok {
 		v := review.DefaultRating
 		_c.mutation.SetRating(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := review.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := review.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -60,14 +60,6 @@ func (_u *ParameterUpdate) SetUpdatedAt(v time.Time) *ParameterUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ParameterUpdate) SetNillableUpdatedAt(v *time.Time) *ParameterUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetExpiredAt sets the "expired_at" field.
 func (_u *ParameterUpdate) SetExpiredAt(v time.Time) *ParameterUpdate {
 	_u.mutation.SetExpiredAt(v)
@@ -89,6 +81,7 @@ func (_u *ParameterUpdate) Mutation() *ParameterMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ParameterUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -111,6 +104,14 @@ func (_u *ParameterUpdate) Exec(ctx context.Context) error {
 func (_u *ParameterUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ParameterUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := parameter.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -203,14 +204,6 @@ func (_u *ParameterUpdateOne) SetUpdatedAt(v time.Time) *ParameterUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *ParameterUpdateOne) SetNillableUpdatedAt(v *time.Time) *ParameterUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetExpiredAt sets the "expired_at" field.
 func (_u *ParameterUpdateOne) SetExpiredAt(v time.Time) *ParameterUpdateOne {
 	_u.mutation.SetExpiredAt(v)
@@ -245,6 +238,7 @@ func (_u *ParameterUpdateOne) Select(field string, fields ...string) *ParameterU
 
 // Save executes the query and returns the updated Parameter entity.
 func (_u *ParameterUpdateOne) Save(ctx context.Context) (*Parameter, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -267,6 +261,14 @@ func (_u *ParameterUpdateOne) Exec(ctx context.Context) error {
 func (_u *ParameterUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *ParameterUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := parameter.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

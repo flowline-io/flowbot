@@ -73,9 +73,25 @@ func (_c *DagCreate) SetCreatedAt(v time.Time) *DagCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *DagCreate) SetNillableCreatedAt(v *time.Time) *DagCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *DagCreate) SetUpdatedAt(v time.Time) *DagCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *DagCreate) SetNillableUpdatedAt(v *time.Time) *DagCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -128,6 +144,14 @@ func (_c *DagCreate) defaults() {
 	if _, ok := _c.mutation.ScriptVersion(); !ok {
 		v := dag.DefaultScriptVersion
 		_c.mutation.SetScriptVersion(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := dag.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := dag.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

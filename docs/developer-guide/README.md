@@ -25,7 +25,6 @@ go tool task air             # Live reload
 ### Code Generation
 
 ```bash
-go tool task dao       # Generate DAO from database
 go tool task swagger   # Generate Swagger/OpenAPI docs
 go tool task doc       # Generate database schema docs
 ```

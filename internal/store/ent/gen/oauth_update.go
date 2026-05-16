@@ -110,14 +110,6 @@ func (_u *OAuthUpdate) SetUpdatedAt(v time.Time) *OAuthUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *OAuthUpdate) SetNillableUpdatedAt(v *time.Time) *OAuthUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the OAuthMutation object of the builder.
 func (_u *OAuthUpdate) Mutation() *OAuthMutation {
 	return _u.mutation
@@ -125,6 +117,7 @@ func (_u *OAuthUpdate) Mutation() *OAuthMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *OAuthUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -147,6 +140,14 @@ func (_u *OAuthUpdate) Exec(ctx context.Context) error {
 func (_u *OAuthUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *OAuthUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := oauth.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -315,14 +316,6 @@ func (_u *OAuthUpdateOne) SetUpdatedAt(v time.Time) *OAuthUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *OAuthUpdateOne) SetNillableUpdatedAt(v *time.Time) *OAuthUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the OAuthMutation object of the builder.
 func (_u *OAuthUpdateOne) Mutation() *OAuthMutation {
 	return _u.mutation
@@ -343,6 +336,7 @@ func (_u *OAuthUpdateOne) Select(field string, fields ...string) *OAuthUpdateOne
 
 // Save executes the query and returns the updated OAuth entity.
 func (_u *OAuthUpdateOne) Save(ctx context.Context) (*OAuth, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -365,6 +359,14 @@ func (_u *OAuthUpdateOne) Exec(ctx context.Context) error {
 func (_u *OAuthUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *OAuthUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := oauth.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -103,7 +103,7 @@ var _ = Describe("Notify Module", Label("module", "notify"), func() {
 	Describe("MsgPayload types for notifications", func() {
 		It("creates text messages", func() {
 			msg := types.TextMsg{Text: "Notification content"}
-			Expect(types.TypeOf(msg)).To(Equal("text"))
+			Expect(types.TypeOf(msg)).To(Equal("TextMsg"))
 		})
 
 		It("creates KV messages for structured data", func() {

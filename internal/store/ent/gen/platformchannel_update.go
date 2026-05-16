@@ -90,14 +90,6 @@ func (_u *PlatformChannelUpdate) SetUpdatedAt(v time.Time) *PlatformChannelUpdat
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PlatformChannelUpdate) SetNillableUpdatedAt(v *time.Time) *PlatformChannelUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PlatformChannelMutation object of the builder.
 func (_u *PlatformChannelUpdate) Mutation() *PlatformChannelMutation {
 	return _u.mutation
@@ -105,6 +97,7 @@ func (_u *PlatformChannelUpdate) Mutation() *PlatformChannelMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PlatformChannelUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -127,6 +120,14 @@ func (_u *PlatformChannelUpdate) Exec(ctx context.Context) error {
 func (_u *PlatformChannelUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PlatformChannelUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := platformchannel.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -252,14 +253,6 @@ func (_u *PlatformChannelUpdateOne) SetUpdatedAt(v time.Time) *PlatformChannelUp
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PlatformChannelUpdateOne) SetNillableUpdatedAt(v *time.Time) *PlatformChannelUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PlatformChannelMutation object of the builder.
 func (_u *PlatformChannelUpdateOne) Mutation() *PlatformChannelMutation {
 	return _u.mutation
@@ -280,6 +273,7 @@ func (_u *PlatformChannelUpdateOne) Select(field string, fields ...string) *Plat
 
 // Save executes the query and returns the updated PlatformChannel entity.
 func (_u *PlatformChannelUpdateOne) Save(ctx context.Context) (*PlatformChannel, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -302,6 +296,14 @@ func (_u *PlatformChannelUpdateOne) Exec(ctx context.Context) error {
 func (_u *PlatformChannelUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PlatformChannelUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := platformchannel.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

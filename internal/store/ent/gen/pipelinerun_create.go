@@ -120,6 +120,14 @@ func (_c *PipelineRunCreate) SetCreatedAt(v time.Time) *PipelineRunCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PipelineRunCreate) SetNillableCreatedAt(v *time.Time) *PipelineRunCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PipelineRunCreate) SetID(v int64) *PipelineRunCreate {
 	_c.mutation.SetID(v)
@@ -172,6 +180,10 @@ func (_c *PipelineRunCreate) defaults() {
 	if _, ok := _c.mutation.Error(); !ok {
 		v := pipelinerun.DefaultError
 		_c.mutation.SetError(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := pipelinerun.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

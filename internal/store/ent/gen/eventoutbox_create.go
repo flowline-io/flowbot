@@ -52,6 +52,14 @@ func (_c *EventOutboxCreate) SetCreatedAt(v time.Time) *EventOutboxCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *EventOutboxCreate) SetNillableCreatedAt(v *time.Time) *EventOutboxCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *EventOutboxCreate) SetID(v int64) *EventOutboxCreate {
 	_c.mutation.SetID(v)
@@ -96,6 +104,10 @@ func (_c *EventOutboxCreate) defaults() {
 	if _, ok := _c.mutation.Published(); !ok {
 		v := eventoutbox.DefaultPublished
 		_c.mutation.SetPublished(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := eventoutbox.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

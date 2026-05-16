@@ -52,9 +52,25 @@ func (_c *ChannelCreate) SetCreatedAt(v time.Time) *ChannelCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableCreatedAt(v *time.Time) *ChannelCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *ChannelCreate) SetUpdatedAt(v time.Time) *ChannelCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableUpdatedAt(v *time.Time) *ChannelCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -102,6 +118,14 @@ func (_c *ChannelCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := channel.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := channel.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := channel.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

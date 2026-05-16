@@ -208,14 +208,6 @@ func (_u *JobUpdate) SetUpdatedAt(v time.Time) *JobUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableUpdatedAt(v *time.Time) *JobUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // AddStepIDs adds the "steps" edge to the Step entity by IDs.
 func (_u *JobUpdate) AddStepIDs(ids ...int64) *JobUpdate {
 	_u.mutation.AddStepIDs(ids...)
@@ -259,6 +251,7 @@ func (_u *JobUpdate) RemoveSteps(v ...*Step) *JobUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *JobUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -281,6 +274,14 @@ func (_u *JobUpdate) Exec(ctx context.Context) error {
 func (_u *JobUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *JobUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := job.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -606,14 +607,6 @@ func (_u *JobUpdateOne) SetUpdatedAt(v time.Time) *JobUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableUpdatedAt(v *time.Time) *JobUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // AddStepIDs adds the "steps" edge to the Step entity by IDs.
 func (_u *JobUpdateOne) AddStepIDs(ids ...int64) *JobUpdateOne {
 	_u.mutation.AddStepIDs(ids...)
@@ -670,6 +663,7 @@ func (_u *JobUpdateOne) Select(field string, fields ...string) *JobUpdateOne {
 
 // Save executes the query and returns the updated Job entity.
 func (_u *JobUpdateOne) Save(ctx context.Context) (*Job, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -692,6 +686,14 @@ func (_u *JobUpdateOne) Exec(ctx context.Context) error {
 func (_u *JobUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *JobUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := job.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

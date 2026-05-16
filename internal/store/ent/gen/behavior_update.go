@@ -95,14 +95,6 @@ func (_u *BehaviorUpdate) SetUpdatedAt(v time.Time) *BehaviorUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *BehaviorUpdate) SetNillableUpdatedAt(v *time.Time) *BehaviorUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the BehaviorMutation object of the builder.
 func (_u *BehaviorUpdate) Mutation() *BehaviorMutation {
 	return _u.mutation
@@ -110,6 +102,7 @@ func (_u *BehaviorUpdate) Mutation() *BehaviorMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *BehaviorUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -132,6 +125,14 @@ func (_u *BehaviorUpdate) Exec(ctx context.Context) error {
 func (_u *BehaviorUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *BehaviorUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := behavior.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -270,14 +271,6 @@ func (_u *BehaviorUpdateOne) SetUpdatedAt(v time.Time) *BehaviorUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *BehaviorUpdateOne) SetNillableUpdatedAt(v *time.Time) *BehaviorUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the BehaviorMutation object of the builder.
 func (_u *BehaviorUpdateOne) Mutation() *BehaviorMutation {
 	return _u.mutation
@@ -298,6 +291,7 @@ func (_u *BehaviorUpdateOne) Select(field string, fields ...string) *BehaviorUpd
 
 // Save executes the query and returns the updated Behavior entity.
 func (_u *BehaviorUpdateOne) Save(ctx context.Context) (*Behavior, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -320,6 +314,14 @@ func (_u *BehaviorUpdateOne) Exec(ctx context.Context) error {
 func (_u *BehaviorUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *BehaviorUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := behavior.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

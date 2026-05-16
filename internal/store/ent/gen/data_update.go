@@ -82,14 +82,6 @@ func (_u *DataUpdate) SetUpdatedAt(v time.Time) *DataUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *DataUpdate) SetNillableUpdatedAt(v *time.Time) *DataUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the DataMutation object of the builder.
 func (_u *DataUpdate) Mutation() *DataMutation {
 	return _u.mutation
@@ -97,6 +89,7 @@ func (_u *DataUpdate) Mutation() *DataMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *DataUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -119,6 +112,14 @@ func (_u *DataUpdate) Exec(ctx context.Context) error {
 func (_u *DataUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *DataUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := data.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -243,14 +244,6 @@ func (_u *DataUpdateOne) SetUpdatedAt(v time.Time) *DataUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *DataUpdateOne) SetNillableUpdatedAt(v *time.Time) *DataUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the DataMutation object of the builder.
 func (_u *DataUpdateOne) Mutation() *DataMutation {
 	return _u.mutation
@@ -271,6 +264,7 @@ func (_u *DataUpdateOne) Select(field string, fields ...string) *DataUpdateOne {
 
 // Save executes the query and returns the updated Data entity.
 func (_u *DataUpdateOne) Save(ctx context.Context) (*Data, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -293,6 +287,14 @@ func (_u *DataUpdateOne) Exec(ctx context.Context) error {
 func (_u *DataUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *DataUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := data.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

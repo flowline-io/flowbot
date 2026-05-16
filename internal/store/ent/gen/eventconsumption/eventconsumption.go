@@ -3,6 +3,8 @@
 package eventconsumption
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -44,6 +46,8 @@ var (
 	ConsumerNameValidator func(string) error
 	// EventIDValidator is a validator for the "event_id" field. It is called by the builders before save.
 	EventIDValidator func(string) error
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the EventConsumption queries.

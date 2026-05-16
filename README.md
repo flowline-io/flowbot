@@ -178,7 +178,6 @@ task air                  # Live reload
 ### Code Generation
 
 ```bash
-task dao       # Generate DAO from database
 task swagger   # Generate Swagger/OpenAPI docs
 task doc       # Generate database schema docs
 ```

@@ -72,9 +72,25 @@ func (_c *CounterCreate) SetCreatedAt(v time.Time) *CounterCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *CounterCreate) SetNillableCreatedAt(v *time.Time) *CounterCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *CounterCreate) SetUpdatedAt(v time.Time) *CounterCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *CounterCreate) SetNillableUpdatedAt(v *time.Time) *CounterCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -126,6 +142,14 @@ func (_c *CounterCreate) defaults() {
 	if _, ok := _c.mutation.Status(); !ok {
 		v := counter.DefaultStatus
 		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := counter.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := counter.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -84,9 +84,25 @@ func (_c *FileuploadCreate) SetCreatedAt(v time.Time) *FileuploadCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *FileuploadCreate) SetNillableCreatedAt(v *time.Time) *FileuploadCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *FileuploadCreate) SetUpdatedAt(v time.Time) *FileuploadCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *FileuploadCreate) SetNillableUpdatedAt(v *time.Time) *FileuploadCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -138,6 +154,14 @@ func (_c *FileuploadCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := fileupload.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := fileupload.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := fileupload.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

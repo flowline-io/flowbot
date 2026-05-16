@@ -158,14 +158,6 @@ func (_u *MessageUpdate) SetUpdatedAt(v time.Time) *MessageUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *MessageUpdate) SetNillableUpdatedAt(v *time.Time) *MessageUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetDeletedAt sets the "deleted_at" field.
 func (_u *MessageUpdate) SetDeletedAt(v time.Time) *MessageUpdate {
 	_u.mutation.SetDeletedAt(v)
@@ -193,6 +185,7 @@ func (_u *MessageUpdate) Mutation() *MessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *MessageUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -215,6 +208,14 @@ func (_u *MessageUpdate) Exec(ctx context.Context) error {
 func (_u *MessageUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MessageUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := message.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -442,14 +443,6 @@ func (_u *MessageUpdateOne) SetUpdatedAt(v time.Time) *MessageUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *MessageUpdateOne) SetNillableUpdatedAt(v *time.Time) *MessageUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetDeletedAt sets the "deleted_at" field.
 func (_u *MessageUpdateOne) SetDeletedAt(v time.Time) *MessageUpdateOne {
 	_u.mutation.SetDeletedAt(v)
@@ -490,6 +483,7 @@ func (_u *MessageUpdateOne) Select(field string, fields ...string) *MessageUpdat
 
 // Save executes the query and returns the updated Message entity.
 func (_u *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -512,6 +506,14 @@ func (_u *MessageUpdateOne) Exec(ctx context.Context) error {
 func (_u *MessageUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MessageUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := message.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

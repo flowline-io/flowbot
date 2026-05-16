@@ -122,6 +122,7 @@ const (
 	PipelineStart
 	PipelineDone
 	PipelineCancel
+	PipelineFailed
 )
 
 func (j PipelineState) Value() (driver.Value, error) {

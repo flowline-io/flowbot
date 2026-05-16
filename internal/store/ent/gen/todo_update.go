@@ -299,14 +299,6 @@ func (_u *TodoUpdate) SetUpdatedAt(v time.Time) *TodoUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *TodoUpdate) SetNillableUpdatedAt(v *time.Time) *TodoUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetKeyResult sets the "key_result" edge to the KeyResult entity.
 func (_u *TodoUpdate) SetKeyResult(v *KeyResult) *TodoUpdate {
 	return _u.SetKeyResultID(v.ID)
@@ -372,6 +364,7 @@ func (_u *TodoUpdate) RemoveSubTodos(v ...*Todo) *TodoUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *TodoUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -394,6 +387,14 @@ func (_u *TodoUpdate) Exec(ctx context.Context) error {
 func (_u *TodoUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *TodoUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := todo.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -882,14 +883,6 @@ func (_u *TodoUpdateOne) SetUpdatedAt(v time.Time) *TodoUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *TodoUpdateOne) SetNillableUpdatedAt(v *time.Time) *TodoUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetKeyResult sets the "key_result" edge to the KeyResult entity.
 func (_u *TodoUpdateOne) SetKeyResult(v *KeyResult) *TodoUpdateOne {
 	return _u.SetKeyResultID(v.ID)
@@ -968,6 +961,7 @@ func (_u *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne {
 
 // Save executes the query and returns the updated Todo entity.
 func (_u *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -990,6 +984,14 @@ func (_u *TodoUpdateOne) Exec(ctx context.Context) error {
 func (_u *TodoUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *TodoUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := todo.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

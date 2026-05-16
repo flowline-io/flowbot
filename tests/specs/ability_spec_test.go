@@ -205,21 +205,21 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("has defined operations for bookmark capability", func() {
 			ops := ability.Operations[hub.CapBookmark]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["list"]).To(Equal(ability.OpBookmarkList))
-			Expect(ops["create"]).To(Equal(ability.OpBookmarkCreate))
-			Expect(ops["search"]).To(Equal(ability.OpBookmarkSearch))
+			Expect(ops["List"]).To(Equal(ability.OpBookmarkList))
+			Expect(ops["Create"]).To(Equal(ability.OpBookmarkCreate))
+			Expect(ops["Search"]).To(Equal(ability.OpBookmarkSearch))
 		})
 
 		It("has defined operations for reader capability", func() {
 			ops := ability.Operations[hub.CapReader]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["list_feeds"]).To(Equal(ability.OpReaderListFeeds))
+			Expect(ops["ListFeeds"]).To(Equal(ability.OpReaderListFeeds))
 		})
 
 		It("has defined operations for kanban capability", func() {
 			ops := ability.Operations[hub.CapKanban]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["list_tasks"]).To(Equal(ability.OpKanbanListTasks))
+			Expect(ops["ListTasks"]).To(Equal(ability.OpKanbanListTasks))
 		})
 	})
 
@@ -227,7 +227,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("converts between types and payloads", func() {
 			textMsg := types.TextMsg{Text: "hello"}
 			typ := types.TypeOf(textMsg)
-			Expect(typ).To(Equal("text"))
+			Expect(typ).To(Equal("TextMsg"))
 		})
 	})
 })

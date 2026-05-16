@@ -90,14 +90,6 @@ func (_u *PlatformBotUpdate) SetUpdatedAt(v time.Time) *PlatformBotUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PlatformBotUpdate) SetNillableUpdatedAt(v *time.Time) *PlatformBotUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PlatformBotMutation object of the builder.
 func (_u *PlatformBotUpdate) Mutation() *PlatformBotMutation {
 	return _u.mutation
@@ -105,6 +97,7 @@ func (_u *PlatformBotUpdate) Mutation() *PlatformBotMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PlatformBotUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -127,6 +120,14 @@ func (_u *PlatformBotUpdate) Exec(ctx context.Context) error {
 func (_u *PlatformBotUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PlatformBotUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := platformbot.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -252,14 +253,6 @@ func (_u *PlatformBotUpdateOne) SetUpdatedAt(v time.Time) *PlatformBotUpdateOne 
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PlatformBotUpdateOne) SetNillableUpdatedAt(v *time.Time) *PlatformBotUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PlatformBotMutation object of the builder.
 func (_u *PlatformBotUpdateOne) Mutation() *PlatformBotMutation {
 	return _u.mutation
@@ -280,6 +273,7 @@ func (_u *PlatformBotUpdateOne) Select(field string, fields ...string) *Platform
 
 // Save executes the query and returns the updated PlatformBot entity.
 func (_u *PlatformBotUpdateOne) Save(ctx context.Context) (*PlatformBot, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -302,6 +296,14 @@ func (_u *PlatformBotUpdateOne) Exec(ctx context.Context) error {
 func (_u *PlatformBotUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PlatformBotUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := platformbot.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -90,14 +90,6 @@ func (_u *CapabilityBindingUpdate) SetUpdatedAt(v time.Time) *CapabilityBindingU
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CapabilityBindingUpdate) SetNillableUpdatedAt(v *time.Time) *CapabilityBindingUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CapabilityBindingMutation object of the builder.
 func (_u *CapabilityBindingUpdate) Mutation() *CapabilityBindingMutation {
 	return _u.mutation
@@ -105,6 +97,7 @@ func (_u *CapabilityBindingUpdate) Mutation() *CapabilityBindingMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CapabilityBindingUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -127,6 +120,14 @@ func (_u *CapabilityBindingUpdate) Exec(ctx context.Context) error {
 func (_u *CapabilityBindingUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CapabilityBindingUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := capabilitybinding.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -259,14 +260,6 @@ func (_u *CapabilityBindingUpdateOne) SetUpdatedAt(v time.Time) *CapabilityBindi
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CapabilityBindingUpdateOne) SetNillableUpdatedAt(v *time.Time) *CapabilityBindingUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CapabilityBindingMutation object of the builder.
 func (_u *CapabilityBindingUpdateOne) Mutation() *CapabilityBindingMutation {
 	return _u.mutation
@@ -287,6 +280,7 @@ func (_u *CapabilityBindingUpdateOne) Select(field string, fields ...string) *Ca
 
 // Save executes the query and returns the updated CapabilityBinding entity.
 func (_u *CapabilityBindingUpdateOne) Save(ctx context.Context) (*CapabilityBinding, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -309,6 +303,14 @@ func (_u *CapabilityBindingUpdateOne) Exec(ctx context.Context) error {
 func (_u *CapabilityBindingUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CapabilityBindingUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := capabilitybinding.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

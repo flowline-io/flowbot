@@ -166,14 +166,6 @@ func (_u *InstructUpdate) SetUpdatedAt(v time.Time) *InstructUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *InstructUpdate) SetNillableUpdatedAt(v *time.Time) *InstructUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the InstructMutation object of the builder.
 func (_u *InstructUpdate) Mutation() *InstructMutation {
 	return _u.mutation
@@ -181,6 +173,7 @@ func (_u *InstructUpdate) Mutation() *InstructMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *InstructUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -203,6 +196,14 @@ func (_u *InstructUpdate) Exec(ctx context.Context) error {
 func (_u *InstructUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *InstructUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := instruct.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -442,14 +443,6 @@ func (_u *InstructUpdateOne) SetUpdatedAt(v time.Time) *InstructUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *InstructUpdateOne) SetNillableUpdatedAt(v *time.Time) *InstructUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the InstructMutation object of the builder.
 func (_u *InstructUpdateOne) Mutation() *InstructMutation {
 	return _u.mutation
@@ -470,6 +463,7 @@ func (_u *InstructUpdateOne) Select(field string, fields ...string) *InstructUpd
 
 // Save executes the query and returns the updated Instruct entity.
 func (_u *InstructUpdateOne) Save(ctx context.Context) (*Instruct, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -492,6 +486,14 @@ func (_u *InstructUpdateOne) Exec(ctx context.Context) error {
 func (_u *InstructUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *InstructUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := instruct.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

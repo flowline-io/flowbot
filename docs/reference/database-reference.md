@@ -84,7 +84,6 @@ Migrations run automatically at server startup via `pkg/migrate/`.
 ## Code Generation
 
 ```bash
-task dao       # Generate DAO code from database
 task doc       # Generate schema documentation
 ```
 

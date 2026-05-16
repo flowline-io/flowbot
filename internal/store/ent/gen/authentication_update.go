@@ -157,14 +157,6 @@ func (_u *AuthenticationUpdate) SetUpdatedAt(v time.Time) *AuthenticationUpdate 
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AuthenticationUpdate) SetNillableUpdatedAt(v *time.Time) *AuthenticationUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AuthenticationMutation object of the builder.
 func (_u *AuthenticationUpdate) Mutation() *AuthenticationMutation {
 	return _u.mutation
@@ -172,6 +164,7 @@ func (_u *AuthenticationUpdate) Mutation() *AuthenticationMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AuthenticationUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -194,6 +187,14 @@ func (_u *AuthenticationUpdate) Exec(ctx context.Context) error {
 func (_u *AuthenticationUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AuthenticationUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := authentication.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -419,14 +420,6 @@ func (_u *AuthenticationUpdateOne) SetUpdatedAt(v time.Time) *AuthenticationUpda
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *AuthenticationUpdateOne) SetNillableUpdatedAt(v *time.Time) *AuthenticationUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the AuthenticationMutation object of the builder.
 func (_u *AuthenticationUpdateOne) Mutation() *AuthenticationMutation {
 	return _u.mutation
@@ -447,6 +440,7 @@ func (_u *AuthenticationUpdateOne) Select(field string, fields ...string) *Authe
 
 // Save executes the query and returns the updated Authentication entity.
 func (_u *AuthenticationUpdateOne) Save(ctx context.Context) (*Authentication, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -469,6 +463,14 @@ func (_u *AuthenticationUpdateOne) Exec(ctx context.Context) error {
 func (_u *AuthenticationUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *AuthenticationUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := authentication.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

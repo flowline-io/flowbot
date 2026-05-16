@@ -159,9 +159,25 @@ func (_c *KeyResultCreate) SetCreatedAt(v time.Time) *KeyResultCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *KeyResultCreate) SetNillableCreatedAt(v *time.Time) *KeyResultCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *KeyResultCreate) SetUpdatedAt(v time.Time) *KeyResultCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *KeyResultCreate) SetNillableUpdatedAt(v *time.Time) *KeyResultCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -268,6 +284,14 @@ func (_c *KeyResultCreate) defaults() {
 	if _, ok := _c.mutation.Tag(); !ok {
 		v := keyresult.DefaultTag
 		_c.mutation.SetTag(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := keyresult.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := keyresult.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

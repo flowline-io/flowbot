@@ -209,14 +209,6 @@ func (_u *FlowNodeUpdate) SetUpdatedAt(v time.Time) *FlowNodeUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowNodeUpdate) SetNillableUpdatedAt(v *time.Time) *FlowNodeUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowNodeMutation object of the builder.
 func (_u *FlowNodeUpdate) Mutation() *FlowNodeMutation {
 	return _u.mutation
@@ -224,6 +216,7 @@ func (_u *FlowNodeUpdate) Mutation() *FlowNodeMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FlowNodeUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -246,6 +239,14 @@ func (_u *FlowNodeUpdate) Exec(ctx context.Context) error {
 func (_u *FlowNodeUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowNodeUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flownode.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -544,14 +545,6 @@ func (_u *FlowNodeUpdateOne) SetUpdatedAt(v time.Time) *FlowNodeUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *FlowNodeUpdateOne) SetNillableUpdatedAt(v *time.Time) *FlowNodeUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the FlowNodeMutation object of the builder.
 func (_u *FlowNodeUpdateOne) Mutation() *FlowNodeMutation {
 	return _u.mutation
@@ -572,6 +565,7 @@ func (_u *FlowNodeUpdateOne) Select(field string, fields ...string) *FlowNodeUpd
 
 // Save executes the query and returns the updated FlowNode entity.
 func (_u *FlowNodeUpdateOne) Save(ctx context.Context) (*FlowNode, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -594,6 +588,14 @@ func (_u *FlowNodeUpdateOne) Exec(ctx context.Context) error {
 func (_u *FlowNodeUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *FlowNodeUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := flownode.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

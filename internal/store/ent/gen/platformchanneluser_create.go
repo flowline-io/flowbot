@@ -44,9 +44,25 @@ func (_c *PlatformChannelUserCreate) SetCreatedAt(v time.Time) *PlatformChannelU
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PlatformChannelUserCreate) SetNillableCreatedAt(v *time.Time) *PlatformChannelUserCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PlatformChannelUserCreate) SetUpdatedAt(v time.Time) *PlatformChannelUserCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PlatformChannelUserCreate) SetNillableUpdatedAt(v *time.Time) *PlatformChannelUserCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -63,6 +79,7 @@ func (_c *PlatformChannelUserCreate) Mutation() *PlatformChannelUserMutation {
 
 // Save creates the PlatformChannelUser in the database.
 func (_c *PlatformChannelUserCreate) Save(ctx context.Context) (*PlatformChannelUser, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -85,6 +102,18 @@ func (_c *PlatformChannelUserCreate) Exec(ctx context.Context) error {
 func (_c *PlatformChannelUserCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *PlatformChannelUserCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := platformchanneluser.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := platformchanneluser.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -188,6 +217,7 @@ func (_c *PlatformChannelUserCreateBulk) Save(ctx context.Context) ([]*PlatformC
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PlatformChannelUserMutation)
 				if !ok {

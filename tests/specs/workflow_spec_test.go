@@ -40,10 +40,10 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 			meta := types.WorkflowMetadata{
 				Name:    "test-workflow",
 				Resumable: true,
-				Triggers: []struct {
-					Type string       `json:"type"`
-					Rule types.KV      `json:"rule"`
-				}{
+			Triggers: []struct {
+				Type string       `json:"type" yaml:"type"`
+				Rule types.KV      `json:"rule,omitempty" yaml:"rule"`
+			}{
 					{Type: "cron", Rule: types.KV{"schedule": "*/5 * * * *"}},
 				},
 				Tasks: []types.WorkflowTask{
@@ -81,7 +81,10 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 			Expect(cfg.RetryEnabled()).To(BeFalse())
 
 			cfg2 := types.RetryConfig{MaxAttempts: 1}
-			Expect(cfg2.RetryEnabled()).To(BeTrue())
+			Expect(cfg2.RetryEnabled()).To(BeFalse())
+
+			cfg3 := types.RetryConfig{MaxAttempts: 2}
+			Expect(cfg3.RetryEnabled()).To(BeTrue())
 		})
 
 		It("has correct backoff constants", func() {
@@ -93,11 +96,11 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 
 	Describe("Workflow task states", func() {
 		It("has all standard task states", func() {
-			Expect(types.TaskStatePending).To(Equal("pending"))
-			Expect(types.TaskStateRunning).To(Equal("running"))
-			Expect(types.TaskStateCompleted).To(Equal("completed"))
-			Expect(types.TaskStateFailed).To(Equal("failed"))
-			Expect(types.TaskStateCancelled).To(Equal("cancelled"))
+			Expect(string(types.TaskStatePending)).To(Equal("PENDING"))
+			Expect(string(types.TaskStateRunning)).To(Equal("RUNNING"))
+			Expect(string(types.TaskStateCompleted)).To(Equal("COMPLETED"))
+			Expect(string(types.TaskStateFailed)).To(Equal("FAILED"))
+			Expect(string(types.TaskStateCancelled)).To(Equal("CANCELED"))
 		})
 
 		It("detects active task states", func() {

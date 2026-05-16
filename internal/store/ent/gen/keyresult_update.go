@@ -225,14 +225,6 @@ func (_u *KeyResultUpdate) SetUpdatedAt(v time.Time) *KeyResultUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *KeyResultUpdate) SetNillableUpdatedAt(v *time.Time) *KeyResultUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetObjective sets the "objective" edge to the Objective entity.
 func (_u *KeyResultUpdate) SetObjective(v *Objective) *KeyResultUpdate {
 	return _u.SetObjectiveID(v.ID)
@@ -323,6 +315,7 @@ func (_u *KeyResultUpdate) RemoveTodos(v ...*Todo) *KeyResultUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *KeyResultUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -345,6 +338,14 @@ func (_u *KeyResultUpdate) Exec(ctx context.Context) error {
 func (_u *KeyResultUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *KeyResultUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := keyresult.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -758,14 +759,6 @@ func (_u *KeyResultUpdateOne) SetUpdatedAt(v time.Time) *KeyResultUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *KeyResultUpdateOne) SetNillableUpdatedAt(v *time.Time) *KeyResultUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // SetObjective sets the "objective" edge to the Objective entity.
 func (_u *KeyResultUpdateOne) SetObjective(v *Objective) *KeyResultUpdateOne {
 	return _u.SetObjectiveID(v.ID)
@@ -869,6 +862,7 @@ func (_u *KeyResultUpdateOne) Select(field string, fields ...string) *KeyResultU
 
 // Save executes the query and returns the updated KeyResult entity.
 func (_u *KeyResultUpdateOne) Save(ctx context.Context) (*KeyResult, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -891,6 +885,14 @@ func (_u *KeyResultUpdateOne) Exec(ctx context.Context) error {
 func (_u *KeyResultUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *KeyResultUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := keyresult.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

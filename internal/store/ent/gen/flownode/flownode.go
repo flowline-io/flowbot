@@ -3,6 +3,8 @@
 package flownode
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -84,6 +86,12 @@ var (
 	DefaultPositionX int
 	// DefaultPositionY holds the default value on creation for the "position_y" field.
 	DefaultPositionY int
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the FlowNode queries.

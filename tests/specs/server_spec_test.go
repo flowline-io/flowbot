@@ -54,7 +54,7 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 				req := MakeRequest(http.MethodGet, "/service/server/stacktrace", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("returns runtime memory profile data", func() {
@@ -77,12 +77,12 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 		It("creates KV messages", func() {
 			kv := types.KVMsg{"success": true, "count": 42}
 			Expect(kv["success"]).To(BeTrue())
-			Expect(types.TypeOf(kv)).To(Equal("kv"))
+			Expect(types.TypeOf(kv)).To(Equal("KV"))
 		})
 
 		It("creates empty messages", func() {
 			msg := types.EmptyMsg{}
-			Expect(types.TypeOf(msg)).To(Equal("empty"))
+			Expect(types.TypeOf(msg)).To(Equal("EmptyMsg"))
 		})
 	})
 

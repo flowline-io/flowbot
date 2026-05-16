@@ -213,9 +213,25 @@ func (_c *TodoCreate) SetCreatedAt(v time.Time) *TodoCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableCreatedAt(v *time.Time) *TodoCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *TodoCreate) SetUpdatedAt(v time.Time) *TodoCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableUpdatedAt(v *time.Time) *TodoCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -324,6 +340,14 @@ func (_c *TodoCreate) defaults() {
 	if _, ok := _c.mutation.Complete(); !ok {
 		v := todo.DefaultComplete
 		_c.mutation.SetComplete(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := todo.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := todo.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

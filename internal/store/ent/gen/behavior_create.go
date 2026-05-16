@@ -58,9 +58,25 @@ func (_c *BehaviorCreate) SetCreatedAt(v time.Time) *BehaviorCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *BehaviorCreate) SetNillableCreatedAt(v *time.Time) *BehaviorCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *BehaviorCreate) SetUpdatedAt(v time.Time) *BehaviorCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *BehaviorCreate) SetNillableUpdatedAt(v *time.Time) *BehaviorCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -108,6 +124,14 @@ func (_c *BehaviorCreate) defaults() {
 	if _, ok := _c.mutation.Count(); !ok {
 		v := behavior.DefaultCount
 		_c.mutation.SetCount(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := behavior.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := behavior.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

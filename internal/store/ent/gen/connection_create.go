@@ -70,9 +70,25 @@ func (_c *ConnectionCreate) SetCreatedAt(v time.Time) *ConnectionCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *ConnectionCreate) SetNillableCreatedAt(v *time.Time) *ConnectionCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *ConnectionCreate) SetUpdatedAt(v time.Time) *ConnectionCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *ConnectionCreate) SetNillableUpdatedAt(v *time.Time) *ConnectionCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -120,6 +136,14 @@ func (_c *ConnectionCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := connection.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := connection.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := connection.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

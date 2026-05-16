@@ -3,6 +3,8 @@
 package auditlog
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -57,6 +59,8 @@ var (
 	TargetIDValidator func(string) error
 	// DefaultActorUID holds the default value on creation for the "actor_uid" field.
 	DefaultActorUID string
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the AuditLog queries.

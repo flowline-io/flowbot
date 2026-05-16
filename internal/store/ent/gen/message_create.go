@@ -106,9 +106,25 @@ func (_c *MessageCreate) SetCreatedAt(v time.Time) *MessageCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *MessageCreate) SetNillableCreatedAt(v *time.Time) *MessageCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *MessageCreate) SetUpdatedAt(v time.Time) *MessageCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *MessageCreate) SetNillableUpdatedAt(v *time.Time) *MessageCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -182,6 +198,14 @@ func (_c *MessageCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := message.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := message.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := message.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

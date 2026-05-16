@@ -96,9 +96,25 @@ func (_c *InstructCreate) SetCreatedAt(v time.Time) *InstructCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *InstructCreate) SetNillableCreatedAt(v *time.Time) *InstructCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *InstructCreate) SetUpdatedAt(v time.Time) *InstructCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *InstructCreate) SetNillableUpdatedAt(v *time.Time) *InstructCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -150,6 +166,14 @@ func (_c *InstructCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := instruct.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := instruct.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := instruct.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

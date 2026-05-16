@@ -104,14 +104,6 @@ func (_u *URLUpdate) SetUpdatedAt(v time.Time) *URLUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *URLUpdate) SetNillableUpdatedAt(v *time.Time) *URLUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the URLMutation object of the builder.
 func (_u *URLUpdate) Mutation() *URLMutation {
 	return _u.mutation
@@ -119,6 +111,7 @@ func (_u *URLUpdate) Mutation() *URLMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *URLUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -141,6 +134,14 @@ func (_u *URLUpdate) Exec(ctx context.Context) error {
 func (_u *URLUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *URLUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := url.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -288,14 +289,6 @@ func (_u *URLUpdateOne) SetUpdatedAt(v time.Time) *URLUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *URLUpdateOne) SetNillableUpdatedAt(v *time.Time) *URLUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the URLMutation object of the builder.
 func (_u *URLUpdateOne) Mutation() *URLMutation {
 	return _u.mutation
@@ -316,6 +309,7 @@ func (_u *URLUpdateOne) Select(field string, fields ...string) *URLUpdateOne {
 
 // Save executes the query and returns the updated Url entity.
 func (_u *URLUpdateOne) Save(ctx context.Context) (*Url, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -338,6 +332,14 @@ func (_u *URLUpdateOne) Exec(ctx context.Context) error {
 func (_u *URLUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *URLUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := url.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -32,9 +32,25 @@ func (_c *PlatformCreate) SetCreatedAt(v time.Time) *PlatformCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *PlatformCreate) SetNillableCreatedAt(v *time.Time) *PlatformCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *PlatformCreate) SetUpdatedAt(v time.Time) *PlatformCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *PlatformCreate) SetNillableUpdatedAt(v *time.Time) *PlatformCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -51,6 +67,7 @@ func (_c *PlatformCreate) Mutation() *PlatformMutation {
 
 // Save creates the Platform in the database.
 func (_c *PlatformCreate) Save(ctx context.Context) (*Platform, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -73,6 +90,18 @@ func (_c *PlatformCreate) Exec(ctx context.Context) error {
 func (_c *PlatformCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *PlatformCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := platform.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := platform.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -157,6 +186,7 @@ func (_c *PlatformCreateBulk) Save(ctx context.Context) ([]*Platform, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PlatformMutation)
 				if !ok {

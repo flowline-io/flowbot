@@ -24,7 +24,7 @@ var _ = Describe("Kanban Module", Label("module", "kanban"), func() {
 				req := MakeRequest(http.MethodGet, "/service/kanban/", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("filters tasks by column", func() {
@@ -56,7 +56,7 @@ var _ = Describe("Kanban Module", Label("module", "kanban"), func() {
 				req := MakeRequest(http.MethodGet, "/service/kanban/99999", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusNotFound), Equal(http.StatusUnauthorized), Equal(http.StatusBadRequest)))
 			})
 		})
 

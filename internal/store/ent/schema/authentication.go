@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -22,8 +23,8 @@ func (Authentication) Fields() []ent.Field {
 		field.JSON("credentials", map[string]any{}),
 		field.Time("expires_at").Optional().Nillable(),
 		field.Bool("enabled").Default(true),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

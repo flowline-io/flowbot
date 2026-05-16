@@ -38,9 +38,25 @@ func (_c *ParameterCreate) SetCreatedAt(v time.Time) *ParameterCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *ParameterCreate) SetNillableCreatedAt(v *time.Time) *ParameterCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *ParameterCreate) SetUpdatedAt(v time.Time) *ParameterCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *ParameterCreate) SetNillableUpdatedAt(v *time.Time) *ParameterCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -63,6 +79,7 @@ func (_c *ParameterCreate) Mutation() *ParameterMutation {
 
 // Save creates the Parameter in the database.
 func (_c *ParameterCreate) Save(ctx context.Context) (*Parameter, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -85,6 +102,18 @@ func (_c *ParameterCreate) Exec(ctx context.Context) error {
 func (_c *ParameterCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *ParameterCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := parameter.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := parameter.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -180,6 +209,7 @@ func (_c *ParameterCreateBulk) Save(ctx context.Context) ([]*Parameter, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ParameterMutation)
 				if !ok {

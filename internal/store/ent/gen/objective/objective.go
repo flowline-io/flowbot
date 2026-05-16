@@ -3,6 +3,8 @@
 package objective
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -122,6 +124,12 @@ var (
 	DefaultCurrentValue int32
 	// DefaultTag holds the default value on creation for the "tag" field.
 	DefaultTag string
+	// DefaultCreatedData holds the default value on creation for the "created_data" field.
+	DefaultCreatedData func() time.Time
+	// DefaultUpdatedDate holds the default value on creation for the "updated_date" field.
+	DefaultUpdatedDate func() time.Time
+	// UpdateDefaultUpdatedDate holds the default value on update for the "updated_date" field.
+	UpdateDefaultUpdatedDate func() time.Time
 )
 
 // OrderOption defines the ordering options for the Objective queries.

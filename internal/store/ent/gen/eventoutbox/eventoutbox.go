@@ -3,6 +3,8 @@
 package eventoutbox
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -47,6 +49,8 @@ var (
 	EventIDValidator func(string) error
 	// DefaultPublished holds the default value on creation for the "published" field.
 	DefaultPublished bool
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the EventOutbox queries.

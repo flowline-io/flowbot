@@ -118,14 +118,6 @@ func (_u *CounterUpdate) SetUpdatedAt(v time.Time) *CounterUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CounterUpdate) SetNillableUpdatedAt(v *time.Time) *CounterUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CounterMutation object of the builder.
 func (_u *CounterUpdate) Mutation() *CounterMutation {
 	return _u.mutation
@@ -133,6 +125,7 @@ func (_u *CounterUpdate) Mutation() *CounterMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CounterUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -155,6 +148,14 @@ func (_u *CounterUpdate) Exec(ctx context.Context) error {
 func (_u *CounterUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CounterUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := counter.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -324,14 +325,6 @@ func (_u *CounterUpdateOne) SetUpdatedAt(v time.Time) *CounterUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CounterUpdateOne) SetNillableUpdatedAt(v *time.Time) *CounterUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CounterMutation object of the builder.
 func (_u *CounterUpdateOne) Mutation() *CounterMutation {
 	return _u.mutation
@@ -352,6 +345,7 @@ func (_u *CounterUpdateOne) Select(field string, fields ...string) *CounterUpdat
 
 // Save executes the query and returns the updated Counter entity.
 func (_u *CounterUpdateOne) Save(ctx context.Context) (*Counter, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -374,6 +368,14 @@ func (_u *CounterUpdateOne) Exec(ctx context.Context) error {
 func (_u *CounterUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CounterUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := counter.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

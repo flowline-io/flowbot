@@ -50,9 +50,25 @@ func (_c *DataCreate) SetCreatedAt(v time.Time) *DataCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *DataCreate) SetNillableCreatedAt(v *time.Time) *DataCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *DataCreate) SetUpdatedAt(v time.Time) *DataCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *DataCreate) SetNillableUpdatedAt(v *time.Time) *DataCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -69,6 +85,7 @@ func (_c *DataCreate) Mutation() *DataMutation {
 
 // Save creates the Data in the database.
 func (_c *DataCreate) Save(ctx context.Context) (*Data, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -91,6 +108,18 @@ func (_c *DataCreate) Exec(ctx context.Context) error {
 func (_c *DataCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *DataCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := data.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := data.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -206,6 +235,7 @@ func (_c *DataCreateBulk) Save(ctx context.Context) ([]*Data, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*DataMutation)
 				if !ok {

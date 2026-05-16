@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -26,7 +27,7 @@ func (WorkflowRun) Fields() []ent.Field {
 		field.String("error").Optional().Default(""),
 		field.Time("started_at"),
 		field.Time("completed_at").Optional().Nillable(),
-		field.Time("created_at").Immutable(),
+		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
 

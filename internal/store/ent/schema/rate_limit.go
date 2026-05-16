@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -20,8 +21,8 @@ func (RateLimit) Fields() []ent.Field {
 		field.Int("limit_value").Default(0),
 		field.Int("window_size").Default(60),
 		field.String("window_unit").Default("second"),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

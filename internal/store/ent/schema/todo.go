@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -30,8 +31,8 @@ func (Todo) Fields() []ent.Field {
 		field.String("repeat_rule").Default(""),
 		field.Int64("repeat_end_at").Default(0),
 		field.Int32("complete").Default(0),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -24,7 +25,7 @@ func (PipelineRun) Fields() []ent.Field {
 		field.Time("last_heartbeat").Optional().Nillable(),
 		field.Time("started_at"),
 		field.Time("completed_at").Optional().Nillable(),
-		field.Time("created_at").Immutable(),
+		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
 

@@ -170,6 +170,14 @@ func (_c *DataEventCreate) SetCreatedAt(v time.Time) *DataEventCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *DataEventCreate) SetNillableCreatedAt(v *time.Time) *DataEventCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *DataEventCreate) SetID(v int64) *DataEventCreate {
 	_c.mutation.SetID(v)
@@ -246,6 +254,10 @@ func (_c *DataEventCreate) defaults() {
 	if _, ok := _c.mutation.Topic(); !ok {
 		v := dataevent.DefaultTopic
 		_c.mutation.SetTopic(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := dataevent.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
 	}
 }
 

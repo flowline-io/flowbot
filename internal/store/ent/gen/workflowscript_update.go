@@ -110,14 +110,6 @@ func (_u *WorkflowScriptUpdate) SetUpdatedAt(v time.Time) *WorkflowScriptUpdate 
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowScriptUpdate) SetNillableUpdatedAt(v *time.Time) *WorkflowScriptUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the WorkflowScriptMutation object of the builder.
 func (_u *WorkflowScriptUpdate) Mutation() *WorkflowScriptMutation {
 	return _u.mutation
@@ -125,6 +117,7 @@ func (_u *WorkflowScriptUpdate) Mutation() *WorkflowScriptMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *WorkflowScriptUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -147,6 +140,14 @@ func (_u *WorkflowScriptUpdate) Exec(ctx context.Context) error {
 func (_u *WorkflowScriptUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowScriptUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflowscript.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -303,14 +304,6 @@ func (_u *WorkflowScriptUpdateOne) SetUpdatedAt(v time.Time) *WorkflowScriptUpda
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *WorkflowScriptUpdateOne) SetNillableUpdatedAt(v *time.Time) *WorkflowScriptUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the WorkflowScriptMutation object of the builder.
 func (_u *WorkflowScriptUpdateOne) Mutation() *WorkflowScriptMutation {
 	return _u.mutation
@@ -331,6 +324,7 @@ func (_u *WorkflowScriptUpdateOne) Select(field string, fields ...string) *Workf
 
 // Save executes the query and returns the updated WorkflowScript entity.
 func (_u *WorkflowScriptUpdateOne) Save(ctx context.Context) (*WorkflowScript, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -353,6 +347,14 @@ func (_u *WorkflowScriptUpdateOne) Exec(ctx context.Context) error {
 func (_u *WorkflowScriptUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *WorkflowScriptUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := workflowscript.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

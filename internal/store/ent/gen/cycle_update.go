@@ -125,14 +125,6 @@ func (_u *CycleUpdate) SetUpdatedAt(v time.Time) *CycleUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CycleUpdate) SetNillableUpdatedAt(v *time.Time) *CycleUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CycleMutation object of the builder.
 func (_u *CycleUpdate) Mutation() *CycleMutation {
 	return _u.mutation
@@ -140,6 +132,7 @@ func (_u *CycleUpdate) Mutation() *CycleMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CycleUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -162,6 +155,14 @@ func (_u *CycleUpdate) Exec(ctx context.Context) error {
 func (_u *CycleUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CycleUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := cycle.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -338,14 +339,6 @@ func (_u *CycleUpdateOne) SetUpdatedAt(v time.Time) *CycleUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *CycleUpdateOne) SetNillableUpdatedAt(v *time.Time) *CycleUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the CycleMutation object of the builder.
 func (_u *CycleUpdateOne) Mutation() *CycleMutation {
 	return _u.mutation
@@ -366,6 +359,7 @@ func (_u *CycleUpdateOne) Select(field string, fields ...string) *CycleUpdateOne
 
 // Save executes the query and returns the updated Cycle entity.
 func (_u *CycleUpdateOne) Save(ctx context.Context) (*Cycle, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -388,6 +382,14 @@ func (_u *CycleUpdateOne) Exec(ctx context.Context) error {
 func (_u *CycleUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *CycleUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := cycle.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

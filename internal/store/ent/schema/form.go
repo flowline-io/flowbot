@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
@@ -22,8 +23,8 @@ func (Form) Fields() []ent.Field {
 		field.JSON("values", map[string]any{}).Optional(),
 		field.JSON("extra", map[string]any{}).Optional(),
 		field.Int("state").Default(0),
-		field.Time("created_at").Immutable(),
-		field.Time("updated_at"),
+		field.Time("created_at").Immutable().Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

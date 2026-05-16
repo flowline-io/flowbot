@@ -7,7 +7,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -154,7 +153,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("Webhook", func() {
 		It("creates a new webhook with valid data", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("test-topic").
 				SetFlag("test-flag").
 				SetSecret("secret-123").
@@ -167,7 +166,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("retrieves a webhook by ID", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("get-topic").
 				SetFlag("get-flag").
 				SetSecret("get-secret").
@@ -183,7 +182,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("updates webhook fields", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("upd-topic").
 				SetFlag("upd-flag").
 				SetSecret("upd-secret").
@@ -199,7 +198,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes a webhook", func() {
 			w, err := EntClient.Webhook.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("del-topic").
 				SetFlag("del-flag").
 				SetSecret("del-secret").
@@ -214,7 +213,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("Data", func() {
 		It("creates a new data record", func() {
 			d, err := EntClient.Data.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("test-topic").
 				SetKey("test-key").
 				SetValue(map[string]any{"val": 1}).
@@ -227,7 +226,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("retrieves a data record by ID", func() {
 			d, err := EntClient.Data.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("get-data").
 				SetKey("get-key").
 				SetValue(map[string]any{"val": "hello"}).
@@ -243,7 +242,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("updates data fields", func() {
 			d, err := EntClient.Data.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("upd-data").
 				SetKey("upd-key").
 				SetValue(map[string]any{"val": 1}).
@@ -259,7 +258,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes a data record", func() {
 			d, err := EntClient.Data.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("del-data").
 				SetKey("del-key").
 				SetValue(map[string]any{}).
@@ -274,7 +273,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("ConfigData", func() {
 		It("creates a new configuration entry", func() {
 			c, err := EntClient.ConfigData.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cfg-topic").
 				SetKey("cfg-key").
 				SetValue(map[string]any{"enabled": true}).
@@ -287,7 +286,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("retrieves configuration by key", func() {
 			c, err := EntClient.ConfigData.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cfg-get").
 				SetKey("cfg-get-key").
 				SetValue(map[string]any{"mode": "auto"}).
@@ -303,7 +302,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("updates configuration value", func() {
 			c, err := EntClient.ConfigData.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cfg-upd").
 				SetKey("cfg-upd-key").
 				SetValue(map[string]any{"val": "old"}).
@@ -319,7 +318,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes a configuration entry", func() {
 			c, err := EntClient.ConfigData.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cfg-del").
 				SetKey("cfg-del-key").
 				SetValue(map[string]any{}).
@@ -334,7 +333,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("Counter", func() {
 		It("creates a new counter", func() {
 			c, err := EntClient.Counter.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cnt-topic").
 				SetFlag("cnt-flag").
 				SetDigit(0).
@@ -347,7 +346,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("increments a counter value", func() {
 			c, err := EntClient.Counter.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cnt-inc").
 				SetFlag("cnt-inc-flag").
 				SetDigit(5).
@@ -363,7 +362,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes a counter", func() {
 			c, err := EntClient.Counter.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("cnt-del").
 				SetFlag("cnt-del-flag").
 				Save(ctx)
@@ -378,7 +377,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("creates a new form", func() {
 			f, err := EntClient.Form.Create().
 				SetFormID("form-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("form-topic").
 				SetSchema(map[string]any{"fields": []string{"name", "email"}}).
 				Save(ctx)
@@ -391,7 +390,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("retrieves a form by ID", func() {
 			f, err := EntClient.Form.Create().
 				SetFormID("form-get-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("form-get").
 				SetSchema(map[string]any{}).
 				Save(ctx)
@@ -407,7 +406,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("deletes a form", func() {
 			f, err := EntClient.Form.Create().
 				SetFormID("form-del-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("form-del").
 				SetSchema(map[string]any{}).
 				Save(ctx)
@@ -422,7 +421,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("creates a new page", func() {
 			p, err := EntClient.Page.Create().
 				SetPageID("page-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("page-topic").
 				SetType("dashboard").
 				SetSchema(map[string]any{}).
@@ -436,7 +435,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("retrieves a page by ID", func() {
 			p, err := EntClient.Page.Create().
 				SetPageID("page-get-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("page-get").
 				SetType("view").
 				SetSchema(map[string]any{}).
@@ -453,7 +452,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		It("deletes a page", func() {
 			p, err := EntClient.Page.Create().
 				SetPageID("page-del-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("page-del").
 				SetType("del").
 				SetSchema(map[string]any{}).
@@ -468,7 +467,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("Behavior", func() {
 		It("creates a new behavior rule", func() {
 			b, err := EntClient.Behavior.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFlag("behavior-" + types.Id()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -479,7 +478,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("retrieves a behavior by ID", func() {
 			b, err := EntClient.Behavior.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFlag("behavior-get-" + types.Id()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -493,7 +492,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes a behavior", func() {
 			b, err := EntClient.Behavior.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetFlag("behavior-del-" + types.Id()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -508,7 +507,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 			now := time.Now().Add(time.Hour)
 			i, err := EntClient.Instruct.Create().
 				SetNo("instr-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetObject("test").
 				SetBot("test-bot").
 				SetFlag("test-flag").
@@ -525,7 +524,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 			now := time.Now().Add(time.Hour)
 			i, err := EntClient.Instruct.Create().
 				SetNo("instr-get-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetObject("test").
 				SetBot("test-bot").
 				SetFlag("get-flag").
@@ -545,7 +544,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 			now := time.Now().Add(time.Hour)
 			i, err := EntClient.Instruct.Create().
 				SetNo("instr-del-" + types.Id()).
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetObject("test").
 				SetBot("test-bot").
 				SetFlag("del-flag").
@@ -562,7 +561,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 	Describe("Agent", func() {
 		It("creates a new agent", func() {
 			a, err := EntClient.Agent.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("agent-topic").
 				SetHostid("host-1").
 				SetHostname("agent-host").
@@ -575,7 +574,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("retrieves an agent by ID", func() {
 			a, err := EntClient.Agent.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("agent-get").
 				SetHostid("host-get").
 				SetHostname("agent-get-host").
@@ -591,7 +590,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 		It("deletes an agent", func() {
 			a, err := EntClient.Agent.Create().
-				SetUid("uid-" + types.Id()).
+				SetUID("uid-" + types.Id()).
 				SetTopic("agent-del").
 				SetHostid("host-del").
 				SetHostname("agent-del-host").

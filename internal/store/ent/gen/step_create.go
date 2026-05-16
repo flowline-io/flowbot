@@ -175,9 +175,25 @@ func (_c *StepCreate) SetCreatedAt(v time.Time) *StepCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *StepCreate) SetNillableCreatedAt(v *time.Time) *StepCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *StepCreate) SetUpdatedAt(v time.Time) *StepCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *StepCreate) SetNillableUpdatedAt(v *time.Time) *StepCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -246,6 +262,14 @@ func (_c *StepCreate) defaults() {
 	if _, ok := _c.mutation.State(); !ok {
 		v := step.DefaultState
 		_c.mutation.SetState(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := step.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := step.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -57,7 +56,8 @@ var _ = Describe("Authentication", Label("auth"), func() {
 
 		Context("Chat context", func() {
 			It("auto-registers new chat users", func() {
-				_ = types.NewToken
+				_, err := auth.NewToken()
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 

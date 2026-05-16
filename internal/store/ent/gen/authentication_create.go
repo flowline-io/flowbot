@@ -98,9 +98,25 @@ func (_c *AuthenticationCreate) SetCreatedAt(v time.Time) *AuthenticationCreate 
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *AuthenticationCreate) SetNillableCreatedAt(v *time.Time) *AuthenticationCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *AuthenticationCreate) SetUpdatedAt(v time.Time) *AuthenticationCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *AuthenticationCreate) SetNillableUpdatedAt(v *time.Time) *AuthenticationCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -148,6 +164,14 @@ func (_c *AuthenticationCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := authentication.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := authentication.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := authentication.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 

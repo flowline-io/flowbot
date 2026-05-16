@@ -117,14 +117,6 @@ func (_u *PageUpdate) SetUpdatedAt(v time.Time) *PageUpdate {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PageUpdate) SetNillableUpdatedAt(v *time.Time) *PageUpdate {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PageMutation object of the builder.
 func (_u *PageUpdate) Mutation() *PageMutation {
 	return _u.mutation
@@ -132,6 +124,7 @@ func (_u *PageUpdate) Mutation() *PageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PageUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -154,6 +147,14 @@ func (_u *PageUpdate) Exec(ctx context.Context) error {
 func (_u *PageUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PageUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := page.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -327,14 +328,6 @@ func (_u *PageUpdateOne) SetUpdatedAt(v time.Time) *PageUpdateOne {
 	return _u
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_u *PageUpdateOne) SetNillableUpdatedAt(v *time.Time) *PageUpdateOne {
-	if v != nil {
-		_u.SetUpdatedAt(*v)
-	}
-	return _u
-}
-
 // Mutation returns the PageMutation object of the builder.
 func (_u *PageUpdateOne) Mutation() *PageMutation {
 	return _u.mutation
@@ -355,6 +348,7 @@ func (_u *PageUpdateOne) Select(field string, fields ...string) *PageUpdateOne {
 
 // Save executes the query and returns the updated Page entity.
 func (_u *PageUpdateOne) Save(ctx context.Context) (*Page, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -377,6 +371,14 @@ func (_u *PageUpdateOne) Exec(ctx context.Context) error {
 func (_u *PageUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *PageUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := page.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 

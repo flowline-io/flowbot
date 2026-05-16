@@ -92,9 +92,25 @@ func (_c *FlowEdgeCreate) SetCreatedAt(v time.Time) *FlowEdgeCreate {
 	return _c
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *FlowEdgeCreate) SetNillableCreatedAt(v *time.Time) *FlowEdgeCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *FlowEdgeCreate) SetUpdatedAt(v time.Time) *FlowEdgeCreate {
 	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *FlowEdgeCreate) SetNillableUpdatedAt(v *time.Time) *FlowEdgeCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -150,6 +166,14 @@ func (_c *FlowEdgeCreate) defaults() {
 	if _, ok := _c.mutation.Label(); !ok {
 		v := flowedge.DefaultLabel
 		_c.mutation.SetLabel(v)
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := flowedge.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := flowedge.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
