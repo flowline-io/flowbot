@@ -1,6 +1,6 @@
 # Database Documentation
 
-Flowbot uses MySQL as the primary database. Models are auto-generated via GORM Gen (see `internal/store/`).
+Flowbot uses PostgreSQL as the primary database. Models are auto-generated via GORM Gen (see `internal/store/`).
 
 ## Schema Reference
 

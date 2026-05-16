@@ -26,8 +26,8 @@ node "Host Machine (Linux)" as Host {
       [PWA Frontend (WASM)] as PWA
     }
 
-    ' --- MySQL ---
-    database "MySQL 8" as MySQLContainer {
+    ' --- PostgreSQL ---
+    database "PostgreSQL 8" as PostgreSQLContainer {
       [data_events]
       [audit_logs]
       [users / tokens]
@@ -122,7 +122,7 @@ Users --> SlackAPI : chat
 Admin --> FiberServer : HTTPS :8080
 
 ' --- Server → Infrastructure ---
-FiberServer --> MySQLContainer : TCP :3306
+FiberServer --> PostgreSQLContainer : TCP :3306
 FiberServer --> RedisContainer : TCP :6379
 FlowbotContainer --> HomelabApps : Docker socket (read-only)
 

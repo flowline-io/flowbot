@@ -206,7 +206,7 @@ Note: `conn` is currently used only for validation. Execution order is strictly 
 
 ## Persistent State (resumable)
 
-When `resumable: true`, the workflow engine persists execution state via the `WorkflowStore` to MySQL:
+When `resumable: true`, the workflow engine persists execution state via the `WorkflowStore` to PostgreSQL:
 
 ### Tables Used
 

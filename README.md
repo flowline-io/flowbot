@@ -120,7 +120,7 @@ Built-in step types: Capability, Message, Fetch, Feed, LLM, Docker, Grep, Unique
 ### Requirements
 
 - Go 1.26+
-- MySQL + Redis
+- PostgreSQL + Redis
 - [Task](https://taskfile.dev) runner
 - Docker
 

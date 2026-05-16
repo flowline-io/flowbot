@@ -1,6 +1,6 @@
 # Integration Tests
 
-This directory contains full integration tests using Testcontainers. These tests spin up real MySQL and Redis containers to test the application against actual dependencies.
+This directory contains full integration tests using Testcontainers. These tests spin up real PostgreSQL and Redis containers to test the application against actual dependencies.
 
 ## Requirements
 
@@ -103,12 +103,12 @@ tests/integration/
 The `IntegrationTestSuite` in `suite_test.go` provides:
 
 1. **Testcontainers Setup**:
-   - MySQL 8.0 container with database `flowbot_test`
+   - PostgreSQL 17 container with database `flowbot_test`
    - Redis 7-alpine container
    - Automatic port mapping and connection string generation
 
 2. **Database Initialization**:
-   - GORM connection to MySQL
+   - ent connection to PostgreSQL
    - Migration file execution using golang-migrate
    - All 50+ migrations applied automatically
 
@@ -195,7 +195,7 @@ Container startup is inherently slow. You can:
 
 If migrations fail:
 
-1. Check MySQL container logs: `docker logs <container-id>`
+1. Check PostgreSQL container logs: `docker logs <container-id>`
 2. Verify migration files exist: `ls pkg/migrate/migrations/`
 3. Ensure migrations are up to date: `task migration`
 
@@ -216,5 +216,5 @@ The tests will automatically pull required images and clean up after execution.
 | Variable                 | Description                | Default          |
 | ------------------------ | -------------------------- | ---------------- |
 | `SKIP_INTEGRATION_TESTS` | Skip all integration tests | `false`          |
-| `MYSQL_IMAGE`            | MySQL container image      | `mysql:8.0`      |
+| `MYSQL_IMAGE`            | PostgreSQL container image      | `postgres:17`      |
 | `REDIS_IMAGE`            | Redis container image      | `redis:7-alpine` |

@@ -9,7 +9,7 @@ Source: `pkg/pipeline/`
 The pipeline engine executes multi-step workflows in response to `DataEvent` messages published via Redis Stream. Each pipeline is defined in YAML configuration and consists of a trigger event and an ordered sequence of steps that invoke capability operations.
 
 ```
-DataEvent (MySQL data_events + Redis Stream)
+DataEvent (PostgreSQL data_events + Redis Stream)
     │
     ▼
 Pipeline Engine (pkg/pipeline/engine.go)
@@ -92,8 +92,8 @@ Each pipeline step can specify an optional `retry` block. If omitted, the step r
 
 ### Backoff Calculation
 
-**Fixed** (`backoff: fixed`): every retry waits the same `delay`.  
-**Linear** (`backoff: linear`): delay = `delay * attempt_number`, capped at `max_delay`.  
+**Fixed** (`backoff: fixed`): every retry waits the same `delay`.
+**Linear** (`backoff: linear`): delay = `delay * attempt_number`, capped at `max_delay`.
 **Exponential** (`backoff: exponential`): delay = `delay * 2^(attempt-1)`, capped at `max_delay`.
 
 Jitter is only applied to linear and exponential modes (built on `ExponentialBackOff`).

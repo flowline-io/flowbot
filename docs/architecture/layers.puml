@@ -91,7 +91,7 @@ package "Layer 1 — Provider Adapters\npkg/providers/ (17 providers)" as L1 #E8
 ' Layer 0: Infrastructure
 ' =============================================================================
 package "Layer 0 — Infrastructure" as L0 #FFEBEE {
-  database "MySQL" as MySQL {
+  database "PostgreSQL" as PostgreSQL {
     [Data Events]
     [Audit Logs]
     [Users / Tokens]
@@ -164,7 +164,7 @@ WF --> Pipeline : orchestrate
 Pipeline --> BotMods : invoke actions
 WF --> Docker : execute steps
 
-REST --> MySQL : persist
+REST --> PostgreSQL : persist
 REST --> Redis : cache / lock
 
 ' =============================================================================
@@ -189,7 +189,7 @@ note bottom of L3
   1. Modules never import providers directly — use ability.Invoke()
   2. Providers never emit DataEvents or call Hub/Pipeline
   3. Never return provider-private types from adapters
-  4. Durable events: DataEvent → MySQL → Redis Stream → Pipeline
+  4. Durable events: DataEvent → PostgreSQL → Redis Stream → Pipeline
   5. Standard pagination: limit + opaque cursor
 end note
 

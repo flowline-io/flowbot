@@ -10,7 +10,7 @@ Main application configuration file template for the Flowbot server. Covers:
 
 - Server listen address and API path
 - Media storage (file system / MinIO)
-- Database connection (MySQL)
+- Database connection (PostgreSQL)
 - Redis connection
 - Logging configuration
 - Executor settings (Docker / Shell / Machine)

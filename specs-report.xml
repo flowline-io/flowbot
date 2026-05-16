@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuites tests="15" disabled="0" errors="0" failures="0" time="4.13115207">
+      <testsuite name="Flowbot Acceptance Suite" package="/mnt/d/Projects/flowbot/tests/specs" tests="15" disabled="0" skipped="0" errors="0" failures="0" time="4.13115207" timestamp="2026-05-16T23:40:32">
+          <properties>
+              <property name="SuiteSucceeded" value="true"></property>
+              <property name="SuiteHasProgrammaticFocus" value="false"></property>
+              <property name="SpecialSuiteFailureReason" value=""></property>
+              <property name="SuiteLabels" value="[]"></property>
+              <property name="SuiteSemVerConstraints" value="[]"></property>
+              <property name="SuiteComponentSemVerConstraints" value="[]"></property>
+              <property name="RandomSeed" value="1778946030"></property>
+              <property name="RandomizeAllSpecs" value="false"></property>
+              <property name="LabelFilter" value=""></property>
+              <property name="SemVerFilter" value=""></property>
+              <property name="FocusStrings" value=""></property>
+              <property name="SkipStrings" value=""></property>
+              <property name="FocusFiles" value=""></property>
+              <property name="SkipFiles" value=""></property>
+              <property name="FailOnPending" value="false"></property>
+              <property name="FailOnEmpty" value="false"></property>
+              <property name="FailFast" value="false"></property>
+              <property name="FlakeAttempts" value="2"></property>
+              <property name="DryRun" value="false"></property>
+              <property name="ParallelTotal" value="4"></property>
+              <property name="OutputInterceptorMode" value=""></property>
+          </properties>
+          <testcase name="[SynchronizedBeforeSuite]" classname="Flowbot Acceptance Suite" status="passed" time="3.367634778">
+              <system-err>&gt; Enter [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:32.995&#xA;PostgreSQL base DSN: postgres://test:test@localhost:32786/postgres?sslmode=disable&#xA;Redis address: localhost:32787&#xA;&lt; Exit [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.057 (3.061s)&#xA;&gt; Enter [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.058&#xA;Process 1: database=flowbot_test_1&#xA;&lt; Exit [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.362 (304ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health HTTP health endpoints returns 200 liveness endpoint [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.004307139">
+              <system-err>&gt; Enter [It] liveness endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:25 @ 05/16/26 23:40:36.364&#xA;&lt; Exit [It] liveness endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:25 @ 05/16/26 23:40:36.368 (4ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health HTTP health endpoints returns 200 readiness endpoint [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.000297201">
+              <system-err>&gt; Enter [It] readiness endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:26 @ 05/16/26 23:40:36.369&#xA;&lt; Exit [It] readiness endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:26 @ 05/16/26 23:40:36.369 (0s)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health HTTP health endpoints returns 200 startup endpoint [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.000390103">
+              <system-err>&gt; Enter [It] startup endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:27 @ 05/16/26 23:40:36.37&#xA;&lt; Exit [It] startup endpoint - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:27 @ 05/16/26 23:40:36.37 (0s)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health infrastructure connectivity database is accessible [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.000704584">
+              <system-err>&gt; Enter [It] database is accessible - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:32 @ 05/16/26 23:40:36.371&#xA;&lt; Exit [It] database is accessible - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:32 @ 05/16/26 23:40:36.372 (0s)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health infrastructure connectivity Redis is accessible [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.002183497">
+              <system-err>&gt; Enter [It] Redis is accessible - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:36 @ 05/16/26 23:40:36.373&#xA;&lt; Exit [It] Redis is accessible - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:36 @ 05/16/26 23:40:36.375 (2ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health infrastructure connectivity containers are running [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.010281699">
+              <system-err>&gt; Enter [It] containers are running - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:50 @ 05/16/26 23:40:36.376&#xA;&lt; Exit [It] containers are running - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:50 @ 05/16/26 23:40:36.386 (10ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedAfterSuite]" classname="Flowbot Acceptance Suite" status="passed" time="0.736136499">
+              <system-err>&gt; Enter [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.387&#xA;&lt; Exit [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.387 (0s)&#xA;&gt; Enter [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.438&#xA;&lt; Exit [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:37.123 (685ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedBeforeSuite]" classname="Flowbot Acceptance Suite" status="passed" time="3.384162401">
+              <system-err>&gt; Enter [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.087&#xA;Process 3: database=flowbot_test_3&#xA;&lt; Exit [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.379 (292ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedAfterSuite]" classname="Flowbot Acceptance Suite" status="passed" time="0.000655124">
+              <system-err>&gt; Enter [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.38&#xA;&lt; Exit [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.38 (0s)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedBeforeSuite]" classname="Flowbot Acceptance Suite" status="passed" time="3.392033363">
+              <system-err>&gt; Enter [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.087&#xA;Process 2: database=flowbot_test_2&#xA;&lt; Exit [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.387 (300ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedAfterSuite]" classname="Flowbot Acceptance Suite" status="passed" time="0.000346984">
+              <system-err>&gt; Enter [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.388&#xA;&lt; Exit [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.388 (0s)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedBeforeSuite]" classname="Flowbot Acceptance Suite" status="passed" time="3.384249948">
+              <system-err>&gt; Enter [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.087&#xA;Process 4: database=flowbot_test_4&#xA;&lt; Exit [SynchronizedBeforeSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:54 @ 05/16/26 23:40:36.379 (292ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[It] Health schema migrations users table exists [health, smoke]" classname="Flowbot Acceptance Suite" status="passed" time="0.008456241">
+              <system-err>&gt; Enter [It] users table exists - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:65 @ 05/16/26 23:40:36.38&#xA;&lt; Exit [It] users table exists - /mnt/d/Projects/flowbot/tests/specs/health_spec_test.go:65 @ 05/16/26 23:40:36.388 (8ms)&#xA;</system-err>
+          </testcase>
+          <testcase name="[SynchronizedAfterSuite]" classname="Flowbot Acceptance Suite" status="passed" time="0.000332573">
+              <system-err>&gt; Enter [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.389&#xA;&lt; Exit [SynchronizedAfterSuite] TOP-LEVEL - /mnt/d/Projects/flowbot/tests/specs/lifecycle.go:130 @ 05/16/26 23:40:36.389 (0s)&#xA;</system-err>
+          </testcase>
+      </testsuite>
+  </testsuites>

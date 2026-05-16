@@ -15,7 +15,7 @@ title Flowbot System Architecture
 actor "Users" as Users
 cloud "Chat Platforms\n(Discord / Slack / Tailchat)" as ChatCloud
 
-package "MySQL" as MySQL #E8F5E9
+package "PostgreSQL" as PostgreSQL #E8F5E9
 package "Redis" as Redis #FFEBEE
 
 ' =============================================================================
@@ -243,10 +243,10 @@ HubRoutes --> HubManager : /hub/*
 Router --> DAO : CRUD
 Router --> EventStore : persist events
 Router --> AuditStore : audit log
-EventStore --> MySQL
+EventStore --> PostgreSQL
 EventStore --> Redis : Redis Stream outbox
-DAO --> MySQL
-AuditStore --> MySQL
+DAO --> PostgreSQL
+AuditStore --> PostgreSQL
 Event --> Redis : pub/sub
 Cache --> Redis
 Locker --> Redis

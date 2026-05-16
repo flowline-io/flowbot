@@ -24,7 +24,7 @@ See [Reference / Configuration](../reference/config-reference.md) for a descript
 
 ### Required Services
 
-- **MySQL** — database (auto-migrates on startup)
+- **PostgreSQL** — database (auto-migrates on startup)
 - **Redis** — event streams and caching
 
 ### Quick Start

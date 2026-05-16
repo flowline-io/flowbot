@@ -8,6 +8,7 @@ warningCode = 0
 [rule.context-as-argument]
 [rule.context-keys-type]
 [rule.dot-imports]
+  arguments = [{ allowedPackages = ["github.com/onsi/ginkgo/v2", "github.com/onsi/gomega"], allowInTestFiles = true }]
 [rule.error-return]
 [rule.error-strings]
 [rule.error-naming]

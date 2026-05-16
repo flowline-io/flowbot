@@ -196,7 +196,7 @@ homelab:
 1. `Scanner.Scan()` reads `apps/*/docker-compose.yaml` files.
 2. `ParseLabels()` extracts `AppCapability` entries from labels.
 3. If discovery probes are enabled, `ProbeEngine.ProbeAll()` enriches apps with runtime data.
-4. Results are merged into `App.Capabilities[]` and persisted to MySQL via `hub_store`.
+4. Results are merged into `App.Capabilities[]` and persisted to PostgreSQL via `hub_store`.
 
 ### Capability Awareness
 

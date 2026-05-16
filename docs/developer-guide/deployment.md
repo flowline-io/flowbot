@@ -85,7 +85,7 @@ curl http://localhost:6060/startupz # Startup
 ## Deployment Checklist
 
 - [ ] Configuration file (`flowbot.yaml`) is set up
-- [ ] MySQL database is accessible
+- [ ] PostgreSQL database is accessible
 - [ ] Redis server is running
 - [ ] Required ports are open (default: 6060)
 - [ ] Service starts and health checks pass

@@ -33,15 +33,9 @@ Homelab Data Hub & Capability Orchestration Center.
 - **Pagination**: limit + opaque cursor; provider internals hidden in adapter
 - **Routing**: `/service/{capability}/*` for business, `/hub/*` for management
 - **AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
-- **Events**: DataEvent → MySQL data_events → Redis Stream → pipeline_runs
-- **Testing**: `*_test.go` next to code, table-driven, testify require/assert, `gotestsum`
-- **Table-driven**: All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`. Each table must contain at least 3 cases
-
-```bash
-go test ./pkg/utils
-go test -run ^TestFoo$ ./pkg/utils
-go tool task test              # All tests
-```
+- **Events**: DataEvent → PostgreSQL data_events → Redis Stream → pipeline_runs
+- **TDD (Test-driven development)**: Red-Green-Refactor cycle. Write test before implementation. `*_test.go` co-located with source. All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`. Each table must contain at least 3 cases
+- **BDD (Behavior-Driven Development)**: Ginkgo v2 + Gomega. `Describe`/`Context`/`It` with `SynchronizedBeforeSuite` + `GinkgoParallelProcess()` for per-process database isolation. New modules must include BDD specs.
 
 ## Anti-Patterns
 
@@ -58,30 +52,32 @@ go tool task test              # All tests
 - Never hardcode provider names in pipeline/workflow definitions
 - Never return 500/400 for all errors — use appropriate status codes
 - Never leak provider raw errors or pagination internals to HTTP layer
-- Never use Redis Stream as sole event store — persist to MySQL data_events
+- Never use Redis Stream as sole event store — persist to PostgreSQL data_events
 - Never skip delivery/audit/idempotency records
 - Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`
 
-## Build & CI
+## Build & Test command
 
 ```bash
-go tool task build   # Main server
-go tool task lint    # Code lint
-```
+go tool task build            # Main server
+go tool task lint             # Code lint
+go tool task test             # Unit tests
+go tool task test:specs       # BDD acceptance tests (requires Docker)
+go tool task test:specs:ci    # BDD with retry + JUnit
+````
 
 ## Configuration
 
 - Runtime: `flowbot.yaml` (copy from `docs/config/config.yaml`)
 - Build: `taskfile.yaml`
 - Lint: `revive.toml`
-- Mutation: `.gremlins.yaml` (threshold: 60% efficacy + 60% mcover)
 - CI: `.github/workflows/build.yml`
 
 ## Notes
 
-- Go 1.26+, MySQL, Redis required
+- Go 1.26+, PostgreSQL, Redis required
 - Do not use emojis
-- Run lint after modifying code
+- Run lint and test after modifying code
 - Text in English: comments, docs, commit messages
-- Code must have unit tests
+- Code must have TDD + BDD tests
 - In functions, variables, structs, interfaces, etc., must be commented using godoc. These comments should explain "what" and "why," without repeating "how.", and should be kept synchronized with the code.

@@ -1,6 +1,6 @@
 # Store Layer
 
-Database storage using GORM with MySQL.
+Database storage using GORM with PostgreSQL.
 
 ## Structure
 
@@ -9,7 +9,7 @@ store/
 ├── store.go  # Adapter, connection management
 ├── dao/      # DAOs (generated + custom)
 ├── model/    # GORM models (generated from DB schema)
-└── mysql/    # MySQL adapter
+└── mysql/    # PostgreSQL adapter
 ```
 
 ## Patterns

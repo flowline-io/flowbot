@@ -135,6 +135,21 @@ tasks:
     cmds:
       - go test -v -tags integration ./tests/integration/...
 
+  test:specs:
+    desc: Run Ginkgo BDD acceptance tests (parallel, requires Docker)
+    cmds:
+      - go tool ginkgo --procs=4 -v --randomize-all --fail-fast --tags integration ./tests/specs/...
+
+  test:specs:ci:
+    desc: Run BDD tests for CI with retry and JUnit output
+    cmds:
+      - go tool ginkgo --procs=4 --flake-attempts=2 --junit-report=specs-report.xml --tags integration ./tests/specs/...
+
+  test:specs:serial:
+    desc: Run BDD tests serially for debugging
+    cmds:
+      - go tool ginkgo -v --trace --tags integration ./tests/specs/...
+
   test:coverage:
     desc: Run tests with coverage report
     cmds:

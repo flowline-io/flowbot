@@ -37,3 +37,13 @@ jobs:
 
       - name: Race testing
         run: go tool task test:race
+
+      - name: BDD Acceptance Tests
+        run: go tool task test:specs:ci
+
+      - name: Upload BDD Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: specs-report
+          path: specs-report.xml

@@ -16,7 +16,7 @@ participant "Bot Module\n(internal/modules/)" as Module
 participant "ability.Invoke()\n(pkg/ability/)" as Ability
 participant "Provider Adapter\n(pkg/providers/)" as Provider
 participant "Third-Party API" as API
-database MySQL
+database PostgreSQL
 database Redis
 
 == Message Ingestion ==
@@ -53,7 +53,7 @@ Adapter --> Platform : platform API call
 Platform --> User : display message
 
 == Side Effects ==
-Module -> MySQL : persist data event
+Module -> PostgreSQL : persist data event
 Module -> Redis : publish event (optional)
 
 @enduml
@@ -75,12 +75,12 @@ participant "Workflow Module\n(internal/modules/workflow/)" as WFModule
 participant "Workflow Engine\n(pkg/workflow/)" as Engine
 participant "Executor\n(pkg/executor/)" as Executor
 participant "Pipeline Engine\n(pkg/pipeline/)" as Pipeline
-database MySQL
+database PostgreSQL
 database Redis
 
 == Trigger ==
 Trigger -> WFModule : trigger workflow
-WFModule -> MySQL : load workflow definition (DAG)
+WFModule -> PostgreSQL : load workflow definition (DAG)
 WFModule -> Engine : execute(workflow, params)
 
 == DAG Execution ==
@@ -94,15 +94,15 @@ group Docker Step
 end group
 
 Executor --> Engine : step result
-Engine -> MySQL : save step status
+Engine -> PostgreSQL : save step status
 
 == Pipeline Orchestration ==
 Engine -> Pipeline : run post-execution pipeline
 Pipeline -> Pipeline : evaluate conditions
 Pipeline -> Pipeline : invoke module actions
-Pipeline -> MySQL : save pipeline run history
+Pipeline -> PostgreSQL : save pipeline run history
 
-Engine -> MySQL : update workflow state
+Engine -> PostgreSQL : update workflow state
 Engine -> Redis : publish completion event
 
 == Notification ==
@@ -115,7 +115,7 @@ WFModule -> Engine : send notification (pkg/notify/)
 
 @startuml Data Flow — Durable Event System
 ' =============================================================================
-' Flow 3: DataEvent → MySQL → Redis Stream → Pipeline
+' Flow 3: DataEvent → PostgreSQL → Redis Stream → Pipeline
 ' =============================================================================
 
 skinparam backgroundColor #FEFEFE
@@ -125,17 +125,17 @@ title Data Flow 3 — Durable Event System
 
 participant "Data Source\n(Bot Module / Webhook)" as Source
 participant "Event Store\n(internal/store/)" as EventStore
-database "MySQL\ndata_events table" as MySQL
+database "PostgreSQL\ndata_events table" as PostgreSQL
 participant "Event Outbox\n(Redis Stream)" as Outbox
 participant "Pipeline Engine\n(pkg/pipeline/)" as Pipeline
 participant "Action Handlers" as Actions
 
 == Event Creation ==
 Source -> EventStore : create DataEvent
-EventStore -> MySQL : INSERT INTO data_events
+EventStore -> PostgreSQL : INSERT INTO data_events
 note right: Durable persistence first
 
-MySQL --> EventStore : event persisted
+PostgreSQL --> EventStore : event persisted
 
 == Event Publication ==
 EventStore -> Outbox : XADD to Redis Stream
@@ -147,20 +147,20 @@ Pipeline -> Pipeline : match pipeline rules
 Pipeline -> Pipeline : check idempotency (event ID)
 
 == Pipeline Execution ==
-Pipeline -> MySQL : INSERT INTO pipeline_runs
+Pipeline -> PostgreSQL : INSERT INTO pipeline_runs
 Pipeline -> Actions : invoke action 1
 Actions --> Pipeline : result
-Pipeline -> MySQL : UPDATE step status
+Pipeline -> PostgreSQL : UPDATE step status
 
 Pipeline -> Actions : invoke action 2
 Actions --> Pipeline : result
-Pipeline -> MySQL : UPDATE step status
+Pipeline -> PostgreSQL : UPDATE step status
 
-Pipeline -> MySQL : UPDATE pipeline_run (complete)
+Pipeline -> PostgreSQL : UPDATE pipeline_run (complete)
 Pipeline -> Outbox : XACK (acknowledge)
 
 == Audit ==
-Pipeline -> MySQL : INSERT audit log
+Pipeline -> PostgreSQL : INSERT audit log
 note right
   Every event and pipeline run
   is fully audited
@@ -184,7 +184,7 @@ participant "Homelab Scanner\n(pkg/homelab/)" as Scanner
 participant "App Registry\n(/home/user/homelab/apps/)" as Registry
 participant "Hub Manager\n(pkg/hub/)" as Hub
 participant "Capability Registry\n(pkg/ability/)" as CapRegistry
-database MySQL
+database PostgreSQL
 
 == Startup Scan ==
 Scanner -> Registry : scan apps/*/docker-compose.yaml
@@ -194,7 +194,7 @@ Registry --> Scanner : app definitions (name, image, ports)
 
 == App Registration ==
 Scanner -> Hub : register app
-Hub -> MySQL : save app binding
+Hub -> PostgreSQL : save app binding
 
 == Health Monitoring ==
 Hub -> Scanner : check health
@@ -212,14 +212,14 @@ note right
 end note
 
 CapRegistry -> CapRegistry : register ability descriptor
-Hub -> MySQL : save capability binding
+Hub -> PostgreSQL : save capability binding
 
 == Lifecycle Operations ==
 Hub -> Registry : restart / stop / start (opt-in)
 Hub -> Scanner : update runtime state
 
 == Audit ==
-Hub -> MySQL : INSERT audit_log
+Hub -> PostgreSQL : INSERT audit_log
 note right: All lifecycle operations are audited
 
 @enduml

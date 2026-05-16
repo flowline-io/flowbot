@@ -151,7 +151,7 @@ go test ./internal/store/...   # PipelineStore checkpoint tests
 
 ## Dependencies
 
-- Requires MySQL for state persistence (checkpoint data, heartbeat timestamps).
+- Requires PostgreSQL for state persistence (checkpoint data, heartbeat timestamps).
 - Pipeline recovery requires pipeline definitions to still be present in the running config.
 - Workflow recovery requires workflow YAML files to still exist on disk.
 - The `resumable` flag must be set on the pipeline/workflow definition to opt in.
