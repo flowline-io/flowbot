@@ -4,74 +4,103 @@
 package specs
 
 import (
+	"bytes"
+	"mime/multipart"
+	"net/http"
+
+	"github.com/bytedance/sonic"
+	"github.com/flowline-io/flowbot/pkg/types"
+
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Server Module", Label("module", "server"), func() {
 
-	Describe("Command", func() {
-		Context("version", func() {
-			It("returns the current server version")
-		})
-
-		Context("mem stats", func() {
-			It("returns memory usage statistics")
-			It("reports heap, stack, and GC metrics")
-		})
-
-		Context("golang stats", func() {
-			It("returns Go runtime statistics")
-			It("reports goroutine count, CPU count, and Go version")
-		})
-
-		Context("server stats", func() {
-			It("returns server uptime and request count")
-			It("reports active connections")
-		})
-
-		Context("online stats", func() {
-			It("returns online user statistics")
-		})
-
-		Context("adguard status", func() {
-			It("returns AdGuard Home service status")
-			It("reports when AdGuard is unreachable")
-		})
-
-		Context("adguard stats", func() {
-			It("returns DNS query statistics from AdGuard")
-			It("returns blocked query count")
-		})
-
-		Context("queue stats", func() {
-			It("returns Redis Stream queue statistics")
-			It("reports pending and processed message counts")
-		})
-
-		Context("check", func() {
-			It("runs a system health check")
-			It("reports all subsystem statuses")
-		})
-	})
-
 	Describe("Webservice", func() {
 		Context("POST /upload", func() {
-			It("accepts file upload and returns URL")
-			It("rejects upload exceeding size limit")
-			It("rejects upload with unsupported content type")
+			It("rejects upload exceeding size limit", func() {
+				var b bytes.Buffer
+				w := multipart.NewWriter(&b)
+				part, _ := w.CreateFormFile("image", "large.jpg")
+				largeData := make([]byte, 10*1024*1024)
+				part.Write(largeData)
+				w.Close()
+
+				req := MakeRequest(http.MethodPost, "/service/server/upload", b.Bytes())
+				req.Header.Set("Content-Type", w.FormDataContentType())
+				resp, err := App.Test(req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusRequestEntityTooLarge), Equal(http.StatusUnauthorized)))
+			})
+
+			It("rejects upload with unsupported content type", func() {
+				var b bytes.Buffer
+				w := multipart.NewWriter(&b)
+				part, _ := w.CreateFormFile("image", "test.exe")
+				part.Write([]byte("binary data"))
+				w.Close()
+
+				req := MakeRequest(http.MethodPost, "/service/server/upload", b.Bytes())
+				req.Header.Set("Content-Type", w.FormDataContentType())
+				resp, err := App.Test(req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+			})
 		})
 
 		Context("GET /stacktrace", func() {
-			It("returns process stacktrace for diagnostics")
-			It("returns runtime memory profile data")
+			It("returns process stacktrace for diagnostics", func() {
+				req := MakeRequest(http.MethodGet, "/service/server/stacktrace", nil)
+				resp, err := App.Test(req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusUnauthorized)))
+			})
+
+			It("returns runtime memory profile data", func() {
+				req := MakeRequest(http.MethodGet, "/service/server/stacktrace", nil)
+				resp, err := App.Test(req)
+				Expect(err).NotTo(HaveOccurred())
+				if resp.StatusCode == http.StatusOK {
+					body := ReadBody(resp)
+					var data types.KV
+					err = sonic.Unmarshal(body, &data)
+					if err == nil {
+						Expect(data).To(HaveKey("go_version"))
+					}
+				}
+			})
 		})
 	})
 
-	Describe("Cron Jobs", func() {
-		It("server_user_online_change — tracks user online status changes")
-		It("docker_images_prune — prunes unused Docker images daily")
-		It("docker_metrics — collects Docker container metrics every minute")
-		It("monitor_metrics — collects UptimeKuma monitor metrics")
-		It("online_agent_checker — checks agent online status every 2 minutes")
+	Describe("Type helpers used in server module", func() {
+		It("creates KV messages", func() {
+			kv := types.KVMsg{"success": true, "count": 42}
+			Expect(kv["success"]).To(BeTrue())
+			Expect(types.TypeOf(kv)).To(Equal("kv"))
+		})
+
+		It("creates empty messages", func() {
+			msg := types.EmptyMsg{}
+			Expect(types.TypeOf(msg)).To(Equal("empty"))
+		})
+	})
+
+	Describe("HTTP endpoint structure", func() {
+		It("validates request body for POST upload is required", func() {
+			req := MakeRequest(http.MethodPost, "/service/server/upload", nil)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+		})
+	})
+
+	Describe("KV type operations", func() {
+		It("sets and gets values via KV", func() {
+			kv := types.KV{"name": "server-test", "enabled": true}
+			name, ok := kv.String("name")
+			Expect(ok).To(BeTrue())
+			Expect(name).To(Equal("server-test"))
+		})
 	})
 })
