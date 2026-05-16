@@ -164,7 +164,7 @@ func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation strin
 func (c *Controller) writeLifecycleAudit(ctx fiber.Ctx, appName, action, result, errMsg string) {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
-	auditStore := store.NewAuditStore(store.Database.GetDB())
+	auditStore := store.NewAuditStore(store.Database.GetDB().(*store.Client))
 	_ = auditStore.Write(store.AuditEntry{
 		ActorType:    "token",
 		ActorID:      uid.String(),

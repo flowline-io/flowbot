@@ -10,10 +10,6 @@ import (
 
 type JSON map[string]any
 
-func (j JSON) GormDataType() string {
-	return "json"
-}
-
 func (j *JSON) Scan(value any) error {
 	if bytes, ok := value.([]byte); ok {
 		result := make(map[string]any)
@@ -39,10 +35,6 @@ func (j JSON) Value() (driver.Value, error) {
 }
 
 type IDList []int64
-
-func (j IDList) GormDataType() string {
-	return "json"
-}
 
 func (j *IDList) Scan(value any) error {
 	if bytes, ok := value.([]byte); ok {

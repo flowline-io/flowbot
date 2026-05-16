@@ -3,6 +3,7 @@ package admin
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"io"
 	"os"
@@ -11,10 +12,10 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/bytedance/sonic"
 	"github.com/goccy/go-yaml"
+	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable
 	"github.com/spf13/cobra"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/auth"
@@ -32,9 +33,9 @@ type configType struct {
 	StoreConfig struct {
 		UseAdapter string `json:"use_adapter" yaml:"use_adapter"`
 		Adapters   struct {
-			Mysql struct {
+			Postgres struct {
 				DSN string `json:"dsn" yaml:"dsn"`
-			} `json:"mysql" yaml:"mysql"`
+			} `json:"postgres" yaml:"postgres"`
 		} `json:"adapters" yaml:"adapters"`
 	} `json:"store_config" yaml:"store_config"`
 }
@@ -81,22 +82,21 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("load config: %w", err)
 	}
 
-	db, err := gorm.Open(mysql.Open(dsn))
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return fmt.Errorf("get sql.DB: %w", err)
-	}
-	if err := sqlDB.Ping(); err != nil {
+	defer func() { _ = db.Close() }()
+	if err := db.Ping(); err != nil {
 		return fmt.Errorf("ping database: %w", err)
 	}
 
 	userID, _ := cmd.Flags().GetInt("id")
 
 	var user model.User
-	if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
+	row := db.QueryRow("SELECT id, flag, name, tags, state, created_at, updated_at FROM users WHERE id = $1", userID)
+	err = row.Scan(&user.ID, &user.Flag, &user.Name, &user.Tags, &user.State, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
 		return fmt.Errorf("user not found with id %d: %w", userID, err)
 	}
 
@@ -119,17 +119,20 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("parse expires %q: %w", expiresStr, err)
 	}
 
-	params := types.KV{
+	params, err := sonic.MarshalString(types.KV{
 		"uid":    user.Flag,
 		"topic":  "",
 		"scopes": scopes,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal params: %w", err)
 	}
 
-	if err := db.Create(&model.Parameter{
-		Flag:      token,
-		Params:    model.JSON(params),
-		ExpiredAt: expiredAt,
-	}).Error; err != nil {
+	_, err = db.Exec(
+		"INSERT INTO parameter (flag, params, created_at, updated_at, expired_at) VALUES ($1, $2, $3, $4, $5)",
+		token, params, time.Now(), time.Now(), expiredAt,
+	)
+	if err != nil {
 		return fmt.Errorf("create token record: %w", err)
 	}
 
@@ -137,7 +140,7 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-// loadDSN reads the MySQL DSN from a flowbot.yaml config file.
+// loadDSN reads the postgres DSN from a flowbot.yaml config file.
 func loadDSN(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -155,14 +158,14 @@ func loadDSN(path string) (string, error) {
 		return "", fmt.Errorf("parse config: %w", err)
 	}
 
-	if cfg.StoreConfig.UseAdapter != "mysql" {
+	if cfg.StoreConfig.UseAdapter != "postgres" {
 		return "", fmt.Errorf("unsupported adapter: %s", cfg.StoreConfig.UseAdapter)
 	}
-	if cfg.StoreConfig.Adapters.Mysql.DSN == "" {
-		return "", fmt.Errorf("mysql DSN is empty")
+	if cfg.StoreConfig.Adapters.Postgres.DSN == "" {
+		return "", fmt.Errorf("postgres DSN is empty")
 	}
 
-	return cfg.StoreConfig.Adapters.Mysql.DSN, nil
+	return cfg.StoreConfig.Adapters.Postgres.DSN, nil
 }
 
 // selectScopes prints available scopes and reads user selection from stdin.

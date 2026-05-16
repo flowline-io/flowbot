@@ -6,7 +6,6 @@ import (
 	"maps"
 
 	"github.com/goccy/go-yaml"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -249,10 +248,10 @@ func MessageConvert(data any) protocol.Message {
 
 func PlatformRegister(name string, caller *Caller) error {
 	_, err := store.Database.GetPlatformByName(name)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, types.ErrNotFound) {
 		_, err = store.Database.CreatePlatform(&model.Platform{
 			Name: name,
 		})

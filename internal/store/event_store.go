@@ -1,263 +1,343 @@
 package store
 
 import (
+	"context"
 	"time"
 
 	"github.com/bytedance/sonic"
 
-	"gorm.io/gorm"
-
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventconsumption"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type EventStore struct {
-	db *gorm.DB
+	client *gen.Client
 }
 
-func NewEventStore(db *gorm.DB) *EventStore {
-	return &EventStore{db: db}
+func NewEventStore(client *gen.Client) *EventStore {
+	return &EventStore{client: client}
 }
 
 func (s *EventStore) AppendDataEvent(event types.DataEvent) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	record := model.DataEvent{
-		EventID:        event.EventID,
-		EventType:      event.EventType,
-		Source:         event.Source,
-		Capability:     event.Capability,
-		Operation:      event.Operation,
-		Backend:        event.Backend,
-		App:            event.App,
-		EntityID:       event.EntityID,
-		IdempotencyKey: event.IdempotencyKey,
-		UID:            event.UID,
-		Topic:          event.Topic,
-		CreatedAt:      now,
-	}
+	ctx := context.Background()
+	c := s.client.DataEvent.Create().
+		SetEventID(event.EventID).
+		SetEventType(event.EventType).
+		SetSource(event.Source).
+		SetCapability(event.Capability).
+		SetOperation(event.Operation).
+		SetBackend(event.Backend).
+		SetApp(event.App).
+		SetEntityID(event.EntityID).
+		SetIdempotencyKey(event.IdempotencyKey).
+		SetUID(event.UID).
+		SetTopic(event.Topic).
+		SetCreatedAt(time.Now())
 	if event.Data != nil {
-		dataJSON := model.JSON{}
-		_ = dataJSON.Scan(types.KV(event.Data))
-		record.Data = dataJSON
+		c = c.SetData(map[string]interface{}(event.Data))
 	}
-	return s.db.Create(&record).Error
+	_, err := c.Save(ctx)
+	return err
 }
 
 func (s *EventStore) AppendEventOutbox(event types.DataEvent) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	payload := model.JSON{}
-	_ = payload.Scan(types.KV{
-		"event_id":        event.EventID,
-		"event_type":      event.EventType,
-		"source":          event.Source,
-		"capability":      event.Capability,
-		"operation":       event.Operation,
-		"backend":         event.Backend,
-		"app":             event.App,
-		"entity_id":       event.EntityID,
-		"idempotency_key": event.IdempotencyKey,
-		"uid":             event.UID,
-		"topic":           event.Topic,
-	})
-	record := model.EventOutbox{
-		EventID:   event.EventID,
-		Payload:   payload,
-		Published: false,
-		CreatedAt: now,
-	}
-	return s.db.Create(&record).Error
+	ctx := context.Background()
+	_, err := s.client.EventOutbox.Create().
+		SetEventID(event.EventID).
+		SetPayload(map[string]interface{}{
+			"event_id":        event.EventID,
+			"event_type":      event.EventType,
+			"source":          event.Source,
+			"capability":      event.Capability,
+			"operation":       event.Operation,
+			"backend":         event.Backend,
+			"app":             event.App,
+			"entity_id":       event.EntityID,
+			"idempotency_key": event.IdempotencyKey,
+			"uid":             event.UID,
+			"topic":           event.Topic,
+		}).
+		SetPublished(false).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
+	return err
 }
 
 func (s *EventStore) MarkOutboxPublished(eventID string) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	return s.db.Model(&model.EventOutbox{}).
-		Where("event_id = ?", eventID).
-		Update("published", true).Error
+	ctx := context.Background()
+	_, err := s.client.EventOutbox.Update().
+		Where(eventoutbox.EventID(eventID)).
+		SetPublished(true).
+		Save(ctx)
+	return err
 }
 
 // PipelineStore persists pipeline definitions, runs, step runs, and event consumptions.
 type PipelineStore struct {
-	db *gorm.DB
+	client *gen.Client
 }
 
-func NewPipelineStore(db *gorm.DB) *PipelineStore {
-	return &PipelineStore{db: db}
+func NewPipelineStore(client *gen.Client) *PipelineStore {
+	return &PipelineStore{client: client}
 }
 
 func (s *PipelineStore) UpsertDefinition(name, description string, enabled bool, trigger, steps model.JSON) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	def := model.PipelineDefinition{
-		Name:        name,
-		Description: description,
-		Enabled:     enabled,
-		Trigger:     trigger,
-		Steps:       steps,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+	ctx := context.Background()
+	existing, err := s.client.PipelineDefinition.Query().
+		Where(pipelinedefinition.Name(name)).
+		Only(ctx)
+	if err != nil {
+		if !gen.IsNotFound(err) {
+			return err
+		}
+		now := time.Now()
+		_, err = s.client.PipelineDefinition.Create().
+			SetName(name).
+			SetDescription(description).
+			SetEnabled(enabled).
+			SetTrigger(map[string]interface{}(trigger)).
+			SetSteps(map[string]interface{}(steps)).
+			SetCreatedAt(now).
+			SetUpdatedAt(now).
+			Save(ctx)
+		return err
 	}
-	return s.db.Where("name = ?", name).Assign(def).FirstOrCreate(&def).Error
+	_, err = s.client.PipelineDefinition.UpdateOneID(existing.ID).
+		SetDescription(description).
+		SetEnabled(enabled).
+		SetTrigger(map[string]interface{}(trigger)).
+		SetSteps(map[string]interface{}(steps)).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	return err
 }
 
 func (s *PipelineStore) CreateRun(pipelineName, eventID, eventType string) (*model.PipelineRun, error) {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil, nil
 	}
+	ctx := context.Background()
 	now := time.Now()
-	run := model.PipelineRun{
-		PipelineName: pipelineName,
-		EventID:      eventID,
-		EventType:    eventType,
-		Status:       model.PipelineStart,
-		StartedAt:    now,
-		CreatedAt:    now,
-	}
-	if err := s.db.Create(&run).Error; err != nil {
+	run, err := s.client.PipelineRun.Create().
+		SetPipelineName(pipelineName).
+		SetEventID(eventID).
+		SetEventType(eventType).
+		SetStatus(int(model.PipelineStart)).
+		SetStartedAt(now).
+		SetCreatedAt(now).
+		Save(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return &run, nil
+	return &model.PipelineRun{
+		ID:             run.ID,
+		PipelineName:   run.PipelineName,
+		EventID:        run.EventID,
+		EventType:      run.EventType,
+		Status:         model.PipelineState(run.Status),
+		Error:          run.Error,
+		CheckpointData: model.JSON(run.CheckpointData),
+		LastHeartbeat:  run.LastHeartbeat,
+		StartedAt:      run.StartedAt,
+		CompletedAt:    run.CompletedAt,
+		CreatedAt:      run.CreatedAt,
+	}, nil
 }
 
 func (s *PipelineStore) UpdateRunStatus(runID int64, status model.PipelineState, errMsg string) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	updates := map[string]any{
-		"status":       status,
-		"completed_at": now,
-	}
+	ctx := context.Background()
+	upd := s.client.PipelineRun.UpdateOneID(runID).
+		SetStatus(int(status)).
+		SetCompletedAt(time.Now())
 	if errMsg != "" {
-		updates["error"] = errMsg
+		upd = upd.SetError(errMsg)
 	}
-	return s.db.Model(&model.PipelineRun{}).Where("id = ?", runID).Updates(updates).Error
+	_, err := upd.Save(ctx)
+	return err
 }
 
 func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error) {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil, nil
 	}
+	ctx := context.Background()
 	now := time.Now()
-	sr := model.PipelineStepRun{
-		PipelineRunID: runID,
-		StepName:      stepName,
-		Capability:    capability,
-		Operation:     operation,
-		Params:        params,
-		Attempt:       attempt,
-		Status:        model.PipelineStart,
-		StartedAt:     now,
-		CreatedAt:     now,
-	}
-	if err := s.db.Create(&sr).Error; err != nil {
+	sr, err := s.client.PipelineStepRun.Create().
+		SetPipelineRunID(runID).
+		SetStepName(stepName).
+		SetCapability(capability).
+		SetOperation(operation).
+		SetParams(map[string]interface{}(params)).
+		SetAttempt(attempt).
+		SetStatus(int(model.PipelineStart)).
+		SetStartedAt(now).
+		SetCreatedAt(now).
+		Save(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return &sr, nil
+	return &model.PipelineStepRun{
+		ID:            sr.ID,
+		PipelineRunID: sr.PipelineRunID,
+		StepName:      sr.StepName,
+		Capability:    sr.Capability,
+		Operation:     sr.Operation,
+		Params:        model.JSON(sr.Params),
+		Result:        model.JSON(sr.Result),
+		Attempt:       sr.Attempt,
+		RetryConfig:   model.JSON(sr.RetryConfig),
+		Status:        model.PipelineState(sr.Status),
+		Error:         sr.Error,
+		StartedAt:     sr.StartedAt,
+		CompletedAt:   sr.CompletedAt,
+		CreatedAt:     sr.CreatedAt,
+	}, nil
 }
 
 func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	updates := map[string]any{
-		"status":  status,
-		"attempt": attempt,
-	}
+	ctx := context.Background()
+	upd := s.client.PipelineStepRun.UpdateOneID(stepRunID).
+		SetStatus(int(status)).
+		SetAttempt(attempt)
 	if status == model.PipelineDone || status == model.PipelineCancel {
 		now := time.Now()
-		updates["completed_at"] = now
+		upd = upd.SetCompletedAt(now)
 	}
 	if result != nil {
-		updates["result"] = result
+		upd = upd.SetResult(map[string]interface{}(result))
 	}
 	if errMsg != "" {
-		updates["error"] = errMsg
+		upd = upd.SetError(errMsg)
 	}
-	return s.db.Model(&model.PipelineStepRun{}).Where("id = ?", stepRunID).Updates(updates).Error
+	_, err := upd.Save(ctx)
+	return err
 }
 
 func (s *PipelineStore) RecordConsumption(consumerName, eventID string) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	record := model.EventConsumption{
-		ConsumerName: consumerName,
-		EventID:      eventID,
-		CreatedAt:    now,
-	}
-	return s.db.Create(&record).Error
+	ctx := context.Background()
+	_, err := s.client.EventConsumption.Create().
+		SetConsumerName(consumerName).
+		SetEventID(eventID).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
+	return err
 }
 
 func (s *PipelineStore) HasConsumed(consumerName, eventID string) (bool, error) {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return false, nil
 	}
-	var count int64
-	err := s.db.Model(&model.EventConsumption{}).
-		Where("consumer_name = ? AND event_id = ?", consumerName, eventID).
-		Count(&count).Error
+	ctx := context.Background()
+	count, err := s.client.EventConsumption.Query().
+		Where(
+			eventconsumption.ConsumerName(consumerName),
+			eventconsumption.EventID(eventID),
+		).
+		Count(ctx)
 	return count > 0, err
 }
 
 // SaveCheckpoint persists the intermediate pipeline run state.
 func (s *PipelineStore) SaveCheckpoint(runID int64, data any) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	cp := model.JSON{}
+	ctx := context.Background()
 	raw, err := sonic.Marshal(data)
 	if err != nil {
 		return err
 	}
-	if err := cp.Scan(raw); err != nil {
+	var cp map[string]interface{}
+	if err := sonic.Unmarshal(raw, &cp); err != nil {
 		return err
 	}
-	return s.db.Model(&model.PipelineRun{}).
-		Where("id = ?", runID).
-		Update("checkpoint_data", cp).Error
+	_, err = s.client.PipelineRun.UpdateOneID(runID).
+		SetCheckpointData(cp).
+		Save(ctx)
+	return err
 }
 
 // UpdateRunHeartbeat refreshes the last_heartbeat timestamp for a running pipeline.
 func (s *PipelineStore) UpdateRunHeartbeat(runID int64) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	now := time.Now()
-	return s.db.Model(&model.PipelineRun{}).
-		Where("id = ?", runID).
-		Update("last_heartbeat", now).Error
+	ctx := context.Background()
+	_, err := s.client.PipelineRun.UpdateOneID(runID).
+		SetLastHeartbeat(time.Now()).
+		Save(ctx)
+	return err
 }
 
 // GetIncompleteRuns returns pipeline runs that are in Start state and may need recovery.
 func (s *PipelineStore) GetIncompleteRuns() ([]*model.PipelineRun, error) {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	var runs []*model.PipelineRun
-	err := s.db.Where("status = ?", model.PipelineStart).
-		Order("created_at ASC").
-		Find(&runs).Error
-	return runs, err
+	ctx := context.Background()
+	runs, err := s.client.PipelineRun.Query().
+		Where(pipelinerun.Status(int(model.PipelineStart))).
+		Order(pipelinerun.ByCreatedAt()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.PipelineRun, len(runs))
+	for i, r := range runs {
+		result[i] = &model.PipelineRun{
+			ID:             r.ID,
+			PipelineName:   r.PipelineName,
+			EventID:        r.EventID,
+			EventType:      r.EventType,
+			Status:         model.PipelineState(r.Status),
+			Error:          r.Error,
+			CheckpointData: model.JSON(r.CheckpointData),
+			LastHeartbeat:  r.LastHeartbeat,
+			StartedAt:      r.StartedAt,
+			CompletedAt:    r.CompletedAt,
+			CreatedAt:      r.CreatedAt,
+		}
+	}
+	return result, nil
 }
 
 // GetCheckpoint loads the checkpoint data for a pipeline run.
 func (s *PipelineStore) GetCheckpoint(runID int64, target any) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
-	var run model.PipelineRun
-	if err := s.db.Select("checkpoint_data").Where("id = ?", runID).First(&run).Error; err != nil {
+	ctx := context.Background()
+	run, err := s.client.PipelineRun.Query().
+		Where(pipelinerun.ID(runID)).
+		Select(pipelinerun.FieldCheckpointData).
+		Only(ctx)
+	if err != nil {
 		return err
 	}
 	if run.CheckpointData == nil {
@@ -272,12 +352,27 @@ func (s *PipelineStore) GetCheckpoint(runID int64, target any) error {
 
 // GetRun returns a pipeline run by ID.
 func (s *PipelineStore) GetRun(runID int64) (*model.PipelineRun, error) {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	var run model.PipelineRun
-	if err := s.db.Where("id = ?", runID).First(&run).Error; err != nil {
+	ctx := context.Background()
+	run, err := s.client.PipelineRun.Query().
+		Where(pipelinerun.ID(runID)).
+		Only(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return &run, nil
+	return &model.PipelineRun{
+		ID:             run.ID,
+		PipelineName:   run.PipelineName,
+		EventID:        run.EventID,
+		EventType:      run.EventType,
+		Status:         model.PipelineState(run.Status),
+		Error:          run.Error,
+		CheckpointData: model.JSON(run.CheckpointData),
+		LastHeartbeat:  run.LastHeartbeat,
+		StartedAt:      run.StartedAt,
+		CompletedAt:    run.CompletedAt,
+		CreatedAt:      run.CreatedAt,
+	}, nil
 }

@@ -30,7 +30,9 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 
 	var runStore pipeline.RunStore
 	if store.Database != nil && store.Database.GetDB() != nil {
-		runStore = store.NewPipelineStore(store.Database.GetDB())
+		if client, ok := store.Database.GetDB().(*store.Client); ok {
+			runStore = store.NewPipelineStore(client)
+		}
 	}
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore)
@@ -63,7 +65,7 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 			}
 
 			// Persist to event store
-			eventStore := store.NewEventStore(store.Database.GetDB())
+			eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))
 			_ = eventStore.AppendDataEvent(dataEvent)
 			_ = eventStore.AppendEventOutbox(dataEvent)
 

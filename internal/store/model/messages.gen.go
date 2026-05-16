@@ -6,8 +6,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const TableNameMessage = "messages"
@@ -25,7 +23,7 @@ type Message struct {
 	State         MessageState   `gorm:"column:state;not null" json:"state"`
 	CreatedAt     time.Time      `gorm:"column:created_at;not null" json:"created_at"`
 	UpdatedAt     time.Time      `gorm:"column:updated_at;not null" json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`
+	DeletedAt     *time.Time     `gorm:"column:deleted_at" json:"deleted_at"`
 }
 
 // TableName Message's table name

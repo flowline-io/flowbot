@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -71,7 +70,7 @@ var commandRules = []command.Rule{
 
 			// find exist webhook
 			find, err := store.Database.GetWebhookByUidAndFlag(ctx.AsUser, flag)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return types.TextMsg{Text: "find failed"}
 			}

@@ -4,12 +4,28 @@
 package integration
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
@@ -20,496 +36,523 @@ type DatabaseTestSuite struct {
 
 // TestUserCRUD tests user CRUD operations.
 func (s *DatabaseTestSuite) TestUserCRUD() {
-	// Create a test user
-	user := &model.User{
-		Flag:      uuid.New().String(),
-		Name:      "Integration Test User",
-		Tags:      `{"role": "test"}`,
-		State:     model.UserActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Insert using GORM
-	err := s.DB.Create(user).Error
+	flag := uuid.New().String()
+	entUser, err := s.EntClient.User.Create().
+		SetFlag(flag).
+		SetName("Integration Test User").
+		SetTags(`{"role": "test"}`).
+		SetState(int(model.UserActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(user.ID, int64(0), "user ID should be set after creation")
+	s.Greater(entUser.ID, int64(0), "user ID should be set after creation")
 
 	// Query the user
-	var retrievedUser model.User
-	err = s.DB.First(&retrievedUser, user.ID).Error
+	retrievedUser, err := s.EntClient.User.Query().
+		Where(user.IDEQ(entUser.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(user.Flag, retrievedUser.Flag)
-	s.Equal(user.Name, retrievedUser.Name)
+	s.Equal(entUser.Flag, retrievedUser.Flag)
+	s.Equal(entUser.Name, retrievedUser.Name)
 
 	// Update the user
-	err = s.DB.Model(&retrievedUser).Update("name", "Updated Test User").Error
+	err = s.EntClient.User.Update().
+		Where(user.IDEQ(retrievedUser.ID)).
+		SetName("Updated Test User").
+		Exec(ctx)
 	s.NoError(err)
 
 	// Verify update
-	err = s.DB.First(&retrievedUser, user.ID).Error
+	retrievedUser, err = s.EntClient.User.Query().
+		Where(user.IDEQ(entUser.ID)).
+		Only(ctx)
 	s.NoError(err)
 	s.Equal("Updated Test User", retrievedUser.Name)
 
-	// Delete the user (soft delete)
-	err = s.DB.Delete(&retrievedUser).Error
+	// Delete the user (Ent hard deletes by default)
+	_, err = s.EntClient.User.Delete().
+		Where(user.IDEQ(retrievedUser.ID)).
+		Exec(ctx)
 	s.NoError(err)
 
-	// Verify soft delete
-	err = s.DB.First(&retrievedUser, user.ID).Error
-	s.Error(err, "user should be soft deleted")
+	// Verify delete
+	_, err = s.EntClient.User.Query().
+		Where(user.IDEQ(entUser.ID)).
+		Only(ctx)
+	s.Error(err, "user should be deleted")
 }
 
 // TestBotCRUD tests bot CRUD operations.
 func (s *DatabaseTestSuite) TestBotCRUD() {
-	bot := &model.Bot{
-		Name:      "integration-test-bot",
-		State:     model.BotActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create bot
-	err := s.DB.Create(bot).Error
+	entBot, err := s.EntClient.Bot.Create().
+		SetName("integration-test-bot").
+		SetState(int(model.BotActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(bot.ID, int64(0))
+	s.Greater(entBot.ID, int64(0))
 
 	// Query bot
-	var retrievedBot model.Bot
-	err = s.DB.First(&retrievedBot, bot.ID).Error
+	retrievedBot, err := s.EntClient.Bot.Query().
+		Where(bot.IDEQ(entBot.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(bot.Name, retrievedBot.Name)
+	s.Equal(entBot.Name, retrievedBot.Name)
 
 	// Update bot
-	err = s.DB.Model(&retrievedBot).Update("state", model.BotInactive).Error
+	err = s.EntClient.Bot.Update().
+		Where(bot.IDEQ(retrievedBot.ID)).
+		SetState(int(model.BotInactive)).
+		Exec(ctx)
 	s.NoError(err)
 
 	// Verify update
-	err = s.DB.First(&retrievedBot, bot.ID).Error
+	retrievedBot, err = s.EntClient.Bot.Query().
+		Where(bot.IDEQ(entBot.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(model.BotInactive, retrievedBot.State)
+	s.Equal(int(model.BotInactive), retrievedBot.State)
 
 	// Cleanup
-	s.DB.Delete(&retrievedBot)
+	s.EntClient.Bot.Delete().Where(bot.IDEQ(retrievedBot.ID)).Exec(ctx)
 }
 
 // TestPlatformCRUD tests platform CRUD operations.
 func (s *DatabaseTestSuite) TestPlatformCRUD() {
-	platform := &model.Platform{
-		Name:      "integration-test-platform",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create platform
-	err := s.DB.Create(platform).Error
+	entPlatform, err := s.EntClient.Platform.Create().
+		SetName("integration-test-platform").
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(platform.ID, int64(0))
+	s.Greater(entPlatform.ID, int64(0))
 
 	// Query platform
-	var retrievedPlatform model.Platform
-	err = s.DB.First(&retrievedPlatform, platform.ID).Error
+	retrievedPlatform, err := s.EntClient.Platform.Query().
+		Where(platform.IDEQ(entPlatform.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(platform.Name, retrievedPlatform.Name)
+	s.Equal(entPlatform.Name, retrievedPlatform.Name)
 
 	// Cleanup
-	s.DB.Delete(&retrievedPlatform)
+	s.EntClient.Platform.Delete().Where(platform.IDEQ(retrievedPlatform.ID)).Exec(ctx)
 }
 
 // TestChannelCRUD tests channel CRUD operations.
 func (s *DatabaseTestSuite) TestChannelCRUD() {
-	channel := &model.Channel{
-		Name:      "integration-test-channel",
-		Flag:      "integration-test-channel-flag",
-		State:     model.ChannelActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create channel
-	err := s.DB.Create(channel).Error
+	entChannel, err := s.EntClient.Channel.Create().
+		SetName("integration-test-channel").
+		SetFlag("integration-test-channel-flag").
+		SetState(int(model.ChannelActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(channel.ID, int64(0))
+	s.Greater(entChannel.ID, int64(0))
 
 	// Query channel
-	var retrievedChannel model.Channel
-	err = s.DB.First(&retrievedChannel, channel.ID).Error
+	retrievedChannel, err := s.EntClient.Channel.Query().
+		Where(channel.IDEQ(entChannel.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(channel.Name, retrievedChannel.Name)
+	s.Equal(entChannel.Name, retrievedChannel.Name)
 
 	// Cleanup
-	s.DB.Delete(&retrievedChannel)
+	s.EntClient.Channel.Delete().Where(channel.IDEQ(retrievedChannel.ID)).Exec(ctx)
 }
 
 // TestMessageCRUD tests message CRUD operations.
 func (s *DatabaseTestSuite) TestMessageCRUD() {
-	message := &model.Message{
-		Flag:          uuid.New().String(),
-		PlatformID:    1,
-		PlatformMsgID: "test-msg-id",
-		Topic:         "test-topic",
-		Session:       "test-session",
-		State:         model.MessageCreated,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create message
-	err := s.DB.Create(message).Error
+	entMessage, err := s.EntClient.Message.Create().
+		SetFlag(uuid.New().String()).
+		SetPlatformID(1).
+		SetPlatformMsgID("test-msg-id").
+		SetTopic("test-topic").
+		SetSession("test-session").
+		SetState(int(model.MessageCreated)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(message.ID, int64(0))
+	s.Greater(entMessage.ID, int64(0))
 
 	// Query message
-	var retrievedMessage model.Message
-	err = s.DB.First(&retrievedMessage, message.ID).Error
+	retrievedMessage, err := s.EntClient.Message.Query().
+		Where(message.IDEQ(entMessage.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(message.Flag, retrievedMessage.Flag)
-	s.Equal(message.Session, retrievedMessage.Session)
+	s.Equal(entMessage.Flag, retrievedMessage.Flag)
+	s.Equal(entMessage.Session, retrievedMessage.Session)
 
 	// Cleanup
-	s.DB.Delete(&retrievedMessage)
+	s.EntClient.Message.Delete().Where(message.IDEQ(retrievedMessage.ID)).Exec(ctx)
 }
 
 // TestWebhookCRUD tests webhook CRUD operations.
 func (s *DatabaseTestSuite) TestWebhookCRUD() {
-	webhook := &model.Webhook{
-		UID:       uuid.New().String(),
-		Flag:      "integration-test-webhook",
-		Topic:     "test-topic",
-		Secret:    uuid.New().String(),
-		State:     model.WebhookActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create webhook
-	err := s.DB.Create(webhook).Error
+	entWebhook, err := s.EntClient.Webhook.Create().
+		SetUID(uuid.New().String()).
+		SetFlag("integration-test-webhook").
+		SetTopic("test-topic").
+		SetSecret(uuid.New().String()).
+		SetState(int(model.WebhookActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(webhook.ID, int64(0))
+	s.Greater(entWebhook.ID, int64(0))
 
 	// Query webhook
-	var retrievedWebhook model.Webhook
-	err = s.DB.First(&retrievedWebhook, webhook.ID).Error
+	retrievedWebhook, err := s.EntClient.Webhook.Query().
+		Where(webhook.IDEQ(entWebhook.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(webhook.Flag, retrievedWebhook.Flag)
-	s.Equal(webhook.Secret, retrievedWebhook.Secret)
+	s.Equal(entWebhook.Flag, retrievedWebhook.Flag)
+	s.Equal(entWebhook.Secret, retrievedWebhook.Secret)
 
 	// Cleanup
-	s.DB.Delete(&retrievedWebhook)
+	s.EntClient.Webhook.Delete().Where(webhook.IDEQ(retrievedWebhook.ID)).Exec(ctx)
 }
 
 // TestCounterCRUD tests counter CRUD operations.
 func (s *DatabaseTestSuite) TestCounterCRUD() {
-	counter := &model.Counter{
-		UID:       uuid.New().String(),
-		Topic:     "test-topic",
-		Flag:      "integration-test-counter",
-		Digit:     100,
-		Status:    1,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create counter
-	err := s.DB.Create(counter).Error
+	entCounter, err := s.EntClient.Counter.Create().
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetFlag("integration-test-counter").
+		SetDigit(100).
+		SetStatus(1).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(counter.ID, int64(0))
+	s.Greater(entCounter.ID, int64(0))
 
 	// Query counter
-	var retrievedCounter model.Counter
-	err = s.DB.First(&retrievedCounter, counter.ID).Error
+	retrievedCounter, err := s.EntClient.Counter.Query().
+		Where(counter.IDEQ(entCounter.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(counter.Digit, retrievedCounter.Digit)
+	s.Equal(entCounter.Digit, retrievedCounter.Digit)
 
 	// Update counter
-	err = s.DB.Model(&retrievedCounter).Update("digit", 200).Error
+	err = s.EntClient.Counter.Update().
+		Where(counter.IDEQ(retrievedCounter.ID)).
+		SetDigit(200).
+		Exec(ctx)
 	s.NoError(err)
 
 	// Verify update
-	err = s.DB.First(&retrievedCounter, counter.ID).Error
+	retrievedCounter, err = s.EntClient.Counter.Query().
+		Where(counter.IDEQ(entCounter.ID)).
+		Only(ctx)
 	s.NoError(err)
 	s.Equal(int64(200), retrievedCounter.Digit)
 
 	// Cleanup
-	s.DB.Delete(&retrievedCounter)
+	s.EntClient.Counter.Delete().Where(counter.IDEQ(retrievedCounter.ID)).Exec(ctx)
 }
 
 // TestDataCRUD tests data CRUD operations.
 func (s *DatabaseTestSuite) TestDataCRUD() {
-	data := &model.Data{
-		UID:       uuid.New().String(),
-		Topic:     "test-topic",
-		Key:       "test-key",
-		Value:     model.JSON{"test": "value"},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create data
-	err := s.DB.Create(data).Error
+	entData, err := s.EntClient.Data.Create().
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetKey("test-key").
+		SetValue(model.JSON{"test": "value"}).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(data.ID, int64(0))
+	s.Greater(entData.ID, int64(0))
 
 	// Query data
-	var retrievedData model.Data
-	err = s.DB.First(&retrievedData, data.ID).Error
+	retrievedData, err := s.EntClient.Data.Query().
+		Where(data.IDEQ(entData.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(data.Key, retrievedData.Key)
+	s.Equal(entData.Key, retrievedData.Key)
 
 	// Cleanup
-	s.DB.Delete(&retrievedData)
+	s.EntClient.Data.Delete().Where(data.IDEQ(retrievedData.ID)).Exec(ctx)
 }
 
 // TestConfigCRUD tests config CRUD operations.
 func (s *DatabaseTestSuite) TestConfigCRUD() {
-	config := &model.Config{
-		UID:       uuid.New().String(),
-		Topic:     "test-topic",
-		Key:       "test-config-key",
-		Value:     model.JSON{"setting": "value"},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create config
-	err := s.DB.Create(config).Error
+	entConfig, err := s.EntClient.ConfigData.Create().
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetKey("test-config-key").
+		SetValue(model.JSON{"setting": "value"}).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(config.ID, int64(0))
+	s.Greater(entConfig.ID, int64(0))
 
 	// Query config
-	var retrievedConfig model.Config
-	err = s.DB.First(&retrievedConfig, config.ID).Error
+	retrievedConfig, err := s.EntClient.ConfigData.Query().
+		Where(configdata.IDEQ(entConfig.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(config.Key, retrievedConfig.Key)
+	s.Equal(entConfig.Key, retrievedConfig.Key)
 
 	// Cleanup
-	s.DB.Delete(&retrievedConfig)
+	s.EntClient.ConfigData.Delete().Where(configdata.IDEQ(retrievedConfig.ID)).Exec(ctx)
 }
 
 // TestFormCRUD tests form CRUD operations.
 func (s *DatabaseTestSuite) TestFormCRUD() {
-	formID := uuid.New().String()
-	form := &model.Form{
-		FormID:    formID,
-		UID:       uuid.New().String(),
-		Topic:     "test-topic",
-		Schema:    model.JSON{"type": "object"},
-		Values:    model.JSON{"field": "value"},
-		State:     model.FormStateCreated,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create form
-	err := s.DB.Create(form).Error
+	formID := uuid.New().String()
+	entForm, err := s.EntClient.Form.Create().
+		SetFormID(formID).
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetSchema(model.JSON{"type": "object"}).
+		SetValues(model.JSON{"field": "value"}).
+		SetState(int(model.FormStateCreated)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(form.ID, int64(0))
+	s.Greater(entForm.ID, int64(0))
 
 	// Query form
-	var retrievedForm model.Form
-	err = s.DB.Where("form_id = ?", formID).First(&retrievedForm).Error
+	retrievedForm, err := s.EntClient.Form.Query().
+		Where(form.FormIDEQ(formID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(form.FormID, retrievedForm.FormID)
+	s.Equal(entForm.FormID, retrievedForm.FormID)
 
 	// Cleanup
-	s.DB.Delete(&retrievedForm)
+	s.EntClient.Form.Delete().Where(form.IDEQ(retrievedForm.ID)).Exec(ctx)
 }
 
 // TestPageCRUD tests page CRUD operations.
 func (s *DatabaseTestSuite) TestPageCRUD() {
-	pageID := uuid.New().String()
-	page := &model.Page{
-		PageID:    pageID,
-		UID:       uuid.New().String(),
-		Topic:     "test-topic",
-		Type:      model.PageForm,
-		Schema:    model.JSON{"title": "Test Page"},
-		State:     model.PageStateCreated,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create page
-	err := s.DB.Create(page).Error
+	pageID := uuid.New().String()
+	entPage, err := s.EntClient.Page.Create().
+		SetPageID(pageID).
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetType(string(model.PageForm)).
+		SetSchema(model.JSON{"title": "Test Page"}).
+		SetState(int(model.PageStateCreated)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(page.ID, int64(0))
+	s.Greater(entPage.ID, int64(0))
 
 	// Query page
-	var retrievedPage model.Page
-	err = s.DB.Where("page_id = ?", pageID).First(&retrievedPage).Error
+	retrievedPage, err := s.EntClient.Page.Query().
+		Where(page.PageIDEQ(pageID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(page.PageID, retrievedPage.PageID)
+	s.Equal(entPage.PageID, retrievedPage.PageID)
 
 	// Cleanup
-	s.DB.Delete(&retrievedPage)
+	s.EntClient.Page.Delete().Where(page.IDEQ(retrievedPage.ID)).Exec(ctx)
 }
 
 // TestBehaviorCRUD tests behavior CRUD operations.
 func (s *DatabaseTestSuite) TestBehaviorCRUD() {
-	uid := uuid.New().String()
-	behavior := &model.Behavior{
-		UID:       uid,
-		Flag:      "integration-test-behavior",
-		Count_:    1,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create behavior
-	err := s.DB.Create(behavior).Error
+	uid := uuid.New().String()
+	entBehavior, err := s.EntClient.Behavior.Create().
+		SetUID(uid).
+		SetFlag("integration-test-behavior").
+		SetCount(int32(1)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(behavior.ID, int64(0))
+	s.Greater(entBehavior.ID, int64(0))
 
 	// Query behavior
-	var retrievedBehavior model.Behavior
-	err = s.DB.Where("uid = ? AND flag = ?", uid, behavior.Flag).First(&retrievedBehavior).Error
+	retrievedBehavior, err := s.EntClient.Behavior.Query().
+		Where(behavior.UIDEQ(uid), behavior.FlagEQ(entBehavior.Flag)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(behavior.Count_, retrievedBehavior.Count_)
+	s.Equal(entBehavior.Count, retrievedBehavior.Count)
 
 	// Update behavior
-	err = s.DB.Model(&retrievedBehavior).Update("count", 10).Error
+	err = s.EntClient.Behavior.Update().
+		Where(behavior.UIDEQ(uid), behavior.FlagEQ(entBehavior.Flag)).
+		SetCount(int32(10)).
+		Exec(ctx)
 	s.NoError(err)
 
 	// Verify update
-	err = s.DB.Where("uid = ? AND flag = ?", uid, behavior.Flag).First(&retrievedBehavior).Error
+	retrievedBehavior, err = s.EntClient.Behavior.Query().
+		Where(behavior.UIDEQ(uid), behavior.FlagEQ(entBehavior.Flag)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(int32(10), retrievedBehavior.Count_)
+	s.Equal(int32(10), retrievedBehavior.Count)
 
 	// Cleanup
-	s.DB.Delete(&retrievedBehavior)
+	s.EntClient.Behavior.Delete().Where(behavior.IDEQ(retrievedBehavior.ID)).Exec(ctx)
 }
 
 // TestInstructCRUD tests instruct CRUD operations.
 func (s *DatabaseTestSuite) TestInstructCRUD() {
-	instruct := &model.Instruct{
-		No:        uuid.New().String()[:25],
-		UID:       uuid.New().String(),
-		Object:    model.InstructObjectAgent,
-		Bot:       "test-bot",
-		Flag:      "test-flag",
-		Content:   model.JSON{"action": "test"},
-		Priority:  model.InstructPriorityDefault,
-		State:     model.InstructCreate,
-		ExpireAt:  time.Now().Add(time.Hour),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create instruct
-	err := s.DB.Create(instruct).Error
+	entInstruct, err := s.EntClient.Instruct.Create().
+		SetNo(uuid.New().String()[:25]).
+		SetUID(uuid.New().String()).
+		SetObject(string(model.InstructObjectAgent)).
+		SetBot("test-bot").
+		SetFlag("test-flag").
+		SetContent(model.JSON{"action": "test"}).
+		SetPriority(int(model.InstructPriorityDefault)).
+		SetState(int(model.InstructCreate)).
+		SetExpireAt(time.Now().Add(time.Hour)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(instruct.ID, int64(0))
+	s.Greater(entInstruct.ID, int64(0))
 
 	// Query instruct
-	var retrievedInstruct model.Instruct
-	err = s.DB.First(&retrievedInstruct, instruct.ID).Error
+	retrievedInstruct, err := s.EntClient.Instruct.Query().
+		Where(instruct.IDEQ(entInstruct.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(instruct.No, retrievedInstruct.No)
+	s.Equal(entInstruct.No, retrievedInstruct.No)
 
 	// Update instruct
-	err = s.DB.Model(&retrievedInstruct).Update("state", model.InstructDone).Error
+	err = s.EntClient.Instruct.Update().
+		Where(instruct.IDEQ(retrievedInstruct.ID)).
+		SetState(int(model.InstructDone)).
+		Exec(ctx)
 	s.NoError(err)
 
 	// Verify update
-	err = s.DB.First(&retrievedInstruct, instruct.ID).Error
+	retrievedInstruct, err = s.EntClient.Instruct.Query().
+		Where(instruct.IDEQ(entInstruct.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(model.InstructDone, retrievedInstruct.State)
+	s.Equal(int(model.InstructDone), retrievedInstruct.State)
 
 	// Cleanup
-	s.DB.Delete(&retrievedInstruct)
+	s.EntClient.Instruct.Delete().Where(instruct.IDEQ(retrievedInstruct.ID)).Exec(ctx)
 }
 
 // TestAgentCRUD tests agent CRUD operations.
 func (s *DatabaseTestSuite) TestAgentCRUD() {
-	agent := &model.Agent{
-		UID:            uuid.New().String(),
-		Topic:          "test-topic",
-		Hostid:         "test-host-id",
-		Hostname:       "test-host",
-		OnlineDuration: 0,
-		LastOnlineAt:   time.Now(),
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
-	}
+	ctx := context.Background()
 
-	// Create agent
-	err := s.DB.Create(agent).Error
+	entAgent, err := s.EntClient.Agent.Create().
+		SetUID(uuid.New().String()).
+		SetTopic("test-topic").
+		SetHostid("test-host-id").
+		SetHostname("test-host").
+		SetOnlineDuration(0).
+		SetLastOnlineAt(time.Now()).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
 	s.Require().NoError(err)
-	s.Greater(agent.ID, int64(0))
+	s.Greater(entAgent.ID, int64(0))
 
 	// Query agent
-	var retrievedAgent model.Agent
-	err = s.DB.First(&retrievedAgent, agent.ID).Error
+	retrievedAgent, err := s.EntClient.Agent.Query().
+		Where(agent.IDEQ(entAgent.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(agent.Hostid, retrievedAgent.Hostid)
-	s.Equal(agent.Hostname, retrievedAgent.Hostname)
+	s.Equal(entAgent.Hostid, retrievedAgent.Hostid)
+	s.Equal(entAgent.Hostname, retrievedAgent.Hostname)
 
 	// Cleanup
-	s.DB.Delete(&retrievedAgent)
+	s.EntClient.Agent.Delete().Where(agent.IDEQ(retrievedAgent.ID)).Exec(ctx)
 }
 
 // TestTransactionSupport tests database transaction support.
 func (s *DatabaseTestSuite) TestTransactionSupport() {
-	// Start a transaction
-	tx := s.DB.Begin()
-	s.Require().NoError(tx.Error)
+	ctx := context.Background()
 
-	// Create user within transaction
-	user := &model.User{
-		Flag:      uuid.New().String(),
-		Name:      "Transaction Test User",
-		Tags:      `{}`,
-		State:     model.UserActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	err := tx.Create(user).Error
+	tx, err := s.EntClient.Tx(ctx)
 	s.Require().NoError(err)
 
-	// Commit transaction
-	err = tx.Commit().Error
+	flag := uuid.New().String()
+	entUser, err := tx.User.Create().
+		SetFlag(flag).
+		SetName("Transaction Test User").
+		SetTags(`{}`).
+		SetState(int(model.UserActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	err = tx.Commit()
 	s.Require().NoError(err)
 
 	// Verify user exists
-	var retrievedUser model.User
-	err = s.DB.First(&retrievedUser, user.ID).Error
+	retrievedUser, err := s.EntClient.User.Query().
+		Where(user.IDEQ(entUser.ID)).
+		Only(ctx)
 	s.NoError(err)
-	s.Equal(user.Flag, retrievedUser.Flag)
+	s.Equal(entUser.Flag, retrievedUser.Flag)
 
 	// Cleanup
-	s.DB.Delete(&retrievedUser)
+	s.EntClient.User.Delete().Where(user.IDEQ(retrievedUser.ID)).Exec(ctx)
 }
 
 // TestTransactionRollback tests database transaction rollback.
 func (s *DatabaseTestSuite) TestTransactionRollback() {
+	ctx := context.Background()
+
 	flag := uuid.New().String()
 
-	// Start a transaction
-	tx := s.DB.Begin()
-	s.Require().NoError(tx.Error)
-
-	// Create user within transaction
-	user := &model.User{
-		Flag:      flag,
-		Name:      "Rollback Test User",
-		Tags:      `{}`,
-		State:     model.UserActive,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	err := tx.Create(user).Error
+	tx, err := s.EntClient.Tx(ctx)
 	s.Require().NoError(err)
 
-	// Rollback transaction
-	err = tx.Rollback().Error
+	_, err = tx.User.Create().
+		SetFlag(flag).
+		SetName("Rollback Test User").
+		SetTags(`{}`).
+		SetState(int(model.UserActive)).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	s.Require().NoError(err)
+
+	err = tx.Rollback()
 	s.Require().NoError(err)
 
 	// Verify user does not exist
-	var count int64
-	s.DB.Model(&model.User{}).Where("flag = ?", flag).Count(&count)
-	s.Equal(int64(0), count, "user should not exist after rollback")
+	count, err := s.EntClient.User.Query().
+		Where(user.FlagEQ(flag)).
+		Count(ctx)
+	s.NoError(err)
+	s.Equal(0, count, "user should not exist after rollback")
 }
 
 // DatabaseTestSuite entry point.

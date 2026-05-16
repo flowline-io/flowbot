@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	_ "github.com/go-sql-driver/mysql" //revive:disable
+	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable
 	"github.com/goccy/go-yaml"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
@@ -92,15 +92,15 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
-	if config.StoreConfig.UseAdapter != "mysql" {
+	if config.StoreConfig.UseAdapter != "postgres" {
 		return fmt.Errorf("unsupported adapter: %s", config.StoreConfig.UseAdapter)
 	}
-	if config.StoreConfig.Adapters.Mysql.DSN == "" {
-		return fmt.Errorf("mysql DSN is empty")
+	if config.StoreConfig.Adapters.Postgres.DSN == "" {
+		return fmt.Errorf("postgres DSN is empty")
 	}
-	dsn := config.StoreConfig.Adapters.Mysql.DSN
+	dsn := config.StoreConfig.Adapters.Postgres.DSN
 
-	db, err := sqlx.Open("mysql", dsn)
+	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
@@ -113,7 +113,7 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 
 	// Tables
 	var tables []Table
-	err = db.Select(&tables, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database)
+	err = db.Select(&tables, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = $1", database)
 	if err != nil {
 		return fmt.Errorf("query tables: %w", err)
 	}
@@ -122,7 +122,7 @@ func SchemaAction(cmd *cobra.Command, _ []string) error {
 	var markdown strings.Builder
 	for _, table := range tables {
 		var columns []Column
-		err = db.Select(&columns, "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?", database, table.TableName)
+		err = db.Select(&columns, "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = $1 AND TABLE_NAME = $2", database, table.TableName)
 		if err != nil {
 			return fmt.Errorf("query columns for %s: %w", table.TableName, err)
 		}
@@ -156,9 +156,9 @@ type configType struct {
 	StoreConfig struct {
 		UseAdapter string `json:"use_adapter" yaml:"use_adapter"`
 		Adapters   struct {
-			Mysql struct {
+			Postgres struct {
 				DSN string `json:"dsn" yaml:"dsn"`
-			} `json:"mysql" yaml:"mysql"`
+			} `json:"postgres" yaml:"postgres"`
 		} `json:"adapters" yaml:"adapters"`
 	} `json:"store_config" yaml:"store_config"`
 }

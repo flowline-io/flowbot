@@ -1,23 +1,22 @@
 package store
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
-
-	_ "github.com/go-sql-driver/mysql" //revive:disable
-	migrate "github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/media"
-	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
+
+// Client is a type alias for the Ent client.
+type Client = gen.Client
 
 var adp Adapter
 
@@ -59,28 +58,14 @@ func Migrate() error {
 	if !adp.IsOpen() {
 		return errors.New("store: connection is not opened")
 	}
-	db, err := adp.GetDB().DB()
+	client, ok := adp.GetDB().(*gen.Client)
+	if !ok {
+		return errors.New("store: failed to get Ent client from adapter")
+	}
+	err := client.Schema.Create(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("store: schema migration: %w", err)
 	}
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
-	if err != nil {
-		return fmt.Errorf("store: mysql driver init: %w", err)
-	}
-
-	d, err := iofs.New(storeMigrate.Fs, "migrations")
-	if err != nil {
-		return err
-	}
-	m, err := migrate.NewWithInstance("iofs", d, "mysql", driver)
-	if err != nil {
-		return err
-	}
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
-	}
-
 	return nil
 }
 
@@ -107,13 +92,13 @@ func RegisterMediaHandler(name string, mh media.Handler) {
 }
 
 // UseMediaHandler sets specified media handler as default.
-func UseMediaHandler(name, config string) error {
+func UseMediaHandler(name, mediaConfig string) error {
 	mediaHandler := fileHandlers[name]
 	if mediaHandler == nil {
 		return fmt.Errorf("unknown handler %s", name)
 	}
 	FileSystem = mediaHandler
-	return mediaHandler.Init(config)
+	return mediaHandler.Init(mediaConfig)
 }
 
 // PersistentStorageInterface defines methods used for interaction with persistent storage.
@@ -131,10 +116,7 @@ var Store PersistentStorageInterface
 type storeObj struct{}
 
 func (s storeObj) Open(jsonConfig config.StoreType) error {
-	if err := openAdapter(jsonConfig); err != nil {
-		return err
-	}
-	return nil
+	return openAdapter(jsonConfig)
 }
 
 func (s storeObj) Close() error {
@@ -169,7 +151,7 @@ type Adapter interface {
 	// General
 
 	// Open and configure the adapter
-	Open(config config.StoreType) error
+	Open(storeConfig config.StoreType) error
 	// Close the adapter
 	Close() error
 	// IsOpen checks if the adapter is ready for use
@@ -179,7 +161,7 @@ type Adapter interface {
 	// Stats returns the DB connection stats object.
 	Stats() any
 	// GetDB returns the underlying DB connection
-	GetDB() *gorm.DB
+	GetDB() any
 
 	// User management
 
@@ -295,5 +277,5 @@ var Database Adapter
 
 func Init() {
 	Store = storeObj{}
-	Database = availableAdapters["mysql"] // default use mysql
+	Database = availableAdapters["postgres"] // default use postgres
 }

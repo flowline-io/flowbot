@@ -59,10 +59,7 @@ func (s *HealthTestSuite) TestHealthEndpoints() {
 
 // TestDatabaseConnection verifies database connection is working.
 func (s *HealthTestSuite) TestDatabaseConnection() {
-	sqlDB, err := s.DB.DB()
-	s.Require().NoError(err)
-
-	err = sqlDB.Ping()
+	err := s.DB.Ping()
 	s.NoError(err, "database should be accessible")
 }
 
@@ -87,13 +84,13 @@ func (s *HealthTestSuite) TestRedisConnection() {
 
 // TestContainersAreRunning verifies Testcontainers are running.
 func (s *HealthTestSuite) TestContainersAreRunning() {
-	s.NotNil(s.mysqlC, "MySQL container should be running")
+	s.NotNil(s.pgC, "PostgreSQL container should be running")
 	s.NotNil(s.redisC, "Redis container should be running")
 
-	// Check MySQL container state
-	state, err := s.mysqlC.State(s.ctx)
+	// Check PostgreSQL container state
+	state, err := s.pgC.State(s.ctx)
 	s.NoError(err)
-	s.True(state.Running, "MySQL container should be in running state")
+	s.True(state.Running, "PostgreSQL container should be in running state")
 
 	// Check Redis container state
 	state, err = s.redisC.State(s.ctx)
@@ -103,16 +100,12 @@ func (s *HealthTestSuite) TestContainersAreRunning() {
 
 // TestDatabaseMigrations verifies migrations were applied.
 func (s *HealthTestSuite) TestDatabaseMigrations() {
-	// Query for schema_migrations table
-	sqlDB, err := s.DB.DB()
-	s.Require().NoError(err)
-
-	var version int
-	var dirty bool
-	err = sqlDB.QueryRow("SELECT version, dirty FROM schema_migrations").Scan(&version, &dirty)
-	s.NoError(err, "schema_migrations table should exist")
-	s.False(dirty, "database should not be in dirty state")
-	s.Greater(version, 0, "migration version should be greater than 0")
+	var exists bool
+	err := s.DB.QueryRow(
+		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')",
+	).Scan(&exists)
+	s.NoError(err, "should be able to query information_schema")
+	s.True(exists, "users table should exist")
 }
 
 // TestSuiteInheritance verifies that the test suite is properly initialized.
@@ -121,6 +114,6 @@ func (s *HealthTestSuite) TestSuiteInheritance() {
 	assert.NotNil(s.T(), s.DB, "database should be initialized")
 	assert.NotNil(s.T(), s.Redis, "Redis should be initialized")
 	assert.NotNil(s.T(), s.App, "Fiber app should be initialized")
-	assert.NotEmpty(s.T(), s.MySQLDSN, "MySQL DSN should be set")
+	assert.NotEmpty(s.T(), s.PGDSN, "PostgreSQL DSN should be set")
 	assert.NotEmpty(s.T(), s.RedisAddr, "Redis address should be set")
 }

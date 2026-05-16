@@ -1,19 +1,19 @@
 package store
 
 import (
+	"context"
 	"time"
 
-	"gorm.io/gorm"
-
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
 type AuditStore struct {
-	db *gorm.DB
+	client *gen.Client
 }
 
-func NewAuditStore(db *gorm.DB) *AuditStore {
-	return &AuditStore{db: db}
+func NewAuditStore(client *gen.Client) *AuditStore {
+	return &AuditStore{client: client}
 }
 
 type AuditEntry struct {
@@ -32,26 +32,36 @@ type AuditEntry struct {
 }
 
 func (s *AuditStore) Write(entry AuditEntry) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
+	ctx := context.Background()
 	now := time.Now()
-	record := model.AuditLog{
-		ActorType:    entry.ActorType,
-		ActorID:      entry.ActorID,
-		UID:          entry.UID,
-		Topic:        entry.Topic,
-		Action:       entry.Action,
-		ResourceType: entry.ResourceType,
-		ResourceName: entry.ResourceName,
-		Request:      entry.Request,
-		Result:       entry.Result,
-		Error:        entry.Error,
-		IPAddress:    entry.IPAddress,
-		UserAgent:    entry.UserAgent,
-		CreatedAt:    now,
+	_, err := s.client.AuditLog.Create().
+		SetAction(entry.Action).
+		SetTargetType(entry.ResourceType).
+		SetTargetID(entry.ResourceName).
+		SetActorUID(entry.ActorType + ":" + entry.ActorID).
+		SetDetails(map[string]interface{}{
+			"actor_type":    entry.ActorType,
+			"actor_id":      entry.ActorID,
+			"uid":           entry.UID,
+			"topic":         entry.Topic,
+			"action":        entry.Action,
+			"resource_type": entry.ResourceType,
+			"resource_name": entry.ResourceName,
+			"request":       map[string]interface{}(entry.Request),
+			"result":        entry.Result,
+			"error":         entry.Error,
+			"ip_address":    entry.IPAddress,
+			"user_agent":    entry.UserAgent,
+		}).
+		SetCreatedAt(now).
+		Save(ctx)
+	if err != nil {
+		return err
 	}
-	return s.db.Create(&record).Error
+	return nil
 }
 
 func (s *AuditStore) Success(actorType, actorID, uid, topic, action, resourceType, resourceName, ip, ua string) error {

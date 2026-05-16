@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
-	"github.com/flowline-io/flowbot/cmd/composer/action/dao"
 	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
@@ -32,14 +31,6 @@ func NewCommand() *cobra.Command {
 	rootCmd.SetVersionTemplate("version={{.Version}}\n")
 
 	rootCmd.AddCommand(admin.AdminCommand())
-
-	daoCmd := &cobra.Command{
-		Use:   "dao",
-		Short: "dao generator",
-		RunE:  dao.GenerationAction,
-	}
-	daoCmd.Flags().String("config", "./flowbot.yaml", "config of the database connection")
-	rootCmd.AddCommand(daoCmd)
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "webdoc",

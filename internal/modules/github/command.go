@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -32,7 +31,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// check oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 			}
 			if oauth.Token != "" {
@@ -60,7 +59,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			// get token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 			}
 			if oauth.Token == "" {

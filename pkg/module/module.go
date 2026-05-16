@@ -8,7 +8,6 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
@@ -102,7 +101,7 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (ty
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	exForm, err := store.Database.FormGet(ctx.FormId)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return nil, err
 	}
 	if exForm.ID == 0 {
@@ -344,7 +343,7 @@ func SettingMsg(ctx types.Context, id string) types.MsgPayload {
 
 func Behavior(uid types.Uid, flag string, number int) {
 	b, err := store.Database.BehaviorGet(uid, flag)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return
 	}
 	if b.ID > 0 {

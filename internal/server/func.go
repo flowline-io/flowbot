@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
@@ -116,7 +115,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	// check
 	findMessage, err := store.Database.GetMessageByPlatform(platformId, msg.MessageId)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		flog.Error(err)
 		return
 	}
@@ -487,7 +486,7 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 	}
 
 	platformUser, err := store.Database.GetPlatformUserByFlag(data.UserId)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
@@ -535,7 +534,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 	}
 
 	platformChannel, err := store.Database.GetPlatformChannelByFlag(data.TopicId)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
@@ -586,7 +585,7 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 		return fmt.Errorf("hostid is empty")
 	}
 	agent, err := store.Database.GetAgentByHostid(uid, topic, hostid)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 

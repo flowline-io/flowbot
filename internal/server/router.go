@@ -15,7 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
@@ -206,7 +205,7 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 
 	html, err := botHandler.Page(typesCtx, flag, args)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, types.ErrNotFound) {
 			return protocol.ErrNotFound.New("page not found")
 		}
 		return protocol.ErrBadParam.Wrap(err)

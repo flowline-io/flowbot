@@ -37,13 +37,15 @@ store_config:
   # Maximum number of query results
   max_results: 1024
   # Data storage adapter type
-  use_adapter: mysql
+  use_adapter: postgres
   adapters:
-    # MySQL database configuration
-    mysql:
-      dsn: root:password@tcp(localhost)/flowbot?parseTime=true&collation=utf8mb4_unicode_ci
+    # PostgreSQL database configuration
+    postgres:
+      dsn: postgres://username:password@localhost/flowbot?sslmode=disable
       max_open_conns: 64
       max_idle_conns: 64
+      conn_max_lifetime: 300
+      sql_timeout: 10
       # Maximum connection lifetime in seconds
       conn_max_lifetime: 60
       # SQL query timeout in seconds

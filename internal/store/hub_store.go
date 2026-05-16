@@ -1,61 +1,85 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/bytedance/sonic"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 )
 
+// HubStore persists homelab discovery data to the database.
 type HubStore struct {
-	db *gorm.DB
+	client *gen.Client
 }
 
-func NewHubStore(db *gorm.DB) *HubStore {
-	return &HubStore{db: db}
+// NewHubStore returns a HubStore backed by the given Ent client.
+func NewHubStore(client *gen.Client) *HubStore {
+	return &HubStore{client: client}
 }
 
+// SaveHomelabApps upserts a batch of discovered homelab apps.
+// Each app is looked up by name; existing rows are updated, new rows are created.
 func (s *HubStore) SaveHomelabApps(apps []homelab.App) error {
-	if s == nil || s.db == nil {
+	if s == nil || s.client == nil {
 		return nil
 	}
+	if len(apps) == 0 {
+		return nil
+	}
+
 	now := time.Now()
-	rows := make([]model.App, 0, len(apps))
-	for _, app := range apps {
-		info, err := appJSON(app)
+	ctx := context.Background()
+
+	for _, homelabApp := range apps {
+		info, err := appJSON(homelabApp)
 		if err != nil {
 			return err
 		}
-		rows = append(rows, model.App{
-			Name:       app.Name,
-			Path:       app.Path,
-			Status:     model.AppStatus(app.Status),
-			DockerInfo: info,
-			CreatedAt:  now,
-			UpdatedAt:  now,
-		})
+
+		existing, err := s.client.App.Query().
+			Where(app.NameEQ(homelabApp.Name)).
+			First(ctx)
+		if err != nil {
+			if !gen.IsNotFound(err) {
+				return err
+			}
+			// Not found: create.
+			_, createErr := s.client.App.Create().
+				SetName(homelabApp.Name).
+				SetPath(homelabApp.Path).
+				SetStatus(string(homelabApp.Status)).
+				SetDockerInfo(info).
+				SetCreatedAt(now).
+				SetUpdatedAt(now).
+				Save(ctx)
+			if createErr != nil {
+				return createErr
+			}
+		} else {
+			// Found: update.
+			_, updateErr := s.client.App.UpdateOne(existing).
+				SetPath(homelabApp.Path).
+				SetStatus(string(homelabApp.Status)).
+				SetDockerInfo(info).
+				SetUpdatedAt(now).
+				Save(ctx)
+			if updateErr != nil {
+				return updateErr
+			}
+		}
 	}
-	if len(rows) == 0 {
-		return nil
-	}
-	return s.db.Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "name"}},
-		DoUpdates: clause.AssignmentColumns([]string{
-			"path",
-			"status",
-			"docker_info",
-			"updated_at",
-		}),
-	}).Create(&rows).Error
+
+	return nil
 }
 
-func appJSON(app homelab.App) (model.JSON, error) {
-	raw, err := sonic.Marshal(app)
+func appJSON(ha homelab.App) (model.JSON, error) {
+	raw, err := sonic.Marshal(ha)
 	if err != nil {
 		return nil, fmt.Errorf("marshal homelab app: %w", err)
 	}

@@ -7,7 +7,7 @@ package integration
 
 import (
 	"context"
-	"errors"
+	"database/sql"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,37 +15,36 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/recover"
-	"github.com/golang-migrate/migrate/v4"
-	migratemysql "github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/redis/go-redis/v9"
 	"github.com/samber/oops"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
-	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
+	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	gormmysql "gorm.io/driver/mysql"
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
-	storeMigrate "github.com/flowline-io/flowbot/pkg/migrate"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
 // IntegrationTestSuite is the base test suite for all integration tests.
-// It manages Testcontainers for MySQL and Redis and provides a configured Fiber app.
+// It manages Testcontainers for PostgreSQL and Redis and provides a configured Fiber app.
 type IntegrationTestSuite struct {
 	suite.Suite
 	ctx       context.Context
-	mysqlC    *tcmysql.MySQLContainer
+	pgC       *tcpostgres.PostgresContainer
 	redisC    testcontainers.Container
 	App       *fiber.App
-	DB        *gorm.DB
+	DB        *sql.DB
+	EntClient *gen.Client
 	Redis     *redis.Client
-	MySQLDSN  string
+	PGDSN     string
 	RedisAddr string
 }
 
@@ -60,26 +59,26 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	// Initialize logging
 	flog.Init(flog.Config{Level: "info"})
 
-	// Start MySQL container
-	mysqlImage := os.Getenv("MYSQL_IMAGE")
-	if mysqlImage == "" {
-		mysqlImage = "mysql:8.0"
+	// Start PostgreSQL container
+	pgImage := os.Getenv("POSTGRES_IMAGE")
+	if pgImage == "" {
+		pgImage = "postgres:16-alpine"
 	}
-	mysqlC, err := tcmysql.Run(s.ctx, mysqlImage,
-		tcmysql.WithDatabase("flowbot_test"),
-		tcmysql.WithUsername("test"),
-		tcmysql.WithPassword("test"),
+	pgC, err := tcpostgres.Run(s.ctx, pgImage,
+		tcpostgres.WithDatabase("flowbot_test"),
+		tcpostgres.WithUsername("test"),
+		tcpostgres.WithPassword("test"),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server").WithStartupTimeout(60*time.Second),
+			wait.ForLog("database system is ready to accept connections").WithStartupTimeout(60*time.Second),
 		),
 	)
-	s.Require().NoError(err, "failed to start MySQL container")
-	s.mysqlC = mysqlC
+	s.Require().NoError(err, "failed to start PostgreSQL container")
+	s.pgC = pgC
 
-	// Get MySQL connection string
-	mysqlConnStr, err := mysqlC.ConnectionString(s.ctx)
-	s.Require().NoError(err, "failed to get MySQL connection string")
-	s.MySQLDSN = mysqlConnStr + "?charset=utf8mb4&parseTime=True&loc=Local"
+	// Get PostgreSQL connection string
+	pgConnStr, err := pgC.ConnectionString(s.ctx)
+	s.Require().NoError(err, "failed to get PostgreSQL connection string")
+	s.PGDSN = pgConnStr + "?sslmode=disable"
 
 	// Start Redis container
 	redisImage := os.Getenv("REDIS_IMAGE")
@@ -104,15 +103,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	// Extract port number from "port/protocol" format
-	// Port is returned as "port/protocol" (e.g., "32774/tcp")
 	redisPortStr := strings.TrimSuffix(fmt.Sprintf("%s", redisPort), "/tcp")
 	s.RedisAddr = fmt.Sprintf("%s:%s", redisHost, redisPortStr)
 
-	s.T().Logf("MySQL DSN: %s", s.MySQLDSN)
+	s.T().Logf("PostgreSQL DSN: %s", s.PGDSN)
 	s.T().Logf("Redis address: %s", s.RedisAddr)
 
-	// Connect to MySQL with GORM
-	s.DB = s.setupDatabase(s.MySQLDSN)
+	// Connect to PostgreSQL with Ent
+	s.DB, s.EntClient = s.setupDatabase(s.PGDSN)
 
 	// Connect to Redis
 	s.Redis = s.setupRedis(s.RedisAddr)
@@ -126,57 +124,36 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	if s.Redis != nil {
 		_ = s.Redis.Close()
 	}
+	if s.EntClient != nil {
+		_ = s.EntClient.Close()
+	}
 	if s.DB != nil {
-		sqlDB, _ := s.DB.DB()
-		if sqlDB != nil {
-			_ = sqlDB.Close()
-		}
+		_ = s.DB.Close()
 	}
 	if s.redisC != nil {
 		_ = s.redisC.Terminate(s.ctx)
 	}
-	if s.mysqlC != nil {
-		_ = s.mysqlC.Terminate(s.ctx)
+	if s.pgC != nil {
+		_ = s.pgC.Terminate(s.ctx)
 	}
 }
 
-// setupDatabase connects to MySQL and runs migrations.
-func (s *IntegrationTestSuite) setupDatabase(dsn string) *gorm.DB {
-	// Open connection with GORM
-	db, err := gorm.Open(gormmysql.Open(dsn), &gorm.Config{
-		NowFunc: func() time.Time {
-			return time.Now().UTC()
-		},
-	})
+// setupDatabase connects to PostgreSQL, creates the Ent client, and runs schema migrations.
+func (s *IntegrationTestSuite) setupDatabase(dsn string) (*sql.DB, *gen.Client) {
+	rawDB, err := sql.Open("pgx", dsn)
 	s.Require().NoError(err, "failed to connect to database")
 
-	// Run migrations
-	s.runMigrations(db)
+	drv := entsql.OpenDB(dialect.Postgres, rawDB)
+	client := gen.NewClient(gen.Driver(drv))
+
+	mctx, cancel := context.WithTimeout(s.ctx, 30*time.Second)
+	defer cancel()
+
+	err = client.Schema.Create(mctx)
+	s.Require().NoError(err, "failed to run schema migrations")
 
 	s.T().Log("Database connection established successfully")
-	return db
-}
-
-// runMigrations runs database migrations.
-func (s *IntegrationTestSuite) runMigrations(db *gorm.DB) {
-	sqlDB, err := db.DB()
-	s.Require().NoError(err)
-
-	driver, err := migratemysql.WithInstance(sqlDB, &migratemysql.Config{})
-	s.Require().NoError(err)
-
-	d, err := iofs.New(storeMigrate.Fs, "migrations")
-	s.Require().NoError(err)
-
-	m, err := migrate.NewWithInstance("iofs", d, "mysql", driver)
-	s.Require().NoError(err)
-
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		s.Require().NoError(err, "failed to run migrations")
-	}
-
-	s.T().Log("Database migrations completed successfully")
+	return rawDB, client
 }
 
 // setupRedis connects to Redis.
@@ -232,9 +209,15 @@ func (s *IntegrationTestSuite) setupTestApp() *fiber.App {
 }
 
 // RequireDB returns the database connection and fails the test if not available.
-func (s *IntegrationTestSuite) RequireDB() *gorm.DB {
+func (s *IntegrationTestSuite) RequireDB() *sql.DB {
 	s.Require().NotNil(s.DB, "database connection not available")
 	return s.DB
+}
+
+// RequireEntClient returns the Ent client and fails the test if not available.
+func (s *IntegrationTestSuite) RequireEntClient() *gen.Client {
+	s.Require().NotNil(s.EntClient, "Ent client not available")
+	return s.EntClient
 }
 
 // RequireRedis returns the Redis client and fails the test if not available.

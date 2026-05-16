@@ -8,14 +8,14 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/mysql"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 func newDatabaseAdapter(lc fx.Lifecycle, _ *config.Type) (store.Adapter, error) {
 	// init database
-	mysql.Init()
+	postgres.Init()
 	store.Init()
 
 	// Open database

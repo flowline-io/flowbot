@@ -3,7 +3,6 @@ package github
 import (
 	"errors"
 
-	"gorm.io/gorm"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,7 +19,7 @@ var cronRules = []cron.Rule{
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return nil
 			}
@@ -88,7 +87,7 @@ var cronRules = []cron.Rule{
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
 			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return nil
 			}
