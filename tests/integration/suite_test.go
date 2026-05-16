@@ -78,7 +78,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	// Get PostgreSQL connection string
 	pgConnStr, err := pgC.ConnectionString(s.ctx)
 	s.Require().NoError(err, "failed to get PostgreSQL connection string")
-	s.PGDSN = pgConnStr + "?sslmode=disable"
+	s.PGDSN = strings.TrimRight(pgConnStr, "?") + "?sslmode=disable"
 
 	// Start Redis container
 	redisImage := os.Getenv("REDIS_IMAGE")
