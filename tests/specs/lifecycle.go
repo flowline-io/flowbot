@@ -40,7 +40,7 @@ type configBundle struct {
 }
 
 var (
-	suiteCtx  context.Context
+	suiteCtx = context.Background()
 	pgC       *tcpostgres.PostgresContainer
 	redisC    testcontainers.Container
 	App       *fiber.App
