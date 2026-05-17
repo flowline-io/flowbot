@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -112,13 +113,7 @@ func TestDockerComposeRuntime_ComposeEnv(t *testing.T) {
 			t.Parallel()
 			r := NewDockerComposeRuntime(RuntimeConfig{Mode: RuntimeModeDockerSocket, DockerSocket: tt.socket}, "/apps")
 			env := r.composeEnv()
-			found := false
-			for _, e := range env {
-				if e == tt.wantMatch {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(env, tt.wantMatch)
 			assert.Equal(t, tt.wantHost, found)
 		})
 	}
