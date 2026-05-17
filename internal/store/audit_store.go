@@ -42,7 +42,7 @@ func (s *AuditStore) Write(entry AuditEntry) error {
 		SetTargetType(entry.ResourceType).
 		SetTargetID(entry.ResourceName).
 		SetActorUID(entry.ActorType + ":" + entry.ActorID).
-		SetDetails(map[string]interface{}{
+		SetDetails(map[string]any{
 			"actor_type":    entry.ActorType,
 			"actor_id":      entry.ActorID,
 			"uid":           entry.UID,
@@ -50,7 +50,7 @@ func (s *AuditStore) Write(entry AuditEntry) error {
 			"action":        entry.Action,
 			"resource_type": entry.ResourceType,
 			"resource_name": entry.ResourceName,
-			"request":       map[string]interface{}(entry.Request),
+			"request":       map[string]any(entry.Request),
 			"result":        entry.Result,
 			"error":         entry.Error,
 			"ip_address":    entry.IPAddress,

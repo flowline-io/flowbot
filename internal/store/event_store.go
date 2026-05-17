@@ -42,7 +42,7 @@ func (s *EventStore) AppendDataEvent(event types.DataEvent) error {
 		SetTopic(event.Topic).
 		SetCreatedAt(time.Now())
 	if event.Data != nil {
-		c = c.SetData(map[string]interface{}(event.Data))
+		c = c.SetData(map[string]any(event.Data))
 	}
 	_, err := c.Save(ctx)
 	return err
@@ -55,7 +55,7 @@ func (s *EventStore) AppendEventOutbox(event types.DataEvent) error {
 	ctx := context.Background()
 	_, err := s.client.EventOutbox.Create().
 		SetEventID(event.EventID).
-		SetPayload(map[string]interface{}{
+		SetPayload(map[string]any{
 			"event_id":        event.EventID,
 			"event_type":      event.EventType,
 			"source":          event.Source,
@@ -112,8 +112,8 @@ func (s *PipelineStore) UpsertDefinition(name, description string, enabled bool,
 			SetName(name).
 			SetDescription(description).
 			SetEnabled(enabled).
-			SetTrigger(map[string]interface{}(trigger)).
-			SetSteps(map[string]interface{}(steps)).
+			SetTrigger(map[string]any(trigger)).
+			SetSteps(map[string]any(steps)).
 			SetCreatedAt(now).
 			SetUpdatedAt(now).
 			Save(ctx)
@@ -122,8 +122,8 @@ func (s *PipelineStore) UpsertDefinition(name, description string, enabled bool,
 	_, err = s.client.PipelineDefinition.UpdateOneID(existing.ID).
 		SetDescription(description).
 		SetEnabled(enabled).
-		SetTrigger(map[string]interface{}(trigger)).
-		SetSteps(map[string]interface{}(steps)).
+		SetTrigger(map[string]any(trigger)).
+		SetSteps(map[string]any(steps)).
 		SetUpdatedAt(time.Now()).
 		Save(ctx)
 	return err
@@ -187,7 +187,7 @@ func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operati
 		SetStepName(stepName).
 		SetCapability(capability).
 		SetOperation(operation).
-		SetParams(map[string]interface{}(params)).
+		SetParams(map[string]any(params)).
 		SetAttempt(attempt).
 		SetStatus(int(model.PipelineStart)).
 		SetStartedAt(now).
@@ -227,7 +227,7 @@ func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineStat
 		upd = upd.SetCompletedAt(now)
 	}
 	if result != nil {
-		upd = upd.SetResult(map[string]interface{}(result))
+		upd = upd.SetResult(map[string]any(result))
 	}
 	if errMsg != "" {
 		upd = upd.SetError(errMsg)
@@ -273,7 +273,7 @@ func (s *PipelineStore) SaveCheckpoint(runID int64, data any) error {
 	if err != nil {
 		return err
 	}
-	var cp map[string]interface{}
+	var cp map[string]any
 	if err := sonic.Unmarshal(raw, &cp); err != nil {
 		return err
 	}

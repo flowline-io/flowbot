@@ -604,7 +604,7 @@ func (a *adapter) CreateMessage(msg model.Message) error {
 		SetCreatedAt(msg.CreatedAt).
 		SetUpdatedAt(msg.UpdatedAt)
 	if msg.Content != nil {
-		c = c.SetContent(map[string]interface{}(msg.Content))
+		c = c.SetContent(map[string]any(msg.Content))
 	}
 	if msg.DeletedAt != nil {
 		c = c.SetDeletedAt(*msg.DeletedAt)
@@ -631,7 +631,7 @@ func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) erro
 
 	if existing != nil {
 		_, err = a.client.Data.Update().Where(data.IDEQ(existing.ID)).
-			SetValue(map[string]interface{}(value)).
+			SetValue(map[string]any(value)).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
 	} else {
@@ -639,7 +639,7 @@ func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) erro
 			SetUID(uid.String()).
 			SetTopic(topic).
 			SetKey(key).
-			SetValue(map[string]interface{}(value)).
+			SetValue(map[string]any(value)).
 			SetCreatedAt(time.Now()).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
@@ -722,7 +722,7 @@ func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) er
 
 	if existing != nil {
 		_, err = a.client.ConfigData.Update().Where(configdata.IDEQ(existing.ID)).
-			SetValue(map[string]interface{}(value)).
+			SetValue(map[string]any(value)).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
 	} else {
@@ -730,7 +730,7 @@ func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) er
 			SetUID(uid.String()).
 			SetTopic(topic).
 			SetKey(key).
-			SetValue(map[string]interface{}(value)).
+			SetValue(map[string]any(value)).
 			SetCreatedAt(time.Now()).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
@@ -815,7 +815,7 @@ func (a *adapter) OAuthSet(oauthModel model.OAuth) error {
 			SetToken(oauthModel.Token).
 			SetUpdatedAt(time.Now())
 		if oauthModel.Extra != nil {
-			u = u.SetExtra(map[string]interface{}(oauthModel.Extra))
+			u = u.SetExtra(map[string]any(oauthModel.Extra))
 		}
 		_, err = u.Save(ctx)
 	} else {
@@ -828,7 +828,7 @@ func (a *adapter) OAuthSet(oauthModel model.OAuth) error {
 			SetCreatedAt(oauthModel.CreatedAt).
 			SetUpdatedAt(oauthModel.UpdatedAt)
 		if oauthModel.Extra != nil {
-			c = c.SetExtra(map[string]interface{}(oauthModel.Extra))
+			c = c.SetExtra(map[string]any(oauthModel.Extra))
 		}
 		_, err = c.Save(ctx)
 	}
@@ -883,13 +883,13 @@ func (a *adapter) FormSet(formId string, formModel model.Form) error {
 			SetState(int(formModel.State)).
 			SetUpdatedAt(time.Now())
 		if formModel.Schema != nil {
-			u = u.SetSchema(map[string]interface{}(formModel.Schema))
+			u = u.SetSchema(map[string]any(formModel.Schema))
 		}
 		if formModel.Values != nil {
-			u = u.SetValues(map[string]interface{}(formModel.Values))
+			u = u.SetValues(map[string]any(formModel.Values))
 		}
 		if formModel.Extra != nil {
-			u = u.SetExtra(map[string]interface{}(formModel.Extra))
+			u = u.SetExtra(map[string]any(formModel.Extra))
 		}
 		_, err = u.Save(ctx)
 	} else {
@@ -901,13 +901,13 @@ func (a *adapter) FormSet(formId string, formModel model.Form) error {
 			SetCreatedAt(formModel.CreatedAt).
 			SetUpdatedAt(formModel.UpdatedAt)
 		if formModel.Schema != nil {
-			c = c.SetSchema(map[string]interface{}(formModel.Schema))
+			c = c.SetSchema(map[string]any(formModel.Schema))
 		}
 		if formModel.Values != nil {
-			c = c.SetValues(map[string]interface{}(formModel.Values))
+			c = c.SetValues(map[string]any(formModel.Values))
 		}
 		if formModel.Extra != nil {
-			c = c.SetExtra(map[string]interface{}(formModel.Extra))
+			c = c.SetExtra(map[string]any(formModel.Extra))
 		}
 		_, err = c.Save(ctx)
 	}
@@ -948,7 +948,7 @@ func (a *adapter) PageSet(pageId string, pageModel model.Page) error {
 			SetState(int(pageModel.State)).
 			SetUpdatedAt(time.Now())
 		if pageModel.Schema != nil {
-			u = u.SetSchema(map[string]interface{}(pageModel.Schema))
+			u = u.SetSchema(map[string]any(pageModel.Schema))
 		}
 		_, err = u.Save(ctx)
 	} else {
@@ -961,7 +961,7 @@ func (a *adapter) PageSet(pageId string, pageModel model.Page) error {
 			SetCreatedAt(pageModel.CreatedAt).
 			SetUpdatedAt(pageModel.UpdatedAt)
 		if pageModel.Schema != nil {
-			c = c.SetSchema(map[string]interface{}(pageModel.Schema))
+			c = c.SetSchema(map[string]any(pageModel.Schema))
 		}
 		_, err = c.Save(ctx)
 	}
@@ -1001,7 +1001,7 @@ func (a *adapter) BehaviorSet(behaviorModel model.Behavior) error {
 			SetCount(behaviorModel.Count_).
 			SetUpdatedAt(time.Now())
 		if behaviorModel.Extra != nil {
-			u = u.SetExtra(map[string]interface{}(*behaviorModel.Extra))
+			u = u.SetExtra(map[string]any(*behaviorModel.Extra))
 		}
 		_, err = u.Save(ctx)
 	} else {
@@ -1012,7 +1012,7 @@ func (a *adapter) BehaviorSet(behaviorModel model.Behavior) error {
 			SetCreatedAt(behaviorModel.CreatedAt).
 			SetUpdatedAt(behaviorModel.UpdatedAt)
 		if behaviorModel.Extra != nil {
-			c = c.SetExtra(map[string]interface{}(*behaviorModel.Extra))
+			c = c.SetExtra(map[string]any(*behaviorModel.Extra))
 		}
 		_, err = c.Save(ctx)
 	}
@@ -1081,14 +1081,14 @@ func (a *adapter) ParameterSet(flag string, params types.KV, expiredAt time.Time
 
 	if existing != nil {
 		_, err = a.client.Parameter.Update().Where(parameter.IDEQ(existing.ID)).
-			SetParams(map[string]interface{}(params)).
+			SetParams(map[string]any(params)).
 			SetExpiredAt(expiredAt).
 			SetUpdatedAt(time.Now()).
 			Save(ctx)
 	} else {
 		_, err = a.client.Parameter.Create().
 			SetFlag(flag).
-			SetParams(map[string]interface{}(params)).
+			SetParams(map[string]any(params)).
 			SetExpiredAt(expiredAt).
 			SetCreatedAt(time.Now()).
 			SetUpdatedAt(time.Now()).
@@ -1146,7 +1146,7 @@ func (a *adapter) CreateInstruct(instructModel *model.Instruct) (int64, error) {
 		SetCreatedAt(instructModel.CreatedAt).
 		SetUpdatedAt(instructModel.UpdatedAt)
 	if instructModel.Content != nil {
-		c = c.SetContent(map[string]interface{}(instructModel.Content))
+		c = c.SetContent(map[string]any(instructModel.Content))
 	}
 	u, err := c.Save(ctx)
 	if err != nil {

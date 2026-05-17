@@ -34,8 +34,8 @@ func (s *WorkflowRunStore) CreateRun(workflowName, workflowFile, triggerType str
 		SetWorkflowFile(workflowFile).
 		SetStatus(int(model.WorkflowRunRunning)).
 		SetTriggerType(triggerType).
-		SetTriggerInfo(map[string]interface{}(triggerInfo)).
-		SetInputParams(map[string]interface{}(inputParams)).
+		SetTriggerInfo(map[string]any(triggerInfo)).
+		SetInputParams(map[string]any(inputParams)).
 		SetStartedAt(now).
 		SetCreatedAt(now).
 		Save(ctx)
@@ -75,7 +75,7 @@ func (s *WorkflowRunStore) CreateStepRun(runID int64, stepID, stepName, action, 
 		SetStepName(stepName).
 		SetAction(action).
 		SetActionType(actionType).
-		SetParams(map[string]interface{}(params)).
+		SetParams(map[string]any(params)).
 		SetAttempt(attempt).
 		SetStatus(int(model.WorkflowRunRunning)).
 		SetStartedAt(now).
@@ -102,7 +102,7 @@ func (s *WorkflowRunStore) UpdateStepRun(stepRunID int64, status model.WorkflowR
 		u = u.SetCompletedAt(time.Now())
 	}
 	if result != nil {
-		u = u.SetResult(map[string]interface{}(result))
+		u = u.SetResult(map[string]any(result))
 	}
 	if errMsg != "" {
 		u = u.SetError(errMsg)
@@ -126,7 +126,7 @@ func (s *WorkflowRunStore) SaveCheckpoint(runID int64, data any) error {
 	}
 	return s.client.WorkflowRun.Update().
 		Where(workflowrun.IDEQ(runID)).
-		SetCheckpointData(map[string]interface{}(cp)).
+		SetCheckpointData(map[string]any(cp)).
 		Exec(ctx)
 }
 
