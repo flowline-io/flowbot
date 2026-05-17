@@ -2,6 +2,7 @@ package homelab
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strconv"
 	"strings"
@@ -45,9 +46,7 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 			Ports:     servicePorts,
 		})
 		ports = append(ports, servicePorts...)
-		for key, value := range normalizeLabels(svc.Labels) {
-			labels[key] = value
-		}
+		maps.Copy(labels, normalizeLabels(svc.Labels))
 	}
 	networks := make([]string, 0, len(doc.Networks))
 	for name := range doc.Networks {
