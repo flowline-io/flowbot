@@ -130,11 +130,6 @@ tasks:
     cmds:
       - go tool gotestsum --hide-summary=skipped --packages="./pkg/utils/..."
 
-  test:integration:
-    desc: Run integration tests with Testcontainers (requires Docker)
-    cmds:
-      - go test -v -tags integration ./tests/integration/...
-
   test:specs:
     desc: Run Ginkgo BDD acceptance tests (parallel, requires Docker)
     cmds:
