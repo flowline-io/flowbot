@@ -234,7 +234,9 @@ func TestRunAndStopTask(t *testing.T) {
 			Image: "ubuntu:mantic",
 			CMD:   []string{"sleep", "10"},
 		}
+		done := make(chan struct{})
 		go func() {
+			defer close(done)
 			err := rt.Run(context.Background(), t1)
 			assert.Error(t, err)
 		}()
@@ -242,6 +244,7 @@ func TestRunAndStopTask(t *testing.T) {
 		time.Sleep(time.Second)
 		err = rt.Stop(context.Background(), t1)
 		require.NoError(t, err)
+		<-done
 	})
 }
 
