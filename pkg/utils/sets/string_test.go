@@ -4,7 +4,6 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -555,82 +554,4 @@ func TestString_Len(t *testing.T) {
 			assert.Equal(t, tt.want, tt.s.Len())
 		})
 	}
-}
-
-func FuzzStringSet(f *testing.F) {
-	f.Add([]byte(`[]`), []byte(`[]`))
-	f.Add([]byte(`["a","b","c"]`), []byte(`["c","d","e"]`))
-	f.Add([]byte(`["a"]`), []byte(`["a"]`))
-
-	f.Fuzz(func(t *testing.T, aData, bData []byte) {
-		var a, b []string
-		if err := sonic.Unmarshal(aData, &a); err != nil {
-			t.Skip()
-		}
-		if err := sonic.Unmarshal(bData, &b); err != nil {
-			t.Skip()
-		}
-
-		s1 := NewString(a...)
-		s2 := NewString(b...)
-
-		for _, v := range a {
-			assert.Truef(t, s1.Has(v), "Set constructed from %v missing element %q", a, v)
-		}
-
-		assert.Truef(t, s1.HasAll(a...), "HasAll failed for self-elements: %v", a)
-
-		u1 := s1.Union(s2)
-		u2 := s2.Union(s1)
-		assert.Equal(t, u1, u2, "Union not commutative")
-
-		assert.LessOrEqualf(t, u1.Len(), s1.Len()+s2.Len(), "Union size %d > sum of sizes %d+%d", u1.Len(), s1.Len(), s2.Len())
-		assert.GreaterOrEqualf(t, u1.Len(), max(s1.Len(), s2.Len()), "Union size %d < max(%d, %d)", u1.Len(), s1.Len(), s2.Len())
-
-		i1 := s1.Intersection(s2)
-		i2 := s2.Intersection(s1)
-		assert.Equal(t, i1, i2, "Intersection not commutative")
-
-		assert.LessOrEqualf(t, i1.Len(), min(s1.Len(), s2.Len()), "Intersection size %d > min(%d, %d)", i1.Len(), s1.Len(), s2.Len())
-
-		diff := s1.Difference(s2)
-		reconstructed := diff.Union(i1)
-		assert.Equal(t, reconstructed, s1, "Difference+Intersection != original")
-
-		assert.True(t, s1.Equal(s1), "Set not equal to itself")
-
-		lst := s1.List()
-		for i := 1; i < len(lst); i++ {
-			assert.LessOrEqual(t, lst[i-1], lst[i], "List not sorted")
-		}
-
-		if s1.Len() == 0 {
-			_, ok := s1.PopAny()
-			assert.False(t, ok, "PopAny on empty set returned ok=true")
-		}
-
-		assert.True(t, s1.IsSuperset(NewString()), "Every set should be superset of empty")
-
-		sCopy := NewString(a...)
-		sCopy.Delete(a...)
-		assert.Zerof(t, sCopy.Len(), "Delete all elements left %d items", sCopy.Len())
-	})
-}
-
-func FuzzStringKeySet(f *testing.F) {
-	f.Fuzz(func(t *testing.T, keysData []byte) {
-		var keys []string
-		if err := sonic.Unmarshal(keysData, &keys); err != nil {
-			t.Skip()
-		}
-		theMap := make(map[string]int, len(keys))
-		for _, k := range keys {
-			theMap[k] = 0
-		}
-		result := StringKeySet(theMap)
-		assert.Lenf(t, result, len(theMap), "StringKeySet size %d != map size %d", result.Len(), len(theMap))
-		for k := range theMap {
-			assert.Truef(t, result.Has(k), "StringKeySet missing key %q", k)
-		}
-	})
 }

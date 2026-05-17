@@ -15,11 +15,6 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
                          │  testify table-driven     │
                          │  pkg/** / *_test.go       │
                          │  No external deps         │
-                         ├───────────────────────────┤
-                         │  Fuzz Tests               │
-                         │  testing.F                │
-                         │  pkg/** / *_test.go       │
-                         │  Retained permanently     │
                          └───────────────────────────┘
 ```
 
@@ -27,7 +22,6 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
 |-------|-----------|----------|-------|
 | BDD Acceptance | Ginkgo + Gomega | `tests/specs/` | All integration/acceptance tests must use |
 | Unit | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | Never migrate -- retained permanently |
-| Fuzz | `testing.F` | `pkg/**/` | Never migrate -- Ginkgo does not support fuzzing |
 
 ## Directory Structure
 
@@ -395,31 +389,21 @@ The BDD step in `.github/workflows/testing.yml`:
 | 1 | New modules: mandatory Ginkgo BDD spec; existing code untouched | Ongoing |
 | 2 | Existing integration tests: migrate from testify/suite to Ginkgo | Complete |
 | 8 | Unit tests: testify table-driven retained permanently | Never |
-| 8 | Fuzz tests: testing.F retained permanently | Never |
 
 ## Rules
 
 1. **New modules must include BDD specs** in `tests/specs/modules/<name>_spec_test.go`.
 2. **Existing unit tests are never migrated** to Ginkgo. The testify table-driven pattern is the standard for unit tests.
-3. **Fuzz tests use `testing.F` exclusively**. Ginkgo does not support fuzzing.
-4. **Use Labels** on every `Describe` container to enable targeted test execution.
-5. **BeforeEach for setup, It for assertions**. Never assert in container nodes.
-6. **Declare in container nodes, initialize in setup nodes** to prevent spec pollution.
-7. **Per-process database isolation** is automatic. Do not hardcode database names in specs.
-8. **Use `GinkgoWriter.Printf`** for debug output instead of `fmt.Println` or `t.Log`.
-9. **DeferCleanup** in BeforeEach for per-spec cleanup; SynchronizedAfterSuite for suite-level.
-10. **Build tag**: All files in `tests/specs/` must include `//go:build integration`.
-11. **Use `sonic` for JSON**, never `encoding/json`.
-12. **Use `types.Id()` for unique test values**, never hardcoded strings.
-13. **Cleanup after each test** -- delete created database records in the test body.
-
-## Mutation Testing Exclusion
-
-Gremlins mutation testing is limited to unit test packages (`pkg/**`). The BDD specs directory is excluded because:
-
-- Integration-level tests have high runtime overhead for mutation testing.
-- Ginkgo's closure-based structure does not map cleanly to gremlins' AST-based analysis.
-- The 60% threshold applies to the packages' own unit tests.
+3. **Use Labels** on every `Describe` container to enable targeted test execution.
+4. **BeforeEach for setup, It for assertions**. Never assert in container nodes.
+5. **Declare in container nodes, initialize in setup nodes** to prevent spec pollution.
+6. **Per-process database isolation** is automatic. Do not hardcode database names in specs.
+7. **Use `GinkgoWriter.Printf`** for debug output instead of `fmt.Println` or `t.Log`.
+8. **DeferCleanup** in BeforeEach for per-spec cleanup; SynchronizedAfterSuite for suite-level.
+9. **Build tag**: All files in `tests/specs/` must include `//go:build integration`.
+10. **Use `sonic` for JSON**, never `encoding/json`.
+11. **Use `types.Id()` for unique test values**, never hardcoded strings.
+12. **Cleanup after each test** -- delete created database records in the test body.
 
 ## Environment Variables
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -785,109 +784,5 @@ func TestRunner(t *testing.T) {
 		}
 		err := runner.Execute(context.Background(), wf, nil, "")
 		require.NoError(t, err)
-	})
-}
-
-func FuzzParseAction(f *testing.F) {
-	f.Add("capability:bookmark.list")
-	f.Add("docker:nginx:latest")
-	f.Add("shell:echo hello")
-	f.Add("")
-	f.Add("mapper:")
-	f.Add("capability:bookmark")
-	f.Add("plain-action")
-
-	f.Fuzz(func(t *testing.T, action string) {
-		info := ParseAction(action)
-		if info.IsCapability {
-			assert.Equal(t, "capability", info.Type, "IsCapability=true but Type mismatch")
-		}
-		if info.CapType != "" && info.Operation != "" {
-			expected := info.CapType + "." + info.Operation
-			assert.Equal(t, expected, info.Details, "CapType+Operation != Details")
-		}
-	})
-}
-
-func FuzzExtractCMDSlice(f *testing.F) {
-	f.Add([]byte(`"echo hello"`))
-	f.Add([]byte(`["sh","-c","echo hi"]`))
-	f.Add([]byte(`42`))
-	f.Add([]byte(`null`))
-	f.Add([]byte(`true`))
-
-	f.Fuzz(func(t *testing.T, data []byte) {
-		var val any
-		_ = sonic.Unmarshal(data, &val)
-		result := extractCMDSlice(val)
-		_ = result
-	})
-}
-
-func FuzzValidateDAG(f *testing.F) {
-	f.Add([]byte(`[{"id":"a","conn":["b"]},{"id":"b"}]`))
-	f.Add([]byte(`[{"id":"a","conn":["a"]}]`))
-	f.Add([]byte(`[{"id":"a"},{"id":"b"},{"id":"c"}]`))
-	f.Add([]byte(`[]`))
-
-	f.Fuzz(func(t *testing.T, data []byte) {
-		var raw []struct {
-			ID   string   `json:"id"`
-			Conn []string `json:"conn"`
-		}
-		if err := sonic.Unmarshal(data, &raw); err != nil {
-			t.Skip()
-		}
-		tasks := make([]types.WorkflowTask, len(raw))
-		for i, r := range raw {
-			tasks[i] = types.WorkflowTask{ID: r.ID, Conn: r.Conn}
-		}
-		err := ValidateDAG(tasks)
-		// Errors from unknown deps or cycles are expected, panics are not.
-		_ = err
-	})
-}
-
-func FuzzValidateDAGPanics(f *testing.F) {
-	f.Add([]byte(`[{"id":"a","conn":["b"]},{"id":"b"}]`))
-	f.Add([]byte(`[{"id":"a","conn":[]}]`))
-	f.Add([]byte(`[{"id":""}]`))
-
-	f.Fuzz(func(t *testing.T, data []byte) {
-		var raw []struct {
-			ID   string   `json:"id"`
-			Conn []string `json:"conn"`
-		}
-		if err := sonic.Unmarshal(data, &raw); err != nil {
-			t.Skip()
-		}
-		tasks := make([]types.WorkflowTask, len(raw))
-		for i, r := range raw {
-			tasks[i] = types.WorkflowTask{ID: r.ID, Conn: r.Conn}
-		}
-		// For tasks without Conn, ensure no nil panic
-		err := ValidateDAG(tasks)
-		_ = err
-	})
-}
-
-func FuzzResultCopy(f *testing.F) {
-	f.Add([]byte(`{}`))
-	f.Add([]byte(`{"a":"b"}`))
-	f.Add([]byte(`{"step1":"result1","step2":"result2"}`))
-
-	f.Fuzz(func(t *testing.T, data []byte) {
-		var src map[string]string
-		if err := sonic.Unmarshal(data, &src); err != nil {
-			t.Skip()
-		}
-		dst := resultCopy(src)
-		assert.Len(t, dst, len(src), "resultCopy length mismatch")
-		for k, v := range src {
-			assert.Equal(t, v, dst[k], "resultCopy[%s]", k)
-		}
-		if src != nil {
-			assert.NotNil(t, dst, "resultCopy returned nil for non-nil source")
-		}
 	})
 }

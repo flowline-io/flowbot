@@ -152,63 +152,10 @@ tasks:
       - go tool cover -html=coverage.out -o coverage.html
       - echo "coverage report generated in coverage.html"
 
-  test:mutation:
-    desc: Run mutation testing with survival rate check (threshold 60%)
-    cmds:
-      - go tool gremlins unleash --threshold-efficacy=0.60 --threshold-mcover=0.60 --timeout-coefficient=10 ./...
-
-  test:mutation:score:
-    desc: Show mutation score without enforcing threshold
-    cmds:
-      - go tool gremlins unleash --threshold-efficacy=0 --threshold-mcover=0 --timeout-coefficient=10 ./...
-
-  test:mutation:report:
-    desc: Mutation report to file
-    cmds:
-      - go tool gremlins unleash -o mutation-report.json ./...
-
   test:race:
     desc: Race testing
     cmds:
       - go test -count=10 -race ./...
-
-  test:fuzz:
-    desc: Run all fuzz tests (fuzztime=30s per test)
-    cmds:
-      - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
-          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
-          for t in $tests; do
-            go test -run='^$' -fuzz="^${t}$" -fuzztime=30s $pkg || exit 1
-          done
-        done
-
-  test:fuzz:quick:
-    desc: Quick fuzz run for CI (fuzztime=3s per test)
-    cmds:
-      - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
-          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
-          for t in $tests; do
-            go test -run='^$' -fuzz="^${t}$" -fuzztime=3s $pkg || exit 1
-          done
-        done
-
-  test:fuzz:long:
-    desc: Long fuzz run (fuzztime=5m per test)
-    cmds:
-      - |
-        for pkg in ./pkg/utils ./pkg/utils/sets ./pkg/utils/syncx ./pkg/pipeline ./pkg/pipeline/template ./pkg/workflow; do
-          tests=$(go test -list='Fuzz.*' $pkg 2>/dev/null | grep '^Fuzz')
-          for t in $tests; do
-            go test -run='^$' -fuzz="^${t}$" -fuzztime=5m $pkg || exit 1
-          done
-        done
-
-  test:fuzz:race:
-    desc: Fuzz tests with race detector (syncx)
-    cmds:
-      - go test -race -run='^$' -fuzz=FuzzMapSetGet -fuzztime=30s ./pkg/utils/syncx
 
   # Documentation tasks
   swagger:

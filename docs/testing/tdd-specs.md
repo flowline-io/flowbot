@@ -275,29 +275,6 @@ require.Error(t, err)
 assert.Contains(t, err.Error(), "connection refused")
 ```
 
-## Fuzz Tests
-
-Fuzz tests complement table-driven tests by exploring random inputs. They are declared with `func Fuzz*(f *testing.F)` using Go's native fuzzing:
-
-```go
-func FuzzParseVersionPart(f *testing.F) {
-    f.Add("1")
-    f.Add("123abc")
-    f.Add("")
-    f.Fuzz(func(t *testing.T, vers string) {
-        got := ParseVersionPart(vers)
-        assert.LessOrEqual(t, got, 0x1fff)
-    })
-}
-```
-
-**Rules**:
-- Fuzz tests are **complementary** to TDD unit tests, not a replacement.
-- Provide at least 3 seed inputs via `f.Add(...)`.
-- Assert properties, not exact values (e.g., `assert.LessOrEqual` not `assert.Equal`).
-- Fuzz tests live in the same `*_test.go` files as table-driven tests.
-- Run with `go tool task test:fuzz` or `go tool task test:fuzz:quick` for CI.
-
 ## Mock and Stub Policy
 
 The project does not use `testify/mock`. Alternatives:
@@ -358,31 +335,6 @@ func TestLongRunning(t *testing.T) {
 
 `go test -short ./...` skips these tests. Use `go tool task test:short` in development loops.
 
-## Mutation Testing
-
-Mutation testing measures test quality by injecting bugs (mutants) into source code and checking if tests catch them.
-
-| Threshold | Value | Enforcement |
-|-----------|-------|-------------|
-| Efficacy (test effectiveness) | >= 60% | CI on `pkg/**` |
-| Mutant coverage | >= 60% | CI on `pkg/**` |
-
-```bash
-go tool task test:mutation        # Full suite with threshold check
-go tool task test:mutation:score  # Score-only, no threshold enforcement
-go tool task test:mutation:report # Generate JSON report
-```
-
-**Result codes**:
-
-- **KILLED**: Mutant was detected — good.
-- **LIVED**: Mutant survived all tests — needs attention.
-- **NOT COVERED**: Line has no test coverage at all.
-- **TIMED OUT**: Test took too long running against the mutant.
-- **NOT VIABLE**: Mutant could not be compiled.
-
-BDD acceptance tests (`tests/specs/`) are excluded from mutation testing.
-
 ## Coverage
 
 Generate coverage reports to identify untested paths:
@@ -411,5 +363,4 @@ Coverage alone is not a sufficient quality metric. Combine with mutation scores 
 - [ ] `require` for fatal assertions, `assert` for non-fatal.
 - [ ] No panics in test code (use `require` to guard).
 - [ ] No use of `encoding/json` — use `github.com/bytedance/sonic`.
-- [ ] Fuzz tests provided for parsing/validation functions.
 - [ ] `testing.Short()` respected for long-running tests.

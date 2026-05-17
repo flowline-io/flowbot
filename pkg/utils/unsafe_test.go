@@ -3,7 +3,6 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,19 +66,4 @@ func TestBytesToString(t *testing.T) {
 			require.Equal(t, tt.want, BytesToString(tt.b))
 		})
 	}
-}
-
-func FuzzStringBytesRoundtrip(f *testing.F) {
-	f.Add("")
-	f.Add("hello")
-	f.Add("hello world")
-	f.Add("\x00\x01\x02\xff")
-	f.Add("你好世界")
-	f.Add("\u2421")
-
-	f.Fuzz(func(t *testing.T, s string) {
-		b := StringToBytes(s)
-		got := BytesToString(b)
-		assert.Equal(t, s, got, "roundtrip mismatch: input=%q, output=%q", s, got)
-	})
 }

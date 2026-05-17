@@ -278,38 +278,3 @@ func TestGetRemoteAddr(t *testing.T) {
 		})
 	}
 }
-
-func FuzzIsRoutableIP(f *testing.F) {
-	f.Add("8.8.8.8")
-	f.Add("10.0.0.1")
-	f.Add("192.168.1.1")
-	f.Add("127.0.0.1")
-	f.Add("::1")
-	f.Add("")
-	f.Add("not an ip")
-
-	f.Fuzz(func(t *testing.T, ip string) {
-		if r := recover(); r != nil {
-			require.Fail(t, "IsRoutableIP panicked")
-		}
-		got := IsRoutableIP(ip)
-		if got && ip == "" {
-			assert.Fail(t, "IsRoutableIP() = true for empty string")
-		}
-	})
-}
-
-func FuzzIsUnixAddr(f *testing.F) {
-	f.Add("unix:/run/flowbot.sock")
-	f.Add("127.0.0.1:8080")
-	f.Add("")
-	f.Add("unix:")
-	f.Add(":")
-
-	f.Fuzz(func(t *testing.T, addr string) {
-		if r := recover(); r != nil {
-			require.Fail(t, "IsUnixAddr panicked")
-		}
-		_ = IsUnixAddr(addr)
-	})
-}

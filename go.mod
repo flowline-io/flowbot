@@ -268,7 +268,7 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
 	github.com/go-git/go-git/v5 v5.19.0 // indirect
-	github.com/go-gremlins/gremlins v0.6.0 // indirect
+
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -600,7 +600,7 @@ tool (
 	github.com/Antonboom/testifylint
 	github.com/air-verse/air
 	github.com/boyter/scc/v3
-	github.com/go-gremlins/gremlins/cmd/gremlins
+
 	github.com/go-task/task/v3/cmd/task
 	github.com/goreleaser/goreleaser/v2
 	github.com/mgechev/revive

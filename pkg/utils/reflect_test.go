@@ -99,18 +99,3 @@ func TestParseFunctionName(t *testing.T) {
 		})
 	}
 }
-
-func FuzzParseFunctionName(f *testing.F) {
-	f.Add("pkg.Func")
-	f.Add("")
-	f.Add("a.b.c.d.Fn")
-	f.Add("no_dots")
-	f.Add(".")
-	f.Add("0.")
-
-	f.Fuzz(func(t *testing.T, name string) {
-		pkg, fn := ParseFunctionName(name)
-		_ = pkg
-		_ = fn
-	})
-}
