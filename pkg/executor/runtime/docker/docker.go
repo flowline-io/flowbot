@@ -34,6 +34,7 @@ import (
 type Runtime struct {
 	client     *client.Client
 	tasks      *syncx.Map[string, string]
+	cancels    *syncx.Map[string, context.CancelFunc]
 	images     *syncx.Map[string, bool]
 	pullq      chan *pullRequest
 	pullerDone chan struct{}
@@ -78,6 +79,7 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 	rt := &Runtime{
 		client:     dc,
 		tasks:      new(syncx.Map[string, string]),
+		cancels:    new(syncx.Map[string, context.CancelFunc]),
 		images:     new(syncx.Map[string, bool]),
 		pullq:      make(chan *pullRequest, 1),
 		pullerDone: make(chan struct{}),
@@ -145,6 +147,11 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if t.ID == "" {
 		return errors.New("task id is required")
 	}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	d.cancels.Set(t.ID, cancel)
+	defer d.cancels.Delete(t.ID)
+
 	if err := d.imagePull(ctx, t); err != nil {
 		return fmt.Errorf("error pulling image: %s, %w", t.Image, err)
 	}
@@ -483,6 +490,9 @@ func createArchive(t *types.Task) (string, error) {
 }
 
 func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
+	if cancel, ok := d.cancels.Get(t.ID); ok {
+		cancel()
+	}
 	containerID, ok := d.tasks.Get(t.ID)
 	if !ok {
 		return nil
