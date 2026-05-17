@@ -73,11 +73,11 @@ var _ = Describe("Notify Module", Label("module", "notify"), func() {
 		})
 
 		It("supports different field types", func() {
-			Expect(types.FormFieldText).To(Equal("text"))
-			Expect(types.FormFieldTextarea).To(Equal("textarea"))
-			Expect(types.FormFieldSelect).To(Equal("select"))
-			Expect(types.FormFieldCheckbox).To(Equal("checkbox"))
-			Expect(types.FormFieldNumber).To(Equal("number"))
+			Expect(types.FormFieldText).To(BeEquivalentTo("text"))
+			Expect(types.FormFieldTextarea).To(BeEquivalentTo("textarea"))
+			Expect(types.FormFieldSelect).To(BeEquivalentTo("select"))
+			Expect(types.FormFieldCheckbox).To(BeEquivalentTo("checkbox"))
+			Expect(types.FormFieldNumber).To(BeEquivalentTo("number"))
 		})
 	})
 
@@ -114,9 +114,9 @@ var _ = Describe("Notify Module", Label("module", "notify"), func() {
 
 	Describe("FormField value types", func() {
 		It("has correct value type constants", func() {
-			Expect(types.FormFieldValueString).To(Equal("string"))
-			Expect(types.FormFieldValueBool).To(Equal("bool"))
-			Expect(types.FormFieldValueInt64).To(Equal("int64"))
+			Expect(types.FormFieldValueString).To(BeEquivalentTo("string"))
+			Expect(types.FormFieldValueBool).To(BeEquivalentTo("bool"))
+			Expect(types.FormFieldValueInt64).To(BeEquivalentTo("int64"))
 		})
 	})
 })

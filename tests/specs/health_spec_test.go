@@ -48,6 +48,9 @@ var _ = Describe("Health", Label("health", "smoke"), func() {
 		})
 
 		It("containers are running", func() {
+			if GinkgoParallelProcess() != 1 {
+				Skip("container references only available in process 1")
+			}
 			Expect(pgC).NotTo(BeNil(), "PostgreSQL container should be running")
 			Expect(redisC).NotTo(BeNil(), "Redis container should be running")
 

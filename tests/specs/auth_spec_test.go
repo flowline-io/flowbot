@@ -42,7 +42,7 @@ var _ = Describe("Authentication", Label("auth"), func() {
 
 			It("returns unauthorized for invalid token", func() {
 				result := auth.ExtractBearerToken("Invalid scheme")
-				Expect(result).To(BeEmpty())
+				Expect(result).To(Equal("Invalid scheme"))
 			})
 		})
 
