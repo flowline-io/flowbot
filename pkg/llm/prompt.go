@@ -53,10 +53,7 @@ func DefaultTemplate() ChatTemplate {
 }
 
 func DefaultMultiChatTemplate() ChatTemplate {
-	return &adkChatTemplate{
-		systemMessage: fmt.Sprintf("You are a helpful assistant. Please answer in %s.", config.App.Flowbot.Language),
-		withHistory:   true,
-	}
+	return DefaultTemplate()
 }
 
 func BaseTemplate() ChatTemplate {

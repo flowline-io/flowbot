@@ -1,16 +1,6 @@
 package llm
 
-import (
-	"strings"
-
-	"google.golang.org/genai"
-)
-
-// Re-export genai types for convenience
-type Content = genai.Content
-type Part = genai.Part
-
-// Role type from genai
+// Role type
 type Role = string
 
 // Role constants
@@ -35,42 +25,15 @@ const (
 const (
 	ProviderOpenAI           = "openai"
 	ProviderOpenAICompatible = "openai_compatible"
+	ProviderGemini           = "gemini"
+	ProviderAnthropic        = "anthropic"
 )
 
-// Message represents a chat message (wrapper around genai.Content)
+// Message represents a chat message
 type Message struct {
 	Role    string
 	Content string
 	Name    string
-}
-
-// ToGenaiContent converts Message to genai.Content
-func (m *Message) ToGenaiContent() *genai.Content {
-	return &genai.Content{
-		Role: m.Role,
-		Parts: []*genai.Part{
-			{Text: m.Content},
-		},
-	}
-}
-
-// MessageFromGenaiContent creates Message from genai.Content
-func MessageFromGenaiContent(c *genai.Content) *Message {
-	if c == nil || len(c.Parts) == 0 {
-		return &Message{}
-	}
-	var content strings.Builder
-	for _, part := range c.Parts {
-		if part.Text != "" {
-			if _, err := content.WriteString(part.Text); err != nil {
-				return &Message{}
-			}
-		}
-	}
-	return &Message{
-		Role:    c.Role,
-		Content: content.String(),
-	}
 }
 
 // ToolCall represents a function call from the model

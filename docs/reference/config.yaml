@@ -162,8 +162,8 @@ models:
     base_url: "https://api.openai.com/v1"
     api_key: ""
     model_names:
-      - "chatgpt-4"
-      - "chatgpt-3.5-turbo"
+      - "gpt-5.5-instant"
+      - "gpt-5.5"
 
 # Agent configuration
 agents:

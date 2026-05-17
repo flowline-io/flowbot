@@ -387,7 +387,7 @@ func TestAlarm(t *testing.T) {
 
 func TestModel(t *testing.T) {
 	t.Parallel()
-	model := Model{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk-test", ModelNames: []string{"gpt-4", "gpt-3.5-turbo"}}
+	model := Model{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk-test", ModelNames: []string{"gpt-5.5-instant", "gpt-5.5"}}
 
 	t.Run("model fields", func(t *testing.T) {
 		t.Parallel()
@@ -400,13 +400,13 @@ func TestModel(t *testing.T) {
 
 func TestAgent(t *testing.T) {
 	t.Parallel()
-	agent := Agent{Name: "assistant", Enabled: true, Model: "gpt-4"}
+	agent := Agent{Name: "assistant", Enabled: true, Model: "gpt-5.5-instant"}
 
 	t.Run("agent fields", func(t *testing.T) {
 		t.Parallel()
 		assert.Equal(t, "assistant", agent.Name)
 		assert.True(t, agent.Enabled)
-		assert.Equal(t, "gpt-4", agent.Model)
+		assert.Equal(t, "gpt-5.5-instant", agent.Model)
 	})
 }
 
@@ -461,8 +461,8 @@ func TestModelAndAgentSlices(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
 			Models: []Model{
-				{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk1", ModelNames: []string{"gpt-4"}},
-				{Provider: "anthropic", BaseUrl: "https://api.anthropic.com", ApiKey: "sk2", ModelNames: []string{"claude-3"}},
+				{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk1", ModelNames: []string{"gpt-5.5-instant"}},
+				{Provider: "anthropic", BaseUrl: "https://api.anthropic.com", ApiKey: "sk2", ModelNames: []string{"claude-opus-4.7"}},
 			},
 		}
 		assert.Len(t, cfg.Models, 2)
@@ -474,8 +474,8 @@ func TestModelAndAgentSlices(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
 			Agents: []Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4"},
-				{Name: "react", Enabled: false, Model: "gpt-3.5-turbo"},
+				{Name: "chat", Enabled: true, Model: "gpt-5.5-instant"},
+				{Name: "react", Enabled: false, Model: "gpt-5.5"},
 			},
 		}
 		assert.Len(t, cfg.Agents, 2)
