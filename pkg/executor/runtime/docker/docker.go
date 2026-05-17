@@ -318,40 +318,41 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		return fmt.Errorf("error reading the std out, %w", err)
 	}
 	statusCh, errCh := d.client.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	var status container.WaitResponse
 	select {
 	case err := <-errCh:
 		if err != nil {
 			return err
 		}
-	case status := <-statusCh:
-		if status.StatusCode != 0 { // error
-			out, err := d.client.ContainerLogs(
-				ctx,
-				resp.ID,
-				container.LogsOptions{
-					ShowStdout: true,
-					ShowStderr: true,
-					Tail:       "10",
-				},
-			)
-			if err != nil {
-				flog.Error(fmt.Errorf("error tailing the log, %w", err))
-				return fmt.Errorf("exit code %d, %w", status.StatusCode, err)
-			}
-			buf, err := io.ReadAll(printableReader{reader: out})
-			if err != nil {
-				flog.Error(fmt.Errorf("error copying the output, %w", err))
-			}
-			return fmt.Errorf("exit code %d: %s", status.StatusCode, string(buf))
-		} else {
-			stdout, err := d.readOutput(ctx, resp.ID)
-			if err != nil {
-				return err
-			}
-			t.Result = stdout
-		}
-		flog.Info("task-i: %s status-code: %d, task completed", t.ID, status.StatusCode)
+		status = <-statusCh
+	case status = <-statusCh:
 	}
+	if status.StatusCode != 0 { // error
+		out, err := d.client.ContainerLogs(
+			ctx,
+			resp.ID,
+			container.LogsOptions{
+				ShowStdout: true,
+				ShowStderr: true,
+				Tail:       "10",
+			},
+		)
+		if err != nil {
+			flog.Error(fmt.Errorf("error tailing the log, %w", err))
+			return fmt.Errorf("exit code %d, %w", status.StatusCode, err)
+		}
+		buf, err := io.ReadAll(printableReader{reader: out})
+		if err != nil {
+			flog.Error(fmt.Errorf("error copying the output, %w", err))
+		}
+		return fmt.Errorf("exit code %d: %s", status.StatusCode, string(buf))
+	}
+	stdout, err := d.readOutput(ctx, resp.ID)
+	if err != nil {
+		return err
+	}
+	t.Result = stdout
+	flog.Info("task-i: %s status-code: %d, task completed", t.ID, status.StatusCode)
 	return nil
 }
 
