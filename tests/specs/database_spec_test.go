@@ -605,6 +605,113 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		})
 	})
 
+	Describe("Channel", func() {
+		It("creates a new channel", func() {
+			c, err := EntClient.Channel.Create().
+				SetName("test-channel-" + types.Id()).
+				SetFlag("test-channel-flag-" + types.Id()).
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c.ID).NotTo(BeZero())
+
+			EntClient.Channel.DeleteOne(c).Exec(ctx)
+		})
+
+		It("retrieves a channel by ID", func() {
+			c, err := EntClient.Channel.Create().
+				SetName("get-channel-" + types.Id()).
+				SetFlag("get-channel-flag-" + types.Id()).
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			got, err := EntClient.Channel.Get(ctx, c.ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(got.Name).To(Equal(c.Name))
+
+			EntClient.Channel.DeleteOne(c).Exec(ctx)
+		})
+
+		It("updates channel fields", func() {
+			c, err := EntClient.Channel.Create().
+				SetName("upd-channel-" + types.Id()).
+				SetFlag("upd-channel-flag-" + types.Id()).
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			updated, err := EntClient.Channel.UpdateOne(c).SetName("renamed-channel").Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updated.Name).To(Equal("renamed-channel"))
+
+			EntClient.Channel.DeleteOne(c).Exec(ctx)
+		})
+
+		It("deletes a channel", func() {
+			c, err := EntClient.Channel.Create().
+				SetName("del-channel-" + types.Id()).
+				SetFlag("del-channel-flag-" + types.Id()).
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = EntClient.Channel.DeleteOne(c).Exec(ctx)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Describe("Message", func() {
+		It("creates a new message record", func() {
+			m, err := EntClient.Message.Create().
+				SetFlag("msg-" + types.Id()).
+				SetPlatformID(1).
+				SetPlatformMsgID("test-msg-id").
+				SetTopic("test-topic").
+				SetSession("test-session").
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(m.ID).NotTo(BeZero())
+
+			EntClient.Message.DeleteOne(m).Exec(ctx)
+		})
+
+		It("retrieves a message by ID", func() {
+			m, err := EntClient.Message.Create().
+				SetFlag("msg-get-" + types.Id()).
+				SetPlatformID(1).
+				SetPlatformMsgID("get-msg-id").
+				SetTopic("get-topic").
+				SetSession("get-session").
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			got, err := EntClient.Message.Get(ctx, m.ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(got.Flag).To(Equal(m.Flag))
+			Expect(got.Session).To(Equal("get-session"))
+
+			EntClient.Message.DeleteOne(m).Exec(ctx)
+		})
+
+		It("deletes a message record", func() {
+			m, err := EntClient.Message.Create().
+				SetFlag("msg-del-" + types.Id()).
+				SetPlatformID(1).
+				SetPlatformMsgID("del-msg-id").
+				SetTopic("del-topic").
+				SetSession("del-session").
+				SetState(1).
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = EntClient.Message.DeleteOne(m).Exec(ctx)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
 	Describe("Transaction Support", func() {
 		It("commits multiple operations in a single transaction", func() {
 			tx, err := EntClient.Tx(ctx)
