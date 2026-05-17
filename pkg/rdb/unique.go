@@ -20,7 +20,7 @@ func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash kv: %w", err)
 		}
-		if len(val) == 0 {
+		if val == "" {
 			continue
 		}
 		b, err := Client.BFAdd(ctx, uniqueKey, val).Result()

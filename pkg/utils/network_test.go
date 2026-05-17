@@ -14,10 +14,10 @@ import (
 func TestPortAvailable(t *testing.T) {
 	t.Parallel()
 	// Start a test server on a random port
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 
 	// Extract port from server URL
 	_, port, err := net.SplitHostPort(server.Listener.Addr().String())

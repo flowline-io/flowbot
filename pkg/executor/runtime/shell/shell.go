@@ -149,7 +149,9 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
 		return fmt.Errorf("error writing the entrypoint, %w", err)
 	}
-	args := append(r.shell, fmt.Sprintf("%s/entrypoint", workdir))
+	args := make([]string, len(r.shell)+1)
+	copy(args, r.shell)
+	args[len(r.shell)] = fmt.Sprintf("%s/entrypoint", workdir)
 	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)
 	cmd := r.reexec(args...)
 	cmd.Env = env

@@ -1,7 +1,6 @@
 package syncx_test
 
 import (
-	"math/rand"
 	"sync"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ func TestGetNonExistent(t *testing.T) {
 	}{
 		{
 			name:    "happy_path_get_from_empty_map",
-			setup:   func(m *syncx.Map[string, int]) {},
+			setup:   func(_ *syncx.Map[string, int]) {},
 			key:     "nothing",
 			wantV:   0,
 			wantOK:  false,
@@ -187,7 +186,7 @@ func TestConcurrentSetAndGet(t *testing.T) {
 			for i := 1; i <= tt.goroutines; i++ {
 				go func(ix int) {
 					defer wg.Done()
-					time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)+1))
+					time.Sleep(time.Millisecond)
 					m.Set("somekey", ix)
 					v, ok := m.Get("somekey")
 					assert.True(t, ok)

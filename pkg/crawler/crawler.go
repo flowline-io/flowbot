@@ -186,7 +186,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 			flog.Error(err)
 		}
 		oldSend := int64(0)
-		if len(sendString) != 0 {
+		if sendString != "" {
 			oldSend, _ = strconv.ParseInt(sendString, 10, 64)
 		}
 
