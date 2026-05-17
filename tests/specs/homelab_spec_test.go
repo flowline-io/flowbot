@@ -5,6 +5,8 @@ package specs
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -17,6 +19,38 @@ import (
 var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 
 	Describe("App Scanning", func() {
+		var appsDir string
+
+		BeforeEach(func() {
+			appsDir = "/tmp/apps"
+			Expect(os.MkdirAll(appsDir, 0o755)).To(Succeed())
+
+			Expect(os.MkdirAll(filepath.Join(appsDir, "archivebox"), 0o755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(appsDir, "archivebox", "docker-compose.yaml"), []byte(`services:
+  web:
+    image: archivebox/archivebox:latest
+    ports:
+      - "8080:8000/tcp"
+    labels:
+      flowbot.capability: archive
+      flowbot.backend: archivebox
+      flowbot.endpoint.base: http://localhost:8080
+      flowbot.endpoint.health: /health
+`), 0o644)).To(Succeed())
+
+			Expect(os.MkdirAll(filepath.Join(appsDir, "karakeep"), 0o755)).To(Succeed())
+			Expect(os.WriteFile(filepath.Join(appsDir, "karakeep", "compose.yaml"), []byte(`services:
+  app:
+    image: ghcr.io/karakeep/karakeep:latest
+    labels:
+      flowbot.capability: bookmark
+      flowbot.backend: karakeep
+`), 0o644)).To(Succeed())
+		})
+
+		AfterEach(func() {
+			_ = os.RemoveAll(appsDir)
+		})
 		It("scans configured directories for self-hosted apps", func() {
 			cfg := homelab.Config{
 				Root: "/tmp",
@@ -28,10 +62,20 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			Expect(scanner).NotTo(BeNil())
 
 			apps, err := scanner.Scan()
-			if err != nil {
-				Skip("scanning failed: " + err.Error())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(apps).To(HaveLen(2))
+
+			names := make([]string, len(apps))
+			for i, a := range apps {
+				names[i] = a.Name
 			}
-			Expect(apps).NotTo(BeNil())
+			Expect(names).To(ConsistOf("archivebox", "karakeep"))
+
+			archivebox := apps[0]
+			if apps[1].Name == "archivebox" {
+				archivebox = apps[1]
+			}
+			Expect(archivebox.Labels["flowbot.capability"]).To(Equal("archive"))
 		})
 
 		It("parses app metadata from labels", func() {
