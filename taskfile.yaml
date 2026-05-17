@@ -63,7 +63,7 @@ tasks:
   cloc:
     desc: Count lines of code using cloc
     cmds:
-      - cloc --exclude-dir=node_modules --exclude-ext=json .
+      - cloc --exclude-ext=json --fullpath --not-match-d='(^|/)(node_modules|internal/store/ent/gen)($|/)' .
 
   scc:
     desc: Generate code statistics using scc
