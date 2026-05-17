@@ -381,7 +381,7 @@ go tool task test:mutation:report # Generate JSON report
 - **TIMED OUT**: Test took too long running against the mutant.
 - **NOT VIABLE**: Mutant could not be compiled.
 
-BDD acceptance tests (`tests/specs/`) and integration tests (`tests/integration/`) are excluded from mutation testing.
+BDD acceptance tests (`tests/specs/`) are excluded from mutation testing.
 
 ## Coverage
 

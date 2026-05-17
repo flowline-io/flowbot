@@ -52,7 +52,6 @@ go tool task check     # all security & quality
 go tool task test            # All unit tests
 go tool task test:short      # Short mode (skip integration)
 go tool task test:utils      # pkg/utils only
-go tool task test:integration # Integration tests (Docker)
 go tool task test:coverage   # Coverage report
 ```
 

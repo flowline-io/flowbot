@@ -11,11 +11,6 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
                          │  tests/specs/             │
                          │  Requires Docker          │
                          ├───────────────────────────┤
-                         │  Integration Tests        │
-                         │  testify/suite            │
-                         │  tests/integration/       │
-                         │  Requires Docker          │
-                         ├───────────────────────────┤
                          │  Unit Tests               │
                          │  testify table-driven     │
                          │  pkg/** / *_test.go       │
@@ -28,30 +23,39 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
                          └───────────────────────────┘
 ```
 
-| Layer | Framework | Location | Migration |
-|-------|-----------|----------|-----------|
-| BDD Acceptance | Ginkgo + Gomega | `tests/specs/` | New modules must use, existing integration tests migrate gradually |
-| Integration | testify/suite | `tests/integration/` | Phase out as specs cover the same ground |
-| Unit | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | **Never migrate** — retained permanently |
-| Fuzz | `testing.F` | `pkg/**/` | **Never migrate** — Ginkgo does not support fuzzing |
+| Layer | Framework | Location | Notes |
+|-------|-----------|----------|-------|
+| BDD Acceptance | Ginkgo + Gomega | `tests/specs/` | All integration/acceptance tests must use |
+| Unit | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | Never migrate -- retained permanently |
+| Fuzz | `testing.F` | `pkg/**/` | Never migrate -- Ginkgo does not support fuzzing |
 
 ## Directory Structure
 
 ```
 tests/
 ├── specs/                              # Ginkgo BDD tests
-│   ├── specs_suite_test.go             # TestMain + RunSpecs entry point
-│   ├── lifecycle.go                    # SynchronizedBeforeSuite / AfterSuite
-│   │                                   #   + per-process database isolation
-│   ├── fixtures.go                     # HTTP request helpers
-│   ├── health_spec_test.go             # Health check acceptance spec
-│   ├── database_spec_test.go           # Database CRUD acceptance specs
-│   └── bookmark_spec_test.go           # Module-level behavior specs
-├── integration/                        # Legacy testify/suite integration tests
-│   ├── suite_test.go
-│   ├── health_test.go
-│   ├── database_test.go
-│   └── database_ext_test.go
+│   ├── specs_suite_test.go             # Suite entry point (TestSpecs + RunSpecs)
+│   ├── lifecycle.go                    # SynchronizedBeforeSuite / AfterSuite + per-process DB isolation
+│   ├── fixtures.go                     # HTTP request helpers (MakeRequest, JSONRequest, ReadBody)
+│   ├── ability_spec_test.go            # Ability layer
+│   ├── auth_spec_test.go               # Authentication contexts, tokens, scopes
+│   ├── bookmark_spec_test.go           # Bookmark module
+│   ├── database_spec_test.go           # Core database model CRUD
+│   ├── database_ext_spec_test.go       # Extended database model CRUD
+│   ├── dev_spec_test.go                # Dev module
+│   ├── event_spec_test.go              # DataEvent publish, consume, idempotency
+│   ├── gitea_spec_test.go              # Gitea module
+│   ├── github_spec_test.go             # GitHub module
+│   ├── health_spec_test.go             # Health checks + smoke tests
+│   ├── homelab_spec_test.go            # Homelab scanner
+│   ├── hub_spec_test.go                # Hub management
+│   ├── kanban_spec_test.go             # Kanban module
+│   ├── notify_spec_test.go             # Notify module
+│   ├── pipeline_spec_test.go           # Pipeline engine
+│   ├── reader_spec_test.go             # Reader module
+│   ├── server_spec_test.go             # Server module
+│   ├── webhook_spec_test.go            # Webhook module
+│   └── workflow_spec_test.go           # Workflow module
 └── fixtures/                           # Shared test data files
 ```
 
@@ -67,7 +71,7 @@ Ginkgo's `--procs=N` flag runs N independent test processes. To prevent data con
                      ┌──────────────────────┐
                      │  Process 1           │
                      │  SBS process1        │  Start PostgreSQL + Redis containers
-                     │                      │  Serialize DSN → all processes
+                     │                      │  Serialize DSN -> all processes
                      └──────────┬───────────┘
                                 │
           ┌─────────────────────┼─────────────────────┐
@@ -100,8 +104,24 @@ Ginkgo's `--procs=N` flag runs N independent test processes. To prevent data con
    - Creates an Ent client on that database and runs schema migrations.
    - Connects to Redis using `DB: GinkgoParallelProcess()` for key-space isolation.
    - Creates a Fiber app instance for HTTP testing.
-5. All processes run their assigned specs in parallel — zero data conflicts.
+5. All processes run their assigned specs in parallel -- zero data conflicts.
 6. `SynchronizedAfterSuite` process 1 terminates containers after all processes complete.
+
+### Suite-Level Variables
+
+The following variables are initialized by `lifecycle.go` and available to all spec files in the `specs` package:
+
+| Variable | Type | Purpose |
+|----------|------|---------|
+| `suiteCtx` | `context.Context` | Context scoped to container lifecycle |
+| `pgC` | `*tcpostgres.PostgresContainer` | PostgreSQL testcontainer |
+| `redisC` | `testcontainers.Container` | Redis testcontainer |
+| `App` | `*fiber.App` | Configured Fiber HTTP app for testing |
+| `DB` | `*sql.DB` | Raw database connection |
+| `EntClient` | `*gen.Client` | Ent ORM client |
+| `Redis` | `*redis.Client` | Redis client |
+| `PGDSN` | `string` | Per-process database DSN |
+| `RedisAddr` | `string` | Redis address |
 
 ### SynchronizedBeforeSuite Lifecycle
 
@@ -177,22 +197,22 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
     Describe("creating a bookmark", func() {
         Context("with a valid URL", func() {
             It("stores the bookmark and returns success", func() {
-                resp := JSONRequest("POST", "/service/bookmark/create",
+                req := JSONRequest("POST", "/service/bookmark/create",
                     []byte(`{"url":"https://example.com"}`))
-                result, _ := App.Test(resp)
+                resp, _ := App.Test(req)
 
-                Expect(result.StatusCode).To(Equal(200))
-                Expect(ReadBody(result)).To(ContainSubstring("success"))
+                Expect(resp.StatusCode).To(Equal(200))
+                Expect(ReadBody(resp)).To(ContainSubstring("success"))
             })
         })
 
         Context("with an empty URL", func() {
             It("returns a validation error", func() {
-                resp := JSONRequest("POST", "/service/bookmark/create",
+                req := JSONRequest("POST", "/service/bookmark/create",
                     []byte(`{"url":""}`))
-                result, _ := App.Test(resp)
+                resp, _ := App.Test(req)
 
-                Expect(result.StatusCode).To(Equal(400))
+                Expect(resp.StatusCode).To(Equal(400))
             })
         })
     })
@@ -246,6 +266,51 @@ In Ginkgo, `RegisterFailHandler(Fail)` connects Gomega to Ginkgo. When `Expect` 
 | `s.Require().NoError(err)` | `Expect(err).NotTo(HaveOccurred())` |
 | `s.Equal(a, b)` | `Expect(b).To(Equal(a))` |
 
+### HTTP Testing
+
+All HTTP tests use `App.Test(req)` on the shared `*fiber.App` instance -- no local server is started. The `fixtures.go` helpers simplify request construction:
+
+| Function | Signature |
+|----------|-----------|
+| `MakeRequest` | `(method, path string, body []byte) *http.Request` |
+| `JSONRequest` | `(method, path string, body []byte) *http.Request` |
+| `ReadBody` | `(resp *http.Response) []byte` |
+
+When a module or capability might not be registered in the test setup, use `Or(...)` to accept multiple status codes:
+
+```go
+Expect(resp.StatusCode).To(Or(
+    Equal(http.StatusOK),
+    Equal(http.StatusBadRequest),
+    Equal(http.StatusUnauthorized),
+))
+```
+
+Or call `Skip(...)` when a prerequisite is missing:
+
+```go
+if err != nil {
+    Skip("bookmark capability not registered: " + err.Error())
+}
+```
+
+### Database Testing
+
+Database specs use the shared `EntClient` directly. CRUD pattern: **Create -> Assert -> Cleanup**. Each test creates unique records using `types.Id()` for random suffixes.
+
+```go
+It("creates a new user with valid data", func() {
+    u, err := EntClient.User.Create().
+        SetFlag("test-flag-" + types.Id()).
+        SetName("Test User").
+        Save(ctx)
+    Expect(err).NotTo(HaveOccurred())
+    Expect(u.ID).NotTo(BeZero())
+
+    EntClient.User.DeleteOne(u).Exec(ctx)
+})
+```
+
 ## Running Specs
 
 ### Task Commands
@@ -291,10 +356,10 @@ test:specs:serial:
 Ginkgo suites are standard Go tests (entry point is `func TestSpecs(t *testing.T)`). Standard tooling works:
 
 ```bash
-# Standard go test works (no parallel within package)
+# Standard go test (no parallel within package)
 go test -v -tags integration ./tests/specs/...
 
-# gotestsum works
+# gotestsum
 go tool gotestsum -- -tags integration ./tests/specs/...
 
 # Coverage
@@ -326,11 +391,11 @@ The BDD step in `.github/workflows/testing.yml`:
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **0** | Infrastructure: Ginkgo deps, SynchronizedBeforeSuite, CI, revive exemption | Complete |
-| **1** | New modules: mandatory Ginkgo BDD spec; existing code untouched | Ongoing |
-| **2** | Existing integration tests: gradual migration from testify/suite to Ginkgo | Planned |
-| **∞** | Unit tests: testify table-driven retained permanently | Never |
-| **∞** | Fuzz tests: testing.F retained permanently | Never |
+| 0 | Infrastructure: Ginkgo deps, SynchronizedBeforeSuite, CI, revive exemption | Complete |
+| 1 | New modules: mandatory Ginkgo BDD spec; existing code untouched | Ongoing |
+| 2 | Existing integration tests: migrate from testify/suite to Ginkgo | Complete |
+| 8 | Unit tests: testify table-driven retained permanently | Never |
+| 8 | Fuzz tests: testing.F retained permanently | Never |
 
 ## Rules
 
@@ -344,6 +409,9 @@ The BDD step in `.github/workflows/testing.yml`:
 8. **Use `GinkgoWriter.Printf`** for debug output instead of `fmt.Println` or `t.Log`.
 9. **DeferCleanup** in BeforeEach for per-spec cleanup; SynchronizedAfterSuite for suite-level.
 10. **Build tag**: All files in `tests/specs/` must include `//go:build integration`.
+11. **Use `sonic` for JSON**, never `encoding/json`.
+12. **Use `types.Id()` for unique test values**, never hardcoded strings.
+13. **Cleanup after each test** -- delete created database records in the test body.
 
 ## Mutation Testing Exclusion
 
@@ -371,7 +439,7 @@ tool (
 )
 ```
 
-This pins the Ginkgo CLI version to the project's module graph. Use `go tool ginkgo` to invoke it — no separate `go install` required.
+This pins the Ginkgo CLI version to the project's module graph. Use `go tool ginkgo` to invoke it -- no separate `go install` required.
 
 ```
 go tool ginkgo version
