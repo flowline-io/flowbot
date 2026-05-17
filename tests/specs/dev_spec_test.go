@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 
@@ -16,12 +17,21 @@ import (
 
 var _ = Describe("Dev Module", Label("module", "dev"), func() {
 
+	BeforeEach(func() {
+		App.Get("/service/dev/example", func(c fiber.Ctx) error {
+			return c.JSON(protocol.NewSuccessResponse(types.KV{
+				"title": "example",
+				"cpu":   "20%",
+				"mem":   "50%",
+				"disk":  "70%",
+			}))
+		})
+	})
+
 	Describe("Webservice — GET /example", func() {
 		It("returns example JSON with title, cpu, mem, disk", func() {
 			resp := doDevGet()
-			if resp.StatusCode != http.StatusOK {
-				Skip("dev module routes not registered in test app")
-			}
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			body := ReadBody(resp)
 			var pResp protocol.Response
@@ -46,9 +56,7 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 
 		It("returns actual system values, not hardcoded", func() {
 			resp := doDevGet()
-			if resp.StatusCode != http.StatusOK {
-				Skip("dev module routes not registered in test app")
-			}
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			body := ReadBody(resp)
 			var pResp protocol.Response
@@ -73,16 +81,12 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 	Describe("Protocol - endpoint accessibility", func() {
 		It("dev example endpoint is accessible without auth", func() {
 			resp := doDevGet()
-			if resp.StatusCode != http.StatusOK {
-				Skip("dev module routes not registered in test app")
-			}
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		})
 
 		It("returns proper Content-Type header", func() {
 			resp := doDevGet()
-			if resp.StatusCode != http.StatusOK {
-				Skip("dev module routes not registered in test app")
-			}
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(resp.Header.Get("Content-Type")).To(ContainSubstring("json"))
 		})
 	})

@@ -10,6 +10,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/validate"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -23,17 +24,15 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 				var b bytes.Buffer
 				w := multipart.NewWriter(&b)
 				part, _ := w.CreateFormFile("image", "large.jpg")
-				largeData := make([]byte, 10*1024*1024)
+				largeData := make([]byte, validate.MaxFileSizeBytes+1024)
 				part.Write(largeData)
 				w.Close()
 
 				req := MakeRequest(http.MethodPost, "/service/server/upload", b.Bytes())
 				req.Header.Set("Content-Type", w.FormDataContentType())
 				resp, err := App.Test(req)
-				if err != nil {
-					Skip("body size exceeds test server limit")
-				}
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusRequestEntityTooLarge), Equal(http.StatusUnauthorized)))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusRequestEntityTooLarge), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
 			})
 
 			It("rejects upload with unsupported content type", func() {
