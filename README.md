@@ -180,6 +180,7 @@ task air                  # Live reload
 ```bash
 task swagger   # Generate Swagger/OpenAPI docs
 task doc       # Generate database schema docs
+task ent       # Generate ent code from database
 ```
 
 ### API

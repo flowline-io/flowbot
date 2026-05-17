@@ -56,7 +56,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - Never skip delivery/audit/idempotency records
 - Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`
 
-## Build & Test command
+## Build & Test, Generate command
 
 ```bash
 go tool task build            # Main server
@@ -64,6 +64,7 @@ go tool task lint             # Code lint
 go tool task test             # Unit tests
 go tool task test:specs       # BDD acceptance tests (requires Docker)
 go tool task test:specs:ci    # BDD with retry + JUnit
+go tool task ent              # Generate ent code from database
 ````
 
 ## Configuration

@@ -267,3 +267,9 @@ tasks:
     desc: Using go fix to modernize Go code
     cmds:
       - go fix ./...
+
+  # Code generation tasks
+  ent:
+    desc: Generate ent code from database
+    cmds:
+      - go generate ./internal/store/ent/
