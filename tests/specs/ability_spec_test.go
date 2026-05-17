@@ -60,10 +60,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 		Context("with a valid capability but invalid operation", func() {
 			It("returns operation not supported error", func() {
-				result, err := ability.Invoke(context.Background(), hub.CapBookmark, "nonexistent_operation", nil)
-				if result != nil && err == nil {
-					Skip("unknown operation silently handled")
-				}
+				_, err := ability.Invoke(context.Background(), hub.CapBookmark, "nonexistent_operation", nil)
 				Expect(err).To(HaveOccurred())
 			})
 		})

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"text/template"
 
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -82,8 +83,45 @@ var _ = Describe("Notify Module", Label("module", "notify"), func() {
 	})
 
 	Describe("Multi-Channel Delivery", func() {
-		It("sends notification via ability layer", func() {
-			Skip("notify requires configured backend: no default backend in test environment")
+		It("creates message with all fields", func() {
+			msg := notify.Message{
+				Title:    "Test Notification",
+				Body:     "This is a test message body.",
+				Url:      "https://example.com/alert",
+				Priority: notify.High,
+			}
+			Expect(msg.Title).To(Equal("Test Notification"))
+			Expect(msg.Body).To(Equal("This is a test message body."))
+			Expect(msg.Url).To(Equal("https://example.com/alert"))
+			Expect(msg.Priority).To(Equal(notify.High))
+		})
+
+		It("has correct priority constants", func() {
+			Expect(int(notify.Low)).To(Equal(1))
+			Expect(int(notify.Moderate)).To(Equal(2))
+			Expect(int(notify.Normal)).To(Equal(3))
+			Expect(int(notify.High)).To(Equal(4))
+			Expect(int(notify.Emergency)).To(Equal(5))
+		})
+
+		It("parses protocol scheme from URI", func() {
+			scheme, err := notify.ParseSchema("slack://token@channel")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(scheme).To(Equal("slack"))
+		})
+
+		It("fails gracefully with empty template list", func() {
+			result, err := notify.ParseTemplate("hello world", nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(BeEmpty())
+		})
+
+		It("parses notification template from structured text", func() {
+			scheme, err := notify.ParseTemplate("slack://token1/channel1", []string{"slack://{token}/{channel}"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(scheme).NotTo(BeNil())
+			Expect(scheme["token"]).To(Equal("token1"))
+			Expect(scheme["channel"]).To(Equal("channel1"))
 		})
 	})
 
