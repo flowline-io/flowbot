@@ -215,6 +215,7 @@ func setupTestApp() *fiber.App {
 	app := fiber.New(fiber.Config{
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
+		BodyLimit:    20 * 1024 * 1024,
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			if oopsErr, ok := oops.AsOops(err); ok {
 				if oopsErr.Code() == oops.OopsError(protocol.ErrNotAuthorized).Code() {
