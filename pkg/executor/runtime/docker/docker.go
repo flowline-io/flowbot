@@ -324,6 +324,10 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if err != nil {
 		return fmt.Errorf("error reading the std out, %w", err)
 	}
+	// detect if the task was explicitly stopped while it was running
+	if _, ok := d.tasks.Get(t.ID); !ok {
+		return fmt.Errorf("task %s was stopped", t.ID)
+	}
 	statusCh, errCh := d.client.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	var status container.WaitResponse
 	select {
