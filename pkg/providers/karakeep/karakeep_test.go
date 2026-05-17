@@ -81,7 +81,7 @@ func TestBookmark_GetTitle(t *testing.T) {
 	}{
 		{
 			name:     "get title with value",
-			title:    strptr("Hello World"),
+			title:    new("Hello World"),
 			expected: "Hello World",
 		},
 		{
@@ -100,7 +100,8 @@ func TestBookmark_GetTitle(t *testing.T) {
 	}
 }
 
-func strptr(s string) *string { return &s }
+//go:fix inline
+func strptr(s string) *string { return new(s) }
 
 func TestBookmark_GetSummary(t *testing.T) {
 	t.Parallel()
@@ -111,7 +112,7 @@ func TestBookmark_GetSummary(t *testing.T) {
 	}{
 		{
 			name:     "get summary with value",
-			summary:  strptr("A great article"),
+			summary:  new("A great article"),
 			expected: "A great article",
 		},
 		{
