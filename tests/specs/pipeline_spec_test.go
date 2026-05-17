@@ -62,7 +62,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 				rc := pipeline.NewRenderContext(event)
 				rc.RecordStepResult("step-1", map[string]any{"output": "value-1"})
 
-				result, err := rc.RenderString("{{steps.step-1.output}}")
+				result, err := rc.RenderString(`{{step "step-1" "output"}}`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).To(Equal("value-1"))
 			})
@@ -147,8 +147,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 			rc := pipeline.NewRenderContext(event)
 
 			rendered, err := rc.RenderParams(map[string]any{
-				"message":  "New bookmark: {{ .Event.Data.title }}",
-				"endpoint": "{{ .Event.Data.url }}/api",
+				"message":  "New bookmark: {{event.title}}",
+				"endpoint": "{{event.url}}/api",
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rendered["message"]).To(Equal("New bookmark: Example"))
@@ -164,7 +164,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 			rc := pipeline.NewRenderContext(event)
 
 			rendered, err := rc.RenderParams(map[string]any{
-				"entry_id": "{{ .Event.Data.entry_id }}",
+				"entry_id": "{{event.entry_id}}",
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rendered["entry_id"]).To(Equal("42"))
@@ -178,7 +178,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 			rc := pipeline.NewRenderContext(event)
 			rc.RecordStepResult("extract", map[string]any{"tags": []string{"go", "testing"}})
 
-			rendered, err := rc.RenderString(`{{ range $tag := steps.extract.tags }}{{ $tag }},{{ end }}`)
+			rendered, err := rc.RenderString(`{{ range $tag := step "extract" "tags" }}{{ $tag }},{{ end }}`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rendered).To(ContainSubstring("go"))
 			Expect(rendered).To(ContainSubstring("testing"))
