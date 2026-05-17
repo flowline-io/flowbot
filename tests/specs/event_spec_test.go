@@ -120,7 +120,7 @@ var _ = Describe("Event System", Label("event"), func() {
 
 			updated, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.Status).To(Equal(model.PipelineFailed))
+			Expect(updated.Status).To(BeEquivalentTo(model.PipelineFailed))
 			Expect(updated.Error).To(Equal("step failed"))
 		})
 	})
@@ -148,7 +148,7 @@ var _ = Describe("Event System", Label("event"), func() {
 
 			saved, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(saved.Status).To(Equal(model.PipelineDone))
+			Expect(saved.Status).To(BeEquivalentTo(model.PipelineDone))
 		})
 
 		It("records step execution results", func() {

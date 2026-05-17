@@ -565,6 +565,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 				SetTopic("agent-topic").
 				SetHostid("host-1").
 				SetHostname("agent-host").
+				SetLastOnlineAt(time.Now()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(a.ID).NotTo(BeZero())
@@ -578,6 +579,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 				SetTopic("agent-get").
 				SetHostid("host-get").
 				SetHostname("agent-get-host").
+				SetLastOnlineAt(time.Now()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -594,6 +596,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 				SetTopic("agent-del").
 				SetHostid("host-del").
 				SetHostname("agent-del-host").
+				SetLastOnlineAt(time.Now()).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -622,7 +625,7 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 
 			gotBot, err := EntClient.Bot.Get(ctx, b.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(gotBot.Name).To(Equal("Tx Bot"))
+			Expect(gotBot.Name).To(Equal(b.Name))
 
 			err = EntClient.User.DeleteOne(u).Exec(ctx)
 			Expect(err).NotTo(HaveOccurred())

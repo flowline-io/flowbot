@@ -21,6 +21,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			t, err := EntClient.Topic.Create().
 				SetFlag("topic-" + types.Id()).
 				SetPlatform("test").
+				SetOwner(0).
 				SetName("Test Topic").
 				SetType("channel").
 				Save(ctx)
@@ -34,6 +35,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			t, err := EntClient.Topic.Create().
 				SetFlag("topic-get-" + types.Id()).
 				SetPlatform("test").
+				SetOwner(0).
 				SetName("Get Topic").
 				SetType("channel").
 				Save(ctx)
@@ -50,6 +52,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			t, err := EntClient.Topic.Create().
 				SetFlag("topic-upd-" + types.Id()).
 				SetPlatform("test").
+				SetOwner(0).
 				SetName("Original").
 				SetType("channel").
 				Save(ctx)
@@ -66,6 +69,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 			t, err := EntClient.Topic.Create().
 				SetFlag("topic-del-" + types.Id()).
 				SetPlatform("test").
+				SetOwner(0).
 				SetName("Delete Topic").
 				SetType("channel").
 				Save(ctx)
