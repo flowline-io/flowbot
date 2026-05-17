@@ -32,8 +32,8 @@ jobs:
       - name: Go mod download
         run: go mod download
 
-      - name: Test
-        run: go tool task test
+      # - name: Test
+      #   run: go tool task test
 
       - name: Race testing
         run: go tool task test:race
