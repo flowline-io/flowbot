@@ -78,9 +78,9 @@ type anthropicError struct {
 
 // Anthropic streaming event types
 type anthropicStreamEvent struct {
-	Type    string                `json:"type"`
-	Delta   *anthropicDelta       `json:"delta,omitempty"`
-	Error   *anthropicError       `json:"error,omitempty"`
+	Type  string          `json:"type"`
+	Delta *anthropicDelta `json:"delta,omitempty"`
+	Error *anthropicError `json:"error,omitempty"`
 }
 
 type anthropicDelta struct {
@@ -247,7 +247,7 @@ func (p *anthropicProvider) readSSEStream(ctx context.Context, body io.ReadClose
 }
 
 func convertMessagesToAnthropic(messages []*Message) ([]anthropicMessage, string) {
-	var system string
+	var system strings.Builder
 	msgs := make([]anthropicMessage, 0, len(messages))
 
 	for _, m := range messages {
@@ -255,7 +255,7 @@ func convertMessagesToAnthropic(messages []*Message) ([]anthropicMessage, string
 			continue
 		}
 		if m.Role == SystemRole {
-			system += m.Content + "\n"
+			system.WriteString(m.Content + "\n")
 		} else {
 			role := m.Role
 			if role == AssistantRole {
@@ -265,21 +265,21 @@ func convertMessagesToAnthropic(messages []*Message) ([]anthropicMessage, string
 		}
 	}
 
-	return msgs, strings.TrimSpace(system)
+	return msgs, strings.TrimSpace(system.String())
 }
 
 func anthropicResponseToMessage(resp *anthropicResponse) *Message {
 	if resp == nil || len(resp.Content) == 0 {
 		return &Message{}
 	}
-	var text string
+	var text strings.Builder
 	for _, c := range resp.Content {
 		if c.Type == "text" {
-			text += c.Text
+			text.WriteString(c.Text)
 		}
 	}
 	return &Message{
 		Role:    resp.Role,
-		Content: text,
+		Content: text.String(),
 	}
 }

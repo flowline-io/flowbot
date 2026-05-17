@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -86,7 +87,7 @@ func Stream(ctx context.Context, client *Client, messages []*Message) (<-chan *M
 	msgCh := make(chan *Message, 1)
 	go func() {
 		defer close(msgCh)
-		var accumulated string
+		var accumulated strings.Builder
 		for {
 			select {
 			case <-ctx.Done():
@@ -98,10 +99,10 @@ func Stream(ctx context.Context, client *Client, messages []*Message) (<-chan *M
 				if frag.Err != nil {
 					return
 				}
-				accumulated += frag.Content
+				accumulated.WriteString(frag.Content)
 				if frag.Done {
 					select {
-					case msgCh <- &Message{Role: AssistantRole, Content: accumulated}:
+					case msgCh <- &Message{Role: AssistantRole, Content: accumulated.String()}:
 					case <-ctx.Done():
 					}
 					return

@@ -50,8 +50,8 @@ type openAIChatMessage struct {
 }
 
 type openAITool struct {
-	Type     string            `json:"type"`
-	Function openAIToolFunc    `json:"function"`
+	Type     string         `json:"type"`
+	Function openAIToolFunc `json:"function"`
 }
 
 type openAIToolFunc struct {
@@ -75,9 +75,9 @@ type openAIChatResponse struct {
 }
 
 type openAIChoice struct {
-	Message      openAIChatMessage  `json:"message,omitempty"`
-	Delta        openAIChatDelta    `json:"delta,omitempty"`
-	FinishReason string             `json:"finish_reason,omitempty"`
+	Message      openAIChatMessage `json:"message"`
+	Delta        openAIChatDelta   `json:"delta"`
+	FinishReason string            `json:"finish_reason,omitempty"`
 }
 
 type openAIChatDelta struct {
