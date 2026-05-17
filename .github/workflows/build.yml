@@ -8,11 +8,13 @@ on:
       - 'cmd/cli/**'
       - 'cmd/composer/**'
       - 'docs/**'
+      - 'tests/**'
   pull_request:
     paths-ignore:
       - 'cmd/cli/**'
       - 'cmd/composer/**'
       - 'docs/**'
+      - 'tests/**'
 
 permissions:
   contents: read
