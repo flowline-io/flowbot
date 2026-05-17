@@ -1,0 +1,57 @@
+# Pipeline configuration for cross-service event-driven automation.
+# This file is loaded separately from flowbot.yaml.
+# Specify the path with --pipelines-file CLI flag (default: pipelines.yaml).
+
+# Example pipeline definitions.
+# Each pipeline has a unique name, an event trigger, and an ordered sequence of steps
+# that invoke capability operations with optional retry configuration.
+#
+# Schema:
+#   name:        string    Unique pipeline name (used as consumer_name for idempotency)
+#   description: string    Human-readable description
+#   enabled:     bool      false to skip loading this pipeline
+#   resumable:   bool      Enable checkpoint + restart recovery
+#   trigger:
+#     event:     string    DataEvent.EventType to match
+#   steps:
+#     - name:       string    Step name (must be unique within pipeline)
+#       capability: string    Capability type (e.g. rss, notify, bookmark)
+#       operation:  string    Operation name (e.g. fetch, send, create)
+#       params:     map       Template-rendered input. Supports {{event.field}}, {{step "name" "field"}}
+#       retry:                Optional step-level retry
+#         max_attempts: int      Maximum retry attempts. 0 disables retry.
+#         delay:        string   Initial delay before first retry (e.g. "1s", "5m")
+#         backoff:      string   fixed | linear | exponential
+#         max_delay:    string   Caps the delay between retries
+#         jitter:       bool     Adds +/-50% randomization to delay
+#         retry_on:     []string Filter: only retry errors matching these codes
+
+- name: rss_fetch_and_notify
+  description: "Fetch RSS feeds and send notification"
+  enabled: false
+  resumable: true
+  trigger:
+    event: rss.fetch.requested
+  steps:
+    - name: fetch_feeds
+      capability: rss
+      operation: fetch
+      params:
+        url: "{{event.url}}"
+        max_items: 10
+      retry:
+        max_attempts: 3
+        delay: "1s"
+        backoff: exponential
+        max_delay: "60s"
+        jitter: true
+        retry_on:
+          - timeout
+          - rate_limited
+
+    - name: send_notification
+      capability: notify
+      operation: send
+      params:
+        channel: slack
+        message: "New feeds: {{step \"fetch_feeds\" \"count\"}}"

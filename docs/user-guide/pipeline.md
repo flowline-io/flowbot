@@ -27,41 +27,40 @@ Pipeline Engine (pkg/pipeline/engine.go)
 
 ## YAML Schema
 
-Pipelines are defined under the `pipelines` key in `flowbot.yaml`:
+Pipelines are defined in a separate `pipelines.yaml` file in the working directory:
 
 ```yaml
-pipelines:
-  - name: rss_fetch_and_notify          # unique name, used as consumer_name
-    description: "Fetch RSS feeds and send notification"
-    enabled: true                        # false to skip loading
-    resumable: true                      # enable checkpoint + restart recovery
+- name: rss_fetch_and_notify          # unique name, used as consumer_name
+  description: "Fetch RSS feeds and send notification"
+  enabled: true                        # false to skip loading
+  resumable: true                      # enable checkpoint + restart recovery
 
-    trigger:
-      event: rss.fetch.requested        # DataEvent.EventType to match
+  trigger:
+    event: rss.fetch.requested        # DataEvent.EventType to match
 
-    steps:
-      - name: fetch_feeds
-        capability: rss                  # capability type
-        operation: fetch                 # operation name
-        params:                          # template-rendered input
-          url: "{{event.url}}"
-          max_items: 10
-        retry:                           # step-level retry (optional)
-          max_attempts: 3
-          delay: 1s
-          backoff: exponential           # fixed | linear | exponential
-          max_delay: 60s
-          jitter: true
-          retry_on:                      # filter which errors to retry
-            - timeout
-            - rate_limited
+  steps:
+    - name: fetch_feeds
+      capability: rss                  # capability type
+      operation: fetch                 # operation name
+      params:                          # template-rendered input
+        url: "{{event.url}}"
+        max_items: 10
+      retry:                           # step-level retry (optional)
+        max_attempts: 3
+        delay: 1s
+        backoff: exponential           # fixed | linear | exponential
+        max_delay: 60s
+        jitter: true
+        retry_on:                      # filter which errors to retry
+          - timeout
+          - rate_limited
 
-      - name: send_notification
-        capability: notify
-        operation: send
-        params:
-          channel: slack
-          message: "New feeds: {{step "fetch_feeds" "count"}}"
+    - name: send_notification
+      capability: notify
+      operation: send
+      params:
+        channel: slack
+        message: "New feeds: {{step "fetch_feeds" "count"}}"
 ```
 
 ## Retry Strategy

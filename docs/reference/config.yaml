@@ -245,26 +245,8 @@ homelab:
     # When true, label-derived data overrides probe results
     label_priority: true
 
-# Pipeline configuration for cross-service event-driven automation
-pipelines: []
-  # - name: ""
-  #   description: ""
-  #   enabled: true
-  #   resumable: false
-  #   trigger:
-  #     event: ""
-  #   steps:
-  #     - name: ""
-  #       capability: ""
-  #       operation: ""
-  #       params: {}
-  #       retry:
-  #         max_attempts: 3
-  #         delay: "1s"
-  #         backoff: "exponential"
-  #         max_delay: "30s"
-  #         jitter: true
-  #         retry_on: []
+# Pipeline definitions are loaded from a separate pipelines.yaml file.
+# See docs/reference/pipelines.yaml for the pipeline schema and examples.
 
 # Notification gateway configuration
 notify:
