@@ -1136,22 +1136,34 @@ func TestRenderString_CacheConsistency(t *testing.T) {
 	tests := []struct {
 		name     string
 		template string
-		data     *TemplateData
+		data1    *TemplateData
+		data2    *TemplateData
+		want1    string
+		want2    string
 	}{
 		{
 			name:     "event-field-cached",
 			template: `{{event "id"}}`,
-			data:     &TemplateData{Event: map[string]any{"id": "42"}},
+			data1:    &TemplateData{Event: map[string]any{"id": "42"}},
+			data2:    &TemplateData{Event: map[string]any{"id": "99"}},
+			want1:    "42",
+			want2:    "99",
 		},
 		{
 			name:     "step-field-cached",
 			template: `{{step "s1" "result"}}`,
-			data:     &TemplateData{Steps: map[string]map[string]any{"s1": {"result": "done"}}},
+			data1:    &TemplateData{Steps: map[string]map[string]any{"s1": {"result": "done"}}},
+			data2:    &TemplateData{Steps: map[string]map[string]any{"s1": {"result": "updated"}}},
+			want1:    "done",
+			want2:    "updated",
 		},
 		{
 			name:     "input-field-cached",
 			template: `{{input "key"}}`,
-			data:     &TemplateData{Input: map[string]any{"key": "val"}},
+			data1:    &TemplateData{Input: map[string]any{"key": "val1"}},
+			data2:    &TemplateData{Input: map[string]any{"key": "val2"}},
+			want1:    "val1",
+			want2:    "val2",
 		},
 	}
 
@@ -1159,11 +1171,12 @@ func TestRenderString_CacheConsistency(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			e := New()
-			first, err := e.RenderString(tt.template, tt.data)
+			first, err := e.RenderString(tt.template, tt.data1)
 			require.NoError(t, err)
-			second, err := e.RenderString(tt.template, tt.data)
+			assert.Equal(t, tt.want1, first)
+			second, err := e.RenderString(tt.template, tt.data2)
 			require.NoError(t, err)
-			assert.Equal(t, first, second, "cached and uncached renders must produce identical output")
+			assert.Equal(t, tt.want2, second, "cached template must use current data, not stale data from first parse")
 		})
 	}
 }

@@ -13,10 +13,14 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// Engine renders Go text/template strings with helper functions and caching.
 type Engine struct {
-	cache sync.Map // string -&gt; *txtpl.Template
+	cache sync.Map // string -> *txtpl.Template
+	mu    sync.Mutex
+	data  *TemplateData // current execution data, swapped per call
 }
 
+// TemplateData holds the execution context for template rendering.
 type TemplateData struct {
 	Event map[string]any
 	Steps map[string]map[string]any
@@ -24,6 +28,7 @@ type TemplateData struct {
 	Input map[string]any
 }
 
+// New returns a new template Engine.
 func New() *Engine {
 	return &Engine{}
 }
@@ -41,9 +46,15 @@ func preprocessTemplate(s string) string {
 	return s
 }
 
-func funcMap(data *TemplateData) txtpl.FuncMap {
+// funcs returns a FuncMap whose data-dependent closures read from e.data,
+// which is set per execution. This ensures cached templates always use
+// current data rather than stale pointers from a previous parse.
+// The closures read e.data without locking because they are only called
+// during template Execute, which runs inside RenderString's locked section.
+func (e *Engine) funcs() txtpl.FuncMap {
 	return txtpl.FuncMap{
 		"input": func(field string) any {
+			data := e.data
 			if data != nil && data.Input != nil {
 				if v, ok := data.Input[field]; ok {
 					return v
@@ -52,6 +63,7 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 			return ""
 		},
 		"event": func(field string) any {
+			data := e.data
 			if data != nil && data.Event != nil {
 				if v, ok := data.Event[field]; ok {
 					return v
@@ -60,6 +72,7 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 			return ""
 		},
 		"step": func(stepName, field string) any {
+			data := e.data
 			if data != nil && data.Steps != nil {
 				if step, ok := data.Steps[stepName]; ok {
 					if v, ok := step[field]; ok {
@@ -125,6 +138,17 @@ func funcMap(data *TemplateData) txtpl.FuncMap {
 	}
 }
 
+// setData stores the current TemplateData on the Engine so that cached
+// template closures can read it during execution. The caller must hold
+// e.mu or ensure single-goroutine access.
+func (e *Engine) setData(data *TemplateData) {
+	e.data = data
+}
+
+// RenderString renders a template string with the given TemplateData.
+// Templates are cached by their preprocessed string; on cache hit the
+// same parsed template is reused, but the data-dependent functions
+// (event, input, step) always read from the current data via e.data.
 func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	if !strings.Contains(tmpl, "{{") {
 		return tmpl, nil
@@ -132,12 +156,19 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 
 	tmpl = preprocessTemplate(tmpl)
 
+	e.mu.Lock()
+	e.data = data
+	defer func() {
+		e.data = nil
+		e.mu.Unlock()
+	}()
+
 	var t *txtpl.Template
 	if cached, ok := e.cache.Load(tmpl); ok {
 		t = cached.(*txtpl.Template)
 	} else {
 		var err error
-		t, err = txtpl.New("render").Funcs(funcMap(data)).Parse(tmpl)
+		t, err = txtpl.New("render").Funcs(e.funcs()).Parse(tmpl)
 		if err != nil {
 			return "", fmt.Errorf("template parse: %w", err)
 		}
@@ -171,6 +202,8 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 
 const maxRenderDepth = 32
 
+// Render traverses a map of parameters and renders any template strings
+// found within using the given TemplateData.
 func (e *Engine) Render(params map[string]any, data *TemplateData) (map[string]any, error) {
 	return e.renderMap(params, data, 0)
 }
