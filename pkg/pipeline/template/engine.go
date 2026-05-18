@@ -15,10 +15,12 @@ import (
 
 // Engine renders Go text/template strings with helper functions and caching.
 type Engine struct {
-	cache sync.Map // string -> *txtpl.Template
-	mu    sync.Mutex
-	data  *TemplateData // current execution data, swapped per call
+	mu   sync.Mutex
+	data *TemplateData // current execution data, swapped per call
 }
+
+// templateCache holds compiled templates shared across all Engine instances.
+var templateCache sync.Map // string -> *txtpl.Template
 
 // TemplateData holds the execution context for template rendering.
 type TemplateData struct {
@@ -51,8 +53,6 @@ func preprocessTemplate(s string) string {
 // funcs returns a FuncMap whose data-dependent closures read from e.data,
 // which is set per execution. This ensures cached templates always use
 // current data rather than stale pointers from a previous parse.
-// The closures read e.data without locking because they are only called
-// during template Execute, which runs inside RenderString's locked section.
 func (e *Engine) funcs() txtpl.FuncMap {
 	return txtpl.FuncMap{
 		"input": func(field string) any {
@@ -142,8 +142,8 @@ func (e *Engine) funcs() txtpl.FuncMap {
 
 // RenderString renders a template string with the given TemplateData.
 // Templates are cached by their preprocessed string; on cache hit the
-// same parsed template is reused, but the data-dependent functions
-// (event, input, step) always read from the current data via e.data.
+// cached parse tree is cloned and fresh data-dependent functions
+// (event, input, step) are attached for the current Engine instance.
 func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	if !strings.Contains(tmpl, "{{") {
 		return tmpl, nil
@@ -159,15 +159,19 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	}()
 
 	var t *txtpl.Template
-	if cached, ok := e.cache.Load(tmpl); ok {
-		t = cached.(*txtpl.Template)
+	if cached, ok := templateCache.Load(tmpl); ok {
+		cloned, err := cached.(*txtpl.Template).Clone()
+		if err != nil {
+			return "", fmt.Errorf("template clone: %w", err)
+		}
+		t = cloned.Funcs(e.funcs())
 	} else {
 		var err error
 		t, err = txtpl.New("render").Funcs(e.funcs()).Parse(tmpl)
 		if err != nil {
 			return "", fmt.Errorf("template parse: %w", err)
 		}
-		e.cache.Store(tmpl, t)
+		templateCache.Store(tmpl, t)
 	}
 
 	tplData := map[string]any{}

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1128,6 +1129,54 @@ func TestRender_MaxDepth(t *testing.T) {
 				tt.wantAssert(t, result)
 			}
 		})
+	}
+}
+
+func TestSharedCacheAcrossInstances(t *testing.T) {
+	t.Parallel()
+	e1 := New()
+	e2 := New()
+
+	data := &TemplateData{
+		Steps: map[string]map[string]any{
+			"s1": {"result": "hello"},
+		},
+	}
+
+	r1, err := e1.RenderString(`{{step "s1" "result"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "hello", r1)
+
+	r2, err := e2.RenderString(`{{step "s1" "result"}}`, data)
+	require.NoError(t, err)
+	assert.Equal(t, "hello", r2)
+
+	var wg sync.WaitGroup
+	errs := make(chan error, 6)
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := e1.RenderString(`{{step "s1" "result"}}`, data)
+			if err != nil {
+				errs <- err
+			}
+		}()
+	}
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := e2.RenderString(`{{step "s1" "result"}}`, data)
+			if err != nil {
+				errs <- err
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Errorf("concurrent render failed: %v", err)
 	}
 }
 
