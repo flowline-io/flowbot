@@ -551,6 +551,43 @@ func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *t
 	}
 }
 
+// runEngineWithRetry runs a task on the given engine with retry support.
+// Unlike runWithRetry, it uses the provided engine directly instead of
+// looking up r.engines, making it safe for concurrent per-task engine instances.
+func (r *Runner) runEngineWithRetry(ctx context.Context, engine *executor.Engine, task *types.Task, retryCfg *types.RetryConfig, stepID string, stepRun *model.WorkflowStepRun) (int, error) {
+	bo := retryCfg.BuildBackOff()
+
+	attempt := 0
+	for {
+		attempt++
+		err := engine.Run(ctx, task)
+		if err == nil {
+			return attempt, nil
+		}
+
+		if r.store != nil && stepRun != nil {
+			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunRunning, nil, err.Error(), attempt)
+		}
+
+		if !retryCfg.RetryEnabled() {
+			return attempt, err
+		}
+
+		nextDelay := bo.NextBackOff()
+		if nextDelay == backoff.Stop {
+			return attempt, fmt.Errorf("step %s (retries exhausted, attempt %d): %w", stepID, attempt, err)
+		}
+
+		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, nextDelay, err)
+
+		select {
+		case <-ctx.Done():
+			return attempt, fmt.Errorf("step %s cancelled: %w", stepID, ctx.Err())
+		case <-time.After(nextDelay):
+		}
+	}
+}
+
 func ValidateDAG(tasks []types.WorkflowTask) error {
 	adj := make(map[string][]string)
 	for _, t := range tasks {
