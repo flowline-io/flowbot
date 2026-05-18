@@ -255,7 +255,7 @@ func convertMessagesToAnthropic(messages []*Message) ([]anthropicMessage, string
 			continue
 		}
 		if m.Role == SystemRole {
-			system.WriteString(m.Content + "\n")
+			_, _ = system.WriteString(m.Content + "\n")
 		} else {
 			role := m.Role
 			if role == AssistantRole {
@@ -275,7 +275,7 @@ func anthropicResponseToMessage(resp *anthropicResponse) *Message {
 	var text strings.Builder
 	for _, c := range resp.Content {
 		if c.Type == "text" {
-			text.WriteString(c.Text)
+			_, _ = text.WriteString(c.Text)
 		}
 	}
 	return &Message{

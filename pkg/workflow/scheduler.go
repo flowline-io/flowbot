@@ -72,37 +72,39 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 	totalRemaining := len(wf.Tasks)
 
 	for totalRemaining > 0 {
-		for len(ready) > 0 && activeCount < wf.MaxConcurrency {
-			select {
-			case <-ctx.Done():
-				goto drain
-			default:
+		for {
+			mu.Lock()
+			hasReady := len(ready) > 0 && activeCount < wf.MaxConcurrency
+			if hasReady {
+				id := ready[0]
+				ready = ready[1:]
+				activeCount++
+				mu.Unlock()
+
+				sem <- struct{}{}
+				wg.Add(1)
+
+				go func(taskID string) {
+					defer wg.Done()
+					defer func() {
+						<-sem
+						done <- struct{}{}
+					}()
+
+					wt := taskMap[taskID]
+
+					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
+					if rerr != nil {
+						errOnce.Do(func() {
+							firstErr = rerr
+							cancel()
+						})
+					}
+				}(id)
+			} else {
+				mu.Unlock()
+				break
 			}
-
-			id := ready[0]
-			ready = ready[1:]
-
-			sem <- struct{}{}
-			activeCount++
-			wg.Add(1)
-
-			go func(taskID string) {
-				defer wg.Done()
-				defer func() {
-					<-sem
-					done <- struct{}{}
-				}()
-
-				wt := taskMap[taskID]
-
-				rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
-				if rerr != nil {
-					errOnce.Do(func() {
-						firstErr = rerr
-						cancel()
-					})
-				}
-			}(id)
 		}
 
 		select {
@@ -339,37 +341,39 @@ func (r *Runner) runParallelResume(runID int64, wf types.WorkflowMetadata, cp Ch
 	}
 
 	for totalRemaining > 0 {
-		for len(ready) > 0 && activeCount < wf.MaxConcurrency {
-			select {
-			case <-ctx.Done():
-				goto drain
-			default:
+		for {
+			mu.Lock()
+			hasReady := len(ready) > 0 && activeCount < wf.MaxConcurrency
+			if hasReady {
+				id := ready[0]
+				ready = ready[1:]
+				activeCount++
+				mu.Unlock()
+
+				sem <- struct{}{}
+				wg.Add(1)
+
+				go func(taskID string) {
+					defer wg.Done()
+					defer func() {
+						<-sem
+						done <- struct{}{}
+					}()
+
+					wt := taskMap[taskID]
+
+					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
+					if rerr != nil {
+						errOnce.Do(func() {
+							firstErr = rerr
+							cancel()
+						})
+					}
+				}(id)
+			} else {
+				mu.Unlock()
+				break
 			}
-
-			id := ready[0]
-			ready = ready[1:]
-
-			sem <- struct{}{}
-			activeCount++
-			wg.Add(1)
-
-			go func(taskID string) {
-				defer wg.Done()
-				defer func() {
-					<-sem
-					done <- struct{}{}
-				}()
-
-				wt := taskMap[taskID]
-
-				rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
-				if rerr != nil {
-					errOnce.Do(func() {
-						firstErr = rerr
-						cancel()
-					})
-				}
-			}(id)
 		}
 
 		select {

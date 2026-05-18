@@ -99,7 +99,7 @@ func Stream(ctx context.Context, client *Client, messages []*Message) (<-chan *M
 				if frag.Err != nil {
 					return
 				}
-				accumulated.WriteString(frag.Content)
+				_, _ = accumulated.WriteString(frag.Content)
 				if frag.Done {
 					select {
 					case msgCh <- &Message{Role: AssistantRole, Content: accumulated.String()}:
