@@ -170,6 +170,16 @@ func NewRunnerWithStore(store WorkflowRunStore, workflowFile, triggerType string
 	}
 }
 
+// Close releases all executor engine resources (Docker clients, SSH connections, capability runtimes).
+func (r *Runner) Close() error {
+	for _, eng := range r.engines {
+		if cerr := eng.Close(); cerr != nil {
+			flog.Error(fmt.Errorf("[workflow] close engine: %w", cerr))
+		}
+	}
+	return nil
+}
+
 func (r *Runner) Run(ctx context.Context, t *types.Task) error {
 	rt := DetermineRuntimeType(t)
 	eng, ok := r.engines[rt]
@@ -180,6 +190,8 @@ func (r *Runner) Run(ctx context.Context, t *types.Task) error {
 }
 
 func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input types.KV, file string) error {
+	defer r.Close()
+
 	taskMap := make(map[string]types.WorkflowTask)
 	for _, wt := range wf.Tasks {
 		taskMap[wt.ID] = wt
@@ -329,6 +341,8 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 
 // ResumeWorkflow resumes a previously failed or incomplete workflow run from its checkpoint.
 func (r *Runner) ResumeWorkflow(runID int64) error {
+	defer r.Close()
+
 	if r.store == nil {
 		return fmt.Errorf("cannot resume workflow without a store")
 	}
