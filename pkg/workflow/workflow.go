@@ -197,8 +197,18 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 		taskMap[wt.ID] = wt
 	}
 
-	results := make(map[string]string)
+	if wf.MaxConcurrency <= 0 {
+		wf.MaxConcurrency = 1
+	}
 
+	if wf.MaxConcurrency > 1 {
+		return r.executeWithRunRecord(ctx, wf, input, file, taskMap, true)
+	}
+	return r.executeWithRunRecord(ctx, wf, input, file, taskMap, false)
+}
+
+// executeWithRunRecord creates the run record and delegates to sequential or parallel execution.
+func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMetadata, input types.KV, file string, taskMap map[string]types.WorkflowTask, parallel bool) error {
 	// Persist run record if store is available.
 	var run *model.WorkflowRun
 	if r.store != nil {
@@ -230,6 +240,31 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 		go r.heartbeat(hbCtx, run.ID)
 	}
 
+	if parallel {
+		return r.runParallel(ctx, wf, input, taskMap, run, cancelHeartbeat)
+	}
+	return r.runSequential(ctx, wf, input, taskMap, run, cancelHeartbeat)
+}
+
+// runSequential executes workflow tasks one at a time in pipeline order.
+func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
+	results := make(map[string]string)
+
+	// Save checkpoint before step execution.
+	saveCheckpoint := func(stepIndex int) {
+		if wf.Resumable && r.store != nil && run != nil {
+			cp := CheckpointData{
+				StepIndex:   stepIndex,
+				StepResults: resultCopy(results),
+				Input:       input,
+				HeartbeatAt: time.Now(),
+			}
+			if cerr := r.store.SaveCheckpoint(run.ID, &cp); cerr != nil {
+				flog.Error(fmt.Errorf("[workflow] save checkpoint step %d: %w", stepIndex, cerr))
+			}
+		}
+	}
+
 	stepIndex := 0
 	for _, stepID := range wf.Pipeline {
 		wt, ok := taskMap[stepID]
@@ -239,18 +274,7 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 			return err
 		}
 
-		// Save checkpoint before step execution.
-		if wf.Resumable && r.store != nil && run != nil {
-			cp := CheckpointData{
-				StepIndex:   stepIndex,
-				StepResults: resultCopy(results),
-				Input:       input,
-				HeartbeatAt: time.Now(),
-			}
-			if cerr := r.store.SaveCheckpoint(run.ID, &cp); cerr != nil {
-				flog.Error(fmt.Errorf("[workflow] save checkpoint step %s: %w", stepID, cerr))
-			}
-		}
+		saveCheckpoint(stepIndex)
 
 		params, err := resolveParams(wt.Params, results, input)
 		if err != nil {
@@ -261,7 +285,6 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 
 		info := ParseAction(wt.Action)
 
-		// Create step run record.
 		var stepRun *model.WorkflowStepRun
 		if r.store != nil && run != nil {
 			stepRun, err = r.store.CreateStepRun(run.ID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
@@ -270,7 +293,6 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 			}
 		}
 
-		// Mapper steps are handled inline.
 		if info.Type == "mapper" {
 			mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
 			if merr != nil {
@@ -314,7 +336,6 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 			results[stepID] = task.Result
 		}
 
-		// Update step run to done.
 		if r.store != nil && stepRun != nil {
 			resultJSON := model.JSON{}
 			if task.Result != "" {
@@ -328,7 +349,6 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 		stepIndex++
 	}
 
-	// Mark run as done.
 	if r.store != nil && run != nil {
 		if cancelHeartbeat != nil {
 			cancelHeartbeat()
