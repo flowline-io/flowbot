@@ -71,8 +71,9 @@ func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 type WorkflowMetadata struct {
 	Name      string `json:"name" yaml:"name"`
 	Describe  string `json:"describe" yaml:"describe"`
-	Resumable bool   `json:"resumable" yaml:"resumable"`
-	Triggers  []struct {
+	Resumable      bool `json:"resumable" yaml:"resumable"`
+	MaxConcurrency int  `json:"max_concurrency" yaml:"max_concurrency"` // 0 or 1 = sequential; >1 enables DAG-based parallel execution
+	Triggers       []struct {
 		Type string `json:"type" yaml:"type"`
 		Rule KV     `json:"rule,omitempty" yaml:"rule"`
 	} `json:"triggers" yaml:"triggers"`
