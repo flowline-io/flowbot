@@ -130,4 +130,40 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 			Expect(ctx.Err()).NotTo(HaveOccurred())
 		})
 	})
+
+	Describe("Workflow Parallel Execution", func() {
+		It("has MaxConcurrency field on metadata", func() {
+			meta := types.WorkflowMetadata{
+				Name:           "parallel-test",
+				MaxConcurrency: 3,
+				Pipeline:       []string{"a", "b"},
+				Tasks: []types.WorkflowTask{
+					{ID: "a", Action: "mapper:"},
+					{ID: "b", Action: "mapper:", Conn: []string{"a"}},
+				},
+			}
+			Expect(meta.MaxConcurrency).To(Equal(3))
+		})
+
+		It("defaults MaxConcurrency to zero", func() {
+			meta := types.WorkflowMetadata{
+				Name:     "sequential-test",
+				Pipeline: []string{"a"},
+				Tasks:    []types.WorkflowTask{{ID: "a", Action: "mapper:"}},
+			}
+			Expect(meta.MaxConcurrency).To(Equal(0))
+		})
+
+		It("supports parallel execution via Conn dependencies", func() {
+			tasks := []types.WorkflowTask{
+				{ID: "a", Conn: []string{"b", "c"}},
+				{ID: "b", Conn: []string{"d"}},
+				{ID: "c", Conn: []string{"d"}},
+				{ID: "d"},
+			}
+			Expect(tasks).To(HaveLen(4))
+			Expect(tasks[0].Conn).To(ConsistOf("b", "c"))
+			Expect(tasks[3].Conn).To(BeEmpty())
+		})
+	})
 })

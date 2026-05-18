@@ -1,0 +1,29 @@
+name: parallel_save_and_track
+describe: Save bookmark, archive URL, and create kanban task with parallel execution
+max_concurrency: 3
+resumable: true
+pipeline:
+  - fetch_data
+  - archive_url
+  - create_task
+  - notify
+tasks:
+  - id: fetch_data
+    describe: Fetch bookmark data
+    action: capability:bookmark.list
+  - id: archive_url
+    describe: Archive the URL
+    action: capability:archive.create
+    conn:
+      - fetch_data
+  - id: create_task
+    describe: Create kanban task
+    action: capability:kanban.create
+    conn:
+      - fetch_data
+  - id: notify
+    describe: Send notification
+    action: capability:notify.send
+    conn:
+      - archive_url
+      - create_task
