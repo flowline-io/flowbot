@@ -38,6 +38,8 @@ var reEvent = regexp.MustCompile(`\{\{event\.(\w+)\}\}`)
 var reSteps = regexp.MustCompile(`\{\{steps\.(\w+)\.(\w+)\}\}`)
 var reStepLegacy = regexp.MustCompile(`\{\{(\w+)\.(id|result)\}\}`)
 
+var pooledSonic = sonic.Config{}.Froze()
+
 func preprocessTemplate(s string) string {
 	s = reInput.ReplaceAllString(s, `{{input "$1"}}`)
 	s = reEvent.ReplaceAllString(s, `{{event "$1"}}`)
@@ -109,7 +111,7 @@ func (e *Engine) funcs() txtpl.FuncMap {
 			return val
 		},
 		"json": func(v any) (string, error) {
-			b, err := sonic.Marshal(v)
+			b, err := pooledSonic.Marshal(v)
 			if err != nil {
 				return "", err
 			}

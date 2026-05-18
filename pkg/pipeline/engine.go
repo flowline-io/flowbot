@@ -20,6 +20,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/model"
 )
 
+var pooledSonic = sonic.Config{}.Froze()
+
 // CheckpointData is the intermediate state saved at each pipeline step boundary.
 type CheckpointData struct {
 	StepIndex   int                    `json:"step_index"`
@@ -327,12 +329,12 @@ func extractResult(res *ability.InvokeResult) map[string]any {
 	}
 	// For non-map types (e.g. slices, structs), serialize via JSON and store
 	// in a map so template resolution can access individual fields.
-	dataJSON, err := sonic.Marshal(res.Data)
+	dataJSON, err := pooledSonic.Marshal(res.Data)
 	if err != nil {
 		return map[string]any{"result": res.Data}
 	}
 	var stepResult any
-	if err := sonic.Unmarshal(dataJSON, &stepResult); err != nil {
+	if err := pooledSonic.Unmarshal(dataJSON, &stepResult); err != nil {
 		return map[string]any{"result": res.Data}
 	}
 	if m, ok := stepResult.(map[string]any); ok {
