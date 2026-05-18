@@ -9,10 +9,11 @@ import (
 
 // CheckpointData is the intermediate state saved at each workflow step boundary.
 type CheckpointData struct {
-	StepIndex   int               `json:"step_index"`
-	StepResults map[string]string `json:"step_results"`
-	Input       types.KV          `json:"input"`
-	HeartbeatAt time.Time         `json:"heartbeat_at"`
+	StepIndex      int               `json:"step_index"`
+	CompletedTasks map[string]bool   `json:"completed_tasks"`
+	StepResults    map[string]string `json:"step_results"`
+	Input          types.KV          `json:"input"`
+	HeartbeatAt    time.Time         `json:"heartbeat_at"`
 }
 
 // WorkflowRunStore persists workflow runs, step runs, and checkpoint data.
