@@ -386,6 +386,11 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 		return fmt.Errorf("get checkpoint for run %d: %w", runID, err)
 	}
 
+	// Parallel resume path.
+	if wf.MaxConcurrency > 1 {
+		return r.runParallelResume(runID, *wf, cp)
+	}
+
 	taskMap := make(map[string]types.WorkflowTask)
 	for _, wt := range wf.Tasks {
 		taskMap[wt.ID] = wt

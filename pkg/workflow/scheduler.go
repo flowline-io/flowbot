@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/executor"
@@ -235,6 +236,7 @@ func (r *Runner) executeParallelTask(
 		flog.Info("[workflow] step %s completed (parallel)", taskID)
 	}
 
+	// Enqueue newly-ready dependents and save checkpoint.
 	mu.Lock()
 	node := nodes[taskID]
 	for _, depID := range node.deps {
@@ -244,7 +246,151 @@ func (r *Runner) executeParallelTask(
 			*ready = append(*ready, depID)
 		}
 	}
+	// Save checkpoint if resumable.
+	if wf.Resumable && r.store != nil && run != nil {
+		completedTasks := make(map[string]bool)
+		for taskID := range *results {
+			completedTasks[taskID] = true
+		}
+		resultCopy := make(map[string]string, len(*results))
+		for k, v := range *results {
+			resultCopy[k] = v
+		}
+		cp := CheckpointData{
+			CompletedTasks: completedTasks,
+			StepResults:    resultCopy,
+			Input:          input,
+			HeartbeatAt:    time.Now(),
+		}
+		if cerr := r.store.SaveCheckpoint(run.ID, &cp); cerr != nil {
+			flog.Error(fmt.Errorf("[workflow] save checkpoint step %s: %w", taskID, cerr))
+		}
+	}
 	mu.Unlock()
 
+	return nil
+}
+
+// runParallelResume resumes a parallel workflow from its checkpoint.
+func (r *Runner) runParallelResume(runID int64, wf types.WorkflowMetadata, cp CheckpointData) error {
+	run, err := r.store.GetRun(runID)
+	if err != nil {
+		return fmt.Errorf("get run %d: %w", runID, err)
+	}
+
+	taskMap := make(map[string]types.WorkflowTask)
+	for _, wt := range wf.Tasks {
+		taskMap[wt.ID] = wt
+	}
+
+	nodes, ready, err := buildDAG(wf.Tasks)
+	if err != nil {
+		return fmt.Errorf("build dag: %w", err)
+	}
+
+	results := resultCopy(cp.StepResults)
+
+	// Pre-mark completed tasks: decrement inDegree for their dependents.
+	for taskID := range cp.CompletedTasks {
+		node, ok := nodes[taskID]
+		if !ok {
+			continue
+		}
+		for _, depID := range node.deps {
+			depNode := nodes[depID]
+			depNode.inDegree--
+		}
+	}
+
+	// Recompute ready list: tasks with inDegree==0 that are NOT completed.
+	ready = ready[:0]
+	for _, t := range wf.Tasks {
+		if cp.CompletedTasks[t.ID] {
+			continue
+		}
+		if nodes[t.ID].inDegree == 0 {
+			ready = append(ready, t.ID)
+		}
+	}
+
+	input := cp.Input
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sem := make(chan struct{}, wf.MaxConcurrency)
+	var mu sync.Mutex
+	var firstErr error
+	var errOnce sync.Once
+
+	var wg sync.WaitGroup
+	done := make(chan struct{}, len(wf.Tasks))
+	activeCount := 0
+	totalRemaining := 0
+	for _, t := range wf.Tasks {
+		if !cp.CompletedTasks[t.ID] {
+			totalRemaining++
+		}
+	}
+
+	if totalRemaining == 0 {
+		_ = r.store.UpdateRunStatus(runID, model.WorkflowRunDone, "")
+		return nil
+	}
+
+	for totalRemaining > 0 {
+		for len(ready) > 0 && activeCount < wf.MaxConcurrency {
+			select {
+			case <-ctx.Done():
+				goto drain
+			default:
+			}
+
+			id := ready[0]
+			ready = ready[1:]
+
+			sem <- struct{}{}
+			activeCount++
+			wg.Add(1)
+
+			go func(taskID string) {
+				defer wg.Done()
+				defer func() {
+					<-sem
+					done <- struct{}{}
+				}()
+
+				wt := taskMap[taskID]
+
+				rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
+				if rerr != nil {
+					errOnce.Do(func() {
+						firstErr = rerr
+						cancel()
+					})
+				}
+			}(id)
+		}
+
+		select {
+		case <-ctx.Done():
+			goto drain
+		case <-done:
+			mu.Lock()
+			activeCount--
+			totalRemaining--
+			mu.Unlock()
+		}
+	}
+
+drain:
+	wg.Wait()
+
+	if firstErr != nil {
+		_ = r.store.UpdateRunStatus(runID, model.WorkflowRunFailed, firstErr.Error())
+		return firstErr
+	}
+
+	_ = r.store.UpdateRunStatus(runID, model.WorkflowRunDone, "")
 	return nil
 }

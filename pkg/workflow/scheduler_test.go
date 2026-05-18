@@ -174,3 +174,92 @@ func TestRunParallelBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestRunParallelFailFast(t *testing.T) {
+	t.Parallel()
+	wf := types.WorkflowMetadata{
+		Name:           "fail-fast-test",
+		MaxConcurrency: 2,
+		Pipeline:       []string{"failer", "mapper"},
+		Tasks: []types.WorkflowTask{
+			{ID: "failer", Action: "shell:exit 1"},
+			{ID: "mapper", Action: "mapper:", Params: types.KV{"out": "should-complete-or-be-cancelled"}},
+		},
+	}
+	runner := NewRunner()
+	err := runner.Execute(context.Background(), wf, nil, "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "step failer failed")
+}
+
+func TestRunParallelEdgeCases(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		wf      types.WorkflowMetadata
+		wantErr bool
+	}{
+		{
+			name: "max-concurrency-zero-should-be-sequential",
+			wf: types.WorkflowMetadata{
+				Name:           "sequential-fallback",
+				MaxConcurrency: 0,
+				Pipeline:       []string{"a", "b", "c"},
+				Tasks: []types.WorkflowTask{
+					{ID: "a", Action: "mapper:", Params: types.KV{"out": "a"}},
+					{ID: "b", Action: "mapper:", Params: types.KV{"out": "b"}, Conn: []string{"a"}},
+					{ID: "c", Action: "mapper:", Params: types.KV{"out": "c"}, Conn: []string{"b"}},
+				},
+			},
+		},
+		{
+			name: "single-node-dag",
+			wf: types.WorkflowMetadata{
+				Name:           "single-node",
+				MaxConcurrency: 5,
+				Pipeline:       []string{"solo"},
+				Tasks: []types.WorkflowTask{
+					{ID: "solo", Action: "mapper:", Params: types.KV{"out": "done"}},
+				},
+			},
+		},
+		{
+			name: "all-independent-max-conc-1-runs-sequential",
+			wf: types.WorkflowMetadata{
+				Name:           "forced-sequential",
+				MaxConcurrency: 1,
+				Pipeline:       []string{"a", "b"},
+				Tasks: []types.WorkflowTask{
+					{ID: "a", Action: "mapper:", Params: types.KV{"out": "a"}},
+					{ID: "b", Action: "mapper:", Params: types.KV{"out": "b"}},
+				},
+			},
+		},
+		{
+			name: "diamond-with-max-conc-2",
+			wf: types.WorkflowMetadata{
+				Name:           "diamond-conc-2",
+				MaxConcurrency: 2,
+				Pipeline:       []string{"d", "b", "c", "a"},
+				Tasks: []types.WorkflowTask{
+					{ID: "a", Action: "mapper:", Params: types.KV{"merged": `{{step "b" "result"}}|{{step "c" "result"}}`}, Conn: []string{"b", "c"}},
+					{ID: "b", Action: "mapper:", Params: types.KV{"from": `{{step "d" "result"}}`}, Conn: []string{"d"}},
+					{ID: "c", Action: "mapper:", Params: types.KV{"from": `{{step "d" "result"}}`}, Conn: []string{"d"}},
+					{ID: "d", Action: "mapper:", Params: types.KV{"start": "root"}},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			runner := NewRunner()
+			err := runner.Execute(context.Background(), tt.wf, nil, "")
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
