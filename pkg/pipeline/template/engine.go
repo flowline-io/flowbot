@@ -138,13 +138,6 @@ func (e *Engine) funcs() txtpl.FuncMap {
 	}
 }
 
-// setData stores the current TemplateData on the Engine so that cached
-// template closures can read it during execution. The caller must hold
-// e.mu or ensure single-goroutine access.
-func (e *Engine) setData(data *TemplateData) {
-	e.data = data
-}
-
 // RenderString renders a template string with the given TemplateData.
 // Templates are cached by their preprocessed string; on cache hit the
 // same parsed template is reused, but the data-dependent functions
