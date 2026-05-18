@@ -1130,3 +1130,40 @@ func TestRender_MaxDepth(t *testing.T) {
 		})
 	}
 }
+
+func TestRenderString_CacheConsistency(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		template string
+		data     *TemplateData
+	}{
+		{
+			name:     "event-field-cached",
+			template: `{{event "id"}}`,
+			data:     &TemplateData{Event: map[string]any{"id": "42"}},
+		},
+		{
+			name:     "step-field-cached",
+			template: `{{step "s1" "result"}}`,
+			data:     &TemplateData{Steps: map[string]map[string]any{"s1": {"result": "done"}}},
+		},
+		{
+			name:     "input-field-cached",
+			template: `{{input "key"}}`,
+			data:     &TemplateData{Input: map[string]any{"key": "val"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := New()
+			first, err := e.RenderString(tt.template, tt.data)
+			require.NoError(t, err)
+			second, err := e.RenderString(tt.template, tt.data)
+			require.NoError(t, err)
+			assert.Equal(t, first, second, "cached and uncached renders must produce identical output")
+		})
+	}
+}

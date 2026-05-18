@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 	txtpl "text/template"
 
 	"github.com/bytedance/sonic"
@@ -12,7 +13,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type Engine struct{}
+type Engine struct {
+	cache sync.Map // string -&gt; *txtpl.Template
+}
 
 type TemplateData struct {
 	Event map[string]any
@@ -129,9 +132,16 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 
 	tmpl = preprocessTemplate(tmpl)
 
-	t, err := txtpl.New("render").Funcs(funcMap(data)).Parse(tmpl)
-	if err != nil {
-		return "", fmt.Errorf("template parse: %w", err)
+	var t *txtpl.Template
+	if cached, ok := e.cache.Load(tmpl); ok {
+		t = cached.(*txtpl.Template)
+	} else {
+		var err error
+		t, err = txtpl.New("render").Funcs(funcMap(data)).Parse(tmpl)
+		if err != nil {
+			return "", fmt.Errorf("template parse: %w", err)
+		}
+		e.cache.Store(tmpl, t)
 	}
 
 	tplData := map[string]any{}
@@ -151,7 +161,7 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	}
 
 	var buf strings.Builder
-	err = t.Execute(&buf, tplData)
+	err := t.Execute(&buf, tplData)
 	if err != nil {
 		return "", fmt.Errorf("template execute: %w", err)
 	}
