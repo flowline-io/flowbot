@@ -22,7 +22,15 @@ import (
 
 const DataEventTopic = "pipeline:data_event"
 
-func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, subscriber message.Subscriber) error {
+func initPipeline(
+	lc fx.Lifecycle,
+	cfg *config.Type,
+	router *message.Router,
+	subscriber message.Subscriber,
+	pc *metrics.PipelineCollector,
+	ec *metrics.EventCollector,
+	ac *metrics.AbilityCollector,
+) error {
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 	if len(pipelineDefs) == 0 {
 		flog.Info("no pipelines configured, skipping pipeline engine")
@@ -36,9 +44,10 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 		}
 	}
 
-	engine := pipeline.NewEngine(pipelineDefs, runStore, metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+	engine := pipeline.NewEngine(pipelineDefs, runStore, pc, ec)
 
-	// Set event emitter on ability registry
+	ability.SetMetricsCollector(ac)
+
 	ability.SetEventEmitter(func(ctx context.Context, result *ability.InvokeResult) {
 		if len(result.Events) == 0 {
 			return
@@ -63,6 +72,7 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 				App:            desc.App,
 				EntityID:       ref.EntityID,
 				IdempotencyKey: eventID,
+				CreatedAt:      time.Now(),
 			}
 
 			// Persist to event store
@@ -85,6 +95,14 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 			if err := sonic.Unmarshal(msg.Payload, &dataEvent); err != nil {
 				return fmt.Errorf("unmarshal data event: %w", err)
 			}
+
+			if ec != nil {
+				ec.IncReceived(dataEvent.EventType, dataEvent.Source)
+				if !dataEvent.CreatedAt.IsZero() {
+					ec.ObserveLag(dataEvent.EventType, time.Since(dataEvent.CreatedAt).Seconds())
+				}
+			}
+
 			ctx, cancel := context.WithTimeout(msg.Context(), 10*time.Minute)
 			defer cancel()
 			return engine.Handler()(ctx, dataEvent)
