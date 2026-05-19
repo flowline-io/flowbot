@@ -46,10 +46,9 @@ store_config:
       max_idle_conns: 64
       conn_max_lifetime: 300
       sql_timeout: 10
-      # Maximum connection lifetime in seconds
-      conn_max_lifetime: 60
-      # SQL query timeout in seconds
-      sql_timeout: 10
+      conn_max_idle_time: 60
+      pool_health_check_interval: 30
+      pool_health_check_timeout: 5
 
 # Redis configuration
 redis:
