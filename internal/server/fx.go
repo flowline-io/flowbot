@@ -22,6 +22,7 @@ var Modules = fx.Options(
 		config.NewConfig,
 		cache.NewCache,
 		rdb.NewClient,
+		cache.NewRedisStore,
 		search.NewClient,
 		event.NewRouter,
 		event.NewSubscriber,
