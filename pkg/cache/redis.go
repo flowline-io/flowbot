@@ -117,7 +117,7 @@ func (s *RedisStore) Add(ctx context.Context, key Key, ttl TTL, members ...strin
 		return 0, fmt.Errorf("redis sadd %s: %w", key.String(), err)
 	}
 	if ttl.Duration() > 0 {
-		s.client.Expire(ctx, key.String(), ttl.Duration())
+		_ = s.client.Expire(ctx, key.String(), ttl.Duration()).Err()
 	}
 	return n, nil
 }
