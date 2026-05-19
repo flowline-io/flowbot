@@ -14,8 +14,11 @@ func sanitizeLabel(v string) string {
 	return safeLabelRe.ReplaceAllString(v, "_")
 }
 
+// revive:disable:defer Called exclusively via defer by collector methods.
 func recoverLog(metricName string) {
 	if r := recover(); r != nil {
 		log.Printf("[metrics] %s panic: %v", metricName, r)
 	}
 }
+
+// revive:enable:defer
