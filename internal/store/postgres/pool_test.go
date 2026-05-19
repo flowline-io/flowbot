@@ -420,7 +420,7 @@ func TestPoolManager_PingerDisabled(t *testing.T) {
 }
 
 func TestPoolManager_HealthCheckIncrementsCounters(t *testing.T) {
-	t.Run("health check runs without error", func(t *testing.T) {
+	t.Run("health check increments total counter", func(t *testing.T) {
 		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
 		if err != nil {
 			t.Skipf("skipping: cannot open test db: %v", err)
@@ -428,15 +428,34 @@ func TestPoolManager_HealthCheckIncrementsCounters(t *testing.T) {
 		defer db.Close()
 
 		pm := NewPoolManager(db, PoolConfig{
-			HealthCheckTimeout: 1,
+			HealthCheckInterval: 0,
+			HealthCheckTimeout:  1,
 		})
 
 		pm.healthCheck(context.Background())
+
+		metrics, err := prometheus.DefaultGatherer.Gather()
+		if err != nil {
+			t.Fatalf("gather metrics failed: %v", err)
+		}
+		var found bool
+		for _, mf := range metrics {
+			if mf.GetName() == "flowbot_db_pool_health_check_total" {
+				if len(mf.Metric) > 0 && mf.Metric[0].Counter != nil {
+					if mf.Metric[0].Counter.GetValue() >= 1 {
+						found = true
+					}
+				}
+			}
+		}
+		if !found {
+			t.Error("healthTotal counter should be >= 1 after health check")
+		}
 	})
 }
 
 func TestPoolManager_CollectStats(t *testing.T) {
-	t.Run("collects stats without error", func(t *testing.T) {
+	t.Run("collect stats populates gauges", func(t *testing.T) {
 		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
 		if err != nil {
 			t.Skipf("skipping: cannot open test db: %v", err)
@@ -446,12 +465,33 @@ func TestPoolManager_CollectStats(t *testing.T) {
 		pm := NewPoolManager(db, PoolConfig{})
 		pm.collectStats()
 
-		_ = pm.metrics.openConns
-		_ = pm.metrics.idleConns
-		_ = pm.metrics.inUse
-		_ = pm.metrics.waitCount
-		_ = pm.metrics.waitDuration
-		_ = pm.metrics.maxIdleClosed
-		_ = pm.metrics.maxLifetimeClosed
+		metrics, err := prometheus.DefaultGatherer.Gather()
+		if err != nil {
+			t.Fatalf("gather metrics failed: %v", err)
+		}
+
+		expectedMetrics := map[string]bool{
+			"flowbot_db_pool_connections_open":            false,
+			"flowbot_db_pool_connections_idle":            false,
+			"flowbot_db_pool_connections_in_use":          false,
+			"flowbot_db_pool_wait_count_total":            false,
+			"flowbot_db_pool_wait_duration_seconds_total": false,
+			"flowbot_db_pool_max_idle_closed_total":       false,
+			"flowbot_db_pool_max_lifetime_closed_total":   false,
+		}
+
+		for _, mf := range metrics {
+			if _, ok := expectedMetrics[mf.GetName()]; ok {
+				if len(mf.Metric) > 0 && mf.Metric[0].Gauge != nil {
+					expectedMetrics[mf.GetName()] = true
+				}
+			}
+		}
+
+		for name, found := range expectedMetrics {
+			if !found {
+				t.Errorf("gauge metric %q not found or has no value", name)
+			}
+		}
 	})
 }
