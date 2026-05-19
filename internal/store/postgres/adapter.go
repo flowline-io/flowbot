@@ -52,11 +52,14 @@ const (
 )
 
 type configType struct {
-	DSN             string `json:"dsn,omitempty"`
-	MaxOpenConns    int    `json:"max_open_conns,omitempty"`
-	MaxIdleConns    int    `json:"max_idle_conns,omitempty"`
-	ConnMaxLifetime int    `json:"conn_max_lifetime,omitempty"`
-	SqlTimeout      int    `json:"sql_timeout,omitempty"`
+	DSN                 string `json:"dsn,omitempty"`
+	MaxOpenConns        int    `json:"max_open_conns,omitempty"`
+	MaxIdleConns        int    `json:"max_idle_conns,omitempty"`
+	ConnMaxLifetime     int    `json:"conn_max_lifetime,omitempty"`
+	ConnMaxIdleTime     int    `json:"conn_max_idle_time,omitempty"`
+	SqlTimeout          int    `json:"sql_timeout,omitempty"`
+	HealthCheckInterval int    `json:"pool_health_check_interval,omitempty"`
+	HealthCheckTimeout  int    `json:"pool_health_check_timeout,omitempty"`
 }
 
 // Init registers the postgres adapter with the store layer.
@@ -65,8 +68,9 @@ func Init() {
 }
 
 type adapter struct {
-	client *gen.Client
-	db     *sql.DB
+	client  *gen.Client
+	db      *sql.DB
+	poolMgr *PoolManager
 
 	dbName            string
 	maxResults        int
@@ -92,15 +96,6 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 		return errors.New("postgres: DSN is required")
 	}
 
-	if conf.MaxOpenConns <= 0 {
-		conf.MaxOpenConns = 25
-	}
-	if conf.MaxIdleConns <= 0 {
-		conf.MaxIdleConns = 5
-	}
-	if conf.ConnMaxLifetime <= 0 {
-		conf.ConnMaxLifetime = 300
-	}
 	if conf.SqlTimeout <= 0 {
 		conf.SqlTimeout = 10
 	}
@@ -109,12 +104,21 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 	if err != nil {
 		return fmt.Errorf("postgres: open db: %w", err)
 	}
-	db.SetMaxOpenConns(conf.MaxOpenConns)
-	db.SetMaxIdleConns(conf.MaxIdleConns)
-	db.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifetime) * time.Second)
-	db.SetConnMaxIdleTime(60 * time.Second)
 
-	if err := db.Ping(); err != nil {
+	poolCfg := PoolConfig{
+		MaxOpenConns:        conf.MaxOpenConns,
+		MaxIdleConns:        conf.MaxIdleConns,
+		ConnMaxLifetime:     conf.ConnMaxLifetime,
+		ConnMaxIdleTime:     conf.ConnMaxIdleTime,
+		HealthCheckInterval: conf.HealthCheckInterval,
+		HealthCheckTimeout:  conf.HealthCheckTimeout,
+	}
+	poolMgr := NewPoolManager(db, poolCfg)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.SqlTimeout)*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		poolMgr.Stop()
 		_ = db.Close()
 		return fmt.Errorf("postgres: ping db: %w", err)
 	}
@@ -123,6 +127,7 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 	a.client = gen.NewClient(gen.Driver(drv))
 
 	a.db = db
+	a.poolMgr = poolMgr
 	a.dbName = defaultDatabase
 	a.maxResults = jsonConfig.MaxResults
 	if a.maxResults <= 0 {
@@ -133,11 +138,15 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 	a.txTimeout = time.Duration(float64(conf.SqlTimeout)*txTimeoutMultiplier) * time.Second
 	a.open = true
 
+	poolMgr.Start(context.Background())
 	flog.Info("postgres: adapter opened with database '%s'", a.dbName)
 	return nil
 }
 
 func (a *adapter) Close() error {
+	if a.poolMgr != nil {
+		a.poolMgr.Stop()
+	}
 	if a.db != nil {
 		if err := a.db.Close(); err != nil {
 			return fmt.Errorf("postgres: close db: %w", err)
