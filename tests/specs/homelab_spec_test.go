@@ -22,8 +22,9 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 		var appsDir string
 
 		BeforeEach(func() {
-			appsDir = "/tmp/apps"
-			Expect(os.MkdirAll(appsDir, 0o755)).To(Succeed())
+			var err error
+			appsDir, err = os.MkdirTemp("", "flowbot-homelab-spec*")
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(os.MkdirAll(filepath.Join(appsDir, "archivebox"), 0o755)).To(Succeed())
 			Expect(os.WriteFile(filepath.Join(appsDir, "archivebox", "docker-compose.yaml"), []byte(`services:
@@ -53,7 +54,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 		})
 		It("scans configured directories for self-hosted apps", func() {
 			cfg := homelab.Config{
-				Root: "/tmp",
+				AppsDir: appsDir,
 				Discovery: homelab.DiscoveryConfig{
 					ProbeEnabled: false,
 				},
