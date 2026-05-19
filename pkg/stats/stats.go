@@ -70,6 +70,11 @@ var (
 
 var initialized bool
 
+var (
+	statsInstance    *Stats
+	statsInstanceOnce sync.Once
+)
+
 // Stats provides access to the global Prometheus registry for creating vector metrics.
 type Stats struct {
 	vecCounters map[string]*prometheus.CounterVec
@@ -78,16 +83,19 @@ type Stats struct {
 }
 
 // NewStats creates a Stats wrapper around the global Prometheus registry.
-// Returns nil when metrics has not been initialized (metrics.enabled=false).
+// Returns a singleton instance. Returns nil when metrics has not been initialized (metrics.enabled=false).
 func NewStats() *Stats {
 	if !initialized {
 		return nil
 	}
-	return &Stats{
-		vecCounters: make(map[string]*prometheus.CounterVec),
-		vecGauges:   make(map[string]*prometheus.GaugeVec),
-		vecHistos:   make(map[string]*prometheus.HistogramVec),
-	}
+	statsInstanceOnce.Do(func() {
+		statsInstance = &Stats{
+			vecCounters: make(map[string]*prometheus.CounterVec),
+			vecGauges:   make(map[string]*prometheus.GaugeVec),
+			vecHistos:   make(map[string]*prometheus.HistogramVec),
+		}
+	})
+	return statsInstance
 }
 
 // MetricsConfig configuration struct
