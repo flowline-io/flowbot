@@ -13,7 +13,8 @@ import (
 )
 
 // PoolConfig holds all tunable connection pool parameters.
-// Zero or negative values are replaced by defaults in applyDefaults().
+// Zero or negative values are replaced by defaults in applyDefaults(),
+// except HealthCheckInterval where zero means the pinger is disabled.
 type PoolConfig struct {
 	MaxOpenConns        int `json:"max_open_conns,omitempty"`
 	MaxIdleConns        int `json:"max_idle_conns,omitempty"`
@@ -31,6 +32,7 @@ const (
 	defaultConnMaxIdleTime     = 60
 	defaultHealthCheckInterval = 30
 	defaultHealthCheckTimeout  = 5
+	defaultStopTimeout         = 5
 )
 
 // applyDefaults replaces zero or negative PoolConfig fields with defaults.
@@ -181,8 +183,8 @@ func (pm *PoolManager) Stop() {
 	if pm.done != nil {
 		select {
 		case <-pm.done:
-		case <-time.After(5 * time.Second):
-			flog.Warn("pool manager: stop timed out waiting for pinger")
+		case <-time.After(time.Duration(defaultStopTimeout) * time.Second):
+			flog.Warn("postgres pool: stop timed out waiting for pinger")
 		}
 	}
 }
@@ -217,7 +219,7 @@ func (pm *PoolManager) healthCheck(ctx context.Context) {
 
 	if err := pm.db.PingContext(healthCtx); err != nil {
 		pm.metrics.healthErrors.Inc()
-		flog.Warn("pool manager: health check ping failed: %v", err)
+		flog.Warn("postgres pool: health check ping failed: %v", err)
 	}
 }
 
