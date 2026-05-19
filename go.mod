@@ -11,7 +11,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/adrg/xdg v0.5.3
-	github.com/bsm/redislock v0.9.4
+	github.com/bsm/redislock v0.10.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
