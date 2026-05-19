@@ -52,3 +52,4 @@ coverage.out
 coverage.html
 *.test
 **/testdata/fuzz/
+specs-report.xml
