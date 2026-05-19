@@ -3,13 +3,13 @@ package stats
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -107,7 +107,7 @@ func Init(config *MetricsConfig) error {
 
 			for range ticker.C {
 				if err := pusher.Push(); err != nil {
-					flog.Error(fmt.Errorf("Failed to push metrics: %w", err))
+					log.Printf("stats: failed to push metrics: %v", err)
 				}
 			}
 		}()
