@@ -23,10 +23,10 @@ type StringCache interface {
 // IntCache covers integer counters, backed by Redis.
 // It provides atomic increment operations suitable for rate limiting, statistics, and gauges.
 type IntCache interface {
-	// Get retrieves the integer value for key.
-	Get(ctx context.Context, key Key) (int64, error)
-	// Set stores an integer value with the given TTL.
-	Set(ctx context.Context, key Key, value int64, ttl TTL) error
+	// GetInt64 retrieves the integer value for key.
+	GetInt64(ctx context.Context, key Key) (int64, error)
+	// SetInt64 stores an integer value with the given TTL.
+	SetInt64(ctx context.Context, key Key, value int64, ttl TTL) error
 	// Incr atomically increments the key and returns the new value.
 	Incr(ctx context.Context, key Key) (int64, error)
 	// IncrWithTTL atomically increments the key, sets the TTL if the key is new,
