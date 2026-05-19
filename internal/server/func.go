@@ -5,17 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/redis/go-redis/v9"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/notify"
@@ -23,13 +24,19 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
 	"github.com/flowline-io/flowbot/pkg/providers/github"
 	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for server functions.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 // newProvider returns a new OAuth provider based on the given category.
 //
@@ -132,12 +139,14 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	var payload types.MsgPayload
 
 	// get chat key
-	chatKey := fmt.Sprintf("chat:%s", uid)
-	session, err := rdb.Client.Get(ctx.Context(), chatKey).Result()
+	chatKey := cache.NewKey("chat", "session", uid.String())
+	var session string
+	s, ok, err := cacheStore.Get(ctx.Context(), chatKey)
 	if err != nil {
-		if !errors.Is(err, redis.Nil) {
-			flog.Error(err)
-		}
+		flog.Error(err)
+	}
+	if ok {
+		session = s
 	}
 
 	// chat command
@@ -145,7 +154,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	if strings.ToLower(msg.AltMessage) == "chat" {
 		if session == "" {
 			payload = types.TextMsg{Text: "Chat started"}
-			err = rdb.Client.Set(ctx.Context(), chatKey, types.Id(), 24*time.Hour).Err()
+			err = cacheStore.Set(ctx.Context(), chatKey, types.Id(), cache.TTLSession)
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
 			}
@@ -157,7 +166,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	// chat end command
 	// end Multi-turn conversation
 	if strings.ToLower(msg.AltMessage) == "end" {
-		err = rdb.Client.Del(ctx.Context(), chatKey).Err()
+		err = cacheStore.Del(ctx.Context(), chatKey)
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
 		}
@@ -345,14 +354,10 @@ func onlineStatus(msg protocol.Event) {
 	}
 
 	ctx := context.Background()
-	key := fmt.Sprintf("online:%s", med.UserId)
-	_, err := rdb.Client.Get(ctx, key).Result()
-	if errors.Is(err, redis.Nil) {
-		rdb.Client.Set(ctx, key, time.Now().Unix(), 30*time.Minute)
-	} else if err != nil {
-		return
-	} else {
-		rdb.Client.Expire(ctx, key, 30*time.Minute)
+	key := cache.NewKey("online", "user", med.UserId)
+	_, ok, _ = cacheStore.Get(ctx, key)
+	if !ok {
+		cacheStore.Set(ctx, key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLSession)
 	}
 }
 
@@ -411,11 +416,9 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			return nil, errors.New("register agent error")
 		}
 
-		check, err := rdb.Client.Get(ctx.Context(), fmt.Sprintf("online:%s", hostid)).Result()
-		if err != nil && !errors.Is(err, redis.Nil) {
-			return nil, errors.New("get agent online error")
-		}
-		if check == "" {
+		key := cache.NewKey("online", "agent", hostid)
+		_, ok, _ = cacheStore.Get(ctx.Context(), key)
+		if !ok {
 			// send message
 			err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
 				"hostid":   hostid,
@@ -428,7 +431,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 		}
 
 		// leave online stats
-		_, err = rdb.Client.Set(ctx.Context(), fmt.Sprintf("online:%s", hostid), time.Now().Unix(), 2*time.Minute).Result()
+		err = cacheStore.Set(ctx.Context(), key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLShort)
 		if err != nil {
 			flog.Error(err)
 			return nil, errors.New("set agent online error")
@@ -445,7 +448,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			flog.Error(fmt.Errorf("update online duration error %w", err))
 		}
 
-		_, err = rdb.Client.Del(ctx.Context(), fmt.Sprintf("online:%s", hostid)).Result()
+		err = cacheStore.Del(ctx.Context(), cache.NewKey("online", "agent", hostid))
 		if err != nil {
 			flog.Error(fmt.Errorf("del agent online stats error %w", err))
 		}

@@ -34,6 +34,7 @@ var Modules = fx.Options(
 		newHTTPServer,
 	),
 	fx.Invoke(
+		setServerCacheStore,
 		handleRoutes,
 		handleEvents,
 		handleModules,
@@ -43,3 +44,7 @@ var Modules = fx.Options(
 		profiling.NewProfiler,
 	),
 )
+
+func setServerCacheStore(store *cache.RedisStore) {
+	SetCacheStore(store)
+}
