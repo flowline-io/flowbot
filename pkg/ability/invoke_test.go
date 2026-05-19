@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -623,6 +624,26 @@ func TestInvokeResult_EmptyDefaults(t *testing.T) {
 			assert.Empty(t, r.Text)
 			assert.Nil(t, r.Meta)
 			assert.Nil(t, r.Events)
+		})
+	}
+}
+
+func TestSetMetricsCollector(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{"sets nil collector without panic"},
+		{"sets no-op collector"},
+		{"can set after default registry is created"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.NotPanics(t, func() {
+				SetMetricsCollector(nil)
+				SetMetricsCollector(metrics.NewAbilityCollector(nil))
+			})
 		})
 	}
 }

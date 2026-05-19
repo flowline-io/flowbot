@@ -3,11 +3,13 @@ package ability
 import (
 	"context"
 	"sync"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -18,6 +20,7 @@ type Registry struct {
 	mu       sync.RWMutex
 	handlers map[hub.CapabilityType]map[string]Invoker
 	emitter  EventEmitter
+	metrics  *metrics.AbilityCollector
 }
 
 type EventEmitter func(ctx context.Context, result *InvokeResult)
@@ -32,6 +35,13 @@ func SetEventEmitter(emitter EventEmitter) {
 	DefaultRegistry.mu.Lock()
 	defer DefaultRegistry.mu.Unlock()
 	DefaultRegistry.emitter = emitter
+}
+
+// SetMetricsCollector sets the AbilityCollector on the DefaultRegistry.
+func SetMetricsCollector(mc *metrics.AbilityCollector) {
+	DefaultRegistry.mu.Lock()
+	defer DefaultRegistry.mu.Unlock()
+	DefaultRegistry.metrics = mc
 }
 
 func RegisterInvoker(capability hub.CapabilityType, operation string, invoker Invoker) error {
@@ -83,9 +93,22 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	)
 	defer span.End()
 
+	start := time.Now()
 	result, err := invoker(ctx, params)
 	if err != nil {
 		trace.RecordError(ctx, err)
+		r.mu.RLock()
+		mc := r.metrics
+		r.mu.RUnlock()
+		if mc != nil {
+			mc.IncInvokeTotal(string(capability), operation, "error")
+			mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
+			code := "unknown"
+			if te, ok := err.(*types.Error); ok {
+				code = te.Code
+			}
+			mc.IncInvokeError(string(capability), operation, code)
+		}
 		return nil, err
 	}
 	if result == nil {
@@ -93,6 +116,14 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	}
 	result.Capability = capability
 	result.Operation = operation
+
+	r.mu.RLock()
+	mc := r.metrics
+	r.mu.RUnlock()
+	if mc != nil {
+		mc.IncInvokeTotal(string(capability), operation, "ok")
+		mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
+	}
 
 	r.mu.RLock()
 	emitter := r.emitter
