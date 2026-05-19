@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // OAuth mapped from table <oauth>
 type OAuth struct {
 	ID        int64     `json:"id"`

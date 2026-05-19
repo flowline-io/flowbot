@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Cycle mapped from table <cycles>
 type Cycle struct {
 	ID         int64      `json:"id"`

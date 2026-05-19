@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Connection mapped from table <connections>
 type Connection struct {
 	ID        int64     `json:"id"`

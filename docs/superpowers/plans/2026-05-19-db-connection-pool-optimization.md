@@ -13,6 +13,7 @@
 ### Task 1: Create pool.go with PoolConfig, PoolManager, and ApplyDefaults
 
 **Files:**
+
 - Create: `internal/store/postgres/pool.go`
 
 - [ ] **Step 1: Write the full pool.go source**
@@ -287,6 +288,7 @@ git commit -m "feat: add PoolManager with PoolConfig, metrics, and ApplyDefaults
 ### Task 2: Write unit tests for pool.go
 
 **Files:**
+
 - Create: `internal/store/postgres/pool_test.go`
 
 - [ ] **Step 1: Write the full pool_test.go source**
@@ -715,11 +717,13 @@ git commit -m "test: add PoolManager unit tests for config, lifecycle, metrics"
 ### Task 3: Modify adapter.go to use PoolManager
 
 **Files:**
+
 - Modify: `internal/store/postgres/adapter.go`
 
 - [ ] **Step 1: Edit configType struct (lines 54-60)**
 
 Replace with:
+
 ```go
 type configType struct {
 	DSN                  string `json:"dsn,omitempty"`
@@ -736,6 +740,7 @@ type configType struct {
 - [ ] **Step 2: Edit adapter struct (lines 67-77)**
 
 Add `poolMgr *PoolManager` field:
+
 ```go
 type adapter struct {
 	client  *gen.Client
@@ -754,6 +759,7 @@ type adapter struct {
 - [ ] **Step 3: Rewrite Open() method (lines 79-138)**
 
 Replace the entire Open method body:
+
 ```go
 func (a *adapter) Open(jsonConfig config.StoreType) error {
 	var conf configType
@@ -822,6 +828,7 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 - [ ] **Step 4: Edit Close() method (lines 140-148)**
 
 Replace with:
+
 ```go
 func (a *adapter) Close() error {
 	if a.poolMgr != nil {
@@ -873,11 +880,13 @@ git commit -m "feat: integrate PoolManager into adapter Open/Close lifecycle"
 ### Task 4: Modify ent.go to apply conservative pool defaults
 
 **Files:**
+
 - Modify: `internal/store/ent/ent.go`
 
 - [ ] **Step 1: Add import and call ApplyDefaults**
 
 Rewrite `internal/store/ent/ent.go`:
+
 ```go
 package ent
 
@@ -932,45 +941,49 @@ git commit -m "feat: apply conservative pool defaults in ent.NewClient test path
 ### Task 5: Update config files with new pool keys
 
 **Files:**
+
 - Modify: `flowbot.yaml`
 - Modify: `docs/reference/config.yaml`
 
 - [ ] **Step 1: Add new keys to flowbot.yaml postgres block**
 
 After line 41 (`sql_timeout: 15`), add:
+
 ```yaml
-      conn_max_idle_time: 60
-      pool_health_check_interval: 30
-      pool_health_check_timeout: 5
+conn_max_idle_time: 60
+pool_health_check_interval: 30
+pool_health_check_timeout: 5
 ```
 
 The postgres section (lines 36-41) becomes:
+
 ```yaml
-    postgres:
-      dsn: postgres://app:9gDH11MFGMYO1fat@192.168.0.201:15432/dev?sslmode=disable
-      max_open_conns: 25
-      max_idle_conns: 12
-      conn_max_lifetime: 300
-      sql_timeout: 15
-      conn_max_idle_time: 60
-      pool_health_check_interval: 30
-      pool_health_check_timeout: 5
+postgres:
+  dsn: postgres://app:9gDH11MFGMYO1fat@192.168.0.201:15432/dev?sslmode=disable
+  max_open_conns: 25
+  max_idle_conns: 12
+  conn_max_lifetime: 300
+  sql_timeout: 15
+  conn_max_idle_time: 60
+  pool_health_check_interval: 30
+  pool_health_check_timeout: 5
 ```
 
 - [ ] **Step 2: Fix docs/reference/config.yaml**
 
 Replace the postgres block (lines 42-52) — currently has duplicate keys and old format:
+
 ```yaml
-    # PostgreSQL database configuration
-    postgres:
-      dsn: postgres://username:password@localhost/flowbot?sslmode=disable
-      max_open_conns: 64
-      max_idle_conns: 64
-      conn_max_lifetime: 300
-      sql_timeout: 10
-      conn_max_idle_time: 60
-      pool_health_check_interval: 30
-      pool_health_check_timeout: 5
+# PostgreSQL database configuration
+postgres:
+  dsn: postgres://username:password@localhost/flowbot?sslmode=disable
+  max_open_conns: 64
+  max_idle_conns: 64
+  conn_max_lifetime: 300
+  sql_timeout: 10
+  conn_max_idle_time: 60
+  pool_health_check_interval: 30
+  pool_health_check_timeout: 5
 ```
 
 - [ ] **Step 3: Verify config files are valid YAML**

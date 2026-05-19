@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Objective mapped from table <objectives>
 type Objective struct {
 	ID           int64        `json:"id"`

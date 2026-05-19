@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // User mapped from table <users>
 type User struct {
 	ID        int64     `json:"id"`

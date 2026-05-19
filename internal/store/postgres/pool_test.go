@@ -334,8 +334,7 @@ func TestPoolManager_StartStop(t *testing.T) {
 			HealthCheckTimeout:  1,
 		})
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		ctx := t.Context()
 
 		pm.Start(ctx)
 
@@ -373,8 +372,7 @@ func TestPoolManager_StopTwice(t *testing.T) {
 			HealthCheckTimeout:  1,
 		})
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		ctx := t.Context()
 
 		pm.Start(ctx)
 		pm.Stop()

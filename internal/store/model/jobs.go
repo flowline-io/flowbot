@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Job mapped from table <jobs>
 type Job struct {
 	ID            int64      `json:"id"`

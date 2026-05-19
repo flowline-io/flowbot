@@ -65,6 +65,7 @@ pkg/alarm/
 ### Task 1: TTL constants (`pkg/cache/ttl.go`)
 
 **Files:**
+
 - Create: `pkg/cache/ttl.go`
 - Create: `pkg/cache/ttl_test.go`
 
@@ -189,6 +190,7 @@ git commit -m "feat(cache): add TTL policy constants"
 ### Task 2: Key builder (`pkg/cache/key.go`)
 
 **Files:**
+
 - Create: `pkg/cache/key.go`
 - Create: `pkg/cache/key_test.go`
 
@@ -324,6 +326,7 @@ git commit -m "feat(cache): add Key builder with standardized naming"
 ### Task 3: Cache metrics in `pkg/stats`
 
 **Files:**
+
 - Modify: `pkg/stats/stats.go`
 
 - [ ] **Step 1: Add metric constants and getters**
@@ -372,6 +375,7 @@ git commit -m "feat(stats): add cache hit/miss/eviction/size metrics"
 ### Task 4: Metric recording helpers (`pkg/cache/metrics.go`)
 
 **Files:**
+
 - Create: `pkg/cache/metrics.go`
 
 - [ ] **Step 1: Write the helper**
@@ -415,6 +419,7 @@ git commit -m "feat(cache): add metric recording helpers"
 ### Task 5: Interface types (`pkg/cache/types.go`)
 
 **Files:**
+
 - Create: `pkg/cache/types.go`
 
 - [ ] **Step 1: Write interfaces**
@@ -475,6 +480,7 @@ git commit -m "feat(cache): add StringCache, IntCache, SetCache, ListCache inter
 Implement `StringCache` on the existing `Cache` struct with metrics instrumentation.
 
 **Files:**
+
 - Modify: `pkg/cache/cache.go`
 
 - [ ] **Step 1: Add StringCache methods with metrics to Cache struct**
@@ -646,6 +652,7 @@ git commit -m "feat(cache): implement StringCache on RistrettoStore with metrics
 ### Task 7: RedisStore implementation (`pkg/cache/redis.go`)
 
 **Files:**
+
 - Create: `pkg/cache/redis.go`
 - Create: `pkg/cache/redis_test.go`
 
@@ -1078,6 +1085,7 @@ git commit -m "feat(cache): add RedisStore implementing StringCache, IntCache, S
 ### Task 8: Register RedisStore in DI (`internal/server/fx.go`)
 
 **Files:**
+
 - Modify: `internal/server/fx.go`
 
 - [ ] **Step 1: Add RedisStore provider**
@@ -1135,6 +1143,7 @@ git commit -m "feat(server): register RedisStore in dependency injection"
 ### Task 9: Migrate chat + online in `internal/server/func.go`
 
 **Files:**
+
 - Modify: `internal/server/func.go`
 
 Replace `rdb.Client` calls for chat/online with `RedisStore`.
@@ -1283,11 +1292,13 @@ The file currently uses `rdb.Client` (package-level global). We need `cacheInsta
 For now, accept `*cache.RedisStore` as a function parameter via DI structure. In `func.go`, add a package-level variable set during server initialization:
 
 At the top of `func.go` after imports:
+
 ```go
 var cacheInstance *cache.RedisStore
 ```
 
 And in the server constructor (where fx wires it):
+
 ```go
 func initCache(store *cache.RedisStore) {
     cacheInstance = store
@@ -1303,6 +1314,7 @@ If these functions are called as goroutines in event handlers (not directly inje
 The `handleEvents` `fx.Invoke` function in fx.go can accept `*cache.RedisStore` and set the global:
 
 In `func.go`:
+
 ```go
 var cacheStore *cache.RedisStore
 
@@ -1312,6 +1324,7 @@ func SetCacheStore(store *cache.RedisStore) {
 ```
 
 Then in fx.go's `handleEvents` or a new invoke:
+
 ```go
 func setCacheStore(store *cache.RedisStore) {
     server.SetCacheStore(store)
@@ -1328,6 +1341,7 @@ func setServerCache(store *cache.RedisStore) {
 ```
 
 Add to fx:
+
 ```go
 fx.Invoke(
     setServerCache,
@@ -1360,6 +1374,7 @@ git commit -m "refactor(server): migrate chat and online to RedisStore"
 ### Task 10: Migrate online count cron (`internal/modules/server/cron.go`)
 
 **Files:**
+
 - Modify: `internal/modules/server/cron.go`
 
 - [ ] **Step 1: Replace online count logic**
@@ -1367,6 +1382,7 @@ git commit -m "refactor(server): migrate chat and online to RedisStore"
 In the `server_user_online_change` cron action (currently lines 29-36):
 
 Current:
+
 ```go
 keys, _ := rdb.Client.Keys(ctx.Context(), "online:*").Result()
 currentCount := int64(len(keys))
@@ -1376,6 +1392,7 @@ rdb.Client.Set(ctx.Context(), lastKey, currentCount, redis.KeepTTL)
 ```
 
 Replace with:
+
 ```go
 keys, _ := rdb.Client.Keys(ctx.Context(), "online:*").Result()
 currentCount := int64(len(keys))
@@ -1400,6 +1417,7 @@ Add a package-level variable `cacheStore *cache.RedisStore` set via the same DI 
 Since `internal/modules/server/` already has a `newController` style entry point, search how it gets DI.
 
 Add to `internal/modules/server/cron.go` at top:
+
 ```go
 var cacheStore *cache.RedisStore
 
@@ -1409,6 +1427,7 @@ func SetCacheStore(store *cache.RedisStore) {
 ```
 
 Wire in `internal/server/fx.go`:
+
 ```go
 func initModuleCacheStore(store *cache.RedisStore) {
     serverModule.SetCacheStore(store)
@@ -1441,6 +1460,7 @@ git commit -m "refactor(server/cron): migrate online count to RedisStore IntCach
 ### Task 11: Migrate crawler (`pkg/crawler/crawler.go`)
 
 **Files:**
+
 - Modify: `pkg/crawler/crawler.go`
 
 - [ ] **Step 1: Add RedisStore field to Crawler struct**
@@ -1565,6 +1585,7 @@ git commit -m "refactor(crawler): migrate to RedisStore SetCache with TTLMonth"
 ### Task 12: Migrate cron filter (`pkg/types/ruleset/cron/cron.go`)
 
 **Files:**
+
 - Modify: `pkg/types/ruleset/cron/cron.go`
 
 - [ ] **Step 1: Add RedisStore to Ruleset struct**
@@ -1667,6 +1688,7 @@ git commit -m "refactor(cron/ruleset): migrate filter set to RedisStore SetCache
 ### Task 13: Migrate rdb metrics (`pkg/rdb/metrics.go`)
 
 **Files:**
+
 - Modify: `pkg/rdb/metrics.go` — deprecate, keep forwarding shim for now
 
 - [ ] **Step 1: Add deprecation comments**
@@ -1704,6 +1726,7 @@ Replace with `store.SetMetricsInt64` / `store.GetMetricsInt64` where the store i
 For cron modules that don't have a store yet (they call rdb directly), keep using the deprecated functions for now and migrate in a follow-up.
 
 Caller files to update:
+
 - `internal/modules/server/module.go` (or wherever ModuleTotalCounter/ModuleRunTotalCounter is used)
 - `pkg/rdb/metrics` consumers: search with grep
 - `internal/modules/server/cron.go` — docker/monitor counts already in the module
@@ -1725,6 +1748,7 @@ git commit -m "refactor(rdb/metrics): deprecate in favor of RedisStore.SetMetric
 ### Task 14: Migrate bloom filter (`pkg/rdb/unique.go`)
 
 **Files:**
+
 - Modify: `pkg/rdb/unique.go` — deprecate, add TTL to existing keys
 
 Bloom filter stays with Redis 8.0 native commands. Add TTL only.
@@ -1783,6 +1807,7 @@ git commit -m "fix(rdb/bloom): add TTLMonth to bloom keys, rename prefix to cach
 ### Task 15: Migrate notify rules (`pkg/notify/rules/`)
 
 **Files:**
+
 - Modify: `pkg/notify/rules/engine.go`
 - Modify: `pkg/notify/rules/throttle.go`
 - Modify: `pkg/notify/rules/aggregate.go`
@@ -1929,12 +1954,14 @@ func (e *Engine) FlushAggregation(ctx context.Context, ruleID, eventType, channe
 ```
 
 `ScanExpiredAggregates` stays the same (uses `e.redis.Scan` → `e.store.client.Scan`). Since `RedisStore.client` is unexported, we need to either:
+
 - Export a `ScanKeys` method on RedisStore, or
 - Keep `*redis.Client` in Engine alongside `*cache.RedisStore`
 
 Better: add a `ScanKeys` method to RedisStore:
 
 In `redis.go` add:
+
 ```go
 func (s *RedisStore) ScanKeys(ctx context.Context, pattern string, count int64) ([]string, error) {
     var keys []string
@@ -2018,6 +2045,7 @@ git commit -m "refactor(notify/rules): migrate throttle and aggregate to RedisSt
 ### Task 16: Migrate alarm (`pkg/alarm/alarm.go`)
 
 **Files:**
+
 - Modify: `pkg/alarm/alarm.go`
 
 - [ ] **Step 1: Replace cache.aside with StringCache.SetNX**
@@ -2025,6 +2053,7 @@ git commit -m "refactor(notify/rules): migrate throttle and aggregate to RedisSt
 Replace the `nx` function (lines 71-88):
 
 Current:
+
 ```go
 func nx(text string) (bool, error) {
     h := sha1.New()
@@ -2047,6 +2076,7 @@ func nx(text string) (bool, error) {
 ```
 
 Replace with:
+
 ```go
 func nx(text string) (bool, error) {
     h := sha1.New()
@@ -2068,7 +2098,7 @@ Note: `SetNX` is atomic (GET + conditional SET), eliminating the TOCTOU race pre
 
 - [ ] **Step 2: Update imports**
 
-Remove unused `"time"` import (24*time.Hour replaced by cache.TTLDay).
+Remove unused `"time"` import (24\*time.Hour replaced by cache.TTLDay).
 Add `"context"` import.
 Add `"github.com/flowline-io/flowbot/pkg/cache"` import.
 Remove `"fmt"` import (no longer needed for `fmt.Sprintf("alarm:%s", hash)`).
@@ -2096,6 +2126,7 @@ git commit -m "refactor(alarm): migrate dedup to RistrettoStore SetNX with TTLDa
 ### Task 17: Remove deprecated code
 
 **Files:**
+
 - Delete: `pkg/rdb/metrics.go`
 - Delete: `pkg/rdb/unique.go`
 
@@ -2142,6 +2173,7 @@ git commit -m "refactor(rdb): remove deprecated metrics and bloom helpers"
 ## Execution Handoff
 
 After all 17 tasks complete:
+
 1. Run `go tool task lint` to verify code style
 2. Run `go tool task test` to verify unit tests
 3. Run `go tool task test:specs` for BDD acceptance tests

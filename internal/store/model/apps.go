@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // App mapped from table <apps>
 type App struct {
 	ID          int64     `json:"id"`

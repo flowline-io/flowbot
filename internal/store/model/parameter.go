@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Parameter mapped from table <parameter>
 type Parameter struct {
 	ID        int64     `json:"id"`

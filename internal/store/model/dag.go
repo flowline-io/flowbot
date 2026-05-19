@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Dag mapped from table <dag>
 type Dag struct {
 	ID            int64     `json:"id"`

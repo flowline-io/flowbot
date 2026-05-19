@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Counter mapped from table <counters>
 type Counter struct {
 	ID        int64     `json:"id"`

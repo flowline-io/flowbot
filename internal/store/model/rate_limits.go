@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // RateLimit mapped from table <rate_limits>
 type RateLimit struct {
 	ID         int64         `json:"id"`

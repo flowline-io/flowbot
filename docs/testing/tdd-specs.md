@@ -184,10 +184,10 @@ func TestFindByEvent(t *testing.T) {
 
 ## Assertion Rules
 
-| Function | Behavior | Import |
-|----------|----------|--------|
+| Function              | Behavior                                             | Import                                |
+| --------------------- | ---------------------------------------------------- | ------------------------------------- |
 | `require.Xxx(t, ...)` | **Fatal** — stops the subtest immediately on failure | `github.com/stretchr/testify/require` |
-| `assert.Xxx(t, ...)` | **Non-fatal** — records failure, continues execution | `github.com/stretchr/testify/assert` |
+| `assert.Xxx(t, ...)`  | **Non-fatal** — records failure, continues execution | `github.com/stretchr/testify/assert`  |
 
 ### Usage Guidelines
 
@@ -242,11 +242,11 @@ This maximizes concurrency. Tests run in `t.Parallel()` are paused until the par
 
 ## Test Naming
 
-| Pattern | Example | Usage |
-|---------|---------|-------|
-| `Test<Function>_<Category>` | `TestParseAction_ValidInput` | Primary naming convention |
-| `Test<Function>` | `TestValidateDAG` | When only one category, with subtests |
-| `Test<Struct>_<Method>` | `TestRenderContext_Render` | Methods on types |
+| Pattern                     | Example                      | Usage                                 |
+| --------------------------- | ---------------------------- | ------------------------------------- |
+| `Test<Function>_<Category>` | `TestParseAction_ValidInput` | Primary naming convention             |
+| `Test<Function>`            | `TestValidateDAG`            | When only one category, with subtests |
+| `Test<Struct>_<Method>`     | `TestRenderContext_Render`   | Methods on types                      |
 
 Table entry names use descriptive `snake_case`:
 

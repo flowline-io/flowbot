@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Execution mapped from table <executions>
 type Execution struct {
 	ID          int64          `json:"id"`

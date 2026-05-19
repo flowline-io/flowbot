@@ -65,7 +65,7 @@ go tool task test             # Unit tests
 go tool task test:specs       # BDD acceptance tests (requires Docker)
 go tool task test:specs:ci    # BDD with retry + JUnit
 go tool task ent              # Generate ent code from database
-````
+```
 
 ## Configuration
 

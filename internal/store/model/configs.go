@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Config mapped from table <configs>
 type Config struct {
 	ID        int64     `json:"id"`

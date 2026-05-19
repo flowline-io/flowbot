@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // CounterRecord mapped from table <counter_records>
 type CounterRecord struct {
 	CounterID int64     `json:"counter_id"`

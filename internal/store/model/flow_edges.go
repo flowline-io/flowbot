@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // FlowEdge mapped from table <flow_edges>
 type FlowEdge struct {
 	ID         int64     `json:"id"`

@@ -40,14 +40,14 @@ var pooledSonic = sonic.Config{PoolAlloc: true}.Froze()
 
 Replace all bare `sonic.Marshal` and `sonic.Unmarshal` calls with the pooled variant. Affected call sites:
 
-| Location | Operation |
-|----------|-----------|
-| `pkg/pipeline/engine.go:330` | `extractResult` Marshal |
-| `pkg/pipeline/engine.go:335` | `extractResult` Unmarshal |
-| `pkg/pipeline/template/engine.go:96` | `json` template function Marshal |
-| `pkg/workflow/workflow.go:81` | `marshalCapabilityParams` Marshal |
-| `pkg/workflow/workflow.go:201` | Run creation Marshal |
-| `pkg/workflow/workflow.go:261,307,407,449` | Result/step recording Marshal |
+| Location                                   | Operation                         |
+| ------------------------------------------ | --------------------------------- |
+| `pkg/pipeline/engine.go:330`               | `extractResult` Marshal           |
+| `pkg/pipeline/engine.go:335`               | `extractResult` Unmarshal         |
+| `pkg/pipeline/template/engine.go:96`       | `json` template function Marshal  |
+| `pkg/workflow/workflow.go:81`              | `marshalCapabilityParams` Marshal |
+| `pkg/workflow/workflow.go:201`             | Run creation Marshal              |
+| `pkg/workflow/workflow.go:261,307,407,449` | Result/step recording Marshal     |
 
 sonic's `PoolAlloc` internally reuses encode/decode buffers per goroutine, which matches the sequential execution model of both engines.
 

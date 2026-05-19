@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Form mapped from table <form>
 type Form struct {
 	ID        int64     `json:"id"`

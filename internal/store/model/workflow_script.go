@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // WorkflowScript mapped from table <workflow_script>
 type WorkflowScript struct {
 	ID         int64              `json:"id"`

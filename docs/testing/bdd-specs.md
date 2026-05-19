@@ -18,10 +18,10 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
                          └───────────────────────────┘
 ```
 
-| Layer | Framework | Location | Notes |
-|-------|-----------|----------|-------|
-| BDD Acceptance | Ginkgo + Gomega | `tests/specs/` | All integration/acceptance tests must use |
-| Unit | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | Never migrate -- retained permanently |
+| Layer          | Framework            | Location                             | Notes                                     |
+| -------------- | -------------------- | ------------------------------------ | ----------------------------------------- |
+| BDD Acceptance | Ginkgo + Gomega      | `tests/specs/`                       | All integration/acceptance tests must use |
+| Unit           | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | Never migrate -- retained permanently     |
 
 ## Directory Structure
 
@@ -105,17 +105,17 @@ Ginkgo's `--procs=N` flag runs N independent test processes. To prevent data con
 
 The following variables are initialized by `lifecycle.go` and available to all spec files in the `specs` package:
 
-| Variable | Type | Purpose |
-|----------|------|---------|
-| `suiteCtx` | `context.Context` | Context scoped to container lifecycle |
-| `pgC` | `*tcpostgres.PostgresContainer` | PostgreSQL testcontainer |
-| `redisC` | `testcontainers.Container` | Redis testcontainer |
-| `App` | `*fiber.App` | Configured Fiber HTTP app for testing |
-| `DB` | `*sql.DB` | Raw database connection |
-| `EntClient` | `*gen.Client` | Ent ORM client |
-| `Redis` | `*redis.Client` | Redis client |
-| `PGDSN` | `string` | Per-process database DSN |
-| `RedisAddr` | `string` | Redis address |
+| Variable    | Type                            | Purpose                               |
+| ----------- | ------------------------------- | ------------------------------------- |
+| `suiteCtx`  | `context.Context`               | Context scoped to container lifecycle |
+| `pgC`       | `*tcpostgres.PostgresContainer` | PostgreSQL testcontainer              |
+| `redisC`    | `testcontainers.Container`      | Redis testcontainer                   |
+| `App`       | `*fiber.App`                    | Configured Fiber HTTP app for testing |
+| `DB`        | `*sql.DB`                       | Raw database connection               |
+| `EntClient` | `*gen.Client`                   | Ent ORM client                        |
+| `Redis`     | `*redis.Client`                 | Redis client                          |
+| `PGDSN`     | `string`                        | Per-process database DSN              |
+| `RedisAddr` | `string`                        | Redis address                         |
 
 ### SynchronizedBeforeSuite Lifecycle
 
@@ -172,11 +172,11 @@ func createPerProcessDatabase(baseDSN, dbName string) string {
 
 Ginkgo specs use three node types to build a descriptive hierarchy:
 
-| Node Type | Examples | Purpose |
-|-----------|----------|---------|
-| Container | `Describe`, `Context`, `When` | Organize specs hierarchically |
-| Setup | `BeforeEach`, `AfterEach`, `JustBeforeEach`, `DeferCleanup` | Set up and tear down spec state |
-| Subject | `It`, `Specify` | Make assertions about behavior |
+| Node Type | Examples                                                    | Purpose                         |
+| --------- | ----------------------------------------------------------- | ------------------------------- |
+| Container | `Describe`, `Context`, `When`                               | Organize specs hierarchically   |
+| Setup     | `BeforeEach`, `AfterEach`, `JustBeforeEach`, `DeferCleanup` | Set up and tear down spec state |
+| Subject   | `It`, `Specify`                                             | Make assertions about behavior  |
 
 ### Basic Pattern
 
@@ -217,11 +217,11 @@ var _ = Describe("Bookmark Module", Label("module", "bookmark"), func() {
 
 Labels enable selective test execution. Use them to categorize specs:
 
-| Label | Convention | Usage |
-|-------|-----------|-------|
-| `smoke` | Fast, high-value tests | `ginkgo --label-filter="smoke"` |
+| Label           | Convention                  | Usage                                     |
+| --------------- | --------------------------- | ----------------------------------------- |
+| `smoke`         | Fast, high-value tests      | `ginkgo --label-filter="smoke"`           |
 | `module:<name>` | Tests for a specific module | `ginkgo --label-filter="module/bookmark"` |
-| `integration` | Requires external services | `ginkgo --label-filter="integration"` |
+| `integration`   | Requires external services  | `ginkgo --label-filter="integration"`     |
 
 ```go
 var _ = Describe("Health", Label("health", "smoke"), func() { ... })
@@ -249,26 +249,26 @@ DescribeTable("returns 200 for health endpoints",
 
 In Ginkgo, `RegisterFailHandler(Fail)` connects Gomega to Ginkgo. When `Expect` fails, it **immediately terminates** the current `It` block (equivalent to `testify/require`, not `testify/assert`). No guard clauses are needed after `Expect(err).NotTo(HaveOccurred())`.
 
-| testify | Gomega |
-|---------|--------|
-| `require.NoError(t, err)` | `Expect(err).NotTo(HaveOccurred())` |
-| `require.Equal(t, a, b)` | `Expect(b).To(Equal(a))` |
-| `require.True(t, cond)` | `Expect(cond).To(BeTrue())` |
-| `require.NotNil(t, v)` | `Expect(v).NotTo(BeNil())` |
-| `assert.Equal(t, a, b)` | `Expect(b).To(Equal(a))` |
+| testify                      | Gomega                                |
+| ---------------------------- | ------------------------------------- |
+| `require.NoError(t, err)`    | `Expect(err).NotTo(HaveOccurred())`   |
+| `require.Equal(t, a, b)`     | `Expect(b).To(Equal(a))`              |
+| `require.True(t, cond)`      | `Expect(cond).To(BeTrue())`           |
+| `require.NotNil(t, v)`       | `Expect(v).NotTo(BeNil())`            |
+| `assert.Equal(t, a, b)`      | `Expect(b).To(Equal(a))`              |
 | `assert.Contains(t, s, sub)` | `Expect(s).To(ContainSubstring(sub))` |
-| `s.Require().NoError(err)` | `Expect(err).NotTo(HaveOccurred())` |
-| `s.Equal(a, b)` | `Expect(b).To(Equal(a))` |
+| `s.Require().NoError(err)`   | `Expect(err).NotTo(HaveOccurred())`   |
+| `s.Equal(a, b)`              | `Expect(b).To(Equal(a))`              |
 
 ### HTTP Testing
 
 All HTTP tests use `App.Test(req)` on the shared `*fiber.App` instance -- no local server is started. The `fixtures.go` helpers simplify request construction:
 
-| Function | Signature |
-|----------|-----------|
+| Function      | Signature                                          |
+| ------------- | -------------------------------------------------- |
 | `MakeRequest` | `(method, path string, body []byte) *http.Request` |
 | `JSONRequest` | `(method, path string, body []byte) *http.Request` |
-| `ReadBody` | `(resp *http.Response) []byte` |
+| `ReadBody`    | `(resp *http.Response) []byte`                     |
 
 When a module or capability might not be registered in the test setup, use `Or(...)` to accept multiple status codes:
 
@@ -383,12 +383,12 @@ The BDD step in `.github/workflows/testing.yml`:
 
 ## Migration Roadmap
 
-| Phase | Scope | Status |
-|-------|-------|--------|
-| 0 | Infrastructure: Ginkgo deps, SynchronizedBeforeSuite, CI, revive exemption | Complete |
-| 1 | New modules: mandatory Ginkgo BDD spec; existing code untouched | Ongoing |
-| 2 | Existing integration tests: migrate from testify/suite to Ginkgo | Complete |
-| 8 | Unit tests: testify table-driven retained permanently | Never |
+| Phase | Scope                                                                      | Status   |
+| ----- | -------------------------------------------------------------------------- | -------- |
+| 0     | Infrastructure: Ginkgo deps, SynchronizedBeforeSuite, CI, revive exemption | Complete |
+| 1     | New modules: mandatory Ginkgo BDD spec; existing code untouched            | Ongoing  |
+| 2     | Existing integration tests: migrate from testify/suite to Ginkgo           | Complete |
+| 8     | Unit tests: testify table-driven retained permanently                      | Never    |
 
 ## Rules
 
@@ -407,11 +407,11 @@ The BDD step in `.github/workflows/testing.yml`:
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SKIP_INTEGRATION_TESTS` | `false` | Set to `true` to skip all integration/BDD tests |
-| `POSTGRES_IMAGE` | `postgres:16-alpine` | PostgreSQL container image |
-| `REDIS_IMAGE` | `redis:7-alpine` | Redis container image |
+| Variable                 | Default              | Description                                     |
+| ------------------------ | -------------------- | ----------------------------------------------- |
+| `SKIP_INTEGRATION_TESTS` | `false`              | Set to `true` to skip all integration/BDD tests |
+| `POSTGRES_IMAGE`         | `postgres:16-alpine` | PostgreSQL container image                      |
+| `REDIS_IMAGE`            | `redis:7-alpine`     | Redis container image                           |
 
 ## Tool Dependencies
 

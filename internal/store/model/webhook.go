@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Webhook mapped from table <webhook>
 type Webhook struct {
 	ID           int64        `json:"id"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Url mapped from table <urls>
 type Url struct {
 	ID        int64     `json:"id"`

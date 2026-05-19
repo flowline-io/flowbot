@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Fileupload mapped from table <fileuploads>
 type Fileupload struct {
 	ID        int64     `json:"id"`

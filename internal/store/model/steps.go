@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Step mapped from table <steps>
 type Step struct {
 	ID        int64      `json:"id"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Review mapped from table <reviews>
 type Review struct {
 	ID          int64               `json:"id"`

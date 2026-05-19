@@ -16,10 +16,10 @@ func TestFunctionTool_Info(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		tool       *llm.FunctionTool
-		wantName   string
-		wantErr    bool
+		name     string
+		tool     *llm.FunctionTool
+		wantName string
+		wantErr  bool
 	}{
 		{
 			name:     "full tool metadata",

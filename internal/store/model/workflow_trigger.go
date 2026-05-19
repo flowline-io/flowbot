@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // WorkflowTrigger mapped from table <workflow_trigger>
 type WorkflowTrigger struct {
 	ID         int64                `json:"id"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Instruct mapped from table <instruct>
 type Instruct struct {
 	ID        int64            `json:"id"`

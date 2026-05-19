@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Behavior mapped from table <behavior>
 type Behavior struct {
 	ID        int64     `json:"id"`

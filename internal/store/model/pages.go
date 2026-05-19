@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Page mapped from table <pages>
 type Page struct {
 	ID        int64     `json:"id"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Authentication mapped from table <authentications>
 type Authentication struct {
 	ID           int64      `json:"id"`

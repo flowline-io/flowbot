@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -196,9 +197,7 @@ func (r *Runner) executeParallelTask(
 
 	mu.Lock()
 	currentResults := make(map[string]string, len(*results))
-	for k, v := range *results {
-		currentResults[k] = v
-	}
+	maps.Copy(currentResults, *results)
 	mu.Unlock()
 
 	params, err := resolveParams(wt.Params, currentResults, input)
@@ -293,9 +292,7 @@ func (r *Runner) executeParallelTask(
 			completedTasks[taskID] = true
 		}
 		resultCopy := make(map[string]string, len(*results))
-		for k, v := range *results {
-			resultCopy[k] = v
-		}
+		maps.Copy(resultCopy, *results)
 		cp := CheckpointData{
 			CompletedTasks: completedTasks,
 			StepResults:    resultCopy,

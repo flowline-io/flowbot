@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // KeyResult mapped from table <key_results>
 type KeyResult struct {
 	ID              int64             `json:"id"`

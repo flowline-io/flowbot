@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // FlowNode mapped from table <flow_nodes>
 type FlowNode struct {
 	ID         int64     `json:"id"`

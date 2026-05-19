@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // PlatformUser mapped from table <platform_users>
 type PlatformUser struct {
 	ID         int64     `json:"id"`

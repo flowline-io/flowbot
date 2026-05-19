@@ -434,4 +434,3 @@ func TestRuleset_Filter_HashCorrectness(t *testing.T) {
 		assert.True(t, ok, "hash should exist after filter call")
 	})
 }
-

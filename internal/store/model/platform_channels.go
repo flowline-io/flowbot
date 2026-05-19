@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // PlatformChannel mapped from table <platform_channels>
 type PlatformChannel struct {
 	ID         int64     `json:"id"`

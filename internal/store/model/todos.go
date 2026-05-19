@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Todo mapped from table <todos>
 type Todo struct {
 	ID             int64     `json:"id"`

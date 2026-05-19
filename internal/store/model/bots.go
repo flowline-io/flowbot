@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Bot mapped from table <bots>
 type Bot struct {
 	ID        int64     `json:"id"`

@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // PlatformBot mapped from table <platform_bots>
 type PlatformBot struct {
 	ID         int64     `json:"id"`

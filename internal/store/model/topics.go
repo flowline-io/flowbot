@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Topic mapped from table <topics>
 type Topic struct {
 	ID        int64      `json:"id"`

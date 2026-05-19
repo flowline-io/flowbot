@@ -52,17 +52,17 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
 
 Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its span with the component namespace.
 
-| Level            | Span name                                      | Location             | Automatic |
-| ---------------- | ---------------------------------------------- | -------------------- | --------- |
-| HTTP request     | `HTTP {method} {route}`                        | `trace/fiber.go`     | Yes       |
-| Event publish    | `event.publish {topic}`                        | `event/pubsub.go`    | Yes       |
-| Event consume    | `event.receive {topic}`                        | `event/pubsub.go`    | Yes       |
-| Pipeline execute | `pipeline.{name}.execute`                      | `pipeline/engine.go` | Yes       |
-| Pipeline step    | `pipeline.{pipeline}.step.{step}`              | `pipeline/engine.go` | Yes       |
-| Ability invoke   | `ability.{capability}.{operation}`             | `ability/invoke.go`  | Yes       |
-| Database query   | `db.Query` / `db.Exec`                          | Ent driver           | Yes       |
-| Redis command    | `GET` / `SET` / `LPUSH` / `XADD` / ...         | redisotel hook       | Yes       |
-| Outgoing HTTP    | `HTTP {method}`                                | otelhttp transport   | Yes       |
+| Level            | Span name                              | Location             | Automatic |
+| ---------------- | -------------------------------------- | -------------------- | --------- |
+| HTTP request     | `HTTP {method} {route}`                | `trace/fiber.go`     | Yes       |
+| Event publish    | `event.publish {topic}`                | `event/pubsub.go`    | Yes       |
+| Event consume    | `event.receive {topic}`                | `event/pubsub.go`    | Yes       |
+| Pipeline execute | `pipeline.{name}.execute`              | `pipeline/engine.go` | Yes       |
+| Pipeline step    | `pipeline.{pipeline}.step.{step}`      | `pipeline/engine.go` | Yes       |
+| Ability invoke   | `ability.{capability}.{operation}`     | `ability/invoke.go`  | Yes       |
+| Database query   | `db.Query` / `db.Exec`                 | Ent driver           | Yes       |
+| Redis command    | `GET` / `SET` / `LPUSH` / `XADD` / ... | redisotel hook       | Yes       |
+| Outgoing HTTP    | `HTTP {method}`                        | otelhttp transport   | Yes       |
 
 ### Span attribute conventions
 
@@ -74,7 +74,7 @@ Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its
 | Pipeline execute | `pipeline.name`, `event.id`, `event.type`                                                      |
 | Pipeline step    | `pipeline.step.name`, `pipeline.step.capability`, `pipeline.step.operation`                    |
 | Ability invoke   | `capability.name`, `capability.operation`                                                      |
-| Database         | `db.system` (`postgres`), `db.statement`, `db.rows_affected`                                  |
+| Database         | `db.system` (`postgres`), `db.statement`, `db.rows_affected`                                   |
 | Redis            | `db.system` (`redis`), `db.statement`                                                          |
 | Outgoing HTTP    | `http.method`, `http.url`, `net.peer.name`, `http.status_code`                                 |
 

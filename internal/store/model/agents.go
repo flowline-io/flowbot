@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Agent mapped from table <agents>
 type Agent struct {
 	ID             int64     `json:"id"`

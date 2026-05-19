@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // Flow mapped from table <flows>
 type Flow struct {
 	ID          int64     `json:"id"`

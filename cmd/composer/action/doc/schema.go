@@ -9,8 +9,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable
 	"github.com/goccy/go-yaml"
+	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
 )

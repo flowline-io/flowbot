@@ -54,4 +54,4 @@
       operation: send
       params:
         channel: slack
-        message: "New feeds: {{step \"fetch_feeds\" \"count\"}}"
+        message: 'New feeds: {{step "fetch_feeds" "count"}}'
