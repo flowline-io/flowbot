@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
@@ -32,6 +33,12 @@ const (
 )
 
 var handlers map[string]Handler
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for module cron rulesets.
+func SetCacheStore(s *cache.RedisStore) {
+	cacheStore = s
+}
 
 func Register(name string, module Handler) {
 	if handlers == nil {
@@ -174,7 +181,7 @@ func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
 }
 
 func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
-	ruleset := cron.NewCronRuleset(name, cronRules)
+	ruleset := cron.NewCronRuleset(name, cronRules, cacheStore)
 	ruleset.Daemon()
 	return ruleset, nil
 }

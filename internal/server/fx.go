@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/search"
@@ -37,6 +38,7 @@ var Modules = fx.Options(
 	fx.Invoke(
 		setServerCacheStore,
 		setModuleServerCacheStore,
+		setModuleCacheStore,
 		handleRoutes,
 		handleEvents,
 		handleModules,
@@ -53,4 +55,8 @@ func setServerCacheStore(store *cache.RedisStore) {
 
 func setModuleServerCacheStore(store *cache.RedisStore) {
 	serverModule.SetCacheStore(store)
+}
+
+func setModuleCacheStore(store *cache.RedisStore) {
+	module.SetCacheStore(store)
 }

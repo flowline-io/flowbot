@@ -11,9 +11,9 @@ import (
 	"github.com/flc1125/go-cron/v4"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -45,6 +45,7 @@ type Ruleset struct {
 	Type      string
 	outCh     chan result
 	cronRules []Rule
+	store     *cache.RedisStore
 }
 
 type result struct {
@@ -54,12 +55,13 @@ type result struct {
 }
 
 // NewCronRuleset New returns a cron rule set
-func NewCronRuleset(name string, rules []Rule) *Ruleset {
+func NewCronRuleset(name string, rules []Rule, redisStore *cache.RedisStore) *Ruleset {
 	return &Ruleset{
 		stop:      make(chan struct{}),
 		Type:      name,
 		outCh:     make(chan result, 100),
 		cronRules: rules,
+		store:     redisStore,
 	}
 }
 
@@ -188,23 +190,17 @@ func (r *Ruleset) resultWorker() {
 }
 
 func (r *Ruleset) filter(res result) result {
-	// user auth record
-
-	filterKey := fmt.Sprintf("cron:%s:%s:filter", res.name, res.ctx.AsUser)
-
-	// content hash
+	key := cache.NewKey("cron", "filter", res.name+":"+string(res.ctx.AsUser))
 	d := un(res.payload)
 	s := sha1.New()
 	_, _ = s.Write(d)
-	hash := s.Sum(nil)
-
+	hash := string(s.Sum(nil))
 	ctx := context.Background()
-	state := rdb.Client.SIsMember(ctx, filterKey, hash).Val()
-	if state {
+	ok, _ := r.store.IsMember(ctx, key, hash)
+	if ok {
 		return result{}
 	}
-
-	_ = rdb.Client.SAdd(ctx, filterKey, hash)
+	_, _ = r.store.Add(ctx, key, cache.TTLMonth, hash)
 	return res
 }
 
