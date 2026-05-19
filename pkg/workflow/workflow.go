@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -145,18 +146,19 @@ func DetermineRuntimeType(t *types.Task) string {
 type Runner struct {
 	engines      map[string]*executor.Engine
 	store        WorkflowRunStore
+	metrics      *metrics.WorkflowCollector
 	workflowFile string
 	triggerType  string
 }
 
 // NewRunner creates a Runner without persistence. Use NewRunnerWithStore to enable run records.
 func NewRunner() *Runner {
-	return NewRunnerWithStore(nil, "", "")
+	return NewRunnerWithStore(nil, nil, "", "")
 }
 
 // NewRunnerWithStore creates a Runner that persists run and step records to the given store.
 // workflowFile and triggerType are recorded in the run for audit and potential resume.
-func NewRunnerWithStore(store WorkflowRunStore, workflowFile, triggerType string) *Runner {
+func NewRunnerWithStore(store WorkflowRunStore, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
 	return &Runner{
 		engines: map[string]*executor.Engine{
 			runtime.Capability: executor.New(runtime.Capability),
@@ -165,6 +167,7 @@ func NewRunnerWithStore(store WorkflowRunStore, workflowFile, triggerType string
 			runtime.Machine:    executor.New(runtime.Machine),
 		},
 		store:        store,
+		metrics:      wc,
 		workflowFile: workflowFile,
 		triggerType:  triggerType,
 	}
@@ -248,6 +251,19 @@ func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMeta
 
 // runSequential executes workflow tasks one at a time in pipeline order.
 func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
+	start := time.Now()
+	var runErr error
+	defer func() {
+		if r.metrics != nil {
+			status := "done"
+			if runErr != nil {
+				status = "failed"
+			}
+			r.metrics.IncRunTotal(wf.Name, status)
+			r.metrics.ObserveRunDuration(wf.Name, status, time.Since(start).Seconds())
+		}
+	}()
+
 	results := make(map[string]string)
 
 	// Save checkpoint before step execution.
@@ -271,7 +287,8 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		if !ok {
 			err := fmt.Errorf("task %s not found in workflow", stepID)
 			r.failRun(run, cancelHeartbeat, err)
-			return err
+			runErr = err
+			return runErr
 		}
 
 		saveCheckpoint(stepIndex)
@@ -280,7 +297,8 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		if err != nil {
 			err = fmt.Errorf("resolve params step %s: %w", stepID, err)
 			r.failRun(run, cancelHeartbeat, err)
-			return err
+			runErr = err
+			return runErr
 		}
 
 		info := ParseAction(wt.Action)
@@ -294,18 +312,31 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		}
 
 		if info.Type == "mapper" {
+			stepStart := time.Now()
+			if r.metrics != nil {
+				r.metrics.IncStepTotal(wf.Name, stepID, "running")
+			}
 			mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
 			if merr != nil {
 				merr = fmt.Errorf("mapper step %s: %w", stepID, merr)
+				if r.metrics != nil {
+					r.metrics.IncStepTotal(wf.Name, stepID, "failed")
+					r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
+				}
 				r.failStep(stepRun, merr, 1)
 				r.failRun(run, cancelHeartbeat, merr)
-				return merr
+				runErr = merr
+				return runErr
 			}
 			results[stepID] = string(mappedJSON)
 			if r.store != nil && stepRun != nil {
 				resultJSON := model.JSON{}
 				_ = resultJSON.Scan(mappedJSON)
 				_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
+			}
+			if r.metrics != nil {
+				r.metrics.IncStepTotal(wf.Name, stepID, "done")
+				r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "done", time.Since(stepStart).Seconds())
 			}
 			flog.Info("[workflow] mapper step %s completed", stepID)
 			stepIndex++
@@ -320,16 +351,37 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 			err = fmt.Errorf("convert task %s: %w", stepID, err)
 			r.failStep(stepRun, err, 1)
 			r.failRun(run, cancelHeartbeat, err)
-			return err
+			runErr = err
+			return runErr
 		}
 
 		flog.Info("[workflow] running step %s: %s", stepID, wt.Action)
+		stepStart := time.Now()
+		if r.metrics != nil {
+			r.metrics.IncStepTotal(wf.Name, stepID, "running")
+		}
 
 		attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
 		if rerr != nil {
+			if r.metrics != nil {
+				r.metrics.IncStepTotal(wf.Name, stepID, "failed")
+				r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
+				if attempt > 1 {
+					r.metrics.IncStepRetry(wf.Name, stepID)
+				}
+			}
 			r.failStep(stepRun, rerr, attempt)
 			r.failRun(run, cancelHeartbeat, rerr)
-			return fmt.Errorf("step %s failed: %w", stepID, rerr)
+			runErr = fmt.Errorf("step %s failed: %w", stepID, rerr)
+			return runErr
+		}
+
+		if r.metrics != nil {
+			r.metrics.IncStepTotal(wf.Name, stepID, "done")
+			r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "done", time.Since(stepStart).Seconds())
+			if attempt > 1 {
+				r.metrics.IncStepRetry(wf.Name, stepID)
+			}
 		}
 
 		if task.Result != "" {
@@ -379,6 +431,10 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 	wf, err := LoadFile(run.WorkflowFile)
 	if err != nil {
 		return fmt.Errorf("load workflow file %s: %w", run.WorkflowFile, err)
+	}
+
+	if r.metrics != nil {
+		r.metrics.IncResume(wf.Name)
 	}
 
 	var cp CheckpointData

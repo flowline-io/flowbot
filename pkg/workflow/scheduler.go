@@ -57,6 +57,19 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 		return fmt.Errorf("build dag: %w", err)
 	}
 
+	parallelStart := time.Now()
+	var finalErr error
+	defer func() {
+		if r.metrics != nil {
+			status := "done"
+			if finalErr != nil {
+				status = "failed"
+			}
+			r.metrics.IncRunTotal(wf.Name, status)
+			r.metrics.ObserveRunDuration(wf.Name, status, time.Since(parallelStart).Seconds())
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -79,6 +92,9 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 				id := ready[0]
 				ready = ready[1:]
 				activeCount++
+				if r.metrics != nil {
+					r.metrics.SetConcurrency(wf.Name, activeCount)
+				}
 				mu.Unlock()
 
 				sem <- struct{}{}
@@ -93,12 +109,27 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 
 					wt := taskMap[taskID]
 
+					stepStart := time.Now()
+					info := ParseAction(wt.Action)
+					if r.metrics != nil {
+						r.metrics.IncStepTotal(wf.Name, taskID, "running")
+					}
+
 					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
 					if rerr != nil {
 						errOnce.Do(func() {
 							firstErr = rerr
 							cancel()
 						})
+						if r.metrics != nil {
+							r.metrics.IncStepTotal(wf.Name, taskID, "failed")
+							r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "failed", time.Since(stepStart).Seconds())
+						}
+					} else {
+						if r.metrics != nil {
+							r.metrics.IncStepTotal(wf.Name, taskID, "done")
+							r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "done", time.Since(stepStart).Seconds())
+						}
 					}
 				}(id)
 			} else {
@@ -113,6 +144,9 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 		case <-done:
 			mu.Lock()
 			activeCount--
+			if r.metrics != nil {
+				r.metrics.SetConcurrency(wf.Name, activeCount)
+			}
 			totalRemaining--
 			mu.Unlock()
 		}
@@ -129,7 +163,8 @@ drain:
 		if r.store != nil && run != nil {
 			_ = r.store.UpdateRunStatus(run.ID, model.WorkflowRunFailed, firstErr.Error())
 		}
-		return firstErr
+		finalErr = firstErr
+		return finalErr
 	}
 
 	if r.store != nil && run != nil {
@@ -215,6 +250,9 @@ func (r *Runner) executeParallelTask(
 		flog.Info("[workflow] running step %s: %s (parallel)", taskID, wt.Action)
 
 		attempt, rerr := r.runEngineWithRetry(ctx, engine, task, wt.Retry, taskID, stepRun)
+		if r.metrics != nil && attempt > 1 {
+			r.metrics.IncStepRetry(wf.Name, taskID)
+		}
 		if rerr != nil {
 			r.failStep(stepRun, rerr, attempt)
 			return fmt.Errorf("step %s failed: %w", taskID, rerr)

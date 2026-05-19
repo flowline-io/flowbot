@@ -43,7 +43,7 @@ func runWorkflow(ctx fiber.Ctx) error {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
 			runStore = store.NewWorkflowRunStore(client)
 		}
-		runner = workflowpkg.NewRunnerWithStore(runStore, body.File, "manual")
+		runner = workflowpkg.NewRunnerWithStore(runStore, nil, body.File, "manual")
 	}
 	if err := runner.Execute(context.Background(), *wf, types.KV(body.Params), body.File); err != nil {
 		return fmt.Errorf("workflow execution: %w", err)
