@@ -42,7 +42,7 @@ jobs:
         run: go tool task test:specs:ci
 
       - name: Upload BDD Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: specs-report
