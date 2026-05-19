@@ -12,6 +12,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 
@@ -55,15 +56,19 @@ type RunStore interface {
 }
 
 type Engine struct {
-	defs    []Definition
-	store   RunStore
-	handler func(ctx context.Context, event types.DataEvent) error
+	defs            []Definition
+	store           RunStore
+	pipelineMetrics *metrics.PipelineCollector
+	eventMetrics    *metrics.EventCollector
+	handler         func(ctx context.Context, event types.DataEvent) error
 }
 
-func NewEngine(defs []Definition, store RunStore) *Engine {
+func NewEngine(defs []Definition, store RunStore, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
 	e := &Engine{
-		defs:  defs,
-		store: store,
+		defs:            defs,
+		store:           store,
+		pipelineMetrics: pc,
+		eventMetrics:    ec,
 	}
 	e.handler = e.handleEvent
 	return e
@@ -80,6 +85,9 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 	}
 
 	for _, def := range matched {
+		if e.eventMetrics != nil {
+			e.eventMetrics.IncMatched(event.EventType, def.Name)
+		}
 		if err := e.executePipeline(ctx, def, event); err != nil {
 			flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
 		}
@@ -96,6 +104,8 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	)
 	defer span.End()
 
+	runStart := time.Now()
+
 	if e.store != nil {
 		consumed, err := e.store.HasConsumed(def.Name, event.EventID)
 		if err != nil {
@@ -103,6 +113,9 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		}
 		if consumed {
 			flog.Info("pipeline %s already consumed event %s", def.Name, event.EventID)
+			if e.eventMetrics != nil {
+				e.eventMetrics.IncDedup(event.EventType, def.Name)
+			}
 			return nil
 		}
 		if err := e.store.RecordConsumption(def.Name, event.EventID); err != nil {
@@ -140,6 +153,15 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		}
 	}
 
+	if e.pipelineMetrics != nil {
+		status := "done"
+		if finalErr != nil {
+			status = "cancel"
+		}
+		e.pipelineMetrics.IncRunTotal(def.Name, status)
+		e.pipelineMetrics.ObserveRunDuration(def.Name, status, time.Since(runStart).Seconds())
+	}
+
 	e.finishRunRecord(runID, failed, finalErr)
 
 	if finalErr != nil {
@@ -155,6 +177,8 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		otelattr.String("pipeline.step.operation", step.Operation),
 	)
 	defer span.End()
+
+	stepStart := time.Now()
 
 	renderedParams, err := rc.RenderParams(step.Params)
 	if err != nil {
@@ -179,6 +203,10 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	retryCfg := step.Retry
 	bo := retryCfg.BuildBackOff()
 
+	if e.pipelineMetrics != nil {
+		e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "start")
+	}
+
 	for {
 		res, err := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 		if err == nil {
@@ -186,6 +214,13 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 			rc.RecordStepResult(step.Name, stepResult)
 			e.updateStepRunRecord(stepRunID, model.PipelineDone, stepResult, "", attempt)
 			flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
+			if e.pipelineMetrics != nil {
+				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "done")
+				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "done", time.Since(stepStart).Seconds())
+				if attempt > 1 {
+					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
+				}
+			}
 			return nil
 		}
 
@@ -193,12 +228,26 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 
 		if !retryCfg.RetryEnabled() || !isRetryable(err, retryCfg) {
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
+			if e.pipelineMetrics != nil {
+				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
+				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
+				if attempt > 1 {
+					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
+				}
+			}
 			return fmt.Errorf("step %s: %w", step.Name, err)
 		}
 
 		nextDelay := bo.NextBackOff()
 		if nextDelay == backoff.Stop {
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
+			if e.pipelineMetrics != nil {
+				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
+				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
+				if attempt > 1 {
+					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
+				}
+			}
 			return fmt.Errorf("step %s (retries exhausted): %w", step.Name, err)
 		}
 
@@ -208,6 +257,13 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		select {
 		case <-ctx.Done():
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, ctx.Err().Error(), attempt)
+			if e.pipelineMetrics != nil {
+				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
+				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
+				if attempt > 1 {
+					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
+				}
+			}
 			return fmt.Errorf("step %s cancelled: %w", step.Name, ctx.Err())
 		case <-time.After(nextDelay):
 		}
@@ -360,6 +416,10 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	run, err := e.store.GetRun(runID)
 	if err != nil {
 		return fmt.Errorf("get run %d: %w", runID, err)
+	}
+
+	if e.pipelineMetrics != nil {
+		e.pipelineMetrics.IncResume(run.PipelineName)
 	}
 
 	cp := &CheckpointData{}

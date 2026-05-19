@@ -12,6 +12,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -664,6 +665,8 @@ func TestConvertToTypesKV(t *testing.T) {
 
 func TestNewEngine(t *testing.T) {
 	t.Parallel()
+	noopPC := metrics.NewPipelineCollector(nil)
+	noopEC := metrics.NewEventCollector(nil)
 	tests := []struct {
 		name  string
 		defs  []Definition
@@ -699,7 +702,7 @@ func TestNewEngine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			e := NewEngine(tt.defs, tt.store)
+			e := NewEngine(tt.defs, tt.store, noopPC, noopEC)
 			assert.NotNil(t, e)
 			assert.NotNil(t, e.Handler())
 		})

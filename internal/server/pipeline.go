@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -35,7 +36,7 @@ func initPipeline(lc fx.Lifecycle, cfg *config.Type, router *message.Router, sub
 		}
 	}
 
-	engine := pipeline.NewEngine(pipelineDefs, runStore)
+	engine := pipeline.NewEngine(pipelineDefs, runStore, metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 
 	// Set event emitter on ability registry
 	ability.SetEventEmitter(func(ctx context.Context, result *ability.InvokeResult) {
