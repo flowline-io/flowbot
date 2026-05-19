@@ -17,7 +17,3 @@ func recordEviction(backend string) {
 	stats.CacheEvictionTotalCounter(backend).Inc()
 }
 
-// recordSizeBytes sets the approximate cache size gauge for the given backend.
-func recordSizeBytes(backend string, size uint64) {
-	stats.CacheSizeBytesGauge(backend).Set(size)
-}

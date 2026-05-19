@@ -81,7 +81,7 @@ type EvalResult struct {
 }
 
 // Evaluate checks all rules against an event type and channel, returning the first matching action.
-func (e *Engine) Evaluate(ctx context.Context, eventType, channel string) *EvalResult {
+func (e *Engine) Evaluate(_ context.Context, eventType, channel string) *EvalResult {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 

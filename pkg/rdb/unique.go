@@ -48,7 +48,7 @@ func kvHash(item any) (string, error) {
 	return utils.SHA1(utils.BytesToString(b)), nil
 }
 
-func BloomUniqueString(ctx context.Context, id string, latest string) (bool, error) {
+func BloomUniqueString(ctx context.Context, id, latest string) (bool, error) {
 	uniqueKey := fmt.Sprintf("cache:dedup:%s", id)
 	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
 	Client.Expire(ctx, uniqueKey, 30*24*time.Hour)

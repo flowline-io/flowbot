@@ -266,139 +266,14 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 
 	results := make(map[string]string)
 
-	// Save checkpoint before step execution.
-	saveCheckpoint := func(stepIndex int) {
-		if wf.Resumable && r.store != nil && run != nil {
-			cp := CheckpointData{
-				StepIndex:   stepIndex,
-				StepResults: resultCopy(results),
-				Input:       input,
-				HeartbeatAt: time.Now(),
-			}
-			if cerr := r.store.SaveCheckpoint(run.ID, &cp); cerr != nil {
-				flog.Error(fmt.Errorf("[workflow] save checkpoint step %d: %w", stepIndex, cerr))
-			}
-		}
-	}
+	for stepIndex, stepID := range wf.Pipeline {
+		saveCheckpoint(stepIndex, r, wf, results, input, run)
 
-	stepIndex := 0
-	for _, stepID := range wf.Pipeline {
-		wt, ok := taskMap[stepID]
-		if !ok {
-			err := fmt.Errorf("task %s not found in workflow", stepID)
+		if err := r.executeSequentialStep(ctx, stepID, taskMap, wf, results, input, run); err != nil {
 			r.failRun(run, cancelHeartbeat, err)
 			runErr = err
 			return runErr
 		}
-
-		saveCheckpoint(stepIndex)
-
-		params, err := resolveParams(wt.Params, results, input)
-		if err != nil {
-			err = fmt.Errorf("resolve params step %s: %w", stepID, err)
-			r.failRun(run, cancelHeartbeat, err)
-			runErr = err
-			return runErr
-		}
-
-		info := ParseAction(wt.Action)
-
-		var stepRun *model.WorkflowStepRun
-		if r.store != nil && run != nil {
-			stepRun, err = r.store.CreateStepRun(run.ID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
-			if err != nil {
-				flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", stepID, err))
-			}
-		}
-
-		if info.Type == "mapper" {
-			stepStart := time.Now()
-			if r.metrics != nil {
-				r.metrics.IncStepTotal(wf.Name, stepID, "running")
-			}
-			mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
-			if merr != nil {
-				merr = fmt.Errorf("mapper step %s: %w", stepID, merr)
-				if r.metrics != nil {
-					r.metrics.IncStepTotal(wf.Name, stepID, "failed")
-					r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
-				}
-				r.failStep(stepRun, merr, 1)
-				r.failRun(run, cancelHeartbeat, merr)
-				runErr = merr
-				return runErr
-			}
-			results[stepID] = string(mappedJSON)
-			if r.store != nil && stepRun != nil {
-				resultJSON := model.JSON{}
-				_ = resultJSON.Scan(mappedJSON)
-				_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
-			}
-			if r.metrics != nil {
-				r.metrics.IncStepTotal(wf.Name, stepID, "done")
-				r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "done", time.Since(stepStart).Seconds())
-			}
-			flog.Info("[workflow] mapper step %s completed", stepID)
-			stepIndex++
-			continue
-		}
-
-		wtWithParams := wt
-		wtWithParams.Params = params
-
-		task, err := WorkflowTaskToTask(wtWithParams)
-		if err != nil {
-			err = fmt.Errorf("convert task %s: %w", stepID, err)
-			r.failStep(stepRun, err, 1)
-			r.failRun(run, cancelHeartbeat, err)
-			runErr = err
-			return runErr
-		}
-
-		flog.Info("[workflow] running step %s: %s", stepID, wt.Action)
-		stepStart := time.Now()
-		if r.metrics != nil {
-			r.metrics.IncStepTotal(wf.Name, stepID, "running")
-		}
-
-		attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
-		if rerr != nil {
-			if r.metrics != nil {
-				r.metrics.IncStepTotal(wf.Name, stepID, "failed")
-				r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
-				if attempt > 1 {
-					r.metrics.IncStepRetry(wf.Name, stepID)
-				}
-			}
-			r.failStep(stepRun, rerr, attempt)
-			r.failRun(run, cancelHeartbeat, rerr)
-			runErr = fmt.Errorf("step %s failed: %w", stepID, rerr)
-			return runErr
-		}
-
-		if r.metrics != nil {
-			r.metrics.IncStepTotal(wf.Name, stepID, "done")
-			r.metrics.ObserveStepDuration(wf.Name, stepID, info.Type, "done", time.Since(stepStart).Seconds())
-			if attempt > 1 {
-				r.metrics.IncStepRetry(wf.Name, stepID)
-			}
-		}
-
-		if task.Result != "" {
-			results[stepID] = task.Result
-		}
-
-		if r.store != nil && stepRun != nil {
-			resultJSON := model.JSON{}
-			if task.Result != "" {
-				resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-				_ = resultJSON.Scan(resultRaw)
-			}
-			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
-		}
-
-		flog.Info("[workflow] step %s completed", stepID)
-		stepIndex++
 	}
 
 	if r.store != nil && run != nil {
@@ -409,6 +284,159 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 	}
 
 	return nil
+}
+
+// executeSequentialStep executes a single step of a sequential workflow.
+func (r *Runner) executeSequentialStep(
+	ctx context.Context,
+	stepID string,
+	taskMap map[string]types.WorkflowTask,
+	wf types.WorkflowMetadata,
+	results map[string]string,
+	input types.KV,
+	run *model.WorkflowRun,
+) error {
+	wt, ok := taskMap[stepID]
+	if !ok {
+		return fmt.Errorf("task %s not found in workflow", stepID)
+	}
+
+	params, err := resolveParams(wt.Params, results, input)
+	if err != nil {
+		return fmt.Errorf("resolve params step %s: %w", stepID, err)
+	}
+
+	info := ParseAction(wt.Action)
+
+	var stepRun *model.WorkflowStepRun
+	if r.store != nil && run != nil {
+		stepRun, err = r.store.CreateStepRun(run.ID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
+		if err != nil {
+			flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", stepID, err))
+		}
+	}
+
+	if info.Type == "mapper" {
+		return r.executeSequentialMapperStep(stepID, params, info, wf.Name, results, stepRun)
+	}
+	return r.executeSequentialExecutorStep(ctx, stepID, wt, params, info, wf.Name, results, stepRun)
+}
+
+// executeSequentialMapperStep marshals params into the results map for a sequential mapper step.
+func (r *Runner) executeSequentialMapperStep(
+	stepID string,
+	params types.KV,
+	info ActionInfo,
+	wfName string,
+	results map[string]string,
+	stepRun *model.WorkflowStepRun,
+) error {
+	stepStart := time.Now()
+	if r.metrics != nil {
+		r.metrics.IncStepTotal(wfName, stepID, "running")
+	}
+	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
+	if merr != nil {
+		merr = fmt.Errorf("mapper step %s: %w", stepID, merr)
+		if r.metrics != nil {
+			r.metrics.IncStepTotal(wfName, stepID, "failed")
+			r.metrics.ObserveStepDuration(wfName, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
+		}
+		r.failStep(stepRun, merr, 1)
+		return merr
+	}
+	results[stepID] = string(mappedJSON)
+	if r.store != nil && stepRun != nil {
+		resultJSON := model.JSON{}
+		_ = resultJSON.Scan(mappedJSON)
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
+	}
+	if r.metrics != nil {
+		r.metrics.IncStepTotal(wfName, stepID, "done")
+		r.metrics.ObserveStepDuration(wfName, stepID, info.Type, "done", time.Since(stepStart).Seconds())
+	}
+	flog.Info("[workflow] mapper step %s completed", stepID)
+	return nil
+}
+
+// executeSequentialExecutorStep converts, runs, and records the result for a sequential executor step.
+func (r *Runner) executeSequentialExecutorStep(
+	ctx context.Context,
+	stepID string,
+	wt types.WorkflowTask,
+	params types.KV,
+	info ActionInfo,
+	wfName string,
+	results map[string]string,
+	stepRun *model.WorkflowStepRun,
+) error {
+	wtWithParams := wt
+	wtWithParams.Params = params
+
+	task, err := WorkflowTaskToTask(wtWithParams)
+	if err != nil {
+		err = fmt.Errorf("convert task %s: %w", stepID, err)
+		r.failStep(stepRun, err, 1)
+		return err
+	}
+
+	flog.Info("[workflow] running step %s: %s", stepID, wt.Action)
+	stepStart := time.Now()
+	if r.metrics != nil {
+		r.metrics.IncStepTotal(wfName, stepID, "running")
+	}
+
+	attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
+	if rerr != nil {
+		if r.metrics != nil {
+			r.metrics.IncStepTotal(wfName, stepID, "failed")
+			r.metrics.ObserveStepDuration(wfName, stepID, info.Type, "failed", time.Since(stepStart).Seconds())
+			if attempt > 1 {
+				r.metrics.IncStepRetry(wfName, stepID)
+			}
+		}
+		r.failStep(stepRun, rerr, attempt)
+		return fmt.Errorf("step %s failed: %w", stepID, rerr)
+	}
+
+	if r.metrics != nil {
+		r.metrics.IncStepTotal(wfName, stepID, "done")
+		r.metrics.ObserveStepDuration(wfName, stepID, info.Type, "done", time.Since(stepStart).Seconds())
+		if attempt > 1 {
+			r.metrics.IncStepRetry(wfName, stepID)
+		}
+	}
+
+	if task.Result != "" {
+		results[stepID] = task.Result
+	}
+
+	if r.store != nil && stepRun != nil {
+		resultJSON := model.JSON{}
+		if task.Result != "" {
+			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
+			_ = resultJSON.Scan(resultRaw)
+		}
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
+	}
+
+	flog.Info("[workflow] step %s completed", stepID)
+	return nil
+}
+
+// saveCheckpoint persists a checkpoint for a sequential workflow step.
+func saveCheckpoint(stepIndex int, r *Runner, wf types.WorkflowMetadata, results map[string]string, input types.KV, run *model.WorkflowRun) {
+	if wf.Resumable && r.store != nil && run != nil {
+		cp := CheckpointData{
+			StepIndex:   stepIndex,
+			StepResults: resultCopy(results),
+			Input:       input,
+			HeartbeatAt: time.Now(),
+		}
+		if cerr := r.store.SaveCheckpoint(run.ID, &cp); cerr != nil {
+			flog.Error(fmt.Errorf("[workflow] save checkpoint step %d: %w", stepIndex, cerr))
+		}
+	}
 }
 
 // ResumeWorkflow resumes a previously failed or incomplete workflow run from its checkpoint.
@@ -466,87 +494,8 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 	// Skip already-completed steps and resume from checkpoint.
 	for i := cp.StepIndex + 1; i < len(wf.Pipeline); i++ {
 		stepID := wf.Pipeline[i]
-		wt, ok := taskMap[stepID]
-		if !ok {
-			err := fmt.Errorf("task %s not found in workflow", stepID)
-			r.failRun(run, cancelHeartbeat, err)
+		if err := r.executeResumeStep(stepID, i, wf, taskMap, results, input, runID, run, cancelHeartbeat); err != nil {
 			return err
-		}
-
-		if wf.Resumable {
-			cpData := CheckpointData{
-				StepIndex:   i,
-				StepResults: resultCopy(results),
-				Input:       input,
-				HeartbeatAt: time.Now(),
-			}
-			if cerr := r.store.SaveCheckpoint(runID, &cpData); cerr != nil {
-				flog.Error(fmt.Errorf("[workflow] resume save checkpoint step %s: %w", stepID, cerr))
-			}
-		}
-
-		params, err := resolveParams(wt.Params, results, input)
-		if err != nil {
-			err = fmt.Errorf("resolve params step %s: %w", stepID, err)
-			r.failRun(run, cancelHeartbeat, err)
-			return err
-		}
-
-		info := ParseAction(wt.Action)
-
-		var stepRun *model.WorkflowStepRun
-		stepRun, err = r.store.CreateStepRun(runID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
-		if err != nil {
-			flog.Error(fmt.Errorf("[workflow] resume create step run %s: %w", stepID, err))
-		}
-
-		if info.Type == "mapper" {
-			mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
-			if merr != nil {
-				merr = fmt.Errorf("resume mapper step %s: %w", stepID, merr)
-				r.failStep(stepRun, merr, 1)
-				r.failRun(run, cancelHeartbeat, merr)
-				return merr
-			}
-			results[stepID] = string(mappedJSON)
-			if stepRun != nil {
-				resultJSON := model.JSON{}
-				_ = resultJSON.Scan(mappedJSON)
-				_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
-			}
-			continue
-		}
-
-		wtWithParams := wt
-		wtWithParams.Params = params
-
-		task, err := WorkflowTaskToTask(wtWithParams)
-		if err != nil {
-			err = fmt.Errorf("convert task %s: %w", stepID, err)
-			r.failStep(stepRun, err, 1)
-			r.failRun(run, cancelHeartbeat, err)
-			return err
-		}
-
-		ctx := context.Background()
-		attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
-		if rerr != nil {
-			r.failStep(stepRun, rerr, attempt)
-			r.failRun(run, cancelHeartbeat, rerr)
-			return fmt.Errorf("step %s failed: %w", stepID, rerr)
-		}
-
-		if task.Result != "" {
-			results[stepID] = task.Result
-		}
-
-		if stepRun != nil {
-			resultJSON := model.JSON{}
-			if task.Result != "" {
-				resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-				_ = resultJSON.Scan(resultRaw)
-			}
-			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
 		}
 	}
 
@@ -554,6 +503,127 @@ func (r *Runner) ResumeWorkflow(runID int64) error {
 		cancelHeartbeat()
 	}
 	_ = r.store.UpdateRunStatus(runID, model.WorkflowRunDone, "")
+	return nil
+}
+
+// executeResumeStep executes a single step during workflow resume.
+func (r *Runner) executeResumeStep(
+	stepID string,
+	index int,
+	wf *types.WorkflowMetadata,
+	taskMap map[string]types.WorkflowTask,
+	results map[string]string,
+	input types.KV,
+	runID int64,
+	run *model.WorkflowRun,
+	cancelHeartbeat context.CancelFunc,
+) error {
+	wt, ok := taskMap[stepID]
+	if !ok {
+		err := fmt.Errorf("task %s not found in workflow", stepID)
+		r.failRun(run, cancelHeartbeat, err)
+		return err
+	}
+
+	if wf.Resumable {
+		cpData := CheckpointData{
+			StepIndex:   index,
+			StepResults: resultCopy(results),
+			Input:       input,
+			HeartbeatAt: time.Now(),
+		}
+		if cerr := r.store.SaveCheckpoint(runID, &cpData); cerr != nil {
+			flog.Error(fmt.Errorf("[workflow] resume save checkpoint step %s: %w", stepID, cerr))
+		}
+	}
+
+	params, err := resolveParams(wt.Params, results, input)
+	if err != nil {
+		err = fmt.Errorf("resolve params step %s: %w", stepID, err)
+		r.failRun(run, cancelHeartbeat, err)
+		return err
+	}
+
+	info := ParseAction(wt.Action)
+
+	var stepRun *model.WorkflowStepRun
+	stepRun, err = r.store.CreateStepRun(runID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
+	if err != nil {
+		flog.Error(fmt.Errorf("[workflow] resume create step run %s: %w", stepID, err))
+	}
+
+	if info.Type == "mapper" {
+		return r.executeResumeMapperStep(stepID, params, stepRun, results, run, cancelHeartbeat)
+	}
+	return r.executeResumeExecutorStep(stepID, wt, params, stepRun, results, run, cancelHeartbeat)
+}
+
+// executeResumeMapperStep marshals params for a mapper step during resume.
+func (r *Runner) executeResumeMapperStep(
+	stepID string,
+	params types.KV,
+	stepRun *model.WorkflowStepRun,
+	results map[string]string,
+	run *model.WorkflowRun,
+	cancelHeartbeat context.CancelFunc,
+) error {
+	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
+	if merr != nil {
+		merr = fmt.Errorf("resume mapper step %s: %w", stepID, merr)
+		r.failStep(stepRun, merr, 1)
+		r.failRun(run, cancelHeartbeat, merr)
+		return merr
+	}
+	results[stepID] = string(mappedJSON)
+	if stepRun != nil {
+		resultJSON := model.JSON{}
+		_ = resultJSON.Scan(mappedJSON)
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
+	}
+	return nil
+}
+
+// executeResumeExecutorStep converts, runs, and records the result for an executor step during resume.
+func (r *Runner) executeResumeExecutorStep(
+	stepID string,
+	wt types.WorkflowTask,
+	params types.KV,
+	stepRun *model.WorkflowStepRun,
+	results map[string]string,
+	run *model.WorkflowRun,
+	cancelHeartbeat context.CancelFunc,
+) error {
+	wtWithParams := wt
+	wtWithParams.Params = params
+
+	task, err := WorkflowTaskToTask(wtWithParams)
+	if err != nil {
+		err = fmt.Errorf("convert task %s: %w", stepID, err)
+		r.failStep(stepRun, err, 1)
+		r.failRun(run, cancelHeartbeat, err)
+		return err
+	}
+
+	ctx := context.Background()
+	attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
+	if rerr != nil {
+		r.failStep(stepRun, rerr, attempt)
+		r.failRun(run, cancelHeartbeat, rerr)
+		return fmt.Errorf("step %s failed: %w", stepID, rerr)
+	}
+
+	if task.Result != "" {
+		results[stepID] = task.Result
+	}
+
+	if stepRun != nil {
+		resultJSON := model.JSON{}
+		if task.Result != "" {
+			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
+			_ = resultJSON.Scan(resultRaw)
+		}
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
+	}
 	return nil
 }
 

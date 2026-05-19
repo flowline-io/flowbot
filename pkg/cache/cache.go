@@ -51,7 +51,7 @@ func (c *Cache) Wait() {
 }
 
 // Get retrieves a string value from the cache. Returns false if the key is not found.
-func (c *Cache) Get(ctx context.Context, key Key) (string, bool, error) {
+func (c *Cache) Get(_ context.Context, key Key) (string, bool, error) {
 	val, ok := c.i.Get(key.String())
 	if !ok {
 		recordMiss("ristretto")
@@ -66,13 +66,13 @@ func (c *Cache) Get(ctx context.Context, key Key) (string, bool, error) {
 }
 
 // Set stores a string value with the given TTL.
-func (c *Cache) Set(ctx context.Context, key Key, value string, ttl TTL) error {
+func (c *Cache) Set(_ context.Context, key Key, value string, ttl TTL) error {
 	c.i.SetWithTTL(key.String(), value, 1, ttl.Duration())
 	return nil
 }
 
 // SetNX stores a value only if the key does not already exist. Returns true if the value was set.
-func (c *Cache) SetNX(ctx context.Context, key Key, value string, ttl TTL) (bool, error) {
+func (c *Cache) SetNX(_ context.Context, key Key, value string, ttl TTL) (bool, error) {
 	_, exists := c.i.Get(key.String())
 	if exists {
 		return false, nil
@@ -82,20 +82,20 @@ func (c *Cache) SetNX(ctx context.Context, key Key, value string, ttl TTL) (bool
 }
 
 // Del removes a key from the cache.
-func (c *Cache) Del(ctx context.Context, key Key) error {
+func (c *Cache) Del(_ context.Context, key Key) error {
 	c.i.Del(key.String())
 	recordEviction("ristretto")
 	return nil
 }
 
 // Exists checks whether a key is present in the cache.
-func (c *Cache) Exists(ctx context.Context, key Key) (bool, error) {
+func (c *Cache) Exists(_ context.Context, key Key) (bool, error) {
 	_, ok := c.i.Get(key.String())
 	return ok, nil
 }
 
 // Expire refreshes the TTL on an existing key.
-func (c *Cache) Expire(ctx context.Context, key Key, ttl TTL) error {
+func (c *Cache) Expire(_ context.Context, key Key, ttl TTL) error {
 	val, ok := c.i.Get(key.String())
 	if !ok {
 		return nil

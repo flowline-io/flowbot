@@ -116,7 +116,7 @@ func TestRegisterVecMetrics(t *testing.T) {
 		},
 		{
 			name: "nil stats panics on register",
-			fn: func(t *testing.T, s *Stats) {
+			fn: func(t *testing.T, _ *Stats) {
 				assert.Panics(t, func() {
 					var nilStats *Stats
 					nilStats.RegisterCounterVec("x", "h", "l")
