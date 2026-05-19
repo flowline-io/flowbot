@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -14,10 +13,9 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
-	"github.com/redis/go-redis/v9"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -26,14 +24,16 @@ type Crawler struct {
 	outCh chan Result
 	stop  chan struct{}
 
-	Send func(id, name string, out []map[string]string)
+	store *cache.RedisStore
+	Send  func(id, name string, out []map[string]string)
 }
 
-func New() *Crawler {
+func New(store *cache.RedisStore) *Crawler {
 	return &Crawler{
 		jobs:  make(map[string]Rule),
 		outCh: make(chan Result, 10),
 		stop:  make(chan struct{}),
+		store: store,
 	}
 }
 
@@ -139,13 +139,13 @@ func (s *Crawler) resultWorker() {
 
 func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[string]string {
 	ctx := context.Background()
-	sentKey := fmt.Sprintf("crawler:%s:sent", name)
-	todoKey := fmt.Sprintf("crawler:%s:todo", name)
-	sendTimeKey := fmt.Sprintf("crawler:%s:sendtime", name)
+	sentKey := cache.NewKey("crawler", "sent", name)
+	todoKey := cache.NewKey("crawler", "todo", name)
+	sendTimeKey := cache.NewKey("crawler", "sendtime", name)
 
-	// sent
-	oldArr, err := rdb.Client.SMembers(ctx, sentKey).Result()
+	oldArr, err := s.store.Members(ctx, sentKey)
 	if err != nil {
+		flog.Error(err)
 		return nil
 	}
 	var old []map[string]string
@@ -157,9 +157,9 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 		}
 	}
 
-	// to do
-	todoArr, err := rdb.Client.SMembers(ctx, todoKey).Result()
+	todoArr, err := s.store.Members(ctx, todoKey)
 	if err != nil {
+		flog.Error(err)
 		return nil
 	}
 	var todo []map[string]string
@@ -171,18 +171,16 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 		}
 	}
 
-	// merge
 	old = append(old, todo...)
 
-	// diff
 	diff := stringSliceDiff(latest, old)
 
 	switch mode {
 	case "instant":
-		_ = rdb.Client.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
+		_ = s.store.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLMedium)
 	case "daily":
-		sendString, err := rdb.Client.Get(ctx, sendTimeKey).Result()
-		if err != nil && !errors.Is(err, redis.Nil) {
+		sendString, _, err := s.store.Get(ctx, sendTimeKey)
+		if err != nil {
 			flog.Error(err)
 		}
 		oldSend := int64(0)
@@ -193,7 +191,7 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 		if time.Now().Unix()-oldSend < 24*60*60 {
 			for _, item := range diff {
 				d, _ := sonic.Marshal(item)
-				_ = rdb.Client.SAdd(ctx, todoKey, d)
+				_, _ = s.store.Add(ctx, todoKey, cache.TTLDay, string(d))
 			}
 
 			return nil
@@ -201,19 +199,17 @@ func (s *Crawler) filter(name, mode string, latest []map[string]string) []map[st
 
 		diff = append(diff, todo...)
 
-		_ = rdb.Client.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), redis.KeepTTL)
+		_ = s.store.Set(ctx, sendTimeKey, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLMedium)
 	default:
 		return nil
 	}
 
-	// add data
 	for _, item := range diff {
 		d, _ := sonic.Marshal(item)
-		_ = rdb.Client.SAdd(ctx, sentKey, d)
+		_, _ = s.store.Add(ctx, sentKey, cache.TTLMonth, string(d))
 	}
 
-	// clear to do
-	_ = rdb.Client.Del(ctx, todoKey)
+	_ = s.store.Clear(ctx, todoKey)
 
 	return diff
 }
