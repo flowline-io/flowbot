@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -16,6 +17,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for bookmark module cron.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 var cronRules = []cron.Rule{
 	{
@@ -81,7 +89,7 @@ var cronRules = []cron.Rule{
 				bookmarkTotal++
 			}
 			stats.BookmarkTotalCounter().Set(uint64(bookmarkTotal))
-			rdb.SetMetricsInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
+			cacheStore.SetMetricsInt64(stats.BookmarkTotalStatsName, int64(bookmarkTotal))
 
 			return nil
 		},

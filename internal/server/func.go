@@ -34,8 +34,8 @@ import (
 var cacheStore *cache.RedisStore
 
 // SetCacheStore sets the cache store for server functions.
-func SetCacheStore(store *cache.RedisStore) {
-	cacheStore = store
+func SetCacheStore(s *cache.RedisStore) {
+	cacheStore = s
 }
 
 // newProvider returns a new OAuth provider based on the given category.

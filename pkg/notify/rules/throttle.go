@@ -2,37 +2,26 @@ package rules
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
-
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // CheckThrottle checks whether a notification is within the rate limit for the given key.
 // Returns true if the notification is allowed, false if it should be dropped.
-// Uses an atomic INCR-first approach to avoid TOCTOU races.
 func (e *Engine) CheckThrottle(ctx context.Context, ruleID, eventType, channel string, window time.Duration, limit int) (bool, error) {
-	if e.redis == nil {
-		return true, nil // no Redis, allow all
+	if e.store == nil {
+		return true, nil
 	}
 
-	key := fmt.Sprintf("notify:throttle:%s:%s:%s", ruleID, eventType, channel)
+	key := cache.NewKey("notify", "throttle", ruleID+":"+eventType+":"+channel)
 
-	// atomic INCR: get count and increment in one operation
-	newCount, err := e.redis.Incr(ctx, key).Result()
+	newCount, err := e.store.IncrWithTTL(ctx, key, cache.TTL(window))
 	if err != nil {
 		flog.Warn("[notify-rules] throttle incr error: %v", err)
-		return true, nil // on error, allow (fail-open)
-	}
-
-	// set expiry on first increment (count == 1 means key was newly created)
-	if newCount == 1 {
-		if err := e.redis.Expire(ctx, key, window).Err(); err != nil {
-			flog.Warn("[notify-rules] throttle expire error: %v", err)
-		}
+		return true, nil
 	}
 
 	return newCount <= int64(limit), nil
@@ -40,11 +29,11 @@ func (e *Engine) CheckThrottle(ctx context.Context, ruleID, eventType, channel s
 
 // ClearThrottle removes the throttle counter for a given key, resetting the rate limiter.
 func (e *Engine) ClearThrottle(ctx context.Context, ruleID, eventType, channel string) {
-	if e.redis == nil {
+	if e.store == nil {
 		return
 	}
-	key := fmt.Sprintf("notify:throttle:%s:%s:%s", ruleID, eventType, channel)
-	if err := e.redis.Del(ctx, key).Err(); err != nil && !errors.Is(err, redis.Nil) {
+	key := cache.NewKey("notify", "throttle", ruleID+":"+eventType+":"+channel)
+	if err := e.store.Del(ctx, key); err != nil {
 		flog.Warn("[notify-rules] throttle clear error: %v", err)
 	}
 }

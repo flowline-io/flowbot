@@ -14,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 	"github.com/flowline-io/flowbot/version"
@@ -85,7 +84,7 @@ func initializeModules(modulesConfig any, vendorsConfig any) {
 	}
 
 	stats.ModuleTotalCounter().Set(uint64(len(module.List())))
-	rdb.SetMetricsInt64(stats.ModuleTotalStatsName, int64(len(module.List())))
+	cacheStore.SetMetricsInt64(stats.ModuleTotalStatsName, int64(len(module.List())))
 }
 
 // register modules

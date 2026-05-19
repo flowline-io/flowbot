@@ -4,6 +4,10 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/modules"
+	"github.com/flowline-io/flowbot/internal/modules/bookmark"
+	"github.com/flowline-io/flowbot/internal/modules/gitea"
+	"github.com/flowline-io/flowbot/internal/modules/kanban"
+	"github.com/flowline-io/flowbot/internal/modules/reader"
 	serverModule "github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -39,6 +43,10 @@ var Modules = fx.Options(
 		setServerCacheStore,
 		setModuleServerCacheStore,
 		setModuleCacheStore,
+		setBookmarkCacheStore,
+		setReaderCacheStore,
+		setKanbanCacheStore,
+		setGiteaCacheStore,
 		handleRoutes,
 		handleEvents,
 		handleModules,
@@ -59,4 +67,20 @@ func setModuleServerCacheStore(store *cache.RedisStore) {
 
 func setModuleCacheStore(store *cache.RedisStore) {
 	module.SetCacheStore(store)
+}
+
+func setBookmarkCacheStore(store *cache.RedisStore) {
+	bookmark.SetCacheStore(store)
+}
+
+func setReaderCacheStore(store *cache.RedisStore) {
+	reader.SetCacheStore(store)
+}
+
+func setKanbanCacheStore(store *cache.RedisStore) {
+	kanban.SetCacheStore(store)
+}
+
+func setGiteaCacheStore(store *cache.RedisStore) {
+	gitea.SetCacheStore(store)
 }

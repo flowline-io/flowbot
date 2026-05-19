@@ -3,13 +3,20 @@ package gitea
 import (
 	"fmt"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers/gitea"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for gitea module cron.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 var cronRules = []cron.Rule{
 	{
@@ -35,7 +42,7 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 			stats.GiteaIssueTotalCounter("open").Set(uint64(len(issues)))
-			rdb.SetMetricsInt64(stats.GiteaIssueTotalStatsName, int64(len(issues)))
+			cacheStore.SetMetricsInt64(stats.GiteaIssueTotalStatsName, int64(len(issues)))
 
 			return nil
 		},

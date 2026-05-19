@@ -2,13 +2,20 @@ package kanban
 
 import (
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for kanban module cron.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 var cronRules = []cron.Rule{
 	{
@@ -26,7 +33,7 @@ var cronRules = []cron.Rule{
 			taskTotal := len(tasks)
 
 			stats.KanbanTaskTotalCounter().Set(uint64(taskTotal))
-			rdb.SetMetricsInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))
+			cacheStore.SetMetricsInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))
 
 			return nil
 		},

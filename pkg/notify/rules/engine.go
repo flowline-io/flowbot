@@ -7,8 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/redis/go-redis/v9"
-
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -18,7 +17,7 @@ import (
 type Engine struct {
 	mu    sync.RWMutex
 	rules []config.NotifyRule
-	redis *redis.Client
+	store *cache.RedisStore
 }
 
 // globalEngine is the singleton rule engine.
@@ -27,9 +26,9 @@ var globalEngine struct {
 	engine *Engine
 }
 
-// Init initializes the global rule engine with configuration and a Redis client.
-func Init(redisClient *redis.Client) error {
-	engine := New(redisClient)
+// Init initializes the global rule engine with configuration and a RedisStore.
+func Init(store *cache.RedisStore) error {
+	engine := New(store)
 	if err := engine.LoadConfig(config.App.Notify.Rules); err != nil {
 		return err
 	}
@@ -50,9 +49,9 @@ func GetEngine() *Engine {
 }
 
 // New creates a new rule Engine.
-func New(redisClient *redis.Client) *Engine {
+func New(store *cache.RedisStore) *Engine {
 	return &Engine{
-		redis: redisClient,
+		store: store,
 	}
 }
 

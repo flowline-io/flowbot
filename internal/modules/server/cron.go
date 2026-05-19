@@ -23,8 +23,8 @@ import (
 var cacheStore *cache.RedisStore
 
 // SetCacheStore sets the cache store for server module cron.
-func SetCacheStore(store *cache.RedisStore) {
-	cacheStore = store
+func SetCacheStore(s *cache.RedisStore) {
+	cacheStore = s
 }
 
 var cronRules = []cron.Rule{
@@ -103,7 +103,7 @@ var cronRules = []cron.Rule{
 				total++
 			}
 
-			rdb.SetMetricsInt64(stats.DockerContainerTotalStatsName, total)
+			cacheStore.SetMetricsInt64(stats.DockerContainerTotalStatsName, total)
 			stats.DockerContainerTotalCounter().Set(uint64(total))
 
 			return nil
@@ -134,8 +134,8 @@ var cronRules = []cron.Rule{
 					}
 				}
 			}
-			rdb.SetMetricsInt64(stats.MonitorUpTotalStatsName, up)
-			rdb.SetMetricsInt64(stats.MonitorDownTotalStatsName, down)
+			cacheStore.SetMetricsInt64(stats.MonitorUpTotalStatsName, up)
+			cacheStore.SetMetricsInt64(stats.MonitorDownTotalStatsName, down)
 
 			return nil
 		},

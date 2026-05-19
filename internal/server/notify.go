@@ -4,13 +4,13 @@ import (
 	"context"
 
 	abilitynotify "github.com/flowline-io/flowbot/pkg/ability/notify"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	message_pusher "github.com/flowline-io/flowbot/pkg/notify/message-pusher"
 	"github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	"github.com/flowline-io/flowbot/pkg/notify/pushover"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	"github.com/flowline-io/flowbot/pkg/notify/slack"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 
 	"go.uber.org/fx"
 )
@@ -25,7 +25,7 @@ var NotifyModules = fx.Options(
 	),
 )
 
-func initNotificationGateway(lc fx.Lifecycle) {
+func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			// initialize template engine
@@ -33,8 +33,8 @@ func initNotificationGateway(lc fx.Lifecycle) {
 				return err
 			}
 
-			// initialize rule engine with Redis client
-			if err := notifyrules.Init(rdb.Client); err != nil {
+			// initialize rule engine with RedisStore
+			if err := notifyrules.Init(store); err != nil {
 				return err
 			}
 

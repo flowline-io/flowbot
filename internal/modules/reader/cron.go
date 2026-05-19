@@ -6,15 +6,22 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/notify"
-	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for reader module cron.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 var cronRules = []cron.Rule{
 	{
@@ -39,7 +46,7 @@ var cronRules = []cron.Rule{
 				}
 			}
 			stats.ReaderUnreadTotalCounter().Set(uint64(unreadCount))
-			rdb.SetMetricsInt64(stats.ReaderUnreadTotalStatsName, int64(unreadCount))
+			cacheStore.SetMetricsInt64(stats.ReaderUnreadTotalStatsName, int64(unreadCount))
 
 			return nil
 		},
