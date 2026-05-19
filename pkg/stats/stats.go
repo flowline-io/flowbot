@@ -332,3 +332,30 @@ func MonitorUpTotalCounter() MetricInterface {
 func MonitorDownTotalCounter() MetricInterface {
 	return getOrCreateMetric(MonitorDownTotalStatsName, prometheus.Labels{})
 }
+
+const (
+	CacheHitTotalName      = "cache_hit_total"
+	CacheMissTotalName     = "cache_miss_total"
+	CacheEvictionTotalName = "cache_eviction_total"
+	CacheSizeBytesName     = "cache_size_bytes"
+)
+
+// CacheHitTotalCounter returns a metric for tracking cache hit count by backend.
+func CacheHitTotalCounter(backend string) MetricInterface {
+	return getOrCreateMetric(CacheHitTotalName, prometheus.Labels{"backend": backend})
+}
+
+// CacheMissTotalCounter returns a metric for tracking cache miss count by backend.
+func CacheMissTotalCounter(backend string) MetricInterface {
+	return getOrCreateMetric(CacheMissTotalName, prometheus.Labels{"backend": backend})
+}
+
+// CacheEvictionTotalCounter returns a metric for tracking cache eviction count by backend.
+func CacheEvictionTotalCounter(backend string) MetricInterface {
+	return getOrCreateMetric(CacheEvictionTotalName, prometheus.Labels{"backend": backend})
+}
+
+// CacheSizeBytesGauge returns a metric for tracking approximate cache memory usage by backend.
+func CacheSizeBytesGauge(backend string) MetricInterface {
+	return getOrCreateMetric(CacheSizeBytesName, prometheus.Labels{"backend": backend})
+}
