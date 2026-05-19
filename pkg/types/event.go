@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 const (
 	MessageSendEvent  = "message:send"
 	InstructPushEvent = "instruct:push"
@@ -61,8 +63,9 @@ type DataEvent struct {
 	Operation      string `json:"operation"`
 	Backend        string `json:"backend"`
 	App            string `json:"app"`
-	EntityID       string `json:"entity_id"`
-	IdempotencyKey string `json:"idempotency_key"`
+	EntityID       string    `json:"entity_id"`
+	CreatedAt      time.Time `json:"created_at"`
+	IdempotencyKey string    `json:"idempotency_key"`
 	UID            string `json:"uid"`
 	Topic          string `json:"topic"`
 	Data           KV     `json:"data"`
