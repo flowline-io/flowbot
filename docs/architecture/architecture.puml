@@ -163,7 +163,7 @@ package "pkg/page/ — PWA (go-app/WASM)" as Frontend #FCE4EC {
 ' Storage
 ' =============================================================================
 package "internal/store/ — Data Layer" as StoreLayer #E0F2F1 {
-  [DAO (GORM Gen)\n39 tables] as DAO
+  [DAO (Ent)\n39 tables] as DAO
   [Models\n56 models] as Models
   [Event Store] as EventStore
   [Audit Store] as AuditStore

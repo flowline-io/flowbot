@@ -24,7 +24,7 @@ Observability stack — Prometheus metrics via PushGateway, OpenTelemetry traces
 │   Flowbot   │                              │  Meilisearch  │            │
 │  pkg/trace/ │                              │  Prometheus   │────────────┘
 │  Fiber OTel │                              │  /metrics     │  (optional)
-│  GORM OTel  │                              └──────────────┘
+│  Ent OTel  │                               └──────────────┘
 │  Redis OTel │
 └─────────────┘
 ```

@@ -2,7 +2,7 @@
 
 OpenTelemetry-based distributed tracing for end-to-end visibility of requests, database queries, Redis commands, external API calls, pipeline executions, and Watermill event flows.
 
-Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `pkg/pipeline/`, `pkg/ability/`, `pkg/utils/`, `pkg/rdb/`, `pkg/flog/`, `internal/store/mysql/`, `internal/server/`.
+Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `pkg/pipeline/`, `pkg/ability/`, `pkg/utils/`, `pkg/rdb/`, `pkg/flog/`, `internal/store/postgres/`, `internal/server/`.
 
 ## Architecture
 
@@ -27,7 +27,7 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
   └──────┬──────┘   └──────────┬──────────┘   └──────────┬──────────┘
          │                     │                         │
   ┌──────▼──────┐   ┌──────────▼──────────┐   ┌──────────▼──────────┐
-  │ GORM plugin │   │ Watermill handler   │   │ resty + otelhttp    │
+   │ Ent driver  │   │ Watermill handler   │   │ resty + otelhttp    │
   │ (DB traces) │   │ (pub/sub traces)    │   │ (outgoing HTTP)     │
   └─────────────┘   └─────────────────────┘   └─────────────────────┘
 ```
@@ -39,7 +39,7 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
 | `TracerProvider`    | `pkg/trace/trace.go`                   | OTLP HTTP exporter init, sampler, lifecycle                  |
 | Fiber middleware    | `pkg/trace/fiber.go`                   | HTTP request spans, W3C context extraction                   |
 | Span helpers        | `pkg/trace/helper.go`                  | `StartSpan`, `RecordError`, `SetSpanAttributes`              |
-| GORM plugin         | `internal/store/mysql/adapter.go`      | Auto-span for all GORM queries                               |
+| Ent driver          | `internal/store/postgres/adapter.go`   | Auto-span for all database queries                           |
 | Redis hook          | `pkg/rdb/rdb.go`, `pkg/event/redis.go` | Auto-span for all Redis commands                             |
 | Pipeline spans      | `pkg/pipeline/engine.go`               | Pipeline + step execution spans                              |
 | ability.Invoke span | `pkg/ability/invoke.go`                | Capability invocation span                                   |
@@ -60,7 +60,7 @@ Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its
 | Pipeline execute | `pipeline.{name}.execute`                      | `pipeline/engine.go` | Yes       |
 | Pipeline step    | `pipeline.{pipeline}.step.{step}`              | `pipeline/engine.go` | Yes       |
 | Ability invoke   | `ability.{capability}.{operation}`             | `ability/invoke.go`  | Yes       |
-| GORM query       | `gorm.Query` / `gorm.Row` / `gorm.Transaction` | GORM plugin          | Yes       |
+| Database query   | `db.Query` / `db.Exec`                          | Ent driver           | Yes       |
 | Redis command    | `GET` / `SET` / `LPUSH` / `XADD` / ...         | redisotel hook       | Yes       |
 | Outgoing HTTP    | `HTTP {method}`                                | otelhttp transport   | Yes       |
 
@@ -74,7 +74,7 @@ Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its
 | Pipeline execute | `pipeline.name`, `event.id`, `event.type`                                                      |
 | Pipeline step    | `pipeline.step.name`, `pipeline.step.capability`, `pipeline.step.operation`                    |
 | Ability invoke   | `capability.name`, `capability.operation`                                                      |
-| GORM             | `db.system` (`mysql`), `db.statement`, `db.rows_affected`                                      |
+| Database         | `db.system` (`postgres`), `db.statement`, `db.rows_affected`                                  |
 | Redis            | `db.system` (`redis`), `db.statement`                                                          |
 | Outgoing HTTP    | `http.method`, `http.url`, `net.peer.name`, `http.status_code`                                 |
 
@@ -85,17 +85,17 @@ Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its
 ```
 HTTP POST /service/{module}/command          ← Fiber middleware span
   │
-  ├── gorm.Query (user lookup)               ← GORM auto-span
+  ├── db.Query (user lookup)                ← Ent auto-span
   ├── GET (redis:get chat session)           ← Redis auto-span
   ├── ability.{capability}.{operation}       ← ability.Invoke span
   │     ├── HTTP GET https://api.example.com ← otelhttp auto-span
-  │     └── gorm.Query (data fetch)          ← GORM auto-span
+  │     └── db.Query (data fetch)           ← Ent auto-span
   └── event.publish message:send             ← PublishMessage span
         │
         └── [cross-process via W3C traceparent in metadata]
               │
               event.receive message:send     ← TraceConsumerMiddleware span
-                └── gorm.Query (platform lookup) ← GORM auto-span
+                └── db.Query (platform lookup) ← Ent auto-span
 ```
 
 ### Trace 2: Pipeline execution from durable event
@@ -104,14 +104,14 @@ HTTP POST /service/{module}/command          ← Fiber middleware span
 event.receive pipeline:data_event            ← TraceConsumerMiddleware span
   │
   └── pipeline.{name}.execute               ← Pipeline engine span
-        ├── gorm.Query (consumption check)   ← GORM auto-span
-        ├── gorm.Query (create run)          ← GORM auto-span
+        ├── db.Query (consumption check)    ← Ent auto-span
+        ├── db.Query (create run)           ← Ent auto-span
         ├── pipeline.{name}.step.{step1}     ← Step span
         │     └── ability.{cap}.{operation}  ← ability.Invoke span
         │           └── HTTP GET ...         ← otelhttp auto-span
         ├── pipeline.{name}.step.{step2}     ← Step span
         │     └── ability.{cap}.{operation}
-        └── gorm.Query (update run status)   ← GORM auto-span
+        └── db.Query (update run status)    ← Ent auto-span
 ```
 
 ### Trace 3: Webhook → pipeline
@@ -119,7 +119,7 @@ event.receive pipeline:data_event            ← TraceConsumerMiddleware span
 ```
 HTTP POST /webhook/{id}                      ← Fiber middleware span
   │
-  ├── gorm.Query (webhook lookup)            ← GORM auto-span
+  ├── db.Query (webhook lookup)             ← Ent auto-span
   ├── ability.{cap}.{operation}              ← ability.Invoke span
   │     └── event.publish {data_event}       ← Emitted DataEvent span
   │           │
