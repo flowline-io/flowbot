@@ -11,6 +11,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/adrg/xdg v0.5.3
+	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/bsm/redislock v0.10.0
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/bytedance/sonic v1.15.1
@@ -139,7 +140,6 @@ require (
 	github.com/agnivade/levenshtein v1.2.2-0.20250519083737-420867539855 // indirect
 	github.com/air-verse/air v1.64.5 // indirect
 	github.com/alecthomas/chroma/v2 v2.23.1 // indirect
-	github.com/alicebob/miniredis/v2 v2.38.0 // indirect
 	github.com/anchore/go-macholibre v0.0.0-20250826193721-3cd206ca93aa // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
