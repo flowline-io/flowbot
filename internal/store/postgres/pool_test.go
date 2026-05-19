@@ -225,203 +225,233 @@ func TestNewPoolManager_ApplyConfig(t *testing.T) {
 }
 
 func TestApplyDefaults(t *testing.T) {
-	t.Run("nil db is safe", func(t *testing.T) {
-		ApplyDefaults(nil)
-	})
+	tests := []struct {
+		name string
+		fn   func(t *testing.T)
+	}{
+		{
+			name: "nil db is safe",
+			fn: func(t *testing.T) {
+				ApplyDefaults(nil)
+			},
+		},
+		{
+			name: "sets expected conservative limits",
+			fn: func(t *testing.T) {
+				db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+				if err != nil {
+					t.Skipf("skipping: cannot open test db: %v", err)
+				}
+				defer db.Close()
+				ApplyDefaults(db)
+				stats := db.Stats()
+				if stats.MaxOpenConnections != 10 {
+					t.Errorf("MaxOpenConnections: got %d, want 10", stats.MaxOpenConnections)
+				}
+			},
+		},
+		{
+			name: "can set different values later",
+			fn: func(t *testing.T) {
+				db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+				if err != nil {
+					t.Skipf("skipping: cannot open test db: %v", err)
+				}
+				defer db.Close()
+				ApplyDefaults(db)
+				db.SetMaxOpenConns(50)
+				stats := db.Stats()
+				if stats.MaxOpenConnections != 50 {
+					t.Errorf("MaxOpenConnections after override: got %d, want 50", stats.MaxOpenConnections)
+				}
+			},
+		},
+	}
 
-	t.Run("sets expected conservative limits", func(t *testing.T) {
-		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-		if err != nil {
-			t.Skipf("skipping: cannot open test db: %v", err)
-		}
-		defer db.Close()
-
-		ApplyDefaults(db)
-		stats := db.Stats()
-		if stats.MaxOpenConnections != 10 {
-			t.Errorf("MaxOpenConnections: got %d, want 10", stats.MaxOpenConnections)
-		}
-	})
-
-	t.Run("can set different values later", func(t *testing.T) {
-		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-		if err != nil {
-			t.Skipf("skipping: cannot open test db: %v", err)
-		}
-		defer db.Close()
-
-		ApplyDefaults(db)
-		db.SetMaxOpenConns(50)
-		stats := db.Stats()
-		if stats.MaxOpenConnections != 50 {
-			t.Errorf("MaxOpenConnections after override: got %d, want 50", stats.MaxOpenConnections)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, tt.fn)
+	}
 }
 
 func TestRegisterMetrics_Idempotent(t *testing.T) {
-	m1 := registerMetrics()
-	m2 := registerMetrics()
-	if m1 != m2 {
-		t.Error("registerMetrics should return the same instance on repeated calls")
-	}
+	t.Run("returns same instance on repeated calls", func(t *testing.T) {
+		m1 := registerMetrics()
+		m2 := registerMetrics()
+		if m1 != m2 {
+			t.Error("registerMetrics should return the same instance on repeated calls")
+		}
+	})
 }
 
 func TestRegisterMetrics_AllNames(t *testing.T) {
-	registerMetrics()
+	t.Run("registers all expected metric names", func(t *testing.T) {
+		registerMetrics()
 
-	metrics, err := prometheus.DefaultGatherer.Gather()
-	if err != nil {
-		t.Fatalf("gather metrics failed: %v", err)
-	}
-
-	metricNames := make(map[string]bool)
-	for _, mf := range metrics {
-		metricNames[mf.GetName()] = true
-	}
-
-	expected := []string{
-		"flowbot_db_pool_connections_open",
-		"flowbot_db_pool_connections_idle",
-		"flowbot_db_pool_connections_in_use",
-		"flowbot_db_pool_wait_count_total",
-		"flowbot_db_pool_wait_duration_seconds_total",
-		"flowbot_db_pool_max_idle_closed_total",
-		"flowbot_db_pool_max_lifetime_closed_total",
-		"flowbot_db_pool_health_check_total",
-		"flowbot_db_pool_health_check_errors_total",
-	}
-
-	for _, name := range expected {
-		if !metricNames[name] {
-			t.Errorf("expected metric %q not found in default registry", name)
+		metrics, err := prometheus.DefaultGatherer.Gather()
+		if err != nil {
+			t.Fatalf("gather metrics failed: %v", err)
 		}
-	}
+
+		metricNames := make(map[string]bool)
+		for _, mf := range metrics {
+			metricNames[mf.GetName()] = true
+		}
+
+		expected := []string{
+			"flowbot_db_pool_connections_open",
+			"flowbot_db_pool_connections_idle",
+			"flowbot_db_pool_connections_in_use",
+			"flowbot_db_pool_wait_count_total",
+			"flowbot_db_pool_wait_duration_seconds_total",
+			"flowbot_db_pool_max_idle_closed_total",
+			"flowbot_db_pool_max_lifetime_closed_total",
+			"flowbot_db_pool_health_check_total",
+			"flowbot_db_pool_health_check_errors_total",
+		}
+
+		for _, name := range expected {
+			if !metricNames[name] {
+				t.Errorf("expected metric %q not found in default registry", name)
+			}
+		}
+	})
 }
 
 func TestPoolManager_StartStop(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("start and stop lifetime", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{
-		MaxOpenConns:        5,
-		MaxIdleConns:        2,
-		ConnMaxLifetime:     300,
-		ConnMaxIdleTime:     60,
-		HealthCheckInterval: 1,
-		HealthCheckTimeout:  1,
+		pm := NewPoolManager(db, PoolConfig{
+			MaxOpenConns:        5,
+			MaxIdleConns:        2,
+			ConnMaxLifetime:     300,
+			ConnMaxIdleTime:     60,
+			HealthCheckInterval: 1,
+			HealthCheckTimeout:  1,
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		pm.Start(ctx)
+
+		if pm.cancel == nil {
+			t.Fatal("cancel func should be set after Start")
+		}
+		if pm.done == nil {
+			t.Fatal("done channel should be set after Start")
+		}
+
+		pm.Stop()
+
+		if pm.cancel != nil {
+			t.Error("cancel func should be nil after Stop")
+		}
+
+		select {
+		case <-pm.done:
+		default:
+			t.Error("done channel should be closed after Stop")
+		}
 	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	pm.Start(ctx)
-
-	if pm.cancel == nil {
-		t.Fatal("cancel func should be set after Start")
-	}
-	if pm.done == nil {
-		t.Fatal("done channel should be set after Start")
-	}
-
-	pm.Stop()
-
-	if pm.cancel != nil {
-		t.Error("cancel func should be nil after Stop")
-	}
-
-	select {
-	case <-pm.done:
-	default:
-		t.Error("done channel should be closed after Stop")
-	}
 }
 
 func TestPoolManager_StopTwice(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("double stop is safe", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{
-		HealthCheckInterval: 1,
-		HealthCheckTimeout:  1,
+		pm := NewPoolManager(db, PoolConfig{
+			HealthCheckInterval: 1,
+			HealthCheckTimeout:  1,
+		})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		pm.Start(ctx)
+		pm.Stop()
+		pm.Stop()
 	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	pm.Start(ctx)
-	pm.Stop()
-	pm.Stop() // must not panic
 }
 
 func TestPoolManager_StopUnstarted(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("stop without start is safe", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{})
-	pm.Stop() // must not panic
+		pm := NewPoolManager(db, PoolConfig{})
+		pm.Stop()
+	})
 }
 
 func TestPoolManager_PingerDisabled(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("zero health check interval disables pinger", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{
-		HealthCheckInterval: 0,
+		pm := NewPoolManager(db, PoolConfig{
+			HealthCheckInterval: 0,
+		})
+
+		ctx := context.Background()
+		pm.Start(ctx)
+
+		if pm.cancel != nil {
+			t.Error("cancel should be nil when pinger is disabled")
+		}
+		if pm.done != nil {
+			t.Error("done should be nil when pinger is disabled")
+		}
 	})
-
-	ctx := context.Background()
-	pm.Start(ctx)
-
-	if pm.cancel != nil {
-		t.Error("cancel should be nil when pinger is disabled")
-	}
-	if pm.done != nil {
-		t.Error("done should be nil when pinger is disabled")
-	}
 }
 
 func TestPoolManager_HealthCheckIncrementsCounters(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("health check runs without error", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{
-		HealthCheckTimeout: 1,
+		pm := NewPoolManager(db, PoolConfig{
+			HealthCheckTimeout: 1,
+		})
+
+		pm.healthCheck(context.Background())
 	})
-
-	pm.healthCheck(context.Background())
 }
 
 func TestPoolManager_CollectStats(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
-	if err != nil {
-		t.Skipf("skipping: cannot open test db: %v", err)
-	}
-	defer db.Close()
+	t.Run("collects stats without error", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://localhost:5432/nonexistent?sslmode=disable&connect_timeout=1")
+		if err != nil {
+			t.Skipf("skipping: cannot open test db: %v", err)
+		}
+		defer db.Close()
 
-	pm := NewPoolManager(db, PoolConfig{})
-	pm.collectStats()
+		pm := NewPoolManager(db, PoolConfig{})
+		pm.collectStats()
 
-	_ = pm.metrics.openConns
-	_ = pm.metrics.idleConns
-	_ = pm.metrics.inUse
-	_ = pm.metrics.waitCount
-	_ = pm.metrics.waitDuration
-	_ = pm.metrics.maxIdleClosed
-	_ = pm.metrics.maxLifetimeClosed
+		_ = pm.metrics.openConns
+		_ = pm.metrics.idleConns
+		_ = pm.metrics.inUse
+		_ = pm.metrics.waitCount
+		_ = pm.metrics.waitDuration
+		_ = pm.metrics.maxIdleClosed
+		_ = pm.metrics.maxLifetimeClosed
+	})
 }
