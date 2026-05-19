@@ -232,8 +232,8 @@ type Adapter interface {
 	DataDelete(uid types.Uid, topic, key string) error
 	ConfigSet(uid types.Uid, topic, key string, value types.KV) error
 	ConfigGet(uid types.Uid, topic, key string) (types.KV, error)
-	ListConfigByPrefix(uid types.Uid, topic string, prefix string) ([]*model.Config, error)
-	ConfigDelete(uid types.Uid, topic string, key string) error
+	ListConfigByPrefix(uid types.Uid, topic, prefix string) ([]*model.Config, error)
+	ConfigDelete(uid types.Uid, topic, key string) error
 	OAuthSet(oauth model.OAuth) error
 	OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error)
 	OAuthGetAvailable(t string) ([]model.OAuth, error)
@@ -264,13 +264,13 @@ type Adapter interface {
 	DecreaseCounter(id, amount int64) error
 	ListCounter(uid types.Uid, topic string) ([]*model.Counter, error)
 	GetCounter(id int64) (model.Counter, error)
-	GetCounterByFlag(uid types.Uid, topic string, flag string) (model.Counter, error)
+	GetCounterByFlag(uid types.Uid, topic, flag string) (model.Counter, error)
 
 	GetAgents() ([]*model.Agent, error)
-	GetAgentByHostid(uid types.Uid, topic string, hostid string) (*model.Agent, error)
+	GetAgentByHostid(uid types.Uid, topic, hostid string) (*model.Agent, error)
 	CreateAgent(agent *model.Agent) (int64, error)
-	UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid string, lastOnlineAt time.Time) error
-	UpdateAgentOnlineDuration(uid types.Uid, topic string, hostid string, offlineTime time.Time) error
+	UpdateAgentLastOnlineAt(uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error
+	UpdateAgentOnlineDuration(uid types.Uid, topic, hostid string, offlineTime time.Time) error
 }
 
 var Database Adapter

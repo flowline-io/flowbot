@@ -231,7 +231,7 @@ func TestApplyDefaults(t *testing.T) {
 	}{
 		{
 			name: "nil db is safe",
-			fn: func(t *testing.T) {
+			fn: func(_ *testing.T) {
 				ApplyDefaults(nil)
 			},
 		},

@@ -705,7 +705,7 @@ func (a *adapter) DataList(uid types.Uid, topic string, filter types.DataFilter)
 	return result, nil
 }
 
-func (a *adapter) DataDelete(uid types.Uid, topic string, key string) error {
+func (a *adapter) DataDelete(uid types.Uid, topic, key string) error {
 	ctx := context.Background()
 	_, err := a.client.Data.Delete().
 		Where(data.UID(uid.String()), data.Topic(topic), data.Key(key)).
@@ -764,7 +764,7 @@ func (a *adapter) ConfigGet(uid types.Uid, topic, key string) (types.KV, error) 
 	return types.KV(d.Value), nil
 }
 
-func (a *adapter) ListConfigByPrefix(uid types.Uid, topic string, prefix string) ([]*model.Config, error) {
+func (a *adapter) ListConfigByPrefix(uid types.Uid, topic, prefix string) ([]*model.Config, error) {
 	ctx := context.Background()
 	q := a.client.ConfigData.Query().Where(configdata.UID(uid.String()), configdata.Topic(topic))
 	if prefix != "" {
@@ -790,7 +790,7 @@ func (a *adapter) ListConfigByPrefix(uid types.Uid, topic string, prefix string)
 	return result, nil
 }
 
-func (a *adapter) ConfigDelete(uid types.Uid, topic string, key string) error {
+func (a *adapter) ConfigDelete(uid types.Uid, topic, key string) error {
 	ctx := context.Background()
 	_, err := a.client.ConfigData.Delete().
 		Where(configdata.UID(uid.String()), configdata.Topic(topic), configdata.Key(key)).
@@ -1411,7 +1411,7 @@ func (a *adapter) GetCounter(id int64) (model.Counter, error) {
 	return entCounterToModel(c), nil
 }
 
-func (a *adapter) GetCounterByFlag(uid types.Uid, topic string, flag string) (model.Counter, error) {
+func (a *adapter) GetCounterByFlag(uid types.Uid, topic, flag string) (model.Counter, error) {
 	ctx := context.Background()
 	c, err := a.client.Counter.Query().
 		Where(counter.UID(uid.String()), counter.Topic(topic), counter.FlagEQ(flag)).
@@ -1670,7 +1670,7 @@ func (a *adapter) GetAgents() ([]*model.Agent, error) {
 	return result, nil
 }
 
-func (a *adapter) GetAgentByHostid(uid types.Uid, topic string, hostid string) (*model.Agent, error) {
+func (a *adapter) GetAgentByHostid(uid types.Uid, topic, hostid string) (*model.Agent, error) {
 	ctx := context.Background()
 	ag, err := a.client.Agent.Query().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
@@ -1702,7 +1702,7 @@ func (a *adapter) CreateAgent(agentModel *model.Agent) (int64, error) {
 	return ag.ID, nil
 }
 
-func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid string, lastOnlineAt time.Time) error {
+func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error {
 	ctx := context.Background()
 	_, err := a.client.Agent.Update().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
@@ -1718,7 +1718,7 @@ func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic string, hostid st
 	return nil
 }
 
-func (a *adapter) UpdateAgentOnlineDuration(uid types.Uid, topic string, hostid string, offlineTime time.Time) error {
+func (a *adapter) UpdateAgentOnlineDuration(uid types.Uid, topic, hostid string, offlineTime time.Time) error {
 	ctx := context.Background()
 	ag, err := a.client.Agent.Query().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
