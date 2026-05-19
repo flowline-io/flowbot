@@ -8,9 +8,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/providers/uptimekuma"
@@ -19,6 +19,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
+
+var cacheStore *cache.RedisStore
+
+// SetCacheStore sets the cache store for server module cron.
+func SetCacheStore(store *cache.RedisStore) {
+	cacheStore = store
+}
 
 var cronRules = []cron.Rule{
 	{
@@ -29,10 +36,10 @@ var cronRules = []cron.Rule{
 			keys, _ := rdb.Client.Keys(ctx.Context(), "online:*").Result()
 
 			currentCount := int64(len(keys))
-			lastKey := fmt.Sprintf("server:cron:online_count_last:%s", ctx.AsUser.String())
+			lastKey := cache.NewKey("online", "cron_count", ctx.AsUser.String())
 
-			lastCount, _ := rdb.Client.Get(ctx.Context(), lastKey).Int64()
-			rdb.Client.Set(ctx.Context(), lastKey, currentCount, redis.KeepTTL)
+			lastCount, _ := cacheStore.GetInt64(ctx.Context(), lastKey)
+			_ = cacheStore.SetInt64(ctx.Context(), lastKey, currentCount, cache.TTLMonth)
 
 			if lastCount != currentCount {
 				return nil

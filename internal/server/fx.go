@@ -4,6 +4,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/modules"
+	serverModule "github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -35,6 +36,7 @@ var Modules = fx.Options(
 	),
 	fx.Invoke(
 		setServerCacheStore,
+		setModuleServerCacheStore,
 		handleRoutes,
 		handleEvents,
 		handleModules,
@@ -47,4 +49,8 @@ var Modules = fx.Options(
 
 func setServerCacheStore(store *cache.RedisStore) {
 	SetCacheStore(store)
+}
+
+func setModuleServerCacheStore(store *cache.RedisStore) {
+	serverModule.SetCacheStore(store)
 }
