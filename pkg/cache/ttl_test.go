@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTTLDuration verifies that each TTL constant produces the expected time.Duration
+// when calling the Duration() method.
 func TestTTLDuration(t *testing.T) {
 	tests := []struct {
 		name    string
