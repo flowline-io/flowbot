@@ -1,8 +1,11 @@
+// Deprecated: Use cache.RedisStore for new cache operations. These bloom helpers
+// will be removed in Phase 3 cleanup.
 package rdb
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -12,8 +15,9 @@ import (
 
 func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
 	result := make([]any, 0)
-	uniqueKey := fmt.Sprintf("bloom:unique:%s", id)
+	uniqueKey := fmt.Sprintf("cache:dedup:%s", id)
 	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
+	Client.Expire(ctx, uniqueKey, 30*24*time.Hour)
 
 	for i, item := range latest {
 		val, err := kvHash(item)
@@ -45,8 +49,9 @@ func kvHash(item any) (string, error) {
 }
 
 func BloomUniqueString(ctx context.Context, id string, latest string) (bool, error) {
-	uniqueKey := fmt.Sprintf("bloom:unique:%s", id)
+	uniqueKey := fmt.Sprintf("cache:dedup:%s", id)
 	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
+	Client.Expire(ctx, uniqueKey, 30*24*time.Hour)
 	b, err := Client.BFAdd(ctx, uniqueKey, latest).Result()
 	if err != nil {
 		return false, fmt.Errorf("failed to set unique key: %w", err)

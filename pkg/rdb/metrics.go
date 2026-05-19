@@ -1,3 +1,4 @@
+// Deprecated: Use cache.RedisStore.SetMetricsInt64 / GetMetricsInt64 instead.
 package rdb
 
 import (

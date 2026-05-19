@@ -189,6 +189,19 @@ func (s *RedisStore) ExistsRaw(ctx context.Context, key string) (bool, error) {
 	return n > 0, nil
 }
 
+// SetMetricsInt64 stores a named metric value. Convenience wrapper around SetInt64.
+func (s *RedisStore) SetMetricsInt64(key string, value int64) {
+	k := NewKey("metrics", "gauge", key)
+	_ = s.SetInt64(context.Background(), k, value, TTLMonth)
+}
+
+// GetMetricsInt64 retrieves a named metric value.
+func (s *RedisStore) GetMetricsInt64(key string) int64 {
+	k := NewKey("metrics", "gauge", key)
+	v, _ := s.GetInt64(context.Background(), k)
+	return v
+}
+
 // toAny converts a string slice to an any slice for go-redis variadic args.
 func toAny(ss []string) []any {
 	res := make([]any, len(ss))
