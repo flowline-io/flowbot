@@ -150,7 +150,7 @@ func (fh *fshandler) Download(url string) (*types.FileDef, media.ReadSeekCloser,
 }
 
 // Delete deletes files from storage by provided slice of locations.
-func (fh *fshandler) Delete(locations []string) error {
+func (*fshandler) Delete(locations []string) error {
 	var errs []error
 	for _, loc := range locations {
 		err := os.Remove(loc)
@@ -172,7 +172,7 @@ func (fh *fshandler) GetIdFromUrl(url string) types.Uid {
 }
 
 // getFileRecord given file ID reads file record from the database.
-func (fh *fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
+func (*fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 	fd, err := store.Database.FileGet(fid.String())
 	if err != nil {
 		return nil, fmt.Errorf("file not found %v, %w", fid, err)

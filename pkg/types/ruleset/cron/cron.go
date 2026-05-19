@@ -36,7 +36,7 @@ func (r Rule) ID() string {
 	return r.Name
 }
 
-func (r Rule) TYPE() types.RulesetType {
+func (Rule) TYPE() types.RulesetType {
 	return types.CronRule
 }
 
@@ -204,7 +204,7 @@ func (r *Ruleset) filter(res result) result {
 	return res
 }
 
-func (r *Ruleset) pipeline(res result) {
+func (*Ruleset) pipeline(res result) {
 	if res.payload == nil {
 		return
 	}

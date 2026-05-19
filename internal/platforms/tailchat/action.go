@@ -75,19 +75,19 @@ func (v *client) sendMessage(data SendMessageData) error {
 	}
 }
 
-func (a *Action) GetLatestEvents(_ protocol.Request) protocol.Response {
+func (*Action) GetLatestEvents(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) GetSupportedActions(_ protocol.Request) protocol.Response {
+func (*Action) GetSupportedActions(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) GetStatus(_ protocol.Request) protocol.Response {
+func (*Action) GetStatus(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) GetVersion(_ protocol.Request) protocol.Response {
+func (*Action) GetVersion(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
@@ -123,27 +123,27 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 	return protocol.NewSuccessResponse(nil)
 }
 
-func (a *Action) GetUserInfo(_ protocol.Request) protocol.Response {
+func (*Action) GetUserInfo(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) CreateChannel(_ protocol.Request) protocol.Response {
+func (*Action) CreateChannel(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) GetChannelInfo(_ protocol.Request) protocol.Response {
+func (*Action) GetChannelInfo(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) GetChannelList(_ protocol.Request) protocol.Response {
+func (*Action) GetChannelList(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) RegisterChannels(_ protocol.Request) protocol.Response {
+func (*Action) RegisterChannels(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) RegisterSlashCommands(_ protocol.Request) protocol.Response {
+func (*Action) RegisterSlashCommands(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
@@ -179,11 +179,11 @@ func (a *Action) makeRequest(in *request) error {
 	return nil
 }
 
-func (a *Action) UpdateMessage(_ protocol.Request) protocol.Response {
+func (*Action) UpdateMessage(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 
-func (a *Action) DeleteMessage(_ protocol.Request) protocol.Response {
+func (*Action) DeleteMessage(_ protocol.Request) protocol.Response {
 	return protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))
 }
 

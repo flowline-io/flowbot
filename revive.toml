@@ -53,3 +53,9 @@ warningCode = 0
 [rule.unnecessary-stmt]
     Disabled = true
 [rule.waitgroup-by-value]
+[rule.unused-receiver]
+[rule.use-any]
+# [rule.cyclomatic]
+#   arguments = [15]
+# [rule.cognitive-complexity]
+#   arguments = [15]

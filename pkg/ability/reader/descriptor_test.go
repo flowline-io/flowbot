@@ -61,16 +61,16 @@ func TestDescriptor_Operations(t *testing.T) {
 
 type mockReaderService struct{}
 
-func (m *mockReaderService) ListFeeds(_ context.Context, _ *FeedQuery) (*ability.ListResult[ability.Feed], error) {
+func (*mockReaderService) ListFeeds(_ context.Context, _ *FeedQuery) (*ability.ListResult[ability.Feed], error) {
 	return nil, nil
 }
-func (m *mockReaderService) CreateFeed(_ context.Context, _ string) (*ability.Feed, error) {
+func (*mockReaderService) CreateFeed(_ context.Context, _ string) (*ability.Feed, error) {
 	return nil, nil
 }
-func (m *mockReaderService) ListEntries(_ context.Context, _ *EntryQuery) (*ability.ListResult[ability.Entry], error) {
+func (*mockReaderService) ListEntries(_ context.Context, _ *EntryQuery) (*ability.ListResult[ability.Entry], error) {
 	return nil, nil
 }
-func (m *mockReaderService) MarkEntryRead(_ context.Context, _ int64) error   { return nil }
-func (m *mockReaderService) MarkEntryUnread(_ context.Context, _ int64) error { return nil }
-func (m *mockReaderService) StarEntry(_ context.Context, _ int64) error       { return nil }
-func (m *mockReaderService) UnstarEntry(_ context.Context, _ int64) error     { return nil }
+func (*mockReaderService) MarkEntryRead(_ context.Context, _ int64) error   { return nil }
+func (*mockReaderService) MarkEntryUnread(_ context.Context, _ int64) error { return nil }
+func (*mockReaderService) StarEntry(_ context.Context, _ int64) error       { return nil }
+func (*mockReaderService) UnstarEntry(_ context.Context, _ int64) error     { return nil }

@@ -22,18 +22,18 @@ func Register() {
 	notify.Register(ID, &handler)
 }
 
-func (n *plugin) Protocol() string {
+func (*plugin) Protocol() string {
 	return ID
 }
 
-func (n *plugin) Templates() []string {
+func (*plugin) Templates() []string {
 	return []string{
 		"{schema}://{tokenA}/{tokenB}/{tokenC}",
 		"{schema}://{botname}@{tokenA}/{tokenB}/{tokenC}",
 	}
 }
 
-func (n *plugin) Send(tokens types.KV, message notify.Message) error {
+func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	botname, _ := tokens.String("botname")
 	tokenA, _ := tokens.String("tokenA")
 	tokenB, _ := tokens.String("tokenB")

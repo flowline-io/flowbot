@@ -14,7 +14,7 @@ func NewTmpfsMounter() *TmpfsMounter {
 	return &TmpfsMounter{}
 }
 
-func (m *TmpfsMounter) Mount(ctx context.Context, mnt *types.Mount) error {
+func (*TmpfsMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 	if mnt.Target == "" {
 		return fmt.Errorf("tmpfs target is required")
 	}
@@ -24,6 +24,6 @@ func (m *TmpfsMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 	return nil
 }
 
-func (m *TmpfsMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
+func (*TmpfsMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
 	return nil
 }

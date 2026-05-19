@@ -160,7 +160,7 @@ func (a *adapter) IsOpen() bool {
 	return a.open
 }
 
-func (a *adapter) GetName() string {
+func (*adapter) GetName() string {
 	return adapterName
 }
 

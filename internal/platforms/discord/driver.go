@@ -48,11 +48,11 @@ func NewDriver(_ *config.Type, _ store.Adapter) protocol.Driver {
 	}
 }
 
-func (d *Driver) HttpServer(_ fiber.Ctx) error {
+func (*Driver) HttpServer(_ fiber.Ctx) error {
 	return nil
 }
 
-func (d *Driver) HttpWebhookClient(_ protocol.Message) error {
+func (*Driver) HttpWebhookClient(_ protocol.Message) error {
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (d *Driver) WebSocketClient() {
 	}()
 }
 
-func (d *Driver) WebSocketServer() {
+func (*Driver) WebSocketServer() {
 	if !config.App.Platform.Discord.Enabled {
 		flog.Info("Discord is disabled")
 		return

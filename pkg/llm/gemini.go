@@ -42,7 +42,7 @@ type geminiProvider struct {
 	client  *http.Client
 }
 
-func (p *geminiProvider) Name() string { return ProviderGemini }
+func (*geminiProvider) Name() string { return ProviderGemini }
 
 type geminiContent struct {
 	Role  string       `json:"role,omitempty"`
@@ -178,7 +178,7 @@ func (p *geminiProvider) doRequest(ctx context.Context, model string, body gemin
 	return &result, nil
 }
 
-func (p *geminiProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
+func (*geminiProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
 	defer body.Close()
 	defer close(ch)
 

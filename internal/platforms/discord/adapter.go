@@ -12,11 +12,11 @@ import (
 
 type Adapter struct{}
 
-func (a *Adapter) MessageConvert(data any) protocol.Message {
+func (*Adapter) MessageConvert(data any) protocol.Message {
 	return platforms.MessageConvert(data)
 }
 
-func (a *Adapter) EventConvert(data any) protocol.Event {
+func (*Adapter) EventConvert(data any) protocol.Event {
 	var result protocol.Event
 
 	switch evt := data.(type) {

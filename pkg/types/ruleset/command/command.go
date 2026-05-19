@@ -18,7 +18,7 @@ func (r Rule) ID() string {
 	return r.Define
 }
 
-func (r Rule) TYPE() types.RulesetType {
+func (Rule) TYPE() types.RulesetType {
 	return types.CommandRule
 }
 

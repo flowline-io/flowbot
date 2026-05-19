@@ -78,7 +78,7 @@ func TestPrintableReader(t *testing.T) {
 type eofReader struct {
 }
 
-func (r eofReader) Read(p []byte) (int, error) {
+func (eofReader) Read(p []byte) (int, error) {
 	data := []byte{104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100}
 	copy(p, data)
 	return len(data), io.EOF

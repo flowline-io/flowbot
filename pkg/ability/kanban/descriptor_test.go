@@ -208,24 +208,24 @@ func TestDescriptor_Operations(t *testing.T) {
 
 type mockService struct{}
 
-func (m *mockService) ListTasks(_ context.Context, _ *TaskQuery) (*ability.ListResult[ability.Task], error) {
+func (*mockService) ListTasks(_ context.Context, _ *TaskQuery) (*ability.ListResult[ability.Task], error) {
 	return nil, nil
 }
-func (m *mockService) GetTask(_ context.Context, _ int) (*ability.Task, error) { return nil, nil }
-func (m *mockService) CreateTask(_ context.Context, _ CreateTaskRequest) (*ability.Task, error) {
+func (*mockService) GetTask(_ context.Context, _ int) (*ability.Task, error) { return nil, nil }
+func (*mockService) CreateTask(_ context.Context, _ CreateTaskRequest) (*ability.Task, error) {
 	return nil, nil
 }
-func (m *mockService) UpdateTask(_ context.Context, _ int, _ UpdateTaskRequest) (*ability.Task, error) {
+func (*mockService) UpdateTask(_ context.Context, _ int, _ UpdateTaskRequest) (*ability.Task, error) {
 	return nil, nil
 }
-func (m *mockService) DeleteTask(_ context.Context, _ int) error { return nil }
-func (m *mockService) MoveTask(_ context.Context, _ int, _ MoveTaskRequest) (*ability.Task, error) {
+func (*mockService) DeleteTask(_ context.Context, _ int) error { return nil }
+func (*mockService) MoveTask(_ context.Context, _ int, _ MoveTaskRequest) (*ability.Task, error) {
 	return nil, nil
 }
-func (m *mockService) CompleteTask(_ context.Context, _ int) error { return nil }
-func (m *mockService) GetColumns(_ context.Context, _ int) ([]map[string]any, error) {
+func (*mockService) CompleteTask(_ context.Context, _ int) error { return nil }
+func (*mockService) GetColumns(_ context.Context, _ int) ([]map[string]any, error) {
 	return nil, nil
 }
-func (m *mockService) SearchTasks(_ context.Context, _ *SearchQuery) (*ability.ListResult[ability.Task], error) {
+func (*mockService) SearchTasks(_ context.Context, _ *SearchQuery) (*ability.ListResult[ability.Task], error) {
 	return nil, nil
 }

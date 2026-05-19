@@ -20,7 +20,7 @@ func (r Rule) ID() string {
 	return fmt.Sprintf("%s_%s", r.Method, r.Path)
 }
 
-func (r Rule) TYPE() types.RulesetType {
+func (Rule) TYPE() types.RulesetType {
 	return types.WebserviceRule
 }
 

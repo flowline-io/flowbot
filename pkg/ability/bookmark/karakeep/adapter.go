@@ -108,7 +108,7 @@ func (a *Adapter) Create(ctx context.Context, url string) (*ability.Bookmark, er
 	return toBookmark(item), nil
 }
 
-func (a *Adapter) Delete(ctx context.Context, id string) error {
+func (*Adapter) Delete(ctx context.Context, id string) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "bookmark delete canceled", err)
 	}

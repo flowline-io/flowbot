@@ -21,11 +21,11 @@ func Register() {
 	notify.Register(ID, &handler)
 }
 
-func (n *plugin) Protocol() string {
+func (*plugin) Protocol() string {
 	return ID
 }
 
-func (n *plugin) Templates() []string {
+func (*plugin) Templates() []string {
 	return []string{
 		"{schema}://{topic}",
 		"{schema}://{host}/{targets}",
@@ -39,7 +39,7 @@ func (n *plugin) Templates() []string {
 	}
 }
 
-func (n *plugin) Send(tokens types.KV, message notify.Message) error {
+func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	host, _ := tokens.String("host")
 	topic, _ := tokens.String("topic")
 	url := fmt.Sprintf("http://%s", host)
