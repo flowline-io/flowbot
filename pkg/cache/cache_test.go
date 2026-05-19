@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -99,7 +100,7 @@ func TestCacheSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := cache.Set(tt.key, tt.value, tt.cost)
+			result := cache.SetRaw(tt.key, tt.value, tt.cost)
 			require.True(t, result, "Set should return true")
 			cache.Wait()
 		})
@@ -164,9 +165,9 @@ func TestCacheGet(t *testing.T) {
 	intValue := 42
 	structValue := struct{ Name string }{Name: "test"}
 
-	cache.Set("string_key", stringValue, 1)
-	cache.Set("int_key", intValue, 1)
-	cache.Set("struct_key", structValue, 1)
+	cache.SetRaw("string_key", stringValue, 1)
+	cache.SetRaw("int_key", intValue, 1)
+	cache.SetRaw("struct_key", structValue, 1)
 	cache.Wait()
 
 	tests := []struct {
@@ -209,7 +210,7 @@ func TestCacheGet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotValue, gotOK := cache.Get(tt.key)
+			gotValue, gotOK := cache.GetRaw(tt.key)
 			require.Equal(t, tt.wantOK, gotOK, "Get ok mismatch")
 			if tt.wantOK {
 				require.Equal(t, tt.wantValue, gotValue)
@@ -226,8 +227,8 @@ func TestCacheDel(t *testing.T) {
 	require.NotNil(t, cache)
 
 	// Set up test data
-	cache.Set("key1", "value1", 1)
-	cache.Set("key2", "value2", 1)
+	cache.SetRaw("key1", "value1", 1)
+	cache.SetRaw("key2", "value2", 1)
 	cache.Wait()
 
 	tests := []struct {
@@ -269,9 +270,9 @@ func TestCacheDel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cache.Del(tt.delKey)
+			cache.DelRaw(tt.delKey)
 			cache.Wait()
-			gotValue, gotOK := cache.Get(tt.checkKey)
+			gotValue, gotOK := cache.GetRaw(tt.checkKey)
 			require.Equal(t, tt.checkOK, gotOK, "Get ok mismatch after Del")
 			require.Equal(t, tt.checkValue, gotValue)
 		})
@@ -288,7 +289,7 @@ func TestCacheWait(t *testing.T) {
 		require.NotNil(t, cache)
 
 		for i := range 100 {
-			cache.Set(string(rune('a'+i%26)), i, 1)
+			cache.SetRaw(string(rune('a'+i%26)), i, 1)
 		}
 
 		require.NotPanics(t, func() {
@@ -306,22 +307,110 @@ func TestCacheIntegration(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, cache)
 
-		ok := cache.Set("integration_key", "integration_value", 1)
+		ok := cache.SetRaw("integration_key", "integration_value", 1)
 		require.True(t, ok)
 		cache.Wait()
 
-		value, ok := cache.Get("integration_key")
+		value, ok := cache.GetRaw("integration_key")
 		require.True(t, ok)
 		require.Equal(t, "integration_value", value)
 
-		cache.Del("integration_key")
+		cache.DelRaw("integration_key")
 		cache.Wait()
 
-		value, ok = cache.Get("integration_key")
+		value, ok = cache.GetRaw("integration_key")
 		require.False(t, ok)
 		require.Nil(t, value)
 
 		cache.Wait()
+	})
+}
+
+// TestCacheStringCache tests the StringCache interface implementation on the Ristretto-backed Cache.
+func TestCacheStringCache(t *testing.T) {
+	cache, err := NewCache(&config.Type{})
+	require.NoError(t, err)
+	require.NotNil(t, cache)
+	defer cache.Wait()
+
+	t.Run("Get and Set with Key", func(t *testing.T) {
+		key := NewKey("test", "string", "get")
+		err := cache.Set(context.Background(), key, "hello", TTLShort)
+		require.NoError(t, err)
+		cache.Wait()
+
+		val, ok, err := cache.Get(context.Background(), key)
+		require.NoError(t, err)
+		require.True(t, ok)
+		require.Equal(t, "hello", val)
+	})
+
+	t.Run("Get miss returns false", func(t *testing.T) {
+		key := NewKey("test", "string", "miss")
+		val, ok, err := cache.Get(context.Background(), key)
+		require.NoError(t, err)
+		require.False(t, ok)
+		require.Empty(t, val)
+	})
+
+	t.Run("SetNX first call returns true", func(t *testing.T) {
+		key := NewKey("test", "setnx", "first")
+		ok, err := cache.SetNX(context.Background(), key, "1", TTLShort)
+		require.NoError(t, err)
+		require.True(t, ok)
+		cache.Wait()
+	})
+
+	t.Run("SetNX second call returns false", func(t *testing.T) {
+		key := NewKey("test", "setnx", "second")
+		_, _ = cache.SetNX(context.Background(), key, "1", TTLShort)
+		cache.Wait()
+		ok, err := cache.SetNX(context.Background(), key, "1", TTLShort)
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+
+	t.Run("Exists finds set key", func(t *testing.T) {
+		key := NewKey("test", "exists", "yes")
+		err := cache.Set(context.Background(), key, "val", TTLShort)
+		require.NoError(t, err)
+		cache.Wait()
+		ok, err := cache.Exists(context.Background(), key)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+
+	t.Run("Exists misses unset key", func(t *testing.T) {
+		key := NewKey("test", "exists", "no")
+		ok, err := cache.Exists(context.Background(), key)
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+
+	t.Run("Del removes key", func(t *testing.T) {
+		key := NewKey("test", "del", "gone")
+		err := cache.Set(context.Background(), key, "val", TTLShort)
+		require.NoError(t, err)
+		cache.Wait()
+		err = cache.Del(context.Background(), key)
+		require.NoError(t, err)
+		cache.Wait()
+		ok, err := cache.Exists(context.Background(), key)
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+
+	t.Run("Expire refreshes TTL", func(t *testing.T) {
+		key := NewKey("test", "expire", "refresh")
+		err := cache.Set(context.Background(), key, "val", TTLShort)
+		require.NoError(t, err)
+		cache.Wait()
+		err = cache.Expire(context.Background(), key, TTLLong)
+		require.NoError(t, err)
+		cache.Wait()
+		ok, err := cache.Exists(context.Background(), key)
+		require.NoError(t, err)
+		require.True(t, ok)
 	})
 }
 
@@ -358,7 +447,7 @@ func TestCacheTTLExpiration(t *testing.T) {
 
 			time.Sleep(tt.wait)
 
-			value, ok := cache.Get("ttl_key")
+			value, ok := cache.GetRaw("ttl_key")
 			if tt.wantExist {
 				require.True(t, ok)
 				require.Equal(t, "ttl_value", value)

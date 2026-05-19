@@ -74,7 +74,7 @@ func nx(text string) (bool, error) {
 	hash := hex.EncodeToString(h.Sum(nil))
 	key := fmt.Sprintf("alarm:%s", hash)
 
-	_, ok := cache.Instance.Get(key)
+	_, ok := cache.Instance.GetRaw(key)
 	if ok {
 		return false, nil
 	}
