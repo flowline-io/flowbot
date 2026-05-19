@@ -2,6 +2,7 @@ package alarm
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -72,19 +73,15 @@ func nx(text string) (bool, error) {
 	h := sha1.New()
 	_, _ = h.Write([]byte(text))
 	hash := hex.EncodeToString(h.Sum(nil))
-	key := fmt.Sprintf("alarm:%s", hash)
+	key := cache.NewKey("alarm", "dedup", hash)
 
-	_, ok := cache.Instance.GetRaw(key)
-	if ok {
-		return false, nil
+	ctx := context.Background()
+	ok, err := cache.Instance.SetNX(ctx, key, "1", cache.TTLDay)
+	if err != nil {
+		return false, err
 	}
 
-	ok = cache.Instance.SetWithTTL(key, "1", 0, 24*time.Hour)
-	if !ok {
-		return false, nil
-	}
-
-	return true, nil
+	return ok, nil
 }
 
 // notify sends a Slack notification with the given title and content.
