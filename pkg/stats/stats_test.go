@@ -47,6 +47,11 @@ func TestStatsSystem(t *testing.T) {
 		MonitorUpTotalCounter().Set(5)
 		MonitorDownTotalCounter().Set(2)
 
+		CacheHitTotalCounter("redis").Inc()
+		CacheMissTotalCounter("redis").Inc()
+		CacheEvictionTotalCounter("redis").Inc()
+		CacheSizeBytesGauge("redis").Set(1024)
+
 		err = PushNow()
 		if err != nil {
 			t.Logf("Push failed (expected if no pushgateway): %v", err)
