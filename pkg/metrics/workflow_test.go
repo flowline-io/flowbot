@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
 func TestNewWorkflowCollector(t *testing.T) {
@@ -25,9 +24,21 @@ func TestNewWorkflowCollector(t *testing.T) {
 }
 
 func TestWorkflowCollector_CounterMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewWorkflowCollector(s)
+	runTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "workflow_run_total",
+			Help: "Runs by workflow and status",
+		},
+		[]string{"workflow", "status"},
+	)
+	stepRetry := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "workflow_step_retry_total",
+			Help: "Step retry count",
+		},
+		[]string{"workflow", "step"},
+	)
+	c := &WorkflowCollector{runTotal: runTotal, stepRetry: stepRetry}
 
 	c.IncRunTotal("archive-workflow", "done")
 	c.IncRunTotal("archive-workflow", "done")
@@ -50,9 +61,14 @@ workflow_run_total{status="failed",workflow="archive-workflow"} 1
 }
 
 func TestWorkflowCollector_ConcurrencyGauge(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewWorkflowCollector(s)
+	concurrency := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "workflow_concurrency_gauge",
+			Help: "Running tasks in DAG parallel mode",
+		},
+		[]string{"workflow"},
+	)
+	c := &WorkflowCollector{concurrency: concurrency}
 	c.SetConcurrency("dag-workflow", 3)
 	c.SetConcurrency("dag-workflow", 0)
 	assert.NotNil(t, c.concurrency)

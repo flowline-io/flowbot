@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
 func TestNewAbilityCollector(t *testing.T) {
@@ -21,9 +20,14 @@ func TestNewAbilityCollector(t *testing.T) {
 }
 
 func TestAbilityCollector_CounterMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewAbilityCollector(s)
+	invokeTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "ability_invoke_total",
+			Help: "Invocations by capability, operation, and status",
+		},
+		[]string{"capability", "operation", "status"},
+	)
+	c := &AbilityCollector{invokeTotal: invokeTotal}
 
 	c.IncInvokeTotal("bookmark", "list", "ok")
 	c.IncInvokeTotal("bookmark", "list", "ok")
@@ -42,9 +46,14 @@ ability_invoke_total{capability="kanban",operation="list",status="ok"} 1
 }
 
 func TestAbilityCollector_ErrorMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewAbilityCollector(s)
+	invokeErrorTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "ability_invoke_error_total",
+			Help: "Invocation errors by capability, operation, and error code",
+		},
+		[]string{"capability", "operation", "error_code"},
+	)
+	c := &AbilityCollector{invokeErrorTotal: invokeErrorTotal}
 
 	c.IncInvokeError("bookmark", "list", "timeout")
 	c.IncInvokeError("bookmark", "list", "timeout")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -68,7 +69,7 @@ var (
 	once sync.Once
 )
 
-var initialized bool
+var initialized atomic.Bool
 
 var (
 	statsInstance    *Stats
@@ -85,7 +86,7 @@ type Stats struct {
 // NewStats creates a Stats wrapper around the global Prometheus registry.
 // Returns a singleton instance. Returns nil when metrics has not been initialized (metrics.enabled=false).
 func NewStats() *Stats {
-	if !initialized {
+	if !initialized.Load() {
 		return nil
 	}
 	statsInstanceOnce.Do(func() {
@@ -113,7 +114,7 @@ func Init(config *MetricsConfig) error {
 	}
 
 	once.Do(func() {
-		initialized = true
+		initialized.Store(true)
 		if config != nil {
 			if config.PushGatewayURL != "" {
 				pushGatewayURL = config.PushGatewayURL
@@ -272,6 +273,12 @@ func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) *p
 	registry.MustRegister(hv)
 	s.vecHistos[name] = hv
 	return hv
+}
+
+// SetInitializedForTesting sets the initialized flag for test purposes.
+// Returns the previous value.
+func SetInitializedForTesting(val bool) bool {
+	return initialized.Swap(val)
 }
 
 // MetricInterface compatibility interface supporting common methods for Counter and Gauge

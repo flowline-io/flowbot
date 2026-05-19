@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
 func TestNewPipelineCollector(t *testing.T) {
@@ -24,9 +23,21 @@ func TestNewPipelineCollector(t *testing.T) {
 }
 
 func TestPipelineCollector_CounterMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewPipelineCollector(s)
+	runTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pipeline_run_total",
+			Help: "Runs by pipeline and status",
+		},
+		[]string{"pipeline", "status"},
+	)
+	stepRetry := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pipeline_step_retry_total",
+			Help: "Step retry count",
+		},
+		[]string{"pipeline", "step"},
+	)
+	c := &PipelineCollector{runTotal: runTotal, stepRetry: stepRetry}
 
 	c.IncRunTotal("archive-items", "done")
 	c.IncRunTotal("archive-items", "done")
@@ -50,9 +61,23 @@ pipeline_run_total{pipeline="sync-bookmarks",status="done"} 1
 }
 
 func TestPipelineCollector_HistogramMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewPipelineCollector(s)
+	runDuration := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "pipeline_run_duration_seconds",
+			Help:    "Run duration distribution",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"pipeline", "status"},
+	)
+	stepDuration := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "pipeline_step_duration_seconds",
+			Help:    "Step duration distribution",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"pipeline", "step", "capability", "status"},
+	)
+	c := &PipelineCollector{runDuration: runDuration, stepDuration: stepDuration}
 
 	c.ObserveRunDuration("p1", "done", 2.0)
 	c.ObserveRunDuration("p1", "done", 3.0)
@@ -62,9 +87,21 @@ func TestPipelineCollector_HistogramMetrics(t *testing.T) {
 }
 
 func TestPipelineCollector_LabelsSanitized(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewPipelineCollector(s)
+	runTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pipeline_run_total",
+			Help: "Runs by pipeline and status",
+		},
+		[]string{"pipeline", "status"},
+	)
+	stepTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pipeline_step_total",
+			Help: "Steps by pipeline, step, and status",
+		},
+		[]string{"pipeline", "step", "status"},
+	)
+	c := &PipelineCollector{runTotal: runTotal, stepTotal: stepTotal}
 
 	c.IncRunTotal("my pipeline!", "done")
 	c.IncStepTotal("p", "step with spaces", "done")

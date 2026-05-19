@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
 func TestNewEventCollector(t *testing.T) {
@@ -22,9 +21,14 @@ func TestNewEventCollector(t *testing.T) {
 }
 
 func TestEventCollector_CounterMetrics(t *testing.T) {
-	stats.Init(&stats.MetricsConfig{PushGatewayURL: "http://localhost:9091", PushInterval: 60})
-	s := stats.NewStats()
-	c := NewEventCollector(s)
+	receivedTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "event_received_total",
+			Help: "Events received by event type and source",
+		},
+		[]string{"event_type", "source"},
+	)
+	c := &EventCollector{receivedTotal: receivedTotal}
 
 	c.IncReceived("bookmark.created", "ability")
 	c.IncReceived("bookmark.created", "ability")

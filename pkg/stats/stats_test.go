@@ -9,9 +9,7 @@ import (
 )
 
 func TestStatsSystem(t *testing.T) {
-	t.Parallel()
 	t.Run("metrics initialization and counters", func(t *testing.T) {
-		t.Parallel()
 		config := &MetricsConfig{
 			PushGatewayURL: "http://localhost:9091",
 			JobName:        "flowbot-test",
@@ -63,9 +61,7 @@ func TestStatsSystem(t *testing.T) {
 }
 
 func TestMetricInterface(t *testing.T) {
-	t.Parallel()
 	t.Run("counter inc add and gauge set operations", func(t *testing.T) {
-		t.Parallel()
 		metric := BotTotalCounter()
 
 		metric.Inc()
@@ -77,7 +73,6 @@ func TestMetricInterface(t *testing.T) {
 }
 
 func TestRegisterVecMetrics(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name string
 		fn   func(t *testing.T, s *Stats)
@@ -129,12 +124,11 @@ func TestRegisterVecMetrics(t *testing.T) {
 			},
 		},
 	}
+	// Set initialized once before all subtests since they share global state.
+	old := SetInitializedForTesting(true)
+	defer SetInitializedForTesting(old)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			old := initialized
-			initialized = true
-			defer func() { initialized = old }()
 			s := NewStats()
 			tt.fn(t, s)
 		})
@@ -143,9 +137,8 @@ func TestRegisterVecMetrics(t *testing.T) {
 
 func TestNewStatsWhenNotInitialized(t *testing.T) {
 	t.Run("returns nil when Init not called", func(t *testing.T) {
-		old := initialized
-		initialized = false
-		defer func() { initialized = old }()
+		old := SetInitializedForTesting(false)
+		defer SetInitializedForTesting(old)
 		assert.Nil(t, NewStats())
 	})
 }
