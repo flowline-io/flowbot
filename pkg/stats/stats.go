@@ -68,6 +68,28 @@ var (
 	once sync.Once
 )
 
+var initialized bool
+
+// Stats provides access to the global Prometheus registry for creating vector metrics.
+type Stats struct {
+	vecCounters map[string]*prometheus.CounterVec
+	vecGauges   map[string]*prometheus.GaugeVec
+	vecHistos   map[string]*prometheus.HistogramVec
+}
+
+// NewStats creates a Stats wrapper around the global Prometheus registry.
+// Returns nil when metrics has not been initialized (metrics.enabled=false).
+func NewStats() *Stats {
+	if !initialized {
+		return nil
+	}
+	return &Stats{
+		vecCounters: make(map[string]*prometheus.CounterVec),
+		vecGauges:   make(map[string]*prometheus.GaugeVec),
+		vecHistos:   make(map[string]*prometheus.HistogramVec),
+	}
+}
+
 // MetricsConfig configuration struct
 type MetricsConfig struct {
 	PushGatewayURL string
@@ -83,6 +105,7 @@ func Init(config *MetricsConfig) error {
 	}
 
 	once.Do(func() {
+		initialized = true
 		if config != nil {
 			if config.PushGatewayURL != "" {
 				pushGatewayURL = config.PushGatewayURL
@@ -177,6 +200,70 @@ func PushWithContext(ctx context.Context) error {
 		return fmt.Errorf("metrics not initialized, call Init() first")
 	}
 	return pusher.PushContext(ctx)
+}
+
+// RegisterCounterVec creates or returns an existing CounterVec registered with the global registry.
+func (s *Stats) RegisterCounterVec(name, help string, labelNames ...string) *prometheus.CounterVec {
+	if s == nil {
+		panic("stats: RegisterCounterVec called on nil Stats")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+
+	if cv, exists := s.vecCounters[name]; exists {
+		return cv
+	}
+
+	cv := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: name,
+		Help: help,
+	}, labelNames)
+	registry.MustRegister(cv)
+	s.vecCounters[name] = cv
+	return cv
+}
+
+// RegisterGaugeVec creates or returns an existing GaugeVec registered with the global registry.
+func (s *Stats) RegisterGaugeVec(name, help string, labelNames ...string) *prometheus.GaugeVec {
+	if s == nil {
+		panic("stats: RegisterGaugeVec called on nil Stats")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+
+	if gv, exists := s.vecGauges[name]; exists {
+		return gv
+	}
+
+	gv := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: name,
+		Help: help,
+	}, labelNames)
+	registry.MustRegister(gv)
+	s.vecGauges[name] = gv
+	return gv
+}
+
+// RegisterHistogramVec creates or returns an existing HistogramVec registered with the global registry.
+func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) *prometheus.HistogramVec {
+	if s == nil {
+		panic("stats: RegisterHistogramVec called on nil Stats")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+
+	if hv, exists := s.vecHistos[name]; exists {
+		return hv
+	}
+
+	hv := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    name,
+		Help:    help,
+		Buckets: prometheus.DefBuckets,
+	}, labelNames)
+	registry.MustRegister(hv)
+	s.vecHistos[name] = hv
+	return hv
 }
 
 // MetricInterface compatibility interface supporting common methods for Counter and Gauge

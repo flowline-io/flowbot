@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,5 +73,79 @@ func TestMetricInterface(t *testing.T) {
 		metric.Set(100)
 
 		t.Log("MetricInterface test completed successfully")
+	})
+}
+
+func TestRegisterVecMetrics(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		fn   func(t *testing.T, s *Stats)
+	}{
+		{
+			name: "counter vec registers and works",
+			fn: func(t *testing.T, s *Stats) {
+				cv := s.RegisterCounterVec("test_counter_vec_total", "help", "label_a")
+				require.NotNil(t, cv)
+				cv.WithLabelValues("val1").Inc()
+				cv.WithLabelValues("val1").Inc()
+				cv.WithLabelValues("val2").Inc()
+			},
+		},
+		{
+			name: "gauge vec registers and works",
+			fn: func(t *testing.T, s *Stats) {
+				gv := s.RegisterGaugeVec("test_gauge_vec", "help", "label_a")
+				require.NotNil(t, gv)
+				gv.WithLabelValues("val1").Set(42)
+				gv.WithLabelValues("val2").Inc()
+				gv.WithLabelValues("val2").Dec()
+			},
+		},
+		{
+			name: "histogram vec registers and works",
+			fn: func(t *testing.T, s *Stats) {
+				hv := s.RegisterHistogramVec("test_histogram_vec_seconds", "help", "label_a")
+				require.NotNil(t, hv)
+				hv.WithLabelValues("val1").Observe(1.5)
+				hv.WithLabelValues("val2").Observe(0.5)
+			},
+		},
+		{
+			name: "duplicate registration returns same vec",
+			fn: func(t *testing.T, s *Stats) {
+				cv1 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
+				cv2 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
+				assert.Same(t, cv1, cv2)
+			},
+		},
+		{
+			name: "nil stats panics on register",
+			fn: func(t *testing.T, s *Stats) {
+				assert.Panics(t, func() {
+					var nilStats *Stats
+					nilStats.RegisterCounterVec("x", "h", "l")
+				})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			old := initialized
+			initialized = true
+			defer func() { initialized = old }()
+			s := NewStats()
+			tt.fn(t, s)
+		})
+	}
+}
+
+func TestNewStatsWhenNotInitialized(t *testing.T) {
+	t.Run("returns nil when Init not called", func(t *testing.T) {
+		old := initialized
+		initialized = false
+		defer func() { initialized = old }()
+		assert.Nil(t, NewStats())
 	})
 }
