@@ -63,10 +63,10 @@ func (c *Controller) hubAppStart(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := homelabRuntime.Start(ctx.Context(), app); err != nil {
-		c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.start", "failed", err.Error())
+		c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.start", "failed", err.Error())
 		return err
 	}
-	c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.start", "success", "")
+	c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.start", "success", "")
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "started"}))
 }
 
@@ -76,10 +76,10 @@ func (c *Controller) hubAppStop(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := homelabRuntime.Stop(ctx.Context(), app); err != nil {
-		c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.stop", "failed", err.Error())
+		c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.stop", "failed", err.Error())
 		return err
 	}
-	c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.stop", "success", "")
+	c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.stop", "success", "")
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "stopped"}))
 }
 
@@ -89,10 +89,10 @@ func (c *Controller) hubAppRestart(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := homelabRuntime.Restart(ctx.Context(), app); err != nil {
-		c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.restart", "failed", err.Error())
+		c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.restart", "failed", err.Error())
 		return err
 	}
-	c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.restart", "success", "")
+	c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.restart", "success", "")
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "restarted"}))
 }
 
@@ -102,10 +102,10 @@ func (c *Controller) hubAppPull(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := homelabRuntime.Pull(ctx.Context(), app); err != nil {
-		c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.pull", "failed", err.Error())
+		c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.pull", "failed", err.Error())
 		return err
 	}
-	c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.pull", "success", "")
+	c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.pull", "success", "")
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "pulled"}))
 }
 
@@ -115,10 +115,10 @@ func (c *Controller) hubAppUpdate(ctx fiber.Ctx) error {
 		return err
 	}
 	if err := homelabRuntime.Update(ctx.Context(), app); err != nil {
-		c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.update", "failed", err.Error())
+		c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.update", "failed", err.Error())
 		return err
 	}
-	c.writeLifecycleAudit(c.Context(), app.Name, "hub.apps.update", "success", "")
+	c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.update", "success", "")
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "updated"}))
 }
 
