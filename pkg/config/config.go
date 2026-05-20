@@ -321,47 +321,59 @@ type Tailchat struct {
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
 }
 
+type ExecutorLimits struct {
+	// CPU limit
+	Cpus string `json:"cpus" yaml:"cpus" mapstructure:"cpus"`
+	// Memory limit
+	Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
+}
+
+type ExecutorMountBind struct {
+	// Allowed
+	Allowed bool `json:"allowed" yaml:"allowed" mapstructure:"allowed"`
+}
+
+type ExecutorMounts struct {
+	// Bind mount
+	Bind ExecutorMountBind `json:"bind" yaml:"bind" mapstructure:"bind"`
+}
+
+type ExecutorDockerConfig struct {
+	// Docker config
+	Config string `json:"config" yaml:"config" mapstructure:"config"`
+}
+
+type ExecutorShellConfig struct {
+	// Command
+	CMD []string `json:"cmd" yaml:"cmd" mapstructure:"cmd"`
+	// User ID
+	UID string `json:"uid" yaml:"uid" mapstructure:"uid"`
+	// Group ID
+	GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
+}
+
+type ExecutorMachineConfig struct {
+	// Host
+	Host string `json:"host" yaml:"host" mapstructure:"host"`
+	// Port
+	Port int `json:"port" yaml:"port" mapstructure:"port"`
+	// Username
+	Username string `json:"username" yaml:"username" mapstructure:"username"`
+	// Password
+	Password string `json:"password" yaml:"password" mapstructure:"password"`
+	// HostKey is the base64-encoded SSH host public key
+	HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key"`
+}
+
 type Executor struct {
 	// Executor type: docker
-	Type string `json:"type" yaml:"type" mapstructure:"type"`
+	Type    string               `json:"type" yaml:"type" mapstructure:"type"`
 	// Resource limits
-	Limits struct {
-		// CPU limit
-		Cpus string `json:"cpus" yaml:"cpus" mapstructure:"cpus"`
-		// Memory limit
-		Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
-	} `json:"limits" yaml:"limits" mapstructure:"limits"`
-	Mounts struct {
-		// Bind mount
-		Bind struct {
-			// Allowed
-			Allowed bool `json:"allowed" yaml:"allowed" mapstructure:"allowed"`
-		} `json:"bind" yaml:"bind" mapstructure:"bind"`
-	} `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
-	Docker struct {
-		// Docker config
-		Config string `json:"config" yaml:"config" mapstructure:"config"`
-	} `json:"docker" yaml:"docker" mapstructure:"docker"`
-	Shell struct {
-		// Command
-		CMD []string `json:"cmd" yaml:"cmd" mapstructure:"cmd"`
-		// User ID
-		UID string `json:"uid" yaml:"uid" mapstructure:"uid"`
-		// Group ID
-		GID string `json:"gid" yaml:"gid" mapstructure:"gid"`
-	} `json:"shell" yaml:"shell" mapstructure:"shell"`
-	Machine struct {
-		// Host
-		Host string `json:"host" yaml:"host" mapstructure:"host"`
-		// Port
-		Port int `json:"port" yaml:"port" mapstructure:"port"`
-		// Username
-		Username string `json:"username" yaml:"username" mapstructure:"username"`
-		// Password
-		Password string `json:"password" yaml:"password" mapstructure:"password"`
-		// HostKey is the base64-encoded SSH host public key
-		HostKey string `json:"host_key" yaml:"host_key" mapstructure:"host_key"`
-	} `json:"machine" yaml:"machine" mapstructure:"machine"`
+	Limits  ExecutorLimits       `json:"limits" yaml:"limits" mapstructure:"limits"`
+	Mounts  ExecutorMounts       `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
+	Docker  ExecutorDockerConfig `json:"docker" yaml:"docker" mapstructure:"docker"`
+	Shell   ExecutorShellConfig  `json:"shell" yaml:"shell" mapstructure:"shell"`
+	Machine ExecutorMachineConfig `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
 
 type Metrics struct {

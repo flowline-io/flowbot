@@ -265,6 +265,15 @@ type TriggerCronRule struct {
 	Spec string `json:"spec"`
 }
 
+// NodePort describes a port on a flow node.
+type NodePort struct {
+	Id        string `json:"id,omitempty"`
+	Group     string `json:"group,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Tooltip   string `json:"tooltip,omitempty"`
+	Connected bool   `json:"connected,omitempty"`
+}
+
 type Node struct {
 	Id        string `json:"id"`
 	Describe  string `json:"describe"`
@@ -277,13 +286,7 @@ type Node struct {
 	IsGroup   bool   `json:"isGroup,omitempty"`
 	Group     string `json:"group,omitempty"`
 	ParentId  string `json:"parentId,omitempty"`
-	Ports     []struct {
-		Id        string `json:"id,omitempty"`
-		Group     string `json:"group,omitempty"`
-		Type      string `json:"type,omitempty"`
-		Tooltip   string `json:"tooltip,omitempty"`
-		Connected bool   `json:"connected,omitempty"`
-	} `json:"ports,omitempty"`
+	Ports     []NodePort `json:"ports,omitempty"`
 	Order       int            `json:"_order,omitempty"`
 	Bot         string         `json:"bot"`
 	RuleId      string         `json:"rule_id"`
@@ -293,23 +296,29 @@ type Node struct {
 	Status      NodeStatus     `json:"status,omitempty"`
 }
 
+// EdgeConnector describes the connector for an edge.
+type EdgeConnector struct {
+	Name string `json:"name,omitempty"`
+}
+
+// EdgeRouter describes the router for an edge.
+type EdgeRouter struct {
+	Name string `json:"name,omitempty"`
+}
+
 type Edge struct {
-	Id                string `json:"id"`
-	Source            string `json:"source"`
-	Target            string `json:"target"`
-	SourcePortId      string `json:"sourcePortId,omitempty"`
-	TargetPortId      string `json:"targetPortId,omitempty"`
-	Label             string `json:"label,omitempty"`
-	EdgeContentWidth  int    `json:"edgeContentWidth,omitempty"`
-	EdgeContentHeight int    `json:"edgeContentHeight,omitempty"`
-	Connector         struct {
-		Name string `json:"name,omitempty"`
-	} `json:"connector"`
-	Router struct {
-		Name string `json:"name,omitempty"`
-	} `json:"router"`
-	SourcePort string `json:"sourcePort,omitempty"`
-	TargetPort string `json:"targetPort,omitempty"`
+	Id                string        `json:"id"`
+	Source            string        `json:"source"`
+	Target            string        `json:"target"`
+	SourcePortId      string        `json:"sourcePortId,omitempty"`
+	TargetPortId      string        `json:"targetPortId,omitempty"`
+	Label             string        `json:"label,omitempty"`
+	EdgeContentWidth  int           `json:"edgeContentWidth,omitempty"`
+	EdgeContentHeight int           `json:"edgeContentHeight,omitempty"`
+	Connector         EdgeConnector `json:"connector"`
+	Router            EdgeRouter    `json:"router"`
+	SourcePort        string        `json:"sourcePort,omitempty"`
+	TargetPort        string        `json:"targetPort,omitempty"`
 }
 
 type NodeStatus string

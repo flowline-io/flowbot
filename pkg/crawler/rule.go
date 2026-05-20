@@ -18,26 +18,35 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
+// RulePage holds page crawling configuration.
+type RulePage struct {
+	URL  string
+	List string
+	Item map[string]string
+}
+
+// RuleJson holds JSON crawling configuration.
+type RuleJson struct {
+	URL  string
+	List string
+	Item map[string]string
+}
+
+// RuleFeed holds feed crawling configuration.
+type RuleFeed struct {
+	URL  string
+	Item map[string]string
+}
+
 type Rule struct {
 	Name   string
 	Enable bool
 	Id     string
 	When   string
 	Mode   string
-	Page   *struct {
-		URL  string
-		List string
-		Item map[string]string
-	} `json:"page,omitempty"`
-	Json *struct {
-		URL  string
-		List string
-		Item map[string]string
-	} `json:"json,omitempty"`
-	Feed *struct {
-		URL  string
-		Item map[string]string
-	} `json:"feed,omitempty"`
+	Page   *RulePage  `json:"page,omitempty"`
+	Json   *RuleJson  `json:"json,omitempty"`
+	Feed   *RuleFeed  `json:"feed,omitempty"`
 }
 
 func (r Rule) Run() []map[string]string {

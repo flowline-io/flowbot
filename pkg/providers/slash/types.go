@@ -2,6 +2,12 @@ package slash
 
 import "time"
 
+type OGMetaData struct {
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	Image       string `json:"image,omitempty"`
+}
+
 type Shortcut struct {
 	Id          int32     `json:"id,omitempty"`
 	CreatorId   int32     `json:"creator_id,omitempty"`
@@ -15,9 +21,5 @@ type Shortcut struct {
 	Description string    `json:"description,omitempty"`
 	Visibility  any       `json:"visibility,omitempty"`
 	ViewCount   int32     `json:"view_count,omitempty"`
-	OGMetaData  struct {
-		Title       string `json:"title,omitempty"`
-		Description string `json:"description,omitempty"`
-		Image       string `json:"image,omitempty"`
-	} `json:"og_metadata"`
+	OGMetaData  OGMetaData `json:"og_metadata"`
 }

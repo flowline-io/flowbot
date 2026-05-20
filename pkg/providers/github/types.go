@@ -300,30 +300,38 @@ type Subject struct {
 	Type             *string `json:"type,omitempty"`
 }
 
+type ContainerMetadataTag struct {
+	Name   string `json:"name"`
+	Digest string `json:"digest"`
+}
+
+type ContainerMetadata struct {
+	Tag ContainerMetadataTag `json:"tag"`
+}
+
+type PackageWebhookPackageVersion struct {
+	Id                int              `json:"id"`
+	Version           string           `json:"version"`
+	Name              string           `json:"name"`
+	Description       string           `json:"description"`
+	Summary           string           `json:"summary"`
+	ContainerMetadata ContainerMetadata `json:"container_metadata"`
+}
+
+type PackageWebhookPackage struct {
+	Id             int                        `json:"id"`
+	Name           string                     `json:"name"`
+	Namespace      string                     `json:"namespace"`
+	Description    string                     `json:"description"`
+	Ecosystem      string                     `json:"ecosystem"`
+	PackageType    string                     `json:"package_type"`
+	HtmlUrl        string                     `json:"html_url"`
+	PackageVersion PackageWebhookPackageVersion `json:"package_version"`
+}
+
 type PackageWebhook struct {
-	Action  string `json:"action"`
-	Package struct {
-		Id             int    `json:"id"`
-		Name           string `json:"name"`
-		Namespace      string `json:"namespace"`
-		Description    string `json:"description"`
-		Ecosystem      string `json:"ecosystem"`
-		PackageType    string `json:"package_type"`
-		HtmlUrl        string `json:"html_url"`
-		PackageVersion struct {
-			Id                int    `json:"id"`
-			Version           string `json:"version"`
-			Name              string `json:"name"`
-			Description       string `json:"description"`
-			Summary           string `json:"summary"`
-			ContainerMetadata struct {
-				Tag struct {
-					Name   string `json:"name"`
-					Digest string `json:"digest"`
-				} `json:"tag"`
-			} `json:"container_metadata"`
-		} `json:"package_version"`
-	} `json:"package"`
+	Action  string               `json:"action"`
+	Package PackageWebhookPackage `json:"package"`
 }
 
 type RepositoryRelease struct {

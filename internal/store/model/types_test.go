@@ -1102,13 +1102,7 @@ func TestNode(t *testing.T) {
 				IsGroup:   false,
 				Group:     "group-1",
 				ParentId:  "parent-1",
-				Ports: []struct {
-					Id        string `json:"id,omitempty"`
-					Group     string `json:"group,omitempty"`
-					Type      string `json:"type,omitempty"`
-					Tooltip   string `json:"tooltip,omitempty"`
-					Connected bool   `json:"connected,omitempty"`
-				}{
+				Ports: []NodePort{
 					{Id: "port-1", Group: "group", Type: "type", Tooltip: "tooltip", Connected: true},
 				},
 				Order:       1,

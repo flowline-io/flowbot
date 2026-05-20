@@ -58,3 +58,5 @@ warningCode = 0
   arguments = [15]
 [rule.atomic]
 [rule.unchecked-type-assertion]
+[rule.datarace]
+[rule.nested-structs]

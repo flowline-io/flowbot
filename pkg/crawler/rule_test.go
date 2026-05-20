@@ -26,23 +26,20 @@ func TestHtmlRuleRun(t *testing.T) {
 		t.Parallel()
 		const target = "https://news.ycombinator.com/news"
 		skipIfNoNetwork(t, target)
-		var html struct {
-			URL  string
-			List string
-			Item map[string]string
-		}
-		html.URL = target
-		html.List = "tr.athing"
-		html.Item = map[string]string{
-			"title": `$("td.title .titleline a").text`,
-			"url":   `$("td.title .titleline a").href`,
+		page := RulePage{
+			URL:  target,
+			List: "tr.athing",
+			Item: map[string]string{
+				"title": `$("td.title .titleline a").text`,
+				"url":   `$("td.title .titleline a").href`,
+			},
 		}
 		r := Rule{
 			Name: "hackernews",
 			Id:   "8zwgwc3y_2E",
 			When: "* * * * *",
 			Mode: "daily",
-			Page: &html,
+			Page: &page,
 		}
 		result := r.Run()
 		if len(result) == 0 {
@@ -56,23 +53,20 @@ func TestJsonRuleRun(t *testing.T) {
 	t.Run("httpbin json rule", func(t *testing.T) {
 		t.Parallel()
 		skipIfNoNetwork(t, "https://httpbin.org/get")
-		var json struct {
-			URL  string
-			List string
-			Item map[string]string
-		}
-		json.URL = "https://httpbin.org/json"
-		json.List = "slideshow.slides"
-		json.Item = map[string]string{
-			"title": `title.@expand:{"k":"(.*)","v":"https://httpbin.org/$1"}`,
-			"type":  "type",
+		j := RuleJson{
+			URL:  "https://httpbin.org/json",
+			List: "slideshow.slides",
+			Item: map[string]string{
+				"title": `title.@expand:{"k":"(.*)","v":"https://httpbin.org/$1"}`,
+				"type":  "type",
+			},
 		}
 		r := Rule{
 			Name: "httpbin",
 			Id:   "rfv8BzaExOo",
 			When: "* * * * *",
 			Mode: "daily",
-			Json: &json,
+			Json: &j,
 		}
 		result := r.Run()
 		if len(result) == 0 {

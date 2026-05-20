@@ -2,18 +2,20 @@ package tailchat
 
 const ID = "tailchat"
 
+type PayloadData struct {
+	GroupID             string `json:"groupId"`
+	ConverseID          string `json:"converseId"`
+	MessageID           string `json:"messageId"`
+	MessageAuthor       string `json:"messageAuthor"`
+	MessageSnippet      string `json:"messageSnippet"`
+	MessagePlainContent string `json:"messagePlainContent"`
+}
+
 type Payload struct {
-	ID      string `json:"_id"`
-	UserID  string `json:"userId"`
-	Type    string `json:"type"`
-	Payload struct {
-		GroupID             string `json:"groupId"`
-		ConverseID          string `json:"converseId"`
-		MessageID           string `json:"messageId"`
-		MessageAuthor       string `json:"messageAuthor"`
-		MessageSnippet      string `json:"messageSnippet"`
-		MessagePlainContent string `json:"messagePlainContent"`
-	} `json:"payload"`
+	ID      string      `json:"_id"`
+	UserID  string      `json:"userId"`
+	Type    string      `json:"type"`
+	Payload PayloadData `json:"payload"`
 }
 
 type SendMessageData struct {
@@ -35,8 +37,10 @@ type SendMessageReply struct {
 	Content string `json:"content"`
 }
 
+type TokenData struct {
+	Jwt string `json:"jwt"`
+}
+
 type TokenResponse struct {
-	Data struct {
-		Jwt string `json:"jwt"`
-	} `json:"data"`
+	Data TokenData `json:"data"`
 }

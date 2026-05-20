@@ -7,20 +7,26 @@ type PipelineClient struct {
 	c *Client
 }
 
+// PipelineInfoTrigger holds the trigger definition for a pipeline.
+type PipelineInfoTrigger struct {
+	Event string `json:"event"`
+}
+
+// PipelineInfoStep holds a step definition in a pipeline list result.
+type PipelineInfoStep struct {
+	Name       string         `json:"name"`
+	Capability string         `json:"capability"`
+	Operation  string         `json:"operation"`
+	Params     map[string]any `json:"params"`
+}
+
 // PipelineInfo is a pipeline metadata record.
 type PipelineInfo struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Enabled     bool   `json:"enabled"`
-	Trigger     struct {
-		Event string `json:"event"`
-	} `json:"trigger"`
-	Steps []struct {
-		Name       string         `json:"name"`
-		Capability string         `json:"capability"`
-		Operation  string         `json:"operation"`
-		Params     map[string]any `json:"params"`
-	} `json:"steps"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Enabled     bool                `json:"enabled"`
+	Trigger     PipelineInfoTrigger `json:"trigger"`
+	Steps       []PipelineInfoStep  `json:"steps"`
 }
 
 // PipelineListResult contains the list of pipelines.
