@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
@@ -45,7 +44,7 @@ func runWorkflow(ctx fiber.Ctx) error {
 		}
 		runner = workflowpkg.NewRunnerWithStore(runStore, nil, body.File, "manual")
 	}
-	if err := runner.Execute(context.Background(), *wf, types.KV(body.Params), body.File); err != nil {
+	if err := runner.Execute(ctx.Context(), *wf, types.KV(body.Params), body.File); err != nil {
 		return fmt.Errorf("workflow execution: %w", err)
 	}
 
