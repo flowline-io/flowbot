@@ -56,17 +56,17 @@ const (
 
 // DataEvent is the durable business event contract emitted by ability write operations.
 type DataEvent struct {
-	EventID        string `json:"event_id"`
-	EventType      string `json:"event_type"`
-	Source         string `json:"source"`
-	Capability     string `json:"capability"`
-	Operation      string `json:"operation"`
-	Backend        string `json:"backend"`
-	App            string `json:"app"`
+	EventID        string    `json:"event_id"`
+	EventType      string    `json:"event_type"`
+	Source         string    `json:"source"`
+	Capability     string    `json:"capability"`
+	Operation      string    `json:"operation"`
+	Backend        string    `json:"backend"`
+	App            string    `json:"app"`
 	EntityID       string    `json:"entity_id"`
 	CreatedAt      time.Time `json:"created_at"`
 	IdempotencyKey string    `json:"idempotency_key"`
-	UID            string `json:"uid"`
-	Topic          string `json:"topic"`
-	Data           KV     `json:"data"`
+	UID            string    `json:"uid"`
+	Topic          string    `json:"topic"`
+	Data           KV        `json:"data"`
 }

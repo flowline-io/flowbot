@@ -23,7 +23,7 @@ func New() *Runtime {
 	return &Runtime{}
 }
 
-func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
+func (*Runtime) Run(ctx context.Context, t *types.Task) error {
 	action := strings.TrimPrefix(t.Run, Prefix)
 	dot := strings.LastIndex(action, ".")
 	if dot < 0 {
@@ -59,14 +59,14 @@ func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *Runtime) Stop(ctx context.Context, t *types.Task) error {
+func (*Runtime) Stop(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *Runtime) HealthCheck(ctx context.Context) error {
+func (*Runtime) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-func (r *Runtime) Close() error {
+func (*Runtime) Close() error {
 	return nil
 }

@@ -22,7 +22,7 @@ func NewBuilder(field []types.FormField) *Builder {
 	return &Builder{Field: field}
 }
 
-func (b Builder) Save() error {
+func (Builder) Save() error {
 	return nil
 }
 

@@ -14,11 +14,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
-func (c *Controller) hubApps(ctx fiber.Ctx) error {
+func (*Controller) hubApps(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(homelab.DefaultRegistry.List()))
 }
 
-func (c *Controller) hubApp(ctx fiber.Ctx) error {
+func (*Controller) hubApp(ctx fiber.Ctx) error {
 	app, ok := homelab.DefaultRegistry.Get(ctx.Params("name"))
 	if !ok {
 		return types.Errorf(types.ErrNotFound, "app not found")
@@ -26,7 +26,7 @@ func (c *Controller) hubApp(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(app))
 }
 
-func (c *Controller) hubAppStatus(ctx fiber.Ctx) error {
+func (*Controller) hubAppStatus(ctx fiber.Ctx) error {
 	app, ok := homelab.DefaultRegistry.Get(ctx.Params("name"))
 	if !ok {
 		return types.Errorf(types.ErrNotFound, "app not found")
@@ -38,7 +38,7 @@ func (c *Controller) hubAppStatus(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": status}))
 }
 
-func (c *Controller) hubAppLogs(ctx fiber.Ctx) error {
+func (*Controller) hubAppLogs(ctx fiber.Ctx) error {
 	app, ok := homelab.DefaultRegistry.Get(ctx.Params("name"))
 	if !ok {
 		return types.Errorf(types.ErrNotFound, "app not found")
@@ -121,11 +121,11 @@ func (c *Controller) hubAppUpdate(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]any{"name": app.Name, "status": "updated"}))
 }
 
-func (c *Controller) hubCapabilities(ctx fiber.Ctx) error {
+func (*Controller) hubCapabilities(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(hub.Default.List()))
 }
 
-func (c *Controller) hubCapability(ctx fiber.Ctx) error {
+func (*Controller) hubCapability(ctx fiber.Ctx) error {
 	capabilityType := hub.CapabilityType(ctx.Params("type"))
 	desc, ok := hub.Default.Get(capabilityType)
 	if !ok {
@@ -134,7 +134,7 @@ func (c *Controller) hubCapability(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(desc))
 }
 
-func (c *Controller) hubHealth(ctx fiber.Ctx) error {
+func (*Controller) hubHealth(ctx fiber.Ctx) error {
 	checker := hub.NewChecker(hub.Default)
 	result := checker.Check(ctx.Context())
 	if result.Status == hub.HealthUnhealthy {
@@ -161,7 +161,7 @@ func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation strin
 	return app, nil
 }
 
-func (c *Controller) writeLifecycleAudit(ctx fiber.Ctx, appName, action, result, errMsg string) {
+func (*Controller) writeLifecycleAudit(ctx fiber.Ctx, appName, action, result, errMsg string) {
 	uid := route.GetUid(ctx)
 	topic := route.GetTopic(ctx)
 	auditStore := store.NewAuditStore(store.Database.GetDB().(*store.Client))

@@ -327,7 +327,7 @@ func buildStepResults(rc *RenderContext) map[string]*StepResult {
 	return result
 }
 
-func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType string) (int64, error) {
+func (e *Engine) createRunRecord(_ context.Context, name, eventID, eventType string) (int64, error) {
 	if e.store == nil {
 		return 0, nil
 	}
@@ -338,7 +338,7 @@ func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType s
 	return run.ID, nil
 }
 
-func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (int64, error) {
+func (e *Engine) createStepRunRecord(_ context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (int64, error) {
 	if e.store == nil {
 		return 0, nil
 	}

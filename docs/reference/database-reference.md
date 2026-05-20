@@ -1,6 +1,6 @@
 # Database Documentation
 
-Flowbot uses PostgreSQL as the primary database. Models are auto-generated via GORM Gen (see `internal/store/`).
+Flowbot uses PostgreSQL as the primary database. Models are defined as Ent schemas (see `internal/store/ent/schema/`).
 
 ## Schema Reference
 
@@ -91,15 +91,15 @@ task doc       # Generate schema documentation
 
 ```yaml
 store_config:
-  use_adapter: mysql
+  use_adapter: postgres
   adapters:
-    mysql:
-      dsn: "user:password@tcp(localhost:3306)/flowbot?parseTime=True&collation=utf8mb4_unicode_ci"
+    postgres:
+      dsn: "postgres://user:password@localhost:5432/flowbot?sslmode=disable"
 ```
 
 ## Backup
 
 ```bash
-mysqldump -u user -p flowbot > backup_$(date +%Y%m%d_%H%M%S).sql
-mysql -u user -p flowbot < backup_file.sql
+pg_dump -U user flowbot > backup_$(date +%Y%m%d_%H%M%S).sql
+psql -U user flowbot < backup_file.sql
 ```

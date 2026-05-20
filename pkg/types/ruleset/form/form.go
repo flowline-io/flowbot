@@ -14,7 +14,7 @@ func (r Rule) ID() string {
 	return r.Id
 }
 
-func (r Rule) TYPE() types.RulesetType {
+func (Rule) TYPE() types.RulesetType {
 	return types.FormRule
 }
 

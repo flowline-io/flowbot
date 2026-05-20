@@ -44,7 +44,7 @@ func (d *AuthDetector) Detect(resp *http.Response) *homelab.AuthInfo {
 	}
 }
 
-func (d *AuthDetector) parseBearerAuth(resp *http.Response) *homelab.AuthInfo {
+func (*AuthDetector) parseBearerAuth(resp *http.Response) *homelab.AuthInfo {
 	auth := &homelab.AuthInfo{
 		Type:   homelab.AuthOAuth2,
 		Header: "Authorization",
@@ -57,7 +57,7 @@ func (d *AuthDetector) parseBearerAuth(resp *http.Response) *homelab.AuthInfo {
 	return auth
 }
 
-func (d *AuthDetector) detectAPIKey(resp *http.Response) *homelab.AuthInfo {
+func (*AuthDetector) detectAPIKey(resp *http.Response) *homelab.AuthInfo {
 	// When a server returns 401/403 without WWW-Authenticate, it often uses
 	// an API key in a custom header or query parameter. We cannot determine
 	// the exact header name from the response alone.

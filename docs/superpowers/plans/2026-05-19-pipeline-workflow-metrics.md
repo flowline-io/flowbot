@@ -13,6 +13,7 @@
 ### Task 1: Add vector metric support to `pkg/stats/`
 
 **Files:**
+
 - Modify: `pkg/stats/stats.go`
 - Modify: `pkg/stats/stats_test.go`
 
@@ -100,6 +101,7 @@ func TestNewStatsWhenNotInitialized(t *testing.T) {
 ```bash
 go test ./pkg/stats/ -run "TestRegisterVecMetrics|TestNewStats" -v
 ```
+
 Expected: compilation error (`Stats` undefined, `NewStats` undefined).
 
 - [ ] **Step 3: Add initialized flag to stats.go**
@@ -226,6 +228,7 @@ func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) *p
 ```bash
 go test ./pkg/stats/ -run "TestRegisterVecMetrics|TestNewStats" -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 9: Commit**
@@ -240,6 +243,7 @@ git commit -m "feat(stats): add Stats struct with RegisterCounterVec, RegisterGa
 ### Task 2: Create shared helpers in `pkg/metrics/types.go`
 
 **Files:**
+
 - Create: `pkg/metrics/types.go`
 - Create: `pkg/metrics/types_test.go`
 
@@ -311,6 +315,7 @@ func TestSanitizeLabel(t *testing.T) {
 ```bash
 go test ./pkg/metrics/ -run TestSanitizeLabel -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 4: Commit**
@@ -325,12 +330,14 @@ git commit -m "feat(metrics): add sanitizeLabel and recoverLog helpers"
 ### Task 3: Create `PipelineCollector`
 
 **Files:**
+
 - Create: `pkg/metrics/pipeline.go`
 - Create: `pkg/metrics/pipeline_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 `pkg/metrics/pipeline_test.go`:
+
 ```go
 package metrics
 
@@ -435,6 +442,7 @@ func TestPipelineCollector_NoopMethodsDontPanic(t *testing.T) {
 ```bash
 go test ./pkg/metrics/ -run TestPipelineCollector -v
 ```
+
 Expected: compilation error.
 
 - [ ] **Step 3: Create pipeline.go**
@@ -513,6 +521,7 @@ func (c *PipelineCollector) IncResume(pipeline string) {
 ```bash
 go test ./pkg/metrics/ -run TestPipelineCollector -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -527,12 +536,14 @@ git commit -m "feat(metrics): add PipelineCollector"
 ### Task 4: Create `WorkflowCollector`
 
 **Files:**
+
 - Create: `pkg/metrics/workflow.go`
 - Create: `pkg/metrics/workflow_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 `pkg/metrics/workflow_test.go`:
+
 ```go
 package metrics
 
@@ -618,6 +629,7 @@ func TestWorkflowCollector_NoopMethodsDontPanic(t *testing.T) {
 ```bash
 go test ./pkg/metrics/ -run TestWorkflowCollector -v
 ```
+
 Expected: compilation error.
 
 - [ ] **Step 3: Create workflow.go**
@@ -704,6 +716,7 @@ func (c *WorkflowCollector) SetConcurrency(workflow string, count int) {
 ```bash
 go test ./pkg/metrics/ -run TestWorkflowCollector -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -718,12 +731,14 @@ git commit -m "feat(metrics): add WorkflowCollector"
 ### Task 5: Create `EventCollector`
 
 **Files:**
+
 - Create: `pkg/metrics/event.go`
 - Create: `pkg/metrics/event_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 `pkg/metrics/event_test.go`:
+
 ```go
 package metrics
 
@@ -798,6 +813,7 @@ func TestEventCollector_NoopMethodsDontPanic(t *testing.T) {
 ```bash
 go test ./pkg/metrics/ -run TestEventCollector -v
 ```
+
 Expected: compilation error.
 
 - [ ] **Step 3: Create event.go**
@@ -860,6 +876,7 @@ func (c *EventCollector) ObserveLag(eventType string, seconds float64) {
 ```bash
 go test ./pkg/metrics/ -run TestEventCollector -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -874,12 +891,14 @@ git commit -m "feat(metrics): add EventCollector"
 ### Task 6: Create `AbilityCollector`
 
 **Files:**
+
 - Create: `pkg/metrics/ability.go`
 - Create: `pkg/metrics/ability_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 `pkg/metrics/ability_test.go`:
+
 ```go
 package metrics
 
@@ -966,6 +985,7 @@ func TestAbilityCollector_NoopMethodsDontPanic(t *testing.T) {
 ```bash
 go test ./pkg/metrics/ -run TestAbilityCollector -v
 ```
+
 Expected: compilation error.
 
 - [ ] **Step 3: Create ability.go**
@@ -1020,6 +1040,7 @@ func (c *AbilityCollector) IncInvokeError(capability, operation, errorCode strin
 ```bash
 go test ./pkg/metrics/ -run TestAbilityCollector -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1034,6 +1055,7 @@ git commit -m "feat(metrics): add AbilityCollector"
 ### Task 7: Create Fx module file
 
 **Files:**
+
 - Create: `pkg/metrics/metrics.go`
 
 - [ ] **Step 1: Create metrics.go**
@@ -1065,6 +1087,7 @@ func Module() fx.Option {
 ```bash
 go build ./pkg/metrics/...
 ```
+
 Expected: builds without errors.
 
 - [ ] **Step 3: Commit**
@@ -1079,12 +1102,14 @@ git commit -m "feat(metrics): add Fx module"
 ### Task 8: Add `CreatedAt` to `DataEvent`
 
 **Files:**
+
 - Modify: `pkg/types/event.go`
 - Create: `pkg/types/event_test.go`
 
 - [ ] **Step 1: Write failing test**
 
 `pkg/types/event_test.go`:
+
 ```go
 package types
 
@@ -1150,6 +1175,7 @@ func TestDataEventCreatedAt(t *testing.T) {
 ```bash
 go test ./pkg/types/ -run TestDataEventCreatedAt -v
 ```
+
 Expected: compilation error (CreatedAt field doesn't exist).
 
 - [ ] **Step 3: Add CreatedAt field**
@@ -1179,6 +1205,7 @@ type DataEvent struct {
 ```bash
 go test ./pkg/types/ -run TestDataEventCreatedAt -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1193,6 +1220,7 @@ git commit -m "feat(types): add CreatedAt field to DataEvent for event lag track
 ### Task 9: Instrument Pipeline Engine
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go`
 - Modify: `pkg/pipeline/pipeline_test.go`
 - Modify: `internal/server/pipeline.go`
@@ -1200,11 +1228,13 @@ git commit -m "feat(types): add CreatedAt field to DataEvent for event lag track
 - [ ] **Step 1: Add metrics fields to Engine and update NewEngine**
 
 In `pkg/pipeline/engine.go`, add import:
+
 ```go
 	"github.com/flowline-io/flowbot/pkg/metrics"
 ```
 
 Update Engine struct:
+
 ```go
 type Engine struct {
 	defs         []Definition
@@ -1216,6 +1246,7 @@ type Engine struct {
 ```
 
 Update NewEngine:
+
 ```go
 func NewEngine(defs []Definition, store RunStore, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
 	e := &Engine{
@@ -1232,6 +1263,7 @@ func NewEngine(defs []Definition, store RunStore, pc *metrics.PipelineCollector,
 - [ ] **Step 1.5: Add event matched/dedup in handleEvent and executePipeline**
 
 In `handleEvent` (around lines 76-89, inside the for loop iterating matched defs), add matched counter:
+
 ```go
 	for _, def := range matched {
 		if e.eventMetrics != nil {
@@ -1244,6 +1276,7 @@ In `handleEvent` (around lines 76-89, inside the for loop iterating matched defs
 ```
 
 In `executePipeline`, after the idempotency check's early return (around line 106, after `HasConsumed` returns true):
+
 ```go
 		if consumed {
 			flog.Info("pipeline %s already consumed event %s", def.Name, event.EventID)
@@ -1257,11 +1290,13 @@ In `executePipeline`, after the idempotency check's early return (around line 10
 - [ ] **Step 2: Add instrumentation to executePipeline**
 
 After `defer span.End()` (line 97), add:
+
 ```go
 	runStart := time.Now()
 ```
 
 After the for loop ends (before `e.finishRunRecord`, around line 142), add:
+
 ```go
 	if e.metrics != nil {
 		status := "done"
@@ -1276,11 +1311,13 @@ After the for loop ends (before `e.finishRunRecord`, around line 142), add:
 - [ ] **Step 3: Add instrumentation to executeStep**
 
 After `defer span.End()` (line 157), add:
+
 ```go
 	stepStart := time.Now()
 ```
 
 After `bo := retryCfg.BuildBackOff()` (line 180), add:
+
 ```go
 	if e.metrics != nil {
 		e.metrics.IncStepTotal(pipelineName, step.Name, "start")
@@ -1288,6 +1325,7 @@ After `bo := retryCfg.BuildBackOff()` (line 180), add:
 ```
 
 In the success block (replace lines 184-189):
+
 ```go
 		if err == nil {
 			stepResult := extractResult(res)
@@ -1307,6 +1345,7 @@ In the success block (replace lines 184-189):
 ```
 
 In the non-retryable error block (replace lines 193-196):
+
 ```go
 		if !retryCfg.RetryEnabled() || !isRetryable(err, retryCfg) {
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
@@ -1323,6 +1362,7 @@ In the non-retryable error block (replace lines 193-196):
 ```
 
 In the retries exhausted block (replace lines 199-202):
+
 ```go
 		if nextDelay == backoff.Stop {
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
@@ -1339,6 +1379,7 @@ In the retries exhausted block (replace lines 199-202):
 ```
 
 In the context-cancelled block (replace lines 208-212):
+
 ```go
 		case <-ctx.Done():
 			e.updateStepRunRecord(stepRunID, model.PipelineCancel, nil, ctx.Err().Error(), attempt)
@@ -1356,6 +1397,7 @@ In the context-cancelled block (replace lines 208-212):
 - [ ] **Step 4: Add instrumentation to ResumePipeline**
 
 After `GetRun` succeeds (after line 361), add:
+
 ```go
 	if e.metrics != nil {
 		e.metrics.IncResume(run.PipelineName)
@@ -1386,22 +1428,26 @@ for _, tt := range tests {
 Add import `"github.com/flowline-io/flowbot/pkg/metrics"`.
 
 Replace the engine creation line (line 38) — note: nil for both collectors for now, full wiring via DI in Task 12:
+
 ```go
 	engine := pipeline.NewEngine(pipelineDefs, runStore, metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 ```
 
-- [ ] **Step 7: Run tests
+- [ ] \*\*Step 7: Run tests
 
 ```bash
 go test ./pkg/pipeline/ -v
 go build ./internal/server/...
 ```
+
 Expected: PASS, builds.
 
 Check for other call sites of `NewEngine`:
+
 ```bash
 rg "NewEngine\(" --type go -l
 ```
+
 Update any additional call sites.
 
 - [ ] **Step 8: Commit**
@@ -1416,6 +1462,7 @@ git commit -m "feat(pipeline): inject PipelineCollector and instrument run/step/
 ### Task 10: Instrument Workflow Runner
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go`
 - Modify: `pkg/workflow/scheduler.go`
 - Modify: `pkg/workflow/workflow_test.go`
@@ -1425,11 +1472,13 @@ git commit -m "feat(pipeline): inject PipelineCollector and instrument run/step/
 - [ ] **Step 1: Add metrics field to Runner and update constructors**
 
 In `pkg/workflow/workflow.go`, add import:
+
 ```go
 	"github.com/flowline-io/flowbot/pkg/metrics"
 ```
 
 Update Runner struct:
+
 ```go
 type Runner struct {
 	engines      map[string]*executor.Engine
@@ -1441,6 +1490,7 @@ type Runner struct {
 ```
 
 Update NewRunnerWithStore:
+
 ```go
 func NewRunnerWithStore(store WorkflowRunStore, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
 	return &Runner{
@@ -1459,6 +1509,7 @@ func NewRunnerWithStore(store WorkflowRunStore, wc *metrics.WorkflowCollector, w
 ```
 
 Update NewRunner:
+
 ```go
 func NewRunner() *Runner {
 	return NewRunnerWithStore(nil, nil, "", "")
@@ -1468,6 +1519,7 @@ func NewRunner() *Runner {
 - [ ] **Step 2: Instrument runSequential**
 
 At the top of `runSequential` (after line 250), add:
+
 ```go
 	start := time.Now()
 	var runErr error
@@ -1486,32 +1538,42 @@ At the top of `runSequential` (after line 250), add:
 Replace all `return err` in the function body with `runErr = err; return`. In runSequential's step loop, five return locations exist:
 
 (1) Line 274 — task not found. Before `return err`:
+
 ```go
 			runErr = err
 			return
 ```
+
 (2) Line 283 — resolve params error. Before `return err`:
+
 ```go
 			runErr = err
 			return
 ```
+
 (3) Line 302 — mapper step error. Before `return merr`:
+
 ```go
 			runErr = merr
 			return
 ```
+
 (4) Line 323 — convert task error. Before `return err`:
+
 ```go
 			runErr = err
 			return
 ```
+
 (5) Line 332 — step failure. Before `return fmt.Errorf(...)`:
+
 ```go
 			runErr = fmt.Errorf("step %s failed: %w", stepID, rerr)
 			return
 ```
 
 Before the `r.runWithRetry` call (around line 326), add step start:
+
 ```go
 		flog.Info("[workflow] running step %s: %s", stepID, wt.Action)
 		stepStart := time.Now()
@@ -1523,6 +1585,7 @@ Before the `r.runWithRetry` call (around line 326), add step start:
 ```
 
 After `runWithRetry` (line 328-333), update the error branch:
+
 ```go
 		attempt, rerr := r.runWithRetry(ctx, task, wt.Retry, stepID, stepRun)
 		if rerr != nil {
@@ -1541,6 +1604,7 @@ After `runWithRetry` (line 328-333), update the error branch:
 ```
 
 And after step success (after stepIndex++ at line 349), add:
+
 ```go
 		if r.metrics != nil {
 			r.metrics.IncStepTotal(wf.Name, stepID, "done")
@@ -1550,9 +1614,11 @@ And after step success (after stepIndex++ at line 349), add:
 			}
 		}
 ```
+
 Note: `info` is already computed at line 286 (`info := ParseAction(wt.Action)`), accessible throughout the iteration.
 
 For mapper steps (lines 296-313), add step timing before the mapper block:
+
 ```go
 		if info.Type == "mapper" {
 			stepStart := time.Now()
@@ -1577,6 +1643,7 @@ For the error return paths (lines 272-284, 297-303, 319-324) that don't go throu
 Add import `"time"` and `"github.com/flowline-io/flowbot/pkg/metrics"` to scheduler.go.
 
 At the top of `runParallel` (after line 54), add:
+
 ```go
 	parallelStart := time.Now()
 	var finalErr error
@@ -1593,6 +1660,7 @@ At the top of `runParallel` (after line 54), add:
 ```
 
 In the task dispatch inner loop (around line 86, inside `go func(taskID string)`), add step start and concurrency gauge after `go func(taskID string) {`:
+
 ```go
 				go func(taskID string) {
 					defer wg.Done()
@@ -1629,6 +1697,7 @@ In the task dispatch inner loop (around line 86, inside `go func(taskID string)`
 ```
 
 For concurrency gauge, in the dispatch loop after activeCount increment (around line 82, before `go func`):
+
 ```go
 				mu.Unlock()
 				if r.metrics != nil {
@@ -1637,6 +1706,7 @@ For concurrency gauge, in the dispatch loop after activeCount increment (around 
 ```
 
 In the done channel handler (around line 114-118), after decrementing activeCount:
+
 ```go
 			mu.Unlock()
 			if r.metrics != nil {
@@ -1645,6 +1715,7 @@ In the done channel handler (around line 114-118), after decrementing activeCoun
 ```
 
 Replace `return firstErr` (line 128-132) with:
+
 ```go
 	if firstErr != nil {
 		if r.store != nil && run != nil {
@@ -1654,14 +1725,17 @@ Replace `return firstErr` (line 128-132) with:
 		return firstErr
 	}
 ```
+
 Note: the deferred run metrics closure captures `finalErr`.
 
 In `executeParallelTask`, add step start timer at top (after line 155):
+
 ```go
 	stepStart := time.Now()
 ```
 
 In the error return after `r.runEngineWithRetry` (line 220), add step retry counter:
+
 ```go
 		if rerr != nil {
 			r.failStep(stepRun, rerr, attempt)
@@ -1673,6 +1747,7 @@ In the error return after `r.runEngineWithRetry` (line 220), add step retry coun
 ```
 
 In the success path (lin 238), add retry counter if attempt > 1. Since `attempt` is not in scope here (it's a local variable from the if block), record it inside the `if rerr != nil` check above or extract. Simplest: also check attempt inside the success path by moving the stepRun update above the success metrics:
+
 ```go
 		if r.store != nil && stepRun != nil {
 			resultJSON := model.JSON{}
@@ -1686,11 +1761,13 @@ In the success path (lin 238), add retry counter if attempt > 1. Since `attempt`
 			r.metrics.IncStepRetry(wf.Name, taskID)
 		}
 ```
+
 `attempt` is the return value from `r.runEngineWithRetry`, available at this point in the code.
 
 - [ ] **Step 4: Instrument ResumeWorkflow**
 
 In `ResumeWorkflow` (line 363), after loading the workflow (after `wf, err := LoadFile(run.WorkflowFile)` at line 379):
+
 ```go
 	if r.metrics != nil {
 		r.metrics.IncResume(wf.Name)
@@ -1702,6 +1779,7 @@ In `ResumeWorkflow` (line 363), after loading the workflow (after `wf, err := Lo
 In `pkg/workflow/workflow_test.go` and `pkg/workflow/scheduler_test.go`, find all `NewRunnerWithStore` calls and add `nil` as the metrics parameter.
 
 Search all call sites:
+
 ```bash
 rg "NewRunnerWithStore\(" --type go -l
 ```
@@ -1729,18 +1807,21 @@ git commit -m "feat(workflow): inject WorkflowCollector and instrument runSequen
 ### Task 11: Instrument Ability Invoke
 
 **Files:**
+
 - Modify: `pkg/ability/invoke.go`
 - Modify: `pkg/ability/invoke_test.go`
 
 - [ ] **Step 1: Add metrics field and global setter**
 
 In `invoke.go`, add import:
+
 ```go
 	"time"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 ```
 
 Update `Registry` struct:
+
 ```go
 type Registry struct {
 	mu       sync.RWMutex
@@ -1751,6 +1832,7 @@ type Registry struct {
 ```
 
 Add after `SetEventEmitter`:
+
 ```go
 func SetMetricsCollector(mc *metrics.AbilityCollector) {
 	DefaultRegistry.mu.Lock()
@@ -1764,6 +1846,7 @@ func SetMetricsCollector(mc *metrics.AbilityCollector) {
 In `Registry.Invoke`, add `start := time.Now()` before `result, err := invoker(ctx, params)` (before line 86).
 
 On error (replacing lines 87-89):
+
 ```go
 	if err != nil {
 		trace.RecordError(ctx, err)
@@ -1784,6 +1867,7 @@ On error (replacing lines 87-89):
 ```
 
 On success (after result is set up, before the emitter goroutine at line 97):
+
 ```go
 	r.mu.RLock()
 	mc := r.metrics
@@ -1797,11 +1881,13 @@ On success (after result is set up, before the emitter goroutine at line 97):
 - [ ] **Step 3: Update tests**
 
 In `invoke_test.go`, add import:
+
 ```go
 	"github.com/flowline-io/flowbot/pkg/metrics"
 ```
 
 Add test:
+
 ```go
 func TestSetMetricsCollector(t *testing.T) {
 	t.Parallel()
@@ -1829,6 +1915,7 @@ func TestSetMetricsCollector(t *testing.T) {
 ```bash
 go test ./pkg/ability/ -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1843,12 +1930,14 @@ git commit -m "feat(ability): inject AbilityCollector and instrument Invoke"
 ### Task 12: Wire Event Layer and Finalize Fx Integration
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go`
 - Modify: `internal/server/fx.go`
 
 - [ ] **Step 1: Update initPipeline to receive all collectors**
 
 In `internal/server/pipeline.go`, update signature:
+
 ```go
 func initPipeline(
 	lc fx.Lifecycle,
@@ -1864,6 +1953,7 @@ func initPipeline(
 - [ ] **Step 2: Pass collectors to NewEngine**
 
 Replace the nil-passing call from Task 9:
+
 ```go
 	engine := pipeline.NewEngine(pipelineDefs, runStore, pc, ec)
 ```
@@ -1871,6 +1961,7 @@ Replace the nil-passing call from Task 9:
 - [ ] **Step 3: Wire AbilityCollector**
 
 After engine creation, before `ability.SetEventEmitter`:
+
 ```go
 	ability.SetMetricsCollector(ac)
 ```
@@ -1878,6 +1969,7 @@ After engine creation, before `ability.SetEventEmitter`:
 - [ ] **Step 4: Add EventCollector instrumentation in Watermill handler**
 
 In the Watermill handler closure (around lines 82-89), add metric calls before processing:
+
 ```go
 		func(msg *message.Message) error {
 			var dataEvent types.DataEvent
@@ -1901,6 +1993,7 @@ In the Watermill handler closure (around lines 82-89), add metric calls before p
 - [ ] **Step 5: Set CreatedAt in the event emitter**
 
 In the event emitter (around line 55-65), add CreatedAt:
+
 ```go
 			dataEvent := types.DataEvent{
 				EventID:        eventID,
@@ -1919,6 +2012,7 @@ In the event emitter (around line 55-65), add CreatedAt:
 - [ ] **Step 6: Update internal/server/fx.go**
 
 Add `metrics.Module()` to the Fx module options:
+
 ```go
 import (
 	// ... existing imports ...
@@ -1944,6 +2038,7 @@ go build ./internal/server/...
 go build ./...
 go vet ./...
 ```
+
 Expected: builds and vets without errors.
 
 - [ ] **Step 8: Commit**

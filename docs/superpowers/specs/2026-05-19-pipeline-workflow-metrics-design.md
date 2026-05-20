@@ -83,43 +83,43 @@ func (c *PipelineCollector) IncRunTotal(pipeline, status string) {
 
 ### PipelineCollector
 
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
-| `pipeline_run_total` | Counter | `pipeline`, `status` | Runs counted by status (start/done/cancel/failed) |
-| `pipeline_run_duration_seconds` | Histogram | `pipeline`, `status` | End-to-end run duration distribution |
-| `pipeline_step_total` | Counter | `pipeline`, `step`, `status` | Steps counted by status |
-| `pipeline_step_duration_seconds` | Histogram | `pipeline`, `step`, `capability`, `status` | Step duration distribution |
-| `pipeline_step_retry_total` | Counter | `pipeline`, `step` | Step retry count |
-| `pipeline_resume_total` | Counter | `pipeline` | Pipeline resume execution count |
+| Metric                           | Type      | Labels                                     | Description                                       |
+| -------------------------------- | --------- | ------------------------------------------ | ------------------------------------------------- |
+| `pipeline_run_total`             | Counter   | `pipeline`, `status`                       | Runs counted by status (start/done/cancel/failed) |
+| `pipeline_run_duration_seconds`  | Histogram | `pipeline`, `status`                       | End-to-end run duration distribution              |
+| `pipeline_step_total`            | Counter   | `pipeline`, `step`, `status`               | Steps counted by status                           |
+| `pipeline_step_duration_seconds` | Histogram | `pipeline`, `step`, `capability`, `status` | Step duration distribution                        |
+| `pipeline_step_retry_total`      | Counter   | `pipeline`, `step`                         | Step retry count                                  |
+| `pipeline_resume_total`          | Counter   | `pipeline`                                 | Pipeline resume execution count                   |
 
 ### WorkflowCollector
 
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
-| `workflow_run_total` | Counter | `workflow`, `status` | Runs counted by status |
-| `workflow_run_duration_seconds` | Histogram | `workflow`, `status` | End-to-end run duration |
-| `workflow_step_total` | Counter | `workflow`, `step`, `status` | Steps counted by status |
-| `workflow_step_duration_seconds` | Histogram | `workflow`, `step`, `action_type`, `status` | Step duration by action type |
-| `workflow_step_retry_total` | Counter | `workflow`, `step` | Step retry count |
-| `workflow_resume_total` | Counter | `workflow` | Resume execution count |
-| `workflow_concurrency_gauge` | Gauge | `workflow` | Currently running tasks (DAG parallel mode) |
+| Metric                           | Type      | Labels                                      | Description                                 |
+| -------------------------------- | --------- | ------------------------------------------- | ------------------------------------------- |
+| `workflow_run_total`             | Counter   | `workflow`, `status`                        | Runs counted by status                      |
+| `workflow_run_duration_seconds`  | Histogram | `workflow`, `status`                        | End-to-end run duration                     |
+| `workflow_step_total`            | Counter   | `workflow`, `step`, `status`                | Steps counted by status                     |
+| `workflow_step_duration_seconds` | Histogram | `workflow`, `step`, `action_type`, `status` | Step duration by action type                |
+| `workflow_step_retry_total`      | Counter   | `workflow`, `step`                          | Step retry count                            |
+| `workflow_resume_total`          | Counter   | `workflow`                                  | Resume execution count                      |
+| `workflow_concurrency_gauge`     | Gauge     | `workflow`                                  | Currently running tasks (DAG parallel mode) |
 
 ### EventCollector
 
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
-| `event_received_total` | Counter | `event_type`, `source` | Total events received |
-| `event_matched_total` | Counter | `event_type`, `pipeline` | Events matched to a pipeline |
-| `event_dedup_total` | Counter | `event_type`, `pipeline` | Idempotent consumption filter hits |
-| `event_lag_seconds` | Histogram | `event_type` | Delay from event creation to consumption |
+| Metric                 | Type      | Labels                   | Description                              |
+| ---------------------- | --------- | ------------------------ | ---------------------------------------- |
+| `event_received_total` | Counter   | `event_type`, `source`   | Total events received                    |
+| `event_matched_total`  | Counter   | `event_type`, `pipeline` | Events matched to a pipeline             |
+| `event_dedup_total`    | Counter   | `event_type`, `pipeline` | Idempotent consumption filter hits       |
+| `event_lag_seconds`    | Histogram | `event_type`             | Delay from event creation to consumption |
 
 ### AbilityCollector
 
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
-| `ability_invoke_total` | Counter | `capability`, `operation`, `status` | Invocation count by status |
-| `ability_invoke_duration_seconds` | Histogram | `capability`, `operation` | Invocation duration distribution |
-| `ability_invoke_error_total` | Counter | `capability`, `operation`, `error_code` | Error count by error code |
+| Metric                            | Type      | Labels                                  | Description                      |
+| --------------------------------- | --------- | --------------------------------------- | -------------------------------- |
+| `ability_invoke_total`            | Counter   | `capability`, `operation`, `status`     | Invocation count by status       |
+| `ability_invoke_duration_seconds` | Histogram | `capability`, `operation`               | Invocation duration distribution |
+| `ability_invoke_error_total`      | Counter   | `capability`, `operation`, `error_code` | Error count by error code        |
 
 **Total**: 19 metrics, 4 collectors.
 
@@ -175,8 +175,9 @@ func (c *PipelineCollector) IncRunTotal(pipeline, status string) {
 
 ```yaml
 metrics:
-  enabled: true   # global switch: Prometheus endpoint, Pushgateway, and business collectors
-                  # false: all off, no-op collectors injected
+  enabled:
+    true # global switch: Prometheus endpoint, Pushgateway, and business collectors
+    # false: all off, no-op collectors injected
 ```
 
 No sub-switches for individual collector groups.

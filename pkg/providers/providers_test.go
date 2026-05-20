@@ -140,10 +140,10 @@ func TestOAuthProviderInterface(t *testing.T) {
 
 type mockOAuthProvider struct{}
 
-func (m *mockOAuthProvider) GetAuthorizeURL() string {
+func (*mockOAuthProvider) GetAuthorizeURL() string {
 	return "https://example.com/auth"
 }
 
-func (m *mockOAuthProvider) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
+func (*mockOAuthProvider) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
 	return types.KV{"token": "test"}, nil
 }

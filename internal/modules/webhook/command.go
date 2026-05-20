@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"

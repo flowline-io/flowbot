@@ -173,14 +173,14 @@ func (a *Adapter) MarkEntryUnread(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (a *Adapter) StarEntry(ctx context.Context, id int64) error {
+func (*Adapter) StarEntry(ctx context.Context, id int64) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "reader star entry canceled", err)
 	}
 	return types.Errorf(types.ErrNotImplemented, "miniflux star entry is not implemented via this adapter")
 }
 
-func (a *Adapter) UnstarEntry(ctx context.Context, id int64) error {
+func (*Adapter) UnstarEntry(ctx context.Context, id int64) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "reader unstar entry canceled", err)
 	}

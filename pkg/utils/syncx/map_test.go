@@ -14,18 +14,18 @@ import (
 func TestGetNonExistent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		setup   func(m *syncx.Map[string, int])
-		key     string
-		wantV   int
-		wantOK  bool
+		name   string
+		setup  func(m *syncx.Map[string, int])
+		key    string
+		wantV  int
+		wantOK bool
 	}{
 		{
-			name:    "happy_path_get_from_empty_map",
-			setup:   func(_ *syncx.Map[string, int]) {},
-			key:     "nothing",
-			wantV:   0,
-			wantOK:  false,
+			name:   "happy_path_get_from_empty_map",
+			setup:  func(_ *syncx.Map[string, int]) {},
+			key:    "nothing",
+			wantV:  0,
+			wantOK: false,
 		},
 		{
 			name: "edge_get_after_delete",
@@ -62,10 +62,10 @@ func TestGetNonExistent(t *testing.T) {
 func TestSetAndGet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
-		key    string
-		value  int
-		extra  func(m *syncx.Map[string, int])
+		name  string
+		key   string
+		value int
+		extra func(m *syncx.Map[string, int])
 	}{
 		{
 			name:  "happy_path_set_and_get",
@@ -161,8 +161,8 @@ func TestSetAndDelete(t *testing.T) {
 func TestConcurrentSetAndGet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		goroutines  int
+		name       string
+		goroutines int
 	}{
 		{
 			name:       "happy_path_high_concurrency",

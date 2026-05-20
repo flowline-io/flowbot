@@ -1153,25 +1153,21 @@ func TestSharedCacheAcrossInstances(t *testing.T) {
 
 	var wg sync.WaitGroup
 	errs := make(chan error, 6)
-	for i := 0; i < 3; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 3 {
+		wg.Go(func() {
 			_, err := e1.RenderString(`{{step "s1" "result"}}`, data)
 			if err != nil {
 				errs <- err
 			}
-		}()
+		})
 	}
-	for i := 0; i < 3; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 3 {
+		wg.Go(func() {
 			_, err := e2.RenderString(`{{step "s1" "result"}}`, data)
 			if err != nil {
 				errs <- err
 			}
-		}()
+		})
 	}
 	wg.Wait()
 	close(errs)

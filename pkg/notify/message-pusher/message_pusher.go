@@ -22,18 +22,18 @@ func Register() {
 	notify.Register(ID, &handler)
 }
 
-func (n *plugin) Protocol() string {
+func (*plugin) Protocol() string {
 	return ID
 }
 
-func (n *plugin) Templates() []string {
+func (*plugin) Templates() []string {
 	return []string{
 		"{schema}://{user}@{domain}/{channel}/{token}",
 		"{schema}://{user}@{host}:{port}/{channel}/{token}",
 	}
 }
 
-func (n *plugin) Send(tokens types.KV, message notify.Message) error {
+func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	user, _ := tokens.String("user")
 	domain, _ := tokens.String("domain")
 	host, _ := tokens.String("host")

@@ -260,10 +260,10 @@ func (r *Runtime) Stop(_ context.Context, t *types.Task) error {
 	return nil
 }
 
-func (r *Runtime) HealthCheck(_ context.Context) error {
+func (*Runtime) HealthCheck(_ context.Context) error {
 	return nil
 }
 
-func (r *Runtime) Close() error {
+func (*Runtime) Close() error {
 	return nil
 }

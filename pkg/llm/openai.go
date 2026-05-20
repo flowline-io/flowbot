@@ -41,7 +41,7 @@ type openAIProvider struct {
 	client  *http.Client
 }
 
-func (p *openAIProvider) Name() string { return ProviderOpenAI }
+func (*openAIProvider) Name() string { return ProviderOpenAI }
 
 type openAIChatMessage struct {
 	Role    string `json:"role"`
@@ -222,7 +222,7 @@ func (p *openAIProvider) doRequest(ctx context.Context, body openAIChatRequest) 
 	return &result, nil
 }
 
-func (p *openAIProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
+func (*openAIProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
 	defer body.Close()
 	defer close(ch)
 

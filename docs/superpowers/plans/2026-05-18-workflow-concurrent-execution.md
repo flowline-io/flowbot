@@ -12,21 +12,22 @@
 
 ## File Map
 
-| File | Role |
-|------|------|
-| `pkg/types/workflow.go` | Add `MaxConcurrency int` to `WorkflowMetadata` |
-| `pkg/workflow/persistence.go` | Add `CompletedTasks map[string]bool` to `CheckpointData` |
-| `pkg/pipeline/template/engine.go` | Move `cache` from `Engine` struct to package-level `sync.Map` |
-| `pkg/workflow/scheduler.go` | **New** — `dagNode`, `buildDAG()`, `(*Runner).runParallel()`, `(*Runner).runParallelResume()` |
-| `pkg/workflow/scheduler_test.go` | **New** — TDD tests for DAG building, parallel execution, fail-fast, checkpoint, resume |
-| `pkg/workflow/workflow.go` | Branch `Execute()` and `ResumeWorkflow()` for parallel path; add `runEngineWithRetry()` |
-| `docs/examples/workflows/parallel_example.yaml` | **New** — example parallel workflow YAML |
+| File                                            | Role                                                                                          |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `pkg/types/workflow.go`                         | Add `MaxConcurrency int` to `WorkflowMetadata`                                                |
+| `pkg/workflow/persistence.go`                   | Add `CompletedTasks map[string]bool` to `CheckpointData`                                      |
+| `pkg/pipeline/template/engine.go`               | Move `cache` from `Engine` struct to package-level `sync.Map`                                 |
+| `pkg/workflow/scheduler.go`                     | **New** — `dagNode`, `buildDAG()`, `(*Runner).runParallel()`, `(*Runner).runParallelResume()` |
+| `pkg/workflow/scheduler_test.go`                | **New** — TDD tests for DAG building, parallel execution, fail-fast, checkpoint, resume       |
+| `pkg/workflow/workflow.go`                      | Branch `Execute()` and `ResumeWorkflow()` for parallel path; add `runEngineWithRetry()`       |
+| `docs/examples/workflows/parallel_example.yaml` | **New** — example parallel workflow YAML                                                      |
 
 ---
 
 ### Task 1: Add `MaxConcurrency` to `WorkflowMetadata`
 
 **Files:**
+
 - Modify: `pkg/types/workflow.go:71-81`
 
 - [ ] **Step 1: Add field**
@@ -65,6 +66,7 @@ git commit -m "feat(types): add MaxConcurrency field to WorkflowMetadata"
 ### Task 2: Add `CompletedTasks` to `CheckpointData`
 
 **Files:**
+
 - Modify: `pkg/workflow/persistence.go:11-16`
 
 - [ ] **Step 1: Add field**
@@ -99,6 +101,7 @@ git commit -m "feat(workflow): add CompletedTasks to CheckpointData for parallel
 ### Task 3: Move template cache to package level
 
 **Files:**
+
 - Modify: `pkg/pipeline/template/engine.go:17-21` (struct), `:31-33` (New), `:161-171` (RenderString cache usage)
 
 - [ ] **Step 1: Write failing test for shared cache**
@@ -168,6 +171,7 @@ Expected: PASS for first two asserts (cache works per-instance), but concurrent 
 In `pkg/pipeline/template/engine.go`:
 
 Remove `cache` from `Engine` struct:
+
 ```go
 // Engine renders Go text/template strings with helper functions and caching.
 type Engine struct {
@@ -177,12 +181,14 @@ type Engine struct {
 ```
 
 Add package-level cache variable:
+
 ```go
 // templateCache holds compiled templates shared across all Engine instances.
 var templateCache sync.Map // string -> *txtpl.Template
 ```
 
 Update `RenderString` to use `templateCache` instead of `e.cache`:
+
 ```go
 func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	if !strings.Contains(tmpl, "{{") {
@@ -258,6 +264,7 @@ git commit -m "perf(template): move template cache to package-level sync.Map for
 ### Task 4: Build DAG function — TDD
 
 **Files:**
+
 - Create: `pkg/workflow/scheduler.go`
 - Create: `pkg/workflow/scheduler_test.go`
 
@@ -452,6 +459,7 @@ git commit -m "feat(workflow): add buildDAG with TDD tests"
 ### Task 5: Add `runEngineWithRetry` — engine-aware retry
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go` — after existing `runWithRetry` (line 552)
 
 - [ ] **Step 1: Write the function**
@@ -514,6 +522,7 @@ git commit -m "feat(workflow): add runEngineWithRetry for per-task engine instan
 ### Task 6: Write `runParallel` skeleton + basic execution test
 
 **Files:**
+
 - Modify: `pkg/workflow/scheduler.go` — add `(*Runner).runParallel()`
 - Modify: `pkg/workflow/scheduler_test.go` — add `TestRunParallel`
 
@@ -868,6 +877,7 @@ git commit -m "feat(workflow): add parallel scheduler with runParallel and execu
 ### Task 7: Integrate `runParallel` into `Execute()`
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go:192-340` (`Execute` method)
 
 - [ ] **Step 1: Add parallel branch to `Execute`**
@@ -1080,6 +1090,7 @@ git commit -m "refactor(workflow): extract runSequential, branch Execute for par
 ### Task 8: Fail-fast test — cancellation propagates
 
 **Files:**
+
 - Modify: `pkg/workflow/scheduler_test.go`
 
 - [ ] **Step 1: Write fail-fast test with a failing task**
@@ -1126,6 +1137,7 @@ git commit -m "test(workflow): add fail-fast test for parallel execution"
 ### Task 9: Checkpoint for parallel execution
 
 **Files:**
+
 - Modify: `pkg/workflow/scheduler.go` — add checkpoint save in `executeParallelTask`
 - Modify: `pkg/workflow/scheduler_test.go` — add checkpoint test
 
@@ -1252,7 +1264,7 @@ Add to `scheduler_test.go`:
 ```go
 func TestRunParallelCheckpoint(t *testing.T) {
 	t.Parallel()
-	// We can't easily test checkpoint without a mock store. 
+	// We can't easily test checkpoint without a mock store.
 	// This test verifies that execution works with Resumable=true.
 	wf := types.WorkflowMetadata{
 		Name:           "checkpoint-test",
@@ -1291,6 +1303,7 @@ git commit -m "feat(workflow): add checkpoint save for parallel execution"
 ### Task 10: Parallel resume
 
 **Files:**
+
 - Modify: `pkg/workflow/scheduler.go` — add `runParallelResume`
 - Modify: `pkg/workflow/workflow.go` — branch `ResumeWorkflow()` for parallel
 
@@ -1516,6 +1529,7 @@ git commit -m "feat(workflow): add parallel resume support"
 ### Task 11: Edge case tests
 
 **Files:**
+
 - Modify: `pkg/workflow/scheduler_test.go`
 
 - [ ] **Step 1: Write edge case tests**
@@ -1649,6 +1663,7 @@ git commit -m "chore: lint fixes for parallel execution"
 ### Task 13: BDD specs
 
 **Files:**
+
 - Modify: `tests/specs/workflow_spec_test.go`
 
 - [ ] **Step 1: Write BDD specs for parallel execution types**
@@ -1720,6 +1735,7 @@ git commit -m "test(specs): add BDD specs for workflow parallel execution types"
 ### Task 14: Example YAML and documentation
 
 **Files:**
+
 - Create: `docs/examples/workflows/parallel_example.yaml`
 
 - [ ] **Step 1: Write example YAML**

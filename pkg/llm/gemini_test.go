@@ -52,17 +52,17 @@ func TestGemini_Generate_Success(t *testing.T) {
 			}))
 			t.Cleanup(srv.Close)
 
-		p, err := llm.NewProvider(config.Model{
-			Provider: llm.ProviderGemini,
-			ApiKey:   "test-gemini-key",
-			BaseUrl:  srv.URL,
-		})
-		require.NoError(t, err)
+			p, err := llm.NewProvider(config.Model{
+				Provider: llm.ProviderGemini,
+				ApiKey:   "test-gemini-key",
+				BaseUrl:  srv.URL,
+			})
+			require.NoError(t, err)
 
-		msg, err := p.Generate(context.Background(), &llm.GenerateRequest{
-			Model:    "gemini-3.1-pro",
-			Messages: []*llm.Message{{Role: llm.UserRole, Content: "hi"}},
-		})
+			msg, err := p.Generate(context.Background(), &llm.GenerateRequest{
+				Model:    "gemini-3.1-pro",
+				Messages: []*llm.Message{{Role: llm.UserRole, Content: "hi"}},
+			})
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantContent, msg.Content)
 		})

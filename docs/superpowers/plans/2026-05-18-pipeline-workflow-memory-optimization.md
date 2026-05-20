@@ -15,6 +15,7 @@
 ### Task 1: Add template memoization cache
 
 **Files:**
+
 - Modify: `pkg/pipeline/template/engine.go:1-202`
 - Test: `pkg/pipeline/template/engine_test.go` (add test at end)
 
@@ -161,6 +162,7 @@ git commit -m "perf(template): add sync.Map cache for parsed text/template insta
 ### Task 2: Enable sonic internal buffer pooling
 
 **Files:**
+
 - Modify: `pkg/pipeline/template/engine.go:15-16` (add variable, replace call)
 - Modify: `pkg/pipeline/engine.go:10` (add variable, replace calls)
 - Modify: `pkg/workflow/workflow.go:10` (add variable, replace calls)
@@ -215,6 +217,7 @@ var pooledSonic = sonic.Config{
 ```
 
 Replace all bare `sonic.Marshal` calls with `pooledSonic.Marshal`:
+
 - Line 81: `sonic.Marshal(params)` → `pooledSonic.Marshal(params)`
 - Line 201: `sonic.Marshal(input)` → `pooledSonic.Marshal(input)`
 - Line 261: `sonic.Marshal(map[string]any(params))` → `pooledSonic.Marshal(map[string]any(params))`
@@ -246,6 +249,7 @@ git commit -m "perf: enable sonic internal buffer pooling across pipeline and wo
 ### Task 3: Add Runner.Close() and executor lifecycle cleanup
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go:170-326` (add method, add defer calls)
 
 - [ ] **Step 1: Add Close() method to Runner**

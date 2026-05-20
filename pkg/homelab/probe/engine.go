@@ -127,7 +127,7 @@ func (e *Engine) resolveTargets(app homelab.App) []string {
 	return targets
 }
 
-func (e *Engine) resolveHost(port homelab.PortMapping) string {
+func (*Engine) resolveHost(port homelab.PortMapping) string {
 	if port.Host != "" {
 		return port.Host
 	}

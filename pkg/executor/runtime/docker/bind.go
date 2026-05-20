@@ -53,6 +53,6 @@ func (m *BindMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 	return nil
 }
 
-func (m *BindMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
+func (*BindMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
 	return nil
 }

@@ -57,6 +57,7 @@ pkg/cache/
 ### Dependency Injection
 
 New provider in `internal/server/fx.go`:
+
 ```go
 fx.Provide(
     cache.NewCache,           // existing RistrettoStore
@@ -119,6 +120,7 @@ type ListCache interface {
 ```
 
 Backend assignments:
+
 - `RistrettoStore`: `StringCache`, `ObjectCache[T]`
 - `RedisStore`: `StringCache`, `ObjectCache[T]`, `IntCache`, `SetCache`, `ListCache`
 
@@ -142,24 +144,25 @@ func (k Key) String() string {
 
 ### Standardized Key Mapping
 
-| Current Pattern                   | Standardized                         | Interface |
-|-----------------------------------|--------------------------------------|-----------|
-| `chat:<userId>`                   | `chat:session:<userId>`              | StringCache |
-| `online:<hostId>`                 | `online:agent:<hostId>`              | StringCache |
-| `online:<userId>`                 | `online:user:<userId>`               | StringCache |
-| `server:cron:online_count_last:*` | `online:cron_count:<userId>`         | IntCache  |
-| `crawler:<name>:sent`             | `crawler:sent:<name>`                | SetCache  |
-| `crawler:<name>:todo`             | `crawler:todo:<name>`                | SetCache  |
-| `crawler:<name>:sendtime`         | `crawler:sendtime:<name>`            | StringCache |
-| `cron:<name>:<uid>:filter`        | `cron:filter:<name>:<uid>`           | SetCache  |
-| `bloom:unique:<id>`               | `cache:dedup:<id>`                   | SetCache (BF) |
-| `metrics:<metricName>`            | `metrics:gauge:<metricName>`         | IntCache  |
-| `notify:throttle:<rid>:<et>:<ch>` | `notify:throttle:<rid>:<et>:<ch>`    | IntCache  |
-| `notify:agg:<rid>:<et>:<ch>`      | `notify:agg:buffer:<rid>:<et>:<ch>`  | ListCache |
-| `notify:agg:timer:<rid>:<et>:<ch>`| `notify:agg:timer:<rid>:<et>:<ch>`   | StringCache (SETNX) |
-| `alarm:<sha1>`                    | `alarm:dedup:<sha1>` (in-process)    | ObjectCache (Ristretto) |
+| Current Pattern                    | Standardized                        | Interface               |
+| ---------------------------------- | ----------------------------------- | ----------------------- |
+| `chat:<userId>`                    | `chat:session:<userId>`             | StringCache             |
+| `online:<hostId>`                  | `online:agent:<hostId>`             | StringCache             |
+| `online:<userId>`                  | `online:user:<userId>`              | StringCache             |
+| `server:cron:online_count_last:*`  | `online:cron_count:<userId>`        | IntCache                |
+| `crawler:<name>:sent`              | `crawler:sent:<name>`               | SetCache                |
+| `crawler:<name>:todo`              | `crawler:todo:<name>`               | SetCache                |
+| `crawler:<name>:sendtime`          | `crawler:sendtime:<name>`           | StringCache             |
+| `cron:<name>:<uid>:filter`         | `cron:filter:<name>:<uid>`          | SetCache                |
+| `bloom:unique:<id>`                | `cache:dedup:<id>`                  | SetCache (BF)           |
+| `metrics:<metricName>`             | `metrics:gauge:<metricName>`        | IntCache                |
+| `notify:throttle:<rid>:<et>:<ch>`  | `notify:throttle:<rid>:<et>:<ch>`   | IntCache                |
+| `notify:agg:<rid>:<et>:<ch>`       | `notify:agg:buffer:<rid>:<et>:<ch>` | ListCache               |
+| `notify:agg:timer:<rid>:<et>:<ch>` | `notify:agg:timer:<rid>:<et>:<ch>`  | StringCache (SETNX)     |
+| `alarm:<sha1>`                     | `alarm:dedup:<sha1>` (in-process)   | ObjectCache (Ristretto) |
 
 Rules:
+
 - Prefix identifies business domain
 - Entity identifies data purpose
 - Identifier is the business primary key
@@ -189,23 +192,23 @@ const (
 
 ### Per-Key Allocation
 
-| Key Pattern                | TTL         | Rationale |
-|----------------------------|-------------|-----------|
-| `online:agent:*`           | `TTLShort`  | Fast heartbeat detection |
-| `online:user:*`            | `TTLSession`| User presence, longer window |
-| `online:cron_count:*`      | `TTLMedium` | Transient cron state |
-| `chat:session:*`           | `TTLSession`| Session lifetime |
-| `crawler:sent:*`           | `TTLMonth`  | Long-term dedup, auto-cleanup |
-| `crawler:todo:*`           | `TTLDay`    | Daily batch, fallback expiration |
-| `crawler:sendtime:*`       | `TTLMedium` | Track last send window |
-| `cron:filter:*`            | `TTLMonth`  | Prevents unbounded growth |
-| `metrics:gauge:*`          | `TTLMonth`  | Cron overwrites periodically |
-| `cache:dedup:*` (bloom)    | `TTLMonth`  | Prevents unbounded growth |
-| `notify:throttle:*`        | Dynamic     | Per-rule configurable window |
-| `notify:agg:buffer:*`      | Flush-only  | Short-lived, cleared on flush |
-| `notify:agg:timer:*`       | Dynamic     | Per-rule configurable window |
-| `alarm:dedup:*` (ristretto)| `TTLDay`    | In-process alarm dedup |
-| NullMarker                 | `TTLShort`  | Fast eviction for absent keys |
+| Key Pattern                 | TTL          | Rationale                        |
+| --------------------------- | ------------ | -------------------------------- |
+| `online:agent:*`            | `TTLShort`   | Fast heartbeat detection         |
+| `online:user:*`             | `TTLSession` | User presence, longer window     |
+| `online:cron_count:*`       | `TTLMedium`  | Transient cron state             |
+| `chat:session:*`            | `TTLSession` | Session lifetime                 |
+| `crawler:sent:*`            | `TTLMonth`   | Long-term dedup, auto-cleanup    |
+| `crawler:todo:*`            | `TTLDay`     | Daily batch, fallback expiration |
+| `crawler:sendtime:*`        | `TTLMedium`  | Track last send window           |
+| `cron:filter:*`             | `TTLMonth`   | Prevents unbounded growth        |
+| `metrics:gauge:*`           | `TTLMonth`   | Cron overwrites periodically     |
+| `cache:dedup:*` (bloom)     | `TTLMonth`   | Prevents unbounded growth        |
+| `notify:throttle:*`         | Dynamic      | Per-rule configurable window     |
+| `notify:agg:buffer:*`       | Flush-only   | Short-lived, cleared on flush    |
+| `notify:agg:timer:*`        | Dynamic      | Per-rule configurable window     |
+| `alarm:dedup:*` (ristretto) | `TTLDay`     | In-process alarm dedup           |
+| NullMarker                  | `TTLShort`   | Fast eviction for absent keys    |
 
 ### Configurable Overrides
 
@@ -224,12 +227,12 @@ Four Prometheus metrics following `pkg/stats/` conventions (counter + gauge, pus
 
 ### Metric Definitions
 
-| Name                       | Type    | Labels   | Description |
-|----------------------------|---------|----------|-------------|
-| `cache_hit_total`          | Counter | `backend`| Cache hits per backend (ristretto/redis) |
-| `cache_miss_total`         | Counter | `backend`| Cache misses per backend |
-| `cache_eviction_total`     | Counter | `backend`| Items evicted (explicit Del + TTL expiry) |
-| `cache_size_bytes`         | Gauge   | `backend`| Approximate memory usage per backend |
+| Name                   | Type    | Labels    | Description                               |
+| ---------------------- | ------- | --------- | ----------------------------------------- |
+| `cache_hit_total`      | Counter | `backend` | Cache hits per backend (ristretto/redis)  |
+| `cache_miss_total`     | Counter | `backend` | Cache misses per backend                  |
+| `cache_eviction_total` | Counter | `backend` | Items evicted (explicit Del + TTL expiry) |
+| `cache_size_bytes`     | Gauge   | `backend` | Approximate memory usage per backend      |
 
 Label `backend` values: `ristretto`, `redis`.
 No per-key labels to avoid high cardinality.
@@ -237,11 +240,13 @@ No per-key labels to avoid high cardinality.
 ### Instrumentation Points
 
 **RistrettoStore:**
+
 - `Get()`: hit → `CacheHitTotal(ristretto).Inc()`, miss → `CacheMissTotal(ristretto).Inc()`
 - `Set()` with eviction: increment `CacheEvictionTotal` when cost-based eviction occurs
 - `size_bytes`: periodic sampling via Ristretto `Metrics.CostAdded() - Metrics.CostEvicted()`
 
 **RedisStore:**
+
 - `Get()`: value returned → hit, `redis.Nil` → miss
 - `Del()`: increment `CacheEvictionTotal(redis)` for explicit deletes (TTL-based expiry not counted)
 - `size_bytes`: periodic `DBSIZE` sampling
@@ -296,16 +301,16 @@ No replacement needed. Changes from current code:
 
 ### Phase 2: Module-by-module migration
 
-| Order | Module                          | Change |
-|-------|---------------------------------|--------|
-| 1     | `internal/server/func.go`       | chat + online → `RedisStore.StringCache` |
-| 2     | `internal/modules/server/cron.go` | online count → `RedisStore.IntCache` |
-| 3     | `pkg/crawler/crawler.go`        | sent/todo/sendtime → `RedisStore.SetCache` / `StringCache` |
-| 4     | `pkg/types/ruleset/cron/cron.go`| filter set → `RedisStore.SetCache` |
-| 5     | `pkg/rdb/metrics.go`            | migrate to `RedisStore.IntCache`, deprecate old funcs |
-| 6     | `pkg/rdb/unique.go`             | bloom → `RedisStore` internal `BloomFilter`, add TTL |
-| 7     | `pkg/notify/rules/`             | throttle/aggregate → `RedisStore.IntCache` / `ListCache` |
-| 8     | `pkg/alarm/alarm.go`            | Ristretto cache-aside → `ObjectCache[struct{}]` or `StringCache.SetNX` |
+| Order | Module                            | Change                                                                 |
+| ----- | --------------------------------- | ---------------------------------------------------------------------- |
+| 1     | `internal/server/func.go`         | chat + online → `RedisStore.StringCache`                               |
+| 2     | `internal/modules/server/cron.go` | online count → `RedisStore.IntCache`                                   |
+| 3     | `pkg/crawler/crawler.go`          | sent/todo/sendtime → `RedisStore.SetCache` / `StringCache`             |
+| 4     | `pkg/types/ruleset/cron/cron.go`  | filter set → `RedisStore.SetCache`                                     |
+| 5     | `pkg/rdb/metrics.go`              | migrate to `RedisStore.IntCache`, deprecate old funcs                  |
+| 6     | `pkg/rdb/unique.go`               | bloom → `RedisStore` internal `BloomFilter`, add TTL                   |
+| 7     | `pkg/notify/rules/`               | throttle/aggregate → `RedisStore.IntCache` / `ListCache`               |
+| 8     | `pkg/alarm/alarm.go`              | Ristretto cache-aside → `ObjectCache[struct{}]` or `StringCache.SetNX` |
 
 ### Phase 3: Cleanup
 

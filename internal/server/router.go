@@ -91,7 +91,7 @@ func newController(driver protocol.Driver, cfg *config.Type, storeAdapter store.
 	}
 }
 
-func (c *Controller) storeOAuth(ctx fiber.Ctx) error {
+func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
@@ -134,7 +134,7 @@ func (c *Controller) storeOAuth(ctx fiber.Ctx) error {
 	return ctx.SendString("ok")
 }
 
-func (c *Controller) getPage(ctx fiber.Ctx) error {
+func (*Controller) getPage(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 
 	p, err := store.Database.PageGet(id)
@@ -163,7 +163,7 @@ func (c *Controller) getPage(ctx fiber.Ctx) error {
 	return ctx.SendString(page.RenderComponent(title, comp))
 }
 
-func (c *Controller) renderPage(ctx fiber.Ctx) error {
+func (*Controller) renderPage(ctx fiber.Ctx) error {
 	pageRuleId := ctx.Params("id")
 	flag := ctx.Params("flag")
 
@@ -214,7 +214,7 @@ func (c *Controller) renderPage(ctx fiber.Ctx) error {
 	return ctx.SendString(html)
 }
 
-func (c *Controller) postForm(ctx fiber.Ctx) error {
+func (*Controller) postForm(ctx fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
 	if formId == "" {
 		return protocol.ErrBadParam.New("form_id is required")
@@ -344,7 +344,7 @@ func (c *Controller) postForm(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
 }
 
-func (c *Controller) agentData(ctx fiber.Ctx) error {
+func (*Controller) agentData(ctx fiber.Ctx) error {
 	var r http.Request
 	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
 		return protocol.ErrInternalServerError.Wrap(err)
@@ -396,7 +396,7 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
-func (c *Controller) doWebhook(ctx fiber.Ctx) error {
+func (*Controller) doWebhook(ctx fiber.Ctx) error {
 	flag := ctx.Params("flag")
 	if flag == "" {
 		return protocol.ErrBadParam.New("flag is required")

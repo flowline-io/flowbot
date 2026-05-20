@@ -92,6 +92,7 @@ type PoolManager struct {
 ```
 
 Methods:
+
 - `ApplyConfig(db *sql.DB, cfg PoolConfig)` — applies all `SetMax*` on the `*sql.DB`
 - `ApplyDefaults(db *sql.DB)` — static, applies conservative defaults (MaxOpen=10, MaxIdle=2, Lifetime=120s, IdleTime=30s)
 - `Start(ctx context.Context)` — starts background pinger goroutine, registers metrics, returns immediately
@@ -103,6 +104,7 @@ Methods:
 ### adapter.go Modifications
 
 The `configType` struct gains three new fields:
+
 ```go
 type configType struct {
     DSN                  string `json:"dsn,omitempty"`
@@ -119,6 +121,7 @@ type configType struct {
 The `adapter` struct gains a `poolMgr *PoolManager` field.
 
 `Open()` is modified:
+
 1. `sql.Open("pgx", conf.DSN)` as before
 2. Build `PoolConfig` from `configType`
 3. `poolMgr := &PoolManager{}; poolMgr.ApplyConfig(db, poolCfg)` — replaces inline `SetMax*` calls
@@ -175,6 +178,7 @@ fx shutdown hook
 ```
 
 Health pinger goroutine:
+
 ```
 for {
     select {
@@ -193,17 +197,17 @@ for {
 
 All prefixed `flowbot_db_pool_`, registered via `prometheus.MustRegister`:
 
-| Metric | Type | Labels | Description |
-|---|---|---|---|
-| `flowbot_db_pool_connections_open` | Gauge | — | Current open connections |
-| `flowbot_db_pool_connections_idle` | Gauge | — | Current idle connections |
-| `flowbot_db_pool_connections_in_use` | Gauge | — | In-use connections |
-| `flowbot_db_pool_wait_count_total` | Counter | — | Total connections waited for |
-| `flowbot_db_pool_wait_duration_seconds_total` | Counter | — | Cumulative wait time in seconds |
-| `flowbot_db_pool_max_idle_closed_total` | Counter | — | Connections closed due to ConnMaxIdleTime |
-| `flowbot_db_pool_max_lifetime_closed_total` | Counter | — | Connections closed due to ConnMaxLifetime |
-| `flowbot_db_pool_health_check_total` | Counter | — | Total health pings performed |
-| `flowbot_db_pool_health_check_errors_total` | Counter | — | Failed health pings |
+| Metric                                        | Type    | Labels | Description                               |
+| --------------------------------------------- | ------- | ------ | ----------------------------------------- |
+| `flowbot_db_pool_connections_open`            | Gauge   | —      | Current open connections                  |
+| `flowbot_db_pool_connections_idle`            | Gauge   | —      | Current idle connections                  |
+| `flowbot_db_pool_connections_in_use`          | Gauge   | —      | In-use connections                        |
+| `flowbot_db_pool_wait_count_total`            | Counter | —      | Total connections waited for              |
+| `flowbot_db_pool_wait_duration_seconds_total` | Counter | —      | Cumulative wait time in seconds           |
+| `flowbot_db_pool_max_idle_closed_total`       | Counter | —      | Connections closed due to ConnMaxIdleTime |
+| `flowbot_db_pool_max_lifetime_closed_total`   | Counter | —      | Connections closed due to ConnMaxLifetime |
+| `flowbot_db_pool_health_check_total`          | Counter | —      | Total health pings performed              |
+| `flowbot_db_pool_health_check_errors_total`   | Counter | —      | Failed health pings                       |
 
 All counters reset on restart (standard Prometheus behavior). Gauges updated in `collectStats()` each health check tick alongside `db.Stats()`. Registration is idempotent via `sync.Once`.
 
@@ -213,38 +217,38 @@ All counters reset on restart (standard Prometheus behavior). Gauges updated in 
 
 ### PoolManager.Start()
 
-| Scenario | Behavior |
-|---|---|
-| `db.PingContext()` fails on first tick | Logs warning, increments error counter, does not crash |
-| Ticker goroutine panics | Recovered, logged, goroutine restarted after next tick |
-| Prometheus metric already registered | `sync.Once` prevents double registration, `AlreadyRegisteredError` caught and ignored |
-| `HealthCheckInterval` is 0 | Pinger disabled, no goroutine started, `Start()` returns immediately |
+| Scenario                               | Behavior                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------- |
+| `db.PingContext()` fails on first tick | Logs warning, increments error counter, does not crash                                |
+| Ticker goroutine panics                | Recovered, logged, goroutine restarted after next tick                                |
+| Prometheus metric already registered   | `sync.Once` prevents double registration, `AlreadyRegisteredError` caught and ignored |
+| `HealthCheckInterval` is 0             | Pinger disabled, no goroutine started, `Start()` returns immediately                  |
 
 ### PoolManager.Stop()
 
-| Scenario | Behavior |
-|---|---|
-| Called on never-started pool | No-op (nil cancel func) |
-| Called twice | Safe (nil out cancel after first call) |
+| Scenario                          | Behavior                                |
+| --------------------------------- | --------------------------------------- |
+| Called on never-started pool      | No-op (nil cancel func)                 |
+| Called twice                      | Safe (nil out cancel after first call)  |
 | Goroutine does not exit within 5s | Timeout logged, `Stop()` returns anyway |
 
 ### adapter.Open()
 
-| Scenario | Behavior |
-|---|---|
-| `sql.Open()` failure | Wrapped with `%w`, returned — no connection attempted |
-| `db.PingContext()` failure on startup | Wrapped, returned as error — caller decides retry strategy |
-| `entsql.OpenDB()` failure | Wrapped, returned |
-| `PoolManager.ApplyConfig()` | Never fails (all `Set*` methods are infallible) |
-| `PoolManager.Start()` initial ping fails | Logged as warning, startup continues |
+| Scenario                                 | Behavior                                                   |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `sql.Open()` failure                     | Wrapped with `%w`, returned — no connection attempted      |
+| `db.PingContext()` failure on startup    | Wrapped, returned as error — caller decides retry strategy |
+| `entsql.OpenDB()` failure                | Wrapped, returned                                          |
+| `PoolManager.ApplyConfig()`              | Never fails (all `Set*` methods are infallible)            |
+| `PoolManager.Start()` initial ping fails | Logged as warning, startup continues                       |
 
 ### Runtime
 
-| Scenario | Behavior |
-|---|---|
-| DB unreachable during health ping | Logged warning, error counter incremented, app continues |
-| Connection pool exhausted | `database/sql` blocks/busy-waits, `pool_wait_count` metric captures |
-| DB permanently down | Pinger logs errors, app returns 503 from handlers, no crash |
+| Scenario                          | Behavior                                                            |
+| --------------------------------- | ------------------------------------------------------------------- |
+| DB unreachable during health ping | Logged warning, error counter incremented, app continues            |
+| Connection pool exhausted         | `database/sql` blocks/busy-waits, `pool_wait_count` metric captures |
+| DB permanently down               | Pinger logs errors, app returns 503 from handlers, no crash         |
 
 ---
 
@@ -264,10 +268,10 @@ store_config:
       max_open_conns: 25
       max_idle_conns: 12
       conn_max_lifetime: 300
-      conn_max_idle_time: 60          # NEW: was hardcoded
+      conn_max_idle_time: 60 # NEW: was hardcoded
       sql_timeout: 15
-      pool_health_check_interval: 30  # NEW
-      pool_health_check_timeout: 5    # NEW
+      pool_health_check_interval: 30 # NEW
+      pool_health_check_timeout: 5 # NEW
     mysql:
       max_open_conns: 64
       max_idle_conns: 64
@@ -284,20 +288,20 @@ Both updated to reflect the three new keys with documented defaults. The duplica
 
 ### Unit Tests (pool_test.go, TDD table-driven)
 
-| Test | What it verifies |
-|---|---|
-| `TestPoolConfig_Defaults` | Zero/negative values resolve to correct defaults |
-| `TestPoolConfig_FromJSON` | JSON unmarshal populates all fields correctly |
-| `TestPoolManager_ApplyConfig` | SetMax* called with correct values |
-| `TestPoolManager_ApplyDefaults` | Sets expected conservative values |
-| `TestPoolManager_StartPingerDisabled` | Interval=0 does not start goroutine |
-| `TestPoolManager_StartStop` | Start creates goroutine, Stop terminates it cleanly |
-| `TestPoolManager_StopTwice` | Double stop is safe |
-| `TestPoolManager_StopUnstarted` | Stop on nil/never-started pool is safe |
-| `TestPoolManager_HealthCheckSuccess` | Successful ping does not increment error counter |
-| `TestPoolManager_HealthCheckFailure` | Failed ping increments error counter |
-| `TestPoolManager_CollectStats` | db.Stats() fields map to correct metric values |
-| `TestPoolManager_MetricsIdempotent` | Double registerMetrics does not panic |
+| Test                                  | What it verifies                                    |
+| ------------------------------------- | --------------------------------------------------- |
+| `TestPoolConfig_Defaults`             | Zero/negative values resolve to correct defaults    |
+| `TestPoolConfig_FromJSON`             | JSON unmarshal populates all fields correctly       |
+| `TestPoolManager_ApplyConfig`         | SetMax\* called with correct values                 |
+| `TestPoolManager_ApplyDefaults`       | Sets expected conservative values                   |
+| `TestPoolManager_StartPingerDisabled` | Interval=0 does not start goroutine                 |
+| `TestPoolManager_StartStop`           | Start creates goroutine, Stop terminates it cleanly |
+| `TestPoolManager_StopTwice`           | Double stop is safe                                 |
+| `TestPoolManager_StopUnstarted`       | Stop on nil/never-started pool is safe              |
+| `TestPoolManager_HealthCheckSuccess`  | Successful ping does not increment error counter    |
+| `TestPoolManager_HealthCheckFailure`  | Failed ping increments error counter                |
+| `TestPoolManager_CollectStats`        | db.Stats() fields map to correct metric values      |
+| `TestPoolManager_MetricsIdempotent`   | Double registerMetrics does not panic               |
 
 Each test uses `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Minimum 3 cases per table. Happy path first, error cases required.
 

@@ -72,7 +72,7 @@ var (
 var initialized atomic.Bool
 
 var (
-	statsInstance    *Stats
+	statsInstance     *Stats
 	statsInstanceOnce sync.Once
 )
 

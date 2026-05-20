@@ -15,8 +15,8 @@ var registerSeq atomic.Int32
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
-		name      string
-		testFunc  func()
+		name     string
+		testFunc func()
 	}{
 		{name: "registers function successfully", testFunc: func() {}},
 		{name: "registers second function with unique name", testFunc: func() {}},
@@ -46,8 +46,8 @@ func TestCommand(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		cmdName  string
+		name    string
+		cmdName string
 	}{
 		{name: "creates command for nonexistent", cmdName: "nonexistent"},
 		{name: "creates command for empty string", cmdName: ""},
@@ -74,9 +74,9 @@ func TestNaiveSelf(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
+		name           string
 		performCmdExec bool
-		checkFallback bool
+		checkFallback  bool
 	}{
 		{name: "naiveSelf returns correct path and handles args", performCmdExec: true, checkFallback: true},
 		{name: "naiveSelf falls back when os.Args[0] is not self", performCmdExec: false, checkFallback: true},

@@ -15,17 +15,17 @@ func Register() {
 	notify.Register(ID, &handler)
 }
 
-func (n *plugin) Protocol() string {
+func (*plugin) Protocol() string {
 	return ID
 }
 
-func (n *plugin) Templates() []string {
+func (*plugin) Templates() []string {
 	return []string{
 		"{schema}://{user_key}@{token}",
 		"{schema}://{user_key}@{token}/{targets}",
 	}
 }
 
-func (n *plugin) Send(tokens types.KV, message notify.Message) error {
+func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	return nil
 }

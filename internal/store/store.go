@@ -115,11 +115,11 @@ var Store PersistentStorageInterface
 
 type storeObj struct{}
 
-func (s storeObj) Open(jsonConfig config.StoreType) error {
+func (storeObj) Open(jsonConfig config.StoreType) error {
 	return openAdapter(jsonConfig)
 }
 
-func (s storeObj) Close() error {
+func (storeObj) Close() error {
 	if adp.IsOpen() {
 		return adp.Close()
 	}
@@ -127,7 +127,7 @@ func (s storeObj) Close() error {
 	return nil
 }
 
-func (s storeObj) GetAdapter() Adapter {
+func (storeObj) GetAdapter() Adapter {
 	return adp
 }
 

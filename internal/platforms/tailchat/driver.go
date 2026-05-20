@@ -69,18 +69,18 @@ func (d *Driver) HttpServer(ctx fiber.Ctx) error {
 	return nil
 }
 
-func (d *Driver) HttpWebhookClient(_ protocol.Message) error {
+func (*Driver) HttpWebhookClient(_ protocol.Message) error {
 	return nil
 }
 
-func (d *Driver) WebSocketClient() {
+func (*Driver) WebSocketClient() {
 	if !config.App.Platform.Tailchat.Enabled {
 		flog.Info("Tailchat is disabled")
 		return
 	}
 }
 
-func (d *Driver) WebSocketServer() {
+func (*Driver) WebSocketServer() {
 	if !config.App.Platform.Tailchat.Enabled {
 		flog.Info("Tailchat is disabled")
 		return

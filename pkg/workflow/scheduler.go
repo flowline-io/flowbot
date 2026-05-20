@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -115,7 +116,7 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 						r.metrics.IncStepTotal(wf.Name, taskID, "running")
 					}
 
-					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
+					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, &wf)
 					if rerr != nil {
 						errOnce.Do(func() {
 							firstErr = rerr
@@ -125,12 +126,10 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 							r.metrics.IncStepTotal(wf.Name, taskID, "failed")
 							r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "failed", time.Since(stepStart).Seconds())
 						}
-					} else {
-						if r.metrics != nil {
-							r.metrics.IncStepTotal(wf.Name, taskID, "done")
-							r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "done", time.Since(stepStart).Seconds())
-						}
-					}
+				} else if r.metrics != nil {
+					r.metrics.IncStepTotal(wf.Name, taskID, "done")
+					r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "done", time.Since(stepStart).Seconds())
+				}
 				}(id)
 			} else {
 				mu.Unlock()
@@ -185,7 +184,6 @@ func (r *Runner) executeParallelTask(
 	mu *sync.Mutex,
 	run *model.WorkflowRun,
 	ready *[]string,
-	taskMap map[string]types.WorkflowTask,
 	wf *types.WorkflowMetadata,
 ) error {
 	select {
@@ -196,9 +194,7 @@ func (r *Runner) executeParallelTask(
 
 	mu.Lock()
 	currentResults := make(map[string]string, len(*results))
-	for k, v := range *results {
-		currentResults[k] = v
-	}
+	maps.Copy(currentResults, *results)
 	mu.Unlock()
 
 	params, err := resolveParams(wt.Params, currentResults, input)
@@ -217,67 +213,128 @@ func (r *Runner) executeParallelTask(
 		}
 	}
 
-	if info.Type == "mapper" {
-		mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
-		if merr != nil {
-			merr = fmt.Errorf("mapper step %s: %w", taskID, merr)
-			r.failStep(stepRun, merr, 1)
-			return merr
-		}
-		mu.Lock()
-		(*results)[taskID] = string(mappedJSON)
-		mu.Unlock()
-		if r.store != nil && stepRun != nil {
-			resultJSON := model.JSON{}
-			_ = resultJSON.Scan(mappedJSON)
-			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
-		}
-		flog.Info("[workflow] mapper step %s completed (parallel)", taskID)
-	} else {
-		wtWithParams := wt
-		wtWithParams.Params = params
-		task, err := WorkflowTaskToTask(wtWithParams)
-		if err != nil {
-			err = fmt.Errorf("convert task %s: %w", taskID, err)
-			r.failStep(stepRun, err, 1)
-			return err
-		}
-
-		rt := DetermineRuntimeType(task)
-		engine := executor.New(rt)
-		defer engine.Close()
-
-		flog.Info("[workflow] running step %s: %s (parallel)", taskID, wt.Action)
-
-		attempt, rerr := r.runEngineWithRetry(ctx, engine, task, wt.Retry, taskID, stepRun)
-		if r.metrics != nil && attempt > 1 {
-			r.metrics.IncStepRetry(wf.Name, taskID)
-		}
-		if rerr != nil {
-			r.failStep(stepRun, rerr, attempt)
-			return fmt.Errorf("step %s failed: %w", taskID, rerr)
-		}
-
-		if task.Result != "" {
-			mu.Lock()
-			(*results)[taskID] = task.Result
-			mu.Unlock()
-		}
-
-		if r.store != nil && stepRun != nil {
-			resultJSON := model.JSON{}
-			if task.Result != "" {
-				resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
-				_ = resultJSON.Scan(resultRaw)
-			}
-			_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
-		}
-
-		flog.Info("[workflow] step %s completed (parallel)", taskID)
+	if rerr := r.executeStepResult(ctx, taskID, wt, params, info, results, mu, stepRun, wf.Name); rerr != nil {
+		return rerr
 	}
 
-	// Enqueue newly-ready dependents and save checkpoint.
+	r.enqueueDependentsAndSaveCheckpoint(nodes, taskID, results, mu, ready, wf, input, run)
+	return nil
+}
+
+// executeStepResult runs either a mapper or an executor step and stores the result.
+func (r *Runner) executeStepResult(
+	ctx context.Context,
+	taskID string,
+	wt types.WorkflowTask,
+	params types.KV,
+	info ActionInfo,
+	results *map[string]string,
+	mu *sync.Mutex,
+	stepRun *model.WorkflowStepRun,
+	wfName string,
+) error {
+	if info.Type == "mapper" {
+		return r.executeMapperStep(ctx, taskID, params, results, mu, stepRun)
+	}
+	return r.executeExecutorStep(ctx, taskID, wt, params, results, mu, stepRun, wfName)
+}
+
+// executeMapperStep marshals params into the results map for a mapper-type step.
+func (r *Runner) executeMapperStep(
+	ctx context.Context,
+	taskID string,
+	params types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	stepRun *model.WorkflowStepRun,
+) error {
+	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
+	if merr != nil {
+		merr = fmt.Errorf("mapper step %s: %w", taskID, merr)
+		r.failStep(stepRun, merr, 1)
+		return merr
+	}
 	mu.Lock()
+	(*results)[taskID] = string(mappedJSON)
+	mu.Unlock()
+	if r.store != nil && stepRun != nil {
+		resultJSON := model.JSON{}
+		_ = resultJSON.Scan(mappedJSON)
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
+	}
+	flog.Info("[workflow] mapper step %s completed (parallel)", taskID)
+	return nil
+}
+
+// executeExecutorStep converts, runs, and records the result for a non-mapper step.
+func (r *Runner) executeExecutorStep(
+	ctx context.Context,
+	taskID string,
+	wt types.WorkflowTask,
+	params types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	stepRun *model.WorkflowStepRun,
+	wfName string,
+) error {
+	wtWithParams := wt
+	wtWithParams.Params = params
+	task, err := WorkflowTaskToTask(wtWithParams)
+	if err != nil {
+		err = fmt.Errorf("convert task %s: %w", taskID, err)
+		r.failStep(stepRun, err, 1)
+		return err
+	}
+
+	rt := DetermineRuntimeType(task)
+	engine := executor.New(rt)
+	defer engine.Close()
+
+	flog.Info("[workflow] running step %s: %s (parallel)", taskID, wt.Action)
+
+	attempt, rerr := r.runEngineWithRetry(ctx, engine, task, wt.Retry, taskID, stepRun)
+	if r.metrics != nil && attempt > 1 {
+		r.metrics.IncStepRetry(wfName, taskID)
+	}
+	if rerr != nil {
+		r.failStep(stepRun, rerr, attempt)
+		return fmt.Errorf("step %s failed: %w", taskID, rerr)
+	}
+
+	if task.Result != "" {
+		mu.Lock()
+		(*results)[taskID] = task.Result
+		mu.Unlock()
+	}
+
+	if r.store != nil && stepRun != nil {
+		resultJSON := model.JSON{}
+		if task.Result != "" {
+			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
+			_ = resultJSON.Scan(resultRaw)
+		}
+		_ = r.store.UpdateStepRun(stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
+	}
+
+	flog.Info("[workflow] step %s completed (parallel)", taskID)
+	return nil
+}
+
+// enqueueDependentsAndSaveCheckpoint decrements in-degrees of dependents,
+// enqueues newly-ready tasks, and persists a checkpoint if resumable.
+func (r *Runner) enqueueDependentsAndSaveCheckpoint(
+	nodes map[string]*dagNode,
+	taskID string,
+	results *map[string]string,
+	mu *sync.Mutex,
+	ready *[]string,
+	wf *types.WorkflowMetadata,
+	input types.KV,
+	run *model.WorkflowRun,
+) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	node := nodes[taskID]
 	for _, depID := range node.deps {
 		depNode := nodes[depID]
@@ -286,16 +343,14 @@ func (r *Runner) executeParallelTask(
 			*ready = append(*ready, depID)
 		}
 	}
-	// Save checkpoint if resumable.
+
 	if wf.Resumable && r.store != nil && run != nil {
 		completedTasks := make(map[string]bool)
 		for taskID := range *results {
 			completedTasks[taskID] = true
 		}
 		resultCopy := make(map[string]string, len(*results))
-		for k, v := range *results {
-			resultCopy[k] = v
-		}
+		maps.Copy(resultCopy, *results)
 		cp := CheckpointData{
 			CompletedTasks: completedTasks,
 			StepResults:    resultCopy,
@@ -306,9 +361,6 @@ func (r *Runner) executeParallelTask(
 			flog.Error(fmt.Errorf("[workflow] save checkpoint step %s: %w", taskID, cerr))
 		}
 	}
-	mu.Unlock()
-
-	return nil
 }
 
 // runParallelResume resumes a parallel workflow from its checkpoint.
@@ -400,7 +452,7 @@ func (r *Runner) runParallelResume(runID int64, wf types.WorkflowMetadata, cp Ch
 
 					wt := taskMap[taskID]
 
-					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, taskMap, &wf)
+					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, &wf)
 					if rerr != nil {
 						errOnce.Do(func() {
 							firstErr = rerr

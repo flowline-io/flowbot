@@ -10,15 +10,15 @@ Enable DAG-based parallel task execution in the workflow engine using the existi
 
 ## Design Decisions
 
-| Decision | Choice |
-|----------|--------|
-| Scope | Workflow engine only; pipelines stay sequential |
-| Dependencies | Existing `WorkflowTask.Conn` field drives execution scheduling |
-| Error handling | Fail-fast: cancel all running tasks on first error via `context.CancelFunc` |
-| Concurrency limit | Per-workflow `max_concurrency` in YAML (default: 1 = sequential) |
-| Executor model | Per-task `executor.Engine` instances, created on demand and closed after use |
-| Checkpoint/Resume | Per-task completion map (`CompletedTasks`) replaces linear `StepIndex` |
-| Scheduling | Dependency-count decrement + ready queue + semaphore pool |
+| Decision               | Choice                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Scope                  | Workflow engine only; pipelines stay sequential                              |
+| Dependencies           | Existing `WorkflowTask.Conn` field drives execution scheduling               |
+| Error handling         | Fail-fast: cancel all running tasks on first error via `context.CancelFunc`  |
+| Concurrency limit      | Per-workflow `max_concurrency` in YAML (default: 1 = sequential)             |
+| Executor model         | Per-task `executor.Engine` instances, created on demand and closed after use |
+| Checkpoint/Resume      | Per-task completion map (`CompletedTasks`) replaces linear `StepIndex`       |
+| Scheduling             | Dependency-count decrement + ready queue + semaphore pool                    |
 | Backward compatibility | `max_concurrency` absent or 1 falls through to existing sequential code path |
 
 ## Architecture
@@ -32,13 +32,13 @@ Enable DAG-based parallel task execution in the workflow engine using the existi
 
 ### Modified Files
 
-| File | Change |
-|------|--------|
-| `pkg/workflow/workflow.go` | `Execute()` detects `max_concurrency > 1`, delegates to scheduler; sequential path unchanged |
-| `pkg/workflow/loader.go` | `ParseYAML()` reads `max_concurrency` from YAML; adds field to `ValidationResult` |
-| `pkg/workflow/persistence.go` | `CheckpointData` gains `CompletedTasks map[string]bool` |
-| `pkg/types/workflow.go` | `WorkflowMetadata` gains `MaxConcurrency int` |
-| `pkg/executor/engine.go` | No changes needed; existing `New(runtimeType)` factory already provides per-task engine instances |
+| File                              | Change                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `pkg/workflow/workflow.go`        | `Execute()` detects `max_concurrency > 1`, delegates to scheduler; sequential path unchanged                         |
+| `pkg/workflow/loader.go`          | `ParseYAML()` reads `max_concurrency` from YAML; adds field to `ValidationResult`                                    |
+| `pkg/workflow/persistence.go`     | `CheckpointData` gains `CompletedTasks map[string]bool`                                                              |
+| `pkg/types/workflow.go`           | `WorkflowMetadata` gains `MaxConcurrency int`                                                                        |
+| `pkg/executor/engine.go`          | No changes needed; existing `New(runtimeType)` factory already provides per-task engine instances                    |
 | `pkg/pipeline/template/engine.go` | Move template `cache` from instance field to package-level `sync.Map` so per-task instances share compiled templates |
 
 ### Execution Flow
@@ -104,7 +104,7 @@ type dagNode struct {
 
 ```yaml
 name: save_and_track
-max_concurrency: 3       # NEW: parallel task limit
+max_concurrency: 3 # NEW: parallel task limit
 resumable: true
 pipeline:
   - fetch_data
@@ -114,16 +114,16 @@ pipeline:
 tasks:
   - id: fetch_data
     action: capability:bookmark.list
-    conn: []              # no deps, runs immediately
+    conn: [] # no deps, runs immediately
   - id: archive_url
     action: capability:archive.create
-    conn: [fetch_data]    # after fetch_data
+    conn: [fetch_data] # after fetch_data
   - id: create_task
     action: capability:kanban.create
-    conn: [fetch_data]    # parallel with archive_url
+    conn: [fetch_data] # parallel with archive_url
   - id: notify
     action: capability:notify.send
-    conn: [archive_url, create_task]  # after both
+    conn: [archive_url, create_task] # after both
 ```
 
 ### CheckpointData
@@ -157,17 +157,17 @@ type WorkflowMetadata struct {
 
 ### Edge Cases
 
-| Scenario | Behavior |
-|----------|----------|
-| `Conn` references non-existent task ID | Rejected by `ValidateDAG()` before execution |
-| Cycle in DAG | Rejected by `ValidateDAG()` before execution |
-| Empty `Conn` on all tasks | All tasks have `inDegree=0`, all run in parallel up to `max_concurrency` |
-| `max_concurrency=0` or absent | Defaults to 1, uses sequential code path |
-| `max_concurrency > len(tasks)` | Semaphore size = `max_concurrency`; no deadlock |
-| Leaf node (no dependents) | Completes without enqueuing anything; DAG completes when all done |
-| Template render fails | Treated as task failure, triggers fail-fast |
-| Store unavailable | Store errors logged but not fatal (existing pattern); checkpoint not saved |
-| Retry exhausted on one task | Triggers fail-fast; other running tasks cancelled |
+| Scenario                               | Behavior                                                                   |
+| -------------------------------------- | -------------------------------------------------------------------------- |
+| `Conn` references non-existent task ID | Rejected by `ValidateDAG()` before execution                               |
+| Cycle in DAG                           | Rejected by `ValidateDAG()` before execution                               |
+| Empty `Conn` on all tasks              | All tasks have `inDegree=0`, all run in parallel up to `max_concurrency`   |
+| `max_concurrency=0` or absent          | Defaults to 1, uses sequential code path                                   |
+| `max_concurrency > len(tasks)`         | Semaphore size = `max_concurrency`; no deadlock                            |
+| Leaf node (no dependents)              | Completes without enqueuing anything; DAG completes when all done          |
+| Template render fails                  | Treated as task failure, triggers fail-fast                                |
+| Store unavailable                      | Store errors logged but not fatal (existing pattern); checkpoint not saved |
+| Retry exhausted on one task            | Triggers fail-fast; other running tasks cancelled                          |
 
 ### Retry Integration
 

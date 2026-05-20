@@ -45,7 +45,7 @@ type anthropicProvider struct {
 	client  *http.Client
 }
 
-func (p *anthropicProvider) Name() string { return ProviderAnthropic }
+func (*anthropicProvider) Name() string { return ProviderAnthropic }
 
 type anthropicMessage struct {
 	Role    string `json:"role"`
@@ -194,7 +194,7 @@ func (p *anthropicProvider) doRequest(ctx context.Context, body anthropicRequest
 	return &result, nil
 }
 
-func (p *anthropicProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
+func (*anthropicProvider) readSSEStream(ctx context.Context, body io.ReadCloser, ch chan<- MessageFragment) {
 	defer body.Close()
 	defer close(ch)
 

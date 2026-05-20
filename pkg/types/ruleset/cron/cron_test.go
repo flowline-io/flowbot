@@ -130,7 +130,7 @@ func TestRule_AllFields(t *testing.T) {
 			Help:  "Generate daily summary",
 			Scope: CronScopeUser,
 			When:  "0 9 * * *",
-			Action: func(ctx types.Context) []types.MsgPayload {
+			Action: func(_ types.Context) []types.MsgPayload {
 				called = true
 				return []types.MsgPayload{types.TextMsg{Text: "summary"}}
 			},
@@ -253,7 +253,7 @@ func TestRule_ActionReturnsEmpty(t *testing.T) {
 			Name:  "empty_action",
 			Scope: CronScopeSystem,
 			When:  "* * * * *",
-			Action: func(ctx types.Context) []types.MsgPayload {
+			Action: func(_ types.Context) []types.MsgPayload {
 				return nil
 			},
 		}
@@ -434,4 +434,3 @@ func TestRuleset_Filter_HashCorrectness(t *testing.T) {
 		assert.True(t, ok, "hash should exist after filter call")
 	})
 }
-

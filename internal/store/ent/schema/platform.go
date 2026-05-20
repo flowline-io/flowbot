@@ -2,9 +2,10 @@ package schema
 
 import (
 	"time"
+
 	"entgo.io/ent"
-	"entgo.io/ent/schema"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 

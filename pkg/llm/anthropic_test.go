@@ -53,17 +53,17 @@ func TestAnthropic_Generate_Success(t *testing.T) {
 			}))
 			t.Cleanup(srv.Close)
 
-		p, err := llm.NewProvider(config.Model{
-			Provider: llm.ProviderAnthropic,
-			ApiKey:   "test-anthropic-key",
-			BaseUrl:  srv.URL,
-		})
-		require.NoError(t, err)
+			p, err := llm.NewProvider(config.Model{
+				Provider: llm.ProviderAnthropic,
+				ApiKey:   "test-anthropic-key",
+				BaseUrl:  srv.URL,
+			})
+			require.NoError(t, err)
 
-		msg, err := p.Generate(context.Background(), &llm.GenerateRequest{
-			Model:    "claude-opus-4.7",
-			Messages: []*llm.Message{{Role: llm.UserRole, Content: "hi"}},
-		})
+			msg, err := p.Generate(context.Background(), &llm.GenerateRequest{
+				Model:    "claude-opus-4.7",
+				Messages: []*llm.Message{{Role: llm.UserRole, Content: "hi"}},
+			})
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantContent, msg.Content)
 		})
