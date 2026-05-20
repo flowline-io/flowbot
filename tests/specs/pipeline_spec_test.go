@@ -217,6 +217,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 		It("creates pipeline definitions via store", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
 			err := pipelineStore.UpsertDefinition(
+				context.Background(),
 				"stored-pipeline-"+types.Id(),
 				"test stored definition",
 				true,

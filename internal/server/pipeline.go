@@ -77,8 +77,8 @@ func initPipeline(
 
 			// Persist to event store
 			eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))
-			_ = eventStore.AppendDataEvent(dataEvent)
-			_ = eventStore.AppendEventOutbox(dataEvent)
+			_ = eventStore.AppendDataEvent(ctx, dataEvent)
+			_ = eventStore.AppendEventOutbox(ctx, dataEvent)
 
 			// Publish to Redis Stream via Watermill
 			_ = event.PublishMessage(ctx, DataEventTopic, dataEvent)

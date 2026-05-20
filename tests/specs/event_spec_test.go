@@ -36,7 +36,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			}
 
 			eventStore := store.NewEventStore(EntClient)
-			err := eventStore.AppendDataEvent(event)
+			err := eventStore.AppendDataEvent(context.Background(), event)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = EntClient.DataEvent.Query().Where(dataevent.EventID(event.EventID)).Only(context.Background())
@@ -64,9 +64,9 @@ var _ = Describe("Event System", Label("event"), func() {
 			}
 
 			eventStore := store.NewEventStore(EntClient)
-			err := eventStore.AppendDataEvent(event1)
+			err := eventStore.AppendDataEvent(context.Background(), event1)
 			Expect(err).NotTo(HaveOccurred())
-			err = eventStore.AppendDataEvent(event2)
+			err = eventStore.AppendDataEvent(context.Background(), event2)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(event1.EventID).NotTo(Equal(event2.EventID))
@@ -81,7 +81,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			}
 
 			eventStore := store.NewEventStore(EntClient)
-			err := eventStore.AppendDataEvent(event)
+			err := eventStore.AppendDataEvent(context.Background(), event)
 			Expect(err).NotTo(HaveOccurred())
 
 			saved, err := EntClient.DataEvent.Query().Where(dataevent.EventID(event.EventID)).Only(context.Background())
@@ -97,11 +97,11 @@ var _ = Describe("Event System", Label("event"), func() {
 			consumerName := "test-consumer-" + types.Id()
 			eventID := "consumed-event-" + types.Id()
 
-			consumed, err := pipelineStore.HasConsumed(consumerName, eventID)
+			consumed, err := pipelineStore.HasConsumed(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(consumed).To(BeFalse())
 
-			err = pipelineStore.RecordConsumption(consumerName, eventID)
+			err = pipelineStore.RecordConsumption(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 
 			consumed, err = pipelineStore.HasConsumed(consumerName, eventID)
@@ -111,11 +111,11 @@ var _ = Describe("Event System", Label("event"), func() {
 
 		It("re-queues failed events for retry", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("test-pipeline", "fail-event-"+types.Id(), types.EventBookmarkCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "test-pipeline", "fail-event-"+types.Id(), types.EventBookmarkCreated)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(run.ID).NotTo(BeZero())
 
-			err = pipelineStore.UpdateRunStatus(run.ID, model.PipelineFailed, "step failed")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineFailed, "step failed")
 			Expect(err).NotTo(HaveOccurred())
 
 			updated, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
@@ -128,22 +128,22 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Event Delivery", func() {
 		It("creates pipeline_run record on execution start", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("delivery-test", "delivery-event-"+types.Id(), types.EventBookmarkArchived)
+			run, err := pipelineStore.CreateRun(context.Background(), "delivery-test", "delivery-event-"+types.Id(), types.EventBookmarkArchived)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(run.PipelineName).To(Equal("delivery-test"))
 			Expect(run.EventType).To(Equal(types.EventBookmarkArchived))
 			Expect(run.StartedAt).NotTo(BeNil())
 
-			err = pipelineStore.UpdateRunStatus(run.ID, model.PipelineDone, "")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineDone, "")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("updates pipeline_run status on completion", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("status-test", "status-event-"+types.Id(), types.EventKanbanTaskCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "status-test", "status-event-"+types.Id(), types.EventKanbanTaskCreated)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = pipelineStore.UpdateRunStatus(run.ID, model.PipelineDone, "")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineDone, "")
 			Expect(err).NotTo(HaveOccurred())
 
 			saved, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
@@ -153,17 +153,17 @@ var _ = Describe("Event System", Label("event"), func() {
 
 		It("records step execution results", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("step-test", "step-event-"+types.Id(), types.EventReaderEntryStarred)
+			run, err := pipelineStore.CreateRun(context.Background(), "step-test", "step-event-"+types.Id(), types.EventReaderEntryStarred)
 			Expect(err).NotTo(HaveOccurred())
 
 			params := model.JSON{"url": "https://example.com"}
-			stepRun, err := pipelineStore.CreateStepRun(run.ID, "fetch-step", "reader", "list_entries", params, 1)
+			stepRun, err := pipelineStore.CreateStepRun(context.Background(), run.ID, "fetch-step", "reader", "list_entries", params, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stepRun.StepName).To(Equal("fetch-step"))
 			Expect(stepRun.Attempt).To(Equal(1))
 
 			result := model.JSON{"entries": []string{"entry-1"}}
-			err = pipelineStore.UpdateStepRun(stepRun.ID, model.PipelineDone, result, "", 1)
+			err = pipelineStore.UpdateStepRun(context.Background(), stepRun.ID, model.PipelineDone, result, "", 1)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -174,10 +174,10 @@ var _ = Describe("Event System", Label("event"), func() {
 			consumerName := "pipeline-checker-" + types.Id()
 			eventID := "idem-event-" + types.Id()
 
-			err := pipelineStore.RecordConsumption(consumerName, eventID)
+			err := pipelineStore.RecordConsumption(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 
-			consumed, err := pipelineStore.HasConsumed(consumerName, eventID)
+			consumed, err := pipelineStore.HasConsumed(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(consumed).To(BeTrue())
 
@@ -208,7 +208,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			}
 
 			eventStore := store.NewEventStore(EntClient)
-			err := eventStore.AppendEventOutbox(event)
+			err := eventStore.AppendEventOutbox(context.Background(), event)
 			Expect(err).NotTo(HaveOccurred())
 
 			outbox, err := EntClient.EventOutbox.Query().Where(eventoutbox.EventID(event.EventID)).Only(context.Background())
@@ -224,10 +224,10 @@ var _ = Describe("Event System", Label("event"), func() {
 			}
 
 			eventStore := store.NewEventStore(EntClient)
-			err := eventStore.AppendEventOutbox(event)
+			err := eventStore.AppendEventOutbox(context.Background(), event)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = eventStore.MarkOutboxPublished(event.EventID)
+			err = eventStore.MarkOutboxPublished(context.Background(), event.EventID)
 			Expect(err).NotTo(HaveOccurred())
 
 			outbox, err := EntClient.EventOutbox.Query().Where(eventoutbox.EventID(event.EventID)).Only(context.Background())
@@ -275,10 +275,10 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Pipeline run heartbeat", func() {
 		It("updates heartbeat timestamp", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("heartbeat-test", "hb-event-"+types.Id(), types.EventBookmarkArchived)
+			run, err := pipelineStore.CreateRun(context.Background(), "heartbeat-test", "hb-event-"+types.Id(), types.EventBookmarkArchived)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = pipelineStore.UpdateRunHeartbeat(run.ID)
+			err = pipelineStore.UpdateRunHeartbeat(context.Background(), run.ID)
 			Expect(err).NotTo(HaveOccurred())
 
 			saved, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
@@ -290,7 +290,7 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Pipeline checkpoint", func() {
 		It("saves and retrieves checkpoint data", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("checkpoint-test", "cp-event-"+types.Id(), types.EventReaderEntryRead)
+			run, err := pipelineStore.CreateRun(context.Background(), "checkpoint-test", "cp-event-"+types.Id(), types.EventReaderEntryRead)
 			Expect(err).NotTo(HaveOccurred())
 
 			checkpoint := map[string]any{
@@ -298,11 +298,11 @@ var _ = Describe("Event System", Label("event"), func() {
 				"processed":  []string{"step-1", "step-2"},
 			}
 
-			err = pipelineStore.SaveCheckpoint(run.ID, checkpoint)
+			err = pipelineStore.SaveCheckpoint(context.Background(), run.ID, checkpoint)
 			Expect(err).NotTo(HaveOccurred())
 
 			var loaded map[string]any
-			err = pipelineStore.GetCheckpoint(run.ID, &loaded)
+			err = pipelineStore.GetCheckpoint(context.Background(), run.ID, &loaded)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(int(loaded["step_index"].(float64))).To(Equal(2))
 		})
@@ -311,12 +311,12 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Incomplete runs", func() {
 		It("finds runs that did not complete", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun("incomplete-test", "inc-event-"+types.Id(), types.EventBookmarkCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "incomplete-test", "inc-event-"+types.Id(), types.EventBookmarkCreated)
 			Expect(err).NotTo(HaveOccurred())
 
 			time.Sleep(100 * time.Millisecond)
 
-			runs, err := pipelineStore.GetIncompleteRuns()
+			runs, err := pipelineStore.GetIncompleteRuns(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 
 			found := false

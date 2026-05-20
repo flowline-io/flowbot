@@ -23,11 +23,10 @@ func NewEventStore(client *gen.Client) *EventStore {
 	return &EventStore{client: client}
 }
 
-func (s *EventStore) AppendDataEvent(event types.DataEvent) error {
+func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	c := s.client.DataEvent.Create().
 		SetEventID(event.EventID).
 		SetEventType(event.EventType).
@@ -48,11 +47,10 @@ func (s *EventStore) AppendDataEvent(event types.DataEvent) error {
 	return err
 }
 
-func (s *EventStore) AppendEventOutbox(event types.DataEvent) error {
+func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEvent) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	_, err := s.client.EventOutbox.Create().
 		SetEventID(event.EventID).
 		SetPayload(map[string]any{
@@ -74,11 +72,10 @@ func (s *EventStore) AppendEventOutbox(event types.DataEvent) error {
 	return err
 }
 
-func (s *EventStore) MarkOutboxPublished(eventID string) error {
+func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	_, err := s.client.EventOutbox.Update().
 		Where(eventoutbox.EventID(eventID)).
 		SetPublished(true).
@@ -95,11 +92,10 @@ func NewPipelineStore(client *gen.Client) *PipelineStore {
 	return &PipelineStore{client: client}
 }
 
-func (s *PipelineStore) UpsertDefinition(name, description string, enabled bool, trigger, steps model.JSON) error {
+func (s *PipelineStore) UpsertDefinition(ctx context.Context, name, description string, enabled bool, trigger, steps model.JSON) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	existing, err := s.client.PipelineDefinition.Query().
 		Where(pipelinedefinition.Name(name)).
 		Only(ctx)
@@ -129,11 +125,10 @@ func (s *PipelineStore) UpsertDefinition(name, description string, enabled bool,
 	return err
 }
 
-func (s *PipelineStore) CreateRun(pipelineName, eventID, eventType string) (*model.PipelineRun, error) {
+func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*model.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	run, err := s.client.PipelineRun.Create().
 		SetPipelineName(pipelineName).
@@ -161,11 +156,10 @@ func (s *PipelineStore) CreateRun(pipelineName, eventID, eventType string) (*mod
 	}, nil
 }
 
-func (s *PipelineStore) UpdateRunStatus(runID int64, status model.PipelineState, errMsg string) error {
+func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status model.PipelineState, errMsg string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	upd := s.client.PipelineRun.UpdateOneID(runID).
 		SetStatus(int(status)).
 		SetCompletedAt(time.Now())
@@ -176,11 +170,10 @@ func (s *PipelineStore) UpdateRunStatus(runID int64, status model.PipelineState,
 	return err
 }
 
-func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error) {
+func (s *PipelineStore) CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	sr, err := s.client.PipelineStepRun.Create().
 		SetPipelineRunID(runID).
@@ -214,11 +207,10 @@ func (s *PipelineStore) CreateStepRun(runID int64, stepName, capability, operati
 	}, nil
 }
 
-func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error {
+func (s *PipelineStore) UpdateStepRun(ctx context.Context, stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	upd := s.client.PipelineStepRun.UpdateOneID(stepRunID).
 		SetStatus(int(status)).
 		SetAttempt(attempt)
@@ -236,11 +228,10 @@ func (s *PipelineStore) UpdateStepRun(stepRunID int64, status model.PipelineStat
 	return err
 }
 
-func (s *PipelineStore) RecordConsumption(consumerName, eventID string) error {
+func (s *PipelineStore) RecordConsumption(ctx context.Context, consumerName, eventID string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	_, err := s.client.EventConsumption.Create().
 		SetConsumerName(consumerName).
 		SetEventID(eventID).
@@ -249,11 +240,10 @@ func (s *PipelineStore) RecordConsumption(consumerName, eventID string) error {
 	return err
 }
 
-func (s *PipelineStore) HasConsumed(consumerName, eventID string) (bool, error) {
+func (s *PipelineStore) HasConsumed(ctx context.Context, consumerName, eventID string) (bool, error) {
 	if s == nil || s.client == nil {
 		return false, nil
 	}
-	ctx := context.Background()
 	count, err := s.client.EventConsumption.Query().
 		Where(
 			eventconsumption.ConsumerName(consumerName),
@@ -264,11 +254,10 @@ func (s *PipelineStore) HasConsumed(consumerName, eventID string) (bool, error) 
 }
 
 // SaveCheckpoint persists the intermediate pipeline run state.
-func (s *PipelineStore) SaveCheckpoint(runID int64, data any) error {
+func (s *PipelineStore) SaveCheckpoint(ctx context.Context, runID int64, data any) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	raw, err := sonic.Marshal(data)
 	if err != nil {
 		return err
@@ -284,11 +273,10 @@ func (s *PipelineStore) SaveCheckpoint(runID int64, data any) error {
 }
 
 // UpdateRunHeartbeat refreshes the last_heartbeat timestamp for a running pipeline.
-func (s *PipelineStore) UpdateRunHeartbeat(runID int64) error {
+func (s *PipelineStore) UpdateRunHeartbeat(ctx context.Context, runID int64) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	_, err := s.client.PipelineRun.UpdateOneID(runID).
 		SetLastHeartbeat(time.Now()).
 		Save(ctx)
@@ -296,11 +284,10 @@ func (s *PipelineStore) UpdateRunHeartbeat(runID int64) error {
 }
 
 // GetIncompleteRuns returns pipeline runs that are in Start state and may need recovery.
-func (s *PipelineStore) GetIncompleteRuns() ([]*model.PipelineRun, error) {
+func (s *PipelineStore) GetIncompleteRuns(ctx context.Context) ([]*model.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	runs, err := s.client.PipelineRun.Query().
 		Where(pipelinerun.Status(int(model.PipelineStart))).
 		Order(pipelinerun.ByCreatedAt()).
@@ -328,11 +315,10 @@ func (s *PipelineStore) GetIncompleteRuns() ([]*model.PipelineRun, error) {
 }
 
 // GetCheckpoint loads the checkpoint data for a pipeline run.
-func (s *PipelineStore) GetCheckpoint(runID int64, target any) error {
+func (s *PipelineStore) GetCheckpoint(ctx context.Context, runID int64, target any) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	run, err := s.client.PipelineRun.Query().
 		Where(pipelinerun.ID(runID)).
 		Select(pipelinerun.FieldCheckpointData).
@@ -351,11 +337,10 @@ func (s *PipelineStore) GetCheckpoint(runID int64, target any) error {
 }
 
 // GetRun returns a pipeline run by ID.
-func (s *PipelineStore) GetRun(runID int64) (*model.PipelineRun, error) {
+func (s *PipelineStore) GetRun(ctx context.Context, runID int64) (*model.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	run, err := s.client.PipelineRun.Query().
 		Where(pipelinerun.ID(runID)).
 		Only(ctx)

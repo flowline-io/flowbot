@@ -23,11 +23,10 @@ func NewWorkflowRunStore(client *gen.Client) *WorkflowRunStore {
 }
 
 // CreateRun inserts a new workflow run record.
-func (s *WorkflowRunStore) CreateRun(workflowName, workflowFile, triggerType string, triggerInfo, inputParams model.JSON) (*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams model.JSON) (*model.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	wr, err := s.client.WorkflowRun.Create().
 		SetWorkflowName(workflowName).
@@ -46,11 +45,10 @@ func (s *WorkflowRunStore) CreateRun(workflowName, workflowFile, triggerType str
 }
 
 // UpdateRunStatus updates the status, error, and completed_at of a workflow run.
-func (s *WorkflowRunStore) UpdateRunStatus(runID int64, status model.WorkflowRunState, errMsg string) error {
+func (s *WorkflowRunStore) UpdateRunStatus(ctx context.Context, runID int64, status model.WorkflowRunState, errMsg string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	u := s.client.WorkflowRun.Update().
 		Where(workflowrun.IDEQ(runID)).
@@ -63,11 +61,10 @@ func (s *WorkflowRunStore) UpdateRunStatus(runID int64, status model.WorkflowRun
 }
 
 // CreateStepRun inserts a new workflow step run record.
-func (s *WorkflowRunStore) CreateStepRun(runID int64, stepID, stepName, action, actionType string, params model.JSON, attempt int) (*model.WorkflowStepRun, error) {
+func (s *WorkflowRunStore) CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params model.JSON, attempt int) (*model.WorkflowStepRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	sr, err := s.client.WorkflowStepRun.Create().
 		SetWorkflowRunID(runID).
@@ -89,11 +86,10 @@ func (s *WorkflowRunStore) CreateStepRun(runID int64, stepID, stepName, action, 
 
 // UpdateStepRun updates the status, result, error, and attempt count of a workflow step run.
 // completed_at is only set for terminal states (Done, Failed).
-func (s *WorkflowRunStore) UpdateStepRun(stepRunID int64, status model.WorkflowRunState, result model.JSON, errMsg string, attempt int) error {
+func (s *WorkflowRunStore) UpdateStepRun(ctx context.Context, stepRunID int64, status model.WorkflowRunState, result model.JSON, errMsg string, attempt int) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	u := s.client.WorkflowStepRun.Update().
 		Where(workflowsteprun.IDEQ(stepRunID)).
 		SetStatus(int(status)).
@@ -111,11 +107,10 @@ func (s *WorkflowRunStore) UpdateStepRun(stepRunID int64, status model.WorkflowR
 }
 
 // SaveCheckpoint persists the intermediate workflow run state.
-func (s *WorkflowRunStore) SaveCheckpoint(runID int64, data any) error {
+func (s *WorkflowRunStore) SaveCheckpoint(ctx context.Context, runID int64, data any) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	cp := model.JSON{}
 	raw, err := sonic.Marshal(data)
 	if err != nil {
@@ -131,11 +126,10 @@ func (s *WorkflowRunStore) SaveCheckpoint(runID int64, data any) error {
 }
 
 // GetIncompleteRuns returns workflow runs that are still running and may need recovery.
-func (s *WorkflowRunStore) GetIncompleteRuns() ([]*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) GetIncompleteRuns(ctx context.Context) ([]*model.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	runs, err := s.client.WorkflowRun.Query().
 		Where(workflowrun.StatusEQ(int(model.WorkflowRunRunning))).
 		Order(gen.Asc(workflowrun.FieldCreatedAt)).
@@ -151,11 +145,10 @@ func (s *WorkflowRunStore) GetIncompleteRuns() ([]*model.WorkflowRun, error) {
 }
 
 // GetCheckpoint loads the checkpoint data for a workflow run.
-func (s *WorkflowRunStore) GetCheckpoint(runID int64, target any) error {
+func (s *WorkflowRunStore) GetCheckpoint(ctx context.Context, runID int64, target any) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	wr, err := s.client.WorkflowRun.Query().
 		Where(workflowrun.IDEQ(runID)).
 		Select(workflowrun.FieldCheckpointData).
@@ -174,11 +167,10 @@ func (s *WorkflowRunStore) GetCheckpoint(runID int64, target any) error {
 }
 
 // GetRun returns a workflow run by ID.
-func (s *WorkflowRunStore) GetRun(runID int64) (*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) GetRun(ctx context.Context, runID int64) (*model.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	ctx := context.Background()
 	wr, err := s.client.WorkflowRun.Query().
 		Where(workflowrun.IDEQ(runID)).
 		Only(ctx)
@@ -189,11 +181,10 @@ func (s *WorkflowRunStore) GetRun(runID int64) (*model.WorkflowRun, error) {
 }
 
 // UpdateRunHeartbeat refreshes the last_heartbeat timestamp for a running workflow.
-func (s *WorkflowRunStore) UpdateRunHeartbeat(runID int64) error {
+func (s *WorkflowRunStore) UpdateRunHeartbeat(ctx context.Context, runID int64) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	return s.client.WorkflowRun.Update().
 		Where(workflowrun.IDEQ(runID)).
 		SetLastHeartbeat(time.Now()).
