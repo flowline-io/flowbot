@@ -1,3 +1,4 @@
+// Package webhook implements the webhook ruleset type.
 package webhook
 
 import "github.com/flowline-io/flowbot/pkg/types"

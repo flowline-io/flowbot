@@ -1,3 +1,4 @@
+// Package server implements the server management module.
 package server
 
 import (

@@ -1,3 +1,4 @@
+// Package karakeep implements the Karakeep bookmark provider.
 package karakeep
 
 import (

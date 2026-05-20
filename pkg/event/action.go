@@ -1,3 +1,4 @@
+// Package event provides event system definition and data event types.
 package event
 
 import (

@@ -1,3 +1,4 @@
+// Package config provides runtime configuration loading and management.
 package config
 
 import (

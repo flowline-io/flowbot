@@ -1,3 +1,4 @@
+// Package workflow provides the workflow definition loader and runtime.
 package workflow
 
 import (

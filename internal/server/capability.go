@@ -1,3 +1,4 @@
+// Package server provides the HTTP API server (Fiber v3) and route handlers.
 package server
 
 import (

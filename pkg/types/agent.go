@@ -1,3 +1,4 @@
+// Package types provides core type definitions, interfaces, and value objects.
 package types
 
 const ApiVersion = 1

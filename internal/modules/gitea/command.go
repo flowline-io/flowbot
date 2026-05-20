@@ -1,3 +1,4 @@
+// Package gitea implements the Gitea integration module.
 package gitea
 
 import (

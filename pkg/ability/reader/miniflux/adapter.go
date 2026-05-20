@@ -1,3 +1,4 @@
+// Package miniflux implements the Miniflux adapter for the reader capability.
 package miniflux
 
 import (

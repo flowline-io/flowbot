@@ -1,3 +1,4 @@
+// Package crawler provides web crawling and content extraction.
 package crawler
 
 import (

@@ -1,3 +1,4 @@
+// Package kanboard implements the Kanboard adapter for the kanban capability.
 package kanboard
 
 import (

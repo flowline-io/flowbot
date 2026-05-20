@@ -1,3 +1,4 @@
+// Package doc provides action documentation schema generation.
 package doc
 
 import (

@@ -1,3 +1,4 @@
+// Package modules provides fx dependency injection registration for all modules.
 package modules
 
 import (

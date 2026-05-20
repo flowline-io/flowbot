@@ -1,3 +1,4 @@
+// Package parser provides command and expression parsing.
 package parser
 
 import (

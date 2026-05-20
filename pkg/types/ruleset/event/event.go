@@ -1,3 +1,4 @@
+// Package event implements the event ruleset type.
 package event
 
 import (

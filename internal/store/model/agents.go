@@ -1,3 +1,4 @@
+// Package model provides plain data transfer object structs.
 package model
 
 import (

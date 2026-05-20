@@ -1,3 +1,4 @@
+// Package kanboard implements the Kanboard project management provider.
 package kanboard
 
 import (

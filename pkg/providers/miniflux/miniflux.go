@@ -1,3 +1,4 @@
+// Package miniflux implements the Miniflux RSS reader provider.
 package miniflux
 
 import (

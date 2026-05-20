@@ -1,5 +1,6 @@
 //go:build freebsd || darwin || linux
 
+// Package shell implements the shell command execution runtime.
 package shell
 
 import (

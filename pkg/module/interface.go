@@ -1,3 +1,4 @@
+// Package module provides the module handler interface and base types.
 package module
 
 import (

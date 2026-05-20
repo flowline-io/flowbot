@@ -1,3 +1,4 @@
+// Package command implements the command ruleset type.
 package command
 
 import (

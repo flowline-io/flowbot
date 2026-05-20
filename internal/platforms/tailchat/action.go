@@ -1,3 +1,4 @@
+// Package tailchat implements the Tailchat platform integration.
 package tailchat
 
 import (

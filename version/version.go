@@ -1,3 +1,4 @@
+// Package version provides build-time version and buildstamp information.
 package version
 
 // Buildstamp version number defined by the compiler:

@@ -1,3 +1,4 @@
+// Package fireflyiii implements the Firefly III finance provider.
 package fireflyiii
 
 import (

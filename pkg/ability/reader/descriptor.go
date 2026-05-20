@@ -1,3 +1,4 @@
+// Package reader implements the RSS/feed reading capability.
 package reader
 
 import (

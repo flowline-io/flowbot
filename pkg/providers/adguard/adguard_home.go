@@ -1,3 +1,4 @@
+// Package adguard implements the AdGuard Home provider.
 package adguard
 
 import (

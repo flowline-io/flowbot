@@ -1,3 +1,4 @@
+// Package cron implements the cron ruleset type.
 package cron
 
 import (

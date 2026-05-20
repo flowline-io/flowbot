@@ -1,3 +1,4 @@
+// Package docker implements the Docker execution runtime.
 package docker // import "https://github.com/cpuguy83/dockercfg"
 
 import (

@@ -1,3 +1,4 @@
+// Package dropbox implements the Dropbox provider.
 package dropbox
 
 import (

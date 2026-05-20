@@ -1,3 +1,4 @@
+// Package ability provides the capability invocation framework.
 package ability
 
 import (

@@ -1,3 +1,4 @@
+// Package bookmark implements the bookmark management module.
 package bookmark
 
 import (

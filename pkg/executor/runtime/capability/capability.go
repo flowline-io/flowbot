@@ -1,3 +1,4 @@
+// Package capability implements capability-based execution runtime.
 package capability
 
 import (

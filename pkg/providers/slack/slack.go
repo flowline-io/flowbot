@@ -1,3 +1,4 @@
+// Package slack implements the Slack API provider.
 package slack
 
 import (

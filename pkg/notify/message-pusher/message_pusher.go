@@ -1,3 +1,4 @@
+// Package message_pusher implements the Message Pusher notification provider.
 package message_pusher
 
 import (

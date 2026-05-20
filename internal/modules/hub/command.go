@@ -1,3 +1,4 @@
+// Package hub implements the hub management module.
 package hub
 
 import (

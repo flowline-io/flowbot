@@ -1,3 +1,4 @@
+// Package pushover implements Pushover notification provider.
 package pushover
 
 import (

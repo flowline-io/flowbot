@@ -1,3 +1,4 @@
+// Package pipeline provides the event-driven pipeline execution engine.
 package pipeline
 
 import (

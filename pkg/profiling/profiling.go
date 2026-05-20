@@ -1,3 +1,4 @@
+// Package profiling provides runtime profiling and performance monitoring.
 package profiling
 
 import (

@@ -1,3 +1,4 @@
+// Package trace provides OpenTelemetry tracing integration for Fiber.
 package trace
 
 import (

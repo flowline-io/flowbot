@@ -1,3 +1,4 @@
+// Package main is the entry point for the Flowbot server binary.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package webhook implements the webhook management module.
 package webhook
 
 import (

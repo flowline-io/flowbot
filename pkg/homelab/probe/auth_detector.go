@@ -1,3 +1,4 @@
+// Package probe provides homelab service discovery and authentication detection.
 package probe
 
 import (

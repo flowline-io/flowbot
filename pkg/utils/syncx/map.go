@@ -1,3 +1,4 @@
+// Package syncx provides synchronized concurrent-safe data structures.
 package syncx // import "https://github.com/runabol/tork"
 
 import "sync"

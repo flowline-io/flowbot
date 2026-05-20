@@ -1,3 +1,4 @@
+// Package dev implements the developer tools module.
 package dev
 
 import (

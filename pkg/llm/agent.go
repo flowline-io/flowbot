@@ -1,3 +1,4 @@
+// Package llm provides LLM agent integration and invocation.
 package llm
 
 import (

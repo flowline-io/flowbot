@@ -1,3 +1,4 @@
+// Package homelab provides homelab application scanning and registry.
 package homelab
 
 type App struct {

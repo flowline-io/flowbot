@@ -1,3 +1,4 @@
+// Package archivebox implements the ArchiveBox provider.
 package archivebox
 
 import (

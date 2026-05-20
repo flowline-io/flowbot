@@ -1,3 +1,4 @@
+// Package gitea implements the Gitea provider.
 package gitea
 
 import (

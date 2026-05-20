@@ -1,3 +1,4 @@
+// Package executor provides the pipeline execution engine.
 package executor
 
 import (

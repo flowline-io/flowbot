@@ -1,3 +1,4 @@
+// Package alarm provides alarm and alerting functionality.
 package alarm
 
 import (

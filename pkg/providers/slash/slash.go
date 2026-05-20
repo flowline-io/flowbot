@@ -1,3 +1,4 @@
+// Package slash implements the Slash provider.
 package slash
 
 import (

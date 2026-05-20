@@ -1,3 +1,4 @@
+// Package form implements the form ruleset type.
 package form
 
 import "github.com/flowline-io/flowbot/pkg/types"

@@ -1,3 +1,4 @@
+// Package github implements the GitHub integration module.
 package github
 
 import (

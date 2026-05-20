@@ -1,3 +1,4 @@
+// Package flog provides structured logging for Flowbot.
 package flog
 
 import (

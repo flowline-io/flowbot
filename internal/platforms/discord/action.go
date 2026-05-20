@@ -1,3 +1,4 @@
+// Package discord implements the Discord platform integration.
 package discord
 
 import (

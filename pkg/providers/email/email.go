@@ -1,3 +1,4 @@
+// Package email implements the email provider.
 package email
 
 import (

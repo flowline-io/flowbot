@@ -1,3 +1,4 @@
+// Package sets provides generic set data structures.
 package sets
 
 import (

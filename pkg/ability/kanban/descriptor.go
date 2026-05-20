@@ -1,3 +1,4 @@
+// Package kanban implements the Kanban board capability.
 package kanban
 
 import (

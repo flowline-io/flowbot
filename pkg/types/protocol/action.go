@@ -1,3 +1,4 @@
+// Package protocol provides platform-agnostic protocol types for request/response handling.
 package protocol
 
 import (

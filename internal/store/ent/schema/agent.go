@@ -1,3 +1,4 @@
+// Package schema provides Ent ORM schema definitions.
 package schema
 
 import (

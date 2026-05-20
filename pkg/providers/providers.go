@@ -1,3 +1,4 @@
+// Package providers provides provider registry and common provider interfaces.
 package providers
 
 import (

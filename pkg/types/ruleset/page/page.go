@@ -1,3 +1,4 @@
+// Package page implements the page ruleset type.
 package page
 
 import (

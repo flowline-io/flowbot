@@ -1,3 +1,4 @@
+// Package hub provides hub lifecycle management and automatic binding.
 package hub
 
 import (

@@ -1,3 +1,4 @@
+// Package page provides the HTML layout template and rendering.
 package page
 
 import (

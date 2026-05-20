@@ -1,3 +1,4 @@
+// Package karakeep implements the Karakeep adapter for the bookmark capability.
 package karakeep
 
 import (

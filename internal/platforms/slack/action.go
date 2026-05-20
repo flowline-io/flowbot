@@ -1,3 +1,4 @@
+// Package slack implements the Slack platform integration.
 package slack
 
 import (

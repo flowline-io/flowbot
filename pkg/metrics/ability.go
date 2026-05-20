@@ -1,3 +1,4 @@
+// Package metrics provides Prometheus metrics collection for abilities.
 package metrics
 
 import (

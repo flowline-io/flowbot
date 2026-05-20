@@ -1,3 +1,4 @@
+// Package webservice implements the web service ruleset type.
 package webservice
 
 import (

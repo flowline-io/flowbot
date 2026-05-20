@@ -1,3 +1,4 @@
+// Package machine implements the machine execution runtime.
 package machine
 
 import (

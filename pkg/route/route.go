@@ -1,3 +1,4 @@
+// Package route provides HTTP route registration and discovery.
 package route
 
 import (

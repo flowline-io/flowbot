@@ -1,3 +1,4 @@
+// Package template provides pipeline template rendering engine.
 package template
 
 import (

@@ -1,3 +1,4 @@
+// Package stats provides runtime statistics and metrics collection.
 package stats
 
 import (

@@ -1,3 +1,4 @@
+// Package search provides full-text search functionality.
 package search
 
 import (

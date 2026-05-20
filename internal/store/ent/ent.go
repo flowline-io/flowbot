@@ -1,3 +1,4 @@
+// Package ent provides the Ent ORM client initialization and database connectivity.
 package ent
 
 import (
@@ -7,7 +8,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable:blank-imports pgx driver registration
 
-	gen "github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
 )
 

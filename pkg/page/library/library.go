@@ -1,3 +1,4 @@
+// Package library provides UIKit CSS and JS library registry.
 package library
 
 // UIKit

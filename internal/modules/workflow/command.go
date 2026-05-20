@@ -1,3 +1,4 @@
+// Package workflow implements the workflow management module.
 package workflow
 
 import (

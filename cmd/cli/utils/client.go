@@ -1,3 +1,4 @@
+// Package utils provides shared CLI utility functions.
 package utils
 
 import (

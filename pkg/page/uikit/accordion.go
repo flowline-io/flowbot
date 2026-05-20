@@ -1,3 +1,4 @@
+// Package uikit provides reusable UIKit-based go-app UI components.
 package uikit
 
 import (

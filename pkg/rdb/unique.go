@@ -1,5 +1,4 @@
-// Deprecated: Use cache.RedisStore for new cache operations. These bloom helpers
-// will be removed in Phase 3 cleanup.
+// Package rdb provides Redis-backed unique ID generation and bloom filter helpers.
 package rdb
 
 import (

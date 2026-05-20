@@ -1,3 +1,4 @@
+// Package n8n implements the n8n workflow automation provider.
 package n8n
 
 import (

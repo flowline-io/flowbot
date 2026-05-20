@@ -1,3 +1,4 @@
+// Package form provides dynamic form building from form rules.
 package form
 
 import (

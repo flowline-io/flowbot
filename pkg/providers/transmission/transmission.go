@@ -1,3 +1,4 @@
+// Package transmission implements the Transmission BitTorrent provider.
 package transmission
 
 import (

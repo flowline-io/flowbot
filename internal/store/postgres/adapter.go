@@ -1,3 +1,4 @@
+// Package postgres implements the PostgreSQL storage adapter.
 package postgres
 
 import (
@@ -18,7 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
-	configdata "github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"

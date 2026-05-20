@@ -1,3 +1,4 @@
+// Package github implements the GitHub API provider.
 package github
 
 import (

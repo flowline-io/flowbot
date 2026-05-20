@@ -19,7 +19,6 @@ warningCode = 0
     Disabled = true
 [rule.var-declaration]
 [rule.package-comments]
-    Disabled = true
 [rule.range]
 [rule.receiver-naming]
 [rule.time-naming]
@@ -63,3 +62,5 @@ warningCode = 0
 [rule.constant-logical-expr]
 [rule.optimize-operands-order]
 [rule.use-slices-sort]
+[rule.redundant-import-alias]
+[rule.confusing-naming]

@@ -1,3 +1,4 @@
+// Package locker provides distributed locking mechanism.
 package locker
 
 import (

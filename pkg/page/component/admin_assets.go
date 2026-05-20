@@ -1,3 +1,4 @@
+// Package component provides reusable go-app UI components.
 package component
 
 import _ "embed"

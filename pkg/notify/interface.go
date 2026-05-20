@@ -1,3 +1,4 @@
+// Package notify provides the notification dispatcher interface and registry.
 package notify
 
 import "github.com/flowline-io/flowbot/pkg/types"

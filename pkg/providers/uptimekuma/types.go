@@ -1,3 +1,4 @@
+// Package uptimekuma implements the Uptime Kuma monitoring provider.
 package uptimekuma
 
 // MonitorStatusMetric Monitor Status (1 = UP, 0= DOWN, 2= PENDING, 3= MAINTENANCE)

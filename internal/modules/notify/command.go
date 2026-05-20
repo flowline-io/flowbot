@@ -1,3 +1,4 @@
+// Package notify implements the notification management module.
 package notify
 
 import (

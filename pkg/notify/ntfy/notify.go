@@ -1,3 +1,4 @@
+// Package ntfy implements the ntfy notification provider.
 package ntfy
 
 import (

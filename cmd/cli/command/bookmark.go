@@ -1,3 +1,4 @@
+// Package command implements CLI command definitions.
 package command
 
 import (

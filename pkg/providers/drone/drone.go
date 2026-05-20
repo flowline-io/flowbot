@@ -1,3 +1,4 @@
+// Package drone implements the Drone CI provider.
 package drone
 
 import (

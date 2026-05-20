@@ -1,3 +1,4 @@
+// Package main is the entry point for the Flowbot composer CLI binary.
 package main
 
 import (
