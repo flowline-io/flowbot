@@ -40,10 +40,7 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 			meta := types.WorkflowMetadata{
 				Name:    "test-workflow",
 				Resumable: true,
-			Triggers: []struct {
-				Type string       `json:"type" yaml:"type"`
-				Rule types.KV      `json:"rule,omitempty" yaml:"rule"`
-			}{
+			Triggers: []types.WorkflowTriggerDef{
 					{Type: "cron", Rule: types.KV{"schedule": "*/5 * * * *"}},
 				},
 				Tasks: []types.WorkflowTask{
