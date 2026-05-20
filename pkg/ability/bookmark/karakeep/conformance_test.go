@@ -21,7 +21,7 @@ func TestKarakeepConformance(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			conformance.RunBookmarkConformance(t, func(t *testing.T, cfg conformance.BookmarkConfig) bm.Service {
+			conformance.RunBookmarkConformance(t, func(_ *testing.T, cfg conformance.BookmarkConfig) bm.Service {
 				c := &fakeClient{
 					listResp:  cfgToListResponse(cfg),
 					listErr:   cfg.ListErr,

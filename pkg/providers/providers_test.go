@@ -133,7 +133,7 @@ func TestGetConfig_MultipleCalls(t *testing.T) {
 
 func TestOAuthProviderInterface(t *testing.T) {
 	t.Parallel()
-	t.Run("interface compile-time check", func(t *testing.T) {
+	t.Run("interface compile-time check", func(_ *testing.T) {
 		var _ OAuthProvider = (*mockOAuthProvider)(nil)
 	})
 }
@@ -144,6 +144,6 @@ func (*mockOAuthProvider) GetAuthorizeURL() string {
 	return "https://example.com/auth"
 }
 
-func (*mockOAuthProvider) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
+func (*mockOAuthProvider) GetAccessToken(_ fiber.Ctx) (types.KV, error) {
 	return types.KV{"token": "test"}, nil
 }

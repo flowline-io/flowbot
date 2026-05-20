@@ -26,6 +26,6 @@ func (*plugin) Templates() []string {
 	}
 }
 
-func (*plugin) Send(tokens types.KV, message notify.Message) error {
+func (*plugin) Send(_ types.KV, _ notify.Message) error {
 	return nil
 }

@@ -11,7 +11,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "reader",
 		Help:   `show reader id`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			return types.TextMsg{Text: miniflux.ID}
 		},
 	},

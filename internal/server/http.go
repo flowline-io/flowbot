@@ -71,7 +71,7 @@ func newHTTPServer() *fiber.App {
 	app.Use(tracepkg.FiberMiddleware())
 	// cors
 	app.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool {
+		AllowOriginsFunc: func(_ string) bool {
 			return true
 		},
 		AllowMethods: []string{fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete, fiber.MethodPatch, fiber.MethodOptions},
@@ -98,7 +98,7 @@ func newHTTPServer() *fiber.App {
 	logger := flog.GetLogger()
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
-		SkipHeader: func(header string, c fiber.Ctx) bool {
+		SkipHeader: func(_ string, c fiber.Ctx) bool {
 			skipURIs := []string{
 				healthcheck.LivenessEndpoint,
 				healthcheck.ReadinessEndpoint,

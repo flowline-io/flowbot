@@ -38,30 +38,30 @@ func (NoopRuntime) Status(ctx context.Context, app App) (AppStatus, error) {
 	return app.Status, nil
 }
 
-func (NoopRuntime) Logs(ctx context.Context, app App, tail int) ([]string, error) {
+func (NoopRuntime) Logs(ctx context.Context, _ App, _ int) ([]string, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "homelab logs canceled", err)
 	}
 	return nil, types.Errorf(types.ErrNotImplemented, "homelab runtime logs are not implemented")
 }
 
-func (NoopRuntime) Start(ctx context.Context, app App) error {
+func (NoopRuntime) Start(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "start")
 }
 
-func (NoopRuntime) Stop(ctx context.Context, app App) error {
+func (NoopRuntime) Stop(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "stop")
 }
 
-func (NoopRuntime) Restart(ctx context.Context, app App) error {
+func (NoopRuntime) Restart(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "restart")
 }
 
-func (NoopRuntime) Pull(ctx context.Context, app App) error {
+func (NoopRuntime) Pull(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "pull")
 }
 
-func (NoopRuntime) Update(ctx context.Context, app App) error {
+func (NoopRuntime) Update(ctx context.Context, _ App) error {
 	return notImplemented(ctx, "update")
 }
 

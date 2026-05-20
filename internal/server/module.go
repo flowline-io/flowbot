@@ -24,13 +24,13 @@ func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Cl
 	initializeModules(config.App.Bots, config.App.Vendors)
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			// notify after online
 			go notifyAll(fmt.Sprintf("flowbot (%s) online", version.Buildtags))
 
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return nil
 		},
 	})

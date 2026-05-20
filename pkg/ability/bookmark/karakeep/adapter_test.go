@@ -60,7 +60,7 @@ func (f *fakeClient) CreateBookmark(url string) (*provider.Bookmark, error) {
 	return testBookmark("created", url), nil
 }
 
-func (f *fakeClient) ArchiveBookmark(id string) (bool, error) {
+func (f *fakeClient) ArchiveBookmark(_ string) (bool, error) {
 	if f.archiveErr != nil {
 		return false, f.archiveErr
 	}
@@ -81,21 +81,21 @@ func (f *fakeClient) SearchBookmarks(query *provider.SearchBookmarksQuery) (*pro
 	return &provider.BookmarksResponse{}, nil
 }
 
-func (f *fakeClient) AttachTagsToBookmark(bookmarkID string, tags []string) ([]string, error) {
+func (f *fakeClient) AttachTagsToBookmark(_ string, tags []string) ([]string, error) {
 	if f.attachTagsErr != nil {
 		return nil, f.attachTagsErr
 	}
 	return tags, nil
 }
 
-func (f *fakeClient) DetachTagsToBookmark(bookmarkID string, tags []string) ([]string, error) {
+func (f *fakeClient) DetachTagsToBookmark(_ string, tags []string) ([]string, error) {
 	if f.detachTagsErr != nil {
 		return nil, f.detachTagsErr
 	}
 	return tags, nil
 }
 
-func (f *fakeClient) CheckUrlExists(url string) (*string, error) {
+func (f *fakeClient) CheckUrlExists(_ string) (*string, error) {
 	if f.checkURLErr != nil {
 		return nil, f.checkURLErr
 	}

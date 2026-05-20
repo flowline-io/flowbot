@@ -27,7 +27,7 @@ var NotifyModules = fx.Options(
 
 func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			// initialize template engine
 			if err := notifytmpl.Init(); err != nil {
 				return err
@@ -41,7 +41,7 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			// register notify capability with ability framework
 			return abilitynotify.Register()
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return nil
 		},
 	})

@@ -80,7 +80,7 @@ func TestRetry_OnRetryHook(t *testing.T) {
 	called := false
 	retry := Retry{
 		MaxRetries: 1,
-		OnRetryHook: func(retryNum int, delay time.Duration) {
+		OnRetryHook: func(_ int, _ time.Duration) {
 			called = true
 		},
 	}
@@ -129,7 +129,7 @@ func TestRetry_Middleware(t *testing.T) {
 				RandomizationFactor: 0.0,
 				Logger:              flog.WatermillLogger,
 			},
-			handler: func(msg *message.Message) ([]*message.Message, error) {
+			handler: func(_ *message.Message) ([]*message.Message, error) {
 				return nil, assert.AnError
 			},
 			wantErr: true,
@@ -145,7 +145,7 @@ func TestRetry_Middleware(t *testing.T) {
 				Multiplier:      1.0,
 				Logger:          flog.WatermillLogger,
 			},
-			handler: func(msg *message.Message) ([]*message.Message, error) {
+			handler: func(_ *message.Message) ([]*message.Message, error) {
 				return nil, assert.AnError
 			},
 			wantErr: true,

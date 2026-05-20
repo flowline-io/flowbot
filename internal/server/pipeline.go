@@ -23,7 +23,7 @@ import (
 const DataEventTopic = "pipeline:data_event"
 
 func initPipeline(
-	lc fx.Lifecycle,
+	_ fx.Lifecycle,
 	cfg *config.Type,
 	router *message.Router,
 	subscriber message.Subscriber,

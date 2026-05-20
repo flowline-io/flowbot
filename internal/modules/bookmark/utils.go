@@ -32,7 +32,7 @@ CONTENT END HERE
 You must respond in JSON with the key "tags" and the value is an array of string tags.
 `
 
-func extractTags(ctx context.Context, url, title string) ([]string, error) {
+func extractTags(ctx context.Context, _ string, title string) ([]string, error) {
 	content := title
 	if content == "" {
 		return nil, nil

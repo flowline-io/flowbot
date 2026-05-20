@@ -57,7 +57,7 @@ func NewProfiler(lc fx.Lifecycle) error {
 	var profiler *pyroscope.Profiler
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			p, err := pyroscope.Start(pyroscopeCfg)
 			if err != nil {
 				return fmt.Errorf("failed to start pyroscope profiler: %w", err)
@@ -68,7 +68,7 @@ func NewProfiler(lc fx.Lifecycle) error {
 				pyroscopeCfg.Tags["environment"], profileTypeNames(pyroscopeCfg.ProfileTypes))
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			if profiler != nil {
 				if err := profiler.Stop(); err != nil {
 					flog.Err(fmt.Errorf("pyroscope profiler stop error: %w", err))

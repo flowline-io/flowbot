@@ -10,7 +10,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "kanban status",
 		Help:   `Show kanban status`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			return types.EmptyMsg{}
 		},
 	},

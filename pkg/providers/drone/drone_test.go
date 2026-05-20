@@ -116,7 +116,7 @@ func TestDrone_CreateBuildWithStages(t *testing.T) {
 	t.Parallel()
 	t.Run("build with stages", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			response := Build{
 				ID:     123,
 				Number: 1,

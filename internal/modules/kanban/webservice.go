@@ -282,19 +282,19 @@ func searchTasks(ctx fiber.Ctx) error {
 // These are deeply tied to kanboard's specific data model.
 // TODO: Migrate to ability.Invoke when the ability interface is expanded.
 
-func getTaskMetadata(ctx fiber.Ctx) error {
+func getTaskMetadata(_ fiber.Ctx) error {
 	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-func getTaskMetadataByName(ctx fiber.Ctx) error {
+func getTaskMetadataByName(_ fiber.Ctx) error {
 	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-func saveTaskMetadata(ctx fiber.Ctx) error {
+func saveTaskMetadata(_ fiber.Ctx) error {
 	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 
-func removeTaskMetadata(ctx fiber.Ctx) error {
+func removeTaskMetadata(_ fiber.Ctx) error {
 	return types.Errorf(types.ErrNotImplemented, "metadata operations not yet migrated to ability layer")
 }
 

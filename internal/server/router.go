@@ -57,7 +57,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get("/hub/health", route.Authorize(0, route.RequireScope(auth.ScopeHubHealthRead, ctl.hubHealth)))
 
 	// common
-	a.Get("/", func(c fiber.Ctx) error { return nil })
+	a.Get("/", func(_ fiber.Ctx) error { return nil })
 	a.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 	a.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 	a.Get(healthcheck.StartupEndpoint, healthcheck.New())

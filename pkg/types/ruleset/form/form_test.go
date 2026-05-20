@@ -39,7 +39,7 @@ func TestRuleset_ProcessForm_MatchingRule(t *testing.T) {
 				Field: []types.FormField{
 					{Type: types.FormFieldText, Key: "name", Label: "Name"},
 				},
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, values types.KV) types.MsgPayload {
 					called = true
 					name, _ := values.String("name")
 					return types.TextMsg{Text: "Hello " + name}
@@ -62,7 +62,7 @@ func TestRuleset_ProcessForm_NoMatchingRule(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "form1",
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, _ types.KV) types.MsgPayload {
 					return types.TextMsg{Text: "should not be called"}
 				},
 			},
@@ -82,13 +82,13 @@ func TestRuleset_ProcessForm_MultipleRules(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "form1",
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, _ types.KV) types.MsgPayload {
 					return types.TextMsg{Text: "first"}
 				},
 			},
 			{
 				Id: "form2",
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, _ types.KV) types.MsgPayload {
 					return types.TextMsg{Text: "second"}
 				},
 			},
@@ -122,7 +122,7 @@ func TestRuleset_ProcessForm_LongTermFlag(t *testing.T) {
 				Id:         "form_lt",
 				IsLongTerm: true,
 				Title:      "Long Term Form",
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, _ types.KV) types.MsgPayload {
 					return types.TextMsg{Text: "long term processed"}
 				},
 			},
@@ -150,7 +150,7 @@ func TestRuleset_ProcessForm_WithFormFields(t *testing.T) {
 					{Type: types.FormFieldPassword, Key: "password", Label: "Password"},
 					{Type: types.FormFieldNumber, Key: "age", Label: "Age"},
 				},
-				Handler: func(ctx types.Context, values types.KV) types.MsgPayload {
+				Handler: func(_ types.Context, values types.KV) types.MsgPayload {
 					username, _ := values.String("username")
 					return types.TextMsg{Text: "User: " + username}
 				},

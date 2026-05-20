@@ -66,7 +66,7 @@ func runPageCrawling(r Rule, result *[]map[string]string) bool {
 	for k := range r.Page.Item {
 		keys = append(keys, k)
 	}
-	doc.Find(r.Page.List).Each(func(i int, s *goquery.Selection) {
+	doc.Find(r.Page.List).Each(func(_ int, s *goquery.Selection) {
 		tmp := make(map[string]string)
 		for _, k := range keys {
 			f := ParseFun(s, r.Page.Item[k])

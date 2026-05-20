@@ -20,14 +20,14 @@ var commandRules = []command.Rule{
 	{
 		Define: "github setting",
 		Help:   `Bot setting`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			return module.SettingMsg(ctx, Name)
 		},
 	},
 	{
 		Define: "github oauth",
 		Help:   `OAuth`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			// check oauth token
 			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
@@ -55,7 +55,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "github user",
 		Help:   `Get current user info`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			// get token
 			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
@@ -226,7 +226,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "deploy",
 		Help:   `deploy server`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			err := deploy(ctx)
 			if err != nil {
 				flog.Error(err)

@@ -82,7 +82,7 @@ func TestRootEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			app := newTestApp()
-			app.Get("/", func(c fiber.Ctx) error { return nil })
+			app.Get("/", func(_ fiber.Ctx) error { return nil })
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			resp, err := app.Test(req)
@@ -528,7 +528,7 @@ func TestRouteRegistration(t *testing.T) {
 			app := newTestApp()
 
 			ctl := &Controller{}
-			app.Get("/", func(c fiber.Ctx) error { return nil })
+			app.Get("/", func(_ fiber.Ctx) error { return nil })
 			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
@@ -687,7 +687,7 @@ func TestUnregisteredRoute_Returns404(t *testing.T) {
 			t.Parallel()
 			// Use a plain fiber app without custom error handler to get default 404.
 			app := fiber.New()
-			app.Get("/", func(c fiber.Ctx) error { return nil })
+			app.Get("/", func(_ fiber.Ctx) error { return nil })
 
 			req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
 			resp, err := app.Test(req)

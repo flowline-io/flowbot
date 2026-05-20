@@ -100,7 +100,7 @@ func (c *Checker) Check(ctx context.Context) *HealthResult {
 	return result
 }
 
-func (c *Checker) CheckCapability(ctx context.Context, capType CapabilityType) (*CapabilityHealth, error) {
+func (c *Checker) CheckCapability(_ context.Context, capType CapabilityType) (*CapabilityHealth, error) {
 	desc, ok := c.registry.Get(capType)
 	if !ok {
 		return nil, types.Errorf(types.ErrNotFound, "capability %s not found", capType)

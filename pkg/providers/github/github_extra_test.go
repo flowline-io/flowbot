@@ -74,7 +74,7 @@ func TestGithub_GetAuthenticatedUser_Error(t *testing.T) {
 	t.Parallel()
 	t.Run("unauthorized error", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
 		defer server.Close()
@@ -122,7 +122,7 @@ func TestGithub_GetRepository_Error(t *testing.T) {
 	t.Parallel()
 	t.Run("not found error", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
 		defer server.Close()

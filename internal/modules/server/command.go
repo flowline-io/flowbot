@@ -26,14 +26,14 @@ var commandRules = []command.Rule{
 	{
 		Define: "version",
 		Help:   `Version`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			return types.TextMsg{Text: fmt.Sprintf("%s (%s)", version.Buildtags, version.Buildstamp)}
 		},
 	},
 	{
 		Define: "mem stats",
 		Help:   `App memory stats`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			var memStats runtime.MemStats
 			runtime.ReadMemStats(&memStats)
 
@@ -46,7 +46,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "golang stats",
 		Help:   `App golang stats`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			numGoroutine := runtime.NumGoroutine()
 
 			return types.InfoMsg{
@@ -60,7 +60,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "server stats",
 		Help:   `Server stats`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			data, err := store.Database.DataGet(ctx.Context(), ctx.AsUser, ctx.Topic, "stats")
 			if err != nil {
 				return types.TextMsg{Text: "Empty server stats"}
@@ -75,7 +75,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "online stats",
 		Help:   `Online stats`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			ctx_ := context.Background()
 			keys, err := rdb.Client.Keys(ctx_, "online:*").Result()
 			if err != nil {
@@ -104,7 +104,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "adguard status",
 		Help:   `get adguard home status`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client := adguard.GetClient()
 
 			resp, err := client.GetStatus()
@@ -118,7 +118,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "adguard stats",
 		Help:   `get adguard home statistics`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client := adguard.GetClient()
 
 			resp, err := client.GetStats()
@@ -133,14 +133,14 @@ var commandRules = []command.Rule{
 	{
 		Define: "queue stats",
 		Help:   `Queue Stats page`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			return types.LinkMsg{Title: "Queue Stats", Url: fmt.Sprintf("%s/queue/stats", types.AppUrl())}
 		},
 	},
 	{
 		Define: "check",
 		Help:   `self inspection`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			// notify
 			err := notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
 				Title: "notify check",

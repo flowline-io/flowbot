@@ -35,7 +35,7 @@ type fakeClient struct {
 	searchErr    error
 }
 
-func (f *fakeClient) GetAllTasks(ctx context.Context, projectID int, status provider.StatusId) ([]*provider.Task, error) {
+func (f *fakeClient) GetAllTasks(_ context.Context, _ int, _ provider.StatusId) ([]*provider.Task, error) {
 	if f.tasksErr != nil {
 		return nil, f.tasksErr
 	}
@@ -45,7 +45,7 @@ func (f *fakeClient) GetAllTasks(ctx context.Context, projectID int, status prov
 	return f.tasks, nil
 }
 
-func (f *fakeClient) GetTask(ctx context.Context, taskID int) (*provider.Task, error) {
+func (f *fakeClient) GetTask(_ context.Context, taskID int) (*provider.Task, error) {
 	if f.taskErr != nil {
 		return nil, f.taskErr
 	}
@@ -55,7 +55,7 @@ func (f *fakeClient) GetTask(ctx context.Context, taskID int) (*provider.Task, e
 	return &provider.Task{ID: taskID, Title: "Default", ProjectID: 1}, nil
 }
 
-func (f *fakeClient) CreateTask(ctx context.Context, task *provider.Task) (int64, error) {
+func (f *fakeClient) CreateTask(_ context.Context, _ *provider.Task) (int64, error) {
 	if f.createErr != nil {
 		return 0, f.createErr
 	}
@@ -65,35 +65,35 @@ func (f *fakeClient) CreateTask(ctx context.Context, task *provider.Task) (int64
 	return 99, nil
 }
 
-func (f *fakeClient) UpdateTask(ctx context.Context, taskID int, task *provider.Task) (bool, error) {
+func (f *fakeClient) UpdateTask(_ context.Context, _ int, _ *provider.Task) (bool, error) {
 	if f.updateErr != nil {
 		return false, f.updateErr
 	}
 	return f.updateResult, nil
 }
 
-func (f *fakeClient) CloseTask(ctx context.Context, taskID int) (bool, error) {
+func (f *fakeClient) CloseTask(_ context.Context, _ int) (bool, error) {
 	if f.closeErr != nil {
 		return false, f.closeErr
 	}
 	return f.closeResult, nil
 }
 
-func (f *fakeClient) RemoveTask(ctx context.Context, taskID int) (bool, error) {
+func (f *fakeClient) RemoveTask(_ context.Context, _ int) (bool, error) {
 	if f.deleteErr != nil {
 		return false, f.deleteErr
 	}
 	return f.deleteResult, nil
 }
 
-func (f *fakeClient) MoveTaskPosition(ctx context.Context, projectID, taskID, columnID, position, swimlaneID int) (bool, error) {
+func (f *fakeClient) MoveTaskPosition(_ context.Context, _, _, _, _, _ int) (bool, error) {
 	if f.moveErr != nil {
 		return false, f.moveErr
 	}
 	return f.moveResult, nil
 }
 
-func (f *fakeClient) GetColumns(ctx context.Context, projectID int) ([]types.KV, error) {
+func (f *fakeClient) GetColumns(_ context.Context, _ int) ([]types.KV, error) {
 	if f.columnsErr != nil {
 		return nil, f.columnsErr
 	}
@@ -110,7 +110,7 @@ func (f *fakeClient) GetColumns(ctx context.Context, projectID int) ([]types.KV,
 	return []types.KV{}, nil
 }
 
-func (f *fakeClient) SearchTasks(ctx context.Context, projectID int, query string) ([]*provider.Task, error) {
+func (f *fakeClient) SearchTasks(_ context.Context, _ int, _ string) ([]*provider.Task, error) {
 	if f.searchErr != nil {
 		return nil, f.searchErr
 	}

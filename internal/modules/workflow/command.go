@@ -15,7 +15,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow list",
 		Help:   `List all workflows`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client, err := n8n.GetClient()
 			if err != nil {
 				flog.Error(err)
@@ -48,7 +48,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow get [id]",
 		Help:   `Get workflow by ID`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow get <id>"}
 			}
@@ -98,7 +98,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow create [name]",
 		Help:   `Create a new workflow`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow create <name>"}
 			}
@@ -132,7 +132,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow update [id] [name]",
 		Help:   `Update workflow name`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 4 {
 				return types.TextMsg{Text: "Usage: workflow update <id> <name>"}
 			}
@@ -170,7 +170,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow delete [id]",
 		Help:   `Delete a workflow`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow delete <id>"}
 			}
@@ -198,7 +198,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow activate [id]",
 		Help:   `Activate a workflow`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow activate <id>"}
 			}
@@ -226,7 +226,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow deactivate [id]",
 		Help:   `Deactivate a workflow`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow deactivate <id>"}
 			}
@@ -254,7 +254,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow execute [id]",
 		Help:   `Execute a workflow`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			if len(tokens) < 3 {
 				return types.TextMsg{Text: "Usage: workflow execute <id>"}
 			}
@@ -282,7 +282,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "workflow stat",
 		Help:   `Get workflow statistics`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client, err := n8n.GetClient()
 			if err != nil {
 				flog.Error(err)

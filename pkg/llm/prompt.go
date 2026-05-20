@@ -16,7 +16,7 @@ type adkChatTemplate struct {
 	withHistory   bool
 }
 
-func (t *adkChatTemplate) Format(ctx context.Context, data map[string]any) ([]*Message, error) {
+func (t *adkChatTemplate) Format(_ context.Context, data map[string]any) ([]*Message, error) {
 	content := ""
 	if c, ok := data["content"].(string); ok {
 		content = c

@@ -26,7 +26,7 @@ var exampleJs string
 var pageRules = []page.Rule{
 	{
 		Id: devPageId,
-		UI: func(ctx types.Context, flag string, args types.KV) (*types.UI, error) {
+		UI: func(_ types.Context, _ string, _ types.KV) (*types.UI, error) {
 			css := []app.UI{
 				uikit.Css(exampleCss),
 			}

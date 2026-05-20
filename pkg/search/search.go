@@ -31,7 +31,7 @@ func NewClient(lc fx.Lifecycle, _ *config.Type) *Client {
 	}
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			go func() {
 				err := Instance.DefaultIndexSettings()
 				if err != nil {
@@ -40,7 +40,7 @@ func NewClient(lc fx.Lifecycle, _ *config.Type) *Client {
 			}()
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return nil
 		},
 	})

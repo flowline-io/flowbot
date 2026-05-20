@@ -66,7 +66,7 @@ func TestFunctionTool_InvokableRun(t *testing.T) {
 			name: "normal execution echoes input",
 			tool: &llm.FunctionTool{
 				Name: "echo",
-				Execute: func(ctx context.Context, input string) (string, error) {
+				Execute: func(_ context.Context, input string) (string, error) {
 					return input, nil
 				},
 			},
@@ -77,7 +77,7 @@ func TestFunctionTool_InvokableRun(t *testing.T) {
 			name: "execution error propagates",
 			tool: &llm.FunctionTool{
 				Name: "failing",
-				Execute: func(ctx context.Context, input string) (string, error) {
+				Execute: func(_ context.Context, _ string) (string, error) {
 					return "", errors.New("tool failed")
 				},
 			},
@@ -89,7 +89,7 @@ func TestFunctionTool_InvokableRun(t *testing.T) {
 			name: "executes with empty input",
 			tool: &llm.FunctionTool{
 				Name: "len",
-				Execute: func(ctx context.Context, input string) (string, error) {
+				Execute: func(_ context.Context, input string) (string, error) {
 					return fmt.Sprintf("%d", len(input)), nil
 				},
 			},

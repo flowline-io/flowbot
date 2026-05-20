@@ -36,7 +36,7 @@ func TestRuleset_ProcessRule_MatchingRule(t *testing.T) {
 			{
 				Id:     "webhook1",
 				Secret: true,
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, data []byte) types.MsgPayload {
 					called = true
 					return types.TextMsg{Text: string(data)}
 				},
@@ -58,7 +58,7 @@ func TestRuleset_ProcessRule_NoMatchingRule(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "webhook1",
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, _ []byte) types.MsgPayload {
 					return types.TextMsg{Text: "should not be called"}
 				},
 			},
@@ -78,13 +78,13 @@ func TestRuleset_ProcessRule_MultipleRules(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "wh1",
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, _ []byte) types.MsgPayload {
 					return types.TextMsg{Text: "first"}
 				},
 			},
 			{
 				Id: "wh2",
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, _ []byte) types.MsgPayload {
 					return types.TextMsg{Text: "second"}
 				},
 			},
@@ -129,7 +129,7 @@ func TestRuleset_ProcessRule_EmptyData(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "wh1",
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, _ []byte) types.MsgPayload {
 					return types.TextMsg{Text: "received empty"}
 				},
 			},
@@ -155,7 +155,7 @@ func TestRuleset_ProcessRule_LargePayload(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "wh1",
-				Handler: func(ctx types.Context, data []byte) types.MsgPayload {
+				Handler: func(_ types.Context, data []byte) types.MsgPayload {
 					receivedLen = len(data)
 					return types.TextMsg{Text: "ok"}
 				},

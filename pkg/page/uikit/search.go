@@ -52,7 +52,7 @@ func SearchNavbar(id string, name string, placeholder string) app.HTMLForm {
 }
 
 // SearchWithButton creates a search box with a button
-func SearchWithButton(id string, name string, placeholder string, buttonText string) app.HTMLForm {
+func SearchWithButton(id string, name string, placeholder string, _ string) app.HTMLForm {
 	return app.Form().Class("uk-search uk-search-default uk-width-medium").Body(
 		app.Input().
 			ID(id).

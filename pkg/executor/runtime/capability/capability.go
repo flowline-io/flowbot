@@ -59,11 +59,11 @@ func (*Runtime) Run(ctx context.Context, t *types.Task) error {
 	return nil
 }
 
-func (*Runtime) Stop(ctx context.Context, t *types.Task) error {
+func (*Runtime) Stop(_ context.Context, _ *types.Task) error {
 	return nil
 }
 
-func (*Runtime) HealthCheck(ctx context.Context) error {
+func (*Runtime) HealthCheck(_ context.Context) error {
 	return nil
 }
 

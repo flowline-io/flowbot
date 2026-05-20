@@ -28,7 +28,7 @@ func NewBindMounter(cfg BindConfig) *BindMounter {
 	}
 }
 
-func (m *BindMounter) Mount(ctx context.Context, mnt *types.Mount) error {
+func (m *BindMounter) Mount(_ context.Context, mnt *types.Mount) error {
 	if !m.cfg.Allowed {
 		return errors.New("bind mounts are not allowed")
 	}
@@ -53,6 +53,6 @@ func (m *BindMounter) Mount(ctx context.Context, mnt *types.Mount) error {
 	return nil
 }
 
-func (*BindMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
+func (*BindMounter) Unmount(_ context.Context, _ *types.Mount) error {
 	return nil
 }

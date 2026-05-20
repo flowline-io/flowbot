@@ -17,7 +17,7 @@ var cronRules = []cron.Rule{
 		Help:  "Periodic hub health check with alerting",
 		Scope: cron.CronScopeSystem,
 		When:  "*/5 * * * *",
-		Action: func(ctx types.Context) []types.MsgPayload {
+		Action: func(_ types.Context) []types.MsgPayload {
 			checker := hub.NewChecker(hub.Default)
 			result := checker.Check(context.Background())
 

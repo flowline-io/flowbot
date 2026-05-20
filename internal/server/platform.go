@@ -10,11 +10,11 @@ import (
 
 func handlePlatform(lc fx.Lifecycle, driver protocol.Driver) {
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			go driver.WebSocketClient()
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return driver.Shoutdown()
 		},
 	})

@@ -30,7 +30,7 @@ func newDatabaseAdapter(lc fx.Lifecycle, _ *config.Type) (store.Adapter, error) 
 	}
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

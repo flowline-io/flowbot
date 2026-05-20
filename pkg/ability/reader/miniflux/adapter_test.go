@@ -33,14 +33,14 @@ func (f *fakeClient) GetFeeds() (rssClient.Feeds, error) {
 	return f.feeds, nil
 }
 
-func (f *fakeClient) CreateFeed(req *rssClient.FeedCreationRequest) (int64, error) {
+func (f *fakeClient) CreateFeed(_ *rssClient.FeedCreationRequest) (int64, error) {
 	if f.createFeedErr != nil {
 		return 0, f.createFeedErr
 	}
 	return f.createFeedID, nil
 }
 
-func (f *fakeClient) GetEntries(filter *rssClient.Filter) (*rssClient.EntryResultSet, error) {
+func (f *fakeClient) GetEntries(_ *rssClient.Filter) (*rssClient.EntryResultSet, error) {
 	if f.entriesErr != nil {
 		return nil, f.entriesErr
 	}
@@ -50,7 +50,7 @@ func (f *fakeClient) GetEntries(filter *rssClient.Filter) (*rssClient.EntryResul
 	return f.entries, nil
 }
 
-func (f *fakeClient) UpdateEntries(entryIDs []int64, status string) error {
+func (f *fakeClient) UpdateEntries(_ []int64, status string) error {
 	switch status {
 	case rssClient.EntryStatusRead:
 		return f.markReadErr

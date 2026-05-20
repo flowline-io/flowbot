@@ -31,7 +31,7 @@ func AssertCursorEncoding(t *testing.T, secret []byte, payload ability.CursorPay
 }
 
 // AssertPageInfoIsComplete verifies all fields in PageInfo are set correctly.
-func AssertPageInfoIsComplete(t *testing.T, page *ability.PageInfo, limit int) {
+func AssertPageInfoIsComplete(t *testing.T, page *ability.PageInfo, _ int) {
 	t.Helper()
 	require.NotNil(t, page, "PageInfo must not be nil")
 	assert.GreaterOrEqual(t, page.Limit, 0, "Limit must be >= 0")

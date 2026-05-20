@@ -205,7 +205,7 @@ func TestSlack_GetIdentity_Error(t *testing.T) {
 	t.Parallel()
 	t.Run("identity error", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			response := IdentityResponse{
 				OK:    false,
 				Error: "account_inactive",

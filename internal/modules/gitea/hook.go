@@ -13,15 +13,15 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-func hookIssueOpened(ctx types.Context, issue *gitea.IssuePayload) error {
+func hookIssueOpened(_ types.Context, _ *gitea.IssuePayload) error {
 	return nil
 }
 
-func hookIssueCreated(ctx types.Context, issue *gitea.IssuePayload) error {
+func hookIssueCreated(_ types.Context, _ *gitea.IssuePayload) error {
 	return nil
 }
 
-func hookIssueClosed(ctx types.Context, issue *gitea.IssuePayload) error {
+func hookIssueClosed(_ types.Context, _ *gitea.IssuePayload) error {
 	return nil
 }
 

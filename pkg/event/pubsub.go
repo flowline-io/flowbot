@@ -42,10 +42,10 @@ func NewSubscriber(lc fx.Lifecycle) (message.Subscriber, error) {
 	}
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return subscriber.Close()
 		},
 	})
@@ -70,10 +70,10 @@ func NewPublisher(lc fx.Lifecycle) (message.Publisher, error) {
 	)
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return Publisher.Close()
 		},
 	})

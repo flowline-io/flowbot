@@ -46,7 +46,7 @@ func TestAuthDetector_BearerAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("WWW-Authenticate", tt.wwwAuth)
 				for k, v := range tt.extraHeaders {
 					w.Header().Set(k, v)
@@ -109,7 +109,7 @@ func TestAuthDetector_BasicAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				if tt.wwwAuth != "" {
 					w.Header().Set("WWW-Authenticate", tt.wwwAuth)
 				}
@@ -149,7 +149,7 @@ func TestAuthDetector_NoAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tt.statusCode)
 				_, _ = w.Write([]byte("ok"))
 			}))
@@ -195,7 +195,7 @@ func TestAuthDetector_ForbiddenNoWWWAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				if tt.wwwAuth != "" {
 					w.Header().Set("WWW-Authenticate", tt.wwwAuth)
 				}
@@ -256,7 +256,7 @@ func TestAuthDetector_OIDCHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("WWW-Authenticate", tt.wwwAuth)
 				for k, v := range tt.extraHeaders {
 					w.Header().Set(k, v)
@@ -296,7 +296,7 @@ func TestAuthDetector_UnknownAuthScheme(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("WWW-Authenticate", tt.value)
 				w.WriteHeader(http.StatusUnauthorized)
 			}))

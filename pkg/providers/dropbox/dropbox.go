@@ -67,7 +67,7 @@ func (v *Dropbox) completeAuth(code string) (any, error) {
 	}
 }
 
-func (v *Dropbox) Redirect(req *http.Request) (string, error) {
+func (v *Dropbox) Redirect(_ *http.Request) (string, error) {
 	appRedirectURI := v.GetAuthorizeURL()
 	return appRedirectURI, nil
 }

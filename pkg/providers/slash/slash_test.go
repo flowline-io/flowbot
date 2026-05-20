@@ -218,7 +218,7 @@ func TestSlash_GetShortcut_NotFound(t *testing.T) {
 	t.Parallel()
 	t.Run("shortcut not found", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
 		defer server.Close()
@@ -287,7 +287,7 @@ func TestSlash_ListShortcuts_Empty(t *testing.T) {
 	t.Parallel()
 	t.Run("empty list shortcuts", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			shortcuts := []*Shortcut{}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)

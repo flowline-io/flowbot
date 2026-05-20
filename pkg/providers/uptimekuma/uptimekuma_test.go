@@ -55,7 +55,7 @@ func TestUptimeKuma_Metrics_InvalidResponse(t *testing.T) {
 	t.Parallel()
 	t.Run("invalid prometheus response", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
 			_, err := w.Write([]byte("not valid prometheus metrics"))
@@ -74,7 +74,7 @@ func TestUptimeKuma_Metrics_EmptyResponse(t *testing.T) {
 	t.Parallel()
 	t.Run("empty metrics response", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
 			_, err := w.Write([]byte(""))

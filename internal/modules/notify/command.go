@@ -14,7 +14,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "notify list",
 		Help:   `List notify`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			list, err := store.Database.ListConfigByPrefix(ctx.Context(), ctx.AsUser, "", "notify:")
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
@@ -43,7 +43,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "notify config",
 		Help:   `Create notify`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			return module.FormMsg(ctx, createNotifyFormID)
 		},
 	},

@@ -52,7 +52,7 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 	)
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			go func() {
 				if err := router.Run(context.Background()); err != nil {
 					flog.Error(err)
@@ -61,7 +61,7 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return router.Close()
 		},
 	})

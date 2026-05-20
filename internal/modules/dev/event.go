@@ -9,7 +9,7 @@ import (
 var eventRules = []event.Rule{
 	{
 		Id: types.ExampleBotEventID,
-		Handler: func(ctx types.Context, param types.KV) error {
+		Handler: func(_ types.Context, param types.KV) error {
 			flog.Info("[event] run %s with param %v", types.ExampleBotEventID, param)
 			return nil
 		},

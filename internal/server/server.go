@@ -18,7 +18,7 @@ import (
 
 func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher) {
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			var err error
 
 			// init log

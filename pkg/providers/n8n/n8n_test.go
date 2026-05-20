@@ -63,7 +63,7 @@ func TestN8N_ListWorkflows_Error(t *testing.T) {
 	t.Parallel()
 	t.Run("unauthorized error", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
 		defer server.Close()
@@ -344,7 +344,7 @@ func TestN8N_ExecuteWorkflow_NoWebhook(t *testing.T) {
 	t.Parallel()
 	t.Run("execute workflow with no webhook", func(t *testing.T) {
 		t.Parallel()
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			workflow := Workflow{
 				ID:     "workflow-123",
 				Name:   "Test Workflow",

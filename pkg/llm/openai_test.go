@@ -84,7 +84,7 @@ func TestOpenAI_Generate_Success(t *testing.T) {
 func TestOpenAI_Generate_EmptyChoices(t *testing.T) {
 	t.Parallel()
 
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprint(w, `{"choices":[]}`)
 	}))
@@ -120,7 +120,7 @@ func TestOpenAI_Generate_APIError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tt.statusCode)
 				_, _ = fmt.Fprint(w, tt.body)
 			}))
@@ -146,7 +146,7 @@ func TestOpenAI_Generate_APIError(t *testing.T) {
 func TestOpenAI_GenerateStream_Success(t *testing.T) {
 	t.Parallel()
 
-	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, r *http.Request) {
+	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
 		flusher, _ := w.(http.Flusher)
@@ -189,7 +189,7 @@ func TestOpenAI_GenerateStream_Success(t *testing.T) {
 func TestOpenAI_GenerateStream_CtxCancel(t *testing.T) {
 	t.Parallel()
 
-	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, r *http.Request) {
+	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
 		flusher, _ := w.(http.Flusher)

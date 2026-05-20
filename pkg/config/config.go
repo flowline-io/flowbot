@@ -578,7 +578,7 @@ func NewConfig(lc fx.Lifecycle) *Type {
 
 	// fx hooks
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			// Watch config
 			viper.OnConfigChange(func(e fsnotify.Event) {
 				log.Printf("Config file changed: %s\n", e.String())
@@ -593,7 +593,7 @@ func NewConfig(lc fx.Lifecycle) *Type {
 
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			return nil
 		},
 	})

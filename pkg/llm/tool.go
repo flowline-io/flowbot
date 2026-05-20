@@ -41,7 +41,7 @@ type FunctionTool struct {
 }
 
 // Info returns tool metadata
-func (f *FunctionTool) Info(ctx context.Context) (*ToolInfo, error) {
+func (f *FunctionTool) Info(_ context.Context) (*ToolInfo, error) {
 	return &ToolInfo{
 		Name:        f.Name,
 		Desc:        f.Description,

@@ -26,28 +26,28 @@ var commandRules = []command.Rule{
 	{
 		Define: "dev setting",
 		Help:   `[example] setting`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			return module.SettingMsg(ctx, Name)
 		},
 	},
 	{
 		Define: "id",
 		Help:   `Generate random id`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			return types.TextMsg{Text: types.Id()}
 		},
 	},
 	{
 		Define: "form test",
 		Help:   `[example] form`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			return module.FormMsg(ctx, devFormID)
 		},
 	},
 	{
 		Define: "queue test",
 		Help:   `[example] publish mq and task`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			err := event.SendMessage(ctx, types.TextMsg{Text: time.Now().String()})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
@@ -59,7 +59,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "page test",
 		Help:   `[example] dev page`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			url, err := module.PageURL(ctx, devPageId, nil, 24*time.Hour)
 			if err != nil {
 				return types.TextMsg{Text: "error"}
@@ -71,7 +71,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "docker test",
 		Help:   `[example] run docker image`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			flog.Debug("start docker command")
 
 			task := &types.Task{
@@ -93,7 +93,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "torrent test",
 		Help:   `[example] torrent download demo`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client, err := transmission.GetClient()
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
@@ -111,7 +111,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "slash test",
 		Help:   `[example] Slash example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			url, err := module.Shortcut("test", "https://example.com")
 			if err != nil {
 				return types.TextMsg{Text: "error"}
@@ -123,7 +123,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "llm test",
 		Help:   `[example] LLM example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			if !llm.AgentEnabled(llm.AgentChat) {
 				return types.TextMsg{Text: "agent chat disabled"}
 			}
@@ -150,7 +150,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "notify test",
 		Help:   `[example] Notify example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			err := notify.ChannelSend(ctx.AsUser, "example", notify.Message{
 				Title: "example title",
 				Body:  "example body",
@@ -166,7 +166,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "fs test",
 		Help:   `[example] filesystem example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			f, err := os.Open("./README.md")
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
@@ -195,7 +195,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "event test",
 		Help:   `[example] event example`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			err := event.BotEventFire(ctx, types.ExampleBotEventID, types.KV{
 				"k1": "v1",
 			})
@@ -208,7 +208,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "test",
 		Help:   `[example] test`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			key := "test:filter"
 			ok, err := rdb.BloomUniqueString(ctx.Context(), key, "1")
 			_, _ = fmt.Println(ok, err)

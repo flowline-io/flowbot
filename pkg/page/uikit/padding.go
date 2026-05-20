@@ -8,6 +8,6 @@ const (
 	PaddingLargeClass = "uk-padding-large"
 )
 
-func Padding(elems ...app.UI) app.HTMLDiv {
+func Padding(_ ...app.UI) app.HTMLDiv {
 	return app.Div().Class("uk-padding")
 }

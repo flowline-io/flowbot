@@ -11,11 +11,11 @@ import (
 
 type fakeMounter struct{}
 
-func (*fakeMounter) Mount(ctx context.Context, mnt *types.Mount) error {
+func (*fakeMounter) Mount(_ context.Context, _ *types.Mount) error {
 	return nil
 }
 
-func (*fakeMounter) Unmount(ctx context.Context, mnt *types.Mount) error {
+func (*fakeMounter) Unmount(_ context.Context, _ *types.Mount) error {
 	return nil
 }
 

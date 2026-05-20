@@ -16,7 +16,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "hub health",
 		Help:   `Hub health status summary`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			checker := hub.NewChecker(hub.Default)
 			result := checker.Check(ctx.Context())
 
@@ -29,7 +29,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "hub apps",
 		Help:   `List all registered homelab apps`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			apps := homelab.DefaultRegistry.List()
 			if len(apps) == 0 {
 				return types.TextMsg{Text: "No apps registered"}
@@ -44,7 +44,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "hub app [name]",
 		Help:   `View app details and health`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
 			name, _ := tokens[2].Value.String()
 			app, ok := homelab.DefaultRegistry.Get(name)
 			if !ok {
@@ -60,7 +60,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "hub capabilities",
 		Help:   `List all capabilities and their bindings`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			bindings := hub.Default.Bindings()
 			if len(bindings) == 0 {
 				return types.TextMsg{Text: "No capabilities registered"}

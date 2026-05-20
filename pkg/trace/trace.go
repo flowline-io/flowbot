@@ -81,7 +81,7 @@ func NewTracerProvider(lc fx.Lifecycle) (*sdktrace.TracerProvider, error) {
 	))
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			flog.Info("tracing exporter started: endpoint=%s service=%s env=%s sample=%.2f",
 				endpoint, serviceName, environment, sampleRate)
 			return nil

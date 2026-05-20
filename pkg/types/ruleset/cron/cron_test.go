@@ -75,7 +75,7 @@ func TestNewCronRuleset(t *testing.T) {
 				Help:  "Test rule 1",
 				Scope: CronScopeSystem,
 				When:  "* * * * *",
-				Action: func(ctx types.Context) []types.MsgPayload {
+				Action: func(_ types.Context) []types.MsgPayload {
 					return nil
 				},
 			},

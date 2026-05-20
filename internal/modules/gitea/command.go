@@ -13,7 +13,7 @@ var commandRules = []command.Rule{
 	{
 		Define: "gitea",
 		Help:   `Example command`,
-		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
 			client, err := gitea.GetClient()
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}

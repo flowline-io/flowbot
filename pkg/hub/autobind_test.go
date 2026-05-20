@@ -26,7 +26,7 @@ func TestAutoBind(t *testing.T) {
 		},
 		{
 			name: "discovered capabilities",
-			setup: func(t *testing.T) {
+			setup: func(_ *testing.T) {
 				apps := []homelab.App{
 					{
 						Name: "my-karakeep",

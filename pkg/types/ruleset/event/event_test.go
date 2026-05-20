@@ -36,7 +36,7 @@ func TestRuleset_ProcessEvent_MatchingRule(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "event1",
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, _ types.KV) error {
 					called = true
 					return nil
 				},
@@ -57,7 +57,7 @@ func TestRuleset_ProcessEvent_NoMatchingRule(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "event1",
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, _ types.KV) error {
 					return errors.New("should not be called")
 				},
 			},
@@ -77,7 +77,7 @@ func TestRuleset_ProcessEvent_HandlerReturnsError(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "event1",
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, _ types.KV) error {
 					return expectedErr
 				},
 			},
@@ -97,14 +97,14 @@ func TestRuleset_ProcessEvent_MultipleRulesStopsOnError(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "event1",
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, _ types.KV) error {
 					callOrder = append(callOrder, "first")
 					return errors.New("first error")
 				},
 			},
 			{
 				Id: "event1", // duplicate ID
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, _ types.KV) error {
 					callOrder = append(callOrder, "second")
 					return nil
 				},
@@ -137,7 +137,7 @@ func TestRuleset_ProcessEvent_PassesParams(t *testing.T) {
 		rules := Ruleset{
 			{
 				Id: "event1",
-				Handler: func(ctx types.Context, param types.KV) error {
+				Handler: func(_ types.Context, param types.KV) error {
 					receivedParam = param
 					return nil
 				},

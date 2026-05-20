@@ -85,7 +85,7 @@ func (d *Driver) WebSocketClient() {
 	})
 
 	// Message create event handler
-	d.session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	d.session.AddHandler(func(_ *discordgo.Session, m *discordgo.MessageCreate) {
 		// convert
 		protocolEvent := d.adapter.EventConvert(m)
 		if protocolEvent.DetailType == "" {
@@ -102,7 +102,7 @@ func (d *Driver) WebSocketClient() {
 	})
 
 	// Interaction create event handler
-	d.session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	d.session.AddHandler(func(_ *discordgo.Session, i *discordgo.InteractionCreate) {
 		// convert
 		protocolEvent := d.adapter.EventConvert(i)
 		if protocolEvent.DetailType == "" {

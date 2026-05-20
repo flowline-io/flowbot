@@ -113,7 +113,7 @@ var cronRules = []cron.Rule{
 		Name:  "monitor_metrics",
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
-		Action: func(ctx types.Context) []types.MsgPayload {
+		Action: func(_ types.Context) []types.MsgPayload {
 			client := uptimekuma.GetClient()
 			metricFamilies, err := client.Metrics()
 			if err != nil {
@@ -144,7 +144,7 @@ var cronRules = []cron.Rule{
 		Name:  "rules_updater",
 		Scope: cron.CronScopeSystem,
 		When:  "* * * * *",
-		Action: func(ctx types.Context) []types.MsgPayload {
+		Action: func(_ types.Context) []types.MsgPayload {
 			//err := rules.Updater(ctx.Context())
 			//if err != nil {
 			//	flog.Error(err)

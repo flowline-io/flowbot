@@ -52,13 +52,13 @@ func TestRegistry_Register(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			invoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			invoker := func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{Data: "ok"}, nil
 			}
 			err := r.Register(hub.CapBookmark, "list", invoker)
 			require.NoError(t, err)
 			if tt.name == "registering duplicate operation overwrites previous invoker" {
-				newInvoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+				newInvoker := func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 					return &InvokeResult{Data: "overwritten"}, nil
 				}
 				err = r.Register(hub.CapBookmark, "list", newInvoker)
@@ -95,7 +95,7 @@ func TestRegistry_RegisterEmptyCapability(t *testing.T) {
 			if tt.name == "valid capability with empty operation returns invalid argument error" {
 				operation = ""
 			}
-			err := r.Register(tt.capability, operation, func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(tt.capability, operation, func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return nil, nil
 			})
 			if tt.errMsg != "" {
@@ -126,7 +126,7 @@ func TestRegistry_RegisterEmptyOperation(t *testing.T) {
 			r := NewRegistry()
 			var invoker Invoker
 			if tt.name != "valid operation with nil invoker returns invalid argument error" {
-				invoker = func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+				invoker = func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 					return nil, nil
 				}
 			}
@@ -178,7 +178,7 @@ func TestRegistry_RegisterMultipleOperations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			invoker := func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			invoker := func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{}, nil
 			}
 			if tt.name == "registers operations across different capabilities" {
@@ -194,7 +194,7 @@ func TestRegistry_RegisterMultipleOperations(t *testing.T) {
 			require.NoError(t, r.Register(hub.CapBookmark, "get", invoker))
 			require.NoError(t, r.Register(hub.CapBookmark, "create", invoker))
 			if tt.name == "registering same operation multiple times overwrites without error" {
-				require.NoError(t, r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+				require.NoError(t, r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 					return &InvokeResult{Data: "overwritten"}, nil
 				}))
 			}
@@ -229,7 +229,7 @@ func TestRegistry_InvokeSuccess(t *testing.T) {
 			if tt.name == "invoke returns result with empty events" {
 				expected.Meta = map[string]any{}
 			}
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, params map[string]any) (*InvokeResult, error) {
 				assert.Equal(t, "val", params["key"])
 				return expected, nil
 			})
@@ -282,7 +282,7 @@ func TestRegistry_InvokeOperationNotFound(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{}, nil
 			})
 			require.NoError(t, err)
@@ -309,7 +309,7 @@ func TestRegistry_InvokeNilParams(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, params map[string]any) (*InvokeResult, error) {
 				require.NotNil(t, params)
 				assert.Empty(t, params)
 				if tt.name == "nil params with nil result from handler returns empty result" {
@@ -345,7 +345,7 @@ func TestRegistry_InvokeNilResultBecomesEmpty(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			err := r.Register(tt.cap, tt.op, func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(tt.cap, tt.op, func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return nil, nil
 			})
 			require.NoError(t, err)
@@ -373,7 +373,7 @@ func TestRegistry_InvokePropagatesError(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
 			invokeErr := tt.err
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return nil, invokeErr
 			})
 			require.NoError(t, err)
@@ -408,12 +408,12 @@ func TestRegistry_InvokeEmitsEvents(t *testing.T) {
 			r := NewRegistry()
 			var emitted *InvokeResult
 			var mu sync.Mutex
-			r.emitter = func(ctx context.Context, result *InvokeResult) {
+			r.emitter = func(_ context.Context, result *InvokeResult) {
 				mu.Lock()
 				defer mu.Unlock()
 				emitted = result
 			}
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{Events: tt.events}, nil
 			})
 			require.NoError(t, err)
@@ -444,10 +444,10 @@ func TestRegistry_InvokeNoEmitWithoutEvents(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
 			emitted := false
-			r.emitter = func(ctx context.Context, result *InvokeResult) {
+			r.emitter = func(_ context.Context, _ *InvokeResult) {
 				emitted = true
 			}
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				if tt.name == "nil events field in result does not emit" {
 					return &InvokeResult{Events: nil}, nil
 				}
@@ -485,7 +485,7 @@ func TestRegistry_InvokeNoEmitWithoutEmitter(t *testing.T) {
 					{EventID: "evt2", EventType: "test"},
 				}
 			}
-			err := r.Register(hub.CapBookmark, "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{Events: events}, nil
 			})
 			require.NoError(t, err)
@@ -507,7 +507,7 @@ func TestSetEventEmitter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			called := false
-			SetEventEmitter(func(ctx context.Context, result *InvokeResult) {
+			SetEventEmitter(func(_ context.Context, _ *InvokeResult) {
 				called = true
 			})
 			DefaultRegistry.mu.RLock()
@@ -526,7 +526,7 @@ func TestSetEventEmitter(t *testing.T) {
 			}
 			if tt.name == "re-setting emitter with new function works" {
 				newCalled := false
-				SetEventEmitter(func(ctx context.Context, result *InvokeResult) {
+				SetEventEmitter(func(_ context.Context, _ *InvokeResult) {
 					newCalled = true
 				})
 				DefaultRegistry.mu.RLock()
@@ -548,10 +548,10 @@ func TestRegisterInvoker(t *testing.T) {
 		invoker    Invoker
 		wantErr    bool
 	}{
-		{"convenience function registers and invokes successfully", hub.CapBookmark, "test_op", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+		{"convenience function registers and invokes successfully", hub.CapBookmark, "test_op", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 			return &InvokeResult{Data: "via convenience"}, nil
 		}, false},
-		{"convenience function with empty capability returns error", "", "list", func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+		{"convenience function with empty capability returns error", "", "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 			return nil, nil
 		}, true},
 		{"convenience function with nil invoker returns error", hub.CapBookmark, "list", nil, true},
@@ -591,7 +591,7 @@ func TestRegistry_InvokeResultHasCapabilityAndOperation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
-			err := r.Register(tt.cap, tt.op, func(ctx context.Context, params map[string]any) (*InvokeResult, error) {
+			err := r.Register(tt.cap, tt.op, func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
 				return &InvokeResult{Text: tt.text}, nil
 			})
 			require.NoError(t, err)

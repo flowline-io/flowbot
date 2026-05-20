@@ -180,7 +180,7 @@ func VersionCommand(version string) *cobra.Command {
 		Use:   "version",
 		Short: "Print version information",
 		Long:  "Display the version of flowbot CLI",
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			_, _ = fmt.Printf("flowbot version %s\n", version)
 			return nil
 		},

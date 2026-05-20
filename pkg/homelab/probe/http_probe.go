@@ -23,7 +23,7 @@ type HTTPProbe struct {
 func NewHTTPProbe(timeout time.Duration) *HTTPProbe {
 	client := &http.Client{
 		Timeout: timeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
