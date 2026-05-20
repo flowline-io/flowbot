@@ -45,6 +45,9 @@ func (i *Drone) CreateBuild(namespace, name string) (*Build, error) {
 		return nil, fmt.Errorf("failed to create build: %w", err)
 	}
 
-	result := resp.Result().(*Build)
+	result, ok := resp.Result().(*Build)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from drone")
+	}
 	return result, nil
 }

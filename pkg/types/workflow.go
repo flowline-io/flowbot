@@ -40,22 +40,25 @@ func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 		bo = backoff.NewConstantBackOff(r.Delay)
 	case BackoffLinear:
 		bo = backoff.NewExponentialBackOff()
-		ebo := bo.(*backoff.ExponentialBackOff)
-		ebo.InitialInterval = r.Delay
-		ebo.MaxInterval = r.MaxDelay
-		ebo.Multiplier = 1.0
+		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
+			ebo.InitialInterval = r.Delay
+			ebo.MaxInterval = r.MaxDelay
+			ebo.Multiplier = 1.0
+		}
 	case BackoffExponential, "":
 		bo = backoff.NewExponentialBackOff()
-		ebo := bo.(*backoff.ExponentialBackOff)
-		ebo.InitialInterval = r.Delay
-		ebo.MaxInterval = r.MaxDelay
-		ebo.Multiplier = 2.0
+		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
+			ebo.InitialInterval = r.Delay
+			ebo.MaxInterval = r.MaxDelay
+			ebo.Multiplier = 2.0
+		}
 	default:
 		bo = backoff.NewExponentialBackOff()
-		ebo := bo.(*backoff.ExponentialBackOff)
-		ebo.InitialInterval = r.Delay
-		ebo.MaxInterval = r.MaxDelay
-		ebo.Multiplier = 2.0
+		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
+			ebo.InitialInterval = r.Delay
+			ebo.MaxInterval = r.MaxDelay
+			ebo.Multiplier = 2.0
+		}
 	}
 	if r.Jitter {
 		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {

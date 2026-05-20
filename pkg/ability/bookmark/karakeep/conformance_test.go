@@ -44,7 +44,10 @@ func TestKarakeepConformance(t *testing.T) {
 					checkURLResp:  cfgToCheckURLResp(cfg),
 					checkURLErr:   cfg.CheckURLErr,
 				}
-				a := NewWithClient(c).(*Adapter)
+				a, ok := NewWithClient(c).(*Adapter)
+				if !ok {
+					t.Fatal("unexpected type")
+				}
 				a.cursorSecret = conformance.CursorSecret
 				a.now = conformance.TestTime
 				return a

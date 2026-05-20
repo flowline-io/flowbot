@@ -513,7 +513,8 @@ func TestKV_Merge_Lists(t *testing.T) {
 		a := KV{"items": []any{"a", "b"}}
 		b := KV{"items": []any{"c"}}
 		result := a.Merge(b)
-		list := result["items"].([]any)
+		list, ok := result["items"].([]any)
+		assert.True(t, ok)
 		assert.Equal(t, []any{"a", "b", "c"}, list)
 	})
 }
@@ -525,7 +526,8 @@ func TestKV_Merge_ListNil(t *testing.T) {
 		a := KV{"items": nil}
 		b := KV{"items": []any{"a"}}
 		result := a.Merge(b)
-		list := result["items"].([]any)
+		list, ok := result["items"].([]any)
+		assert.True(t, ok)
 		assert.Equal(t, []any{"a"}, list)
 	})
 }

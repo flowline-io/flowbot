@@ -137,7 +137,11 @@ func TestAnthropic_GenerateStream_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}`)
 		flusher.Flush()
 		_, _ = fmt.Fprintln(w, `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":" world"}}`)
@@ -182,7 +186,11 @@ func TestAnthropic_GenerateStream_CtxCancel(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"first"}}`)
 		flusher.Flush()
 	}))

@@ -671,7 +671,8 @@ func TestRender_Params(t *testing.T) {
 			},
 			event: map[string]any{"id": "123"},
 			wantAssert: func(t *testing.T, result map[string]any) {
-				nested := result["nested"].(map[string]any)
+				nested, ok := result["nested"].(map[string]any)
+				assert.True(t, ok)
 				assert.Equal(t, "123", nested["inner"])
 			},
 		},
@@ -682,7 +683,8 @@ func TestRender_Params(t *testing.T) {
 			},
 			event: map[string]any{"id": "eid"},
 			wantAssert: func(t *testing.T, result map[string]any) {
-				items := result["items"].([]any)
+				items, ok := result["items"].([]any)
+				assert.True(t, ok)
 				assert.Equal(t, "eid", items[0])
 				assert.Equal(t, "static", items[1])
 			},
@@ -1083,12 +1085,17 @@ func TestRender_MaxDepth(t *testing.T) {
 			name: "MaxDepth",
 			buildParams: func() map[string]any {
 				params := map[string]any{"x": map[string]any{}}
-				inner := params["x"].(map[string]any)
-				for i := range maxRenderDepth + 5 {
+				inner, ok := params["x"].(map[string]any)
+				if !ok {
+					return nil
+				}
+				for range maxRenderDepth + 5 {
 					next := map[string]any{"x": map[string]any{}}
 					inner["x"] = next
-					inner = next["x"].(map[string]any)
-					_ = i
+					inner, ok = next["x"].(map[string]any)
+					if !ok {
+						return nil
+					}
 				}
 				return params
 			},

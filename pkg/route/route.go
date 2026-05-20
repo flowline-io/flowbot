@@ -148,7 +148,10 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 // GetRequestContext returns the typed RequestContext from fiber.Locals.
 // Returns nil if the request was not authorized.
 func GetRequestContext(ctx fiber.Ctx) *RequestContext {
-	rc, _ := ctx.Locals(requestContextKey).(*RequestContext)
+	rc, ok := ctx.Locals(requestContextKey).(*RequestContext)
+	if !ok {
+		return nil
+	}
 	return rc
 }
 

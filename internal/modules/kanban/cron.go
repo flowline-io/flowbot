@@ -29,8 +29,14 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			tasks, _ := res.Data.([]*ability.Task)
-			taskTotal := len(tasks)
+			tasks, ok := res.Data.([]*ability.Task)
+			if !ok {
+				tasks = nil
+			}
+			taskTotal := 0
+			if tasks != nil {
+				taskTotal = len(tasks)
+			}
 
 			stats.KanbanTaskTotalCounter().Set(uint64(taskTotal))
 			cacheStore.SetMetricsInt64(stats.KanbanTaskTotalStatsName, int64(taskTotal))

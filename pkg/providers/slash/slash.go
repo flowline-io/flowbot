@@ -88,7 +88,11 @@ func (i *Slash) GetShortcut(id int32) (*Shortcut, error) {
 	if resp.StatusCode() != 200 {
 		return nil, fmt.Errorf("failed to get slash shortcut: %s", resp.String())
 	}
-	return resp.Result().(*Shortcut), nil
+	result, ok := resp.Result().(*Shortcut)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from slash")
+	}
+	return result, nil
 }
 
 func (i *Slash) ListShortcuts() ([]*Shortcut, error) {

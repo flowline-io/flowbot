@@ -295,7 +295,8 @@ func TestListInvokeResult_NonNil(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := listInvokeResult("list", tt.lr)
-			items := result.Data.([]*ability.Bookmark)
+			items, ok := result.Data.([]*ability.Bookmark)
+			require.True(t, ok)
 			assert.Len(t, items, len(tt.lr.Items))
 			assert.Equal(t, tt.lr.Page.Limit, result.Page.Limit)
 			assert.Equal(t, tt.lr.Page.HasMore, result.Page.HasMore)

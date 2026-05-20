@@ -34,8 +34,10 @@ var cronRules = []cron.Rule{
 				flog.Error(err)
 				return nil
 			}
-			entries, _ := res.Data.([]*ability.Entry)
-
+			entries, ok := res.Data.([]*ability.Entry)
+			if !ok {
+				return nil
+			}
 			total := len(entries)
 			stats.ReaderTotalCounter().Set(uint64(total))
 
@@ -69,7 +71,10 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			entries, _ := res.Data.([]*ability.Entry)
+			entries, ok := res.Data.([]*ability.Entry)
+			if !ok {
+				return nil
+			}
 			flog.Info("[reader] get %d unread entries", len(entries))
 
 			entryLen := int32(0)

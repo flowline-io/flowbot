@@ -65,8 +65,8 @@ func (*plugin) Send(tokens types.KV, message notify.Message) error {
 		return fmt.Errorf("%d", resp.StatusCode())
 	}
 
-	respResult, _ := resp.Result().(*Response)
-	if !respResult.Success {
+	respResult, ok := resp.Result().(*Response)
+	if !ok || !respResult.Success {
 		return fmt.Errorf("%s", respResult.Message)
 	}
 

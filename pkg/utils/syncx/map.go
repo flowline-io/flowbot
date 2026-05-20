@@ -11,11 +11,12 @@ func (m *Map[K, V]) Delete(key K) {
 }
 
 func (m *Map[K, V]) Get(key K) (value V, ok bool) {
-	v, ok := m.m.Load(key)
-	if !ok {
+	v, loaded := m.m.Load(key)
+	if !loaded {
 		return value, ok
 	}
-	return v.(V), ok
+	value, ok = v.(V)
+	return
 }
 
 func (m *Map[K, V]) Set(key K, value V) {
@@ -24,7 +25,15 @@ func (m *Map[K, V]) Set(key K, value V) {
 
 func (m *Map[K, V]) Iterate(f func(key K, value V)) {
 	m.m.Range(func(key, value any) bool {
-		f(key.(K), value.(V))
+		k, ok := key.(K)
+		if !ok {
+			return true
+		}
+		v, ok := value.(V)
+		if !ok {
+			return true
+		}
+		f(k, v)
 		return true
 	})
 }

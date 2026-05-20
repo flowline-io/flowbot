@@ -149,7 +149,11 @@ func TestOpenAI_GenerateStream_Success(t *testing.T) {
 	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"Hello"},"index":0}]}`)
 		flusher.Flush()
 		_, _ = fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":" world"},"index":0}]}`)
@@ -192,7 +196,11 @@ func TestOpenAI_GenerateStream_CtxCancel(t *testing.T) {
 	srv := setupOpenAIProvider(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"choices":[{"delta":{"content":"first"},"index":0}]}`)
 		flusher.Flush()
 	})

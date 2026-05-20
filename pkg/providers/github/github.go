@@ -57,7 +57,10 @@ func (v *Github) completeAuth(code string) (any, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		result := resp.Result().(*TokenResponse)
+		result, ok := resp.Result().(*TokenResponse)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
 		v.accessToken = result.AccessToken
 		return result, nil
 	} else {
@@ -100,7 +103,11 @@ func (v *Github) GetAuthenticatedUser() (*User, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*User), nil
+		result, ok := resp.Result().(*User)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -117,7 +124,11 @@ func (v *Github) GetUser(username string) (*User, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*User), nil
+		result, ok := resp.Result().(*User)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -169,7 +180,11 @@ func (v *Github) CreateIssue(owner, repo string, issue Issue) (*Issue, error) {
 	}
 
 	if resp.StatusCode() == http.StatusCreated {
-		return resp.Result().(*Issue), nil
+		result, ok := resp.Result().(*Issue)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -221,7 +236,11 @@ func (v *Github) CreateCard(columnID int64, card ProjectCard) (*ProjectCard, err
 	}
 
 	if resp.StatusCode() == http.StatusCreated {
-		return resp.Result().(*ProjectCard), nil
+		result, ok := resp.Result().(*ProjectCard)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
@@ -238,7 +257,11 @@ func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*Repository), nil
+		result, ok := resp.Result().(*Repository)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}

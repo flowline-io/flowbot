@@ -72,7 +72,10 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 		return result
 	}
 
-	messageEvent := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
+	messageEvent, ok := apiEvent.InnerEvent.Data.(*slackevents.MessageEvent)
+	if !ok {
+		return result
+	}
 
 	if messageEvent.BotID != "" {
 		return result

@@ -43,6 +43,9 @@ func (i *ArchiveBox) Add(data Data) (*Response, error) {
 		return nil, fmt.Errorf("failed to add: %w", err)
 	}
 
-	result := resp.Result().(*Response)
+	result, ok := resp.Result().(*Response)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from archivebox")
+	}
 	return result, nil
 }

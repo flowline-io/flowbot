@@ -46,7 +46,10 @@ func (v *AdGuardHome) GetStatus() (*ServerStatus, error) {
 		return nil, fmt.Errorf("failed to Get DNS server current status and general settings: %w", err)
 	}
 
-	result := resp.Result().(*ServerStatus)
+	result, ok := resp.Result().(*ServerStatus)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from adguard")
+	}
 	return result, nil
 }
 
@@ -58,6 +61,9 @@ func (v *AdGuardHome) GetStats() (*Stats, error) {
 		return nil, fmt.Errorf("failed to Get DNS server statistics: %w", err)
 	}
 
-	result := resp.Result().(*Stats)
+	result, ok := resp.Result().(*Stats)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type from adguard")
+	}
 	return result, nil
 }

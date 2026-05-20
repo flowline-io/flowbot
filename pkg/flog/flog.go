@@ -183,7 +183,9 @@ func Ctx(ctx context.Context) *zerolog.Logger {
 // Falls back to the global logger if the module is not configured.
 func Module(name string) *zerolog.Logger {
 	if lgr, ok := moduleLogs.Load(name); ok {
-		return lgr.(*zerolog.Logger)
+		if log, ok := lgr.(*zerolog.Logger); ok {
+			return log
+		}
 	}
 	stateMu.RLock()
 	lg := l
@@ -236,7 +238,10 @@ func syncGlobalLevelLocked() {
 	minLvl := defaultLvl
 	stateMu.RUnlock()
 	moduleLvls.Range(func(_ any, v any) bool {
-		lvl := v.(zerolog.Level)
+		lvl, ok := v.(zerolog.Level)
+		if !ok {
+			return true
+		}
 		if lvl < minLvl {
 			minLvl = lvl
 		}

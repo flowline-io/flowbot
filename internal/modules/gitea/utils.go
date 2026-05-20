@@ -130,6 +130,13 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 	return mergeChunkResults(codeContext.Metadata, results), nil
 }
 
+func safeStr(m map[string]any, key string) string {
+	if s, ok := m[key].(string); ok {
+		return s
+	}
+	return ""
+}
+
 // formatFilesContext builds a formatted string from chunk file contexts.
 func formatFilesContext(filesContext []map[string]any) string {
 	if len(filesContext) == 0 {
@@ -137,9 +144,9 @@ func formatFilesContext(filesContext []map[string]any) string {
 	}
 	var b strings.Builder
 	for _, f := range filesContext {
-		filePath, _ := f["file_path"].(string)
-		fileType, _ := f["file_type"].(string)
-		codeContext, _ := f["context"].(string)
+		filePath := safeStr(f, "file_path")
+		fileType := safeStr(f, "file_type")
+		codeContext := safeStr(f, "context")
 		_, _ = b.WriteString("File: " + filePath + " (" + fileType + ")\n" + codeContext + "\n\n")
 	}
 	return b.String()

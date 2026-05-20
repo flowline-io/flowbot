@@ -13,6 +13,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
+func safeStr(data map[string]any, key string) string {
+	if s, ok := data[key].(string); ok {
+		return s
+	}
+	return ""
+}
+
 type Action struct {
 	api *slack.Client
 }
@@ -279,9 +286,9 @@ func handleSegLocation(segment protocol.MessageSegment) (string, []slack.Block, 
 	if !latOk || !lonOk {
 		return "", nil, nil
 	}
-	title, _ := segment.Data["title"].(string)
-	locContent, _ := segment.Data["content"].(string)
-	locText := fmt.Sprintf("📍 *%s*\nLat: %.6f, Lon: %.6f", title, lat, lon)
+	title := safeStr(segment.Data, "title")
+	locContent := safeStr(segment.Data, "content")
+	locText := fmt.Sprintf("*%s*\nLat: %.6f, Lon: %.6f", title, lat, lon)
 	if locContent != "" {
 		locText += "\n" + locContent
 	}
@@ -297,13 +304,13 @@ func handleSegReply(segment protocol.MessageSegment) (string, []slack.Block, []s
 	if !ok2 {
 		return "", nil, nil
 	}
-	return "", []slack.Block{contextBlock(fmt.Sprintf("↩️ Replying to <@%s> (msg: %s)", userID, msgID))}, nil
+	return "", []slack.Block{contextBlock(fmt.Sprintf("Replying to <@%s> (msg: %s)", userID, msgID))}, nil
 }
 
 func handleSegChart(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	chartType, _ := segment.Data["chart_type"].(string)
-	title, _ := segment.Data["title"].(string)
-	subtitle, _ := segment.Data["subtitle"].(string)
+	chartType := safeStr(segment.Data, "chart_type")
+	title := safeStr(segment.Data, "title")
+	subtitle := safeStr(segment.Data, "subtitle")
 	labels := toStringSlice(segment.Data["labels"])
 	values := toFloat64Slice(segment.Data["values"])
 
@@ -316,14 +323,14 @@ func handleSegChart(segment protocol.MessageSegment) (string, []slack.Block, []s
 }
 
 func handleSegTable(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	title, _ := segment.Data["title"].(string)
+	title := safeStr(segment.Data, "title")
 	headers := toStringSlice(segment.Data["headers"])
 	rows := toRowSlice(segment.Data["rows"])
 	return "", buildTableBlocks(title, headers, rows), nil
 }
 
 func handleSegForm(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	title, _ := segment.Data["title"].(string)
+	title := safeStr(segment.Data, "title")
 	fields := toFormFieldDefs(segment.Data["fields"])
 	var blocks []slack.Block
 	if title != "" {
@@ -344,10 +351,10 @@ func handleSegForm(segment protocol.MessageSegment) (string, []slack.Block, []st
 }
 
 func handleSegActionCard(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	title, _ := segment.Data["title"].(string)
-	description, _ := segment.Data["description"].(string)
-	imageURL, _ := segment.Data["image_url"].(string)
-	footer, _ := segment.Data["footer"].(string)
+	title := safeStr(segment.Data, "title")
+	description := safeStr(segment.Data, "description")
+	imageURL := safeStr(segment.Data, "image_url")
+	footer := safeStr(segment.Data, "footer")
 	fields := toStringMap(segment.Data["fields"])
 	buttons := toButtonDefs(segment.Data["buttons"])
 	return "", buildActionCard(ActionCardDef{
@@ -361,17 +368,17 @@ func handleSegActionCard(segment protocol.MessageSegment) (string, []slack.Block
 }
 
 func handleSegStatus(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	statusText, _ := segment.Data["text"].(string)
+	statusText := safeStr(segment.Data, "text")
 	if statusText == "" {
-		statusText = "Processing…"
+		statusText = "Processing..."
 	}
 	return "", statusBlocks(statusText), nil
 }
 
 func handleSegLink(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	title, _ := segment.Data["title"].(string)
-	url, _ := segment.Data["url"].(string)
-	cover, _ := segment.Data["cover"].(string)
+	title := safeStr(segment.Data, "title")
+	url := safeStr(segment.Data, "url")
+	cover := safeStr(segment.Data, "cover")
 	if url == "" {
 		return "", nil, nil
 	}
@@ -386,8 +393,8 @@ func handleSegLink(segment protocol.MessageSegment) (string, []slack.Block, []st
 }
 
 func handleSegMarkdown(segment protocol.MessageSegment) (string, []slack.Block, []string) {
-	title, _ := segment.Data["title"].(string)
-	text, _ := segment.Data["text"].(string)
+	title := safeStr(segment.Data, "title")
+	text := safeStr(segment.Data, "text")
 	var blocks []slack.Block
 	if title != "" {
 		blocks = append(blocks, header(title))

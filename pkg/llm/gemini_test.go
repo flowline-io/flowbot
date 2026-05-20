@@ -137,7 +137,11 @@ func TestGemini_GenerateStream_Success(t *testing.T) {
 		assert.Contains(t, r.URL.Path, "streamGenerateContent")
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"candidates":[{"content":{"parts":[{"text":"Hello"}],"role":"model"}}]}`)
 		flusher.Flush()
 		_, _ = fmt.Fprintln(w, `data: {"candidates":[{"content":{"parts":[{"text":" world"}],"role":"model"}}]}`)
@@ -181,7 +185,11 @@ func TestGemini_GenerateStream_CtxCancel(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		flusher, _ := w.(http.Flusher)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		_, _ = fmt.Fprintln(w, `data: {"candidates":[{"content":{"parts":[{"text":"first"}],"role":"model"}}]}`)
 		flusher.Flush()
 	}))

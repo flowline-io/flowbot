@@ -30,7 +30,6 @@ warningCode = 0
 [rule.empty-block]
 [rule.superfluous-else]
 [rule.unused-parameter]
-    Disabled = true
 [rule.unreachable-code]
 [rule.redefines-builtin-id]
 [rule.defer]
@@ -57,5 +56,5 @@ warningCode = 0
 [rule.use-any]
 [rule.cyclomatic]
   arguments = [15]
-# [rule.cognitive-complexity]
-#   arguments = [15]
+[rule.atomic]
+[rule.unchecked-type-assertion]

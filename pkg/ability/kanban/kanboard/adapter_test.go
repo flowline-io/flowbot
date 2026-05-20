@@ -140,7 +140,8 @@ func TestListTasksConvertsProviderTasks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{tasks: tt.tasks}).(*Adapter)
+			adapter, ok := NewWithClient(&fakeClient{tasks: tt.tasks}).(*Adapter)
+			require.True(t, ok)
 			result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{ProjectID: 1})
 			require.NoError(t, err)
 			require.NotNil(t, result)
@@ -168,7 +169,8 @@ func TestListTasksEmpty(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(tt.fakeSetup()).(*Adapter)
+			adapter, ok := NewWithClient(tt.fakeSetup()).(*Adapter)
+			require.True(t, ok)
 			result, err := adapter.ListTasks(t.Context(), &kb.TaskQuery{})
 			require.NoError(t, err)
 			require.NotNil(t, result)
@@ -191,7 +193,8 @@ func TestGetTaskReturnsConvertedTask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{task: tt.task}).(*Adapter)
+			adapter, ok := NewWithClient(&fakeClient{task: tt.task}).(*Adapter)
+			require.True(t, ok)
 			task, err := adapter.GetTask(t.Context(), tt.task.ID)
 			require.NoError(t, err)
 			require.NotNil(t, task)
@@ -221,7 +224,8 @@ func TestCreateTaskReturnsAbilityTask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{createTaskID: tt.fakeID}).(*Adapter)
+			adapter, ok := NewWithClient(&fakeClient{createTaskID: tt.fakeID}).(*Adapter)
+			require.True(t, ok)
 			task, err := adapter.CreateTask(t.Context(), tt.request)
 			require.NoError(t, err)
 			require.NotNil(t, task)

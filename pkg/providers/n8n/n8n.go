@@ -70,7 +70,11 @@ func (v *N8N) GetWorkflow(id string) (*Workflow, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*Workflow), nil
+		result, ok := resp.Result().(*Workflow)
+		if !ok {
+			return nil, fmt.Errorf("unexpected response type from n8n")
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
@@ -87,7 +91,11 @@ func (v *N8N) CreateWorkflow(workflow *Workflow) (*Workflow, error) {
 	}
 
 	if resp.StatusCode() == http.StatusCreated || resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*Workflow), nil
+		result, ok := resp.Result().(*Workflow)
+		if !ok {
+			return nil, fmt.Errorf("unexpected response type from n8n")
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
@@ -105,7 +113,11 @@ func (v *N8N) UpdateWorkflow(id string, workflow *Workflow) (*Workflow, error) {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(*Workflow), nil
+		result, ok := resp.Result().(*Workflow)
+		if !ok {
+			return nil, fmt.Errorf("unexpected response type from n8n")
+		}
+		return result, nil
 	} else {
 		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}

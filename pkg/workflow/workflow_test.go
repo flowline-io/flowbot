@@ -528,7 +528,8 @@ func TestResolveParams(t *testing.T) {
 			},
 			results: map[string]string{"step1": "nested-id"},
 			check: func(t *testing.T, resolved types.KV) {
-				inner := resolved["inner"].(map[string]any)
+				inner, ok := resolved["inner"].(map[string]any)
+				assert.True(t, ok)
 				assert.Equal(t, "nested-id", inner["ref"])
 			},
 		},
@@ -539,7 +540,8 @@ func TestResolveParams(t *testing.T) {
 			},
 			results: map[string]string{"a": "x", "b": "y"},
 			check: func(t *testing.T, resolved types.KV) {
-				items := resolved["items"].([]any)
+				items, ok := resolved["items"].([]any)
+				assert.True(t, ok)
 				assert.Equal(t, "x", items[0])
 				assert.Equal(t, "y", items[1])
 			},

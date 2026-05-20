@@ -51,7 +51,10 @@ func (v *client) auth() error {
 	}
 
 	if resp.StatusCode() == http.StatusOK {
-		result := resp.Result().(*TokenResponse)
+		result, ok := resp.Result().(*TokenResponse)
+		if !ok {
+			return fmt.Errorf("%d: unexpected response type from tailchat", resp.StatusCode())
+		}
 		v.accessToken = result.Data.Jwt
 		return nil
 	} else {

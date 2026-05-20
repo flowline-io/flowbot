@@ -249,7 +249,8 @@ func TestRenderParams(t *testing.T) {
 				},
 			},
 			asserts: func(t *testing.T, rendered map[string]any) {
-				nested := rendered["nested"].(map[string]any)
+				nested, ok := rendered["nested"].(map[string]any)
+				assert.True(t, ok)
 				assert.Equal(t, "123", nested["inner"])
 			},
 		},
@@ -263,7 +264,8 @@ func TestRenderParams(t *testing.T) {
 				"items": []any{"{{event.id}}", "static"},
 			},
 			asserts: func(t *testing.T, rendered map[string]any) {
-				items := rendered["items"].([]any)
+				items, ok := rendered["items"].([]any)
+				assert.True(t, ok)
 				assert.Equal(t, "eid", items[0])
 				assert.Equal(t, "static", items[1])
 			},

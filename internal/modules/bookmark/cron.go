@@ -42,7 +42,10 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				return nil
+			}
 			for _, bookmark := range bookmarks {
 				if len(bookmark.Tags) > 0 {
 					continue
@@ -81,7 +84,10 @@ var cronRules = []cron.Rule{
 			}
 
 			bookmarkTotal := 0
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				return nil
+			}
 			for _, bookmark := range bookmarks {
 				if bookmark.Archived {
 					continue
@@ -105,7 +111,10 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				return nil
+			}
 			for _, bookmark := range bookmarks {
 				err := search.Instance.AddDocument(types.Document{
 					SourceId:    bookmark.ID,
@@ -135,7 +144,10 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				return nil
+			}
 			for _, bookmark := range bookmarks {
 				if bookmark.Archived {
 					continue
@@ -189,7 +201,10 @@ var cronRules = []cron.Rule{
 				return nil
 			}
 
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				return nil
+			}
 
 			tagSet := make(map[string]struct{})
 			for _, bookmark := range bookmarks {

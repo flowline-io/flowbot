@@ -22,7 +22,10 @@ var commandRules = []command.Rule{
 
 			var header []string
 			var row [][]any
-			bookmarks, _ := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			if !ok {
+				bookmarks = nil
+			}
 			if len(bookmarks) > 0 {
 				header = []string{"Id", "Title", "URL"}
 				for _, v := range bookmarks {
