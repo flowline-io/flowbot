@@ -104,7 +104,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			err = pipelineStore.RecordConsumption(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 
-			consumed, err = pipelineStore.HasConsumed(consumerName, eventID)
+			consumed, err = pipelineStore.HasConsumed(context.Background(), consumerName, eventID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(consumed).To(BeTrue())
 		})
@@ -181,7 +181,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(consumed).To(BeTrue())
 
-			notConsumed, err := pipelineStore.HasConsumed(consumerName, "other-event")
+			notConsumed, err := pipelineStore.HasConsumed(context.Background(), consumerName, "other-event")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(notConsumed).To(BeFalse())
 		})

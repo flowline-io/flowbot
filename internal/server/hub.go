@@ -162,7 +162,7 @@ func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation strin
 	return app, nil
 }
 
-func (c *Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
+func (*Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
 	auditStore := store.NewAuditStore(store.Database.GetDB().(*store.Client))
 	_ = auditStore.Write(ctx, store.AuditEntry{
 		ActorType:    "token",
