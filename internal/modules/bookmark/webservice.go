@@ -213,7 +213,7 @@ func invokeBookmark(ctx fiber.Ctx, operation string, params map[string]any) erro
 func pageParams(ctx fiber.Ctx) map[string]any {
 	params := map[string]any{}
 	if v := ctx.Query("limit"); v != "" {
-		if _, err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+		if err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
 			if n, err := strconv.Atoi(v); err == nil {
 				params["limit"] = n
 			}

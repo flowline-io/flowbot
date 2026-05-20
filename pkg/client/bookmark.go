@@ -74,7 +74,7 @@ func (b *BookmarkClient) Get(ctx context.Context, id string) (*karakeep.Bookmark
 
 // Create creates a new bookmark from a URL.
 func (b *BookmarkClient) Create(ctx context.Context, url string) (*karakeep.Bookmark, error) {
-	if _, err := validate.ValidateVar(url, validate.TagURL); err != nil {
+	if err := validate.ValidateVar(url, validate.TagURL); err != nil {
 		return nil, fmt.Errorf("invalid url: %w", err)
 	}
 
@@ -165,7 +165,7 @@ type CheckUrlResult struct {
 
 // CheckUrl checks if a URL is already bookmarked.
 func (b *BookmarkClient) CheckUrl(ctx context.Context, url string) (*CheckUrlResult, error) {
-	if _, err := validate.ValidateVar(url, validate.TagURL); err != nil {
+	if err := validate.ValidateVar(url, validate.TagURL); err != nil {
 		return nil, fmt.Errorf("invalid url: %w", err)
 	}
 

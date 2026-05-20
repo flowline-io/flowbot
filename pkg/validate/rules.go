@@ -32,8 +32,8 @@ const (
 var Validate = validator.New()
 
 // ValidateVar validates a single variable against a tag
-func ValidateVar(v any, tag string) (any, error) {
-	return v, Validate.Var(v, tag)
+func ValidateVar(v any, tag string) error {
+	return Validate.Var(v, tag)
 }
 
 // Common validation tags for reuse in struct definitions

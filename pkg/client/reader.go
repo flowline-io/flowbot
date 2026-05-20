@@ -53,7 +53,7 @@ func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (
 	if req.FeedURL == "" {
 		return nil, fmt.Errorf("feed_url is required")
 	}
-	if _, err := validate.ValidateVar(req.FeedURL, validate.TagURL); err != nil {
+	if err := validate.ValidateVar(req.FeedURL, validate.TagURL); err != nil {
 		return nil, fmt.Errorf("invalid feed_url: %w", err)
 	}
 

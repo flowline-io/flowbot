@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -144,22 +145,31 @@ func onModuleRunEventHandler(msg *message.Message) error {
 func onPlatformMessageEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
 
-	var pe protocol.Event
-	err := sonic.Unmarshal(msg.Payload, &pe)
+	var raw struct {
+		Id         string             `json:"id"`
+		Time       int64              `json:"time"`
+		Type       protocol.EventType `json:"type"`
+		DetailType string             `json:"detail_type"`
+		Data       json.RawMessage    `json:"data"`
+	}
+	err := sonic.Unmarshal(msg.Payload, &raw)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal platform message event: %w", err)
 	}
 
-	data, err := sonic.Marshal(pe.Data)
-	if err != nil {
-		return fmt.Errorf("failed to marshal platform message event: %w", err)
-	}
 	var v protocol.MessageEventData
-	err = sonic.Unmarshal(data, &v)
+	err = sonic.Unmarshal(raw.Data, &v)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal platform message event: %w", err)
+		return fmt.Errorf("failed to unmarshal platform message event data: %w", err)
 	}
-	pe.Data = v
+
+	pe := protocol.Event{
+		Id:         raw.Id,
+		Time:       raw.Time,
+		Type:       raw.Type,
+		DetailType: raw.DetailType,
+		Data:       v,
+	}
 
 	caller, err := platforms.GetCaller(v.Self.Platform)
 	if err != nil {
