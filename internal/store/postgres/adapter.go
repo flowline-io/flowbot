@@ -183,8 +183,7 @@ func (a *adapter) GetDB() any {
 // User
 // ---------------------------------------------------------------------------
 
-func (a *adapter) UserCreate(usr *model.User) error {
-	ctx := context.Background()
+func (a *adapter) UserCreate(ctx context.Context, usr *model.User) error {
 	_, err := a.client.User.Create().
 		SetFlag(usr.Flag).
 		SetName(usr.Name).
@@ -199,8 +198,7 @@ func (a *adapter) UserCreate(usr *model.User) error {
 	return nil
 }
 
-func (a *adapter) UserGet(uid types.Uid) (*model.User, error) {
-	ctx := context.Background()
+func (a *adapter) UserGet(ctx context.Context, uid types.Uid) (*model.User, error) {
 	u, err := a.client.User.Query().Where(user.FlagEQ(uid.String())).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -211,8 +209,7 @@ func (a *adapter) UserGet(uid types.Uid) (*model.User, error) {
 	return entUserToModel(u), nil
 }
 
-func (a *adapter) UserGetAll(ids ...types.Uid) ([]*model.User, error) {
-	ctx := context.Background()
+func (a *adapter) UserGetAll(ctx context.Context, ids ...types.Uid) ([]*model.User, error) {
 	q := a.client.User.Query()
 	if len(ids) > 0 {
 		flags := make([]string, len(ids))
@@ -233,8 +230,7 @@ func (a *adapter) UserGetAll(ids ...types.Uid) ([]*model.User, error) {
 	return result, nil
 }
 
-func (a *adapter) FirstUser() (*model.User, error) {
-	ctx := context.Background()
+func (a *adapter) FirstUser(ctx context.Context) (*model.User, error) {
 	u, err := a.client.User.Query().Order(gen.Asc(user.FieldID)).First(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -245,8 +241,7 @@ func (a *adapter) FirstUser() (*model.User, error) {
 	return entUserToModel(u), nil
 }
 
-func (a *adapter) UserDelete(uid types.Uid, hard bool) error {
-	ctx := context.Background()
+func (a *adapter) UserDelete(ctx context.Context, uid types.Uid, hard bool) error {
 	if hard {
 		_, err := a.client.User.Delete().Where(user.FlagEQ(uid.String())).Exec(ctx)
 		if err != nil {
@@ -263,8 +258,7 @@ func (a *adapter) UserDelete(uid types.Uid, hard bool) error {
 	return nil
 }
 
-func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
-	ctx := context.Background()
+func (a *adapter) UserUpdate(ctx context.Context, uid types.Uid, update types.KV) error {
 	u := a.client.User.Update().Where(user.FlagEQ(uid.String()))
 	if v, ok := update.String("name"); ok {
 		u = u.SetName(v)
@@ -287,8 +281,7 @@ func (a *adapter) UserUpdate(uid types.Uid, update types.KV) error {
 // File
 // ---------------------------------------------------------------------------
 
-func (a *adapter) FileStartUpload(fd *types.FileDef) error {
-	ctx := context.Background()
+func (a *adapter) FileStartUpload(ctx context.Context, fd *types.FileDef) error {
 	_, err := a.client.Fileupload.Create().
 		SetUID(fd.User).
 		SetFid(fd.Id).
@@ -306,8 +299,7 @@ func (a *adapter) FileStartUpload(fd *types.FileDef) error {
 	return nil
 }
 
-func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
-	ctx := context.Background()
+func (a *adapter) FileFinishUpload(ctx context.Context, fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
 	st := int(model.FileFailed)
 	if success {
 		st = int(model.FileFinish)
@@ -324,11 +316,10 @@ func (a *adapter) FileFinishUpload(fd *types.FileDef, success bool, size int64) 
 		}
 		return nil, fmt.Errorf("postgres: file finish upload: %w", err)
 	}
-	return a.FileGet(fd.Id)
+	return a.FileGet(ctx, fd.Id)
 }
 
-func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
-	ctx := context.Background()
+func (a *adapter) FileGet(ctx context.Context, fid string) (*types.FileDef, error) {
 	u, err := a.client.Fileupload.Query().Where(fileupload.FidEQ(fid)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -339,8 +330,7 @@ func (a *adapter) FileGet(fid string) (*types.FileDef, error) {
 	return entFileuploadToFileDef(u), nil
 }
 
-func (a *adapter) FileDeleteUnused(olderThan time.Time, limit int) ([]string, error) {
-	ctx := context.Background()
+func (a *adapter) FileDeleteUnused(ctx context.Context, olderThan time.Time, limit int) ([]string, error) {
 	q := a.client.Fileupload.Query().
 		Where(fileupload.StateEQ(int(model.FileFinish)))
 	if !olderThan.IsZero() {
@@ -374,12 +364,11 @@ func (a *adapter) FileDeleteUnused(olderThan time.Time, limit int) ([]string, er
 // Users (by id/flag)
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetUsers() ([]*model.User, error) {
-	return a.UserGetAll()
+func (a *adapter) GetUsers(ctx context.Context) ([]*model.User, error) {
+	return a.UserGetAll(ctx)
 }
 
-func (a *adapter) GetUserById(id int64) (*model.User, error) {
-	ctx := context.Background()
+func (a *adapter) GetUserById(ctx context.Context, id int64) (*model.User, error) {
 	u, err := a.client.User.Query().Where(user.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -390,16 +379,15 @@ func (a *adapter) GetUserById(id int64) (*model.User, error) {
 	return entUserToModel(u), nil
 }
 
-func (a *adapter) GetUserByFlag(flag string) (*model.User, error) {
-	return a.UserGet(types.Uid(flag))
+func (a *adapter) GetUserByFlag(ctx context.Context, flag string) (*model.User, error) {
+	return a.UserGet(ctx, types.Uid(flag))
 }
 
 // ---------------------------------------------------------------------------
 // PlatformUser
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreatePlatformUser(item *model.PlatformUser) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreatePlatformUser(ctx context.Context, item *model.PlatformUser) (int64, error) {
 	u, err := a.client.PlatformUser.Create().
 		SetPlatformID(item.PlatformID).
 		SetUserID(item.UserID).
@@ -417,8 +405,7 @@ func (a *adapter) CreatePlatformUser(item *model.PlatformUser) (int64, error) {
 	return u.ID, nil
 }
 
-func (a *adapter) GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*model.PlatformUser, error) {
 	users, err := a.client.PlatformUser.Query().Where(platformuser.UserIDEQ(userId)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform users by user id: %w", err)
@@ -430,8 +417,7 @@ func (a *adapter) GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser,
 	return result, nil
 }
 
-func (a *adapter) GetPlatformUserByFlag(flag string) (*model.PlatformUser, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformUserByFlag(ctx context.Context, flag string) (*model.PlatformUser, error) {
 	u, err := a.client.PlatformUser.Query().Where(platformuser.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -442,8 +428,7 @@ func (a *adapter) GetPlatformUserByFlag(flag string) (*model.PlatformUser, error
 	return entPlatformUserToModel(u), nil
 }
 
-func (a *adapter) UpdatePlatformUser(item *model.PlatformUser) error {
-	ctx := context.Background()
+func (a *adapter) UpdatePlatformUser(ctx context.Context, item *model.PlatformUser) error {
 	_, err := a.client.PlatformUser.Update().Where(platformuser.IDEQ(item.ID)).
 		SetPlatformID(item.PlatformID).
 		SetUserID(item.UserID).
@@ -467,8 +452,7 @@ func (a *adapter) UpdatePlatformUser(item *model.PlatformUser) error {
 // PlatformChannel
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformChannelByFlag(ctx context.Context, flag string) (*model.PlatformChannel, error) {
 	u, err := a.client.PlatformChannel.Query().Where(platformchannel.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -479,8 +463,7 @@ func (a *adapter) GetPlatformChannelByFlag(flag string) (*model.PlatformChannel,
 	return entPlatformChannelToModel(u), nil
 }
 
-func (a *adapter) GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*model.PlatformChannel, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*model.PlatformChannel, error) {
 	channels, err := a.client.PlatformChannel.Query().Where(platformchannel.PlatformIDIn(platformIds...)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform channels by platform ids: %w", err)
@@ -492,8 +475,7 @@ func (a *adapter) GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*mode
 	return result, nil
 }
 
-func (a *adapter) GetPlatformChannelsByChannelId(channelId int64) (*model.PlatformChannel, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*model.PlatformChannel, error) {
 	u, err := a.client.PlatformChannel.Query().Where(platformchannel.ChannelIDEQ(channelId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -504,8 +486,7 @@ func (a *adapter) GetPlatformChannelsByChannelId(channelId int64) (*model.Platfo
 	return entPlatformChannelToModel(u), nil
 }
 
-func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreatePlatformChannel(ctx context.Context, item *model.PlatformChannel) (int64, error) {
 	u, err := a.client.PlatformChannel.Create().
 		SetPlatformID(item.PlatformID).
 		SetChannelID(item.ChannelID).
@@ -523,8 +504,7 @@ func (a *adapter) CreatePlatformChannel(item *model.PlatformChannel) (int64, err
 // PlatformChannelUser
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreatePlatformChannelUser(item *model.PlatformChannelUser) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreatePlatformChannelUser(ctx context.Context, item *model.PlatformChannelUser) (int64, error) {
 	u, err := a.client.PlatformChannelUser.Create().
 		SetPlatformID(item.PlatformID).
 		SetChannelFlag(item.ChannelFlag).
@@ -538,8 +518,7 @@ func (a *adapter) CreatePlatformChannelUser(item *model.PlatformChannelUser) (in
 	return u.ID, nil
 }
 
-func (a *adapter) GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.PlatformChannelUser, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*model.PlatformChannelUser, error) {
 	users, err := a.client.PlatformChannelUser.Query().
 		Where(platformchanneluser.UserFlagEQ(userFlag)).
 		All(ctx)
@@ -557,8 +536,7 @@ func (a *adapter) GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.P
 // Message
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetMessage(flag string) (*model.Message, error) {
-	ctx := context.Background()
+func (a *adapter) GetMessage(ctx context.Context, flag string) (*model.Message, error) {
 	m, err := a.client.Message.Query().Where(message.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -569,8 +547,7 @@ func (a *adapter) GetMessage(flag string) (*model.Message, error) {
 	return entMessageToModel(m), nil
 }
 
-func (a *adapter) GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error) {
-	ctx := context.Background()
+func (a *adapter) GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*model.Message, error) {
 	m, err := a.client.Message.Query().
 		Where(message.PlatformIDEQ(platformId), message.PlatformMsgIDEQ(platformMsgId)).
 		Only(ctx)
@@ -583,8 +560,7 @@ func (a *adapter) GetMessageByPlatform(platformId int64, platformMsgId string) (
 	return entMessageToModel(m), nil
 }
 
-func (a *adapter) GetMessagesBySession(session string) ([]*model.Message, error) {
-	ctx := context.Background()
+func (a *adapter) GetMessagesBySession(ctx context.Context, session string) ([]*model.Message, error) {
 	messages, err := a.client.Message.Query().
 		Where(message.SessionEQ(session)).
 		Order(gen.Asc(message.FieldCreatedAt)).
@@ -600,8 +576,7 @@ func (a *adapter) GetMessagesBySession(session string) ([]*model.Message, error)
 	return result, nil
 }
 
-func (a *adapter) CreateMessage(msg model.Message) error {
-	ctx := context.Background()
+func (a *adapter) CreateMessage(ctx context.Context, msg model.Message) error {
 	c := a.client.Message.Create().
 		SetFlag(msg.Flag).
 		SetPlatformID(msg.PlatformID).
@@ -629,8 +604,7 @@ func (a *adapter) CreateMessage(msg model.Message) error {
 // Data (KV store)
 // ---------------------------------------------------------------------------
 
-func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) error {
-	ctx := context.Background()
+func (a *adapter) DataSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error {
 	existing, err := a.client.Data.Query().
 		Where(data.UID(uid.String()), data.Topic(topic), data.Key(key)).
 		Only(ctx)
@@ -659,8 +633,7 @@ func (a *adapter) DataSet(uid types.Uid, topic, key string, value types.KV) erro
 	return nil
 }
 
-func (a *adapter) DataGet(uid types.Uid, topic, key string) (types.KV, error) {
-	ctx := context.Background()
+func (a *adapter) DataGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error) {
 	d, err := a.client.Data.Query().
 		Where(data.UID(uid.String()), data.Topic(topic), data.Key(key)).
 		Only(ctx)
@@ -673,8 +646,7 @@ func (a *adapter) DataGet(uid types.Uid, topic, key string) (types.KV, error) {
 	return types.KV(d.Value), nil
 }
 
-func (a *adapter) DataList(uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error) {
-	ctx := context.Background()
+func (a *adapter) DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error) {
 	q := a.client.Data.Query().Where(data.UID(uid.String()), data.Topic(topic))
 	if filter.Prefix != nil && *filter.Prefix != "" {
 		q = q.Where(data.KeyHasPrefix(*filter.Prefix))
@@ -705,8 +677,7 @@ func (a *adapter) DataList(uid types.Uid, topic string, filter types.DataFilter)
 	return result, nil
 }
 
-func (a *adapter) DataDelete(uid types.Uid, topic, key string) error {
-	ctx := context.Background()
+func (a *adapter) DataDelete(ctx context.Context, uid types.Uid, topic, key string) error {
 	_, err := a.client.Data.Delete().
 		Where(data.UID(uid.String()), data.Topic(topic), data.Key(key)).
 		Exec(ctx)
@@ -720,8 +691,7 @@ func (a *adapter) DataDelete(uid types.Uid, topic, key string) error {
 // Config (KV config)
 // ---------------------------------------------------------------------------
 
-func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) error {
-	ctx := context.Background()
+func (a *adapter) ConfigSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error {
 	existing, err := a.client.ConfigData.Query().
 		Where(configdata.UID(uid.String()), configdata.Topic(topic), configdata.Key(key)).
 		Only(ctx)
@@ -750,8 +720,7 @@ func (a *adapter) ConfigSet(uid types.Uid, topic, key string, value types.KV) er
 	return nil
 }
 
-func (a *adapter) ConfigGet(uid types.Uid, topic, key string) (types.KV, error) {
-	ctx := context.Background()
+func (a *adapter) ConfigGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error) {
 	d, err := a.client.ConfigData.Query().
 		Where(configdata.UID(uid.String()), configdata.Topic(topic), configdata.Key(key)).
 		Only(ctx)
@@ -764,8 +733,7 @@ func (a *adapter) ConfigGet(uid types.Uid, topic, key string) (types.KV, error) 
 	return types.KV(d.Value), nil
 }
 
-func (a *adapter) ListConfigByPrefix(uid types.Uid, topic, prefix string) ([]*model.Config, error) {
-	ctx := context.Background()
+func (a *adapter) ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*model.Config, error) {
 	q := a.client.ConfigData.Query().Where(configdata.UID(uid.String()), configdata.Topic(topic))
 	if prefix != "" {
 		q = q.Where(configdata.KeyHasPrefix(prefix))
@@ -790,8 +758,7 @@ func (a *adapter) ListConfigByPrefix(uid types.Uid, topic, prefix string) ([]*mo
 	return result, nil
 }
 
-func (a *adapter) ConfigDelete(uid types.Uid, topic, key string) error {
-	ctx := context.Background()
+func (a *adapter) ConfigDelete(ctx context.Context, uid types.Uid, topic, key string) error {
 	_, err := a.client.ConfigData.Delete().
 		Where(configdata.UID(uid.String()), configdata.Topic(topic), configdata.Key(key)).
 		Exec(ctx)
@@ -805,8 +772,7 @@ func (a *adapter) ConfigDelete(uid types.Uid, topic, key string) error {
 // OAuth
 // ---------------------------------------------------------------------------
 
-func (a *adapter) OAuthSet(oauthModel model.OAuth) error {
-	ctx := context.Background()
+func (a *adapter) OAuthSet(ctx context.Context, oauthModel model.OAuth) error {
 	existing, err := a.client.OAuth.Query().
 		Where(
 			oauth.UID(oauthModel.UID),
@@ -847,8 +813,7 @@ func (a *adapter) OAuthSet(oauthModel model.OAuth) error {
 	return nil
 }
 
-func (a *adapter) OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error) {
-	ctx := context.Background()
+func (a *adapter) OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (model.OAuth, error) {
 	o, err := a.client.OAuth.Query().
 		Where(oauth.UID(uid.String()), oauth.Topic(topic), oauth.Type(t)).
 		Only(ctx)
@@ -861,8 +826,7 @@ func (a *adapter) OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error) 
 	return entOAuthToModel(o), nil
 }
 
-func (a *adapter) OAuthGetAvailable(t string) ([]model.OAuth, error) {
-	ctx := context.Background()
+func (a *adapter) OAuthGetAvailable(ctx context.Context, t string) ([]model.OAuth, error) {
 	oauths, err := a.client.OAuth.Query().Where(oauth.Type(t)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: oauthgetavailable: %w", err)
@@ -878,8 +842,7 @@ func (a *adapter) OAuthGetAvailable(t string) ([]model.OAuth, error) {
 // Form
 // ---------------------------------------------------------------------------
 
-func (a *adapter) FormSet(formId string, formModel model.Form) error {
-	ctx := context.Background()
+func (a *adapter) FormSet(ctx context.Context, formId string, formModel model.Form) error {
 	existing, err := a.client.Form.Query().Where(form.FormIDEQ(formId)).Only(ctx)
 	if err != nil && !gen.IsNotFound(err) {
 		return fmt.Errorf("postgres: formset query: %w", err)
@@ -926,8 +889,7 @@ func (a *adapter) FormSet(formId string, formModel model.Form) error {
 	return nil
 }
 
-func (a *adapter) FormGet(formId string) (model.Form, error) {
-	ctx := context.Background()
+func (a *adapter) FormGet(ctx context.Context, formId string) (model.Form, error) {
 	f, err := a.client.Form.Query().Where(form.FormIDEQ(formId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -942,8 +904,7 @@ func (a *adapter) FormGet(formId string) (model.Form, error) {
 // Page
 // ---------------------------------------------------------------------------
 
-func (a *adapter) PageSet(pageId string, pageModel model.Page) error {
-	ctx := context.Background()
+func (a *adapter) PageSet(ctx context.Context, pageId string, pageModel model.Page) error {
 	existing, err := a.client.Page.Query().Where(page.PageIDEQ(pageId)).Only(ctx)
 	if err != nil && !gen.IsNotFound(err) {
 		return fmt.Errorf("postgres: pageset query: %w", err)
@@ -980,8 +941,7 @@ func (a *adapter) PageSet(pageId string, pageModel model.Page) error {
 	return nil
 }
 
-func (a *adapter) PageGet(pageId string) (model.Page, error) {
-	ctx := context.Background()
+func (a *adapter) PageGet(ctx context.Context, pageId string) (model.Page, error) {
 	p, err := a.client.Page.Query().Where(page.PageIDEQ(pageId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -996,8 +956,7 @@ func (a *adapter) PageGet(pageId string) (model.Page, error) {
 // Behavior
 // ---------------------------------------------------------------------------
 
-func (a *adapter) BehaviorSet(behaviorModel model.Behavior) error {
-	ctx := context.Background()
+func (a *adapter) BehaviorSet(ctx context.Context, behaviorModel model.Behavior) error {
 	existing, err := a.client.Behavior.Query().
 		Where(behavior.UID(behaviorModel.UID), behavior.Flag(behaviorModel.Flag)).
 		Only(ctx)
@@ -1031,8 +990,7 @@ func (a *adapter) BehaviorSet(behaviorModel model.Behavior) error {
 	return nil
 }
 
-func (a *adapter) BehaviorGet(uid types.Uid, flag string) (model.Behavior, error) {
-	ctx := context.Background()
+func (a *adapter) BehaviorGet(ctx context.Context, uid types.Uid, flag string) (model.Behavior, error) {
 	b, err := a.client.Behavior.Query().
 		Where(behavior.UID(uid.String()), behavior.FlagEQ(flag)).
 		Only(ctx)
@@ -1045,8 +1003,7 @@ func (a *adapter) BehaviorGet(uid types.Uid, flag string) (model.Behavior, error
 	return entBehaviorToModel(b), nil
 }
 
-func (a *adapter) BehaviorList(uid types.Uid) ([]*model.Behavior, error) {
-	ctx := context.Background()
+func (a *adapter) BehaviorList(ctx context.Context, uid types.Uid) ([]*model.Behavior, error) {
 	behaviors, err := a.client.Behavior.Query().
 		Where(behavior.UID(uid.String())).
 		Order(gen.Asc(behavior.FieldCreatedAt)).
@@ -1063,8 +1020,7 @@ func (a *adapter) BehaviorList(uid types.Uid) ([]*model.Behavior, error) {
 	return result, nil
 }
 
-func (a *adapter) BehaviorIncrease(uid types.Uid, flag string, number int) error {
-	ctx := context.Background()
+func (a *adapter) BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error {
 	u := a.client.Behavior.Update().Where(behavior.UID(uid.String()), behavior.FlagEQ(flag))
 	u = u.AddCount(int32(number)).SetUpdatedAt(time.Now())
 	_, err := u.Save(ctx)
@@ -1081,8 +1037,7 @@ func (a *adapter) BehaviorIncrease(uid types.Uid, flag string, number int) error
 // Parameter
 // ---------------------------------------------------------------------------
 
-func (a *adapter) ParameterSet(flag string, params types.KV, expiredAt time.Time) error {
-	ctx := context.Background()
+func (a *adapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
 	existing, err := a.client.Parameter.Query().Where(parameter.FlagEQ(flag)).Only(ctx)
 	if err != nil && !gen.IsNotFound(err) {
 		return fmt.Errorf("postgres: parameterset query: %w", err)
@@ -1109,8 +1064,7 @@ func (a *adapter) ParameterSet(flag string, params types.KV, expiredAt time.Time
 	return nil
 }
 
-func (a *adapter) ParameterGet(flag string) (model.Parameter, error) {
-	ctx := context.Background()
+func (a *adapter) ParameterGet(ctx context.Context, flag string) (model.Parameter, error) {
 	p, err := a.client.Parameter.Query().Where(parameter.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1128,8 +1082,7 @@ func (a *adapter) ParameterGet(flag string) (model.Parameter, error) {
 	}, nil
 }
 
-func (a *adapter) ParameterDelete(flag string) error {
-	ctx := context.Background()
+func (a *adapter) ParameterDelete(ctx context.Context, flag string) error {
 	_, err := a.client.Parameter.Delete().Where(parameter.FlagEQ(flag)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: parameterdelete: %w", err)
@@ -1141,8 +1094,7 @@ func (a *adapter) ParameterDelete(flag string) error {
 // Instruct
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreateInstruct(instructModel *model.Instruct) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateInstruct(ctx context.Context, instructModel *model.Instruct) (int64, error) {
 	c := a.client.Instruct.Create().
 		SetNo(instructModel.No).
 		SetUID(instructModel.UID).
@@ -1164,8 +1116,7 @@ func (a *adapter) CreateInstruct(instructModel *model.Instruct) (int64, error) {
 	return u.ID, nil
 }
 
-func (a *adapter) ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error) {
-	ctx := context.Background()
+func (a *adapter) ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error) {
 	q := a.client.Instruct.Query().Where(instruct.UID(uid.String()))
 	if isExpire {
 		q = q.Where(instruct.ExpireAtLTE(time.Now()))
@@ -1200,8 +1151,7 @@ func (a *adapter) ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*mode
 	return result, nil
 }
 
-func (a *adapter) UpdateInstruct(instructModel *model.Instruct) error {
-	ctx := context.Background()
+func (a *adapter) UpdateInstruct(ctx context.Context, instructModel *model.Instruct) error {
 	_, err := a.client.Instruct.Update().
 		Where(instruct.NoEQ(instructModel.No)).
 		SetState(int(instructModel.State)).
@@ -1217,8 +1167,7 @@ func (a *adapter) UpdateInstruct(instructModel *model.Instruct) error {
 // Webhook
 // ---------------------------------------------------------------------------
 
-func (a *adapter) ListWebhook(uid types.Uid) ([]*model.Webhook, error) {
-	ctx := context.Background()
+func (a *adapter) ListWebhook(ctx context.Context, uid types.Uid) ([]*model.Webhook, error) {
 	webhooks, err := a.client.Webhook.Query().
 		Where(webhook.UID(uid.String())).
 		Order(gen.Asc(webhook.FieldCreatedAt)).
@@ -1234,8 +1183,7 @@ func (a *adapter) ListWebhook(uid types.Uid) ([]*model.Webhook, error) {
 	return result, nil
 }
 
-func (a *adapter) CreateWebhook(webhookModel *model.Webhook) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateWebhook(ctx context.Context, webhookModel *model.Webhook) (int64, error) {
 	w, err := a.client.Webhook.Create().
 		SetUID(webhookModel.UID).
 		SetTopic(webhookModel.Topic).
@@ -1252,8 +1200,7 @@ func (a *adapter) CreateWebhook(webhookModel *model.Webhook) (int64, error) {
 	return w.ID, nil
 }
 
-func (a *adapter) UpdateWebhook(webhookModel *model.Webhook) error {
-	ctx := context.Background()
+func (a *adapter) UpdateWebhook(ctx context.Context, webhookModel *model.Webhook) error {
 	_, err := a.client.Webhook.Update().Where(webhook.IDEQ(webhookModel.ID)).
 		SetUID(webhookModel.UID).
 		SetTopic(webhookModel.Topic).
@@ -1272,8 +1219,7 @@ func (a *adapter) UpdateWebhook(webhookModel *model.Webhook) error {
 	return nil
 }
 
-func (a *adapter) DeleteWebhook(id int64) error {
-	ctx := context.Background()
+func (a *adapter) DeleteWebhook(ctx context.Context, id int64) error {
 	_, err := a.client.Webhook.Delete().Where(webhook.IDEQ(id)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: deletewebhook: %w", err)
@@ -1281,8 +1227,7 @@ func (a *adapter) DeleteWebhook(id int64) error {
 	return nil
 }
 
-func (a *adapter) IncreaseWebhookCount(id int64) error {
-	ctx := context.Background()
+func (a *adapter) IncreaseWebhookCount(ctx context.Context, id int64) error {
 	_, err := a.client.Webhook.Update().Where(webhook.IDEQ(id)).
 		AddTriggerCount(1).
 		SetUpdatedAt(time.Now()).
@@ -1296,8 +1241,7 @@ func (a *adapter) IncreaseWebhookCount(id int64) error {
 	return nil
 }
 
-func (a *adapter) GetWebhookBySecret(secret string) (*model.Webhook, error) {
-	ctx := context.Background()
+func (a *adapter) GetWebhookBySecret(ctx context.Context, secret string) (*model.Webhook, error) {
 	w, err := a.client.Webhook.Query().Where(webhook.SecretEQ(secret)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1308,8 +1252,7 @@ func (a *adapter) GetWebhookBySecret(secret string) (*model.Webhook, error) {
 	return entWebhookToModel(w), nil
 }
 
-func (a *adapter) GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Webhook, error) {
-	ctx := context.Background()
+func (a *adapter) GetWebhookByUidAndFlag(ctx context.Context, uid types.Uid, flag string) (*model.Webhook, error) {
 	w, err := a.client.Webhook.Query().
 		Where(webhook.UID(uid.String()), webhook.FlagEQ(flag)).
 		Only(ctx)
@@ -1326,8 +1269,7 @@ func (a *adapter) GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Web
 // Counter
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreateCounter(counterModel *model.Counter) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateCounter(ctx context.Context, counterModel *model.Counter) (int64, error) {
 	c, err := a.client.Counter.Create().
 		SetUID(counterModel.UID).
 		SetTopic(counterModel.Topic).
@@ -1343,8 +1285,7 @@ func (a *adapter) CreateCounter(counterModel *model.Counter) (int64, error) {
 	return c.ID, nil
 }
 
-func (a *adapter) IncreaseCounter(id, amount int64) error {
-	ctx := context.Background()
+func (a *adapter) IncreaseCounter(ctx context.Context, id, amount int64) error {
 	_, err := a.client.Counter.Update().Where(counter.IDEQ(id)).
 		AddDigit(amount).
 		SetUpdatedAt(time.Now()).
@@ -1358,8 +1299,7 @@ func (a *adapter) IncreaseCounter(id, amount int64) error {
 	return a.record(ctx, id, amount)
 }
 
-func (a *adapter) DecreaseCounter(id, amount int64) error {
-	ctx := context.Background()
+func (a *adapter) DecreaseCounter(ctx context.Context, id, amount int64) error {
 	_, err := a.client.Counter.Update().Where(counter.IDEQ(id)).
 		AddDigit(-amount).
 		SetUpdatedAt(time.Now()).
@@ -1373,8 +1313,7 @@ func (a *adapter) DecreaseCounter(id, amount int64) error {
 	return a.record(ctx, id, -amount)
 }
 
-func (a *adapter) ListCounter(uid types.Uid, topic string) ([]*model.Counter, error) {
-	ctx := context.Background()
+func (a *adapter) ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*model.Counter, error) {
 	counters, err := a.client.Counter.Query().
 		Where(counter.UID(uid.String()), counter.Topic(topic)).
 		Order(gen.Asc(counter.FieldCreatedAt)).
@@ -1399,8 +1338,7 @@ func (a *adapter) ListCounter(uid types.Uid, topic string) ([]*model.Counter, er
 	return result, nil
 }
 
-func (a *adapter) GetCounter(id int64) (model.Counter, error) {
-	ctx := context.Background()
+func (a *adapter) GetCounter(ctx context.Context, id int64) (model.Counter, error) {
 	c, err := a.client.Counter.Query().Where(counter.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1411,8 +1349,7 @@ func (a *adapter) GetCounter(id int64) (model.Counter, error) {
 	return entCounterToModel(c), nil
 }
 
-func (a *adapter) GetCounterByFlag(uid types.Uid, topic, flag string) (model.Counter, error) {
-	ctx := context.Background()
+func (a *adapter) GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (model.Counter, error) {
 	c, err := a.client.Counter.Query().
 		Where(counter.UID(uid.String()), counter.Topic(topic), counter.FlagEQ(flag)).
 		Only(ctx)
@@ -1441,8 +1378,7 @@ func (a *adapter) record(ctx context.Context, id, digit int64) error {
 // Bot
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetBot(id int64) (*model.Bot, error) {
-	ctx := context.Background()
+func (a *adapter) GetBot(ctx context.Context, id int64) (*model.Bot, error) {
 	b, err := a.client.Bot.Query().Where(bot.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1453,8 +1389,7 @@ func (a *adapter) GetBot(id int64) (*model.Bot, error) {
 	return entBotToModel(b), nil
 }
 
-func (a *adapter) GetBotByName(name string) (*model.Bot, error) {
-	ctx := context.Background()
+func (a *adapter) GetBotByName(ctx context.Context, name string) (*model.Bot, error) {
 	b, err := a.client.Bot.Query().Where(bot.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1465,8 +1400,7 @@ func (a *adapter) GetBotByName(name string) (*model.Bot, error) {
 	return entBotToModel(b), nil
 }
 
-func (a *adapter) CreateBot(botModel *model.Bot) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateBot(ctx context.Context, botModel *model.Bot) (int64, error) {
 	b, err := a.client.Bot.Create().
 		SetName(botModel.Name).
 		SetState(int(botModel.State)).
@@ -1479,8 +1413,7 @@ func (a *adapter) CreateBot(botModel *model.Bot) (int64, error) {
 	return b.ID, nil
 }
 
-func (a *adapter) UpdateBot(botModel *model.Bot) error {
-	ctx := context.Background()
+func (a *adapter) UpdateBot(ctx context.Context, botModel *model.Bot) error {
 	_, err := a.client.Bot.Update().Where(bot.IDEQ(botModel.ID)).
 		SetName(botModel.Name).
 		SetState(int(botModel.State)).
@@ -1495,8 +1428,7 @@ func (a *adapter) UpdateBot(botModel *model.Bot) error {
 	return nil
 }
 
-func (a *adapter) DeleteBot(name string) error {
-	ctx := context.Background()
+func (a *adapter) DeleteBot(ctx context.Context, name string) error {
 	_, err := a.client.Bot.Delete().Where(bot.NameEQ(name)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: deletebot: %w", err)
@@ -1504,8 +1436,7 @@ func (a *adapter) DeleteBot(name string) error {
 	return nil
 }
 
-func (a *adapter) GetBots() ([]*model.Bot, error) {
-	ctx := context.Background()
+func (a *adapter) GetBots(ctx context.Context) ([]*model.Bot, error) {
 	bots, err := a.client.Bot.Query().Order(gen.Asc(bot.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getbots: %w", err)
@@ -1521,8 +1452,7 @@ func (a *adapter) GetBots() ([]*model.Bot, error) {
 // Platform
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetPlatform(id int64) (*model.Platform, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatform(ctx context.Context, id int64) (*model.Platform, error) {
 	p, err := a.client.Platform.Query().Where(platform.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1533,8 +1463,7 @@ func (a *adapter) GetPlatform(id int64) (*model.Platform, error) {
 	return entPlatformToModel(p), nil
 }
 
-func (a *adapter) GetPlatformByName(name string) (*model.Platform, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatformByName(ctx context.Context, name string) (*model.Platform, error) {
 	p, err := a.client.Platform.Query().Where(platform.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1545,8 +1474,7 @@ func (a *adapter) GetPlatformByName(name string) (*model.Platform, error) {
 	return entPlatformToModel(p), nil
 }
 
-func (a *adapter) GetPlatforms() ([]*model.Platform, error) {
-	ctx := context.Background()
+func (a *adapter) GetPlatforms(ctx context.Context) ([]*model.Platform, error) {
 	platforms, err := a.client.Platform.Query().Order(gen.Asc(platform.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getplatforms: %w", err)
@@ -1558,8 +1486,7 @@ func (a *adapter) GetPlatforms() ([]*model.Platform, error) {
 	return result, nil
 }
 
-func (a *adapter) CreatePlatform(platformModel *model.Platform) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreatePlatform(ctx context.Context, platformModel *model.Platform) (int64, error) {
 	p, err := a.client.Platform.Create().
 		SetName(platformModel.Name).
 		SetCreatedAt(platformModel.CreatedAt).
@@ -1575,8 +1502,7 @@ func (a *adapter) CreatePlatform(platformModel *model.Platform) (int64, error) {
 // Channel
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetChannel(id int64) (*model.Channel, error) {
-	ctx := context.Background()
+func (a *adapter) GetChannel(ctx context.Context, id int64) (*model.Channel, error) {
 	c, err := a.client.Channel.Query().Where(channel.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1587,8 +1513,7 @@ func (a *adapter) GetChannel(id int64) (*model.Channel, error) {
 	return entChannelToModel(c), nil
 }
 
-func (a *adapter) GetChannelByName(name string) (*model.Channel, error) {
-	ctx := context.Background()
+func (a *adapter) GetChannelByName(ctx context.Context, name string) (*model.Channel, error) {
 	c, err := a.client.Channel.Query().Where(channel.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1599,8 +1524,7 @@ func (a *adapter) GetChannelByName(name string) (*model.Channel, error) {
 	return entChannelToModel(c), nil
 }
 
-func (a *adapter) CreateChannel(channelModel *model.Channel) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateChannel(ctx context.Context, channelModel *model.Channel) (int64, error) {
 	c, err := a.client.Channel.Create().
 		SetName(channelModel.Name).
 		SetFlag(channelModel.Flag).
@@ -1614,8 +1538,7 @@ func (a *adapter) CreateChannel(channelModel *model.Channel) (int64, error) {
 	return c.ID, nil
 }
 
-func (a *adapter) UpdateChannel(channelModel *model.Channel) error {
-	ctx := context.Background()
+func (a *adapter) UpdateChannel(ctx context.Context, channelModel *model.Channel) error {
 	_, err := a.client.Channel.Update().Where(channel.IDEQ(channelModel.ID)).
 		SetName(channelModel.Name).
 		SetFlag(channelModel.Flag).
@@ -1631,8 +1554,7 @@ func (a *adapter) UpdateChannel(channelModel *model.Channel) error {
 	return nil
 }
 
-func (a *adapter) DeleteChannel(name string) error {
-	ctx := context.Background()
+func (a *adapter) DeleteChannel(ctx context.Context, name string) error {
 	_, err := a.client.Channel.Delete().Where(channel.NameEQ(name)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: deletechannel: %w", err)
@@ -1640,8 +1562,7 @@ func (a *adapter) DeleteChannel(name string) error {
 	return nil
 }
 
-func (a *adapter) GetChannels() ([]*model.Channel, error) {
-	ctx := context.Background()
+func (a *adapter) GetChannels(ctx context.Context) ([]*model.Channel, error) {
 	channels, err := a.client.Channel.Query().Order(gen.Asc(channel.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getchannels: %w", err)
@@ -1657,8 +1578,7 @@ func (a *adapter) GetChannels() ([]*model.Channel, error) {
 // Agent
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetAgents() ([]*model.Agent, error) {
-	ctx := context.Background()
+func (a *adapter) GetAgents(ctx context.Context) ([]*model.Agent, error) {
 	agents, err := a.client.Agent.Query().Order(gen.Asc(agent.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getagents: %w", err)
@@ -1670,8 +1590,7 @@ func (a *adapter) GetAgents() ([]*model.Agent, error) {
 	return result, nil
 }
 
-func (a *adapter) GetAgentByHostid(uid types.Uid, topic, hostid string) (*model.Agent, error) {
-	ctx := context.Background()
+func (a *adapter) GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*model.Agent, error) {
 	ag, err := a.client.Agent.Query().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
 		Only(ctx)
@@ -1684,8 +1603,7 @@ func (a *adapter) GetAgentByHostid(uid types.Uid, topic, hostid string) (*model.
 	return entAgentToModel(ag), nil
 }
 
-func (a *adapter) CreateAgent(agentModel *model.Agent) (int64, error) {
-	ctx := context.Background()
+func (a *adapter) CreateAgent(ctx context.Context, agentModel *model.Agent) (int64, error) {
 	ag, err := a.client.Agent.Create().
 		SetUID(agentModel.UID).
 		SetTopic(agentModel.Topic).
@@ -1702,8 +1620,7 @@ func (a *adapter) CreateAgent(agentModel *model.Agent) (int64, error) {
 	return ag.ID, nil
 }
 
-func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error {
-	ctx := context.Background()
+func (a *adapter) UpdateAgentLastOnlineAt(ctx context.Context, uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error {
 	_, err := a.client.Agent.Update().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
 		SetLastOnlineAt(lastOnlineAt).
@@ -1718,8 +1635,7 @@ func (a *adapter) UpdateAgentLastOnlineAt(uid types.Uid, topic, hostid string, l
 	return nil
 }
 
-func (a *adapter) UpdateAgentOnlineDuration(uid types.Uid, topic, hostid string, offlineTime time.Time) error {
-	ctx := context.Background()
+func (a *adapter) UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, topic, hostid string, offlineTime time.Time) error {
 	ag, err := a.client.Agent.Query().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
 		Only(ctx)
