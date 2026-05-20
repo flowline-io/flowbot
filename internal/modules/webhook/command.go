@@ -20,7 +20,7 @@ var commandRules = []command.Rule{
 		Define: `webhook list`,
 		Help:   `List webhook`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			items, err := store.Database.ListWebhook(ctx.AsUser)
+			items, err := store.Database.ListWebhook(ctx.Context(), ctx.AsUser)
 			if err != nil {
 				return nil
 			}
@@ -68,7 +68,7 @@ var commandRules = []command.Rule{
 			}
 
 			// find exist webhook
-			find, err := store.Database.GetWebhookByUidAndFlag(ctx.AsUser, flag)
+			find, err := store.Database.GetWebhookByUidAndFlag(ctx.Context(), ctx.AsUser, flag)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return types.TextMsg{Text: "find failed"}
@@ -83,7 +83,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "generate secret failed"}
 			}
 
-			_, err = store.Database.CreateWebhook(&model.Webhook{
+			_, err = store.Database.CreateWebhook(ctx.Context(), &model.Webhook{
 				UID:          ctx.AsUser.String(),
 				Topic:        ctx.Topic,
 				Flag:         flag,
@@ -105,7 +105,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			secret, _ := tokens[2].Value.String()
 
-			find, err := store.Database.GetWebhookBySecret(secret)
+			find, err := store.Database.GetWebhookBySecret(ctx.Context(), secret)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "find failed"}
@@ -115,7 +115,7 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "auth failed"}
 			}
 
-			err = store.Database.DeleteWebhook(find.ID)
+			err = store.Database.DeleteWebhook(ctx.Context(), find.ID)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "delete failed"}
@@ -130,7 +130,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			secret, _ := tokens[2].Value.String()
 
-			find, err := store.Database.GetWebhookBySecret(secret)
+			find, err := store.Database.GetWebhookBySecret(ctx.Context(), secret)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "find failed"}
@@ -141,7 +141,7 @@ var commandRules = []command.Rule{
 			}
 
 			find.State = model.WebhookActive
-			err = store.Database.UpdateWebhook(find)
+			err = store.Database.UpdateWebhook(ctx.Context(), find)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "update failed"}
@@ -156,7 +156,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			secret, _ := tokens[2].Value.String()
 
-			find, err := store.Database.GetWebhookBySecret(secret)
+			find, err := store.Database.GetWebhookBySecret(ctx.Context(), secret)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "find failed"}
@@ -167,7 +167,7 @@ var commandRules = []command.Rule{
 			}
 
 			find.State = model.WebhookInactive
-			err = store.Database.UpdateWebhook(find)
+			err = store.Database.UpdateWebhook(ctx.Context(), find)
 			if err != nil {
 				flog.Error(err)
 				return types.TextMsg{Text: "update failed"}

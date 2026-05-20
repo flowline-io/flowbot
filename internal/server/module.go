@@ -98,18 +98,18 @@ func registerModules() {
 		if handler.IsReady() {
 			state = model.BotActive
 		}
-		bot, _ := store.Database.GetBotByName(name)
+		bot, _ := store.Database.GetBotByName(context.Background(), name)
 		if bot == nil {
 			bot = &model.Bot{
 				Name:  name,
 				State: state,
 			}
-			if _, err := store.Database.CreateBot(bot); err != nil {
+			if _, err := store.Database.CreateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}
 		} else {
 			bot.State = state
-			err := store.Database.UpdateBot(bot)
+			err := store.Database.UpdateBot(context.Background(), bot)
 			if err != nil {
 				flog.Error(err)
 			}
@@ -117,14 +117,14 @@ func registerModules() {
 	}
 
 	// inactive bot
-	list, err := store.Database.GetBots()
+	list, err := store.Database.GetBots(context.Background())
 	if err != nil {
 		flog.Error(err)
 	}
 	for _, bot := range list {
 		if !registerModuless.Has(bot.Name) {
 			bot.State = model.BotInactive
-			if err := store.Database.UpdateBot(bot); err != nil {
+			if err := store.Database.UpdateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}
 		}

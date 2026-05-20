@@ -95,7 +95,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
-	p, err := store.Database.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(ctx.Context(), flag)
 	if err != nil {
 		return protocol.ErrFlagError.Wrap(err)
 	}
@@ -119,7 +119,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	// store
 	extra := types.KV{}
 	_ = extra.Scan(tk["extra"])
-	err = store.Database.OAuthSet(model.OAuth{
+	err = store.Database.OAuthSet(ctx.Context(), model.OAuth{
 		UID:   uid,
 		Topic: topic,
 		Name:  name,
@@ -137,7 +137,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 func (*Controller) getPage(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	p, err := store.Database.PageGet(id)
+	p, err := store.Database.PageGet(ctx.Context(), id)
 	if err != nil {
 		return protocol.ErrNotFound.Wrap(err)
 	}
@@ -150,7 +150,7 @@ func (*Controller) getPage(ctx fiber.Ctx) error {
 	var comp app.UI
 	switch p.Type {
 	case model.PageForm:
-		f, _ := store.Database.FormGet(p.PageID)
+		f, _ := store.Database.FormGet(ctx.Context(), p.PageID)
 		comp = page.RenderForm(p, f)
 	case model.PageTable:
 		comp = page.RenderTable(p)
@@ -167,7 +167,7 @@ func (*Controller) renderPage(ctx fiber.Ctx) error {
 	pageRuleId := ctx.Params("id")
 	flag := ctx.Params("flag")
 
-	p, err := store.Database.ParameterGet(flag)
+	p, err := store.Database.ParameterGet(ctx.Context(), flag)
 	if err != nil {
 		return protocol.ErrFlagError.Wrap(err)
 	}
@@ -230,7 +230,7 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("topic is required")
 	}
 
-	formData, err := store.Database.FormGet(formId)
+	formData, err := store.Database.FormGet(ctx.Context(), formId)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -446,7 +446,7 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 		if secret == "" {
 			return protocol.ErrParamVerificationFailed.New("secret not verification")
 		}
-		find, err = store.Database.GetWebhookBySecret(secret)
+		find, err = store.Database.GetWebhookBySecret(ctx.Context(), secret)
 		if err != nil {
 			return protocol.ErrNotAuthorized.Wrap(err)
 		}
@@ -476,7 +476,7 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 	}
 
 	if find != nil {
-		err = store.Database.IncreaseWebhookCount(find.ID)
+		err = store.Database.IncreaseWebhookCount(ctx.Context(), find.ID)
 		if err != nil {
 			flog.Error(err)
 		}

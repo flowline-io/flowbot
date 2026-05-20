@@ -4,6 +4,7 @@
 package fs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -92,7 +93,7 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 		return "", 0, fmt.Errorf("failed to create file %v, %w", fdef.Location, err)
 	}
 
-	if err = store.Database.FileStartUpload(fdef); err != nil {
+	if err = store.Database.FileStartUpload(context.Background(), fdef); err != nil {
 		_ = outfile.Close()
 		_ = os.Remove(fdef.Location)
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
@@ -103,13 +104,13 @@ func (fh *fshandler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, in
 	_ = outfile.Close()
 	if err != nil {
 		_ = os.Remove(fdef.Location)
-		if _, finishErr := store.Database.FileFinishUpload(fdef, false, 0); finishErr != nil {
+		if _, finishErr := store.Database.FileFinishUpload(context.Background(), fdef, false, 0); finishErr != nil {
 			flog.Warn("failed to update file record %v %v", fdef.Id, finishErr)
 		}
 		return "", 0, fmt.Errorf("failed to upload file %v, %w", fdef.Location, err)
 	}
 
-	if _, err = store.Database.FileFinishUpload(fdef, true, size); err != nil {
+	if _, err = store.Database.FileFinishUpload(context.Background(), fdef, true, size); err != nil {
 		flog.Warn("failed to update file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
@@ -173,7 +174,7 @@ func (fh *fshandler) GetIdFromUrl(url string) types.Uid {
 
 // getFileRecord given file ID reads file record from the database.
 func (*fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
-	fd, err := store.Database.FileGet(fid.String())
+	fd, err := store.Database.FileGet(context.Background(), fid.String())
 	if err != nil {
 		return nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}

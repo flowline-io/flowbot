@@ -109,7 +109,7 @@ func Send(text string, message Message) error {
 }
 
 func ChannelSend(uid types.Uid, name string, message Message) error {
-	kv, err := store.Database.ConfigGet(uid, "", fmt.Sprintf("notify:%s", name))
+	kv, err := store.Database.ConfigGet(context.Background(), uid, "", fmt.Sprintf("notify:%s", name))
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 
 		// look up user's channel configuration
 		if !uid.IsZero() {
-			kv, err := store.Database.ConfigGet(uid, "", fmt.Sprintf("notify:%s", channel))
+			kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", channel))
 			if err != nil {
 				flog.Warn("[notify] channel %s not configured for user %s", channel, uid)
 				continue

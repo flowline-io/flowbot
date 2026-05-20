@@ -23,11 +23,11 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	}
 
 	// get user
-	user, err := store.Database.GetUserByFlag(ctx.AsUser.String())
+	user, err := store.Database.GetUserByFlag(ctx.Context(), ctx.AsUser.String())
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
 	}
-	platformUsers, err := store.Database.GetPlatformUsersByUserId(user.ID)
+	platformUsers, err := store.Database.GetPlatformUsersByUserId(ctx.Context(), user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get platform users: %w", err)
 	}
@@ -38,14 +38,14 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 
 	// send topic
 	if ctx.Topic != "" {
-		platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Topic)
+		platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
 		if err != nil {
 			return fmt.Errorf("failed to get platform channel: %w", err)
 		}
 		if !platformSet.Has(int(platformChannel.PlatformID)) {
 			return fmt.Errorf("topic %s not platform %d", ctx.Topic, platformChannel.PlatformID)
 		}
-		platform, err := store.Database.GetPlatform(platformChannel.PlatformID)
+		platform, err := store.Database.GetPlatform(ctx.Context(), platformChannel.PlatformID)
 		if err != nil {
 			return fmt.Errorf("failed to get platform: %w", err)
 		}
@@ -62,7 +62,7 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	}
 
 	// send all
-	platforms, err := store.Database.GetPlatforms()
+	platforms, err := store.Database.GetPlatforms(ctx.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get platforms: %w", err)
 	}
@@ -72,7 +72,7 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	}
 
 	for _, item := range platformUsers {
-		channelUsers, err := store.Database.GetPlatformChannelUsersByUserFlag(item.Flag)
+		channelUsers, err := store.Database.GetPlatformChannelUsersByUserFlag(ctx.Context(), item.Flag)
 		if err != nil {
 			flog.Error(err)
 			continue

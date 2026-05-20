@@ -1,6 +1,7 @@
 package module
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -107,7 +108,7 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (ty
 }
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
-	exForm, err := store.Database.FormGet(ctx.FormId)
+	exForm, err := store.Database.FormGet(ctx.Context(), ctx.FormId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return nil, err
 	}
@@ -131,12 +132,12 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		}
 	}
 	if !isLongTerm {
-		err = store.Database.FormSet(ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
+		err = store.Database.FormSet(ctx.Context(), ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
 		if err != nil {
 			return nil, err
 		}
 
-		err = store.Database.PageSet(ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
+		err = store.Database.PageSet(ctx.Context(), ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
 		if err != nil {
 			return nil, err
 		}
@@ -264,7 +265,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 	var extra = make(types.KV)
 
-	err = store.Database.FormSet(formId, model.Form{
+	err = store.Database.FormSet(ctx.Context(), formId, model.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
@@ -278,7 +279,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	err = store.Database.PageSet(formId, model.Page{
+	err = store.Database.PageSet(ctx.Context(), formId, model.Page{
 		PageID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
@@ -299,7 +300,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	flag := types.Id()
-	return flag, store.Database.ParameterSet(flag, params, expiredAt)
+	return flag, store.Database.ParameterSet(context.Background(), flag, params, expiredAt)
 }
 
 func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
@@ -316,7 +317,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	err = store.Database.PageSet(pageId, model.Page{
+	err = store.Database.PageSet(ctx.Context(), pageId, model.Page{
 		PageID: pageId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
@@ -341,7 +342,7 @@ func StorePage(ctx types.Context, category model.PageType, title string, payload
 }
 
 func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {
-	return store.Database.ConfigGet(ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
+	return store.Database.ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
 }
 
 func SettingMsg(ctx types.Context, id string) types.MsgPayload {
@@ -349,14 +350,14 @@ func SettingMsg(ctx types.Context, id string) types.MsgPayload {
 }
 
 func Behavior(uid types.Uid, flag string, number int) {
-	b, err := store.Database.BehaviorGet(uid, flag)
+	b, err := store.Database.BehaviorGet(context.Background(), uid, flag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return
 	}
 	if b.ID > 0 {
-		_ = store.Database.BehaviorIncrease(uid, flag, number)
+		_ = store.Database.BehaviorIncrease(context.Background(), uid, flag, number)
 	} else {
-		_ = store.Database.BehaviorSet(model.Behavior{
+		_ = store.Database.BehaviorSet(context.Background(), model.Behavior{
 			UID:    uid.String(),
 			Flag:   flag,
 			Count_: int32(number),

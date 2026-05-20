@@ -1,6 +1,7 @@
 package route
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -105,7 +106,7 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return protocol.ErrNotAuthorized.New("Missing token")
 		}
 
-		p, err := store.Database.ParameterGet(accessToken)
+		p, err := store.Database.ParameterGet(context.Background(), accessToken)
 		if err != nil || p.ID <= 0 || p.IsExpired() {
 			return protocol.ErrNotAuthorized.New("parameter error")
 		}
@@ -177,7 +178,7 @@ func GetAccessToken(req *http.Request) string {
 }
 
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
-	p, err := store.Database.ParameterGet(accessToken)
+	p, err := store.Database.ParameterGet(context.Background(), accessToken)
 	if err != nil {
 		return
 	}

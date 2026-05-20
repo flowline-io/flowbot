@@ -41,7 +41,7 @@ var formRules = []form.Rule{
 			inputName, _ := values.String("name")
 			inputTemplate, _ := values.String("template")
 
-			err := store.Database.ConfigSet(ctx.AsUser, "", fmt.Sprintf("notify:%s", inputName), types.KV{
+			err := store.Database.ConfigSet(ctx.Context(), ctx.AsUser, "", fmt.Sprintf("notify:%s", inputName), types.KV{
 				"value": inputTemplate,
 			})
 			if err != nil {

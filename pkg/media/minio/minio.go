@@ -127,7 +127,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 	}
 	fdef.Location = fname
 
-	if err = store.Database.FileStartUpload(fdef); err != nil {
+	if err = store.Database.FileStartUpload(context.Background(), fdef); err != nil {
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to create file record %v, %w", fdef.Id, err)
 	}
@@ -136,13 +136,13 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		if _, finishErr := store.Database.FileFinishUpload(fdef, false, 0); finishErr != nil {
+		if _, finishErr := store.Database.FileFinishUpload(context.Background(), fdef, false, 0); finishErr != nil {
 			flog.Warn("failed to update file record %v %v", fdef.Id, finishErr)
 		}
 		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
 	}
 
-	if _, err = store.Database.FileFinishUpload(fdef, true, info.Size); err != nil {
+	if _, err = store.Database.FileFinishUpload(context.Background(), fdef, true, info.Size); err != nil {
 		flog.Warn("failed to update file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
@@ -163,7 +163,7 @@ func (ah *handler) Download(fUrl string) (*types.FileDef, media.ReadSeekCloser, 
 		return nil, nil, protocol.ErrNotFound.New("fid not found")
 	}
 
-	fd, err := store.Database.FileGet(fid.String())
+	fd, err := store.Database.FileGet(context.Background(), fid.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}

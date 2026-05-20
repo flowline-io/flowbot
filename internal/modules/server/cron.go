@@ -157,7 +157,7 @@ var cronRules = []cron.Rule{
 		Scope: cron.CronScopeSystem,
 		When:  "*/2 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
-			list, err := store.Database.GetAgents()
+			list, err := store.Database.GetAgents(ctx.Context())
 			if err != nil {
 				flog.Error(err)
 				return nil

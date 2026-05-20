@@ -27,7 +27,7 @@ type Ruleset []Rule
 func (r Ruleset) ProcessPage(ctx types.Context, flag string, args types.KV) (string, error) {
 	for _, rule := range r {
 		if rule.Id == ctx.PageRuleId {
-			p, err := store.Database.ParameterGet(flag)
+			p, err := store.Database.ParameterGet(ctx.Context(), flag)
 			if err != nil {
 				return "", err
 			}

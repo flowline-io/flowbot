@@ -15,7 +15,7 @@ var commandRules = []command.Rule{
 		Define: "notify list",
 		Help:   `List notify`,
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
-			list, err := store.Database.ListConfigByPrefix(ctx.AsUser, "", "notify:")
+			list, err := store.Database.ListConfigByPrefix(ctx.Context(), ctx.AsUser, "", "notify:")
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
@@ -32,7 +32,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			name, _ := tokens[2].Value.String()
 			key := fmt.Sprintf("notify:%s", name)
-			err := store.Database.ConfigDelete(ctx.AsUser, "", key)
+			err := store.Database.ConfigDelete(ctx.Context(), ctx.AsUser, "", key)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}

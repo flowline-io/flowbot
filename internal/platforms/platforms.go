@@ -1,6 +1,7 @@
 package platforms
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -247,12 +248,12 @@ func MessageConvert(data any) protocol.Message {
 }
 
 func PlatformRegister(name string, caller *Caller) error {
-	_, err := store.Database.GetPlatformByName(name)
+	_, err := store.Database.GetPlatformByName(context.Background(), name)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
-		_, err = store.Database.CreatePlatform(&model.Platform{
+		_, err = store.Database.CreatePlatform(context.Background(), &model.Platform{
 			Name: name,
 		})
 		if err != nil {

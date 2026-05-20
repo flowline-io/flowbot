@@ -129,7 +129,7 @@ func (r *Ruleset) ruleWorker(rule Rule) {
 					}
 				case CronScopeUser:
 					// all normal users
-					users, err := store.Database.GetUsers()
+					users, err := store.Database.GetUsers(context.Background())
 					if err != nil {
 						flog.Error(err)
 						return nil

@@ -113,7 +113,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	ctx.SetTimeout(10 * time.Minute)
 
 	// platform
-	findPlatform, err := store.Database.GetPlatformByName(msg.Self.Platform)
+	findPlatform, err := store.Database.GetPlatformByName(ctx.Context(), msg.Self.Platform)
 	if err != nil {
 		flog.Error(err)
 		return
@@ -121,7 +121,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	platformId := findPlatform.ID
 
 	// check
-	findMessage, err := store.Database.GetMessageByPlatform(platformId, msg.MessageId)
+	findMessage, err := store.Database.GetMessageByPlatform(ctx.Context(), platformId, msg.MessageId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		flog.Error(err)
 		return
@@ -175,7 +175,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	}
 
 	// user message
-	err = store.Database.CreateMessage(model.Message{
+	err = store.Database.CreateMessage(ctx.Context(), model.Message{
 		Flag:          types.Id(),
 		PlatformID:    platformId,
 		PlatformMsgID: msg.MessageId,
@@ -324,7 +324,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 // If an error occurs, it will be logged and the function will continue to the next user.
 func notifyAll(message string) {
 	// send message
-	users, err := store.Database.GetUsers()
+	users, err := store.Database.GetUsers(context.Background())
 	if err != nil {
 		flog.Error(fmt.Errorf("notify error %w", err))
 		return
@@ -374,7 +374,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 	}
 	switch data.Action {
 	case types.PullAction:
-		list, err := store.Database.ListInstruct(uid, false, 10)
+		list, err := store.Database.ListInstruct(ctx.Context(), uid, false, 10)
 		if err != nil {
 			return nil, err
 		}
@@ -396,7 +396,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 			return nil, errors.New("error instruct no")
 		}
 
-		err := store.Database.UpdateInstruct(&model.Instruct{
+		err := store.Database.UpdateInstruct(ctx.Context(), &model.Instruct{
 			No:    no,
 			State: model.InstructDone,
 		})
@@ -443,7 +443,7 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 		}
 		hostname, _ := data.Content.String("hostname")
 
-		err := store.Database.UpdateAgentOnlineDuration(uid, "", hostid, time.Now())
+		err := store.Database.UpdateAgentOnlineDuration(ctx.Context(), uid, "", hostid, time.Now())
 		if err != nil {
 			flog.Error(fmt.Errorf("update online duration error %w", err))
 		}
@@ -483,18 +483,18 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 // It also associates the platform user with the platform.
 // Returns the user flag and an error if any operation fails.
 func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
-	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
+	platform, err := store.Database.GetPlatformByName(context.Background(), data.Self.Platform)
 	if err != nil {
 		return "", err
 	}
 
-	platformUser, err := store.Database.GetPlatformUserByFlag(data.UserId)
+	platformUser, err := store.Database.GetPlatformUserByFlag(context.Background(), data.UserId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
 	if platformUser != nil && platformUser.ID > 0 {
-		user, err := store.Database.GetUserById(platformUser.UserID)
+		user, err := store.Database.GetUserById(context.Background(), platformUser.UserID)
 		if err != nil {
 			return "", err
 		}
@@ -506,12 +506,12 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 			Tags:  "[]",
 			State: model.UserActive,
 		}
-		err = store.Database.UserCreate(user)
+		err = store.Database.UserCreate(context.Background(), user)
 		if err != nil {
 			return "", err
 		}
 
-		_, err = store.Database.CreatePlatformUser(&model.PlatformUser{
+		_, err = store.Database.CreatePlatformUser(context.Background(), &model.PlatformUser{
 			PlatformID: platform.ID,
 			UserID:     user.ID,
 			Flag:       data.UserId,
@@ -531,18 +531,18 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 // It also associates the platform channel with the user who triggered the event.
 // Returns the channel flag and an error if any operation fails.
 func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
-	platform, err := store.Database.GetPlatformByName(data.Self.Platform)
+	platform, err := store.Database.GetPlatformByName(context.Background(), data.Self.Platform)
 	if err != nil {
 		return "", err
 	}
 
-	platformChannel, err := store.Database.GetPlatformChannelByFlag(data.TopicId)
+	platformChannel, err := store.Database.GetPlatformChannelByFlag(context.Background(), data.TopicId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
 	if platformChannel != nil && platformChannel.ID > 0 {
-		channel, err := store.Database.GetChannel(platformChannel.ChannelID)
+		channel, err := store.Database.GetChannel(context.Background(), platformChannel.ChannelID)
 		if err != nil {
 			return "", err
 		}
@@ -553,12 +553,12 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 			Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
 			State: model.ChannelActive,
 		}
-		_, err = store.Database.CreateChannel(channel)
+		_, err = store.Database.CreateChannel(context.Background(), channel)
 		if err != nil {
 			return "", err
 		}
 
-		_, err = store.Database.CreatePlatformChannel(&model.PlatformChannel{
+		_, err = store.Database.CreatePlatformChannel(context.Background(), &model.PlatformChannel{
 			PlatformID: platform.ID,
 			ChannelID:  channel.ID,
 			Flag:       data.TopicId,
@@ -567,7 +567,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 			return "", err
 		}
 
-		_, err = store.Database.CreatePlatformChannelUser(&model.PlatformChannelUser{
+		_, err = store.Database.CreatePlatformChannelUser(context.Background(), &model.PlatformChannelUser{
 			PlatformID:  platform.ID,
 			ChannelFlag: data.TopicId,
 			UserFlag:    data.UserId,
@@ -587,13 +587,13 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 	if hostid == "" {
 		return fmt.Errorf("hostid is empty")
 	}
-	agent, err := store.Database.GetAgentByHostid(uid, topic, hostid)
+	agent, err := store.Database.GetAgentByHostid(context.Background(), uid, topic, hostid)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 
 	if agent != nil && agent.ID > 0 {
-		err = store.Database.UpdateAgentLastOnlineAt(uid, topic, hostid, time.Now())
+		err = store.Database.UpdateAgentLastOnlineAt(context.Background(), uid, topic, hostid, time.Now())
 		if err != nil {
 			return err
 		}
@@ -606,7 +606,7 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 			OnlineDuration: 0,
 			LastOnlineAt:   time.Now(),
 		}
-		_, err := store.Database.CreateAgent(agent)
+		_, err := store.Database.CreateAgent(context.Background(), agent)
 		if err != nil {
 			return err
 		}
@@ -633,7 +633,7 @@ func authPprof(ctx fiber.Ctx) bool {
 		return true
 	}
 
-	p, err := store.Database.ParameterGet(accessToken)
+	p, err := store.Database.ParameterGet(ctx.Context(), accessToken)
 	if err != nil || p.ID <= 0 || p.IsExpired() {
 		flog.Warn("pprof auth warning: parameter error")
 		return true

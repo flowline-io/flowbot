@@ -166,111 +166,111 @@ type Adapter interface {
 	// User management
 
 	// UserCreate creates user record
-	UserCreate(user *model.User) error
+	UserCreate(ctx context.Context, user *model.User) error
 	// UserGet returns record for a given user ID
-	UserGet(uid types.Uid) (*model.User, error)
+	UserGet(ctx context.Context, uid types.Uid) (*model.User, error)
 	// UserGetAll returns user records for a given list of user IDs
-	UserGetAll(ids ...types.Uid) ([]*model.User, error)
+	UserGetAll(ctx context.Context, ids ...types.Uid) ([]*model.User, error)
 	// FirstUser returns the first user
-	FirstUser() (*model.User, error)
+	FirstUser(ctx context.Context) (*model.User, error)
 	// UserDelete deletes user record
-	UserDelete(uid types.Uid, hard bool) error
+	UserDelete(ctx context.Context, uid types.Uid, hard bool) error
 	// UserUpdate updates user record
-	UserUpdate(uid types.Uid, update types.KV) error
+	UserUpdate(ctx context.Context, uid types.Uid, update types.KV) error
 
 	// File upload records. The files are stored outside the database.
 
 	// FileStartUpload initializes a file upload.
-	FileStartUpload(fd *types.FileDef) error
+	FileStartUpload(ctx context.Context, fd *types.FileDef) error
 	// FileFinishUpload marks file upload as completed, successfully or otherwise.
-	FileFinishUpload(fd *types.FileDef, success bool, size int64) (*types.FileDef, error)
+	FileFinishUpload(ctx context.Context, fd *types.FileDef, success bool, size int64) (*types.FileDef, error)
 	// FileGet fetches a record of a specific file
-	FileGet(fid string) (*types.FileDef, error)
+	FileGet(ctx context.Context, fid string) (*types.FileDef, error)
 	// FileDeleteUnused deletes records where UseCount is zero. If olderThan is non-zero, deletes
 	// unused records with UpdatedAt before olderThan.
 	// Returns array of FileDef.Location of deleted filerecords so actual files can be deleted too.
-	FileDeleteUnused(olderThan time.Time, limit int) ([]string, error)
+	FileDeleteUnused(ctx context.Context, olderThan time.Time, limit int) ([]string, error)
 
-	GetUsers() ([]*model.User, error)
-	GetUserById(id int64) (*model.User, error)
-	GetUserByFlag(flag string) (*model.User, error)
-	CreatePlatformUser(item *model.PlatformUser) (int64, error)
-	GetPlatformUsersByUserId(userId int64) ([]*model.PlatformUser, error)
-	GetPlatformUserByFlag(flag string) (*model.PlatformUser, error)
-	UpdatePlatformUser(item *model.PlatformUser) error
-	GetPlatformChannelByFlag(flag string) (*model.PlatformChannel, error)
-	GetPlatformChannelsByPlatformIds(platformIds []int64) ([]*model.PlatformChannel, error)
-	GetPlatformChannelsByChannelId(channelId int64) (*model.PlatformChannel, error)
-	CreatePlatformChannel(item *model.PlatformChannel) (int64, error)
-	CreatePlatformChannelUser(item *model.PlatformChannelUser) (int64, error)
-	GetPlatformChannelUsersByUserFlag(userFlag string) ([]*model.PlatformChannelUser, error)
-	GetMessage(flag string) (*model.Message, error)
-	GetMessageByPlatform(platformId int64, platformMsgId string) (*model.Message, error)
-	GetMessagesBySession(session string) ([]*model.Message, error)
-	CreateMessage(message model.Message) error
+	GetUsers(ctx context.Context) ([]*model.User, error)
+	GetUserById(ctx context.Context, id int64) (*model.User, error)
+	GetUserByFlag(ctx context.Context, flag string) (*model.User, error)
+	CreatePlatformUser(ctx context.Context, item *model.PlatformUser) (int64, error)
+	GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*model.PlatformUser, error)
+	GetPlatformUserByFlag(ctx context.Context, flag string) (*model.PlatformUser, error)
+	UpdatePlatformUser(ctx context.Context, item *model.PlatformUser) error
+	GetPlatformChannelByFlag(ctx context.Context, flag string) (*model.PlatformChannel, error)
+	GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*model.PlatformChannel, error)
+	GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*model.PlatformChannel, error)
+	CreatePlatformChannel(ctx context.Context, item *model.PlatformChannel) (int64, error)
+	CreatePlatformChannelUser(ctx context.Context, item *model.PlatformChannelUser) (int64, error)
+	GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*model.PlatformChannelUser, error)
+	GetMessage(ctx context.Context, flag string) (*model.Message, error)
+	GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*model.Message, error)
+	GetMessagesBySession(ctx context.Context, session string) ([]*model.Message, error)
+	CreateMessage(ctx context.Context, message model.Message) error
 
-	GetBot(id int64) (*model.Bot, error)
-	GetBotByName(name string) (*model.Bot, error)
-	CreateBot(bot *model.Bot) (int64, error)
-	UpdateBot(bot *model.Bot) error
-	DeleteBot(name string) error
-	GetBots() ([]*model.Bot, error)
-	GetPlatform(id int64) (*model.Platform, error)
-	GetPlatformByName(name string) (*model.Platform, error)
-	GetPlatforms() ([]*model.Platform, error)
-	CreatePlatform(platform *model.Platform) (int64, error)
-	GetChannel(id int64) (*model.Channel, error)
-	GetChannelByName(name string) (*model.Channel, error)
-	CreateChannel(channel *model.Channel) (int64, error)
-	UpdateChannel(channel *model.Channel) error
-	DeleteChannel(name string) error
-	GetChannels() ([]*model.Channel, error)
+	GetBot(ctx context.Context, id int64) (*model.Bot, error)
+	GetBotByName(ctx context.Context, name string) (*model.Bot, error)
+	CreateBot(ctx context.Context, bot *model.Bot) (int64, error)
+	UpdateBot(ctx context.Context, bot *model.Bot) error
+	DeleteBot(ctx context.Context, name string) error
+	GetBots(ctx context.Context) ([]*model.Bot, error)
+	GetPlatform(ctx context.Context, id int64) (*model.Platform, error)
+	GetPlatformByName(ctx context.Context, name string) (*model.Platform, error)
+	GetPlatforms(ctx context.Context) ([]*model.Platform, error)
+	CreatePlatform(ctx context.Context, platform *model.Platform) (int64, error)
+	GetChannel(ctx context.Context, id int64) (*model.Channel, error)
+	GetChannelByName(ctx context.Context, name string) (*model.Channel, error)
+	CreateChannel(ctx context.Context, channel *model.Channel) (int64, error)
+	UpdateChannel(ctx context.Context, channel *model.Channel) error
+	DeleteChannel(ctx context.Context, name string) error
+	GetChannels(ctx context.Context) ([]*model.Channel, error)
 
-	DataSet(uid types.Uid, topic, key string, value types.KV) error
-	DataGet(uid types.Uid, topic, key string) (types.KV, error)
-	DataList(uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error)
-	DataDelete(uid types.Uid, topic, key string) error
-	ConfigSet(uid types.Uid, topic, key string, value types.KV) error
-	ConfigGet(uid types.Uid, topic, key string) (types.KV, error)
-	ListConfigByPrefix(uid types.Uid, topic, prefix string) ([]*model.Config, error)
-	ConfigDelete(uid types.Uid, topic, key string) error
-	OAuthSet(oauth model.OAuth) error
-	OAuthGet(uid types.Uid, topic, t string) (model.OAuth, error)
-	OAuthGetAvailable(t string) ([]model.OAuth, error)
-	FormSet(formId string, form model.Form) error
-	FormGet(formId string) (model.Form, error)
-	PageSet(pageId string, page model.Page) error
-	PageGet(pageId string) (model.Page, error)
-	BehaviorSet(behavior model.Behavior) error
-	BehaviorGet(uid types.Uid, flag string) (model.Behavior, error)
-	BehaviorList(uid types.Uid) ([]*model.Behavior, error)
-	BehaviorIncrease(uid types.Uid, flag string, number int) error
-	ParameterSet(flag string, params types.KV, expiredAt time.Time) error
-	ParameterGet(flag string) (model.Parameter, error)
-	ParameterDelete(flag string) error
-	CreateInstruct(instruct *model.Instruct) (int64, error)
-	ListInstruct(uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error)
-	UpdateInstruct(instruct *model.Instruct) error
-	ListWebhook(uid types.Uid) ([]*model.Webhook, error)
-	CreateWebhook(webhook *model.Webhook) (int64, error)
-	UpdateWebhook(webhook *model.Webhook) error
-	DeleteWebhook(id int64) error
-	IncreaseWebhookCount(id int64) error
-	GetWebhookBySecret(secret string) (*model.Webhook, error)
-	GetWebhookByUidAndFlag(uid types.Uid, flag string) (*model.Webhook, error)
+	DataSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error
+	DataGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error)
+	DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error)
+	DataDelete(ctx context.Context, uid types.Uid, topic, key string) error
+	ConfigSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error
+	ConfigGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error)
+	ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*model.Config, error)
+	ConfigDelete(ctx context.Context, uid types.Uid, topic, key string) error
+	OAuthSet(ctx context.Context, oauth model.OAuth) error
+	OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (model.OAuth, error)
+	OAuthGetAvailable(ctx context.Context, t string) ([]model.OAuth, error)
+	FormSet(ctx context.Context, formId string, form model.Form) error
+	FormGet(ctx context.Context, formId string) (model.Form, error)
+	PageSet(ctx context.Context, pageId string, page model.Page) error
+	PageGet(ctx context.Context, pageId string) (model.Page, error)
+	BehaviorSet(ctx context.Context, behavior model.Behavior) error
+	BehaviorGet(ctx context.Context, uid types.Uid, flag string) (model.Behavior, error)
+	BehaviorList(ctx context.Context, uid types.Uid) ([]*model.Behavior, error)
+	BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error
+	ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
+	ParameterGet(ctx context.Context, flag string) (model.Parameter, error)
+	ParameterDelete(ctx context.Context, flag string) error
+	CreateInstruct(ctx context.Context, instruct *model.Instruct) (int64, error)
+	ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error)
+	UpdateInstruct(ctx context.Context, instruct *model.Instruct) error
+	ListWebhook(ctx context.Context, uid types.Uid) ([]*model.Webhook, error)
+	CreateWebhook(ctx context.Context, webhook *model.Webhook) (int64, error)
+	UpdateWebhook(ctx context.Context, webhook *model.Webhook) error
+	DeleteWebhook(ctx context.Context, id int64) error
+	IncreaseWebhookCount(ctx context.Context, id int64) error
+	GetWebhookBySecret(ctx context.Context, secret string) (*model.Webhook, error)
+	GetWebhookByUidAndFlag(ctx context.Context, uid types.Uid, flag string) (*model.Webhook, error)
 
-	CreateCounter(counter *model.Counter) (int64, error)
-	IncreaseCounter(id, amount int64) error
-	DecreaseCounter(id, amount int64) error
-	ListCounter(uid types.Uid, topic string) ([]*model.Counter, error)
-	GetCounter(id int64) (model.Counter, error)
-	GetCounterByFlag(uid types.Uid, topic, flag string) (model.Counter, error)
+	CreateCounter(ctx context.Context, counter *model.Counter) (int64, error)
+	IncreaseCounter(ctx context.Context, id, amount int64) error
+	DecreaseCounter(ctx context.Context, id, amount int64) error
+	ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*model.Counter, error)
+	GetCounter(ctx context.Context, id int64) (model.Counter, error)
+	GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (model.Counter, error)
 
-	GetAgents() ([]*model.Agent, error)
-	GetAgentByHostid(uid types.Uid, topic, hostid string) (*model.Agent, error)
-	CreateAgent(agent *model.Agent) (int64, error)
-	UpdateAgentLastOnlineAt(uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error
-	UpdateAgentOnlineDuration(uid types.Uid, topic, hostid string, offlineTime time.Time) error
+	GetAgents(ctx context.Context) ([]*model.Agent, error)
+	GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*model.Agent, error)
+	CreateAgent(ctx context.Context, agent *model.Agent) (int64, error)
+	UpdateAgentLastOnlineAt(ctx context.Context, uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error
+	UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, topic, hostid string, offlineTime time.Time) error
 }
 
 var Database Adapter

@@ -17,7 +17,7 @@ var cronRules = []cron.Rule{
 		When:  "*/30 * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
+			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return nil
@@ -85,7 +85,7 @@ var cronRules = []cron.Rule{
 		When:  "* * * * *",
 		Action: func(ctx types.Context) []types.MsgPayload {
 			// get oauth token
-			oauth, err := store.Database.OAuthGet(ctx.AsUser, ctx.Topic, Name)
+			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 				return nil
