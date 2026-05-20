@@ -41,9 +41,8 @@ func (l *Syntax) Peek() rune {
 	peekPos := l.Pos + 1
 	if peekPos > len(l.Text)-1 {
 		return 0
-	} else {
-		return l.Text[peekPos]
 	}
+	return l.Text[peekPos]
 }
 
 func (l *Syntax) SkipWhitespace() {

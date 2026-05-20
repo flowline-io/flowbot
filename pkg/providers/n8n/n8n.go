@@ -54,9 +54,8 @@ func (v *N8N) ListWorkflows() ([]*Workflow, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		return workflows, nil
-	} else {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // GetWorkflow retrieves a workflow by ID
@@ -75,9 +74,8 @@ func (v *N8N) GetWorkflow(id string) (*Workflow, error) {
 			return nil, fmt.Errorf("unexpected response type from n8n")
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // CreateWorkflow creates a new workflow
@@ -96,9 +94,8 @@ func (v *N8N) CreateWorkflow(workflow *Workflow) (*Workflow, error) {
 			return nil, fmt.Errorf("unexpected response type from n8n")
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // UpdateWorkflow updates an existing workflow
@@ -118,9 +115,8 @@ func (v *N8N) UpdateWorkflow(id string, workflow *Workflow) (*Workflow, error) {
 			return nil, fmt.Errorf("unexpected response type from n8n")
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return nil, fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // DeleteWorkflow deletes a workflow by ID
@@ -134,9 +130,8 @@ func (v *N8N) DeleteWorkflow(id string) error {
 
 	if resp.StatusCode() == http.StatusOK || resp.StatusCode() == http.StatusNoContent {
 		return nil
-	} else {
-		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // ActivateWorkflow activates a workflow
@@ -150,9 +145,8 @@ func (v *N8N) ActivateWorkflow(id string) error {
 
 	if resp.StatusCode() == http.StatusOK || resp.StatusCode() == http.StatusNoContent {
 		return nil
-	} else {
-		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // DeactivateWorkflow deactivates a workflow
@@ -166,9 +160,8 @@ func (v *N8N) DeactivateWorkflow(id string) error {
 
 	if resp.StatusCode() == http.StatusOK || resp.StatusCode() == http.StatusNoContent {
 		return nil
-	} else {
-		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
 // ExecuteWorkflow executes a workflow via webhook with optional input data

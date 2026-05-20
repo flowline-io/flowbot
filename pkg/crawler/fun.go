@@ -44,9 +44,8 @@ func PowerfulFind(s *goquery.Selection, q string) *goquery.Selection {
 			sel = sel.Find(q)
 		}
 		return sel
-	} else {
-		return s.Find(q)
 	}
+	return s.Find(q)
 }
 
 type Fun struct {
@@ -241,9 +240,8 @@ func charSkipWhitespace(s string, i int, o int) rune {
 			}
 		}
 		return rune(s[j])
-	} else {
-		return rune(s[i])
 	}
+	return rune(s[i])
 }
 
 func isEntryDelim(co rune) bool {

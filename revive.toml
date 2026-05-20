@@ -25,7 +25,6 @@ warningCode = 0
 [rule.time-naming]
 [rule.unexported-return]
 [rule.indent-error-flow]
-    Disabled = true
 [rule.errorf]
 [rule.empty-block]
 [rule.superfluous-else]

@@ -62,9 +62,8 @@ func (v *Dropbox) completeAuth(code string) (any, error) {
 		}
 		v.accessToken = result.AccessToken
 		return &result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
+	return nil, fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 }
 
 func (v *Dropbox) Redirect(_ *http.Request) (string, error) {
@@ -119,7 +118,6 @@ func (v *Dropbox) Upload(path string, content io.Reader) error {
 
 	if resp.StatusCode() == http.StatusOK {
 		return nil
-	} else {
-		return fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 	}
+	return fmt.Errorf("%d, %s", resp.StatusCode(), utils.BytesToString(resp.Bytes()))
 }

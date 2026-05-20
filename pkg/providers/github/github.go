@@ -63,9 +63,8 @@ func (v *Github) completeAuth(code string) (any, error) {
 		}
 		v.accessToken = result.AccessToken
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) Redirect(_ *http.Request) (string, error) {
@@ -108,9 +107,8 @@ func (v *Github) GetAuthenticatedUser() (*User, error) {
 			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetUser(username string) (*User, error) {
@@ -129,9 +127,8 @@ func (v *Github) GetUser(username string) (*User, error) {
 			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetStarred(username string) (result []*Repository, err error) {
@@ -146,9 +143,8 @@ func (v *Github) GetStarred(username string) (result []*Repository, err error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetFollowers() (result []*User, err error) {
@@ -163,9 +159,8 @@ func (v *Github) GetFollowers() (result []*User, err error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) CreateIssue(owner, repo string, issue Issue) (*Issue, error) {
@@ -185,9 +180,8 @@ func (v *Github) CreateIssue(owner, repo string, issue Issue) (*Issue, error) {
 			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetUserProjects(username string) (result []*Project, err error) {
@@ -202,9 +196,8 @@ func (v *Github) GetUserProjects(username string) (result []*Project, err error)
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetProjectColumns(projectID int64) (result []*ProjectColumn, err error) {
@@ -219,9 +212,8 @@ func (v *Github) GetProjectColumns(projectID int64) (result []*ProjectColumn, er
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) CreateCard(columnID int64, card ProjectCard) (*ProjectCard, error) {
@@ -241,9 +233,8 @@ func (v *Github) CreateCard(columnID int64, card ProjectCard) (*ProjectCard, err
 			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
@@ -262,9 +253,8 @@ func (v *Github) GetRepository(owner, repo string) (*Repository, error) {
 			return nil, fmt.Errorf("%d: unexpected response type from github", resp.StatusCode())
 		}
 		return result, nil
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 // GetNotifications get user notifications
@@ -280,9 +270,8 @@ func (v *Github) GetNotifications() (result []*Notification, err error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 // GetReleases get releases
@@ -300,7 +289,6 @@ func (v *Github) GetReleases(owner, repo string, page, perPage int) (result []*R
 
 	if resp.StatusCode() == http.StatusOK {
 		return
-	} else {
-		return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }

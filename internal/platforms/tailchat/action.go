@@ -57,9 +57,8 @@ func (v *client) auth() error {
 		}
 		v.accessToken = result.Data.Jwt
 		return nil
-	} else {
-		return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (v *client) sendMessage(data SendMessageData) error {
@@ -73,9 +72,8 @@ func (v *client) sendMessage(data SendMessageData) error {
 
 	if resp.StatusCode() == http.StatusOK {
 		return nil
-	} else {
-		return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 	}
+	return fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
 func (*Action) GetLatestEvents(_ protocol.Request) protocol.Response {

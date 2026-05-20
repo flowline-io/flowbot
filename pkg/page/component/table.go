@@ -50,12 +50,10 @@ func (c *Table) Render() app.UI {
 								_, frac := math.Modf(num)
 								if frac == 0 {
 									return app.Td().Text(int(num))
-								} else {
-									return app.Td().Text(num)
 								}
-							} else {
-								return app.Td().Text(c.Schema.Row[i][j])
+								return app.Td().Text(num)
 							}
+							return app.Td().Text(c.Schema.Row[i][j])
 						}),
 					)
 				}),

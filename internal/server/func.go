@@ -508,30 +508,29 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 			return "", err
 		}
 		return types.Uid(user.Flag), nil
-	} else {
-		user := &model.User{
-			Flag:  types.Id(),
-			Name:  "user",
-			Tags:  "[]",
-			State: model.UserActive,
-		}
-		err = store.Database.UserCreate(context.Background(), user)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = store.Database.CreatePlatformUser(context.Background(), &model.PlatformUser{
-			PlatformID: platform.ID,
-			UserID:     user.ID,
-			Flag:       data.UserId,
-			Name:       "user",
-			IsBot:      false,
-		})
-		if err != nil {
-			return "", err
-		}
-		return types.Uid(user.Flag), nil
 	}
+	user := &model.User{
+		Flag:  types.Id(),
+		Name:  "user",
+		Tags:  "[]",
+		State: model.UserActive,
+	}
+	err = store.Database.UserCreate(context.Background(), user)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = store.Database.CreatePlatformUser(context.Background(), &model.PlatformUser{
+		PlatformID: platform.ID,
+		UserID:     user.ID,
+		Flag:       data.UserId,
+		Name:       "user",
+		IsBot:      false,
+	})
+	if err != nil {
+		return "", err
+	}
+	return types.Uid(user.Flag), nil
 }
 
 // registerPlatformChannel registers a platform channel based on the provided message event data.
@@ -556,37 +555,36 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 			return "", err
 		}
 		return channel.Flag, nil
-	} else {
-		channel := &model.Channel{
-			Flag:  types.Id(),
-			Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
-			State: model.ChannelActive,
-		}
-		_, err = store.Database.CreateChannel(context.Background(), channel)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = store.Database.CreatePlatformChannel(context.Background(), &model.PlatformChannel{
-			PlatformID: platform.ID,
-			ChannelID:  channel.ID,
-			Flag:       data.TopicId,
-		})
-		if err != nil {
-			return "", err
-		}
-
-		_, err = store.Database.CreatePlatformChannelUser(context.Background(), &model.PlatformChannelUser{
-			PlatformID:  platform.ID,
-			ChannelFlag: data.TopicId,
-			UserFlag:    data.UserId,
-		})
-		if err != nil {
-			return "", err
-		}
-
-		return channel.Flag, nil
 	}
+	channel := &model.Channel{
+		Flag:  types.Id(),
+		Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
+		State: model.ChannelActive,
+	}
+	_, err = store.Database.CreateChannel(context.Background(), channel)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = store.Database.CreatePlatformChannel(context.Background(), &model.PlatformChannel{
+		PlatformID: platform.ID,
+		ChannelID:  channel.ID,
+		Flag:       data.TopicId,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	_, err = store.Database.CreatePlatformChannelUser(context.Background(), &model.PlatformChannelUser{
+		PlatformID:  platform.ID,
+		ChannelFlag: data.TopicId,
+		UserFlag:    data.UserId,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return channel.Flag, nil
 }
 
 // registerAgent Register agent by uid, topic, hostid and hostname
