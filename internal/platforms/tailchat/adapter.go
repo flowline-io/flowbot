@@ -17,8 +17,7 @@ func (*Adapter) MessageConvert(data any) protocol.Message {
 func (*Adapter) EventConvert(data any) protocol.Event {
 	var result protocol.Event
 
-	switch evt := data.(type) {
-	case *Payload:
+	if evt, ok := data.(*Payload); ok {
 		// Ignore all messages created by the bot itself
 		if evt.UserID == evt.Payload.MessageAuthor {
 			return result

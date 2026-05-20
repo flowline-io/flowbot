@@ -5,7 +5,7 @@ package utils
 import (
 	"path/filepath"
 	"reflect"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -29,8 +29,8 @@ func stringSliceDelta(rold, rnew []string) (added, removed, intersection []strin
 		return nil, rold, nil
 	}
 
-	sort.Strings(rold)
-	sort.Strings(rnew)
+	slices.Sort(rold)
+	slices.Sort(rnew)
 
 	// Match old slice against the new slice and separate removed strings from added.
 	o, n := 0, 0

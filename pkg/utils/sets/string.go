@@ -3,7 +3,6 @@ package sets
 import (
 	"reflect"
 	"slices"
-	"sort"
 )
 
 // String sets.String is a set of strings, implemented via map[string]struct{} for minimal memory consumption.
@@ -138,20 +137,14 @@ func (s String) Equal(s2 String) bool {
 	return len(s) == len(s2) && s.IsSuperset(s2)
 }
 
-type sortableSliceOfString []string
-
-func (s sortableSliceOfString) Len() int           { return len(s) }
-func (s sortableSliceOfString) Less(i, j int) bool { return lessString(s[i], s[j]) }
-func (s sortableSliceOfString) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
 // List returns the contents as a sorted string slice.
 func (s String) List() []string {
-	res := make(sortableSliceOfString, 0, len(s))
+	res := make([]string, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
-	sort.Sort(res)
-	return []string(res)
+	slices.Sort(res)
+	return res
 }
 
 // UnsortedList returns the slice with contents in random order.
@@ -178,6 +171,4 @@ func (s String) Len() int {
 	return len(s)
 }
 
-func lessString(lhs, rhs string) bool {
-	return lhs < rhs
-}
+

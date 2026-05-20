@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
-	"sort"
+	"slices"
 	"strconv"
 	"time"
 
@@ -239,7 +239,7 @@ func mapHash(m map[string]string) string {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	txt := bytes.Buffer{}
 	for _, key := range keys {

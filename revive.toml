@@ -49,7 +49,6 @@ warningCode = 0
 [rule.unconditional-recursion]
 [rule.unhandled-error]
 [rule.unnecessary-stmt]
-    Disabled = true
 [rule.waitgroup-by-value]
 [rule.unused-receiver]
 [rule.use-any]
@@ -60,3 +59,7 @@ warningCode = 0
 [rule.datarace]
 [rule.nested-structs]
 [rule.deep-exit]
+[rule.bool-literal-in-expr]
+[rule.constant-logical-expr]
+[rule.optimize-operands-order]
+[rule.use-slices-sort]

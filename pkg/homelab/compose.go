@@ -3,7 +3,7 @@ package homelab
 import (
 	"fmt"
 	"maps"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -31,7 +31,7 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 	for name := range doc.Services {
 		serviceNames = append(serviceNames, name)
 	}
-	sort.Strings(serviceNames)
+	slices.Sort(serviceNames)
 
 	services := make([]ComposeService, 0, len(doc.Services))
 	ports := make([]PortMapping, 0, len(doc.Services)*2)

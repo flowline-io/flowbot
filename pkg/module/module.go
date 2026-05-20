@@ -203,8 +203,7 @@ func FormMsg(ctx types.Context, id string) types.MsgPayload {
 	var field []types.FormField
 	for _, handler := range List() {
 		for _, item := range handler.Rules() {
-			switch v := item.(type) {
-			case []form.Rule:
+			if v, ok := item.([]form.Rule); ok {
 				for _, rule := range v {
 					if rule.Id != id {
 						continue

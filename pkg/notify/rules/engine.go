@@ -3,7 +3,7 @@ package rules
 
 import (
 	"context"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 
@@ -63,8 +63,8 @@ func (e *Engine) LoadConfig(rules []config.NotifyRule) error {
 	// sort by priority descending (higher priority first)
 	sorted := make([]config.NotifyRule, len(rules))
 	copy(sorted, rules)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Priority > sorted[j].Priority
+	slices.SortFunc(sorted, func(a, b config.NotifyRule) int {
+		return b.Priority - a.Priority
 	})
 
 	e.rules = sorted

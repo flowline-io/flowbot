@@ -43,8 +43,7 @@ var webhookRules = []webhook.Rule{
 				stats.KanbanEventTotalCounter(resp.EventName).Inc()
 			}()
 
-			switch resp.EventName {
-			case kanboard.TaskCloseEvent:
+			if resp.EventName == kanboard.TaskCloseEvent {
 				var result kanboard.TaskClose
 				err = unmarshal(resp.EventData, &result)
 				if err != nil {

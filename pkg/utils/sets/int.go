@@ -3,7 +3,6 @@ package sets
 import (
 	"reflect"
 	"slices"
-	"sort"
 )
 
 // Int sets.Int is a set of ints, implemented via map[int]struct{} for minimal memory consumption.
@@ -138,20 +137,14 @@ func (s Int) Equal(s2 Int) bool {
 	return len(s) == len(s2) && s.IsSuperset(s2)
 }
 
-type sortableSliceOfInt []int
-
-func (s sortableSliceOfInt) Len() int           { return len(s) }
-func (s sortableSliceOfInt) Less(i, j int) bool { return lessInt(s[i], s[j]) }
-func (s sortableSliceOfInt) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
 // List returns the contents as a sorted int slice.
 func (s Int) List() []int {
-	res := make(sortableSliceOfInt, 0, len(s))
+	res := make([]int, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
-	sort.Sort(res)
-	return []int(res)
+	slices.Sort(res)
+	return res
 }
 
 // UnsortedList returns the slice with contents in random order.
@@ -178,6 +171,4 @@ func (s Int) Len() int {
 	return len(s)
 }
 
-func lessInt(lhs, rhs int) bool {
-	return lhs < rhs
-}
+

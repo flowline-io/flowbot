@@ -126,8 +126,7 @@ func (p *HTTPProbe) matchFingerprints(ctx context.Context, baseURL string, authI
 	for _, fp := range KnownServices {
 		score := 0.0
 		for _, pattern := range fp.Patterns {
-			switch pattern.Field {
-			case "path":
+			if pattern.Field == "path" {
 				if pattern.Key != "" {
 					targetURL, err := url.JoinPath(baseURL, pattern.Key)
 					if err != nil {

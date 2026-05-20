@@ -69,8 +69,7 @@ func Masker(input string, start int) string {
 }
 
 func Fn(public any) string {
-	switch v := public.(type) {
-	case map[string]any:
+	if v, ok := public.(map[string]any); ok {
 		if s, ok := v["fn"].(string); ok {
 			return s
 		}

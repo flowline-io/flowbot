@@ -121,8 +121,7 @@ func (b Builder) Validate() error {
 
 func fixInt64Value(t types.FormFieldValueType, v any) any {
 	if t == types.FormFieldValueInt64 {
-		switch v := v.(type) {
-		case float64:
+		if v, ok := v.(float64); ok {
 			return int64(v)
 		}
 	}

@@ -196,8 +196,7 @@ func buildHelpMessage(msgAlt string, payload types.MsgPayload) types.MsgPayload 
 		m := make(types.KV)
 		for name, handle := range module.List() {
 			for _, item := range handle.Rules() {
-				switch v := item.(type) {
-				case []command.Rule:
+				if v, ok := item.([]command.Rule); ok {
 					for _, rule := range v {
 						m[fmt.Sprintf("[%s] /%s", name, rule.Define)] = rule.Help
 					}

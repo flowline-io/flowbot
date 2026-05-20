@@ -3,7 +3,7 @@ package slack
 import (
 	"fmt"
 	"math"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/slack-go/slack"
@@ -49,7 +49,7 @@ func sectionFields(fields map[string]string) *slack.SectionBlock {
 	for k := range fields {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	textFields := make([]*slack.TextBlockObject, 0, len(keys))
 	for _, k := range keys {

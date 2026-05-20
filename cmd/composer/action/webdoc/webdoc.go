@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -257,13 +257,22 @@ func buildSectionsWithActive(pages []docPageInfo, activeIndex int) []DocSection 
 			}
 		}
 		// Sort: README/index pages first, then alphabetical.
-		sort.SliceStable(items, func(i, j int) bool {
-			aIdx := strings.HasSuffix(items[i].URL, "/")
-			bIdx := strings.HasSuffix(items[j].URL, "/")
+		slices.SortStableFunc(items, func(a, b DocNavPage) int {
+			aIdx := strings.HasSuffix(a.URL, "/")
+			bIdx := strings.HasSuffix(b.URL, "/")
 			if aIdx != bIdx {
-				return aIdx
+				if aIdx {
+					return -1
+				}
+				return 1
 			}
-			return items[i].Title < items[j].Title
+			if a.Title < b.Title {
+				return -1
+			}
+			if a.Title > b.Title {
+				return 1
+			}
+			return 0
 		})
 
 		if hasIndex {
@@ -290,7 +299,7 @@ func sortedSectionDirs(secMap map[string][]DocNavPage) []string {
 	for d := range secMap {
 		dirs = append(dirs, d)
 	}
-	sort.Strings(dirs)
+	slices.Sort(dirs)
 
 	// Push "getting-started" to the front.
 	for i, d := range dirs {
