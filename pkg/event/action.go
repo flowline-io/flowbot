@@ -8,7 +8,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 )
@@ -79,18 +78,25 @@ func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*m
 		platformName[item.ID] = item.Name
 	}
 
+	userFlags := make([]string, 0, len(platformUsers))
 	for _, item := range platformUsers {
-		channelUsers, err := store.Database.GetPlatformChannelUsersByUserFlag(ctx.Context(), item.Flag)
-		if err != nil {
-			flog.Error(err)
-			continue
-		}
+		userFlags = append(userFlags, item.Flag)
+	}
+	channelUsersByFlag, err := store.Database.GetPlatformChannelUsersByUserFlags(ctx.Context(), userFlags)
+	if err != nil {
+		return fmt.Errorf("failed to get platform channel users: %w", err)
+	}
+	channelUserMap := make(map[string][]*model.PlatformChannelUser, len(userFlags))
+	for _, cu := range channelUsersByFlag {
+		channelUserMap[cu.UserFlag] = append(channelUserMap[cu.UserFlag], cu)
+	}
 
+	for _, item := range platformUsers {
 		if platformName[item.PlatformID] == "" {
 			continue
 		}
 
-		for _, channelUser := range channelUsers {
+		for _, channelUser := range channelUserMap[item.Flag] {
 			err = PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
 				Platform: platformName[item.PlatformID],
 				Topic:    channelUser.ChannelFlag,

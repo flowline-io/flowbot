@@ -204,6 +204,7 @@ type Adapter interface {
 	CreatePlatformChannel(ctx context.Context, item *model.PlatformChannel) (int64, error)
 	CreatePlatformChannelUser(ctx context.Context, item *model.PlatformChannelUser) (int64, error)
 	GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*model.PlatformChannelUser, error)
+	GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error)
 	GetMessage(ctx context.Context, flag string) (*model.Message, error)
 	GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*model.Message, error)
 	GetMessagesBySession(ctx context.Context, session string) ([]*model.Message, error)

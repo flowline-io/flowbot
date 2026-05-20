@@ -533,6 +533,24 @@ func (a *adapter) GetPlatformChannelUsersByUserFlag(ctx context.Context, userFla
 	return result, nil
 }
 
+// GetPlatformChannelUsersByUserFlags returns platform channel user records for a batch of user flags.
+func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error) {
+	if len(userFlags) == 0 {
+		return nil, nil
+	}
+	users, err := a.client.PlatformChannelUser.Query().
+		Where(platformchanneluser.UserFlagIn(userFlags...)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: get platform channel users by user flags: %w", err)
+	}
+	result := make([]*model.PlatformChannelUser, len(users))
+	for i, u := range users {
+		result[i] = entPlatformChannelUserToModel(u)
+	}
+	return result, nil
+}
+
 // ---------------------------------------------------------------------------
 // Message
 // ---------------------------------------------------------------------------
