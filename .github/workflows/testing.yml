@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  race:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,11 +32,22 @@ jobs:
       - name: Go mod download
         run: go mod download
 
-      # - name: Test
-      #   run: go tool task test
-
       - name: Race testing
         run: go tool task test:race
+
+  bdd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '^1.26'
+          cache: true
+
+      - name: Go mod download
+        run: go mod download
 
       - name: BDD Acceptance Tests
         run: go tool task test:specs:ci
