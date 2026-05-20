@@ -31,11 +31,10 @@ type AuditEntry struct {
 	UserAgent    string
 }
 
-func (s *AuditStore) Write(entry AuditEntry) error {
+func (s *AuditStore) Write(ctx context.Context, entry AuditEntry) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
-	ctx := context.Background()
 	now := time.Now()
 	_, err := s.client.AuditLog.Create().
 		SetAction(entry.Action).
@@ -64,8 +63,8 @@ func (s *AuditStore) Write(entry AuditEntry) error {
 	return nil
 }
 
-func (s *AuditStore) Success(actorType, actorID, uid, topic, action, resourceType, resourceName, ip, ua string) error {
-	return s.Write(AuditEntry{
+func (s *AuditStore) Success(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, ip, ua string) error {
+	return s.Write(ctx, AuditEntry{
 		ActorType:    actorType,
 		ActorID:      actorID,
 		UID:          uid,
@@ -79,8 +78,8 @@ func (s *AuditStore) Success(actorType, actorID, uid, topic, action, resourceTyp
 	})
 }
 
-func (s *AuditStore) Rejected(actorType, actorID, uid, topic, action, resourceType, resourceName, reason, ip, ua string) error {
-	return s.Write(AuditEntry{
+func (s *AuditStore) Rejected(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, reason, ip, ua string) error {
+	return s.Write(ctx, AuditEntry{
 		ActorType:    actorType,
 		ActorID:      actorID,
 		UID:          uid,
@@ -95,8 +94,8 @@ func (s *AuditStore) Rejected(actorType, actorID, uid, topic, action, resourceTy
 	})
 }
 
-func (s *AuditStore) Failed(actorType, actorID, uid, topic, action, resourceType, resourceName, errMsg, ip, ua string) error {
-	return s.Write(AuditEntry{
+func (s *AuditStore) Failed(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, errMsg, ip, ua string) error {
+	return s.Write(ctx, AuditEntry{
 		ActorType:    actorType,
 		ActorID:      actorID,
 		UID:          uid,

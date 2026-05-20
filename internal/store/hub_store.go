@@ -25,7 +25,7 @@ func NewHubStore(client *gen.Client) *HubStore {
 
 // SaveHomelabApps upserts a batch of discovered homelab apps.
 // Each app is looked up by name; existing rows are updated, new rows are created.
-func (s *HubStore) SaveHomelabApps(apps []homelab.App) error {
+func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -34,7 +34,6 @@ func (s *HubStore) SaveHomelabApps(apps []homelab.App) error {
 	}
 
 	now := time.Now()
-	ctx := context.Background()
 
 	for _, homelabApp := range apps {
 		info, err := appJSON(homelabApp)

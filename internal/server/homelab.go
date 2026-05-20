@@ -41,7 +41,7 @@ func initHomelabRegistry(cfg config.Homelab) error {
 	homelab.DefaultRegistry.SetPermissions(homeConfig.Permissions)
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			if err := store.NewHubStore(client).SaveHomelabApps(apps); err != nil {
+			if err := store.NewHubStore(client).SaveHomelabApps(context.Background(), apps); err != nil {
 				return fmt.Errorf("persist homelab apps: %w", err)
 			}
 		}
