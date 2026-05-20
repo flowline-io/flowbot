@@ -421,14 +421,14 @@ func Init(jsonconf json.RawMessage) error {
 	var config []json.RawMessage
 
 	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
-		return errors.New("failed to parse config: " + err.Error())
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	configMap := make(map[string]json.RawMessage)
 	for _, cc := range config {
 		var item configType
 		if err := sonic.Unmarshal(cc, &item); err != nil {
-			return errors.New("failed to parse config: " + err.Error())
+			return fmt.Errorf("failed to parse config: %w", err)
 		}
 
 		configMap[item.Name] = cc

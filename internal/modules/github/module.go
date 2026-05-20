@@ -3,6 +3,7 @@ package github
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/bytedance/sonic"
 
@@ -37,7 +38,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	}
 
 	if err := sonic.Unmarshal(jsonconf, &Config); err != nil {
-		return errors.New("failed to parse config: " + err.Error())
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	if !Config.Enabled {

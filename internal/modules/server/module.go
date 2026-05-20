@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -39,7 +40,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 
 	var config configType
 	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
-		return errors.New("failed to parse config: " + err.Error())
+		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	if !config.Enabled {
