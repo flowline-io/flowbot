@@ -242,9 +242,10 @@ func readProcessOutput(stdout io.ReadCloser) {
 func reexecRun() {
 	var uid string
 	var gid string
-	flag.StringVar(&uid, "uid", "", "the uid to use when running the process")
-	flag.StringVar(&gid, "gid", "", "the gid to use when running the process")
-	flag.Parse()
+	fs := flag.NewFlagSet("shell", flag.ExitOnError)
+	fs.StringVar(&uid, "uid", "", "the uid to use when running the process")
+	fs.StringVar(&gid, "gid", "", "the gid to use when running the process")
+	_ = fs.Parse(os.Args[1:])
 
 	SetUID(uid)
 	SetGID(gid)
@@ -268,15 +269,15 @@ func reexecRun() {
 		}
 	}
 
-	cmd := exec.Command(flag.Args()[0], flag.Args()[1:]...)
+	cmd := exec.Command(fs.Args()[0], fs.Args()[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = env
 	cmd.Dir = workdir
 
-	flog.Info("reexecing: %s as %s:%s", strings.Join(flag.Args(), " "), uid, gid)
+	flog.Info("reexecing: %s as %s:%s", strings.Join(fs.Args(), " "), uid, gid)
 	if err := cmd.Run(); err != nil {
-		flog.Error(fmt.Errorf("error reexecing: %s", strings.Join(flag.Args(), " ")))
+		flog.Error(fmt.Errorf("error reexecing: %s", strings.Join(fs.Args(), " ")))
 	}
 }
 

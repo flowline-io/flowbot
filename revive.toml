@@ -60,3 +60,4 @@ warningCode = 0
 [rule.unchecked-type-assertion]
 [rule.datarace]
 [rule.nested-structs]
+[rule.deep-exit]

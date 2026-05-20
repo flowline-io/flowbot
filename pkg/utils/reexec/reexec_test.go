@@ -68,11 +68,13 @@ func TestCommand(t *testing.T) {
 	}
 }
 
-func TestNaiveSelf(t *testing.T) {
+func init() {
 	if os.Getenv("TEST_CHECK") == "1" {
 		os.Exit(2)
 	}
+}
 
+func TestNaiveSelf(t *testing.T) {
 	tests := []struct {
 		name           string
 		performCmdExec bool

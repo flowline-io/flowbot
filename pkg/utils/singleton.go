@@ -15,21 +15,22 @@ import (
 
 const EmbedServerPort = "15656"
 
-func CheckSingleton() {
+func CheckSingleton() error {
 	if !PortAvailable(EmbedServerPort) {
 		resp, err := resty.New().SetTimeout(500 * time.Millisecond).R().
 			Get(fmt.Sprintf("http://127.0.0.1:%s/health", EmbedServerPort))
 		if err != nil {
 			log.Print(err)
-			return
+			return nil
 		}
 		if resp.String() == "ok" {
-			log.Fatal("app exists")
+			return fmt.Errorf("app exists on port %s", EmbedServerPort)
 		}
 	}
+	return nil
 }
 
-func EmbedServer() {
+func EmbedServer() error {
 	log.Printf("embed server http://127.0.0.1:%v", EmbedServerPort)
 
 	app := fiber.New(fiber.Config{})
@@ -44,6 +45,7 @@ func EmbedServer() {
 		DisableStartupMessage: true,
 	})
 	if err != nil {
-		log.Fatal("embed server error")
+		return fmt.Errorf("embed server error: %w", err)
 	}
+	return nil
 }

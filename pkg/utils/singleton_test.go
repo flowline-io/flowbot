@@ -12,7 +12,7 @@ func TestCheckSingleton(t *testing.T) {
 
 	tests := []struct {
 		name string
-		fn   func()
+		fn   func() error
 	}{
 		{
 			name: "does not panic on single call",
@@ -38,7 +38,7 @@ func TestCheckSingleton(t *testing.T) {
 				}
 			}()
 
-			tt.fn()
+			_ = tt.fn()
 		})
 	}
 }

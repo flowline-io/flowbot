@@ -507,10 +507,10 @@ type Model struct {
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
 }
 
-func Load(path ...string) {
+func Load(path ...string) error {
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
-		log.Fatalf("[config] Failed to bind flags: %v", err)
+		return fmt.Errorf("bind flags: %w", err)
 	}
 	for _, p := range path {
 		viper.AddConfigPath(p)
@@ -519,12 +519,13 @@ func Load(path ...string) {
 	viper.SetConfigType("yaml")
 	err = viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf("[config] Failed to read config file: %v", err)
+		return fmt.Errorf("read config file: %w", err)
 	}
 	err = viper.Unmarshal(&App)
 	if err != nil {
-		log.Fatalf("[config] Failed to unmarshal config: %v", err)
+		return fmt.Errorf("unmarshal config: %w", err)
 	}
+	return nil
 }
 
 // loadPipelines reads pipeline definitions from a standalone YAML file.
@@ -548,12 +549,12 @@ func loadPipelines(path string) ([]Pipeline, error) {
 	return pipelines, nil
 }
 
-func NewConfig(lc fx.Lifecycle) *Type {
+func NewConfig(lc fx.Lifecycle) (*Type, error) {
 	executable, _ := os.Executable()
 
 	curwd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Couldn't get current working directory: %v", err)
+		return nil, fmt.Errorf("get working directory: %w", err)
 	}
 
 	log.Printf("version %s:%s:%s; pid %d; %d process(es)\n",
@@ -564,14 +565,16 @@ func NewConfig(lc fx.Lifecycle) *Type {
 	log.Printf("Using config from '%s'\n", configFile)
 
 	// Load config
-	Load(".", curwd)
+	if err := Load(".", curwd); err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
+	}
 
 	// Load pipelines from separate file
 	pipelinesPath := utils.ToAbsolutePath(curwd, "pipelines.yaml")
 	log.Printf("Using pipelines config from '%s'\n", pipelinesPath)
 	pipelines, err := loadPipelines(pipelinesPath)
 	if err != nil {
-		log.Fatalf("[config] Failed to load pipelines: %v", err)
+		return nil, fmt.Errorf("load pipelines: %w", err)
 	}
 	App.Pipelines = pipelines
 
@@ -610,5 +613,5 @@ func NewConfig(lc fx.Lifecycle) *Type {
 		},
 	})
 
-	return &App
+	return &App, nil
 }
