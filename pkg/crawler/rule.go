@@ -42,151 +42,168 @@ type Rule struct {
 
 func (r Rule) Run() []map[string]string {
 	var result []map[string]string
-
-	// html
-	if r.Page != nil {
-		doc, err := document(r.Page.URL)
-		if err != nil {
-			flog.Error(err)
-			return result
-		}
-
-		keys := make([]string, 0, len(r.Page.Item))
-		for k := range r.Page.Item {
-			keys = append(keys, k)
-		}
-		doc.Find(r.Page.List).Each(func(i int, s *goquery.Selection) {
-			tmp := make(map[string]string)
-			for _, k := range keys {
-				f := ParseFun(s, r.Page.Item[k])
-				v, err := f.Invoke()
-				if err != nil {
-					continue
-				}
-				v = strings.TrimSpace(v)
-				v = strings.ReplaceAll(v, "\n", "")
-				v = strings.ReplaceAll(v, "\r\n", "")
-				if v == "" {
-					continue
-				}
-				tmp[k] = v
-			}
-			if len(tmp) == 0 {
-				return
-			}
-			result = append(result, tmp)
-		})
+	if !runPageCrawling(r, &result) {
+		return result
 	}
-
-	// json
-	if r.Json != nil {
-		doc, err := document(r.Json.URL)
-		if err != nil {
-			return result
-		}
-
-		// mod func
-		gjson.AddModifier("expand", func(raw, arg string) string {
-			var args map[string]string
-			err := sonic.Unmarshal([]byte(arg), &args)
-			if err != nil {
-				return ""
-			}
-			k := args["k"]
-			v := args["v"]
-
-			rx, err := regexp.Compile(k)
-			if err != nil {
-				return ""
-			}
-
-			src := strings.Trim(raw, "\"")
-			var dst []byte
-			m := rx.FindStringSubmatchIndex(src)
-			s := rx.ExpandString(dst, v, src, m)
-
-			return "\"" + string(s) + "\""
-		})
-
-		keys := make([]string, 0, len(r.Json.Item))
-		for k := range r.Json.Item {
-			keys = append(keys, k)
-		}
-
-		jRes := gjson.Parse(doc.Text())
-		arr := jRes.Get(r.Json.List).Array()
-		for _, item := range arr {
-			tmp := make(map[string]string)
-			for _, k := range keys {
-				f := item.Get(r.Json.Item[k])
-				v := f.String()
-				v = strings.TrimSpace(v)
-				v = strings.ReplaceAll(v, "\n", "")
-				v = strings.ReplaceAll(v, "\r\n", "")
-				if v == "" {
-					continue
-				}
-				tmp[k] = v
-			}
-			if len(tmp) == 0 {
-				continue
-			}
-			result = append(result, tmp)
-		}
+	if !runJsonCrawling(r, &result) {
+		return result
 	}
-
-	// feed
-	if r.Feed != nil {
-		fp := gofeed.NewParser()
-		feed, err := fp.ParseURL(r.Feed.URL)
-		if err != nil {
-			return result
-		}
-
-		keys := make([]string, 0, len(r.Feed.Item))
-		for k := range r.Feed.Item {
-			keys = append(keys, k)
-		}
-
-		for _, item := range feed.Items {
-			tmp := make(map[string]string)
-			for _, k := range keys {
-				v := ""
-				switch r.Feed.Item[k] {
-				case "guid":
-					v = item.GUID
-				case "title":
-					v = item.Title
-				case "description":
-					v = item.Description
-				case "content":
-					v = item.Content
-				case "link":
-					v = item.Link
-				case "updated":
-					v = item.Updated
-				case "published":
-					v = item.Published
-				case "enclosure":
-					if len(item.Enclosures) > 0 {
-						v = item.Enclosures[0].URL
-					}
-				}
-				if v != "" {
-					v = strings.TrimSpace(v)
-					v = strings.ReplaceAll(v, "\n", "")
-					v = strings.ReplaceAll(v, "\r\n", "")
-					tmp[k] = v
-				}
-			}
-			if len(tmp) == 0 {
-				continue
-			}
-			result = append(result, tmp)
-		}
-	}
-
+	runFeedCrawling(r, &result)
 	return result
+}
+
+func runPageCrawling(r Rule, result *[]map[string]string) bool {
+	if r.Page == nil {
+		return true
+	}
+	doc, err := document(r.Page.URL)
+	if err != nil {
+		flog.Error(err)
+		return false
+	}
+
+	keys := make([]string, 0, len(r.Page.Item))
+	for k := range r.Page.Item {
+		keys = append(keys, k)
+	}
+	doc.Find(r.Page.List).Each(func(i int, s *goquery.Selection) {
+		tmp := make(map[string]string)
+		for _, k := range keys {
+			f := ParseFun(s, r.Page.Item[k])
+			v, err := f.Invoke()
+			if err != nil {
+				continue
+			}
+			v = strings.TrimSpace(v)
+			v = strings.ReplaceAll(v, "\n", "")
+			v = strings.ReplaceAll(v, "\r\n", "")
+			if v == "" {
+				continue
+			}
+			tmp[k] = v
+		}
+		if len(tmp) == 0 {
+			return
+		}
+		*result = append(*result, tmp)
+	})
+	return true
+}
+
+func runJsonCrawling(r Rule, result *[]map[string]string) bool {
+	if r.Json == nil {
+		return true
+	}
+	doc, err := document(r.Json.URL)
+	if err != nil {
+		return false
+	}
+
+	gjson.AddModifier("expand", func(raw, arg string) string {
+		var args map[string]string
+		err := sonic.Unmarshal([]byte(arg), &args)
+		if err != nil {
+			return ""
+		}
+		k := args["k"]
+		v := args["v"]
+
+		rx, err := regexp.Compile(k)
+		if err != nil {
+			return ""
+		}
+
+		src := strings.Trim(raw, "\"")
+		var dst []byte
+		m := rx.FindStringSubmatchIndex(src)
+		s := rx.ExpandString(dst, v, src, m)
+
+		return "\"" + string(s) + "\""
+	})
+
+	keys := make([]string, 0, len(r.Json.Item))
+	for k := range r.Json.Item {
+		keys = append(keys, k)
+	}
+
+	jRes := gjson.Parse(doc.Text())
+	arr := jRes.Get(r.Json.List).Array()
+	for _, item := range arr {
+		tmp := make(map[string]string)
+		for _, k := range keys {
+			f := item.Get(r.Json.Item[k])
+			v := f.String()
+			v = strings.TrimSpace(v)
+			v = strings.ReplaceAll(v, "\n", "")
+			v = strings.ReplaceAll(v, "\r\n", "")
+			if v == "" {
+				continue
+			}
+			tmp[k] = v
+		}
+		if len(tmp) == 0 {
+			continue
+		}
+		*result = append(*result, tmp)
+	}
+	return true
+}
+
+func feedItemValue(item *gofeed.Item, selector string) string {
+	switch selector {
+	case "guid":
+		return item.GUID
+	case "title":
+		return item.Title
+	case "description":
+		return item.Description
+	case "content":
+		return item.Content
+	case "link":
+		return item.Link
+	case "updated":
+		return item.Updated
+	case "published":
+		return item.Published
+	case "enclosure":
+		if len(item.Enclosures) > 0 {
+			return item.Enclosures[0].URL
+		}
+	}
+	return ""
+}
+
+func runFeedCrawling(r Rule, result *[]map[string]string) {
+	if r.Feed == nil {
+		return
+	}
+	fp := gofeed.NewParser()
+	feed, err := fp.ParseURL(r.Feed.URL)
+	if err != nil {
+		return
+	}
+
+	keys := make([]string, 0, len(r.Feed.Item))
+	for k := range r.Feed.Item {
+		keys = append(keys, k)
+	}
+
+	for _, item := range feed.Items {
+		tmp := make(map[string]string)
+		for _, k := range keys {
+			v := feedItemValue(item, r.Feed.Item[k])
+			if v != "" {
+				v = strings.TrimSpace(v)
+				v = strings.ReplaceAll(v, "\n", "")
+				v = strings.ReplaceAll(v, "\r\n", "")
+				tmp[k] = v
+			}
+		}
+		if len(tmp) == 0 {
+			continue
+		}
+		*result = append(*result, tmp)
+	}
 }
 
 type Result struct {

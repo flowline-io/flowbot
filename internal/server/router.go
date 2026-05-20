@@ -238,22 +238,58 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("error form state")
 	}
 
-	values := make(types.KV)
-	d, err := sonic.Marshal(formData.Schema)
+	formMsg, botHandler, err := getFormBotHandler(formData.Schema, formId)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-	var formMsg types.FormMsg
-	err = sonic.Unmarshal(d, &formMsg)
-	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
-	}
+
 	f, err := ctx.MultipartForm()
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-	pf := f.Value
-	for _, field := range formMsg.Field {
+
+	values := parseFormFieldValues(formMsg.Field, f.Value, ctx)
+
+	formBuilder := form.NewBuilder(formMsg.Field)
+	formBuilder.Data = values
+	err = formBuilder.Validate()
+	if err != nil {
+		return protocol.ErrBadParam.Wrap(err)
+	}
+
+	botCtx := types.Context{
+		Topic:      topic,
+		AsUser:     types.Uid(uid),
+		FormId:     formData.FormID,
+		FormRuleId: formMsg.ID,
+		TraceCtx:   ctx.Context(),
+	}
+
+	if botHandler != nil {
+		if !botHandler.IsReady() {
+			return protocol.ErrBadParam.Errorf("module %s unavailable", topic)
+		}
+
+		payload, err := botHandler.Form(botCtx, values)
+		if err != nil {
+			return protocol.ErrBadParam.Wrap(err)
+		}
+
+		stats.ModuleRunTotalCounter(stats.FormRuleset).Inc()
+
+		if payload == nil {
+			return ctx.JSON(protocol.NewSuccessResponse("empty message"))
+		}
+
+		return ctx.JSON(protocol.NewSuccessResponse(payload))
+	}
+
+	return ctx.JSON(protocol.NewSuccessResponse("ok"))
+}
+
+func parseFormFieldValues(fields []types.FormField, pf map[string][]string, ctx fiber.Ctx) types.KV {
+	values := make(types.KV)
+	for _, field := range fields {
 		switch field.Type {
 		case types.FormFieldCheckbox:
 			value := pf[field.Key]
@@ -294,54 +330,27 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 			}
 		}
 	}
+	return values
+}
 
-	formBuilder := form.NewBuilder(formMsg.Field)
-	formBuilder.Data = values
-	err = formBuilder.Validate()
+func getFormBotHandler(schema model.JSON, formId string) (*types.FormMsg, module.Handler, error) {
+	d, err := sonic.Marshal(schema)
 	if err != nil {
-		return protocol.ErrBadParam.Wrap(err)
+		return nil, nil, err
+	}
+	var formMsg types.FormMsg
+	err = sonic.Unmarshal(d, &formMsg)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	botCtx := types.Context{
-		Topic:      topic,
-		AsUser:     types.Uid(uid),
-		FormId:     formData.FormID,
-		FormRuleId: formMsg.ID,
-		TraceCtx:   ctx.Context(),
-	}
-
-	// user auth record
-
-	// get bot handler
-	formRuleId, ok := types.KV(formData.Schema).String("id")
+	formRuleId, ok := types.KV(schema).String("id")
 	if !ok {
-		return protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")
+		return &formMsg, nil, protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")
 	}
 
 	_, botHandler := module.FindRuleAndHandler[formRule.Rule](formRuleId, module.List())
-
-	if botHandler != nil {
-		if !botHandler.IsReady() {
-			return protocol.ErrBadParam.Errorf("module %s unavailable", topic)
-		}
-
-		// form message
-		payload, err := botHandler.Form(botCtx, values)
-		if err != nil {
-			return protocol.ErrBadParam.Wrap(err)
-		}
-
-		// stats
-		stats.ModuleRunTotalCounter(stats.FormRuleset).Inc()
-
-		if payload == nil {
-			return ctx.JSON(protocol.NewSuccessResponse("empty message"))
-		}
-
-		return ctx.JSON(protocol.NewSuccessResponse(payload))
-	}
-
-	return ctx.JSON(protocol.NewSuccessResponse("ok"))
+	return &formMsg, botHandler, nil
 }
 
 func (*Controller) agentData(ctx fiber.Ctx) error {
@@ -422,27 +431,7 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 	var err error
 	var find *model.Webhook
 	if webhookRule.Secret {
-		secret := ""
-		val := ctx.FormValue("secret")
-		if val != "" {
-			secret = val
-		}
-		val = ctx.Query("secret")
-		if val != "" {
-			secret = val
-		}
-		val = ctx.Cookies("secret")
-		if val != "" {
-			secret = val
-		}
-		val = ctx.Get("X-Secret")
-		if val != "" {
-			secret = val
-		}
-		val = ctx.Get("Authorization")
-		if val != "" {
-			secret = strings.TrimPrefix(val, "Bearer ")
-		}
+		secret := extractWebhookSecret(ctx)
 		if secret == "" {
 			return protocol.ErrParamVerificationFailed.New("secret not verification")
 		}
@@ -483,4 +472,24 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 	}
 
 	return ctx.JSON(payload)
+}
+
+func extractWebhookSecret(ctx fiber.Ctx) string {
+	secret := ""
+	if val := ctx.FormValue("secret"); val != "" {
+		secret = val
+	}
+	if val := ctx.Query("secret"); val != "" {
+		secret = val
+	}
+	if val := ctx.Cookies("secret"); val != "" {
+		secret = val
+	}
+	if val := ctx.Get("X-Secret"); val != "" {
+		secret = val
+	}
+	if val := ctx.Get("Authorization"); val != "" {
+		secret = strings.TrimPrefix(val, "Bearer ")
+	}
+	return secret
 }

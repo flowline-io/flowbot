@@ -106,21 +106,12 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 
 	runStart := time.Now()
 
-	if e.store != nil {
-		consumed, err := e.store.HasConsumed(ctx, def.Name, event.EventID)
-		if err != nil {
-			return fmt.Errorf("check consumption: %w", err)
-		}
-		if consumed {
-			flog.Info("pipeline %s already consumed event %s", def.Name, event.EventID)
-			if e.eventMetrics != nil {
-				e.eventMetrics.IncDedup(event.EventType, def.Name)
-			}
-			return nil
-		}
-		if err := e.store.RecordConsumption(ctx, def.Name, event.EventID); err != nil {
-			return fmt.Errorf("record consumption: %w", err)
-		}
+	alreadyDone, err := e.checkDedupAndRecord(ctx, def.Name, event.EventID, event.EventType)
+	if err != nil {
+		return err
+	}
+	if alreadyDone {
+		return nil
 	}
 
 	runID, err := e.createRunRecord(ctx, def.Name, event.EventID, event.EventType)
@@ -133,18 +124,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	var finalErr error
 
 	for i, step := range def.Steps {
-		// Save checkpoint before executing each step.
-		if def.Resumable && e.store != nil && runID != 0 {
-			cp := &CheckpointData{
-				StepIndex:   i,
-				StepResults: buildStepResults(rc),
-				Event:       event,
-				HeartbeatAt: time.Now(),
-			}
-			if cpErr := e.store.SaveCheckpoint(ctx, runID, cp); cpErr != nil {
-				flog.Error(fmt.Errorf("save checkpoint pipeline %s step %d: %w", def.Name, i, cpErr))
-			}
-		}
+		e.saveCheckpointIfResumable(ctx, def, event, rc, i, runID)
 
 		if err := e.executeStep(ctx, rc, step, runID, def.Name, def.Resumable); err != nil {
 			failed = true
@@ -212,42 +192,21 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		if err == nil {
 			stepResult := extractResult(res)
 			rc.RecordStepResult(step.Name, stepResult)
-			e.updateStepRunRecord(ctx, stepRunID, model.PipelineDone, stepResult, "", attempt)
+			e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
 			flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
-			if e.pipelineMetrics != nil {
-				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "done")
-				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "done", time.Since(stepStart).Seconds())
-				if attempt > 1 {
-					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
-				}
-			}
 			return nil
 		}
 
 		trace.RecordError(ctx, err)
 
 		if !retryCfg.RetryEnabled() || !isRetryable(err, retryCfg) {
-			e.updateStepRunRecord(ctx, stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
-			if e.pipelineMetrics != nil {
-				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
-				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
-				if attempt > 1 {
-					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
-				}
-			}
+			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), err.Error(), attempt, stepStart)
 			return fmt.Errorf("step %s: %w", step.Name, err)
 		}
 
 		nextDelay := bo.NextBackOff()
 		if nextDelay == backoff.Stop {
-			e.updateStepRunRecord(ctx, stepRunID, model.PipelineCancel, nil, err.Error(), attempt)
-			if e.pipelineMetrics != nil {
-				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
-				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
-				if attempt > 1 {
-					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
-				}
-			}
+			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), err.Error(), attempt, stepStart)
 			return fmt.Errorf("step %s (retries exhausted): %w", step.Name, err)
 		}
 
@@ -256,14 +215,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 
 		select {
 		case <-ctx.Done():
-			e.updateStepRunRecord(ctx, stepRunID, model.PipelineCancel, nil, ctx.Err().Error(), attempt)
-			if e.pipelineMetrics != nil {
-				e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "cancel")
-				e.pipelineMetrics.ObserveStepDuration(pipelineName, step.Name, string(step.Capability), "cancel", time.Since(stepStart).Seconds())
-				if attempt > 1 {
-					e.pipelineMetrics.IncStepRetry(pipelineName, step.Name)
-				}
-			}
+			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), ctx.Err().Error(), attempt, stepStart)
 			return fmt.Errorf("step %s cancelled: %w", step.Name, ctx.Err())
 		case <-time.After(nextDelay):
 		}
@@ -374,6 +326,63 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 		}
 	}
 	_ = e.store.UpdateRunStatus(ctx, runID, status, errMsg)
+}
+
+func (e *Engine) checkDedupAndRecord(ctx context.Context, pipelineName, eventID, eventType string) (bool, error) {
+	if e.store == nil {
+		return false, nil
+	}
+	consumed, err := e.store.HasConsumed(ctx, pipelineName, eventID)
+	if err != nil {
+		return false, fmt.Errorf("check consumption: %w", err)
+	}
+	if consumed {
+		flog.Info("pipeline %s already consumed event %s", pipelineName, eventID)
+		if e.eventMetrics != nil {
+			e.eventMetrics.IncDedup(eventType, pipelineName)
+		}
+		return true, nil
+	}
+	if err := e.store.RecordConsumption(ctx, pipelineName, eventID); err != nil {
+		return false, fmt.Errorf("record consumption: %w", err)
+	}
+	return false, nil
+}
+
+func (e *Engine) saveCheckpointIfResumable(ctx context.Context, def Definition, event types.DataEvent, rc *RenderContext, stepIndex int, runID int64) {
+	if !def.Resumable || e.store == nil || runID == 0 {
+		return
+	}
+	cp := &CheckpointData{
+		StepIndex:   stepIndex,
+		StepResults: buildStepResults(rc),
+		Event:       event,
+		HeartbeatAt: time.Now(),
+	}
+	if cpErr := e.store.SaveCheckpoint(ctx, runID, cp); cpErr != nil {
+		flog.Error(fmt.Errorf("save checkpoint pipeline %s step %d: %w", def.Name, stepIndex, cpErr))
+	}
+}
+
+func (e *Engine) recordStepMetrics(pipelineName, stepName, capability, status string, durationSec float64, attempt int) {
+	if e.pipelineMetrics == nil {
+		return
+	}
+	e.pipelineMetrics.IncStepTotal(pipelineName, stepName, status)
+	e.pipelineMetrics.ObserveStepDuration(pipelineName, stepName, capability, status, durationSec)
+	if attempt > 1 {
+		e.pipelineMetrics.IncStepRetry(pipelineName, stepName)
+	}
+}
+
+func (e *Engine) recordStepSuccess(ctx context.Context, stepRunID int64, pipelineName, stepName, capability string, stepResult map[string]any, attempt int, stepStart time.Time) {
+	e.updateStepRunRecord(ctx, stepRunID, model.PipelineDone, stepResult, "", attempt)
+	e.recordStepMetrics(pipelineName, stepName, capability, "done", time.Since(stepStart).Seconds(), attempt)
+}
+
+func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capability, errMsg string, attempt int, stepStart time.Time) {
+	e.updateStepRunRecord(ctx, stepRunID, model.PipelineCancel, nil, errMsg, attempt)
+	e.recordStepMetrics(pipelineName, stepName, capability, "cancel", time.Since(stepStart).Seconds(), attempt)
 }
 
 func extractResult(res *ability.InvokeResult) map[string]any {

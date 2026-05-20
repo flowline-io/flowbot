@@ -51,6 +51,24 @@ func buildDAG(tasks []types.WorkflowTask) (map[string]*dagNode, []string, error)
 	return nodes, ready, nil
 }
 
+// parallelTaskFn is the signature used by dispatchReadyTasks to run a single task
+// inside a dispatch goroutine.
+type parallelTaskFn func(
+	ctx context.Context,
+	taskID string,
+	wt types.WorkflowTask,
+	nodes map[string]*dagNode,
+	input types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	run *model.WorkflowRun,
+	ready *[]string,
+	wf *types.WorkflowMetadata,
+	firstErr *error,
+	errOnce *sync.Once,
+	cancel context.CancelFunc,
+)
+
 // runParallel executes workflow tasks in parallel based on the DAG defined by Conn dependencies.
 func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
 	nodes, ready, err := buildDAG(wf.Tasks)
@@ -86,56 +104,7 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 	totalRemaining := len(wf.Tasks)
 
 	for totalRemaining > 0 {
-		for {
-			mu.Lock()
-			hasReady := len(ready) > 0 && activeCount < wf.MaxConcurrency
-			if hasReady {
-				id := ready[0]
-				ready = ready[1:]
-				activeCount++
-				if r.metrics != nil {
-					r.metrics.SetConcurrency(wf.Name, activeCount)
-				}
-				mu.Unlock()
-
-				sem <- struct{}{}
-				wg.Add(1)
-
-				go func(taskID string) {
-					defer wg.Done()
-					defer func() {
-						<-sem
-						done <- struct{}{}
-					}()
-
-					wt := taskMap[taskID]
-
-					stepStart := time.Now()
-					info := ParseAction(wt.Action)
-					if r.metrics != nil {
-						r.metrics.IncStepTotal(wf.Name, taskID, "running")
-					}
-
-					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, &wf)
-					if rerr != nil {
-						errOnce.Do(func() {
-							firstErr = rerr
-							cancel()
-						})
-						if r.metrics != nil {
-							r.metrics.IncStepTotal(wf.Name, taskID, "failed")
-							r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "failed", time.Since(stepStart).Seconds())
-						}
-				} else if r.metrics != nil {
-					r.metrics.IncStepTotal(wf.Name, taskID, "done")
-					r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "done", time.Since(stepStart).Seconds())
-				}
-				}(id)
-			} else {
-				mu.Unlock()
-				break
-			}
-		}
+		r.dispatchReadyTasks(ctx, wf, &ready, &activeCount, taskMap, nodes, input, &results, &mu, run, sem, &wg, done, &firstErr, &errOnce, cancel, r.runParallelTaskHandler)
 
 		select {
 		case <-ctx.Done():
@@ -153,23 +122,150 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 
 drain:
 	wg.Wait()
-
 	if cancelHeartbeat != nil {
 		cancelHeartbeat()
 	}
+	finalErr = firstErr
+	return r.finalizeParallelStatus(ctx, run, 0, finalErr)
+}
 
-	if firstErr != nil {
-		if r.store != nil && run != nil {
-			_ = r.store.UpdateRunStatus(ctx, run.ID, model.WorkflowRunFailed, firstErr.Error())
+// dispatchReadyTasks pops ready tasks from the queue and spawns dispatch goroutines
+// until no more tasks are dispatchable (concurrency limit reached or queue empty).
+func (r *Runner) dispatchReadyTasks(
+	ctx context.Context,
+	wf types.WorkflowMetadata,
+	ready *[]string,
+	activeCount *int,
+	taskMap map[string]types.WorkflowTask,
+	nodes map[string]*dagNode,
+	input types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	run *model.WorkflowRun,
+	sem chan struct{},
+	wg *sync.WaitGroup,
+	done chan struct{},
+	firstErr *error,
+	errOnce *sync.Once,
+	cancel context.CancelFunc,
+	taskFn parallelTaskFn,
+) {
+	for {
+		mu.Lock()
+		hasReady := len(*ready) > 0 && *activeCount < wf.MaxConcurrency
+		if hasReady {
+			id := (*ready)[0]
+			*ready = (*ready)[1:]
+			*activeCount++
+			if r.metrics != nil {
+				r.metrics.SetConcurrency(wf.Name, *activeCount)
+			}
+			mu.Unlock()
+
+			sem <- struct{}{}
+			wg.Add(1)
+
+			go func(taskID string) {
+				defer wg.Done()
+				defer func() {
+					<-sem
+					done <- struct{}{}
+				}()
+
+				wt := taskMap[taskID]
+				taskFn(ctx, taskID, wt, nodes, input, results, mu, run, ready, &wf, firstErr, errOnce, cancel)
+			}(id)
+		} else {
+			mu.Unlock()
+			break
 		}
-		finalErr = firstErr
-		return finalErr
+	}
+}
+
+// runParallelTaskHandler executes a single parallel task with metrics recording and error handling.
+//
+//nolint:revive
+func (r *Runner) runParallelTaskHandler(
+	ctx context.Context,
+	taskID string,
+	wt types.WorkflowTask,
+	nodes map[string]*dagNode,
+	input types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	run *model.WorkflowRun,
+	ready *[]string,
+	wf *types.WorkflowMetadata,
+	firstErr *error,
+	errOnce *sync.Once,
+	cancel context.CancelFunc,
+) {
+	stepStart := time.Now()
+	info := ParseAction(wt.Action)
+	if r.metrics != nil {
+		r.metrics.IncStepTotal(wf.Name, taskID, "running")
 	}
 
-	if r.store != nil && run != nil {
-		_ = r.store.UpdateRunStatus(ctx, run.ID, model.WorkflowRunDone, "")
+	rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, results, mu, run, ready, wf)
+	if rerr != nil {
+		errOnce.Do(func() {
+			*firstErr = rerr
+			cancel()
+		})
+		if r.metrics != nil {
+			r.metrics.IncStepTotal(wf.Name, taskID, "failed")
+			r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "failed", time.Since(stepStart).Seconds())
+		}
+	} else if r.metrics != nil {
+		r.metrics.IncStepTotal(wf.Name, taskID, "done")
+		r.metrics.ObserveStepDuration(wf.Name, taskID, info.Type, "done", time.Since(stepStart).Seconds())
 	}
+}
 
+// runParallelResumeTaskHandler executes a single parallel task during resume
+// with error handling but without metrics recording (resume has no metrics context).
+//
+//nolint:revive
+func (r *Runner) runParallelResumeTaskHandler(
+	ctx context.Context,
+	taskID string,
+	wt types.WorkflowTask,
+	nodes map[string]*dagNode,
+	input types.KV,
+	results *map[string]string,
+	mu *sync.Mutex,
+	run *model.WorkflowRun,
+	ready *[]string,
+	wf *types.WorkflowMetadata,
+	firstErr *error,
+	errOnce *sync.Once,
+	cancel context.CancelFunc,
+) {
+	rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, results, mu, run, ready, wf)
+	if rerr != nil {
+		errOnce.Do(func() {
+			*firstErr = rerr
+			cancel()
+		})
+	}
+}
+
+// finalizeParallelStatus updates the run status in the store and returns the error.
+// If run is non-nil its ID takes precedence; otherwise runID is used.
+// A zero or negative effective ID skips store updates.
+func (r *Runner) finalizeParallelStatus(ctx context.Context, run *model.WorkflowRun, runID int64, err error) error {
+	id := runID
+	if run != nil {
+		id = run.ID
+	}
+	if id <= 0 || r.store == nil {
+		return err
+	}
+	if err != nil {
+		_ = r.store.UpdateRunStatus(ctx, id, model.WorkflowRunFailed, err.Error())
+		return err
+	}
+	_ = r.store.UpdateRunStatus(ctx, id, model.WorkflowRunDone, "")
 	return nil
 }
 
@@ -364,6 +460,48 @@ func (r *Runner) enqueueDependentsAndSaveCheckpoint(
 	}
 }
 
+// premarkCompletedTasksForResume decrements the in-degree of dependents
+// for all tasks that have already completed (recorded in the checkpoint).
+func (*Runner) premarkCompletedTasksForResume(cp CheckpointData, nodes map[string]*dagNode) {
+	for taskID := range cp.CompletedTasks {
+		node, ok := nodes[taskID]
+		if !ok {
+			continue
+		}
+		for _, depID := range node.deps {
+			depNode := nodes[depID]
+			depNode.inDegree--
+		}
+	}
+}
+
+// recomputeReadyList rebuilds the ready list from scratch, including only
+// tasks with inDegree==0 that have not yet completed.
+func (*Runner) recomputeReadyList(wf types.WorkflowMetadata, cp CheckpointData, nodes map[string]*dagNode, ready []string) []string {
+	ready = ready[:0]
+	for _, t := range wf.Tasks {
+		if cp.CompletedTasks[t.ID] {
+			continue
+		}
+		if nodes[t.ID].inDegree == 0 {
+			ready = append(ready, t.ID)
+		}
+	}
+	return ready
+}
+
+// countRemainingTasksOnResume counts tasks in the workflow that have not been completed
+// according to the checkpoint.
+func (*Runner) countRemainingTasksOnResume(wf types.WorkflowMetadata, cp CheckpointData) int {
+	totalRemaining := 0
+	for _, t := range wf.Tasks {
+		if !cp.CompletedTasks[t.ID] {
+			totalRemaining++
+		}
+	}
+	return totalRemaining
+}
+
 // runParallelResume resumes a parallel workflow from its checkpoint.
 func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.WorkflowMetadata, cp CheckpointData) error {
 	run, err := r.store.GetRun(ctx, runID)
@@ -383,28 +521,9 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 
 	results := resultCopy(cp.StepResults)
 
-	// Pre-mark completed tasks: decrement inDegree for their dependents.
-	for taskID := range cp.CompletedTasks {
-		node, ok := nodes[taskID]
-		if !ok {
-			continue
-		}
-		for _, depID := range node.deps {
-			depNode := nodes[depID]
-			depNode.inDegree--
-		}
-	}
+	r.premarkCompletedTasksForResume(cp, nodes)
 
-	// Recompute ready list: tasks with inDegree==0 that are NOT completed.
-	ready = ready[:0]
-	for _, t := range wf.Tasks {
-		if cp.CompletedTasks[t.ID] {
-			continue
-		}
-		if nodes[t.ID].inDegree == 0 {
-			ready = append(ready, t.ID)
-		}
-	}
+	ready = r.recomputeReadyList(wf, cp, nodes, ready)
 
 	input := cp.Input
 
@@ -419,12 +538,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	var wg sync.WaitGroup
 	done := make(chan struct{}, len(wf.Tasks))
 	activeCount := 0
-	totalRemaining := 0
-	for _, t := range wf.Tasks {
-		if !cp.CompletedTasks[t.ID] {
-			totalRemaining++
-		}
-	}
+	totalRemaining := r.countRemainingTasksOnResume(wf, cp)
 
 	if totalRemaining == 0 {
 		_ = r.store.UpdateRunStatus(ctx, runID, model.WorkflowRunDone, "")
@@ -432,40 +546,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	}
 
 	for totalRemaining > 0 {
-		for {
-			mu.Lock()
-			hasReady := len(ready) > 0 && activeCount < wf.MaxConcurrency
-			if hasReady {
-				id := ready[0]
-				ready = ready[1:]
-				activeCount++
-				mu.Unlock()
-
-				sem <- struct{}{}
-				wg.Add(1)
-
-				go func(taskID string) {
-					defer wg.Done()
-					defer func() {
-						<-sem
-						done <- struct{}{}
-					}()
-
-					wt := taskMap[taskID]
-
-					rerr := r.executeParallelTask(ctx, taskID, wt, nodes, input, &results, &mu, run, &ready, &wf)
-					if rerr != nil {
-						errOnce.Do(func() {
-							firstErr = rerr
-							cancel()
-						})
-					}
-				}(id)
-			} else {
-				mu.Unlock()
-				break
-			}
-		}
+		r.dispatchReadyTasks(ctx, wf, &ready, &activeCount, taskMap, nodes, input, &results, &mu, run, sem, &wg, done, &firstErr, &errOnce, cancel, r.runParallelResumeTaskHandler)
 
 		select {
 		case <-ctx.Done():
@@ -480,12 +561,5 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 
 drain:
 	wg.Wait()
-
-	if firstErr != nil {
-		_ = r.store.UpdateRunStatus(ctx, runID, model.WorkflowRunFailed, firstErr.Error())
-		return firstErr
-	}
-
-	_ = r.store.UpdateRunStatus(ctx, runID, model.WorkflowRunDone, "")
-	return nil
+	return r.finalizeParallelStatus(ctx, run, 0, firstErr)
 }

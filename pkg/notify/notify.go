@@ -137,62 +137,10 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 		return types.Errorf(types.ErrNotFound, "template %s not found", templateID)
 	}
 
-	// evaluate rules before sending
-	ruleEngine := notifyrules.GetEngine()
 	var errs []error
 	for _, channel := range channels {
-		// check rules (throttle, mute, aggregate)
-		if ruleEngine != nil {
-			ruleResult := ruleEngine.Evaluate(ctx, templateID, channel)
-			if ruleResult != nil {
-				switch ruleResult.Action {
-				case config.NotifyRuleActionDrop:
-					flog.Info("[notify] message dropped by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-					continue
-				case config.NotifyRuleActionMute:
-					flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-					continue
-				case config.NotifyRuleActionThrottle:
-					if ruleResult.Window != "" && ruleResult.Limit > 0 {
-						window, err := time.ParseDuration(ruleResult.Window)
-						if err != nil {
-							flog.Warn("[notify] invalid throttle window %s: %v", ruleResult.Window, err)
-						} else {
-							allowed, err := ruleEngine.CheckThrottle(ctx, ruleResult.RuleID, templateID, channel, window, ruleResult.Limit)
-							if err != nil {
-								flog.Warn("[notify] throttle check error: %v", err)
-							} else if !allowed {
-								flog.Info("[notify] message throttled by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-								continue
-							}
-						}
-					}
-				case config.NotifyRuleActionAggregate:
-					if ruleResult.Window != "" {
-						window, err := time.ParseDuration(ruleResult.Window)
-						if err != nil {
-							flog.Warn("[notify] invalid aggregate window %s: %v", ruleResult.Window, err)
-						} else {
-							// enqueue for later aggregation
-							if err := ruleEngine.EnqueueForAggregation(ctx, ruleResult.RuleID, templateID, channel, payload); err != nil {
-								flog.Warn("[notify] aggregate enqueue error: %v", err)
-							}
-							// set timer if first element
-							if _, err := ruleEngine.SetAggregateTimer(ctx, ruleResult.RuleID, templateID, channel, window); err != nil {
-								flog.Warn("[notify] aggregate timer error: %v", err)
-							}
-							flog.Info("[notify] message queued for aggregation by rule %s", ruleResult.RuleID)
-							continue
-						}
-					}
-				}
-			}
-		}
-
-		// render template for this channel
-		result, err := engine.Render(templateID, channel, payload)
+		result, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
 		if err != nil {
-			flog.Warn("[notify] failed to render template %s for channel %s: %v", templateID, channel, err)
 			errs = append(errs, err)
 			continue
 		}
@@ -200,51 +148,143 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 			continue
 		}
 
-		msg := Message{
-			Title:    result.Title,
-			Body:     result.Body,
-			Priority: Normal,
-		}
+		msg := buildNotifyMessage(result, payload)
 
-		// extract URL from payload if present
-		if url, ok := payload["url"].(string); ok {
-			msg.Url = url
-		}
-
-		// extract priority from payload if present
-		if p, ok := payload["priority"]; ok {
-			switch v := p.(type) {
-			case Priority:
-				msg.Priority = v
-			case int:
-				msg.Priority = Priority(v)
-			case float64:
-				msg.Priority = Priority(int(v))
-			}
-		}
-
-		// look up user's channel configuration
-		if !uid.IsZero() {
-			kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", channel))
-			if err != nil {
-				flog.Warn("[notify] channel %s not configured for user %s", channel, uid)
-				continue
-			}
-			templateURI, ok := kv.String("value")
-			if !ok {
-				continue
-			}
-			if err := Send(templateURI, msg); err != nil {
-				flog.Warn("[notify] failed to send to channel %s: %v", channel, err)
-				errs = append(errs, err)
-			}
-		} else {
-			flog.Warn("[notify] no user UID for notification %s, channel %s", templateID, channel)
+		if err := sendToUserChannel(ctx, uid, templateID, channel, msg); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
 	if len(errs) > 0 {
 		return types.Errorf(types.ErrInternal, "notification errors: %v", errs)
+	}
+	return nil
+}
+
+// evaluateAndRenderNotification applies rules and renders the template for a single channel.
+// Returns nil result (no error) when the message should be skipped due to rules.
+func evaluateAndRenderNotification(ctx context.Context, templateID, channel string, payload map[string]any) (*notifytmpl.RenderResult, error) {
+	ruleEngine := notifyrules.GetEngine()
+	if ruleEngine != nil {
+		ruleResult := ruleEngine.Evaluate(ctx, templateID, channel)
+		if ruleResult != nil {
+			switch ruleResult.Action {
+			case config.NotifyRuleActionDrop:
+				flog.Info("[notify] message dropped by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
+				return nil, nil
+			case config.NotifyRuleActionMute:
+				flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
+				return nil, nil
+			case config.NotifyRuleActionThrottle:
+				if handleThrottleRule(ctx, ruleResult, templateID, channel) {
+					return nil, nil
+				}
+			case config.NotifyRuleActionAggregate:
+				if handleAggregateRule(ctx, ruleResult, templateID, channel, payload) {
+					return nil, nil
+				}
+			}
+		}
+	}
+
+	engine := notifytmpl.GetEngine()
+	result, err := engine.Render(templateID, channel, payload)
+	if err != nil {
+		flog.Warn("[notify] failed to render template %s for channel %s: %v", templateID, channel, err)
+		return nil, err
+	}
+	return result, nil
+}
+
+// handleThrottleRule checks throttle limits for a rule and returns true if the message should be skipped.
+func handleThrottleRule(ctx context.Context, ruleResult *notifyrules.EvalResult, templateID, channel string) bool {
+	if ruleResult.Window == "" || ruleResult.Limit <= 0 {
+		return false
+	}
+	window, err := time.ParseDuration(ruleResult.Window)
+	if err != nil {
+		flog.Warn("[notify] invalid throttle window %s: %v", ruleResult.Window, err)
+		return false
+	}
+	engine := notifyrules.GetEngine()
+	allowed, err := engine.CheckThrottle(ctx, ruleResult.RuleID, templateID, channel, window, ruleResult.Limit)
+	if err != nil {
+		flog.Warn("[notify] throttle check error: %v", err)
+		return false
+	}
+	if !allowed {
+		flog.Info("[notify] message throttled by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
+		return true
+	}
+	return false
+}
+
+// handleAggregateRule enqueues a message for aggregation and returns true if the message was handled.
+func handleAggregateRule(ctx context.Context, ruleResult *notifyrules.EvalResult, templateID, channel string, payload map[string]any) bool {
+	if ruleResult.Window == "" {
+		return false
+	}
+	window, err := time.ParseDuration(ruleResult.Window)
+	if err != nil {
+		flog.Warn("[notify] invalid aggregate window %s: %v", ruleResult.Window, err)
+		return false
+	}
+	engine := notifyrules.GetEngine()
+	if err := engine.EnqueueForAggregation(ctx, ruleResult.RuleID, templateID, channel, payload); err != nil {
+		flog.Warn("[notify] aggregate enqueue error: %v", err)
+	}
+	if _, err := engine.SetAggregateTimer(ctx, ruleResult.RuleID, templateID, channel, window); err != nil {
+		flog.Warn("[notify] aggregate timer error: %v", err)
+	}
+	flog.Info("[notify] message queued for aggregation by rule %s", ruleResult.RuleID)
+	return true
+}
+
+// buildNotifyMessage constructs a Message from a rendered template result and payload extras.
+func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any) Message {
+	msg := Message{
+		Title:    result.Title,
+		Body:     result.Body,
+		Priority: Normal,
+	}
+
+	if url, ok := payload["url"].(string); ok {
+		msg.Url = url
+	}
+
+	if p, ok := payload["priority"]; ok {
+		switch v := p.(type) {
+		case Priority:
+			msg.Priority = v
+		case int:
+			msg.Priority = Priority(v)
+		case float64:
+			msg.Priority = Priority(int(v))
+		}
+	}
+
+	return msg
+}
+
+// sendToUserChannel looks up the user's channel configuration and sends the message.
+func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel string, msg Message) error {
+	if uid.IsZero() {
+		flog.Warn("[notify] no user UID for notification %s, channel %s", templateID, channel)
+		return nil
+	}
+
+	kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", channel))
+	if err != nil {
+		flog.Warn("[notify] channel %s not configured for user %s", channel, uid)
+		return nil
+	}
+	templateURI, ok := kv.String("value")
+	if !ok {
+		return nil
+	}
+	if err := Send(templateURI, msg); err != nil {
+		flog.Warn("[notify] failed to send to channel %s: %v", channel, err)
+		return err
 	}
 	return nil
 }

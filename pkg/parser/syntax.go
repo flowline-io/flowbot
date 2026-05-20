@@ -109,22 +109,56 @@ func (l *Syntax) GetNextToken() (*Token, error) {
 	return &Token{Type: EOFToken, Value: Variable("")}, nil
 }
 
-func SyntaxCheck(define string, actual []*Token) (bool, error) {
+func collectTokens(define string) ([]*Token, error) {
 	s := NewSyntax([]rune(define))
 	var tokens []*Token
 	token, err := s.GetNextToken()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	tokens = append(tokens, token)
 	for token.Type != EOFToken {
 		token, err = s.GetNextToken()
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		if token.Type != EOFToken {
 			tokens = append(tokens, token)
 		}
+	}
+	return tokens, nil
+}
+
+func validateNumberParam(token *Token) bool {
+	n, _ := token.Value.String()
+	re := regexp.MustCompile(`\d+`)
+	if !re.MatchString(n) {
+		return false
+	}
+	num, err := strconv.ParseInt(n, 10, 64)
+	if err == nil {
+		token.Value = Variable(num)
+	}
+	return true
+}
+
+func validateBoolParam(token *Token) bool {
+	if !(token.Value.Source == "true" || token.Value.Source == "false") {
+		return false
+	}
+	if token.Value.Source == "true" {
+		token.Value = Variable(true)
+	}
+	if token.Value.Source == "false" {
+		token.Value = Variable(false)
+	}
+	return true
+}
+
+func SyntaxCheck(define string, actual []*Token) (bool, error) {
+	tokens, err := collectTokens(define)
+	if err != nil {
+		return false, err
 	}
 
 	if len(tokens) != len(actual) {
@@ -142,26 +176,14 @@ func SyntaxCheck(define string, actual []*Token) (bool, error) {
 		if t.Type == ParameterToken {
 			switch t.Value.Source {
 			case "number":
-				n, _ := actual[i].Value.String()
-				re := regexp.MustCompile(`\d+`)
-				if !re.MatchString(n) {
+				if !validateNumberParam(actual[i]) {
 					res = false
 					continue
-				}
-				num, err := strconv.ParseInt(n, 10, 64)
-				if err == nil {
-					actual[i].Value = Variable(num)
 				}
 			case "bool":
-				if !(actual[i].Value.Source == "true" || actual[i].Value.Source == "false") {
+				if !validateBoolParam(actual[i]) {
 					res = false
 					continue
-				}
-				if actual[i].Value.Source == "true" {
-					actual[i].Value = Variable(true)
-				}
-				if actual[i].Value.Source == "false" {
-					actual[i].Value = Variable(false)
 				}
 			case "string":
 			case "any":

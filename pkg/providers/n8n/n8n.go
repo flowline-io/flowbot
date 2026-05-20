@@ -161,49 +161,19 @@ func (v *N8N) DeactivateWorkflow(id string) error {
 
 // ExecuteWorkflow executes a workflow via webhook with optional input data
 func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
-	// Get workflow to find webhook node
 	workflow, err := v.GetWorkflow(id)
 	if err != nil {
 		return fmt.Errorf("failed to get workflow: %w", err)
 	}
 
-	// Find webhook node (usually the first trigger node)
-	var webhookPath string
-	var webhookID string
-	for _, node := range workflow.Nodes {
-		// Check if node is a webhook trigger
-		if node.Type == "n8n-nodes-base.webhook" || node.Type == "n8n-nodes-base.webhookV2" {
-			// Extract webhook path from parameters
-			if node.Parameters != nil {
-				if path, ok := node.Parameters["path"].(string); ok && path != "" {
-					webhookPath = path
-				}
-			}
-			if node.WebhookID != "" {
-				webhookID = node.WebhookID
-			}
-			break
-		}
-	}
+	webhookPath, webhookID := findWebhookNode(workflow.Nodes)
 
 	if webhookPath == "" && webhookID == "" {
 		return fmt.Errorf("workflow does not have a webhook trigger node or webhook path is not configured")
 	}
 
-	// Build webhook URL
-	// n8n webhook URL format: /webhook/<path> or /webhook/<id>
-	var webhookURL string
-	if webhookPath != "" {
-		// Remove leading slash if present
-		if len(webhookPath) > 1 && webhookPath[0] == '/' && webhookPath[1] != '/' && webhookPath[1] != '\\' {
-			webhookPath = webhookPath[1:]
-		}
-		webhookURL = fmt.Sprintf("/webhook/%s", webhookPath)
-	} else {
-		webhookURL = fmt.Sprintf("/webhook/%s", webhookID)
-	}
+	webhookURL := buildWebhookURL(webhookPath, webhookID)
 
-	// Execute workflow via webhook
 	req := v.c.R()
 	if data != nil {
 		req = req.SetBody(data)
@@ -216,7 +186,37 @@ func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
 
 	if resp.StatusCode() == http.StatusOK || resp.StatusCode() == http.StatusAccepted {
 		return nil
-	} else {
-		return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 	}
+	return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
+}
+
+func findWebhookNode(nodes []Node) (path string, id string) {
+	for _, node := range nodes {
+		if node.Type == "n8n-nodes-base.webhook" || node.Type == "n8n-nodes-base.webhookV2" {
+			if node.Parameters != nil {
+				if p, ok := node.Parameters["path"].(string); ok && p != "" {
+					path = p
+				}
+			}
+			if node.WebhookID != "" {
+				id = node.WebhookID
+			}
+			break
+		}
+	}
+	return
+}
+
+func sanitizeWebhookPath(path string) string {
+	if len(path) > 1 && path[0] == '/' && path[1] != '/' && path[1] != '\\' {
+		return path[1:]
+	}
+	return path
+}
+
+func buildWebhookURL(path string, id string) string {
+	if path != "" {
+		return fmt.Sprintf("/webhook/%s", sanitizeWebhookPath(path))
+	}
+	return fmt.Sprintf("/webhook/%s", id)
 }

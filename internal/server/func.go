@@ -73,16 +73,8 @@ func newProvider(category string) providers.OAuthProvider {
 // directIncomingMessage handles incoming message events for direct channels.
 //
 // It will register the user and channel if they don't already exist, then
-// iterate over all available bots and run their command handlers if they
-// have any.
-//
-// If any bot returns a non-nil payload, it will be sent back to the direct
-// channel as a message.
-//
-// If no bot returns a payload, a default message will be sent.
+// dispatch the message to the appropriate handler based on the content.
 func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
-	// check topic owner user
-
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
@@ -103,16 +95,9 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	ctx := types.Context{
 		Id:     e.Id,
 		AsUser: uid,
-		//Original:  msg.Original,
-		//RcptTo:    msg.RcptTo,
-		//AsUser:    uid,
-		//AuthLvl:   msg.AuthLvl,
-		//MetaWhat:  msg.MetaWhat,
-		//Timestamp: msg.Timestamp,
 	}
 	ctx.SetTimeout(10 * time.Minute)
 
-	// platform
 	findPlatform, err := store.Database.GetPlatformByName(ctx.Context(), msg.Self.Platform)
 	if err != nil {
 		flog.Error(err)
@@ -120,7 +105,6 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 	}
 	platformId := findPlatform.ID
 
-	// check
 	findMessage, err := store.Database.GetMessageByPlatform(ctx.Context(), platformId, msg.MessageId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		flog.Error(err)
@@ -131,14 +115,10 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		return
 	}
 
-	// behavior
 	module.Behavior(uid, module.MessageBotIncomingBehavior, 1)
-
-	// user auth record todo
 
 	var payload types.MsgPayload
 
-	// get chat key
 	chatKey := cache.NewKey("chat", "session", uid.String())
 	var session string
 	s, ok, err := cacheStore.Get(ctx.Context(), chatKey)
@@ -149,32 +129,8 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		session = s
 	}
 
-	// chat command
-	// start Multi-turn conversation
-	if strings.ToLower(msg.AltMessage) == "chat" {
-		if session == "" {
-			payload = types.TextMsg{Text: "Chat started"}
-			err = cacheStore.Set(ctx.Context(), chatKey, types.Id(), cache.TTLSession)
-			if err != nil {
-				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
-			}
-		} else {
-			payload = types.TextMsg{Text: "Chat already started"}
-		}
-	}
+	payload, session = manageChatSession(ctx, chatKey, msg.AltMessage, session, payload)
 
-	// chat end command
-	// end Multi-turn conversation
-	if strings.ToLower(msg.AltMessage) == "end" {
-		err = cacheStore.Del(ctx.Context(), chatKey)
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
-		}
-		payload = types.TextMsg{Text: "Chat ended"}
-		session = ""
-	}
-
-	// user message
 	err = store.Database.CreateMessage(ctx.Context(), model.Message{
 		Flag:          types.Id(),
 		PlatformID:    platformId,
@@ -190,8 +146,53 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		return
 	}
 
-	// help command
-	if strings.ToLower(msg.AltMessage) == "help" {
+	payload = buildHelpMessage(msg.AltMessage, payload)
+
+	if session == "" {
+		payload = dispatchToModules(ctx, msg.AltMessage)
+	}
+
+	if payload == nil {
+		return
+	}
+
+	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
+	resp := caller.Do(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: types.KV{
+			"topic":   msg.TopicId,
+			"message": caller.Adapter.MessageConvert(payload),
+		},
+	})
+	flog.Info("[event] %+v  response: %+v", msg, resp)
+}
+
+func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, session string, payload types.MsgPayload) (types.MsgPayload, string) {
+	if strings.ToLower(msgAlt) == "chat" {
+		if session == "" {
+			payload = types.TextMsg{Text: "Chat started"}
+			err := cacheStore.Set(ctx.Context(), chatKey, types.Id(), cache.TTLSession)
+			if err != nil {
+				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
+			}
+		} else {
+			payload = types.TextMsg{Text: "Chat already started"}
+		}
+	}
+
+	if strings.ToLower(msgAlt) == "end" {
+		err := cacheStore.Del(ctx.Context(), chatKey)
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
+		}
+		payload = types.TextMsg{Text: "Chat ended"}
+		session = ""
+	}
+	return payload, session
+}
+
+func buildHelpMessage(msgAlt string, payload types.MsgPayload) types.MsgPayload {
+	if strings.ToLower(msgAlt) == "help" {
 		m := make(types.KV)
 		for name, handle := range module.List() {
 			for _, item := range handle.Rules() {
@@ -210,52 +211,38 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 			}
 		}
 	}
+	return payload
+}
 
-	// rule chat
-	if session == "" {
-		for name, handle := range module.List() {
-			if !handle.IsReady() {
-				flog.Info("module %s unavailable", name)
-				continue
+func dispatchToModules(ctx types.Context, msgAlt string) types.MsgPayload {
+	var payload types.MsgPayload
+	for name, handle := range module.List() {
+		if !handle.IsReady() {
+			flog.Info("module %s unavailable", name)
+			continue
+		}
+
+		if payload == nil {
+			in := msgAlt
+			if strings.HasPrefix(in, "/") {
+				in = strings.Replace(in, "/", "", 1)
 			}
-
-			// command
-			if payload == nil {
-				in := msg.AltMessage
-				// check "/" prefix
-				if strings.HasPrefix(in, "/") {
-					in = strings.Replace(in, "/", "", 1)
-				}
-				payload, err = handle.Command(ctx, in)
-				if err != nil {
-					flog.Warn("topic[%s]: failed to run bot: %v", name, err)
-				}
-
-				// stats
-				if payload != nil {
-					stats.ModuleRunTotalCounter(stats.CommandRuleset).Inc()
-				}
+			var err error
+			payload, err = handle.Command(ctx, in)
+			if err != nil {
+				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
 			}
 
 			if payload != nil {
-				break
+				stats.ModuleRunTotalCounter(stats.CommandRuleset).Inc()
 			}
 		}
-	}
 
-	if payload == nil {
-		return
+		if payload != nil {
+			break
+		}
 	}
-
-	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
-	resp := caller.Do(protocol.Request{
-		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   msg.TopicId,
-			"message": caller.Adapter.MessageConvert(payload),
-		},
-	})
-	flog.Info("[event] %+v  response: %+v", msg, resp)
+	return payload
 }
 
 // groupIncomingMessage processes incoming message events for group channels.
@@ -374,107 +361,129 @@ func agentAction(uid types.Uid, data types.AgentData) (any, error) {
 	}
 	switch data.Action {
 	case types.PullAction:
-		list, err := store.Database.ListInstruct(ctx.Context(), uid, false, 10)
-		if err != nil {
-			return nil, err
-		}
-		var instruct []types.KV
-		instruct = []types.KV{}
-		for _, item := range list {
-			instruct = append(instruct, types.KV{
-				"no":        item.No,
-				"bot":       item.Bot,
-				"flag":      item.Flag,
-				"content":   item.Content,
-				"expire_at": item.ExpireAt,
-			})
-		}
-		return instruct, nil
+		return handlePullAction(ctx, uid)
 	case types.AckAction:
-		no, ok := data.Content.String("no")
-		if !ok {
-			return nil, errors.New("error instruct no")
-		}
-
-		err := store.Database.UpdateInstruct(ctx.Context(), &model.Instruct{
-			No:    no,
-			State: model.InstructDone,
-		})
-		if err != nil {
-			return nil, err
-		}
+		return nil, handleAckAction(ctx.Context(), data)
 	case types.OnlineAction:
-		hostid, ok := data.Content.String("hostid")
-		if !ok {
-			return nil, errors.New("error hostid")
-		}
-		hostname, _ := data.Content.String("hostname")
-
-		err := registerAgent(uid, "", hostid, hostname)
-		if err != nil {
-			flog.Error(err)
-			return nil, errors.New("register agent error")
-		}
-
-		key := cache.NewKey("online", "agent", hostid)
-		_, ok, _ = cacheStore.Get(ctx.Context(), key)
-		if !ok {
-			// send message
-			err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
-				"hostid":   hostid,
-				"hostname": hostname,
-				"status":   "online",
-			})
-			if err != nil {
-				flog.Error(fmt.Errorf("send message error %w", err))
-			}
-		}
-
-		// leave online stats
-		err = cacheStore.Set(ctx.Context(), key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLShort)
-		if err != nil {
-			flog.Error(err)
-			return nil, errors.New("set agent online error")
-		}
+		return nil, handleOnlineAction(ctx, uid, data)
 	case types.OfflineAction:
-		hostid, ok := data.Content.String("hostid")
-		if !ok {
-			return nil, errors.New("error hostid")
-		}
-		hostname, _ := data.Content.String("hostname")
+		return nil, handleOfflineAction(ctx, uid, data)
+	case types.MessageAction:
+		return nil, handleMessageAction(ctx, uid, data)
+	}
+	return nil, nil
+}
 
-		err := store.Database.UpdateAgentOnlineDuration(ctx.Context(), uid, "", hostid, time.Now())
-		if err != nil {
-			flog.Error(fmt.Errorf("update online duration error %w", err))
-		}
+func handlePullAction(ctx types.Context, uid types.Uid) (any, error) {
+	list, err := store.Database.ListInstruct(ctx.Context(), uid, false, 10)
+	if err != nil {
+		return nil, err
+	}
+	var instruct []types.KV
+	instruct = []types.KV{}
+	for _, item := range list {
+		instruct = append(instruct, types.KV{
+			"no":        item.No,
+			"bot":       item.Bot,
+			"flag":      item.Flag,
+			"content":   item.Content,
+			"expire_at": item.ExpireAt,
+		})
+	}
+	return instruct, nil
+}
 
-		err = cacheStore.Del(ctx.Context(), cache.NewKey("online", "agent", hostid))
-		if err != nil {
-			flog.Error(fmt.Errorf("del agent online stats error %w", err))
-		}
+func handleAckAction(ctx context.Context, data types.AgentData) error {
+	no, ok := data.Content.String("no")
+	if !ok {
+		return errors.New("error instruct no")
+	}
 
+	err := store.Database.UpdateInstruct(ctx, &model.Instruct{
+		No:    no,
+		State: model.InstructDone,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func handleOnlineAction(ctx types.Context, uid types.Uid, data types.AgentData) error {
+	hostid, ok := data.Content.String("hostid")
+	if !ok {
+		return errors.New("error hostid")
+	}
+	hostname, _ := data.Content.String("hostname")
+
+	err := registerAgent(uid, "", hostid, hostname)
+	if err != nil {
+		flog.Error(err)
+		return errors.New("register agent error")
+	}
+
+	key := cache.NewKey("online", "agent", hostid)
+	_, ok, _ = cacheStore.Get(ctx.Context(), key)
+	if !ok {
 		err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
 			"hostid":   hostid,
 			"hostname": hostname,
-			"status":   "offline",
-		})
-		if err != nil {
-			flog.Error(fmt.Errorf("send message error %w", err))
-		}
-	case types.MessageAction:
-		message, ok := data.Content.String("message")
-		if !ok {
-			return nil, errors.New("empty message")
-		}
-
-		err := notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
-			"message": message,
+			"status":   "online",
 		})
 		if err != nil {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
 	}
-	return nil, nil
+
+	err = cacheStore.Set(ctx.Context(), key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLShort)
+	if err != nil {
+		flog.Error(err)
+		return errors.New("set agent online error")
+	}
+	return nil
+}
+
+func handleOfflineAction(ctx types.Context, uid types.Uid, data types.AgentData) error {
+	hostid, ok := data.Content.String("hostid")
+	if !ok {
+		return errors.New("error hostid")
+	}
+	hostname, _ := data.Content.String("hostname")
+
+	err := store.Database.UpdateAgentOnlineDuration(ctx.Context(), uid, "", hostid, time.Now())
+	if err != nil {
+		flog.Error(fmt.Errorf("update online duration error %w", err))
+	}
+
+	err = cacheStore.Del(ctx.Context(), cache.NewKey("online", "agent", hostid))
+	if err != nil {
+		flog.Error(fmt.Errorf("del agent online stats error %w", err))
+	}
+
+	err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+		"hostid":   hostid,
+		"hostname": hostname,
+		"status":   "offline",
+	})
+	if err != nil {
+		flog.Error(fmt.Errorf("send message error %w", err))
+	}
+	return nil
+}
+
+func handleMessageAction(ctx types.Context, uid types.Uid, data types.AgentData) error {
+	message, ok := data.Content.String("message")
+	if !ok {
+		return errors.New("empty message")
+	}
+
+	err := notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+		"message": message,
+	})
+	if err != nil {
+		flog.Error(fmt.Errorf("send message error %w", err))
+	}
+	return nil
 }
 
 // registerPlatformUser registers a platform user based on the provided message event data.

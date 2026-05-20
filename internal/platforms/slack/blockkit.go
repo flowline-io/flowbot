@@ -247,119 +247,30 @@ type FormFieldDef struct {
 	InitialVal  string
 }
 
+// modalElementBuilders maps form field types to their element constructors.
+var modalElementBuilders = map[string]func(FormFieldDef) slack.BlockElement{
+	"select":   buildSelectElement,
+	"radio":    buildRadioElement,
+	"checkbox": buildCheckboxElement,
+	"date":     buildDateElement,
+	"time":     buildTimeElement,
+	"textarea": buildTextareaElement,
+	"number":   buildNumberElement,
+	"url":      buildURLElement,
+	"email":    buildEmailElement,
+}
+
 // buildModalView creates a Slack modal view from form fields.
 func buildModalView(callbackID, title, submitLabel string, fields []FormFieldDef) slack.ModalViewRequest {
 	var inputBlocks slack.Blocks
 
 	for _, f := range fields {
+		builder, ok := modalElementBuilders[f.Type]
 		var element slack.BlockElement
-
-		switch f.Type {
-		case "select":
-			var opts []*slack.OptionBlockObject
-			for _, o := range f.Options {
-				opts = append(opts, slack.NewOptionBlockObject(o,
-					slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-			}
-			sel := slack.NewOptionsSelectBlockElement(
-				slack.OptTypeStatic, // static_select
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key, opts...,
-			)
-			if f.InitialVal != "" {
-				sel.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
-					slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
-			}
-			element = sel
-
-		case "radio":
-			var opts []*slack.OptionBlockObject
-			for _, o := range f.Options {
-				opts = append(opts, slack.NewOptionBlockObject(o,
-					slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-			}
-			radio := slack.NewRadioButtonsBlockElement(f.Key, opts...)
-			if f.InitialVal != "" {
-				radio.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
-					slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
-			}
-			element = radio
-
-		case "checkbox":
-			var opts []*slack.OptionBlockObject
-			for _, o := range f.Options {
-				opts = append(opts, slack.NewOptionBlockObject(o,
-					slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-			}
-			element = slack.NewCheckboxGroupsBlockElement(f.Key, opts...)
-
-		case "date":
-			dp := slack.NewDatePickerBlockElement(f.Key)
-			if f.InitialVal != "" {
-				dp.InitialDate = f.InitialVal
-			}
-			if f.Placeholder != "" {
-				dp.Placeholder = slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false)
-			}
-			element = dp
-
-		case "time":
-			tp := slack.NewTimePickerBlockElement(f.Key)
-			if f.InitialVal != "" {
-				tp.InitialTime = f.InitialVal
-			}
-			element = tp
-
-		case "textarea":
-			input := slack.NewPlainTextInputBlockElement(
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key,
-			)
-			input.Multiline = true
-			if f.InitialVal != "" {
-				input.InitialValue = f.InitialVal
-			}
-			element = input
-
-		case "number":
-			input := slack.NewNumberInputBlockElement(
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key, false,
-			)
-			if f.InitialVal != "" {
-				input.InitialValue = f.InitialVal
-			}
-			element = input
-
-		case "url":
-			input := slack.NewURLTextInputBlockElement(
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key,
-			)
-			if f.InitialVal != "" {
-				input.InitialValue = f.InitialVal
-			}
-			element = input
-
-		case "email":
-			input := slack.NewEmailTextInputBlockElement(
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key,
-			)
-			if f.InitialVal != "" {
-				input.InitialValue = f.InitialVal
-			}
-			element = input
-
-		default: // text, password, etc.
-			input := slack.NewPlainTextInputBlockElement(
-				slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-				f.Key,
-			)
-			if f.InitialVal != "" {
-				input.InitialValue = f.InitialVal
-			}
-			element = input
+		if !ok {
+			element = buildDefaultElement(f)
+		} else {
+			element = builder(f)
 		}
 
 		inputBlock := slack.NewInputBlock(
@@ -384,6 +295,122 @@ func buildModalView(callbackID, title, submitLabel string, fields []FormFieldDef
 		Close:      slack.NewTextBlockObject(slack.PlainTextType, "Cancel", false, false),
 		Blocks:     inputBlocks,
 	}
+}
+
+func buildSelectElement(f FormFieldDef) slack.BlockElement {
+	var opts []*slack.OptionBlockObject
+	for _, o := range f.Options {
+		opts = append(opts, slack.NewOptionBlockObject(o,
+			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
+	}
+	sel := slack.NewOptionsSelectBlockElement(
+		slack.OptTypeStatic,
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key, opts...,
+	)
+	if f.InitialVal != "" {
+		sel.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
+			slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
+	}
+	return sel
+}
+
+func buildRadioElement(f FormFieldDef) slack.BlockElement {
+	var opts []*slack.OptionBlockObject
+	for _, o := range f.Options {
+		opts = append(opts, slack.NewOptionBlockObject(o,
+			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
+	}
+	radio := slack.NewRadioButtonsBlockElement(f.Key, opts...)
+	if f.InitialVal != "" {
+		radio.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
+			slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
+	}
+	return radio
+}
+
+func buildCheckboxElement(f FormFieldDef) slack.BlockElement {
+	var opts []*slack.OptionBlockObject
+	for _, o := range f.Options {
+		opts = append(opts, slack.NewOptionBlockObject(o,
+			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
+	}
+	return slack.NewCheckboxGroupsBlockElement(f.Key, opts...)
+}
+
+func buildDateElement(f FormFieldDef) slack.BlockElement {
+	dp := slack.NewDatePickerBlockElement(f.Key)
+	if f.InitialVal != "" {
+		dp.InitialDate = f.InitialVal
+	}
+	if f.Placeholder != "" {
+		dp.Placeholder = slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false)
+	}
+	return dp
+}
+
+func buildTimeElement(f FormFieldDef) slack.BlockElement {
+	tp := slack.NewTimePickerBlockElement(f.Key)
+	if f.InitialVal != "" {
+		tp.InitialTime = f.InitialVal
+	}
+	return tp
+}
+
+func buildTextareaElement(f FormFieldDef) slack.BlockElement {
+	input := slack.NewPlainTextInputBlockElement(
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key,
+	)
+	input.Multiline = true
+	if f.InitialVal != "" {
+		input.InitialValue = f.InitialVal
+	}
+	return input
+}
+
+func buildNumberElement(f FormFieldDef) slack.BlockElement {
+	input := slack.NewNumberInputBlockElement(
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key, false,
+	)
+	if f.InitialVal != "" {
+		input.InitialValue = f.InitialVal
+	}
+	return input
+}
+
+func buildURLElement(f FormFieldDef) slack.BlockElement {
+	input := slack.NewURLTextInputBlockElement(
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key,
+	)
+	if f.InitialVal != "" {
+		input.InitialValue = f.InitialVal
+	}
+	return input
+}
+
+func buildEmailElement(f FormFieldDef) slack.BlockElement {
+	input := slack.NewEmailTextInputBlockElement(
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key,
+	)
+	if f.InitialVal != "" {
+		input.InitialValue = f.InitialVal
+	}
+	return input
+}
+
+func buildDefaultElement(f FormFieldDef) slack.BlockElement {
+	input := slack.NewPlainTextInputBlockElement(
+		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
+		f.Key,
+	)
+	if f.InitialVal != "" {
+		input.InitialValue = f.InitialVal
+	}
+	return input
 }
 
 // ──────────────────────────────────────────
@@ -453,7 +480,16 @@ func buildTableBlocks(title string, headers []string, rows [][]any) []slack.Bloc
 		return blocks
 	}
 
-	// calculate column widths
+	colWidths := calcColumnWidths(headers, rows)
+	lines := buildTableLines(headers, colWidths, rows)
+	blocks = append(blocks, tableLinesToBlocks(lines)...)
+
+	return blocks
+}
+
+const tableMaxBlockLen = 2900
+
+func calcColumnWidths(headers []string, rows [][]any) []int {
 	colWidths := make([]int, len(headers))
 	for i, h := range headers {
 		colWidths[i] = len(h)
@@ -468,25 +504,24 @@ func buildTableBlocks(title string, headers []string, rows [][]any) []slack.Bloc
 			}
 		}
 	}
+	return colWidths
+}
 
-	// build lines
+func buildTableLines(headers []string, colWidths []int, rows [][]any) []string {
 	var lines []string
 
-	// header row
 	var headerParts []string
 	for i, h := range headers {
 		headerParts = append(headerParts, fmt.Sprintf("*%-*s*", colWidths[i], h))
 	}
 	lines = append(lines, strings.Join(headerParts, " │ "))
 
-	// separator
 	var sepParts []string
 	for _, w := range colWidths {
 		sepParts = append(sepParts, strings.Repeat("─", w))
 	}
 	lines = append(lines, strings.Join(sepParts, "─┼─"))
 
-	// data rows
 	for _, row := range rows {
 		var parts []string
 		for i, cell := range row {
@@ -498,27 +533,25 @@ func buildTableBlocks(title string, headers []string, rows [][]any) []slack.Bloc
 		}
 		lines = append(lines, strings.Join(parts, " │ "))
 	}
+	return lines
+}
 
-	// Slack has a 3000 char limit per text block, so chunk by row if needed
-	const maxBlockLen = 2900
+func tableLinesToBlocks(lines []string) []slack.Block {
+	var blocks []slack.Block
 	var chunk []string
 	chunkLen := 0
-	flush := func() {
-		if len(chunk) > 0 {
+	for _, line := range lines {
+		if chunkLen+len(line)+1 > tableMaxBlockLen && len(chunk) > 0 {
 			blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
 			chunk = nil
 			chunkLen = 0
 		}
-	}
-	for _, line := range lines {
-		if chunkLen+len(line)+1 > maxBlockLen && len(chunk) > 0 {
-			flush()
-		}
 		chunk = append(chunk, line)
 		chunkLen += len(line) + 1
 	}
-	flush()
-
+	if len(chunk) > 0 {
+		blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
+	}
 	return blocks
 }
 

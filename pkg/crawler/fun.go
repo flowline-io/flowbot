@@ -12,6 +12,21 @@ import (
 
 var rxFunName = regexp.MustCompile(`^[a-z$][a-zA-Z]{0,15}`)
 
+type parseState int
+
+const (
+	stateNone parseState = iota
+	stateKey
+	stateStr
+	stateExp
+	stateStd
+)
+
+type exitParseInfo struct {
+	kind parseState
+	isK  bool
+}
+
 func PowerfulFind(s *goquery.Selection, q string) *goquery.Selection {
 	rxSelectPseudoEq := regexp.MustCompile(`:eq\(\d+\)`)
 	if rxSelectPseudoEq.MatchString(q) {
@@ -58,53 +73,107 @@ func (f *Fun) Invoke() (string, error) {
 	var err error
 	switch f.Name {
 	case "$":
-		err = f.InitSelector()
+		err = f.invokeDollar()
 	case "attr":
-		f.Result, _ = f.PrevFun.Selection.Attr(f.Params[0])
+		f.Result, err = f.invokeAttr()
 	case "text":
-		f.Result = f.PrevFun.Selection.Text()
+		f.Result = f.invokeText()
 	case "html":
-		f.Result, err = f.PrevFun.Selection.Html()
+		f.Result, err = f.invokeHtml()
 	case "outerHTML":
-		f.Result, err = goquery.OuterHtml(f.PrevFun.Selection)
+		f.Result, err = f.invokeOuterHtml()
 	case "style":
-		f.Result, _ = f.PrevFun.Selection.Attr("style")
+		f.Result, err = f.invokeStyle()
 	case "href":
-		f.Result, _ = f.PrevFun.Selection.Attr("href")
+		f.Result, err = f.invokeHref()
 	case "src":
-		f.Result, _ = f.PrevFun.Selection.Attr("src")
+		f.Result, err = f.invokeSrc()
 	case "class":
-		f.Result, _ = f.PrevFun.Selection.Attr("class")
+		f.Result, err = f.invokeClass()
 	case "id":
-		f.Result, _ = f.PrevFun.Selection.Attr("id")
+		f.Result, err = f.invokeId()
 	case "expand":
-		rx, err := regexp.Compile(f.Params[0])
-		if err != nil {
-			return "", err
-		}
-		src := f.PrevFun.Result
-		var dst []byte
-		m := rx.FindStringSubmatchIndex(src)
-		s := rx.ExpandString(dst, f.Params[1], src, m)
-		f.Result = string(s)
+		f.Result, err = f.invokeExpand()
 	case "match":
-		rx, err := regexp.Compile(f.Params[0])
-		if err != nil {
-			return "", err
-		}
-		rs := rx.FindAllStringSubmatch(f.PrevFun.Result, -1)
-		if len(rs) > 0 && len(rs[0]) > 1 {
-			f.Result = rs[0][1]
-		}
+		f.Result, err = f.invokeMatch()
 	}
 	if err != nil {
 		return "", err
 	}
 	if f.NextFun != nil {
 		return f.NextFun.Invoke()
-	} else {
-		return f.Result, nil
 	}
+	return f.Result, nil
+}
+
+func (f *Fun) invokeDollar() error {
+	return f.InitSelector()
+}
+
+func (f *Fun) invokeAttr() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr(f.Params[0])
+	return v, nil
+}
+
+func (f *Fun) invokeText() string {
+	return f.PrevFun.Selection.Text()
+}
+
+func (f *Fun) invokeHtml() (string, error) {
+	return f.PrevFun.Selection.Html()
+}
+
+func (f *Fun) invokeOuterHtml() (string, error) {
+	return goquery.OuterHtml(f.PrevFun.Selection)
+}
+
+func (f *Fun) invokeStyle() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr("style")
+	return v, nil
+}
+
+func (f *Fun) invokeHref() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr("href")
+	return v, nil
+}
+
+func (f *Fun) invokeSrc() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr("src")
+	return v, nil
+}
+
+func (f *Fun) invokeClass() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr("class")
+	return v, nil
+}
+
+func (f *Fun) invokeId() (string, error) {
+	v, _ := f.PrevFun.Selection.Attr("id")
+	return v, nil
+}
+
+func (f *Fun) invokeExpand() (string, error) {
+	rx, err := regexp.Compile(f.Params[0])
+	if err != nil {
+		return "", err
+	}
+	src := f.PrevFun.Result
+	var dst []byte
+	m := rx.FindStringSubmatchIndex(src)
+	s := rx.ExpandString(dst, f.Params[1], src, m)
+	return string(s), nil
+}
+
+func (f *Fun) invokeMatch() (string, error) {
+	rx, err := regexp.Compile(f.Params[0])
+	if err != nil {
+		return "", err
+	}
+	rs := rx.FindAllStringSubmatch(f.PrevFun.Result, -1)
+	if len(rs) > 0 && len(rs[0]) > 1 {
+		return rs[0][1], nil
+	}
+	return "", nil
 }
 
 func (f *Fun) Append(s string) (*Fun, *Fun) {
@@ -142,6 +211,149 @@ func ParseFun(sel *goquery.Selection, str string) *Fun {
 	return fun
 }
 
+func charAtOffset(s string, i int, o int) rune {
+	oi := i + o
+	if oi >= 0 && oi < len(s) {
+		return rune(s[oi])
+	}
+	return 0
+}
+
+func charSkipWhitespace(s string, i int, o int) rune {
+	if i+o < 0 || i >= len(s) {
+		return 0
+	}
+	if o < 0 {
+		j := i
+		for j >= 0 && o != 0 {
+			j--
+			if !unicode.IsSpace(rune(s[j])) {
+				o++
+			}
+		}
+		return rune(s[j])
+	} else if o > 0 {
+		j := i
+		for j < len(s)-1 && o != 0 {
+			j++
+			if !unicode.IsSpace(rune(s[j])) {
+				o--
+			}
+		}
+		return rune(s[j])
+	} else {
+		return rune(s[i])
+	}
+}
+
+func isEntryDelim(co rune) bool {
+	return co == '(' || co == ','
+}
+
+func isStdPrefix(co1 rune, c rune) bool {
+	return (co1 == '=' || co1 == ',' || co1 == '(') && !unicode.IsSpace(c) && c != '"' && c != '`'
+}
+
+func isStrExpPrefix(co rune) bool {
+	return co == '=' || co == ',' || co == '('
+}
+
+func enterParseState(s string, i int, c rune, inExp, inStr, inStd bool) parseState {
+	if inExp || inStr || inStd {
+		return stateNone
+	}
+	co1 := charSkipWhitespace(s, i, -1)
+	if isEntryDelim(co1) && (unicode.IsLetter(c) || c == '@') {
+		return stateKey
+	}
+	if isStdPrefix(co1, c) {
+		return stateStd
+	}
+	co2 := charSkipWhitespace(s, i, -2)
+	if isStrExpPrefix(co2) {
+		switch co1 {
+		case '"':
+			return stateStr
+		case '`':
+			return stateExp
+		}
+	}
+	return stateNone
+}
+
+func exitParseState(s string, i int, c rune, inKey, inStr, inExp, inStd bool) exitParseInfo {
+	if c == '\\' {
+		return exitParseInfo{kind: stateNone}
+	}
+	co1 := charSkipWhitespace(s, i, 1)
+	cso1 := charAtOffset(s, i, 1)
+	if inKey && (co1 == ',' || co1 == ')' || co1 == '=') {
+		return exitParseInfo{kind: stateKey, isK: co1 != ','}
+	}
+	if inStr && cso1 == '"' {
+		return exitParseInfo{kind: stateStr}
+	}
+	if inExp && cso1 == '`' {
+		return exitParseInfo{kind: stateExp}
+	}
+	if inStd && (co1 == ',' || co1 == ')') {
+		return exitParseInfo{kind: stateStd}
+	}
+	return exitParseInfo{kind: stateNone}
+}
+
+func isInAnyParseState(inKey, inStr, inExp, inStd bool) bool {
+	return inKey || inStr || inExp || inStd
+}
+
+func isEndParen(inExp, inStd, inStr, inKey bool, c rune) bool {
+	return !inExp && !inStd && !inStr && !inKey && c == ')'
+}
+
+func applyEnterParseState(s string, i int, c rune, inKey, inStr, inExp, inStd *bool) {
+	switch enterParseState(s, i, c, *inExp, *inStr, *inStd) {
+	case stateKey:
+		*inKey = true
+	case stateStr:
+		*inStr = true
+	case stateExp:
+		*inExp = true
+	case stateStd:
+		*inStd = true
+	}
+}
+
+func applyExitParseState(s string, i int, c rune, inKey, inStr, inExp, inStd *bool, sb *bytes.Buffer, pK *string, kvMap map[string]string, pIsK *bool, insertVal func(string)) {
+	if c == '\\' {
+		return
+	}
+	info := exitParseState(s, i, c, *inKey, *inStr, *inExp, *inStd)
+	switch info.kind {
+	case stateKey:
+		*inKey = false
+		*pK = strings.TrimSpace(sb.String())
+		kvMap[*pK] = ""
+		if info.isK {
+			*pIsK = true
+		}
+		sb.Reset()
+	case stateStr:
+		*inStr = false
+		v := strings.TrimSpace(sb.String())
+		v = strings.ReplaceAll(v, `\\`, `\`)
+		insertVal(v)
+		sb.Reset()
+	case stateExp:
+		*inExp = false
+		insertVal(strings.TrimSpace(sb.String()))
+		sb.Reset()
+	case stateStd:
+		*inStd = false
+		insertVal(strings.TrimSpace(sb.String()))
+		sb.Reset()
+	}
+}
+
 // start with "(", will return params map and end pos.
 // all params string type:
 // (key1 = 0, key2 = "str_exam\"ple", key3 = `exp_\`example\n`)
@@ -159,9 +371,9 @@ func parseParams(s string) (map[string]string, int) {
 	var sb bytes.Buffer
 
 	inKey := false
-	inStr := false // "example"
-	inExp := false // `example`
-	inStd := false //  example
+	inStr := false
+	inExp := false
+	inStd := false
 
 	noKeyIndex := 0
 	insertVal := func(v string) {
@@ -175,95 +387,21 @@ func parseParams(s string) (map[string]string, int) {
 	}
 
 	for i, c := range s {
-		cso := func(o int) int32 {
-			oi := i + o
-			if oi >= 0 && oi < len(s) {
-				return rune(s[oi])
-			}
-			return 0
-		}
-		co := func(o int) int32 {
-			if i+o < 0 || i+0 >= len(s) {
-				return 0
-			}
-			if o < 0 {
-				j := i
-				for j >= 0 && o != 0 {
-					j--
-					if !unicode.IsSpace(rune(s[j])) {
-						o++
-					}
-				}
-				return rune(s[j])
-			} else if o > 0 {
-				j := i
-				for j < len(s)-1 && o != 0 {
-					j++
-					if !unicode.IsSpace(rune(s[j])) {
-						o--
-					}
-				}
-				return rune(s[j])
-			} else {
-				return rune(s[i])
-			}
-		}
-
 		if i == 0 && c != '(' {
 			return nil, -1
 		}
 
-		if !inExp && !inStr && !inStd {
-			if (co(-1) == '(' || co(-1) == ',') && (unicode.IsLetter(c) || c == '@') {
-				inKey = true
-			} else if (co(-1) == '=' || co(-1) == ',' || co(-1) == '(') &&
-				!unicode.IsSpace(c) && c != '"' && c != '`' {
-				inStd = true
-			} else if co(-2) == '=' || co(-2) == ',' || co(-2) == '(' {
-				switch co(-1) {
-				case '"':
-					inStr = true
-				case '`':
-					inExp = true
-				}
-			}
-		}
+		applyEnterParseState(s, i, c, &inKey, &inStr, &inExp, &inStd)
 
-		if inKey || inExp || inStd || inStr {
+		if isInAnyParseState(inKey, inStr, inExp, inStd) {
 			_, _ = sb.WriteRune(c)
 		}
 
-		if !inExp && !inStd && !inStr && !inKey && c == ')' {
+		if isEndParen(inExp, inStd, inStr, inKey, c) {
 			endPos = i
 		}
 
-		if c != '\\' {
-			if inKey && (co(1) == ',' || co(1) == ')' || co(1) == '=') {
-				inKey = false
-				pK = strings.TrimSpace(sb.String())
-				kvMap[pK] = ""
-				if co(1) != ',' {
-					pIsK = true
-				}
-				sb.Reset()
-			} else if inStr && cso(1) == '"' {
-				inStr = false
-				s := strings.TrimSpace(sb.String())
-				s = strings.ReplaceAll(s, `\\`, `\`)
-				insertVal(s)
-				sb.Reset()
-			} else if inExp && cso(1) == '`' {
-				inExp = false
-				s := strings.TrimSpace(sb.String())
-				insertVal(s)
-				sb.Reset()
-			} else if inStd && (co(1) == ',' || co(1) == ')') {
-				inStd = false
-				s := strings.TrimSpace(sb.String())
-				insertVal(s)
-				sb.Reset()
-			}
-		}
+		applyExitParseState(s, i, c, &inKey, &inStr, &inExp, &inStd, &sb, &pK, kvMap, &pIsK, insertVal)
 
 		if endPos > -1 {
 			break

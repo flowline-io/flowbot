@@ -55,89 +55,106 @@ func preprocessTemplate(s string) string {
 // current data rather than stale pointers from a previous parse.
 func (e *Engine) funcs() txtpl.FuncMap {
 	return txtpl.FuncMap{
-		"input": func(field string) any {
-			data := e.data
-			if data != nil && data.Input != nil {
-				if v, ok := data.Input[field]; ok {
-					return v
-				}
-			}
-			return ""
-		},
-		"event": func(field string) any {
-			data := e.data
-			if data != nil && data.Event != nil {
-				if v, ok := data.Event[field]; ok {
-					return v
-				}
-			}
-			return ""
-		},
-		"step": func(stepName, field string) any {
-			data := e.data
-			if data != nil && data.Steps != nil {
-				if step, ok := data.Steps[stepName]; ok {
-					if v, ok := step[field]; ok {
-						return v
-					}
-				}
-			}
-			return ""
-		},
-		"join": func(elems any, sep string) string {
-			if elems == nil {
-				return ""
-			}
-			val := reflect.ValueOf(elems)
-			if val.Kind() != reflect.Slice {
-				return ""
-			}
-			parts := make([]string, val.Len())
-			for i := range parts {
-				parts[i] = fmt.Sprint(val.Index(i).Interface())
-			}
-			return strings.Join(parts, sep)
-		},
-		"split":    strings.Split,
-		"contains": strings.Contains,
-		"default": func(def, val any) any {
-			if val == nil {
-				return def
-			}
-			v := reflect.ValueOf(val)
-			if v.Kind() == reflect.String && v.String() == "" {
-				return def
-			}
-			return val
-		},
-		"json": func(v any) (string, error) {
-			b, err := pooledSonic.Marshal(v)
-			if err != nil {
-				return "", err
-			}
-			return string(b), nil
-		},
-		"len": func(v any) int {
-			if v == nil {
-				return 0
-			}
-			val := reflect.ValueOf(v)
-			switch val.Kind() {
-			case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
-				return val.Len()
-			}
-			return 0
-		},
-		"jsonpath": func(jsonStr, path string) string {
-			return gjson.Get(jsonStr, path).String()
-		},
-		"jsonpathExists": func(jsonStr, path string) bool {
-			return gjson.Get(jsonStr, path).Exists()
-		},
-		"jsonpathRaw": func(jsonStr, path string) any {
-			return gjson.Get(jsonStr, path).Value()
-		},
+		"input":          e.funcDataInput,
+		"event":          e.funcDataEvent,
+		"step":           e.funcDataStep,
+		"join":           funcJoin,
+		"split":          strings.Split,
+		"contains":       strings.Contains,
+		"default":        funcDefault,
+		"json":           funcJson,
+		"len":            funcLen,
+		"jsonpath":       funcJsonpath,
+		"jsonpathExists": funcJsonpathExists,
+		"jsonpathRaw":    funcJsonpathRaw,
 	}
+}
+
+func (e *Engine) funcDataInput(field string) any {
+	if e.data != nil && e.data.Input != nil {
+		if v, ok := e.data.Input[field]; ok {
+			return v
+		}
+	}
+	return ""
+}
+
+func (e *Engine) funcDataEvent(field string) any {
+	if e.data != nil && e.data.Event != nil {
+		if v, ok := e.data.Event[field]; ok {
+			return v
+		}
+	}
+	return ""
+}
+
+func (e *Engine) funcDataStep(stepName, field string) any {
+	if e.data != nil && e.data.Steps != nil {
+		if step, ok := e.data.Steps[stepName]; ok {
+			if v, ok := step[field]; ok {
+				return v
+			}
+		}
+	}
+	return ""
+}
+
+func funcJoin(elems any, sep string) string {
+	if elems == nil {
+		return ""
+	}
+	val := reflect.ValueOf(elems)
+	if val.Kind() != reflect.Slice {
+		return ""
+	}
+	parts := make([]string, val.Len())
+	for i := range parts {
+		parts[i] = fmt.Sprint(val.Index(i).Interface())
+	}
+	return strings.Join(parts, sep)
+}
+
+func funcDefault(def, val any) any {
+	if val == nil {
+		return def
+	}
+	v := reflect.ValueOf(val)
+	if v.Kind() == reflect.String && v.String() == "" {
+		return def
+	}
+	return val
+}
+
+func funcJson(v any) (string, error) {
+	b, err := pooledSonic.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func funcLen(v any) int {
+	if v == nil {
+		return 0
+	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
+		return val.Len()
+	}
+	return 0
+}
+
+func funcJsonpath(jsonStr, path string) string {
+	return gjson.Get(jsonStr, path).String()
+}
+
+func funcJsonpathExists(jsonStr, path string) bool {
+	return gjson.Get(jsonStr, path).Exists()
+}
+
+func funcJsonpathRaw(jsonStr, path string) any {
+	return gjson.Get(jsonStr, path).Value()
 }
 
 // RenderString renders a template string with the given TemplateData.

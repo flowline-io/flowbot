@@ -6,6 +6,7 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
@@ -36,32 +37,38 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 		platformSet.Insert(int(item.PlatformID))
 	}
 
-	// send topic
 	if ctx.Topic != "" {
-		platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
-		if err != nil {
-			return fmt.Errorf("failed to get platform channel: %w", err)
-		}
-		if !platformSet.Has(int(platformChannel.PlatformID)) {
-			return fmt.Errorf("topic %s not platform %d", ctx.Topic, platformChannel.PlatformID)
-		}
-		platform, err := store.Database.GetPlatform(ctx.Context(), platformChannel.PlatformID)
-		if err != nil {
-			return fmt.Errorf("failed to get platform: %w", err)
-		}
-
-		if platform.Name == "" {
-			return fmt.Errorf("empty platform user %s topic %s", ctx.AsUser, ctx.Topic)
-		}
-
-		return PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
-			Platform: platform.Name,
-			Topic:    ctx.Topic,
-			Payload:  payload,
-		})
+		return sendToTopic(ctx, payload, platformSet)
 	}
 
-	// send all
+	return sendToAll(ctx, payload, platformUsers)
+}
+
+func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets.Int) error {
+	platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
+	if err != nil {
+		return fmt.Errorf("failed to get platform channel: %w", err)
+	}
+	if !platformSet.Has(int(platformChannel.PlatformID)) {
+		return fmt.Errorf("topic %s not platform %d", ctx.Topic, platformChannel.PlatformID)
+	}
+	platform, err := store.Database.GetPlatform(ctx.Context(), platformChannel.PlatformID)
+	if err != nil {
+		return fmt.Errorf("failed to get platform: %w", err)
+	}
+
+	if platform.Name == "" {
+		return fmt.Errorf("empty platform user %s topic %s", ctx.AsUser, ctx.Topic)
+	}
+
+	return PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
+		Platform: platform.Name,
+		Topic:    ctx.Topic,
+		Payload:  payload,
+	})
+}
+
+func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*model.PlatformUser) error {
 	platforms, err := store.Database.GetPlatforms(ctx.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get platforms: %w", err)

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -67,42 +68,18 @@ func NewShellRuntime(cfg Config) *Runtime {
 }
 
 func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
-	if t.ID == "" {
-		return errors.New("task id is required")
+	if err := validateTask(t); err != nil {
+		return err
 	}
-	if len(t.Mounts) > 0 {
-		return errors.New("mounts are not supported on shell runtime")
-	}
-	if len(t.Entrypoint) > 0 {
-		return errors.New("entrypoint is not supported on shell runtime")
-	}
-	if t.Image != "" {
-		return errors.New("image is not supported on shell runtime")
-	}
-	if t.Limits != nil && (t.Limits.CPUs != "" || t.Limits.Memory != "") {
-		return errors.New("limits are not supported on shell runtime")
-	}
-	if len(t.Networks) > 0 {
-		return errors.New("networks are not supported on shell runtime")
-	}
-	if t.Registry != nil {
-		return errors.New("registry is not supported on shell runtime")
-	}
-	if len(t.CMD) > 0 {
-		return errors.New("cmd is not supported on shell runtime")
-	}
-	// excute pre-tasks
 	for _, pre := range t.Pre {
 		pre.ID = utils.NewUUID()
 		if err := r.doRun(ctx, pre); err != nil {
 			return err
 		}
 	}
-	// run the actual task
 	if err := r.doRun(ctx, t); err != nil {
 		return err
 	}
-	// execute post tasks
 	for _, post := range t.Post {
 		post.ID = utils.NewUUID()
 		if err := r.doRun(ctx, post); err != nil {
@@ -115,44 +92,20 @@ func (r *Runtime) Run(ctx context.Context, t *types.Task) error {
 func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	defer r.cmds.Delete(t.ID)
 
-	workdir, err := os.MkdirTemp("", fmt.Sprintf("flowbot-%s", t.ID))
+	workdir, err := r.setupWorkdir(t)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		_ = os.RemoveAll(workdir)
 	}()
-
 	flog.Debug("Created workdir %s", workdir)
 
-	if err := os.WriteFile(fmt.Sprintf("%s/stdout", workdir), []byte{}, 0606); err != nil {
-		return fmt.Errorf("error writing the entrypoint, %w", err)
+	args, env, err := r.buildShellCommand(workdir, t)
+	if err != nil {
+		return err
 	}
 
-	for filename, contents := range t.Files {
-		filename = fmt.Sprintf("%s/%s", workdir, filename)
-		if err := os.WriteFile(filename, []byte(contents), 0444); err != nil {
-			return fmt.Errorf("error writing file: %s, %w", filename, err)
-		}
-	}
-
-	var env []string
-	for name, value := range t.Env {
-		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
-	}
-	env = append(env,
-		fmt.Sprintf("%sOUTPUT=%s/stdout", envVarPrefix, workdir),
-		fmt.Sprintf("WORKDIR=%s", workdir),
-		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
-	)
-
-	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
-		return fmt.Errorf("error writing the entrypoint, %w", err)
-	}
-	args := make([]string, len(r.shell)+1)
-	copy(args, r.shell)
-	args[len(r.shell)] = fmt.Sprintf("%s/entrypoint", workdir)
-	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)
 	cmd := r.reexec(args...)
 	cmd.Env = env
 	cmd.Dir = workdir
@@ -169,14 +122,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 
 	r.cmds.Set(t.ID, cmd)
 
-	go func() {
-		reader := bufio.NewReader(stdout)
-		line, err := reader.ReadString('\n')
-		for err == nil {
-			_, _ = fmt.Println(line)
-			line, err = reader.ReadString('\n')
-		}
-	}()
+	readProcessOutput(stdout)
 
 	errChan := make(chan error)
 	doneChan := make(chan any)
@@ -206,6 +152,91 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	t.Result = string(output)
 
 	return nil
+}
+
+// validateTask checks that the task does not contain fields unsupported by the shell runtime.
+func validateTask(t *types.Task) error {
+	if t.ID == "" {
+		return errors.New("task id is required")
+	}
+	if len(t.Mounts) > 0 {
+		return errors.New("mounts are not supported on shell runtime")
+	}
+	if len(t.Entrypoint) > 0 {
+		return errors.New("entrypoint is not supported on shell runtime")
+	}
+	if t.Image != "" {
+		return errors.New("image is not supported on shell runtime")
+	}
+	if t.Limits != nil && (t.Limits.CPUs != "" || t.Limits.Memory != "") {
+		return errors.New("limits are not supported on shell runtime")
+	}
+	if len(t.Networks) > 0 {
+		return errors.New("networks are not supported on shell runtime")
+	}
+	if t.Registry != nil {
+		return errors.New("registry is not supported on shell runtime")
+	}
+	if len(t.CMD) > 0 {
+		return errors.New("cmd is not supported on shell runtime")
+	}
+	return nil
+}
+
+// setupWorkdir creates a temporary work directory and writes task files into it.
+func (*Runtime) setupWorkdir(t *types.Task) (string, error) {
+	workdir, err := os.MkdirTemp("", fmt.Sprintf("flowbot-%s", t.ID))
+	if err != nil {
+		return "", err
+	}
+
+	if err := os.WriteFile(fmt.Sprintf("%s/stdout", workdir), []byte{}, 0606); err != nil {
+		return "", fmt.Errorf("error writing the entrypoint, %w", err)
+	}
+
+	for filename, contents := range t.Files {
+		filename = fmt.Sprintf("%s/%s", workdir, filename)
+		if err := os.WriteFile(filename, []byte(contents), 0444); err != nil {
+			return "", fmt.Errorf("error writing file: %s, %w", filename, err)
+		}
+	}
+
+	return workdir, nil
+}
+
+// buildShellCommand constructs the environment variables and reexec args for the shell command.
+func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []string, error) {
+	var env []string
+	for name, value := range t.Env {
+		env = append(env, fmt.Sprintf("%s%s=%s", envVarPrefix, name, value))
+	}
+	env = append(env,
+		fmt.Sprintf("%sOUTPUT=%s/stdout", envVarPrefix, workdir),
+		fmt.Sprintf("WORKDIR=%s", workdir),
+		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+	)
+
+	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
+		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
+	}
+
+	args := make([]string, len(r.shell)+1)
+	copy(args, r.shell)
+	args[len(r.shell)] = fmt.Sprintf("%s/entrypoint", workdir)
+	args = append([]string{"shell", "-uid", r.uid, "-gid", r.gid}, args...)
+	return args, env, nil
+}
+
+// readProcessOutput starts a goroutine that reads and prints lines from the command's stdout.
+func readProcessOutput(stdout io.ReadCloser) {
+	go func() {
+		reader := bufio.NewReader(stdout)
+		line, err := reader.ReadString('\n')
+		for err == nil {
+			_, _ = fmt.Println(line)
+			line, err = reader.ReadString('\n')
+		}
+	}()
 }
 
 func reexecRun() {

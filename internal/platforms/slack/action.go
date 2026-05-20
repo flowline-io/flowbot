@@ -168,6 +168,29 @@ func (a *Action) postRichMessage(channel, threadId string, content protocol.Mess
 	return ts, nil
 }
 
+// segHandlers maps segment types to handler functions for buildMsgOptions.
+var segHandlers = map[string]func(protocol.MessageSegment) (string, []slack.Block, []string){
+	"text":        handleSegText,
+	"url":         handleSegURL,
+	"mention":     handleSegMention,
+	"mention_all": handleSegMentionAll,
+	"image":       handleSegImage,
+	"file":        handleSegFile,
+	"video":       handleSegFile,
+	"audio":       handleSegFile,
+	"voice":       handleSegFile,
+	"location":    handleSegLocation,
+	"reply":       handleSegReply,
+	"chart":       handleSegChart,
+	"table":       handleSegTable,
+	"form":        handleSegForm,
+	"action_card": handleSegActionCard,
+	"status":      handleSegStatus,
+	"link":        handleSegLink,
+	"markdown":    handleSegMarkdown,
+	"kv":          handleSegKV,
+}
+
 // buildMsgOptions converts protocol.Message segments into slack.MsgOption slice
 // and collects file IDs for separate upload.
 func (*Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, []string) {
@@ -176,148 +199,16 @@ func (*Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, []s
 	var fileIDs []string
 
 	for _, segment := range content {
-		switch segment.Type {
-		case "text":
-			if text, ok := segment.Data["text"].(string); ok {
-				textParts = append(textParts, text)
-			}
-		case "url":
-			if url, ok := segment.Data["url"].(string); ok {
-				textParts = append(textParts, url)
-			}
-		case "mention":
-			if userID, ok := segment.Data["user_id"].(string); ok {
-				textParts = append(textParts, fmt.Sprintf("<@%s>", userID))
-			}
-		case "mention_all":
-			textParts = append(textParts, "<!channel>")
-		case "image":
-			if fileID, ok := segment.Data["file_id"].(string); ok {
-				blocks = append(blocks, imageBlock(fileID, "image", ""))
-			}
-		case "file", "video", "audio", "voice":
-			if fileID, ok := segment.Data["file_id"].(string); ok {
-				fileIDs = append(fileIDs, fileID)
-			}
-		case "location":
-			lat, latOk := segment.Data["latitude"].(float64)
-			lon, lonOk := segment.Data["longitude"].(float64)
-			if latOk && lonOk {
-				title, _ := segment.Data["title"].(string)
-				locContent, _ := segment.Data["content"].(string)
-				locText := fmt.Sprintf("📍 *%s*\nLat: %.6f, Lon: %.6f", title, lat, lon)
-				if locContent != "" {
-					locText += "\n" + locContent
-				}
-				blocks = append(blocks, section(locText))
-			}
-		case "reply":
-			if userID, ok := segment.Data["user_id"].(string); ok {
-				if msgID, ok2 := segment.Data["message_id"].(string); ok2 {
-					blocks = append(blocks, contextBlock(fmt.Sprintf("↩️ Replying to <@%s> (msg: %s)", userID, msgID)))
-				}
-			}
-
-		// ── Rich UI component segments ──
-
-		case "chart":
-			chartType, _ := segment.Data["chart_type"].(string) // "bar" or "pie"
-			title, _ := segment.Data["title"].(string)
-			subtitle, _ := segment.Data["subtitle"].(string)
-			labels := toStringSlice(segment.Data["labels"])
-			values := toFloat64Slice(segment.Data["values"])
-
-			switch chartType {
-			case "pie":
-				blocks = append(blocks, renderPieChart(title, labels, values)...)
-			default: // bar (default)
-				blocks = append(blocks, renderBarChart(title, subtitle, labels, values)...)
-			}
-
-		case "table":
-			title, _ := segment.Data["title"].(string)
-			headers := toStringSlice(segment.Data["headers"])
-			rows := toRowSlice(segment.Data["rows"])
-			blocks = append(blocks, buildTableBlocks(title, headers, rows)...)
-
-		case "form":
-			// Forms are rendered as inline input blocks in the message
-			// For full modal forms, use the "form_modal" type instead
-			title, _ := segment.Data["title"].(string)
-			fields := toFormFieldDefs(segment.Data["fields"])
-			if title != "" {
-				blocks = append(blocks, header(title))
-			}
-			blocks = append(blocks, divider())
-			for _, f := range fields {
-				fieldText := fmt.Sprintf("*%s*", f.Label)
-				if f.Placeholder != "" {
-					fieldText += fmt.Sprintf("  _%s_", f.Placeholder)
-				}
-				if f.InitialVal != "" {
-					fieldText += fmt.Sprintf("\nCurrent: `%s`", f.InitialVal)
-				}
-				blocks = append(blocks, section(fieldText))
-			}
-
-		case "action_card":
-			title, _ := segment.Data["title"].(string)
-			description, _ := segment.Data["description"].(string)
-			imageURL, _ := segment.Data["image_url"].(string)
-			footer, _ := segment.Data["footer"].(string)
-			fields := toStringMap(segment.Data["fields"])
-			buttons := toButtonDefs(segment.Data["buttons"])
-
-			blocks = append(blocks, buildActionCard(ActionCardDef{
-				Title:       title,
-				Description: description,
-				Fields:      fields,
-				ImageURL:    imageURL,
-				Buttons:     buttons,
-				Footer:      footer,
-			})...)
-
-		case "status":
-			statusText, _ := segment.Data["text"].(string)
-			if statusText == "" {
-				statusText = "Processing…"
-			}
-			blocks = append(blocks, statusBlocks(statusText)...)
-
-		case "link":
-			title, _ := segment.Data["title"].(string)
-			url, _ := segment.Data["url"].(string)
-			cover, _ := segment.Data["cover"].(string)
-			if url == "" {
-				break
-			}
-			if title == "" {
-				title = url
-			}
-			linkText := fmt.Sprintf("<%s|%s>", url, title)
-			if cover != "" {
-				blocks = append(blocks, imageSection(linkText, cover, title))
-			} else {
-				blocks = append(blocks, sectionWithButton(linkText, "Open Link", "link_open", url, slack.StylePrimary))
-			}
-
-		case "markdown":
-			title, _ := segment.Data["title"].(string)
-			text, _ := segment.Data["text"].(string)
-			if title != "" {
-				blocks = append(blocks, header(title))
-			}
-			if text != "" {
-				// Slack supports mrkdwn; render as-is
-				blocks = append(blocks, section(text))
-			}
-
-		case "kv":
-			fieldsRaw := toStringMap(segment.Data["fields"])
-			if len(fieldsRaw) > 0 {
-				blocks = append(blocks, sectionFields(fieldsRaw))
-			}
+		handler, ok := segHandlers[segment.Type]
+		if !ok {
+			continue
 		}
+		txt, blks, fids := handler(segment)
+		if txt != "" {
+			textParts = append(textParts, txt)
+		}
+		blocks = append(blocks, blks...)
+		fileIDs = append(fileIDs, fids...)
 	}
 
 	var msgOptions []slack.MsgOption
@@ -337,6 +228,182 @@ func (*Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, []s
 	}
 
 	return msgOptions, fileIDs
+}
+
+// ──────────────────────────────────────────
+// Segment handler functions
+// ──────────────────────────────────────────
+
+func handleSegText(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	if text, ok := segment.Data["text"].(string); ok {
+		return text, nil, nil
+	}
+	return "", nil, nil
+}
+
+func handleSegURL(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	if url, ok := segment.Data["url"].(string); ok {
+		return url, nil, nil
+	}
+	return "", nil, nil
+}
+
+func handleSegMention(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	if userID, ok := segment.Data["user_id"].(string); ok {
+		return fmt.Sprintf("<@%s>", userID), nil, nil
+	}
+	return "", nil, nil
+}
+
+func handleSegMentionAll(_ protocol.MessageSegment) (string, []slack.Block, []string) {
+	return "<!channel>", nil, nil
+}
+
+func handleSegImage(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	if fileID, ok := segment.Data["file_id"].(string); ok {
+		return "", []slack.Block{imageBlock(fileID, "image", "")}, nil
+	}
+	return "", nil, nil
+}
+
+func handleSegFile(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	if fileID, ok := segment.Data["file_id"].(string); ok {
+		return "", nil, []string{fileID}
+	}
+	return "", nil, nil
+}
+
+func handleSegLocation(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	lat, latOk := segment.Data["latitude"].(float64)
+	lon, lonOk := segment.Data["longitude"].(float64)
+	if !latOk || !lonOk {
+		return "", nil, nil
+	}
+	title, _ := segment.Data["title"].(string)
+	locContent, _ := segment.Data["content"].(string)
+	locText := fmt.Sprintf("📍 *%s*\nLat: %.6f, Lon: %.6f", title, lat, lon)
+	if locContent != "" {
+		locText += "\n" + locContent
+	}
+	return "", []slack.Block{section(locText)}, nil
+}
+
+func handleSegReply(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	userID, ok := segment.Data["user_id"].(string)
+	if !ok {
+		return "", nil, nil
+	}
+	msgID, ok2 := segment.Data["message_id"].(string)
+	if !ok2 {
+		return "", nil, nil
+	}
+	return "", []slack.Block{contextBlock(fmt.Sprintf("↩️ Replying to <@%s> (msg: %s)", userID, msgID))}, nil
+}
+
+func handleSegChart(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	chartType, _ := segment.Data["chart_type"].(string)
+	title, _ := segment.Data["title"].(string)
+	subtitle, _ := segment.Data["subtitle"].(string)
+	labels := toStringSlice(segment.Data["labels"])
+	values := toFloat64Slice(segment.Data["values"])
+
+	switch chartType {
+	case "pie":
+		return "", renderPieChart(title, labels, values), nil
+	default:
+		return "", renderBarChart(title, subtitle, labels, values), nil
+	}
+}
+
+func handleSegTable(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	title, _ := segment.Data["title"].(string)
+	headers := toStringSlice(segment.Data["headers"])
+	rows := toRowSlice(segment.Data["rows"])
+	return "", buildTableBlocks(title, headers, rows), nil
+}
+
+func handleSegForm(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	title, _ := segment.Data["title"].(string)
+	fields := toFormFieldDefs(segment.Data["fields"])
+	var blocks []slack.Block
+	if title != "" {
+		blocks = append(blocks, header(title))
+	}
+	blocks = append(blocks, divider())
+	for _, f := range fields {
+		fieldText := fmt.Sprintf("*%s*", f.Label)
+		if f.Placeholder != "" {
+			fieldText += fmt.Sprintf("  _%s_", f.Placeholder)
+		}
+		if f.InitialVal != "" {
+			fieldText += fmt.Sprintf("\nCurrent: `%s`", f.InitialVal)
+		}
+		blocks = append(blocks, section(fieldText))
+	}
+	return "", blocks, nil
+}
+
+func handleSegActionCard(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	title, _ := segment.Data["title"].(string)
+	description, _ := segment.Data["description"].(string)
+	imageURL, _ := segment.Data["image_url"].(string)
+	footer, _ := segment.Data["footer"].(string)
+	fields := toStringMap(segment.Data["fields"])
+	buttons := toButtonDefs(segment.Data["buttons"])
+	return "", buildActionCard(ActionCardDef{
+		Title:       title,
+		Description: description,
+		Fields:      fields,
+		ImageURL:    imageURL,
+		Buttons:     buttons,
+		Footer:      footer,
+	}), nil
+}
+
+func handleSegStatus(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	statusText, _ := segment.Data["text"].(string)
+	if statusText == "" {
+		statusText = "Processing…"
+	}
+	return "", statusBlocks(statusText), nil
+}
+
+func handleSegLink(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	title, _ := segment.Data["title"].(string)
+	url, _ := segment.Data["url"].(string)
+	cover, _ := segment.Data["cover"].(string)
+	if url == "" {
+		return "", nil, nil
+	}
+	if title == "" {
+		title = url
+	}
+	linkText := fmt.Sprintf("<%s|%s>", url, title)
+	if cover != "" {
+		return "", []slack.Block{imageSection(linkText, cover, title)}, nil
+	}
+	return "", []slack.Block{sectionWithButton(linkText, "Open Link", "link_open", url, slack.StylePrimary)}, nil
+}
+
+func handleSegMarkdown(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	title, _ := segment.Data["title"].(string)
+	text, _ := segment.Data["text"].(string)
+	var blocks []slack.Block
+	if title != "" {
+		blocks = append(blocks, header(title))
+	}
+	if text != "" {
+		blocks = append(blocks, section(text))
+	}
+	return "", blocks, nil
+}
+
+func handleSegKV(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	fieldsRaw := toStringMap(segment.Data["fields"])
+	if len(fieldsRaw) > 0 {
+		return "", []slack.Block{sectionFields(fieldsRaw)}, nil
+	}
+	return "", nil, nil
 }
 
 // uploadAndShareFiles uploads files and shares them to the channel.

@@ -120,172 +120,176 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 	results := make([]ReviewResult, 0, len(chunks))
 
 	for i, chunk := range chunks {
-		flog.Info("[gitea] Analyzing chunk %d/%d with size: %d characters",
-			i+1, len(chunks),
-			len(chunk.Diff))
-
-		// Format file context
-		var filesContextStr strings.Builder
-		if len(chunk.FilesContext) > 0 {
-			for _, f := range chunk.FilesContext {
-				filePath, _ := f["file_path"].(string)
-				fileType, _ := f["file_type"].(string)
-				codeContext, _ := f["context"].(string)
-				_, _ = filesContextStr.WriteString(
-					"File: " + filePath + " (" + fileType + ")\n" + codeContext + "\n\n")
-			}
-		} else {
-			_, _ = filesContextStr.WriteString("No file context")
-		}
-
-		// Validate required parameters
-		if _, ok := codeContext.Metadata["commit_message"]; !ok {
-			commitID := "unknown"
-			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
-				commitID = id[:8]
-			}
-			flog.Error(fmt.Errorf("missing commit message in metadata for commit: %s", commitID))
-			return nil, ErrMissingCommitMessage
-		}
-
-		if chunk.Diff == "" {
-			commitID := "unknown"
-			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
-				commitID = id[:8]
-			}
-			flog.Error(fmt.Errorf("missing diff content for commit: %s", commitID))
-			return nil, ErrMissingDiffContent
-		}
-
-		// Format prompt text
-		prompt := strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(ReviewPrompt,
-					"{commit_message}", codeContext.Metadata["commit_message"]),
-				"{diff}", chunk.Diff),
-			"{files_context}", filesContextStr.String())
-		prompt = strings.ReplaceAll(prompt, "{language}", config.App.Flowbot.Language)
-
-		if prompt == "" {
-			flog.Error(fmt.Errorf("empty prompt after formatting"))
-			return nil, ErrEmptyPrompt
-		}
-
-		// Call LLM model
-		flog.Info("[gitea] Sending request to LLM model with prompt size: %d characters", len(prompt))
-
-		// Call LLM to get response
-		responseText, err := llm.LLMGenerate(ctx, llm.AgentModelName(llm.AgentRepoReviewComment), prompt)
+		result, err := processSingleChunk(ctx, chunk, codeContext.Metadata, i, len(chunks))
 		if err != nil {
-			flog.Error(fmt.Errorf("error calling LLM model: %w", err))
-			return nil, fmt.Errorf("error getting LLM response: %w", err)
+			return nil, err
 		}
+		results = append(results, *result)
+	}
 
-		responseText = strings.TrimSpace(responseText)
+	return mergeChunkResults(codeContext.Metadata, results), nil
+}
 
-		// Find the start and end positions of JSON content
-		jsonStart := strings.Index(responseText, "{")
-		jsonEnd := strings.LastIndex(responseText, "}") + 1
+// formatFilesContext builds a formatted string from chunk file contexts.
+func formatFilesContext(filesContext []map[string]any) string {
+	if len(filesContext) == 0 {
+		return "No file context"
+	}
+	var b strings.Builder
+	for _, f := range filesContext {
+		filePath, _ := f["file_path"].(string)
+		fileType, _ := f["file_type"].(string)
+		codeContext, _ := f["context"].(string)
+		_, _ = b.WriteString("File: " + filePath + " (" + fileType + ")\n" + codeContext + "\n\n")
+	}
+	return b.String()
+}
 
-		if jsonStart == -1 || jsonEnd <= jsonStart {
-			flog.Error(fmt.Errorf("no valid JSON found in response of size: %d characters", len(responseText)))
-			// Return default result instead of throwing an exception
-			return &ReviewResult{
-				Score:          0,
-				Issues:         []*CodeIssue{},
-				SecurityIssues: []*SecurityIssue{},
-				QualityMetrics: &QualityMetric{
-					SecurityScore:     0,
-					PerformanceScore:  0,
-					ReadabilityScore:  0,
-					BestPracticeScore: 0,
-				},
-			}, nil
+// validateChunkMetadata checks required metadata fields and returns the short commit ID.
+func validateChunkMetadata(metadata map[string]string, diff string) (string, error) {
+	commitID := "unknown"
+	if id, ok := metadata["commit_id"]; ok && len(id) >= 8 {
+		commitID = id[:8]
+	}
+	if _, ok := metadata["commit_message"]; !ok {
+		flog.Error(fmt.Errorf("missing commit message in metadata for commit: %s", commitID))
+		return commitID, ErrMissingCommitMessage
+	}
+	if diff == "" {
+		flog.Error(fmt.Errorf("missing diff content for commit: %s", commitID))
+		return commitID, ErrMissingDiffContent
+	}
+	return commitID, nil
+}
+
+// buildReviewPrompt formats the review prompt with replacements.
+func buildReviewPrompt(metadata map[string]string, diff string, filesContextStr string) string {
+	prompt := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(ReviewPrompt,
+				"{commit_message}", metadata["commit_message"]),
+			"{diff}", diff),
+		"{files_context}", filesContextStr)
+	prompt = strings.ReplaceAll(prompt, "{language}", config.App.Flowbot.Language)
+	return prompt
+}
+
+// defaultReviewResult returns a zero-value ReviewResult with initialized empty slices and zero scores.
+func defaultReviewResult() *ReviewResult {
+	return &ReviewResult{
+		Score:          0,
+		Issues:         []*CodeIssue{},
+		SecurityIssues: []*SecurityIssue{},
+		QualityMetrics: &QualityMetric{
+			SecurityScore:     0,
+			PerformanceScore:  0,
+			ReadabilityScore:  0,
+			BestPracticeScore: 0,
+		},
+	}
+}
+
+// parseLLMJsonResponse extracts and cleans JSON from an LLM response string.
+func parseLLMJsonResponse(responseText string) (string, error) {
+	responseText = strings.TrimSpace(responseText)
+	jsonStart := strings.Index(responseText, "{")
+	jsonEnd := strings.LastIndex(responseText, "}") + 1
+	if jsonStart == -1 || jsonEnd <= jsonStart {
+		return "", fmt.Errorf("no valid JSON found in response of size: %d characters", len(responseText))
+	}
+
+	responseText = responseText[jsonStart:jsonEnd]
+
+	if strings.Contains(responseText, "```json") {
+		parts := strings.Split(responseText, "```json")
+		if len(parts) > 1 {
+			subParts := strings.Split(parts[1], "```")
+			if len(subParts) > 0 {
+				responseText = subParts[0]
+			}
 		}
-
-		responseText = responseText[jsonStart:jsonEnd]
-
-		// Process possible Markdown code blocks
-		if strings.Contains(responseText, "```json") {
-			parts := strings.Split(responseText, "```json")
-			if len(parts) > 1 {
-				subParts := strings.Split(parts[1], "```")
-				if len(subParts) > 0 {
-					responseText = subParts[0]
-				}
-			}
-		} else if strings.Contains(responseText, "```") {
-			parts := strings.Split(responseText, "```")
-			if len(parts) > 2 {
-				responseText = parts[1]
-			}
-		}
-
-		// Clean and format JSON string
-		responseText = strings.ReplaceAll(strings.ReplaceAll(responseText, "\n", " "), "\r", "")
-
-		var result ReviewResult
-		if err := sonic.Unmarshal([]byte(responseText), &result); err != nil {
-			flog.Error(fmt.Errorf("JSON parsing error: %w", err))
-			// Return a default review result
-			results = append(results, ReviewResult{
-				Score:          0,
-				Issues:         []*CodeIssue{},
-				SecurityIssues: []*SecurityIssue{},
-				QualityMetrics: &QualityMetric{
-					SecurityScore:     0,
-					PerformanceScore:  0,
-					ReadabilityScore:  0,
-					BestPracticeScore: 0,
-				},
-			})
-		} else {
-			// Validate and fix results
-			if result.Issues == nil {
-				result.Issues = []*CodeIssue{}
-			}
-			if result.SecurityIssues == nil {
-				result.SecurityIssues = []*SecurityIssue{}
-			}
-			if result.QualityMetrics == nil {
-				result.QualityMetrics = &QualityMetric{
-					SecurityScore:     0,
-					PerformanceScore:  0,
-					ReadabilityScore:  0,
-					BestPracticeScore: 0,
-				}
-			}
-			results = append(results, result)
-			commitID := "unknown"
-			if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
-				commitID = id[:8]
-			}
-			flog.Info("[gitea] Successfully analyzed chunk %d/%d for commit: %s",
-				i+1, len(chunks), commitID)
+	} else if strings.Contains(responseText, "```") {
+		parts := strings.Split(responseText, "```")
+		if len(parts) > 2 {
+			responseText = parts[1]
 		}
 	}
 
-	// Merge all chunk results
+	responseText = strings.ReplaceAll(strings.ReplaceAll(responseText, "\n", " "), "\r", "")
+	return responseText, nil
+}
+
+// processSingleChunk processes a single code chunk through LLM analysis.
+func processSingleChunk(ctx context.Context, chunk *CodeContext, metadata map[string]string, idx int, total int) (*ReviewResult, error) {
+	flog.Info("[gitea] Analyzing chunk %d/%d with size: %d characters",
+		idx+1, total,
+		len(chunk.Diff))
+
+	filesContextStr := formatFilesContext(chunk.FilesContext)
+
+	commitID, err := validateChunkMetadata(metadata, chunk.Diff)
+	if err != nil {
+		return nil, err
+	}
+
+	prompt := buildReviewPrompt(metadata, chunk.Diff, filesContextStr)
+	if prompt == "" {
+		flog.Error(fmt.Errorf("empty prompt after formatting"))
+		return nil, ErrEmptyPrompt
+	}
+
+	flog.Info("[gitea] Sending request to LLM model with prompt size: %d characters", len(prompt))
+
+	responseText, err := llm.LLMGenerate(ctx, llm.AgentModelName(llm.AgentRepoReviewComment), prompt)
+	if err != nil {
+		flog.Error(fmt.Errorf("error calling LLM model: %w", err))
+		return nil, fmt.Errorf("error getting LLM response: %w", err)
+	}
+
+	jsonText, err := parseLLMJsonResponse(responseText)
+	if err != nil {
+		flog.Error(err)
+		return defaultReviewResult(), nil
+	}
+
+	var result ReviewResult
+	if err := sonic.Unmarshal([]byte(jsonText), &result); err != nil {
+		flog.Error(fmt.Errorf("JSON parsing error: %w", err))
+		return defaultReviewResult(), nil
+	}
+
+	if result.Issues == nil {
+		result.Issues = []*CodeIssue{}
+	}
+	if result.SecurityIssues == nil {
+		result.SecurityIssues = []*SecurityIssue{}
+	}
+	if result.QualityMetrics == nil {
+		result.QualityMetrics = &QualityMetric{
+			SecurityScore:     0,
+			PerformanceScore:  0,
+			ReadabilityScore:  0,
+			BestPracticeScore: 0,
+		}
+	}
+
+	flog.Info("[gitea] Successfully analyzed chunk %d/%d for commit: %s",
+		idx+1, total, commitID)
+	return &result, nil
+}
+
+// mergeChunkResults merges multiple chunk ReviewResults into a single final result.
+// Scores use the minimum across chunks; issues and security issues are concatenated.
+func mergeChunkResults(metadata map[string]string, results []ReviewResult) *ReviewResult {
 	if len(results) == 0 {
 		commitID := "unknown"
-		if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
+		if id, ok := metadata["commit_id"]; ok && len(id) >= 8 {
 			commitID = id[:8]
 		}
 		flog.Info("[gitea] No valid results for commit: %s", commitID)
-		return &ReviewResult{
-			Score:          0,
-			Issues:         []*CodeIssue{},
-			SecurityIssues: []*SecurityIssue{},
-			QualityMetrics: &QualityMetric{
-				SecurityScore:     0,
-				PerformanceScore:  0,
-				ReadabilityScore:  0,
-				BestPracticeScore: 0,
-			},
-		}, nil
+		return defaultReviewResult()
 	}
 
-	// Use the lowest score as the final score
 	minScore := results[0].Score
 	minSecurityScore := results[0].QualityMetrics.SecurityScore
 	minPerformanceScore := results[0].QualityMetrics.PerformanceScore
@@ -312,7 +316,6 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 
 	flog.Info("[gitea] review results: %+v", results)
 
-	// Merge all issues
 	allIssues := make([]*CodeIssue, 0)
 	allSecurityIssues := make([]*SecurityIssue, 0)
 	for _, r := range results {
@@ -333,12 +336,12 @@ func llmAnalyzeCode(ctx context.Context, codeContext CodeContext) (*ReviewResult
 	}
 
 	commitID := "unknown"
-	if id, ok := codeContext.Metadata["commit_id"]; ok && len(id) >= 8 {
+	if id, ok := metadata["commit_id"]; ok && len(id) >= 8 {
 		commitID = id[:8]
 	}
 	flog.Info("[gitea] Analysis completed for commit %s with final score: %.2f",
 		commitID, finalResult.Score)
-	return finalResult, nil
+	return finalResult
 }
 
 // filterFiles filters files that do not need review
