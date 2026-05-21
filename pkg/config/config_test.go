@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -183,6 +184,113 @@ func TestRedis(t *testing.T) {
 			assert.Equal(t, tt.wantPort, tt.redis.Port)
 			assert.Equal(t, tt.wantDB, tt.redis.DB)
 			assert.Equal(t, tt.wantPass, tt.redis.Password)
+		})
+	}
+}
+
+func TestRedisPoolConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                string
+		redis               Redis
+		wantPoolSize        int
+		wantMinIdle         int
+		wantMaxRetry        int
+		wantFIFO            bool
+		wantReadTO          time.Duration
+		wantWriteTO         time.Duration
+		wantMinRetryBackoff time.Duration
+		wantMaxRetryBackoff time.Duration
+		wantDialTimeout     time.Duration
+		wantPoolTimeout     time.Duration
+		wantConnMaxIdleTime time.Duration
+		wantConnMaxLifetime time.Duration
+	}{
+		{
+			name: "all pool fields set",
+			redis: Redis{
+				PoolSize:        20,
+				MinIdleConns:    5,
+				MaxRetries:      5,
+				PoolFIFO:        true,
+				ReadTimeout:     30 * time.Second,
+				WriteTimeout:    30 * time.Second,
+				MinRetryBackoff: 100 * time.Millisecond,
+				MaxRetryBackoff: 5 * time.Second,
+				DialTimeout:     3 * time.Second,
+				PoolTimeout:     10 * time.Second,
+				ConnMaxIdleTime: 10 * time.Minute,
+				ConnMaxLifetime: 1 * time.Hour,
+			},
+			wantPoolSize:        20,
+			wantMinIdle:         5,
+			wantMaxRetry:        5,
+			wantFIFO:            true,
+			wantReadTO:          30 * time.Second,
+			wantWriteTO:         30 * time.Second,
+			wantMinRetryBackoff: 100 * time.Millisecond,
+			wantMaxRetryBackoff: 5 * time.Second,
+			wantDialTimeout:     3 * time.Second,
+			wantPoolTimeout:     10 * time.Second,
+			wantConnMaxIdleTime: 10 * time.Minute,
+			wantConnMaxLifetime: 1 * time.Hour,
+		},
+		{
+			name: "partial pool config",
+			redis: Redis{
+				PoolSize:     10,
+				MinIdleConns: 2,
+			},
+			wantPoolSize:        10,
+			wantMinIdle:         2,
+			wantMaxRetry:        0,
+			wantFIFO:            false,
+			wantReadTO:          0,
+			wantWriteTO:         0,
+			wantMinRetryBackoff: 0,
+			wantMaxRetryBackoff: 0,
+			wantDialTimeout:     0,
+			wantPoolTimeout:     0,
+			wantConnMaxIdleTime: 0,
+			wantConnMaxLifetime: 0,
+		},
+		{
+			name: "zero pool config uses defaults",
+			redis: Redis{
+				Host: "localhost",
+				Port: 6379,
+			},
+			wantPoolSize:        0,
+			wantMinIdle:         0,
+			wantMaxRetry:        0,
+			wantFIFO:            false,
+			wantReadTO:          0,
+			wantWriteTO:         0,
+			wantMinRetryBackoff: 0,
+			wantMaxRetryBackoff: 0,
+			wantDialTimeout:     0,
+			wantPoolTimeout:     0,
+			wantConnMaxIdleTime: 0,
+			wantConnMaxLifetime: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tt.wantPoolSize, tt.redis.PoolSize)
+			assert.Equal(t, tt.wantMinIdle, tt.redis.MinIdleConns)
+			assert.Equal(t, tt.wantMaxRetry, tt.redis.MaxRetries)
+			assert.Equal(t, tt.wantFIFO, tt.redis.PoolFIFO)
+			assert.Equal(t, tt.wantReadTO, tt.redis.ReadTimeout)
+			assert.Equal(t, tt.wantWriteTO, tt.redis.WriteTimeout)
+			assert.Equal(t, tt.wantMinRetryBackoff, tt.redis.MinRetryBackoff)
+			assert.Equal(t, tt.wantMaxRetryBackoff, tt.redis.MaxRetryBackoff)
+			assert.Equal(t, tt.wantDialTimeout, tt.redis.DialTimeout)
+			assert.Equal(t, tt.wantPoolTimeout, tt.redis.PoolTimeout)
+			assert.Equal(t, tt.wantConnMaxIdleTime, tt.redis.ConnMaxIdleTime)
+			assert.Equal(t, tt.wantConnMaxLifetime, tt.redis.ConnMaxLifetime)
 		})
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	goYaml "github.com/goccy/go-yaml"
@@ -250,6 +251,7 @@ type LogRotation struct {
 	Compress bool `json:"compress" yaml:"compress" mapstructure:"compress"`
 }
 
+// Redis stores connection and pool configuration for the Redis client.
 type Redis struct {
 	// Redis host
 	Host string `json:"host" yaml:"host" mapstructure:"host"`
@@ -259,6 +261,30 @@ type Redis struct {
 	DB int `json:"db" yaml:"db" mapstructure:"db"`
 	// Redis password
 	Password string `json:"password" yaml:"pass" mapstructure:"password"`
+	// Maximum number of connections in the pool (0 = go-redis default: 10*GOMAXPROCS)
+	PoolSize int `json:"pool_size" yaml:"pool_size" mapstructure:"pool_size"`
+	// Minimum number of idle connections maintained in the pool (0 = default: none)
+	MinIdleConns int `json:"min_idle_conns" yaml:"min_idle_conns" mapstructure:"min_idle_conns"`
+	// Maximum number of retries before giving up (0 = default: 3)
+	MaxRetries int `json:"max_retries" yaml:"max_retries" mapstructure:"max_retries"`
+	// Minimum backoff between retries (0 = default: 8ms)
+	MinRetryBackoff time.Duration `json:"min_retry_backoff" yaml:"min_retry_backoff" mapstructure:"min_retry_backoff"`
+	// Maximum backoff between retries (0 = default: 512ms)
+	MaxRetryBackoff time.Duration `json:"max_retry_backoff" yaml:"max_retry_backoff" mapstructure:"max_retry_backoff"`
+	// Dial timeout for establishing new connections (0 = default: 5s)
+	DialTimeout time.Duration `json:"dial_timeout" yaml:"dial_timeout" mapstructure:"dial_timeout"`
+	// Timeout for socket reads (0 = fallback to 60s for backward compatibility)
+	ReadTimeout time.Duration `json:"read_timeout" yaml:"read_timeout" mapstructure:"read_timeout"`
+	// Timeout for socket writes (0 = fallback to 60s for backward compatibility)
+	WriteTimeout time.Duration `json:"write_timeout" yaml:"write_timeout" mapstructure:"write_timeout"`
+	// Timeout for waiting for a connection from the pool (0 = default: ReadTimeout + 1s)
+	PoolTimeout time.Duration `json:"pool_timeout" yaml:"pool_timeout" mapstructure:"pool_timeout"`
+	// Maximum idle time for a connection before closing (0 = default: 30min)
+	ConnMaxIdleTime time.Duration `json:"conn_max_idle_time" yaml:"conn_max_idle_time" mapstructure:"conn_max_idle_time"`
+	// Maximum lifetime of a connection (0 = default: no limit)
+	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" yaml:"conn_max_lifetime" mapstructure:"conn_max_lifetime"`
+	// Use FIFO (first-in-first-out) instead of LIFO for pool connections
+	PoolFIFO bool `json:"pool_fifo" yaml:"pool_fifo" mapstructure:"pool_fifo"`
 }
 
 type platform struct {
