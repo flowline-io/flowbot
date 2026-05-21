@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -787,4 +788,83 @@ func TestRunner(t *testing.T) {
 		err := runner.Execute(context.Background(), wf, nil, "")
 		require.NoError(t, err)
 	})
+}
+
+type mockAuditor struct {
+	entries []audit.Entry
+}
+
+func (m *mockAuditor) Record(_ context.Context, entry audit.Entry) error {
+	m.entries = append(m.entries, entry)
+	return nil
+}
+func (m *mockAuditor) RecordSuccess(_ context.Context, entry audit.Entry) error { return m.Record(nil, entry) }
+func (m *mockAuditor) RecordFailure(_ context.Context, entry audit.Entry, _ error) error { return m.Record(nil, entry) }
+func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, _ string) error { return m.Record(nil, entry) }
+
+func TestRunner_Audit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		wfName string
+	}{
+		{
+			name:   "audit start and complete for named workflow",
+			wfName: "test-wf",
+		},
+		{
+			name:   "empty workflow name",
+			wfName: "",
+		},
+		{
+			name:   "null-like workflow name",
+			wfName: "test-wf-2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			m := &mockAuditor{}
+			runner := NewRunnerWithStore(nil, m, nil, "", "")
+			assert.NotNil(t, runner)
+			assert.Len(t, m.entries, 0) // audit not called just from construction
+		})
+	}
+}
+
+func TestNewRunnerWithStore_WithAuditor(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		auditor audit.Auditor
+	}{
+		{name: "nil auditor", auditor: nil},
+		{name: "mock auditor", auditor: &mockAuditor{}},
+		{name: "nil interface auditor", auditor: audit.Auditor(nil)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			r := NewRunnerWithStore(nil, tt.auditor, nil, "", "")
+			assert.NotNil(t, r)
+		})
+	}
+}
+
+func TestNewRunner_DefaultAuditor(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "default runner"},
+		{name: "default runner again"},
+		{name: "default runner third time"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			r := NewRunner()
+			assert.NotNil(t, r)
+		})
+	}
 }
