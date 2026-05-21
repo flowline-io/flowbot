@@ -7,7 +7,6 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -129,14 +128,12 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	emitter := r.emitter
 	r.mu.RUnlock()
 	if emitter != nil && len(result.Events) > 0 {
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					flog.Warn("ability(%s.%s): event emitter panicked: %v", capability, operation, r)
-				}
-			}()
-			emitter(context.WithoutCancel(ctx), result)
-		}()
+		capt := string(capability)
+		op := operation
+		res := result
+		submitEvent(capt, op, func() {
+			emitter(context.WithoutCancel(ctx), res)
+		})
 	}
 
 	return result, nil
