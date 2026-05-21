@@ -1,4 +1,3 @@
-// Package store provides database storage implementations.
 package store
 
 import (
@@ -6,7 +5,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/audit"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type AuditStore struct {
@@ -17,96 +17,77 @@ func NewAuditStore(client *gen.Client) *AuditStore {
 	return &AuditStore{client: client}
 }
 
-type AuditEntry struct {
-	ActorType    string
-	ActorID      string
-	UID          string
-	Topic        string
-	Action       string
-	ResourceType string
-	ResourceName string
-	Request      model.JSON
-	Result       string
-	Error        string
-	IPAddress    string
-	UserAgent    string
-}
-
-func (s *AuditStore) Write(ctx context.Context, entry AuditEntry) error {
+// Record writes an audit entry to persistent storage.
+// If the store or client is nil, the call is silently skipped.
+// Audit write failures are logged and do not propagate to the caller.
+func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 	if s == nil || s.client == nil {
 		return nil
+	}
+	actorUID := ""
+	details := map[string]any{}
+	if entry.Subject != nil {
+		actorUID = entry.Subject.SubjectType + ":" + entry.Subject.SubjectID
+		details["subject_type"] = entry.Subject.SubjectType
+		details["subject_id"] = entry.Subject.SubjectID
+		details["uid"] = entry.Subject.UID
+		details["ip_address"] = entry.Subject.IPAddress
+		details["user_agent"] = entry.Subject.UserAgent
+	}
+	if entry.Request != nil {
+		details["request"] = entry.Request
 	}
 	now := time.Now()
 	_, err := s.client.AuditLog.Create().
 		SetAction(entry.Action).
-		SetTargetType(entry.ResourceType).
-		SetTargetID(entry.ResourceName).
-		SetActorUID(entry.ActorType + ":" + entry.ActorID).
-		SetDetails(map[string]any{
-			"actor_type":    entry.ActorType,
-			"actor_id":      entry.ActorID,
-			"uid":           entry.UID,
-			"topic":         entry.Topic,
-			"action":        entry.Action,
-			"resource_type": entry.ResourceType,
-			"resource_name": entry.ResourceName,
-			"request":       map[string]any(entry.Request),
-			"result":        entry.Result,
-			"error":         entry.Error,
-			"ip_address":    entry.IPAddress,
-			"user_agent":    entry.UserAgent,
-		}).
+		SetTargetType(entry.Target.Type).
+		SetTargetID(entry.Target.ID).
+		SetActorUID(actorUID).
+		SetDetails(details).
 		SetCreatedAt(now).
 		Save(ctx)
 	if err != nil {
-		return err
+		flog.Warn("audit write failed: %v", err)
+		return nil
 	}
 	return nil
 }
 
-func (s *AuditStore) Success(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, ip, ua string) error {
-	return s.Write(ctx, AuditEntry{
-		ActorType:    actorType,
-		ActorID:      actorID,
-		UID:          uid,
-		Topic:        topic,
-		Action:       action,
-		ResourceType: resourceType,
-		ResourceName: resourceName,
-		Result:       "success",
-		IPAddress:    ip,
-		UserAgent:    ua,
-	})
+// RecordSuccess writes a success audit entry.
+func (s *AuditStore) RecordSuccess(ctx context.Context, entry audit.Entry) error {
+	e := entry
+	e.Request = wrapResult(entry.Request, "result", "success")
+	return s.Record(ctx, e)
 }
 
-func (s *AuditStore) Rejected(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, reason, ip, ua string) error {
-	return s.Write(ctx, AuditEntry{
-		ActorType:    actorType,
-		ActorID:      actorID,
-		UID:          uid,
-		Topic:        topic,
-		Action:       action,
-		ResourceType: resourceType,
-		ResourceName: resourceName,
-		Result:       "rejected",
-		Error:        reason,
-		IPAddress:    ip,
-		UserAgent:    ua,
-	})
+// RecordFailure writes a failure audit entry with the error message.
+func (s *AuditStore) RecordFailure(ctx context.Context, entry audit.Entry, err error) error {
+	e := entry
+	e.Request = wrapResult(entry.Request, "result", "failed")
+	if err != nil {
+		e.Request = wrapResult(e.Request, "error", err.Error())
+	}
+	return s.Record(ctx, e)
 }
 
-func (s *AuditStore) Failed(ctx context.Context, actorType, actorID, uid, topic, action, resourceType, resourceName, errMsg, ip, ua string) error {
-	return s.Write(ctx, AuditEntry{
-		ActorType:    actorType,
-		ActorID:      actorID,
-		UID:          uid,
-		Topic:        topic,
-		Action:       action,
-		ResourceType: resourceType,
-		ResourceName: resourceName,
-		Result:       "failed",
-		Error:        errMsg,
-		IPAddress:    ip,
-		UserAgent:    ua,
-	})
+// RecordRejected writes a rejected audit entry with the reason.
+func (s *AuditStore) RecordRejected(ctx context.Context, entry audit.Entry, reason string) error {
+	e := entry
+	e.Request = wrapResult(entry.Request, "result", "rejected")
+	e.Request = wrapResult(e.Request, "error", reason)
+	return s.Record(ctx, e)
+}
+
+func wrapResult(request any, key, value string) map[string]any {
+	m := map[string]any{key: value}
+	if request != nil {
+		if existing, ok := request.(map[string]any); ok {
+			for k, v := range existing {
+				if _, exists := m[k]; !exists {
+					m[k] = v
+				}
+			}
+		}
+	}
+	return m
 }
