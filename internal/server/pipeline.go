@@ -49,6 +49,7 @@ func initPipeline(
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 
 	ability.SetMetricsCollector(ac)
+	ability.SetBulkheadCallbacks()
 
 	poolCfg := cfg.Ability.EventPool
 	if err := ability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {

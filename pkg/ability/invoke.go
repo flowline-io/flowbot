@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"slices"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/bulkhead"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -47,6 +49,37 @@ func SetMetricsCollector(mc *metrics.AbilityCollector) {
 	DefaultRegistry.mu.Lock()
 	defer DefaultRegistry.mu.Unlock()
 	DefaultRegistry.metrics = mc
+}
+
+// SetBulkheadCallbacks wires the bulkhead manager with metrics reporting callbacks.
+func SetBulkheadCallbacks() {
+	bulkhead.SetDefaults(
+		bulkhead.WithOnEnter(func(name string, d time.Duration) {
+			DefaultRegistry.mu.RLock()
+			mc := DefaultRegistry.metrics
+			DefaultRegistry.mu.RUnlock()
+			if mc != nil {
+				mc.IncBulkheadActive(name)
+				mc.ObserveBulkheadWaitDuration(name, d.Seconds())
+			}
+		}),
+		bulkhead.WithOnLeave(func(name string) {
+			DefaultRegistry.mu.RLock()
+			mc := DefaultRegistry.metrics
+			DefaultRegistry.mu.RUnlock()
+			if mc != nil {
+				mc.DecBulkheadActive(name)
+			}
+		}),
+		bulkhead.WithOnDrop(func(name string, reason string) {
+			DefaultRegistry.mu.RLock()
+			mc := DefaultRegistry.metrics
+			DefaultRegistry.mu.RUnlock()
+			if mc != nil {
+				mc.IncBulkheadDropped(name, reason)
+			}
+		}),
+	)
 }
 
 func buildCacheKey(capability hub.CapabilityType, operation string, params map[string]any) string {
@@ -211,8 +244,21 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	defer span.End()
 
 	start := time.Now()
-	result, err := invoker(ctx, params)
-	if err != nil {
+	var result *InvokeResult
+	var err error
+	invokeErr := bulkhead.Get(string(capability)).Do(ctx, func() error {
+		var closureErr error
+		result, closureErr = invoker(ctx, params)
+		return closureErr
+	})
+	if invokeErr != nil {
+		if errors.Is(invokeErr, bulkhead.ErrBulkheadFull) {
+			err = types.Errorf(types.ErrRateLimited, "bulkhead full for %s: %v", capability, invokeErr)
+		} else if errors.Is(invokeErr, bulkhead.ErrBulkheadTimeout) {
+			err = types.Errorf(types.ErrTimeout, "bulkhead timeout for %s: %v", capability, invokeErr)
+		} else {
+			err = invokeErr
+		}
 		trace.RecordError(ctx, err)
 		r.recordErrorMetrics(capability, operation, start, err)
 		return nil, err
