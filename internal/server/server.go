@@ -10,6 +10,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -71,6 +72,8 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 			for _, ruleset := range globals.cronRuleset {
 				ruleset.Shutdown()
 			}
+
+			ability.ShutdownEventPool()
 
 			return nil
 		},

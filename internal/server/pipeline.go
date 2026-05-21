@@ -48,6 +48,11 @@ func initPipeline(
 
 	ability.SetMetricsCollector(ac)
 
+	poolCfg := cfg.Ability.EventPool
+	if err := ability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {
+		return fmt.Errorf("init event pool: %w", err)
+	}
+
 	ability.SetEventEmitter(func(ctx context.Context, result *ability.InvokeResult) {
 		if len(result.Events) == 0 {
 			return
