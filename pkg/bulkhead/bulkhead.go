@@ -7,10 +7,11 @@ import (
 	"time"
 )
 
-var (
-	ErrBulkheadFull    = errors.New("bulkhead: queue full")
-	ErrBulkheadTimeout = errors.New("bulkhead: wait timeout")
-)
+// ErrBulkheadFull is returned when the queue is at capacity and a new request cannot be accepted.
+var ErrBulkheadFull = errors.New("bulkhead: queue full")
+
+// ErrBulkheadTimeout is returned when a slot cannot be acquired within the configured timeout.
+var ErrBulkheadTimeout = errors.New("bulkhead: wait timeout")
 
 type config struct {
 	maxConcurrent int
@@ -21,28 +22,35 @@ type config struct {
 	onDrop        func(name string, reason string)
 }
 
+// Option configures a Bulkhead instance.
 type Option func(*config)
 
+// WithMaxConcurrent sets the maximum number of concurrent slots.
 func WithMaxConcurrent(n int) Option {
 	return func(c *config) { c.maxConcurrent = n }
 }
 
+// WithMaxQueue sets the maximum number of requests that can wait for a slot.
 func WithMaxQueue(n int) Option {
 	return func(c *config) { c.maxQueue = n }
 }
 
+// WithTimeout sets the maximum time a request will wait for a slot.
 func WithTimeout(d time.Duration) Option {
 	return func(c *config) { c.timeout = d }
 }
 
+// WithOnEnter sets a callback invoked when a request acquires a slot.
 func WithOnEnter(fn func(name string, waitDuration time.Duration)) Option {
 	return func(c *config) { c.onEnter = fn }
 }
 
+// WithOnLeave sets a callback invoked when a request releases a slot.
 func WithOnLeave(fn func(name string)) Option {
 	return func(c *config) { c.onLeave = fn }
 }
 
+// WithOnDrop sets a callback invoked when a request is dropped.
 func WithOnDrop(fn func(name string, reason string)) Option {
 	return func(c *config) { c.onDrop = fn }
 }
@@ -92,11 +100,24 @@ func (b *Bulkhead) Do(ctx context.Context, fn func() error) error {
 
 	waitStart := time.Now()
 	timer := time.NewTimer(b.config.timeout)
-	defer timer.Stop()
+	defer func() {
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+	}()
 
 	select {
 	case b.sem <- struct{}{}:
 	case <-timer.C:
+		if err := ctx.Err(); err != nil {
+			if b.config.onDrop != nil {
+				b.config.onDrop(b.name, "canceled")
+			}
+			return err
+		}
 		if b.config.onDrop != nil {
 			b.config.onDrop(b.name, "timeout")
 		}
