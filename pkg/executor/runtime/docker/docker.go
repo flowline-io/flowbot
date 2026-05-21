@@ -497,11 +497,10 @@ func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 	if cancel, ok := d.cancels.Get(t.ID); ok {
 		cancel()
 	}
-	containerID, ok := d.tasks.Get(t.ID)
+	containerID, ok := d.tasks.LoadAndDelete(t.ID)
 	if !ok {
 		return nil
 	}
-	d.tasks.Delete(t.ID)
 	flog.Info("Attempting to stop and remove container %v", containerID)
 	return d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
 		RemoveVolumes: true,

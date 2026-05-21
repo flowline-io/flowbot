@@ -24,6 +24,21 @@ func (m *Map[K, V]) Set(key K, value V) {
 	m.m.Store(key, value)
 }
 
+// LoadAndDelete atomically retrieves and removes the value for the given key.
+// It returns the value (if loaded) and whether it was loaded.
+func (m *Map[K, V]) LoadAndDelete(key K) (value V, loaded bool) {
+	v, ok := m.m.LoadAndDelete(key)
+	if !ok {
+		return value, false
+	}
+	value, ok = v.(V)
+	if !ok {
+		var zero V
+		return zero, false
+	}
+	return value, true
+}
+
 func (m *Map[K, V]) Iterate(f func(key K, value V)) {
 	m.m.Range(func(key, value any) bool {
 		k, ok := key.(K)

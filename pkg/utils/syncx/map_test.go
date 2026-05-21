@@ -246,6 +246,62 @@ func TestIterate(t *testing.T) {
 	}
 }
 
+func TestLoadAndDelete(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		setup     func(m *syncx.Map[string, int])
+		key       string
+		wantV     int
+		wantOK    bool
+	}{
+		{
+			name:      "happy_path_load_and_delete_existing_entry",
+			setup:     func(m *syncx.Map[string, int]) { m.Set("somekey", 42) },
+			key:       "somekey",
+			wantV:     42,
+			wantOK:    true,
+		},
+		{
+			name:      "edge_load_and_delete_nonexistent_entry",
+			setup:     func(_ *syncx.Map[string, int]) {},
+			key:       "missing",
+			wantV:     0,
+			wantOK:    false,
+		},
+		{
+			name:      "edge_load_and_delete_twice_returns_nil_on_second",
+			setup:     func(m *syncx.Map[string, int]) { m.Set("once", 99) },
+			key:       "once",
+			wantV:     0,
+			wantOK:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			m := syncx.Map[string, int]{}
+			tt.setup(&m)
+			if tt.name == "edge_load_and_delete_twice_returns_nil_on_second" {
+				v, ok := m.LoadAndDelete(tt.key)
+				assert.True(t, ok)
+				assert.Equal(t, 99, v)
+				v, ok = m.LoadAndDelete(tt.key)
+				assert.False(t, ok)
+				assert.Equal(t, 0, v)
+				return
+			}
+			v, ok := m.LoadAndDelete(tt.key)
+			assert.Equal(t, tt.wantOK, ok)
+			assert.Equal(t, tt.wantV, v)
+			if tt.wantOK {
+				_, ok := m.Get(tt.key)
+				assert.False(t, ok)
+			}
+		})
+	}
+}
+
 func BenchmarkSetAndGet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		m := syncx.Map[string, int]{}
