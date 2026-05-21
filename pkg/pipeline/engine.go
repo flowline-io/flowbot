@@ -11,6 +11,7 @@ import (
 	"github.com/cenkalti/backoff"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -58,15 +59,17 @@ type RunStore interface {
 type Engine struct {
 	defs            []Definition
 	store           RunStore
+	auditor         audit.Auditor
 	pipelineMetrics *metrics.PipelineCollector
 	eventMetrics    *metrics.EventCollector
 	handler         func(ctx context.Context, event types.DataEvent) error
 }
 
-func NewEngine(defs []Definition, store RunStore, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
+func NewEngine(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
 	e := &Engine{
 		defs:            defs,
 		store:           store,
+		auditor:         auditor,
 		pipelineMetrics: pc,
 		eventMetrics:    ec,
 	}
@@ -105,6 +108,8 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	defer span.End()
 
 	runStart := time.Now()
+
+	e.auditPipelineEvent(ctx, def.Name, "pipeline.start", event.EventID, event.EventType)
 
 	alreadyDone, err := e.checkDedupAndRecord(ctx, def.Name, event.EventID, event.EventType)
 	if err != nil {
@@ -145,8 +150,10 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	e.finishRunRecord(ctx, runID, failed, finalErr)
 
 	if finalErr != nil {
+		e.auditPipelineEvent(ctx, def.Name, "pipeline.fail", event.EventID, event.EventType)
 		return finalErr
 	}
+	e.auditPipelineEvent(ctx, def.Name, "pipeline.complete", event.EventID, event.EventType)
 	return nil
 }
 
@@ -326,6 +333,24 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 		}
 	}
 	_ = e.store.UpdateRunStatus(ctx, runID, status, errMsg)
+}
+
+func (e *Engine) auditPipelineEvent(ctx context.Context, pipelineName, action, eventID, eventType string) {
+	if e.auditor == nil {
+		return
+	}
+	_ = e.auditor.Record(ctx, audit.Entry{
+		Subject: &audit.Subject{
+			SubjectType: "pipeline",
+			SubjectID:   "system:pipeline",
+		},
+		Action: action,
+		Target: audit.Target{Type: "pipeline", ID: pipelineName},
+		Request: map[string]any{
+			"event_id":   eventID,
+			"event_type": eventType,
+		},
+	})
 }
 
 func (e *Engine) checkDedupAndRecord(ctx context.Context, pipelineName, eventID, eventType string) (bool, error) {
