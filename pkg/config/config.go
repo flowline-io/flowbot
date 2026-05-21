@@ -99,9 +99,7 @@ type Type struct {
 	Profiling Profiling `json:"profiling" yaml:"profiling" mapstructure:"profiling"`
 
 	// Ability invocation configuration
-	Ability struct {
-		EventPool AbilityEventPool `json:"event_pool" yaml:"event_pool" mapstructure:"event_pool"`
-	} `json:"ability" yaml:"ability" mapstructure:"ability"`
+	Ability AbilityConfig `json:"ability" yaml:"ability" mapstructure:"ability"`
 }
 
 // Notify holds notification gateway configuration including templates and rules.
@@ -485,6 +483,12 @@ type AbilityEventPool struct {
 	Size int `json:"size" yaml:"size" mapstructure:"size"`
 	// ExpiryDuration is the idle worker eviction interval (e.g. "30s").
 	ExpiryDuration string `json:"expiry_duration" yaml:"expiry_duration" mapstructure:"expiry_duration"`
+}
+
+// AbilityConfig holds ability invocation configuration.
+type AbilityConfig struct {
+	// EventPool configures the goroutine pool for event emission.
+	EventPool AbilityEventPool `json:"event_pool" yaml:"event_pool" mapstructure:"event_pool"`
 }
 
 type Pipeline struct {
