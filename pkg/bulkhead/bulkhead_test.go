@@ -52,17 +52,16 @@ func TestBulkheadDoEnforcesMaxConcurrent(t *testing.T) {
 			defer wg.Done()
 			<-ready
 			_ = b.Do(context.Background(), func() error {
-				cur := atomic.AddInt64(&current, 1)
-				for {
-					old := atomic.LoadInt64(&maxConcurrent)
-					if cur > old {
-						if atomic.CompareAndSwapInt64(&maxConcurrent, old, cur) {
-							break
-						}
-					} else {
-						break
-					}
+			cur := atomic.AddInt64(&current, 1)
+			for {
+				old := atomic.LoadInt64(&maxConcurrent)
+				if cur <= old {
+					break
 				}
+				if atomic.CompareAndSwapInt64(&maxConcurrent, old, cur) {
+					break
+				}
+			}
 				<-gate
 				atomic.AddInt64(&current, -1)
 				return nil
@@ -182,7 +181,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 	}{
 		{
 			name: "successful call triggers enter and leave",
-			trigger: func(t *testing.T, b *Bulkhead) {
+			trigger: func(_ *testing.T, b *Bulkhead) {
 				_ = b.Do(context.Background(), func() error { return nil })
 			},
 			wantEnterCalls: 1,
@@ -193,7 +192,10 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 			name: "timeout triggers drop",
 			trigger: func(t *testing.T, b *Bulkhead) {
 				hold := make(chan struct{})
+				var wg sync.WaitGroup
+				wg.Add(1)
 				go func() {
+					defer wg.Done()
 					_ = b.Do(context.Background(), func() error { <-hold; return nil })
 				}()
 				time.Sleep(100 * time.Millisecond)
@@ -202,6 +204,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 					t.Errorf("expected ErrBulkheadTimeout, got %v", err)
 				}
 				close(hold)
+				wg.Wait()
 			},
 			wantEnterCalls: 1,
 			wantLeaveCalls: 1,
@@ -210,23 +213,69 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 		},
 		{
 			name: "queue full triggers drop",
-			trigger: func(t *testing.T, b *Bulkhead) {
+			trigger: func(t *testing.T, _ *Bulkhead) {
+				var enters, leaves, drops int32
+				var dropReason string
+				localB := New("test",
+					WithMaxConcurrent(1),
+					WithMaxQueue(1),
+					WithTimeout(5*time.Second),
+				WithOnEnter(func(_ string, _ time.Duration) { atomic.AddInt32(&enters, 1) }),
+				WithOnLeave(func(_ string) { atomic.AddInt32(&leaves, 1) }),
+				WithOnDrop(func(_ string, reason string) {
+						atomic.AddInt32(&drops, 1)
+						dropReason = reason
+					}),
+				)
+
 				hold := make(chan struct{})
+				var wg sync.WaitGroup
+
+				wg.Add(1)
 				go func() {
-					_ = b.Do(context.Background(), func() error { <-hold; return nil })
+					defer wg.Done()
+					_ = localB.Do(context.Background(), func() error {
+						<-hold
+						return nil
+					})
 				}()
 				time.Sleep(50 * time.Millisecond)
+
+				queued := make(chan struct{})
+				wg.Add(1)
 				go func() {
-					_ = b.Do(context.Background(), func() error { return nil })
+					defer wg.Done()
+					close(queued)
+					_ = localB.Do(context.Background(), func() error { return nil })
 				}()
-				time.Sleep(50 * time.Millisecond)
-				_ = b.Do(context.Background(), func() error { return nil })
+				<-queued
+				time.Sleep(100 * time.Millisecond)
+
+				err := localB.Do(context.Background(), func() error { return nil })
+				if !errors.Is(err, ErrBulkheadFull) {
+					t.Errorf("expected ErrBulkheadFull, got %v", err)
+				}
+
 				close(hold)
+				wg.Wait()
+
+				if atomic.LoadInt32(&enters) != 2 {
+					t.Errorf("enters: want 2, got %d", enters)
+				}
+				if atomic.LoadInt32(&leaves) != 2 {
+					t.Errorf("leaves: want 2, got %d", leaves)
+				}
+				if atomic.LoadInt32(&drops) != 1 {
+					t.Errorf("drops: want 1, got %d", drops)
+				}
+				if dropReason != "queue_full" {
+					t.Errorf("drop reason: want queue_full, got %s", dropReason)
+				}
 			},
-			wantEnterCalls: 1,
-			wantLeaveCalls: 1,
-			wantDropCalls:  1,
-			wantDropReason: "queue_full",
+			wantEnterCalls: 0,
+			wantLeaveCalls: 0,
+			wantDropCalls:  0,
+			wantDropReason: "",
 		},
 	}
 	for _, tt := range tests {
@@ -237,13 +286,13 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 				WithMaxConcurrent(1),
 				WithMaxQueue(1),
 				WithTimeout(50*time.Millisecond),
-				WithOnEnter(func(name string, d time.Duration) {
+				WithOnEnter(func(_ string, _ time.Duration) {
 					atomic.AddInt32(&enters, 1)
 				}),
-				WithOnLeave(func(name string) {
+				WithOnLeave(func(_ string) {
 					atomic.AddInt32(&leaves, 1)
 				}),
-				WithOnDrop(func(name string, reason string) {
+				WithOnDrop(func(_ string, reason string) {
 					atomic.AddInt32(&drops, 1)
 					dropReason = reason
 				}),
@@ -280,7 +329,7 @@ func TestBulkheadDefaultSize(t *testing.T) {
 	}
 }
 
-func TestBulkheadDoRace(t *testing.T) {
+func TestBulkheadDoRace(_ *testing.T) {
 	b := New("test", WithMaxConcurrent(4), WithMaxQueue(4), WithTimeout(5*time.Second))
 	var wg sync.WaitGroup
 	for i := 0; i < 50; i++ {
@@ -291,4 +340,15 @@ func TestBulkheadDoRace(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+}
+
+func TestBulkheadDoPropagatesError(t *testing.T) {
+	b := New("test", WithMaxConcurrent(1), WithTimeout(10*time.Second))
+	sentinel := errors.New("test error")
+	err := b.Do(context.Background(), func() error {
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Errorf("expected sentinel error, got %v", err)
+	}
 }
