@@ -12,6 +12,7 @@ import (
 	"github.com/cenkalti/backoff"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
@@ -146,6 +147,7 @@ func DetermineRuntimeType(t *types.Task) string {
 type Runner struct {
 	engines      map[string]*executor.Engine
 	store        WorkflowRunStore
+	auditor      audit.Auditor
 	metrics      *metrics.WorkflowCollector
 	workflowFile string
 	triggerType  string
@@ -153,12 +155,12 @@ type Runner struct {
 
 // NewRunner creates a Runner without persistence. Use NewRunnerWithStore to enable run records.
 func NewRunner() *Runner {
-	return NewRunnerWithStore(nil, nil, "", "")
+	return NewRunnerWithStore(nil, nil, nil, "", "")
 }
 
 // NewRunnerWithStore creates a Runner that persists run and step records to the given store.
 // workflowFile and triggerType are recorded in the run for audit and potential resume.
-func NewRunnerWithStore(store WorkflowRunStore, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
+func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
 	return &Runner{
 		engines: map[string]*executor.Engine{
 			runtime.Capability: executor.New(runtime.Capability),
@@ -167,10 +169,25 @@ func NewRunnerWithStore(store WorkflowRunStore, wc *metrics.WorkflowCollector, w
 			runtime.Machine:    executor.New(runtime.Machine),
 		},
 		store:        store,
+		auditor:      auditor,
 		metrics:      wc,
 		workflowFile: workflowFile,
 		triggerType:  triggerType,
 	}
+}
+
+func (r *Runner) auditWorkflowEvent(ctx context.Context, wfName, action string) {
+	if r.auditor == nil {
+		return
+	}
+	_ = r.auditor.Record(ctx, audit.Entry{
+		Subject: &audit.Subject{
+			SubjectType: "workflow",
+			SubjectID:   "system:workflow",
+		},
+		Action: action,
+		Target: audit.Target{Type: "workflow", ID: wfName},
+	})
 }
 
 // Close releases all executor engine resources (Docker clients, SSH connections, capability runtimes).
@@ -252,6 +269,7 @@ func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMeta
 // runSequential executes workflow tasks one at a time in pipeline order.
 func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
 	start := time.Now()
+	r.auditWorkflowEvent(ctx, wf.Name, "workflow.start")
 	var runErr error
 	defer func() {
 		if r.metrics != nil {
@@ -271,6 +289,7 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 
 		if err := r.executeSequentialStep(ctx, stepID, taskMap, wf, results, input, run); err != nil {
 			r.failRun(ctx, run, cancelHeartbeat, err)
+			r.auditWorkflowEvent(ctx, wf.Name, "workflow.fail")
 			runErr = err
 			return runErr
 		}
@@ -283,6 +302,7 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		_ = r.store.UpdateRunStatus(ctx, run.ID, model.WorkflowRunDone, "")
 	}
 
+	r.auditWorkflowEvent(ctx, wf.Name, "workflow.complete")
 	return nil
 }
 
