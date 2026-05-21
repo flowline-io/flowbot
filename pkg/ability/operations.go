@@ -1,6 +1,10 @@
 package ability
 
-import "github.com/flowline-io/flowbot/pkg/hub"
+import (
+	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/hub"
+)
 
 // Operations returns a capability-specific operation constant.
 // All ability operations are defined here to avoid import namespace conflicts
@@ -114,3 +118,20 @@ const (
 	OpNotifySend   = "send"
 	OpNotifyDigest = "digest"
 )
+
+var mutationVerbs = []string{
+	"create", "delete", "update", "move",
+	"archive", "attach", "detach", "complete",
+	"mark", "star", "unstar",
+	"send", "add",
+}
+
+// IsMutation reports whether the operation name indicates a write that modifies state.
+func IsMutation(op string) bool {
+	for _, v := range mutationVerbs {
+		if strings.Contains(op, v) {
+			return true
+		}
+	}
+	return false
+}

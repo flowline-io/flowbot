@@ -229,6 +229,43 @@ func TestOperationsMapBookmarkKeys(t *testing.T) {
 	}
 }
 
+func TestIsMutation(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		operation string
+		want      bool
+	}{
+		{"list is read", "list", false},
+		{"get is read", "get", false},
+		{"search is read", "search", false},
+		{"check_url is read", "check_url", false},
+		{"list_tasks is read", "list_tasks", false},
+		{"get_columns is read", "get_columns", false},
+		{"create is mutation", "create", true},
+		{"delete is mutation", "delete", true},
+		{"update is mutation", "update", true},
+		{"move_task is mutation", "move_task", true},
+		{"archive is mutation", "archive", true},
+		{"attach_tags is mutation", "attach_tags", true},
+		{"detach_tags is mutation", "detach_tags", true},
+		{"complete_task is mutation", "complete_task", true},
+		{"mark_entry_read is mutation", "mark_entry_read", true},
+		{"mark_entry_unread is mutation", "mark_entry_unread", true},
+		{"star_entry is mutation", "star_entry", true},
+		{"unstar_entry is mutation", "unstar_entry", true},
+		{"send is mutation", "send", true},
+		{"add is mutation", "add", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := IsMutation(tt.operation)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestOperationConstantsMatchOperationsMap(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
