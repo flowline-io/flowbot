@@ -60,7 +60,7 @@ type parallelTaskFn func(
 	nodes map[string]*dagNode,
 	input types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
@@ -94,7 +94,7 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 
 	sem := make(chan struct{}, wf.MaxConcurrency)
 	results := make(map[string]string)
-	var mu sync.Mutex
+	var mu sync.RWMutex
 	var firstErr error
 	var errOnce sync.Once
 
@@ -140,7 +140,7 @@ func (r *Runner) dispatchReadyTasks(
 	nodes map[string]*dagNode,
 	input types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	run *model.WorkflowRun,
 	sem chan struct{},
 	wg *sync.WaitGroup,
@@ -192,7 +192,7 @@ func (r *Runner) runParallelTaskHandler(
 	nodes map[string]*dagNode,
 	input types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
@@ -233,7 +233,7 @@ func (r *Runner) runParallelResumeTaskHandler(
 	nodes map[string]*dagNode,
 	input types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
@@ -277,7 +277,7 @@ func (r *Runner) executeParallelTask(
 	nodes map[string]*dagNode,
 	input types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	run *model.WorkflowRun,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
@@ -288,12 +288,9 @@ func (r *Runner) executeParallelTask(
 	default:
 	}
 
-	mu.Lock()
-	currentResults := make(map[string]string, len(*results))
-	maps.Copy(currentResults, *results)
-	mu.Unlock()
-
-	params, err := resolveParams(wt.Params, currentResults, input)
+	mu.RLock()
+	params, err := resolveParams(wt.Params, *results, input)
+	mu.RUnlock()
 	if err != nil {
 		r.failRun(ctx, run, nil, fmt.Errorf("resolve params step %s: %w", taskID, err))
 		return fmt.Errorf("resolve params step %s: %w", taskID, err)
@@ -325,7 +322,7 @@ func (r *Runner) executeStepResult(
 	params types.KV,
 	info ActionInfo,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	stepRun *model.WorkflowStepRun,
 	wfName string,
 ) error {
@@ -341,7 +338,7 @@ func (r *Runner) executeMapperStep(
 	taskID string,
 	params types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	stepRun *model.WorkflowStepRun,
 ) error {
 	mappedJSON, merr := pooledSonic.Marshal(map[string]any(params))
@@ -369,7 +366,7 @@ func (r *Runner) executeExecutorStep(
 	wt types.WorkflowTask,
 	params types.KV,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	stepRun *model.WorkflowStepRun,
 	wfName string,
 ) error {
@@ -423,7 +420,7 @@ func (r *Runner) enqueueDependentsAndSaveCheckpoint(
 	nodes map[string]*dagNode,
 	taskID string,
 	results *map[string]string,
-	mu *sync.Mutex,
+	mu *sync.RWMutex,
 	ready *[]string,
 	wf *types.WorkflowMetadata,
 	input types.KV,
@@ -531,7 +528,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	defer cancel()
 
 	sem := make(chan struct{}, wf.MaxConcurrency)
-	var mu sync.Mutex
+	var mu sync.RWMutex
 	var firstErr error
 	var errOnce sync.Once
 
