@@ -15,10 +15,9 @@ import (
 )
 
 // Engine renders Go text/template strings with helper functions and caching.
-type Engine struct {
-	mu   sync.Mutex
-	data *TemplateData // current execution data, swapped per call
-}
+// Each RenderString call captures its own data via closures so concurrent
+// invocations are safe without locking.
+type Engine struct{}
 
 // templateCache holds compiled templates shared across all Engine instances.
 var templateCache sync.Map // string -> *txtpl.Template
@@ -51,14 +50,10 @@ func preprocessTemplate(s string) string {
 	return s
 }
 
-// funcs returns a FuncMap whose data-dependent closures read from e.data,
-// which is set per execution. This ensures cached templates always use
-// current data rather than stale pointers from a previous parse.
-func (e *Engine) funcs() txtpl.FuncMap {
-	return txtpl.FuncMap{
-		"input":          e.funcDataInput,
-		"event":          e.funcDataEvent,
-		"step":           e.funcDataStep,
+// makeFuncs returns a FuncMap whose data-dependent closures capture the
+// supplied TemplateData directly, making the Engine safe for concurrent use.
+func makeFuncs(data *TemplateData) txtpl.FuncMap {
+	fm := txtpl.FuncMap{
 		"join":           funcJoin,
 		"split":          strings.Split,
 		"contains":       strings.Contains,
@@ -69,35 +64,37 @@ func (e *Engine) funcs() txtpl.FuncMap {
 		"jsonpathExists": funcJsonpathExists,
 		"jsonpathRaw":    funcJsonpathRaw,
 	}
-}
 
-func (e *Engine) funcDataInput(field string) any {
-	if e.data != nil && e.data.Input != nil {
-		if v, ok := e.data.Input[field]; ok {
-			return v
-		}
-	}
-	return ""
-}
-
-func (e *Engine) funcDataEvent(field string) any {
-	if e.data != nil && e.data.Event != nil {
-		if v, ok := e.data.Event[field]; ok {
-			return v
-		}
-	}
-	return ""
-}
-
-func (e *Engine) funcDataStep(stepName, field string) any {
-	if e.data != nil && e.data.Steps != nil {
-		if step, ok := e.data.Steps[stepName]; ok {
-			if v, ok := step[field]; ok {
+	fm["input"] = func(field string) any {
+		if data != nil && data.Input != nil {
+			if v, ok := data.Input[field]; ok {
 				return v
 			}
 		}
+		return ""
 	}
-	return ""
+
+	fm["event"] = func(field string) any {
+		if data != nil && data.Event != nil {
+			if v, ok := data.Event[field]; ok {
+				return v
+			}
+		}
+		return ""
+	}
+
+	fm["step"] = func(stepName, field string) any {
+		if data != nil && data.Steps != nil {
+			if step, ok := data.Steps[stepName]; ok {
+				if v, ok := step[field]; ok {
+					return v
+				}
+			}
+		}
+		return ""
+	}
+
+	return fm
 }
 
 func funcJoin(elems any, sep string) string {
@@ -161,20 +158,15 @@ func funcJsonpathRaw(jsonStr, path string) any {
 // RenderString renders a template string with the given TemplateData.
 // Templates are cached by their preprocessed string; on cache hit the
 // cached parse tree is cloned and fresh data-dependent functions
-// (event, input, step) are attached for the current Engine instance.
-func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
+// (event, input, step) are attached via closures for the current call.
+func (*Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 	if !strings.Contains(tmpl, "{{") {
 		return tmpl, nil
 	}
 
 	tmpl = preprocessTemplate(tmpl)
 
-	e.mu.Lock()
-	e.data = data
-	defer func() {
-		e.data = nil
-		e.mu.Unlock()
-	}()
+	fm := makeFuncs(data)
 
 	var t *txtpl.Template
 	if cached, ok := templateCache.Load(tmpl); ok {
@@ -182,10 +174,10 @@ func (e *Engine) RenderString(tmpl string, data *TemplateData) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("template clone: %w", err)
 		}
-		t = cloned.Funcs(e.funcs())
+		t = cloned.Funcs(fm)
 	} else {
 		var err error
-		t, err = txtpl.New("render").Funcs(e.funcs()).Parse(tmpl)
+		t, err = txtpl.New("render").Funcs(fm).Parse(tmpl)
 		if err != nil {
 			return "", fmt.Errorf("template parse: %w", err)
 		}
