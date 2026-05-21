@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -82,12 +83,14 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 type Controller struct {
 	driver         protocol.Driver
 	tailchatDriver protocol.Driver
+	auditor        audit.Auditor
 }
 
-func newController(driver protocol.Driver, cfg *config.Type, storeAdapter store.Adapter) *Controller {
+func newController(driver protocol.Driver, cfg *config.Type, storeAdapter store.Adapter, auditor audit.Auditor) *Controller {
 	return &Controller{
 		driver:         driver,
 		tailchatDriver: tailchat.NewDriver(cfg, storeAdapter),
+		auditor:        auditor,
 	}
 }
 
@@ -405,7 +408,7 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
 }
 
-func (*Controller) doWebhook(ctx fiber.Ctx) error {
+func (c *Controller) doWebhook(ctx fiber.Ctx) error {
 	flag := ctx.Params("flag")
 	if flag == "" {
 		return protocol.ErrBadParam.New("flag is required")
@@ -461,6 +464,7 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 
 	payload, err := botHandler.Webhook(typesCtx, data)
 	if err != nil {
+		c.auditWebhook(ctx, "webhook.receive.fail", flag, err)
 		return protocol.ErrFlagError.Wrap(err)
 	}
 
@@ -471,6 +475,7 @@ func (*Controller) doWebhook(ctx fiber.Ctx) error {
 		}
 	}
 
+	c.auditWebhook(ctx, "webhook.receive", flag, nil)
 	return ctx.JSON(payload)
 }
 
@@ -492,4 +497,19 @@ func extractWebhookSecret(ctx fiber.Ctx) string {
 		secret = strings.TrimPrefix(val, "Bearer ")
 	}
 	return secret
+}
+
+func (c *Controller) auditWebhook(ctx fiber.Ctx, action, flag string, err error) {
+	if c.auditor == nil {
+		return
+	}
+	entry := audit.Entry{
+		Action: action,
+		Target: audit.Target{Type: "webhook", ID: flag},
+	}
+	if err != nil {
+		_ = c.auditor.RecordFailure(ctx.Context(), entry, err)
+	} else {
+		_ = c.auditor.RecordSuccess(ctx.Context(), entry)
+	}
 }

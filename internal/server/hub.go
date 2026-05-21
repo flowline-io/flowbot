@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -162,21 +164,22 @@ func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation strin
 	return app, nil
 }
 
-func (*Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
-	auditStore := store.NewAuditStore(store.Database.GetDB().(*store.Client))
-	_ = auditStore.Write(ctx, store.AuditEntry{
-		ActorType:    "token",
-		ActorID:      "",
-		UID:          "",
-		Topic:        "",
-		Action:       action,
-		ResourceType: "app",
-		ResourceName: appName,
-		Result:       result,
-		Error:        errMsg,
-		IPAddress:    "",
-		UserAgent:    "",
-	})
+func (c *Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
+	if c.auditor == nil {
+		return
+	}
+	entry := audit.Entry{
+		Action: action,
+		Target: audit.Target{Type: "app", ID: appName},
+	}
+	switch result {
+	case "success":
+		_ = c.auditor.RecordSuccess(ctx, entry)
+	case "failed":
+		_ = c.auditor.RecordFailure(ctx, entry, fmt.Errorf("%s", errMsg))
+	case "rejected":
+		_ = c.auditor.RecordRejected(ctx, entry, errMsg)
+	}
 }
 
 func checkLifecyclePermission(perm homelab.Permissions, operation string) bool {
