@@ -858,29 +858,56 @@ func TestRegistry_InvokeCacheSerializationRoundtrip(t *testing.T) {
 		cache.Instance = nil
 	})
 
-	t.Run("roundtrip preserves all result fields", func(t *testing.T) {
-		_ = setupTestCache(t)
-		r := NewRegistry()
-		err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
-			return &InvokeResult{
-				Data: map[string]any{"nested": "value"},
-				Page: &PageInfo{HasMore: true},
-				Text: "some text",
-				Meta: map[string]any{"source": "cache"},
-			}, nil
+	tests := []struct {
+		name string
+	}{
+		{"roundtrip preserves nested data and page fields"},
+		{"roundtrip preserves text and meta fields"},
+		{"cached result has nil events"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = setupTestCache(t)
+			r := NewRegistry()
+			var events []EventRef
+			if tt.name == "cached result has nil events" {
+				events = []EventRef{{EventID: "evt1", EventType: "bookmark.list", EntityID: "123"}}
+			}
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				return &InvokeResult{
+					Data:   map[string]any{"nested": "value"},
+					Page:   &PageInfo{HasMore: true},
+					Text:   "some text",
+					Meta:   map[string]any{"source": "cache"},
+					Events: events,
+				}, nil
+			})
+			require.NoError(t, err)
+
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+			require.NoError(t, err)
+
+			result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			if tt.name == "cached result has nil events" {
+				assert.Nil(t, result.Events, "events should not be replayed from cache")
+				return
+			}
+
+			if tt.name == "roundtrip preserves nested data and page fields" {
+				assert.True(t, result.Page.HasMore)
+				dataMap, ok := result.Data.(map[string]any)
+				require.True(t, ok)
+				assert.Equal(t, "value", dataMap["nested"])
+				return
+			}
+
+			assert.Equal(t, "some text", result.Text)
+			assert.Equal(t, "cache", result.Meta["source"])
 		})
-		require.NoError(t, err)
-
-		_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
-		require.NoError(t, err)
-
-		result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
-		require.NoError(t, err)
-		require.NotNil(t, result)
-		assert.True(t, result.Page.HasMore)
-		assert.Equal(t, "some text", result.Text)
-		assert.Equal(t, "cache", result.Meta["source"])
-	})
+	}
 }
 
 func setupTestCache(t *testing.T) *cache.Cache {
