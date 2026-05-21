@@ -414,6 +414,120 @@ func TestCacheStringCache(t *testing.T) {
 	})
 }
 
+func TestCacheDelByPrefix(t *testing.T) {
+	cache, err := NewCache(&config.Type{})
+	require.NoError(t, err)
+	require.NotNil(t, cache)
+	defer cache.Wait()
+
+	tests := []struct {
+		name     string
+		setup    func(c *Cache)
+		prefix   string
+		wantKeys map[string]bool
+	}{
+		{
+			name: "deletes all keys under prefix",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("ability:bookmark:list:abc", []byte("1"), 1, time.Hour, "bookmark")
+				c.SetWithTTLCap("ability:bookmark:get:def", []byte("2"), 1, time.Hour, "bookmark")
+			},
+			prefix: "bookmark",
+			wantKeys: map[string]bool{
+				"ability:bookmark:list:abc": false,
+				"ability:bookmark:get:def":  false,
+			},
+		},
+		{
+			name: "does not affect keys under different prefix",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("ability:bookmark:list:abc", []byte("1"), 1, time.Hour, "bookmark")
+				c.SetWithTTLCap("ability:kanban:list:xyz", []byte("2"), 1, time.Hour, "kanban")
+			},
+			prefix: "bookmark",
+			wantKeys: map[string]bool{
+				"ability:bookmark:list:abc": false,
+				"ability:kanban:list:xyz":   true,
+			},
+		},
+		{
+			name: "empty prefix is no-op",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("ability:bookmark:list:abc", []byte("1"), 1, time.Hour, "bookmark")
+			},
+			prefix: "",
+			wantKeys: map[string]bool{
+				"ability:bookmark:list:abc": true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup(cache)
+			cache.Wait()
+
+			cache.DelByPrefix(tt.prefix)
+			cache.Wait()
+
+			for key, wantExist := range tt.wantKeys {
+				_, ok := cache.GetRaw(key)
+				require.Equal(t, wantExist, ok, "key %s existence mismatch", key)
+			}
+		})
+	}
+}
+
+func TestCacheGetBytes(t *testing.T) {
+	cache, err := NewCache(&config.Type{})
+	require.NoError(t, err)
+	require.NotNil(t, cache)
+	defer cache.Wait()
+
+	tests := []struct {
+		name      string
+		key       string
+		value     []byte
+		wantValue []byte
+		wantOK    bool
+	}{
+		{
+			name:      "existing bytes value",
+			key:       "bytes_key",
+			value:     []byte("hello bytes"),
+			wantValue: []byte("hello bytes"),
+			wantOK:    true,
+		},
+		{
+			name:      "empty bytes value",
+			key:       "empty_bytes_key",
+			value:     []byte{},
+			wantValue: []byte{},
+			wantOK:    true,
+		},
+		{
+			name:      "missing key",
+			key:       "nonexistent",
+			value:     nil,
+			wantValue: nil,
+			wantOK:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.value != nil {
+				cache.SetWithTTL(tt.key, tt.value, 1, time.Hour)
+				cache.Wait()
+			}
+
+			got, ok := cache.GetBytes(tt.key)
+			require.Equal(t, tt.wantOK, ok)
+			require.Equal(t, tt.wantValue, got)
+		})
+	}
+}
+
 func TestCacheTTLExpiration(t *testing.T) {
 	// Cannot use t.Parallel(): tests share global Instance via NewCache
 

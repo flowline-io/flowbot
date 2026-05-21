@@ -3,6 +3,7 @@ package cache
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/dgraph-io/ristretto/v2"
@@ -13,7 +14,8 @@ import (
 var Instance *Cache
 
 type Cache struct {
-	i *ristretto.Cache[string, any]
+	i        *ristretto.Cache[string, any]
+	keyIndex sync.Map
 }
 
 func NewCache(_ *config.Type) (*Cache, error) {
@@ -49,6 +51,61 @@ func (c *Cache) DelRaw(key string) {
 
 func (c *Cache) Wait() {
 	c.i.Wait()
+}
+
+// GetBytes retrieves raw bytes from the cache. Returns false if the key is not found
+// or the value is not a byte slice.
+func (c *Cache) GetBytes(key string) ([]byte, bool) {
+	val, ok := c.i.Get(key)
+	if !ok {
+		return nil, false
+	}
+	b, ok := val.([]byte)
+	if !ok {
+		return nil, false
+	}
+	return b, true
+}
+
+// SetWithTTLCap stores a byte value with TTL and registers the key under the given
+// capability prefix for later prefix-based invalidation via DelByPrefix.
+func (c *Cache) SetWithTTLCap(key string, value []byte, cost int64, ttl time.Duration, capType string) bool {
+	ok := c.i.SetWithTTL(key, value, cost, ttl)
+	if ok {
+		c.registerKey(capType, key)
+	}
+	return ok
+}
+
+// DelByPrefix removes all cached keys registered under the given capability prefix.
+// The prefix corresponds to a capability type string (e.g. "bookmark", "kanban").
+// If the prefix is empty, this is a no-op.
+func (c *Cache) DelByPrefix(capType string) {
+	if capType == "" {
+		return
+	}
+	val, ok := c.keyIndex.LoadAndDelete(capType)
+	if !ok {
+		return
+	}
+	m, ok := val.(*sync.Map)
+	if !ok {
+		return
+	}
+	m.Range(func(key, _ any) bool {
+		c.i.Del(key.(string))
+		return true
+	})
+}
+
+// registerKey adds a key to the capability prefix index for later prefix-based deletion.
+func (c *Cache) registerKey(capType, key string) {
+	actual, _ := c.keyIndex.LoadOrStore(capType, &sync.Map{})
+	m, ok := actual.(*sync.Map)
+	if !ok {
+		return
+	}
+	m.Store(key, struct{}{})
 }
 
 // Get retrieves a string value from the cache. Returns false if the key is not found.
