@@ -70,119 +70,29 @@ ability_invoke_error_total{capability="bookmark",error_code="timeout",operation=
 }
 
 func TestAbilityCollector_IncEventDropped(t *testing.T) {
-	t.Parallel()
+	eventDroppedTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "ability_event_dropped_total",
+			Help: "Events dropped due to pool overflow or shutdown",
+		},
+		[]string{"capability", "operation", "reason"},
+	)
+	c := &AbilityCollector{eventDroppedTotal: eventDroppedTotal}
 
-	tests := []struct {
-		name          string
-		setup         func() (*AbilityCollector, *prometheus.CounterVec)
-		capability    string
-		operation     string
-		reason        string
-		callCount     int
-		wantNoPanic   bool
-		expectedText  string
-		metricName    string
-	}{
-		{
-			name:        "no-op collector does not panic on nil stats",
-			setup: func() (*AbilityCollector, *prometheus.CounterVec) {
-				return NewAbilityCollector(nil), nil
-			},
-			capability:  "bookmark",
-			operation:   "list",
-			reason:      "pool_full",
-			callCount:   1,
-			wantNoPanic: true,
-		},
-		{
-			name: "single increment registers counter",
-			setup: func() (*AbilityCollector, *prometheus.CounterVec) {
-				cv := prometheus.NewCounterVec(
-					prometheus.CounterOpts{
-						Name: "ability_event_dropped_total",
-						Help: "Events dropped due to pool overflow or shutdown",
-					},
-					[]string{"capability", "operation", "reason"},
-				)
-				return &AbilityCollector{eventDroppedTotal: cv}, cv
-			},
-			capability: "bookmark",
-			operation:  "list",
-			reason:     "pool_full",
-			callCount:  1,
-			expectedText: `
-# HELP ability_event_dropped_total Events dropped due to pool overflow or shutdown
-# TYPE ability_event_dropped_total counter
-ability_event_dropped_total{capability="bookmark",operation="list",reason="pool_full"} 1
-`,
-			metricName: "ability_event_dropped_total",
-		},
-		{
-			name: "multiple increments with different labels",
-			setup: func() (*AbilityCollector, *prometheus.CounterVec) {
-				cv := prometheus.NewCounterVec(
-					prometheus.CounterOpts{
-						Name: "ability_event_dropped_total",
-						Help: "Events dropped due to pool overflow or shutdown",
-					},
-					[]string{"capability", "operation", "reason"},
-				)
-				return &AbilityCollector{eventDroppedTotal: cv}, cv
-			},
-			capability: "bookmark",
-			operation:  "list",
-			reason:     "pool_full",
-			callCount:  3,
-			expectedText: `
+	c.IncEventDropped("bookmark", "list", "pool_full")
+	c.IncEventDropped("bookmark", "list", "pool_full")
+	c.IncEventDropped("bookmark", "list", "pool_full")
+	c.IncEventDropped("kanban", "create", "shutdown")
+	c.IncEventDropped("kanban", "create", "shutdown")
+
+	expected := `
 # HELP ability_event_dropped_total Events dropped due to pool overflow or shutdown
 # TYPE ability_event_dropped_total counter
 ability_event_dropped_total{capability="bookmark",operation="list",reason="pool_full"} 3
-`,
-			metricName: "ability_event_dropped_total",
-		},
-		{
-			name: "different reasons increment different series",
-			setup: func() (*AbilityCollector, *prometheus.CounterVec) {
-				cv := prometheus.NewCounterVec(
-					prometheus.CounterOpts{
-						Name: "ability_event_dropped_total",
-						Help: "Events dropped due to pool overflow or shutdown",
-					},
-					[]string{"capability", "operation", "reason"},
-				)
-				return &AbilityCollector{eventDroppedTotal: cv}, cv
-			},
-			capability: "kanban",
-			operation:  "create",
-			reason:     "shutdown",
-			callCount:  2,
-			expectedText: `
-# HELP ability_event_dropped_total Events dropped due to pool overflow or shutdown
-# TYPE ability_event_dropped_total counter
 ability_event_dropped_total{capability="kanban",operation="create",reason="shutdown"} 2
-`,
-			metricName: "ability_event_dropped_total",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, cv := tt.setup()
-			if tt.wantNoPanic {
-				assert.NotPanics(t, func() {
-					for i := 0; i < tt.callCount; i++ {
-						c.IncEventDropped(tt.capability, tt.operation, tt.reason)
-					}
-				})
-				return
-			}
-			for i := 0; i < tt.callCount; i++ {
-				c.IncEventDropped(tt.capability, tt.operation, tt.reason)
-			}
-			err := testutil.CollectAndCompare(cv, strings.NewReader(tt.expectedText), tt.metricName)
-			assert.NoError(t, err)
-		})
-	}
+`
+	err := testutil.CollectAndCompare(eventDroppedTotal, strings.NewReader(expected), "ability_event_dropped_total")
+	assert.NoError(t, err)
 }
 
 func TestAbilityCollector_NoopMethodsDontPanic(t *testing.T) {
