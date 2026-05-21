@@ -64,7 +64,11 @@ func InitEventPool(size int, expiryDuration string, mc *metrics.AbilityCollector
 			return
 		}
 		task.fn()
-	}, ants.WithNonblocking(true), ants.WithExpiryDuration(expiry))
+	}, ants.WithNonblocking(true), ants.WithExpiryDuration(expiry),
+		ants.WithPanicHandler(func(i any) {
+			flog.Warn("ability: event emitter panicked: %v", i)
+		}),
+	)
 	if err != nil {
 		return err
 	}
