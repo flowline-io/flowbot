@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
-	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type Definition struct {
@@ -28,7 +28,7 @@ type Step struct {
 	Capability hub.CapabilityType
 	Operation  string
 	Params     map[string]any
-	Retry      *types.RetryConfig
+	Retry      *backoff.Config
 }
 
 func LoadConfig(cfg []config.Pipeline) []Definition {
@@ -63,7 +63,7 @@ func LoadConfig(cfg []config.Pipeline) []Definition {
 	return defs
 }
 
-func convertRetryConfig(cfg *config.PipelineStepRetry) (*types.RetryConfig, error) {
+func convertRetryConfig(cfg *config.PipelineStepRetry) (*backoff.Config, error) {
 	if cfg == nil || cfg.MaxAttempts <= 0 {
 		return nil, nil
 	}
@@ -75,13 +75,18 @@ func convertRetryConfig(cfg *config.PipelineStepRetry) (*types.RetryConfig, erro
 	if err != nil && cfg.MaxDelay != "" {
 		return nil, fmt.Errorf("invalid max_delay %q: %w", cfg.MaxDelay, err)
 	}
-	return &types.RetryConfig{
-		MaxAttempts: cfg.MaxAttempts,
-		Delay:       delay,
-		Backoff:     cfg.Backoff,
-		MaxDelay:    maxDelay,
-		Jitter:      cfg.Jitter,
-		RetryOn:     cfg.RetryOn,
+	multiplier := 2.0
+	switch cfg.Backoff {
+	case "fixed", "linear":
+		multiplier = 1.0
+	}
+	return &backoff.Config{
+		MaxAttempts:     cfg.MaxAttempts,
+		InitialInterval: delay,
+		MaxInterval:     maxDelay,
+		Multiplier:      multiplier,
+		Jitter:          cfg.Jitter,
+		RetryOn:         cfg.RetryOn,
 	}, nil
 }
 

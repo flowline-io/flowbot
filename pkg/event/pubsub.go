@@ -19,6 +19,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/fx"
 
+	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -87,18 +88,17 @@ func NewRouter(_ *sdktrace.TracerProvider) (*message.Router, error) {
 	router.AddMiddleware(
 		middleware.CorrelationID,
 		middleware.Timeout(10*time.Minute),
-		Retry{
-			MaxRetries:          3,
-			InitialInterval:     1 * time.Second,
-			MaxInterval:         30 * time.Second,
-			Multiplier:          2.0,
-			MaxElapsedTime:      2 * time.Minute,
-			RandomizationFactor: 0.5,
-			OnRetryHook: func(retryNum int, delay time.Duration) {
-				flog.Info("Retry attempt #%d, waiting %v before next retry", retryNum, delay)
+		backoff.Middleware(backoff.Config{
+			MaxAttempts:     4, // 1 initial + 3 retries
+			InitialInterval: 1 * time.Second,
+			MaxInterval:     30 * time.Second,
+			Multiplier:      2.0,
+			MaxElapsedTime:  2 * time.Minute,
+			Jitter:          true,
+			OnRetry: func(attempt int, delay time.Duration, _ error) {
+				flog.Info("Retry attempt #%d, waiting %v before next retry", attempt, delay)
 			},
-			Logger: logger,
-		}.Middleware,
+		}, logger),
 		middleware.Recoverer,
 	)
 

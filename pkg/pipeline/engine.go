@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/cenkalti/backoff"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/audit"
+	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -187,77 +187,49 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		go e.heartbeatLoop(hbCtx, runID, pipelineName)
 	}
 
-	retryCfg := step.Retry
-	bo := retryCfg.BuildBackOff()
-
 	if e.pipelineMetrics != nil {
 		e.pipelineMetrics.IncStepTotal(pipelineName, step.Name, "start")
 	}
 
-	for {
-		res, err := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
-		if err == nil {
-			stepResult := extractResult(res)
-			rc.RecordStepResult(step.Name, stepResult)
-			e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
-			flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
-			return nil
-		}
-
-		trace.RecordError(ctx, err)
-
-		if !retryCfg.RetryEnabled() || !isRetryable(err, retryCfg) {
-			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), err.Error(), attempt, stepStart)
-			return fmt.Errorf("step %s: %w", step.Name, err)
-		}
-
-		nextDelay := bo.NextBackOff()
-		if nextDelay == backoff.Stop {
-			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), err.Error(), attempt, stepStart)
-			return fmt.Errorf("step %s (retries exhausted): %w", step.Name, err)
-		}
-
+	retryCfg := step.Retry
+	if retryCfg == nil {
+		retryCfg = &backoff.Config{MaxAttempts: 0}
+	}
+	boCfg := *retryCfg
+	boCfg.OnRetry = func(a int, d time.Duration, err error) {
 		flog.Info("pipeline %s step %s attempt %d failed, retrying in %v: %v",
-			pipelineName, step.Name, attempt, nextDelay, err)
+			pipelineName, step.Name, a, d, err)
+	}
 
-		select {
-		case <-ctx.Done():
-			e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), ctx.Err().Error(), attempt, stepStart)
-			return fmt.Errorf("step %s cancelled: %w", step.Name, ctx.Err())
-		case <-time.After(nextDelay):
+	var stepResult map[string]any
+	attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
+		res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+		if invokeErr != nil {
+			trace.RecordError(ctx, invokeErr)
+			return invokeErr
 		}
+		stepResult = extractResult(res)
+		return nil
+	})
 
-		attempt++
+	if retryErr != nil {
+		var stepErr error
+		switch {
+		case errors.Is(retryErr, context.Canceled) || errors.Is(retryErr, context.DeadlineExceeded):
+			stepErr = fmt.Errorf("step %s cancelled: %w", step.Name, retryErr)
+		case attempt > 1:
+			stepErr = fmt.Errorf("step %s (retries exhausted): %w", step.Name, retryErr)
+		default:
+			stepErr = fmt.Errorf("step %s: %w", step.Name, retryErr)
+		}
+		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr.Error(), attempt, stepStart)
+		return stepErr
 	}
-}
 
-func isRetryable(err error, cfg *types.RetryConfig) bool {
-	if cfg == nil || len(cfg.RetryOn) == 0 {
-		return true
-	}
-	var te *types.Error
-	if errors.As(err, &te) {
-		if te.Retryable {
-			return true
-		}
-	}
-	for _, target := range cfg.RetryOn {
-		if containsErrorCode(err, target) {
-			return true
-		}
-	}
-	return false
-}
-
-func containsErrorCode(err error, code string) bool {
-	var te *types.Error
-	if errors.As(err, &te) {
-		if te.Code == code {
-			return true
-		}
-	}
-	// Walk wrapped errors.
-	return false
+	rc.RecordStepResult(step.Name, stepResult)
+	e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
+	flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
+	return nil
 }
 
 func (e *Engine) heartbeatLoop(ctx context.Context, runID int64, pipelineName string) {

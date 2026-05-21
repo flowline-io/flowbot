@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+
+	flowbackoff "github.com/flowline-io/flowbot/pkg/backoff"
 )
 
 // RetryConfig defines the retry strategy for a pipeline step or workflow task.
@@ -24,12 +26,14 @@ const (
 )
 
 // RetryEnabled returns true if retries are configured with more than one attempt.
+// Deprecated: Use backoff.Config.MaxAttempts > 1 directly.
 func (r *RetryConfig) RetryEnabled() bool {
 	return r != nil && r.MaxAttempts > 1
 }
 
 // BuildBackOff constructs a backoff.BackOff from the retry configuration.
 // Returns a StopBackOff if the config is nil.
+// Deprecated: Use ToBackoffConfig() and backoff.Do() instead.
 func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 	if r == nil {
 		return &backoff.StopBackOff{}
@@ -69,6 +73,26 @@ func (r *RetryConfig) BuildBackOff() backoff.BackOff {
 	// WithMaxRetries takes the number of retries (after the initial attempt),
 	// so we subtract 1 from the total attempt count.
 	return backoff.WithMaxRetries(bo, uint64(r.MaxAttempts-1))
+}
+
+// ToBackoffConfig converts the legacy RetryConfig to the unified backoff.Config.
+func (r *RetryConfig) ToBackoffConfig() flowbackoff.Config {
+	if r == nil {
+		return flowbackoff.Config{MaxAttempts: 0}
+	}
+	multiplier := 2.0
+	switch r.Backoff {
+	case BackoffFixed, BackoffLinear:
+		multiplier = 1.0
+	}
+	return flowbackoff.Config{
+		MaxAttempts:     r.MaxAttempts,
+		InitialInterval: r.Delay,
+		MaxInterval:     r.MaxDelay,
+		Multiplier:      multiplier,
+		Jitter:          r.Jitter,
+		RetryOn:         r.RetryOn,
+	}
 }
 
 // WorkflowTriggerDef defines a single trigger for a workflow.

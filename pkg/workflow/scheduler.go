@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -385,7 +386,16 @@ func (r *Runner) executeExecutorStep(
 
 	flog.Info("[workflow] running step %s: %s (parallel)", taskID, wt.Action)
 
-	attempt, rerr := r.runEngineWithRetry(ctx, engine, task, wt.Retry, taskID, stepRun)
+	backoffCfg := wt.Retry.ToBackoffConfig()
+	backoffCfg.OnRetry = func(a int, d time.Duration, err error) {
+		if r.store != nil && stepRun != nil {
+			_ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunRunning, nil, err.Error(), a)
+		}
+		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", taskID, a, d, err)
+	}
+	attempt, rerr := backoff.Do(ctx, backoffCfg, func(ctx context.Context) error {
+		return engine.Run(ctx, task)
+	})
 	if r.metrics != nil && attempt > 1 {
 		r.metrics.IncStepRetry(wfName, taskID)
 	}

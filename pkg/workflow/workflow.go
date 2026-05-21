@@ -9,10 +9,9 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/cenkalti/backoff"
-
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/audit"
+	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	capabilityruntime "github.com/flowline-io/flowbot/pkg/executor/runtime/capability"
@@ -691,75 +690,16 @@ func resultCopy(src map[string]string) map[string]string {
 }
 
 func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *types.RetryConfig, stepID string, stepRun *model.WorkflowStepRun) (int, error) {
-	bo := retryCfg.BuildBackOff()
-
-	attempt := 0
-	for {
-		attempt++
-		err := r.Run(ctx, task)
-		if err == nil {
-			return attempt, nil
-		}
-
-		// Update step run attempt on each retry.
+	backoffCfg := retryCfg.ToBackoffConfig()
+	backoffCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
 		if r.store != nil && stepRun != nil {
 			_ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunRunning, nil, err.Error(), attempt)
 		}
-
-		if !retryCfg.RetryEnabled() {
-			return attempt, err
-		}
-
-		nextDelay := bo.NextBackOff()
-		if nextDelay == backoff.Stop {
-			return attempt, fmt.Errorf("step %s (retries exhausted, attempt %d): %w", stepID, attempt, err)
-		}
-
-		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, nextDelay, err)
-
-		select {
-		case <-ctx.Done():
-			return attempt, fmt.Errorf("step %s cancelled: %w", stepID, ctx.Err())
-		case <-time.After(nextDelay):
-		}
+		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, delay, err)
 	}
-}
-
-// runEngineWithRetry runs a task on the given engine with retry support.
-// Unlike runWithRetry, it uses the provided engine directly instead of
-// looking up r.engines, making it safe for concurrent per-task engine instances.
-func (r *Runner) runEngineWithRetry(ctx context.Context, engine *executor.Engine, task *types.Task, retryCfg *types.RetryConfig, stepID string, stepRun *model.WorkflowStepRun) (int, error) {
-	bo := retryCfg.BuildBackOff()
-
-	attempt := 0
-	for {
-		attempt++
-		err := engine.Run(ctx, task)
-		if err == nil {
-			return attempt, nil
-		}
-
-		if r.store != nil && stepRun != nil {
-			_ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunRunning, nil, err.Error(), attempt)
-		}
-
-		if !retryCfg.RetryEnabled() {
-			return attempt, err
-		}
-
-		nextDelay := bo.NextBackOff()
-		if nextDelay == backoff.Stop {
-			return attempt, fmt.Errorf("step %s (retries exhausted, attempt %d): %w", stepID, attempt, err)
-		}
-
-		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, nextDelay, err)
-
-		select {
-		case <-ctx.Done():
-			return attempt, fmt.Errorf("step %s cancelled: %w", stepID, ctx.Err())
-		case <-time.After(nextDelay):
-		}
-	}
+	return backoff.Do(ctx, backoffCfg, func(ctx context.Context) error {
+		return r.Run(ctx, task)
+	})
 }
 
 func ValidateDAG(tasks []types.WorkflowTask) error {

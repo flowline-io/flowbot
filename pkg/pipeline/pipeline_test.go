@@ -2,12 +2,10 @@ package pipeline
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/cenkalti/backoff"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -488,144 +486,6 @@ func TestRenderString(t *testing.T) {
 			result, err := rc.RenderString(tt.template)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestBuildBackoff(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-		cfg  *types.RetryConfig
-		test func(t *testing.T, bo backoff.BackOff)
-	}{
-		{
-			name: "no-config",
-			cfg:  &types.RetryConfig{},
-			test: func(t *testing.T, bo backoff.BackOff) {
-				require.NotNil(t, bo)
-			},
-		},
-		{
-			name: "exponential",
-			cfg: &types.RetryConfig{
-				MaxAttempts: 3,
-				Delay:       1 * time.Second,
-				Backoff:     types.BackoffExponential,
-				MaxDelay:    10 * time.Second,
-			},
-			test: func(t *testing.T, bo backoff.BackOff) {
-				require.NotNil(t, bo)
-				assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
-			},
-		},
-		{
-			name: "fixed",
-			cfg: &types.RetryConfig{
-				MaxAttempts: 3,
-				Delay:       500 * time.Millisecond,
-				Backoff:     types.BackoffFixed,
-			},
-			test: func(t *testing.T, bo backoff.BackOff) {
-				require.NotNil(t, bo)
-				delay := bo.NextBackOff()
-				assert.Equal(t, 500*time.Millisecond, delay)
-			},
-		},
-		{
-			name: "linear",
-			cfg: &types.RetryConfig{
-				MaxAttempts: 3,
-				Delay:       1 * time.Second,
-				Backoff:     types.BackoffLinear,
-				MaxDelay:    30 * time.Second,
-			},
-			test: func(t *testing.T, bo backoff.BackOff) {
-				require.NotNil(t, bo)
-				assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
-			},
-		},
-		{
-			name: "with-jitter",
-			cfg: &types.RetryConfig{
-				MaxAttempts: 3,
-				Delay:       1 * time.Second,
-				Backoff:     types.BackoffExponential,
-				Jitter:      true,
-			},
-			test: func(t *testing.T, bo backoff.BackOff) {
-				require.NotNil(t, bo)
-				assert.NotEqual(t, backoff.Stop, bo.NextBackOff())
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			bo := tt.cfg.BuildBackOff()
-			tt.test(t, bo)
-		})
-	}
-}
-
-func TestIsRetryable(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-		err  error
-		cfg  *types.RetryConfig
-		want bool
-	}{
-		{
-			name: "no-filter",
-			err:  fmt.Errorf("generic error"),
-			cfg:  &types.RetryConfig{},
-			want: true,
-		},
-		{
-			name: "nil-config",
-			err:  fmt.Errorf("generic error"),
-			cfg:  nil,
-			want: true,
-		},
-		{
-			name: "retry-on-match",
-			err:  &types.Error{Code: "timeout", Retryable: true},
-			cfg:  &types.RetryConfig{RetryOn: []string{"timeout", "rate_limited"}},
-			want: true,
-		},
-		{
-			name: "retry-on-no-match",
-			err:  fmt.Errorf("some other error"),
-			cfg:  &types.RetryConfig{RetryOn: []string{"timeout"}},
-			want: false,
-		},
-		{
-			name: "retryable-flag",
-			err:  &types.Error{Retryable: true},
-			cfg:  &types.RetryConfig{RetryOn: []string{"timeout"}},
-			want: true,
-		},
-		{
-			name: "retry-enabled",
-			err:  nil,
-			cfg:  nil,
-			want: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if tt.name == "retry-enabled" {
-				assert.False(t, (*types.RetryConfig)(nil).RetryEnabled())
-				assert.False(t, (&types.RetryConfig{}).RetryEnabled())
-				assert.True(t, (&types.RetryConfig{MaxAttempts: 3}).RetryEnabled())
-				return
-			}
-			got := isRetryable(tt.err, tt.cfg)
-			assert.Equal(t, tt.want, got)
 		})
 	}
 }

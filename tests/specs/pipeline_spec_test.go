@@ -89,7 +89,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 					Delay:       100 * time.Millisecond,
 					Backoff:     types.BackoffFixed,
 				}
-				Expect(retry.RetryEnabled()).To(BeTrue())
+				Expect(retry.ToBackoffConfig().MaxAttempts).To(BeNumerically(">", 1))
 				Expect(retry.MaxAttempts).To(Equal(3))
 			})
 
@@ -100,8 +100,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 					Backoff:     types.BackoffExponential,
 					MaxDelay:    30 * time.Second,
 				}
-				bo := retry.BuildBackOff()
-				Expect(bo).NotTo(BeNil())
+				cfg := retry.ToBackoffConfig()
+				Expect(cfg.MaxAttempts).To(BeNumerically(">", 0))
 			})
 		})
 	})

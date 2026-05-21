@@ -63,6 +63,22 @@ func (e *Error) Is(target error) bool {
 	return errors.Is(e.Kind, target)
 }
 
+// RetryableCode returns the error code for retry filtering.
+func (e *Error) RetryableCode() string {
+	if e == nil {
+		return ""
+	}
+	return e.Code
+}
+
+// IsRetryableError returns true if the error is marked as retryable.
+func (e *Error) IsRetryableError() bool {
+	if e == nil {
+		return false
+	}
+	return e.Retryable
+}
+
 // WrapError wraps a lower-level cause with a standard Flowbot error kind.
 func WrapError(kind error, message string, cause error) error {
 	return &Error{

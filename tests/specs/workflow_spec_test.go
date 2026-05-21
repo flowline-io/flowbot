@@ -68,20 +68,20 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 					Jitter:      true,
 				},
 			}
-			Expect(task.Retry.RetryEnabled()).To(BeTrue())
+			Expect(task.Retry.ToBackoffConfig().MaxAttempts).To(BeNumerically(">", 1))
 			Expect(task.Retry.MaxAttempts).To(Equal(3))
 			Expect(task.Retry.Backoff).To(Equal(types.BackoffExponential))
 		})
 
 		It("validates retry config", func() {
 			cfg := types.RetryConfig{MaxAttempts: 0}
-			Expect(cfg.RetryEnabled()).To(BeFalse())
+			Expect(cfg.ToBackoffConfig().MaxAttempts > 1).To(BeFalse())
 
 			cfg2 := types.RetryConfig{MaxAttempts: 1}
-			Expect(cfg2.RetryEnabled()).To(BeFalse())
+			Expect(cfg2.ToBackoffConfig().MaxAttempts > 1).To(BeFalse())
 
 			cfg3 := types.RetryConfig{MaxAttempts: 2}
-			Expect(cfg3.RetryEnabled()).To(BeTrue())
+			Expect(cfg3.ToBackoffConfig().MaxAttempts > 1).To(BeTrue())
 		})
 
 		It("has correct backoff constants", func() {
