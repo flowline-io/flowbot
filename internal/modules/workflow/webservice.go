@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -38,11 +39,13 @@ func runWorkflow(ctx fiber.Ctx) error {
 
 	runner := workflowpkg.NewRunner()
 	var runStore workflowpkg.WorkflowRunStore
+	var auditor audit.Auditor
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
 			runStore = store.NewWorkflowRunStore(client)
+			auditor = store.NewAuditStore(client)
 		}
-		runner = workflowpkg.NewRunnerWithStore(runStore, nil, body.File, "manual")
+		runner = workflowpkg.NewRunnerWithStore(runStore, auditor, nil, body.File, "manual")
 	}
 	if err := runner.Execute(ctx.Context(), *wf, types.KV(body.Params), body.File); err != nil {
 		return fmt.Errorf("workflow execution: %w", err)

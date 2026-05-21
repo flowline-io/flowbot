@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -30,6 +31,7 @@ func initPipeline(
 	pc *metrics.PipelineCollector,
 	ec *metrics.EventCollector,
 	ac *metrics.AbilityCollector,
+	auditor audit.Auditor,
 ) error {
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 	if len(pipelineDefs) == 0 {
@@ -44,7 +46,7 @@ func initPipeline(
 		}
 	}
 
-	engine := pipeline.NewEngine(pipelineDefs, runStore, pc, ec)
+	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 
 	ability.SetMetricsCollector(ac)
 
