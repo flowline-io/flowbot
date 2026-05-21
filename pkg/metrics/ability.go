@@ -10,9 +10,10 @@ import (
 // AbilityCollector holds typed metrics for ability invocations.
 // When initialized with a nil stats, all methods are no-op.
 type AbilityCollector struct {
-	invokeTotal      *prometheus.CounterVec
-	invokeDuration   *prometheus.HistogramVec
-	invokeErrorTotal *prometheus.CounterVec
+	invokeTotal       *prometheus.CounterVec
+	invokeDuration    *prometheus.HistogramVec
+	invokeErrorTotal  *prometheus.CounterVec
+	eventDroppedTotal *prometheus.CounterVec
 }
 
 // NewAbilityCollector creates an AbilityCollector backed by stats.
@@ -22,9 +23,10 @@ func NewAbilityCollector(st *stats.Stats) *AbilityCollector {
 		return &AbilityCollector{}
 	}
 	return &AbilityCollector{
-		invokeTotal:      st.RegisterCounterVec("ability_invoke_total", "Invocations by capability, operation, and status", "capability", "operation", "status"),
-		invokeDuration:   st.RegisterHistogramVec("ability_invoke_duration_seconds", "Invocation duration distribution", "capability", "operation"),
-		invokeErrorTotal: st.RegisterCounterVec("ability_invoke_error_total", "Invocation errors by capability, operation, and error code", "capability", "operation", "error_code"),
+		invokeTotal:       st.RegisterCounterVec("ability_invoke_total", "Invocations by capability, operation, and status", "capability", "operation", "status"),
+		invokeDuration:    st.RegisterHistogramVec("ability_invoke_duration_seconds", "Invocation duration distribution", "capability", "operation"),
+		invokeErrorTotal:  st.RegisterCounterVec("ability_invoke_error_total", "Invocation errors by capability, operation, and error code", "capability", "operation", "error_code"),
+		eventDroppedTotal: st.RegisterCounterVec("ability_event_dropped_total", "Events dropped due to pool overflow or shutdown", "capability", "operation", "reason"),
 	}
 }
 
@@ -44,6 +46,15 @@ func (c *AbilityCollector) ObserveInvokeDuration(capability, operation string, s
 	}
 	defer recoverLog("ability_invoke_duration_seconds")
 	c.invokeDuration.WithLabelValues(sanitizeLabel(capability), sanitizeLabel(operation)).Observe(seconds)
+}
+
+// IncEventDropped increments the event dropped counter.
+func (c *AbilityCollector) IncEventDropped(capability, operation, reason string) {
+	if c.eventDroppedTotal == nil {
+		return
+	}
+	defer recoverLog("ability_event_dropped_total")
+	c.eventDroppedTotal.WithLabelValues(sanitizeLabel(capability), sanitizeLabel(operation), sanitizeLabel(reason)).Inc()
 }
 
 // IncInvokeError increments the error counter for the given capability, operation, and error code.
