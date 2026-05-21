@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -10,10 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+var (
+	noopPC = metrics.NewPipelineCollector(nil)
+	noopEC = metrics.NewEventCollector(nil)
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -667,8 +674,6 @@ func TestConvertToTypesKV(t *testing.T) {
 
 func TestNewEngine(t *testing.T) {
 	t.Parallel()
-	noopPC := metrics.NewPipelineCollector(nil)
-	noopEC := metrics.NewEventCollector(nil)
 	tests := []struct {
 		name  string
 		defs  []Definition
@@ -704,7 +709,7 @@ func TestNewEngine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			e := NewEngine(tt.defs, tt.store, noopPC, noopEC)
+			e := NewEngine(tt.defs, tt.store, nil, noopPC, noopEC)
 			assert.NotNil(t, e)
 			assert.NotNil(t, e.Handler())
 		})
@@ -775,6 +780,96 @@ func TestCheckpointDataMarshaling(t *testing.T) {
 			err = sonic.Unmarshal(data, &restored)
 			require.NoError(t, err)
 			tt.check(t, restored)
+		})
+	}
+}
+
+type mockAuditor struct {
+	entries []audit.Entry
+}
+
+func (m *mockAuditor) Record(_ context.Context, entry audit.Entry) error {
+	m.entries = append(m.entries, entry)
+	return nil
+}
+func (m *mockAuditor) RecordSuccess(_ context.Context, entry audit.Entry) error {
+	return m.Record(nil, entry)
+}
+func (m *mockAuditor) RecordFailure(_ context.Context, entry audit.Entry, _ error) error {
+	return m.Record(nil, entry)
+}
+func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, _ string) error {
+	return m.Record(nil, entry)
+}
+
+func TestEngine_Audit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		pipelineName  string
+		event         types.DataEvent
+		expectActions []string
+	}{
+		{
+			name:          "audit start and complete for no-step pipeline",
+			pipelineName:  "audit-pl",
+			event:         types.DataEvent{EventID: "evt1", EventType: "test.event"},
+			expectActions: []string{"pipeline.start", "pipeline.complete"},
+		},
+		{
+			name:          "empty event with empty pipeline name",
+			pipelineName:  "",
+			event:         types.DataEvent{EventID: "", EventType: "test.event"},
+			expectActions: []string{"pipeline.start", "pipeline.complete"},
+		},
+		{
+			name:          "non-empty pipeline with empty event",
+			pipelineName:  "pl1",
+			event:         types.DataEvent{EventType: "test.event"},
+			expectActions: []string{"pipeline.start", "pipeline.complete"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			m := &mockAuditor{}
+			defs := []Definition{
+				{
+					Name:    tt.pipelineName,
+					Enabled: true,
+					Trigger: Trigger{Event: "test.event"},
+					Steps:   []Step{},
+				},
+			}
+			e := NewEngine(defs, nil, m, noopPC, noopEC)
+			_ = e.Handler()(context.Background(), tt.event)
+			require.Len(t, m.entries, len(tt.expectActions))
+			for i, expected := range tt.expectActions {
+				assert.Equal(t, expected, m.entries[i].Action)
+				assert.Equal(t, "pipeline", m.entries[i].Target.Type)
+				assert.Equal(t, tt.pipelineName, m.entries[i].Target.ID)
+			}
+		})
+	}
+}
+
+func TestNewEngine_WithAuditor(t *testing.T) {
+	t.Parallel()
+	m := &mockAuditor{}
+	tests := []struct {
+		name    string
+		auditor audit.Auditor
+	}{
+		{name: "with mock auditor", auditor: m},
+		{name: "with nil auditor", auditor: nil},
+		{name: "with nil interface", auditor: audit.Auditor(nil)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngine(nil, nil, tt.auditor, noopPC, noopEC)
+			assert.NotNil(t, e)
+			assert.NotNil(t, e.Handler())
 		})
 	}
 }
