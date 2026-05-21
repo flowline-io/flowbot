@@ -275,18 +275,18 @@ type NodePort struct {
 }
 
 type Node struct {
-	Id        string `json:"id"`
-	Describe  string `json:"describe"`
-	X         int    `json:"x,omitempty"`
-	Y         int    `json:"y,omitempty"`
-	Width     int    `json:"width,omitempty"`
-	Height    int    `json:"height,omitempty"`
-	Label     string `json:"label,omitempty"`
-	RenderKey string `json:"renderKey,omitempty"`
-	IsGroup   bool   `json:"isGroup,omitempty"`
-	Group     string `json:"group,omitempty"`
-	ParentId  string `json:"parentId,omitempty"`
-	Ports     []NodePort `json:"ports,omitempty"`
+	Id          string         `json:"id"`
+	Describe    string         `json:"describe"`
+	X           int            `json:"x,omitempty"`
+	Y           int            `json:"y,omitempty"`
+	Width       int            `json:"width,omitempty"`
+	Height      int            `json:"height,omitempty"`
+	Label       string         `json:"label,omitempty"`
+	RenderKey   string         `json:"renderKey,omitempty"`
+	IsGroup     bool           `json:"isGroup,omitempty"`
+	Group       string         `json:"group,omitempty"`
+	ParentId    string         `json:"parentId,omitempty"`
+	Ports       []NodePort     `json:"ports,omitempty"`
 	Order       int            `json:"_order,omitempty"`
 	Bot         string         `json:"bot"`
 	RuleId      string         `json:"rule_id"`

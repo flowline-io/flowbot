@@ -48,14 +48,14 @@ var commandRules = []command.Rule{
 			var botHandler module.Handler
 			for _, handler := range module.List() {
 				for _, item := range handler.Rules() {
-				if v, ok := item.([]webhook.Rule); ok {
-					for _, rule := range v {
-						if rule.Id == flag {
-							botHandler = handler
-							webhookRule = rule
+					if v, ok := item.([]webhook.Rule); ok {
+						for _, rule := range v {
+							if rule.Id == flag {
+								botHandler = handler
+								webhookRule = rule
+							}
 						}
 					}
-				}
 				}
 			}
 

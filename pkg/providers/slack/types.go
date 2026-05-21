@@ -16,8 +16,8 @@ type OAuthTeam struct {
 
 // OAuthV2AccessResponse represents the Slack oauth.v2.access API response.
 type OAuthV2AccessResponse struct {
-	OK         bool           `json:"ok"`
-	Error      string         `json:"error,omitempty"`
+	OK         bool            `json:"ok"`
+	Error      string          `json:"error,omitempty"`
 	AuthedUser OAuthAuthedUser `json:"authed_user"`
 	Team       OAuthTeam       `json:"team"`
 }

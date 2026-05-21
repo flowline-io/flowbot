@@ -171,5 +171,3 @@ func (s Int) PopAny() (int, bool) {
 func (s Int) Len() int {
 	return len(s)
 }
-
-

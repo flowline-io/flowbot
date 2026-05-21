@@ -76,16 +76,16 @@ fx stops hooks in reverse order. The Watermill subscriber and publisher close th
 
 ## Files changed
 
-| File | Change |
-|------|--------|
-| `pkg/config/config.go` | Add pool fields to `Redis` struct |
-| `pkg/rdb/rdb.go` | Apply pool config in `NewClient` |
-| `pkg/event/redis.go` | Delete |
-| `pkg/event/pubsub.go` | Accept `*redis.Client` via injection; drop unused `NewRouter` param |
-| `docs/reference/config.yaml` | Add pool field examples with defaults |
-| `pkg/config/config_test.go` | Add pool config test cases |
-| `pkg/rdb/rdb_test.go` | Add `NewClient` pool config tests |
-| `pkg/event/pubsub_test.go` | Add constructor tests with injected client |
+| File                         | Change                                                              |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `pkg/config/config.go`       | Add pool fields to `Redis` struct                                   |
+| `pkg/rdb/rdb.go`             | Apply pool config in `NewClient`                                    |
+| `pkg/event/redis.go`         | Delete                                                              |
+| `pkg/event/pubsub.go`        | Accept `*redis.Client` via injection; drop unused `NewRouter` param |
+| `docs/reference/config.yaml` | Add pool field examples with defaults                               |
+| `pkg/config/config_test.go`  | Add pool config test cases                                          |
+| `pkg/rdb/rdb_test.go`        | Add `NewClient` pool config tests                                   |
+| `pkg/event/pubsub_test.go`   | Add constructor tests with injected client                          |
 
 ## Risk assessment
 

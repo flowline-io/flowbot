@@ -397,12 +397,12 @@ type ExecutorMachineConfig struct {
 
 type Executor struct {
 	// Executor type: docker
-	Type    string               `json:"type" yaml:"type" mapstructure:"type"`
+	Type string `json:"type" yaml:"type" mapstructure:"type"`
 	// Resource limits
-	Limits  ExecutorLimits       `json:"limits" yaml:"limits" mapstructure:"limits"`
-	Mounts  ExecutorMounts       `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
-	Docker  ExecutorDockerConfig `json:"docker" yaml:"docker" mapstructure:"docker"`
-	Shell   ExecutorShellConfig  `json:"shell" yaml:"shell" mapstructure:"shell"`
+	Limits  ExecutorLimits        `json:"limits" yaml:"limits" mapstructure:"limits"`
+	Mounts  ExecutorMounts        `json:"mounts" yaml:"mounts" mapstructure:"mounts"`
+	Docker  ExecutorDockerConfig  `json:"docker" yaml:"docker" mapstructure:"docker"`
+	Shell   ExecutorShellConfig   `json:"shell" yaml:"shell" mapstructure:"shell"`
 	Machine ExecutorMachineConfig `json:"machine" yaml:"machine" mapstructure:"machine"`
 }
 

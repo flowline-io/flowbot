@@ -13,22 +13,22 @@ func TestRedisOptions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name                 string
-		cfg                  config.Redis
-		wantAddr             string
-		wantDB               int
-		wantPool             int
-		wantMinIdle          int
-		wantReadTO           time.Duration
-		wantWriteTO          time.Duration
-		wantRetries          int
-		wantFIFO             bool
-		wantMinRetryBackoff  time.Duration
-		wantMaxRetryBackoff  time.Duration
-		wantDialTimeout      time.Duration
-		wantPoolTimeout      time.Duration
-		wantConnMaxIdleTime  time.Duration
-		wantConnMaxLifetime  time.Duration
+		name                string
+		cfg                 config.Redis
+		wantAddr            string
+		wantDB              int
+		wantPool            int
+		wantMinIdle         int
+		wantReadTO          time.Duration
+		wantWriteTO         time.Duration
+		wantRetries         int
+		wantFIFO            bool
+		wantMinRetryBackoff time.Duration
+		wantMaxRetryBackoff time.Duration
+		wantDialTimeout     time.Duration
+		wantPoolTimeout     time.Duration
+		wantConnMaxIdleTime time.Duration
+		wantConnMaxLifetime time.Duration
 	}{
 		{
 			name: "all pool fields set explicitly",
@@ -50,7 +50,7 @@ func TestRedisOptions(t *testing.T) {
 				ConnMaxLifetime: 1 * time.Hour,
 				PoolFIFO:        true,
 			},
-			wantAddr:             "redis.example.com:6379",
+			wantAddr:            "redis.example.com:6379",
 			wantDB:              2,
 			wantPool:            20,
 			wantMinIdle:         5,

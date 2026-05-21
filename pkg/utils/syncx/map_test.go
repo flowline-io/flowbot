@@ -249,32 +249,32 @@ func TestIterate(t *testing.T) {
 func TestLoadAndDelete(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		setup     func(m *syncx.Map[string, int])
-		key       string
-		wantV     int
-		wantOK    bool
+		name   string
+		setup  func(m *syncx.Map[string, int])
+		key    string
+		wantV  int
+		wantOK bool
 	}{
 		{
-			name:      "happy_path_load_and_delete_existing_entry",
-			setup:     func(m *syncx.Map[string, int]) { m.Set("somekey", 42) },
-			key:       "somekey",
-			wantV:     42,
-			wantOK:    true,
+			name:   "happy_path_load_and_delete_existing_entry",
+			setup:  func(m *syncx.Map[string, int]) { m.Set("somekey", 42) },
+			key:    "somekey",
+			wantV:  42,
+			wantOK: true,
 		},
 		{
-			name:      "edge_load_and_delete_nonexistent_entry",
-			setup:     func(_ *syncx.Map[string, int]) {},
-			key:       "missing",
-			wantV:     0,
-			wantOK:    false,
+			name:   "edge_load_and_delete_nonexistent_entry",
+			setup:  func(_ *syncx.Map[string, int]) {},
+			key:    "missing",
+			wantV:  0,
+			wantOK: false,
 		},
 		{
-			name:      "edge_load_and_delete_twice_returns_nil_on_second",
-			setup:     func(m *syncx.Map[string, int]) { m.Set("once", 99) },
-			key:       "once",
-			wantV:     0,
-			wantOK:    false,
+			name:   "edge_load_and_delete_twice_returns_nil_on_second",
+			setup:  func(m *syncx.Map[string, int]) { m.Set("once", 99) },
+			key:    "once",
+			wantV:  0,
+			wantOK: false,
 		},
 	}
 	for _, tt := range tests {

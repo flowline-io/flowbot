@@ -38,17 +38,17 @@ func (c *Caller) Do(req protocol.Request) protocol.Response {
 }
 
 var msgConverters = map[reflect.Type]func(types.MsgPayload) protocol.Message{
-	reflect.TypeOf(types.TextMsg{}):     func(p types.MsgPayload) protocol.Message { return convertText(p.(types.TextMsg)) },
-	reflect.TypeOf(types.LinkMsg{}):     func(p types.MsgPayload) protocol.Message { return convertLink(p.(types.LinkMsg)) },
-	reflect.TypeOf(types.TableMsg{}):    func(p types.MsgPayload) protocol.Message { return convertTable(p.(types.TableMsg)) },
-	reflect.TypeOf(types.InfoMsg{}):     func(p types.MsgPayload) protocol.Message { return convertInfo(p.(types.InfoMsg)) },
-	reflect.TypeOf(types.ChartMsg{}):    func(p types.MsgPayload) protocol.Message { return convertChart(p.(types.ChartMsg)) },
-	reflect.TypeOf(types.HtmlMsg{}):     func(p types.MsgPayload) protocol.Message { return convertHtml(p.(types.HtmlMsg)) },
-	reflect.TypeOf(types.MarkdownMsg{}): func(p types.MsgPayload) protocol.Message { return convertMarkdown(p.(types.MarkdownMsg)) },
-	reflect.TypeOf(types.InstructMsg{}): func(p types.MsgPayload) protocol.Message { return convertInstruct(p.(types.InstructMsg)) },
-	reflect.TypeOf(types.KVMsg{}):       func(p types.MsgPayload) protocol.Message { return convertKV(p.(types.KVMsg)) },
-	reflect.TypeOf(types.FormMsg{}):     func(p types.MsgPayload) protocol.Message { return convertForm(p.(types.FormMsg)) },
-	reflect.TypeOf(types.EmptyMsg{}):    func(p types.MsgPayload) protocol.Message { return convertEmpty(p.(types.EmptyMsg)) },
+	reflect.TypeFor[types.TextMsg]():     func(p types.MsgPayload) protocol.Message { return convertText(p.(types.TextMsg)) },
+	reflect.TypeFor[types.LinkMsg]():     func(p types.MsgPayload) protocol.Message { return convertLink(p.(types.LinkMsg)) },
+	reflect.TypeFor[types.TableMsg]():    func(p types.MsgPayload) protocol.Message { return convertTable(p.(types.TableMsg)) },
+	reflect.TypeFor[types.InfoMsg]():     func(p types.MsgPayload) protocol.Message { return convertInfo(p.(types.InfoMsg)) },
+	reflect.TypeFor[types.ChartMsg]():    func(p types.MsgPayload) protocol.Message { return convertChart(p.(types.ChartMsg)) },
+	reflect.TypeFor[types.HtmlMsg]():     func(p types.MsgPayload) protocol.Message { return convertHtml(p.(types.HtmlMsg)) },
+	reflect.TypeFor[types.MarkdownMsg](): func(p types.MsgPayload) protocol.Message { return convertMarkdown(p.(types.MarkdownMsg)) },
+	reflect.TypeFor[types.InstructMsg](): func(p types.MsgPayload) protocol.Message { return convertInstruct(p.(types.InstructMsg)) },
+	reflect.TypeFor[types.KVMsg]():       func(p types.MsgPayload) protocol.Message { return convertKV(p.(types.KVMsg)) },
+	reflect.TypeFor[types.FormMsg]():     func(p types.MsgPayload) protocol.Message { return convertForm(p.(types.FormMsg)) },
+	reflect.TypeFor[types.EmptyMsg]():    func(p types.MsgPayload) protocol.Message { return convertEmpty(p.(types.EmptyMsg)) },
 }
 
 // MessageConvert converts a generic payload into a platform-agnostic protocol.Message.

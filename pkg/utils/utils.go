@@ -156,12 +156,12 @@ func MergeMaps(dst, src map[string]any) (map[string]any, bool) {
 		xval := reflect.ValueOf(val)
 		switch xval.Kind() {
 		case reflect.Map:
-		if xsrc, ok := val.(map[string]any); ok && xsrc != nil {
-			// Deep-copy map[string]interface{}
-			xdst, ok := dst[key].(map[string]any)
-			if !ok {
-				xdst = nil
-			}
+			if xsrc, ok := val.(map[string]any); ok && xsrc != nil {
+				// Deep-copy map[string]interface{}
+				xdst, ok := dst[key].(map[string]any)
+				if !ok {
+					xdst = nil
+				}
 				var lchange bool
 				dst[key], lchange = MergeMaps(xdst, xsrc)
 				changed = changed || lchange

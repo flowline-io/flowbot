@@ -52,9 +52,9 @@ type UserAttributes struct {
 }
 
 type User struct {
-	Type       string          `json:"type"`
-	Id         string          `json:"id"`
-	Attributes UserAttributes  `json:"attributes"`
+	Type       string         `json:"type"`
+	Id         string         `json:"id"`
+	Attributes UserAttributes `json:"attributes"`
 }
 
 type TransactionResultTransaction struct {
@@ -122,10 +122,10 @@ type TransactionResultTransaction struct {
 }
 
 type TransactionResultAttributes struct {
-	CreatedAt    time.Time                     `json:"created_at"`
-	UpdatedAt    time.Time                     `json:"updated_at"`
-	User         string                        `json:"user"`
-	GroupTitle   string                        `json:"group_title"`
+	CreatedAt    time.Time                      `json:"created_at"`
+	UpdatedAt    time.Time                      `json:"updated_at"`
+	User         string                         `json:"user"`
+	GroupTitle   string                         `json:"group_title"`
 	Transactions []TransactionResultTransaction `json:"transactions"`
 }
 

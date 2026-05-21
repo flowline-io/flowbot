@@ -12,23 +12,24 @@
 
 ## File Structure
 
-| File | Responsibility |
-|------|---------------|
-| `pkg/config/config.go` | `Redis` struct — add pool fields |
-| `pkg/rdb/rdb.go` | `NewClient` — apply pool config when constructing client. `Shutdown` unchanged. |
-| `pkg/event/redis.go` | **Delete** — `newRedisClient()` removed |
-| `pkg/event/pubsub.go` | `NewSubscriber`, `NewPublisher` — accept `*redis.Client` param. `NewRouter` — drop unused `*redis.Client` param. |
-| `internal/server/fx.go` | No changes — fx auto-resolves by type |
-| `docs/reference/config.yaml` | Add pool field examples |
-| `pkg/config/config_test.go` | Add pool config test cases |
-| `pkg/rdb/rdb_test.go` | New file — test pool options from config |
-| `pkg/event/pubsub_test.go` | Add constructor tests with injected client |
+| File                         | Responsibility                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `pkg/config/config.go`       | `Redis` struct — add pool fields                                                                                 |
+| `pkg/rdb/rdb.go`             | `NewClient` — apply pool config when constructing client. `Shutdown` unchanged.                                  |
+| `pkg/event/redis.go`         | **Delete** — `newRedisClient()` removed                                                                          |
+| `pkg/event/pubsub.go`        | `NewSubscriber`, `NewPublisher` — accept `*redis.Client` param. `NewRouter` — drop unused `*redis.Client` param. |
+| `internal/server/fx.go`      | No changes — fx auto-resolves by type                                                                            |
+| `docs/reference/config.yaml` | Add pool field examples                                                                                          |
+| `pkg/config/config_test.go`  | Add pool config test cases                                                                                       |
+| `pkg/rdb/rdb_test.go`        | New file — test pool options from config                                                                         |
+| `pkg/event/pubsub_test.go`   | Add constructor tests with injected client                                                                       |
 
 ---
 
 ### Task 1: Add pool fields to config.Redis struct
 
 **Files:**
+
 - Modify: `pkg/config/config.go:253-262`
 - Modify: `pkg/config/config_test.go:142-188`
 
@@ -245,6 +246,7 @@ git commit -m "feat: add Redis connection pool fields to config struct"
 ### Task 2: Build single client factory with pool config in rdb.NewClient
 
 **Files:**
+
 - Modify: `pkg/rdb/rdb.go`
 - Create: `pkg/rdb/rdb_test.go`
 
@@ -518,6 +520,7 @@ git commit -m "feat: apply Redis pool config in NewClient, add redisOptions help
 ### Task 3: Delete event/redis.go, inject client into Subscriber/Publisher, clean up NewRouter
 
 **Files:**
+
 - Delete: `pkg/event/redis.go`
 - Modify: `pkg/event/pubsub.go`
 - Modify: `pkg/event/pubsub_test.go`
@@ -787,6 +790,7 @@ git commit -m "refactor: merge Redis clients into single instance, inject into p
 ### Task 4: Update reference config and final verification
 
 **Files:**
+
 - Modify: `docs/reference/config.yaml`
 
 - [ ] **Step 1: Add pool config example to reference config**

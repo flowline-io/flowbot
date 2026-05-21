@@ -16,4 +16,3 @@ func recordMiss(backend string) {
 func recordEviction(backend string) {
 	stats.CacheEvictionTotalCounter(backend).Inc()
 }
-

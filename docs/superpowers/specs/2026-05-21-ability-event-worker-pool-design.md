@@ -20,12 +20,12 @@ Replace the raw `go func()` with a goroutine pool backed by `github.com/panjf200
 
 ### Components
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| EventPool | `pkg/ability/pool.go` | `ants.Pool` wrapper: `Submit()`, `Shutdown()`, config parsing |
-| Config | `docs/reference/config.yaml` | New `ability.event_pool` section |
-| Registry | `pkg/ability/invoke.go` | Replace `go func()` with `pool.Submit()` |
-| AbilityCollector | `pkg/metrics/ability.go` | New `event_dropped_total` counter |
+| Component        | File                         | Purpose                                                       |
+| ---------------- | ---------------------------- | ------------------------------------------------------------- |
+| EventPool        | `pkg/ability/pool.go`        | `ants.Pool` wrapper: `Submit()`, `Shutdown()`, config parsing |
+| Config           | `docs/reference/config.yaml` | New `ability.event_pool` section                              |
+| Registry         | `pkg/ability/invoke.go`      | Replace `go func()` with `pool.Submit()`                      |
+| AbilityCollector | `pkg/metrics/ability.go`     | New `event_dropped_total` counter                             |
 
 ### Architecture
 
@@ -49,11 +49,11 @@ pool.Submit(func() { emitter(ctx, result) })
 
 ### Pool Configuration
 
-| Parameter | Key | Default | Description |
-|-----------|-----|---------|-------------|
-| Size | `ability.event_pool.size` | `0` (ants default: `runtime.GOMAXPROCS(-1)` ) | Max concurrent workers |
-| Expiry | `ability.event_pool.expiry_duration` | `"30s"` | Idle worker eviction interval |
-| Nonblocking | — | `true` (hardcoded) | Never block caller on submit |
+| Parameter   | Key                                  | Default                                       | Description                   |
+| ----------- | ------------------------------------ | --------------------------------------------- | ----------------------------- |
+| Size        | `ability.event_pool.size`            | `0` (ants default: `runtime.GOMAXPROCS(-1)` ) | Max concurrent workers        |
+| Expiry      | `ability.event_pool.expiry_duration` | `"30s"`                                       | Idle worker eviction interval |
+| Nonblocking | —                                    | `true` (hardcoded)                            | Never block caller on submit  |
 
 ```yaml
 ability:
@@ -71,6 +71,7 @@ ability:
 ### Graceful Shutdown
 
 `ability.ShutdownPool()` calls `pool.ReleaseTimeout(30s)`, which:
+
 1. Stops accepting new tasks
 2. Waits up to 30s for in-flight tasks to complete
 3. Forces termination on timeout
@@ -79,19 +80,19 @@ Called from `internal/server/server.go` in the `OnStop` hook alongside existing 
 
 ### Metrics
 
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
+| Metric                        | Type    | Labels                              | Description                                   |
+| ----------------------------- | ------- | ----------------------------------- | --------------------------------------------- |
 | `ability_event_dropped_total` | Counter | `capability`, `operation`, `reason` | Events dropped due to pool overload or closed |
 
 Added to `AbilityCollector` alongside existing `invoke_total`, `invoke_duration`, `invoke_error_total`.
 
 ### Testing Strategy
 
-| Layer | File | Cases |
-|-------|------|-------|
-| Unit | `pkg/ability/pool_test.go` | Submit success, pool full returns error, shutdown prevents submits, worker panic recovered, concurrent submits ≤ pool size all pass |
-| Unit | `pkg/ability/invoke_test.go` | Invoke emits via pool (wait for async), pool full drops event (via mock), no events = no submit |
-| Integration | — | None; `ants` is already tested upstream; we test only our wrapper |
+| Layer       | File                         | Cases                                                                                                                               |
+| ----------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | `pkg/ability/pool_test.go`   | Submit success, pool full returns error, shutdown prevents submits, worker panic recovered, concurrent submits ≤ pool size all pass |
+| Unit        | `pkg/ability/invoke_test.go` | Invoke emits via pool (wait for async), pool full drops event (via mock), no events = no submit                                     |
+| Integration | —                            | None; `ants` is already tested upstream; we test only our wrapper                                                                   |
 
 Tests follow the existing TDD pattern: `t.Run(tt.name, t.Parallel())` inside a table of ≥3 cases.
 

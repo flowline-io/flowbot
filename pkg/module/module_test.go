@@ -268,7 +268,7 @@ type testHandler struct {
 	rules []any
 }
 
-func (m *testHandler) Rules() []any                 { return m.rules }
+func (m *testHandler) Rules() []any               { return m.rules }
 func (*testHandler) IsReady() bool                { return true }
 func (*testHandler) Init(_ json.RawMessage) error { return nil }
 func (*testHandler) Webservice(_ *fiber.App)      {}

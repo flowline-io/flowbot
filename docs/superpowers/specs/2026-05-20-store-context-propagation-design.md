@@ -59,14 +59,14 @@ Same pattern — `ctx context.Context` as first parameter to all data-access met
 
 Every call site already has a context available. Changes are purely mechanical — add `ctx` as first argument:
 
-| Layer | Context source | Example |
-|---|---|---|
-| HTTP handlers | `fiber.Ctx.Context()` | `store.Database.UserGet(c.Context(), uid)` |
-| Module command/cron | Already receives `ctx *types.Context` | Extract `ctx.Context` or pass directly |
-| Pipeline engine | Already has `ctx context.Context` | Pass through |
-| Workflow runner | Already has `ctx context.Context` | Pass through |
-| Core packages (event, notify, media) | Invoked from modules, have ctx available | Pass through |
-| `Migrate()` | Standalone function, not in interface | Keep `context.Background()` |
+| Layer                                | Context source                           | Example                                    |
+| ------------------------------------ | ---------------------------------------- | ------------------------------------------ |
+| HTTP handlers                        | `fiber.Ctx.Context()`                    | `store.Database.UserGet(c.Context(), uid)` |
+| Module command/cron                  | Already receives `ctx *types.Context`    | Extract `ctx.Context` or pass directly     |
+| Pipeline engine                      | Already has `ctx context.Context`        | Pass through                               |
+| Workflow runner                      | Already has `ctx context.Context`        | Pass through                               |
+| Core packages (event, notify, media) | Invoked from modules, have ctx available | Pass through                               |
+| `Migrate()`                          | Standalone function, not in interface    | Keep `context.Background()`                |
 
 **Fire-and-forget writes**: Audit entries, counter increments, and writes that must not be cancelled during request cleanup will use `context.Background()` intentionally. Identified per-call-site during implementation.
 
@@ -91,12 +91,12 @@ Bottom-up, 4 commits within one PR for reviewability:
 
 ## Risks and Mitigation
 
-| Risk | Mitigation |
-|---|---|
-| Missed call sites | Compiler catches every one — no runtime discovery |
-| Large PR | 4 logical commits within one PR, each independently reviewable |
-| Fire-and-forget writes cancelled | `context.Background()` kept at identified call sites |
-| Merge conflicts | Single atomic change; proceed when no active store PRs are in flight |
+| Risk                             | Mitigation                                                           |
+| -------------------------------- | -------------------------------------------------------------------- |
+| Missed call sites                | Compiler catches every one — no runtime discovery                    |
+| Large PR                         | 4 logical commits within one PR, each independently reviewable       |
+| Fire-and-forget writes cancelled | `context.Background()` kept at identified call sites                 |
+| Merge conflicts                  | Single atomic change; proceed when no active store PRs are in flight |
 
 ## Verification
 

@@ -44,9 +44,9 @@ type Rule struct {
 	Id     string
 	When   string
 	Mode   string
-	Page   *RulePage  `json:"page,omitempty"`
-	Json   *RuleJson  `json:"json,omitempty"`
-	Feed   *RuleFeed  `json:"feed,omitempty"`
+	Page   *RulePage `json:"page,omitempty"`
+	Json   *RuleJson `json:"json,omitempty"`
+	Feed   *RuleFeed `json:"feed,omitempty"`
 }
 
 func (r Rule) Run() []map[string]string {

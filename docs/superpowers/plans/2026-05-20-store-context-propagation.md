@@ -13,6 +13,7 @@
 ### Task 1: RunStore and EventStore interfaces + implementations + Pipeline call sites
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go:44-56` (RunStore interface)
 - Modify: `pkg/pipeline/engine.go:330-377` (helper methods createRunRecord, createStepRunRecord, updateStepRunRecord, finishRunRecord)
 - Modify: `pkg/pipeline/engine.go:411-472` (ResumePipeline, heartbeatLoop)
@@ -106,6 +107,7 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 - [ ] **Step 3: Add `ctx` to all `PipelineStore` methods in `internal/store/event_store.go`**
 
 Add `ctx context.Context` as first parameter to all 11 methods and replace `ctx := context.Background()` with using the passed `ctx`:
+
 - `UpsertDefinition(ctx context.Context, ...)`
 - `CreateRun(ctx context.Context, ...)`
 - `UpdateRunStatus(ctx context.Context, ...)`
@@ -122,6 +124,7 @@ Add `ctx context.Context` as first parameter to all 11 methods and replace `ctx 
 - [ ] **Step 4: Update pipeline engine callers in `pkg/pipeline/engine.go`**
 
 The engine already has `ctx` available in all its methods. Pass it through:
+
 - `e.store.HasConsumed(ctx, ...)` instead of `e.store.HasConsumed(...)`
 - `e.store.RecordConsumption(ctx, ...)` instead of `e.store.RecordConsumption(...)`
 - `e.store.SaveCheckpoint(ctx, runID, cp)` instead of `e.store.SaveCheckpoint(runID, cp)`
@@ -136,6 +139,7 @@ The engine already has `ctx` available in all its methods. Pass it through:
 - `e.store.SaveCheckpoint(ctx, runID, cp)` instead of `e.store.SaveCheckpoint(runID, cp)` (in ResumePipeline)
 
 For `heartbeatLoop`, the goroutine already has `ctx` — pass it:
+
 ```go
 if err := e.store.UpdateRunHeartbeat(ctx, runID); err != nil {
 ```
@@ -143,6 +147,7 @@ if err := e.store.UpdateRunHeartbeat(ctx, runID); err != nil {
 - [ ] **Step 5: Update EventStore callers in `internal/server/pipeline.go:79-81`**
 
 The `ability.SetEventEmitter` callback already receives `ctx context.Context`:
+
 ```go
 eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))
 _ = eventStore.AppendDataEvent(ctx, dataEvent)
@@ -169,6 +174,7 @@ git commit -m "store: add ctx to RunStore, EventStore, PipelineStore"
 ### Task 2: AuditStore + HubStore interfaces + implementations + call sites
 
 **Files:**
+
 - Modify: `internal/store/audit_store.go:34-112` (Write, Success, Rejected, Failed)
 - Modify: `internal/store/hub_store.go:28-79` (SaveHomelabApps)
 - Modify: `internal/server/hub.go:167` (AuditStore call site + writeLifecycleAudit)
@@ -239,6 +245,7 @@ func (s *AuditStore) Failed(ctx context.Context, actorType, actorID, uid, topic,
 ```go
 func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) error {
 ```
+
 Replace `ctx := context.Background()` with using the passed `ctx` parameter.
 
 - [ ] **Step 3: Update all AuditStore call sites**
@@ -246,15 +253,19 @@ Replace `ctx := context.Background()` with using the passed `ctx` parameter.
 In `internal/server/hub.go`, the `writeLifecycleAudit` method needs to accept and pass `ctx`. Find the method and update:
 
 Search for `writeLifecycleAudit` in `hub.go` and add `ctx context.Context` parameter:
+
 ```go
 func (c *Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
 ```
+
 Each call site already has `ctx` via `fiber.Ctx.Context()`:
+
 ```go
 c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.start", "failed", err.Error())
 ```
 
 Update AuditStore instantiation to pass ctx:
+
 ```go
 auditStore := store.NewAuditStore(store.Database.GetDB().(*store.Client))
 _ = auditStore.Write(ctx, store.AuditEntry{...})
@@ -265,6 +276,7 @@ Similarly update `Success`/`Rejected`/`Failed` calls to pass `ctx`.
 - [ ] **Step 4: Update HubStore call site in `internal/server/homelab.go:42-44`**
 
 Find the `SaveHomelabApps` call. It runs in a goroutine with `context.Background()` — keep it as-is:
+
 ```go
 store.NewHubStore(client).SaveHomelabApps(context.Background(), apps)
 ```
@@ -281,6 +293,7 @@ git commit -m "store: add ctx to AuditStore, HubStore"
 ### Task 3: WorkflowRunStore interface + implementations + Workflow call sites
 
 **Files:**
+
 - Modify: `pkg/workflow/persistence.go:20-30` (WorkflowRunStore interface)
 - Modify: `internal/store/workflow_store.go:26-201` (all 9 methods)
 - Modify: `pkg/workflow/workflow.go` (all call sites in Runner methods)
@@ -306,6 +319,7 @@ type WorkflowRunStore interface {
 - [ ] **Step 2: Add `ctx` to all `WorkflowRunStore` implementation methods in `internal/store/workflow_store.go`**
 
 For each method, add `ctx context.Context` as first parameter. Remove `ctx := context.Background()`. Pass `ctx` to all Ent calls:
+
 - `CreateRun(ctx context.Context, ...)` — replace `ctx := context.Background()` at line 30 with passed `ctx`
 - `UpdateRunStatus(ctx context.Context, ...)` — replace line 53
 - `CreateStepRun(ctx context.Context, ...)` — replace line 70
@@ -321,40 +335,49 @@ For each method, add `ctx context.Context` as first parameter. Remove `ctx := co
 Add `ctx` as first argument to all `r.store.Xxx(...)` calls:
 
 In `executeWithRunRecord` (line 232):
+
 ```go
 run, err = r.store.CreateRun(ctx, wf.Name, workflowFile, triggerType, nil, inputJSON)
 ```
 
 In `runSequential` (line 283):
+
 ```go
 _ = r.store.UpdateRunStatus(ctx, run.ID, model.WorkflowRunDone, "")
 ```
 
 In `executeSequentialStep` (line 313):
+
 ```go
 stepRun, err = r.store.CreateStepRun(ctx, run.ID, stepID, wt.Describe, wt.Action, info.Type, model.JSON(params), 1)
 ```
 
 In `executeSequentialMapperStep` (line 352):
+
 ```go
 _ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunDone, resultJSON, "", 1)
 ```
 
 In `executeSequentialExecutorStep` (line 420):
+
 ```go
 _ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunDone, resultJSON, "", attempt)
 ```
 
 In `saveCheckpoint` (line 436):
+
 ```go
 if cerr := r.store.SaveCheckpoint(ctx, run.ID, &cp); cerr != nil {
 ```
+
 Note: `saveCheckpoint` does NOT have ctx — the calling function does. Add ctx parameter to `saveCheckpoint` function:
+
 ```go
 func saveCheckpoint(ctx context.Context, stepIndex int, r *Runner, wf types.WorkflowMetadata, results map[string]string, input types.KV, run *model.WorkflowRun) {
 ```
 
 In `ResumeWorkflow` (line 450, 469, 505, 535, 550, 581, 625):
+
 ```go
 run, err := r.store.GetRun(ctx, runID) // line 450 needs `ctx` — use `context.Background()` or thread the ctx from caller
 // ... other calls
@@ -362,45 +385,57 @@ _ = r.store.UpdateRunStatus(ctx, runID, model.WorkflowRunDone, "")
 ```
 
 **Important**: `ResumeWorkflow` doesn't have `ctx` parameter. Add `ctx context.Context` to it:
+
 ```go
 func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 ```
 
 And replace `context.Background()` at line 490:
+
 ```go
 hbCtx, cancelHeartbeat = context.WithCancel(ctx)
 ```
 
 Similarly, the `resume*` step functions need `ctx`:
+
 ```go
 func (r *Runner) executeResumeStep(ctx context.Context, ...) error {
 ```
+
 And the executeResumeExecutorStep at line 607:
+
 ```go
 ctx := context.Background() // REPLACE with passed ctx parameter
 ```
 
 In `heartbeat` (line 657):
+
 ```go
 _ = r.store.UpdateRunHeartbeat(ctx, runID) // already has ctx from goroutine
 ```
 
 In `failRun` (line 636):
+
 ```go
 _ = r.store.UpdateRunStatus(ctx, run.ID, model.WorkflowRunFailed, err.Error())
 ```
+
 Add `ctx context.Context` parameter.
 
 In `failStep` (line 643):
+
 ```go
 _ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunFailed, nil, err.Error(), attempt)
 ```
+
 Add `ctx context.Context` parameter.
 
 In `runWithRetry` (line 683):
+
 ```go
 _ = r.store.UpdateStepRun(ctx, stepRun.ID, model.WorkflowRunRunning, nil, err.Error(), attempt)
 ```
+
 Already has `ctx` parameter.
 
 - [ ] **Step 4: Update all Workflow call sites in `pkg/workflow/scheduler.go`**
@@ -412,6 +447,7 @@ Add `ctx` to all `r.store.Xxx(...)` calls in `runParallel`, `executeParallelStep
 ```go
 if err := runner.Execute(ctx.Context(), *wf, types.KV(body.Params), body.File); err != nil {
 ```
+
 Replace `context.Background()` with `ctx.Context()` (Fiber context).
 
 - [ ] **Step 6: Verify build compiles**
@@ -435,6 +471,7 @@ git commit -m "store: add ctx to WorkflowRunStore"
 ### Task 4: Postgres adapter — add ctx to all 86 data-access methods
 
 **Files:**
+
 - Modify: `internal/store/postgres/adapter.go` (lines ~120-1959 — all method signatures)
 
 - [ ] **Step 1: Add `ctx context.Context` to every data-access method signature**
@@ -457,6 +494,7 @@ func (a *adapter) UserCreate(ctx context.Context, user *model.User) error {
 All 86 data-access methods follow the same mechanical pattern. The `context` import is already present at the top of the file.
 
 **List of methods to modify (all in `internal/store/postgres/adapter.go`):**
+
 - UserCreate, UserGet, UserGetAll, FirstUser, UserDelete, UserUpdate
 - FileStartUpload, FileFinishUpload, FileGet, FileDeleteUnused
 - GetUsers, GetUserById, GetUserByFlag
@@ -496,6 +534,7 @@ git commit -m "store: add ctx to postgres adapter data-access methods"
 ### Task 5: Adapter interface — add ctx to all 86 data-access methods
 
 **Files:**
+
 - Modify: `internal/store/store.go:150-274` (Adapter interface)
 
 - [ ] **Step 1: Add `ctx context.Context` to every data-access method in the Adapter interface**
@@ -537,11 +576,13 @@ git commit -m "store: add ctx to Adapter interface"
 Call sites are in these files (grouped by context source):
 
 **HTTP handlers (fiber.Ctx)**:
+
 - Modify: `internal/server/router.go` — Use `c.Context()` for all `store.Database.Xxx(...)` calls
 - Modify: `internal/server/func.go` — Already has `ctx` (from protocol handler) — pass `ctx.Context()` or `ctx` directly
 - Modify: `internal/server/module.go` — Already has `c` (fiber.Ctx) in some calls; others use types.Context
 
 **HTTP handlers (types.Context)**:
+
 - `internal/modules/webhook/command.go` — calls receive `ctx *types.Context`, pass `ctx.Context`
 - `internal/modules/github/command.go` — same
 - `internal/modules/github/cron.go` — same
@@ -551,6 +592,7 @@ Call sites are in these files (grouped by context source):
 - `internal/modules/notify/form.go` — pass `ctx.Context`
 
 **Core packages (types.Context)**:
+
 - `pkg/event/action.go` — pass `ctx.Context`
 - `pkg/module/module.go` — pass `ctx.Context`
 - `pkg/route/route.go` — call sites may use `context.Background()` for cron-like behavior
@@ -634,12 +676,12 @@ go tool task test:specs
 
 Specific call sites that use `context.Background()` intentionally:
 
-| Location | Method | Reason |
-|---|---|---|
-| `pkg/types/ruleset/cron/cron.go:132` | `GetUsers()` | Cron goroutine, no request ctx |
-| `internal/modules/server/cron.go:160` | `GetAgents()` | Cron goroutine |
-| `internal/server/homelab.go:43` | `SaveHomelabApps()` | Startup goroutine |
-| `pkg/route/route.go:108,180` | `ParameterGet()` | Auth middleware, pre-request |
-| `internal/server/pipeline.go:79-81` | `AppendDataEvent`, `AppendEventOutbox` | Event emission has ctx from callback |
+| Location                              | Method                                 | Reason                               |
+| ------------------------------------- | -------------------------------------- | ------------------------------------ |
+| `pkg/types/ruleset/cron/cron.go:132`  | `GetUsers()`                           | Cron goroutine, no request ctx       |
+| `internal/modules/server/cron.go:160` | `GetAgents()`                          | Cron goroutine                       |
+| `internal/server/homelab.go:43`       | `SaveHomelabApps()`                    | Startup goroutine                    |
+| `pkg/route/route.go:108,180`          | `ParameterGet()`                       | Auth middleware, pre-request         |
+| `internal/server/pipeline.go:79-81`   | `AppendDataEvent`, `AppendEventOutbox` | Event emission has ctx from callback |
 
 All other call sites pass the caller's context.

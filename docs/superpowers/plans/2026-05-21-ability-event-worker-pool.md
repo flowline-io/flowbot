@@ -12,24 +12,25 @@
 
 **File Map:**
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `pkg/ability/pool.go` | Create | `ants.PoolWithFunc` wrapper, init/shutdown/drop |
-| `pkg/ability/pool_test.go` | Create | Unit tests for pool wrapper |
-| `pkg/ability/invoke.go` | Modify | Replace `go func()` with `pool.Invoke()` |
-| `pkg/ability/invoke_test.go` | Modify | Update event emission tests for pool |
-| `pkg/metrics/ability.go` | Modify | Add `eventDroppedTotal` counter |
-| `pkg/config/config.go` | Modify | Add `AbilityEventPool` config struct |
-| `internal/server/pipeline.go` | Modify | Call `ability.InitEventPool` |
-| `internal/server/server.go` | Modify | Call `ability.ShutdownEventPool` in OnStop |
-| `docs/reference/config.yaml` | Modify | Add `ability.event_pool` section |
-| `go.mod` | Modify | Add `ants/v2` dependency |
+| File                          | Action | Responsibility                                  |
+| ----------------------------- | ------ | ----------------------------------------------- |
+| `pkg/ability/pool.go`         | Create | `ants.PoolWithFunc` wrapper, init/shutdown/drop |
+| `pkg/ability/pool_test.go`    | Create | Unit tests for pool wrapper                     |
+| `pkg/ability/invoke.go`       | Modify | Replace `go func()` with `pool.Invoke()`        |
+| `pkg/ability/invoke_test.go`  | Modify | Update event emission tests for pool            |
+| `pkg/metrics/ability.go`      | Modify | Add `eventDroppedTotal` counter                 |
+| `pkg/config/config.go`        | Modify | Add `AbilityEventPool` config struct            |
+| `internal/server/pipeline.go` | Modify | Call `ability.InitEventPool`                    |
+| `internal/server/server.go`   | Modify | Call `ability.ShutdownEventPool` in OnStop      |
+| `docs/reference/config.yaml`  | Modify | Add `ability.event_pool` section                |
+| `go.mod`                      | Modify | Add `ants/v2` dependency                        |
 
 ---
 
 ### Task 1: Add `ants` dependency
 
 **Files:**
+
 - Modify: `go.mod`
 
 - [ ] **Step 1: Run `go get` to add ants**
@@ -52,6 +53,7 @@ git commit -m "deps: add ants goroutine pool"
 ### Task 2: Add event_dropped counter to AbilityCollector
 
 **Files:**
+
 - Modify: `pkg/metrics/ability.go:12-56`
 
 - [ ] **Step 1: Write the test for dropped counter**
@@ -139,6 +141,7 @@ git commit -m "feat: add event_dropped counter to AbilityCollector"
 ### Task 3: Add AbilityEventPool config struct
 
 **Files:**
+
 - Modify: `pkg/config/config.go`
 - Modify: `docs/reference/config.yaml`
 
@@ -201,6 +204,7 @@ git commit -m "feat: add ability.event_pool configuration"
 ### Task 4: Create pool wrapper
 
 **Files:**
+
 - Create: `pkg/ability/pool.go`
 - Create: `pkg/ability/pool_test.go`
 
@@ -586,6 +590,7 @@ git commit -m "feat: add ants-based event pool wrapper to ability"
 ### Task 5: Wire pool into ability.Invoke
 
 **Files:**
+
 - Modify: `pkg/ability/invoke.go:131-140`
 
 - [ ] **Step 1: Update Invoke to use pool**
@@ -636,6 +641,7 @@ No - the problem is that in `TestRegistry_InvokeEmitsEvents`, the test emits on 
 Let me think about this more carefully...
 
 The test at line 420:
+
 ```go
 result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
 require.NoError(t, err)
@@ -656,8 +662,9 @@ So the existing tests should pass without modification. The only issue is `t.Par
 Actually no - `t.Parallel()` in the tests mean tests run in parallel goroutines. The `epInst` is a package-level global. If one test initializes the pool and another deinitializes it, there's a race.
 
 Let me check - in the current tests:
+
 - `TestRegistry_InvokeEmitsEvents` - doesn't init or touch pool
-- `TestRegistry_InvokeNoEmitWithoutEvents` - doesn't init or touch pool  
+- `TestRegistry_InvokeNoEmitWithoutEvents` - doesn't init or touch pool
 - `TestRegistry_InvokeNoEmitWithoutEmitter` - doesn't init or touch pool
 
 Since these tests don't call `InitEventPool`, the global `epInst` stays nil, and `submitEvent` takes the direct-execution path. Tests should be fine in parallel.
@@ -686,6 +693,7 @@ git commit -m "feat: replace go func() with event pool in ability.Invoke"
 ### Task 6: Wire pool init and shutdown into server lifecycle
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go`
 - Modify: `internal/server/server.go`
 

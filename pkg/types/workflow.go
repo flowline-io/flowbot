@@ -78,13 +78,13 @@ type WorkflowTriggerDef struct {
 }
 
 type WorkflowMetadata struct {
-	Name           string              `json:"name" yaml:"name"`
-	Describe       string              `json:"describe" yaml:"describe"`
-	Resumable      bool                `json:"resumable" yaml:"resumable"`
-	MaxConcurrency int                 `json:"max_concurrency" yaml:"max_concurrency"` // 0 or 1 = sequential; >1 enables DAG-based parallel execution
+	Name           string               `json:"name" yaml:"name"`
+	Describe       string               `json:"describe" yaml:"describe"`
+	Resumable      bool                 `json:"resumable" yaml:"resumable"`
+	MaxConcurrency int                  `json:"max_concurrency" yaml:"max_concurrency"` // 0 or 1 = sequential; >1 enables DAG-based parallel execution
 	Triggers       []WorkflowTriggerDef `json:"triggers" yaml:"triggers"`
-	Pipeline       []string            `json:"pipeline" yaml:"pipeline"`
-	Tasks          []WorkflowTask      `json:"tasks" yaml:"tasks"`
+	Pipeline       []string             `json:"pipeline" yaml:"pipeline"`
+	Tasks          []WorkflowTask       `json:"tasks" yaml:"tasks"`
 }
 
 type WorkflowTask struct {

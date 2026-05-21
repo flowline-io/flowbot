@@ -13,6 +13,7 @@
 ### Task 1: Add IsMutation to operations.go
 
 **Files:**
+
 - Modify: `pkg/ability/operations.go` (append at end of file)
 
 - [ ] **Step 1: Write the failing test**
@@ -63,6 +64,7 @@ func TestIsMutation(t *testing.T) {
 ```bash
 go test ./pkg/ability/ -run TestIsMutation -v
 ```
+
 Expected: FAIL — `IsMutation` not defined.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -95,6 +97,7 @@ func IsMutation(op string) bool {
 ```bash
 go test ./pkg/ability/ -run TestIsMutation -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -109,6 +112,7 @@ git commit -m "feat: add IsMutation function for operation type classification"
 ### Task 2: Add GetBytes, SetBytesWithTTL, DelByPrefix with key index to cache.go
 
 **Files:**
+
 - Modify: `pkg/cache/cache.go` (add new fields and methods)
 - Modify: `pkg/cache/cache_test.go` (add tests for new methods)
 
@@ -237,6 +241,7 @@ func TestCacheGetBytes(t *testing.T) {
 ```bash
 go test ./pkg/cache/ -run "TestCacheDelByPrefix|TestCacheGetBytes" -v
 ```
+
 Expected: FAIL — methods not defined.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -315,6 +320,7 @@ func (c *Cache) SetWithTTLCap(key string, value []byte, cost int64, ttl time.Dur
 ```bash
 go test ./pkg/cache/ -run "TestCacheDelByPrefix|TestCacheGetBytes" -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Run all cache tests**
@@ -322,6 +328,7 @@ Expected: PASS
 ```bash
 go test ./pkg/cache/ -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 6: Commit**
@@ -336,6 +343,7 @@ git commit -m "feat: add GetBytes, SetWithTTLCap, DelByPrefix with key index to 
 ### Task 3: Add cache-aside logic to Invoke()
 
 **Files:**
+
 - Modify: `pkg/ability/invoke.go` (insert cache logic in Invoke method)
 - Modify: `pkg/ability/invoke_test.go` (add cache behavior tests)
 
@@ -586,6 +594,7 @@ import (
 ```bash
 go test ./pkg/ability/ -run "TestRegistry_InvokeCache" -v
 ```
+
 Expected: FAIL — cache logic not yet implemented, or will PASS if cache.Instance is nil and logic gracefully skips.
 
 First check: tests should compile but some assertions on cache behavior will fail because caching is not yet implemented.
@@ -746,6 +755,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 ```bash
 go test ./pkg/ability/ -run "TestRegistry_InvokeCache" -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 5: Run all ability tests**
@@ -753,6 +763,7 @@ Expected: all PASS
 ```bash
 go test ./pkg/ability/ -v
 ```
+
 Expected: all PASS (including existing tests)
 
 - [ ] **Step 6: Run all cache tests**
@@ -760,6 +771,7 @@ Expected: all PASS (including existing tests)
 ```bash
 go test ./pkg/cache/ -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 7: Run lint**
@@ -767,6 +779,7 @@ Expected: all PASS
 ```bash
 go tool task lint
 ```
+
 Expected: clean (no new warnings)
 
 - [ ] **Step 8: Commit**
@@ -785,6 +798,7 @@ git commit -m "feat: add cache-aside layer to ability.Invoke with Ristretto"
 ```bash
 go tool task build
 ```
+
 Expected: build succeeds
 
 - [ ] **Step 2: Run full unit test suite**
@@ -792,6 +806,7 @@ Expected: build succeeds
 ```bash
 go tool task test
 ```
+
 Expected: all tests pass
 
 - [ ] **Step 3: Verify no new lint violations**
@@ -799,6 +814,7 @@ Expected: all tests pass
 ```bash
 go tool task lint
 ```
+
 Expected: clean
 
 - [ ] **Step 4: Commit (if any final adjustments)**

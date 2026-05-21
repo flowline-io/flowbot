@@ -44,11 +44,11 @@ ability.Invoke(ctx, capType, op, params)
 
 ### Modified Files
 
-| File | Change | Lines |
-|------|--------|-------|
-| `pkg/ability/invoke.go` | Cache-aside logic + isMutation helper | ~50 |
-| `pkg/cache/cache.go` | `GetRaw([]byte)` / `SetWithTTL([]byte)` overloads + `DelByPrefix` + key index | ~60 |
-| `pkg/ability/operations.go` | `IsMutation(op string) bool` | ~15 |
+| File                        | Change                                                                        | Lines |
+| --------------------------- | ----------------------------------------------------------------------------- | ----- |
+| `pkg/ability/invoke.go`     | Cache-aside logic + isMutation helper                                         | ~50   |
+| `pkg/cache/cache.go`        | `GetRaw([]byte)` / `SetWithTTL([]byte)` overloads + `DelByPrefix` + key index | ~60   |
+| `pkg/ability/operations.go` | `IsMutation(op string) bool`                                                  | ~15   |
 
 ### Unchanged
 
@@ -67,6 +67,7 @@ ability.Invoke(ctx, capType, op, params)
 **Params serialization:** Sort keys alphabetically, then `sonic.MarshalString`. SHA1 digest for a fixed-length, deterministic key (40 hex chars). SHA1 chosen because it is already used in the codebase (`pkg/alarm/alarm.go` for dedup hashing).
 
 **Non-cacheable requests:**
+
 - Params containing a `cursor` field (pagination cursors change per page, near-zero reuse)
 - Explicit `cache: false` in params (future manual override)
 
@@ -97,6 +98,7 @@ var mutationVerbs = []string{
 **TTL:** `TTLShort` = 2 minutes (already defined in `pkg/cache/ttl.go`)
 
 **Two-tier invalidation:**
+
 1. **TTL auto-expiry** — Ristretto evicts entries after 2 minutes. This is the primary expiration mechanism.
 2. **Active invalidation on write** — When `isMutation(op)` is true, `DelByPrefix("ability:{capType}:")` clears all cached entries for that capability.
 
@@ -125,16 +127,16 @@ Cache.keyIndex: sync.Map  // "bookmark" → map[string]struct{} (key set)
 
 ## Error Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| Invoker returns error | Not cached; error propagated to caller |
-| sonic marshal fails | Log warning, skip cache, return result normally |
-| sonic unmarshal fails | Log warning, treat as cache miss, execute invoker |
-| Ristretto Set fails (capacity full) | Ignored; Set returns false, no impact on flow |
-| Ristretto Get misses or errors | Treated as cache miss; original invoker runs |
-| Key index write fails | Ignored; only affects future DelByPrefix completeness |
-| `isMutation` false negative | Read operation not cached (safe, just suboptimal) |
-| `isMutation` false positive | Write invalidates cache unnecessarily (safe, just suboptimal) |
+| Scenario                            | Behavior                                                      |
+| ----------------------------------- | ------------------------------------------------------------- |
+| Invoker returns error               | Not cached; error propagated to caller                        |
+| sonic marshal fails                 | Log warning, skip cache, return result normally               |
+| sonic unmarshal fails               | Log warning, treat as cache miss, execute invoker             |
+| Ristretto Set fails (capacity full) | Ignored; Set returns false, no impact on flow                 |
+| Ristretto Get misses or errors      | Treated as cache miss; original invoker runs                  |
+| Key index write fails               | Ignored; only affects future DelByPrefix completeness         |
+| `isMutation` false negative         | Read operation not cached (safe, just suboptimal)             |
+| `isMutation` false positive         | Write invalidates cache unnecessarily (safe, just suboptimal) |
 
 **Core principle:** The cache layer is a performance optimization. Any failure in the caching path must never affect correctness. Callers always receive the correct result.
 
@@ -143,6 +145,7 @@ Cache.keyIndex: sync.Map  // "bookmark" → map[string]struct{} (key set)
 ## Cost Model
 
 All cached entries use `cost = 1`. With 1GB MaxCost and Ristretto's sample-based eviction (not exact LRU), the effective capacity is millions of entries. Given:
+
 - ~20 distinct cached operation patterns (list, get, search across bookmark/reader/kanban)
 - Each with a small number of param variations
 - Total cached entries at steady state << 1000
@@ -155,32 +158,32 @@ Memory utilization from ~0 to a few MB. Remaining 1GB capacity remains available
 
 ### Unit Tests (`pkg/ability/invoke_test.go`)
 
-| Test | Description |
-|------|-------------|
-| `cache hit returns stored result` | Second call with same params returns cached result without invoking handler |
-| `cache miss invokes handler` | First call or expired TTL invokes the handler normally |
-| `mutation operation invalidates prefix` | Write op clears all cached entries for that capability |
-| `mutation operation result not cached` | Write op result is never stored in cache |
-| `different params produce different keys` | Varying params generate distinct cache keys |
-| `handler error not cached` | Error from invoker is not stored in cache |
-| `cursor param skips cache` | Params with `cursor` bypass cache entirely |
+| Test                                      | Description                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| `cache hit returns stored result`         | Second call with same params returns cached result without invoking handler |
+| `cache miss invokes handler`              | First call or expired TTL invokes the handler normally                      |
+| `mutation operation invalidates prefix`   | Write op clears all cached entries for that capability                      |
+| `mutation operation result not cached`    | Write op result is never stored in cache                                    |
+| `different params produce different keys` | Varying params generate distinct cache keys                                 |
+| `handler error not cached`                | Error from invoker is not stored in cache                                   |
+| `cursor param skips cache`                | Params with `cursor` bypass cache entirely                                  |
 
 ### Unit Tests (`pkg/cache/cache_test.go`)
 
-| Test | Description |
-|------|-------------|
-| `DelByPrefix removes all matching keys` | Prefix deletion clears indexed keys |
-| `DelByPrefix on empty prefix is no-op` | No panic on missing prefix |
-| `SetWithTTL registers in key index` | Key index updated on successful Set |
-| `GetRaw returns stored bytes` | Raw byte retrieval with type assertion |
+| Test                                    | Description                            |
+| --------------------------------------- | -------------------------------------- |
+| `DelByPrefix removes all matching keys` | Prefix deletion clears indexed keys    |
+| `DelByPrefix on empty prefix is no-op`  | No panic on missing prefix             |
+| `SetWithTTL registers in key index`     | Key index updated on successful Set    |
+| `GetRaw returns stored bytes`           | Raw byte retrieval with type assertion |
 
 ---
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Stale data for 2 minutes after write | TTL is short (2 min); homelab single-user scenario can tolerate brief inconsistency |
-| Key index memory growth | Index cleaned on `DelByPrefix`; values expire naturally with TTL eviction (index entries linger but are tiny — ~80 bytes per entry) |
-| SHA1 collision across params | Non-security use; collision probability ~1/2^80, negligible for cache keys |
-| `sonic` edge cases with complex types | If marshal fails, cache is skipped gracefully; no data corruption possible |
+| Risk                                  | Mitigation                                                                                                                          |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Stale data for 2 minutes after write  | TTL is short (2 min); homelab single-user scenario can tolerate brief inconsistency                                                 |
+| Key index memory growth               | Index cleaned on `DelByPrefix`; values expire naturally with TTL eviction (index entries linger but are tiny — ~80 bytes per entry) |
+| SHA1 collision across params          | Non-security use; collision probability ~1/2^80, negligible for cache keys                                                          |
+| `sonic` edge cases with complex types | If marshal fails, cache is skipped gracefully; no data corruption possible                                                          |
