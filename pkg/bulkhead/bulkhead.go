@@ -81,6 +81,20 @@ func New(name string, opts ...Option) *Bulkhead {
 	}
 }
 
+// releaseQueue drains one slot from the wait queue if queueing is enabled.
+func (b *Bulkhead) releaseQueue() {
+	if b.config.maxQueue > 0 {
+		<-b.queue
+	}
+}
+
+// drop notifies the onDrop callback if configured.
+func (b *Bulkhead) drop(reason string) {
+	if b.config.onDrop != nil {
+		b.config.onDrop(b.name, reason)
+	}
+}
+
 // Do acquires a slot, waiting up to the configured timeout, then executes fn.
 // Returns ErrBulkheadFull if the queue is at capacity.
 // Returns ErrBulkheadTimeout if a slot is not acquired within the timeout.
@@ -89,11 +103,8 @@ func (b *Bulkhead) Do(ctx context.Context, fn func() error) error {
 	if b.config.maxQueue > 0 {
 		select {
 		case b.queue <- struct{}{}:
-			defer func() { <-b.queue }()
 		default:
-			if b.config.onDrop != nil {
-				b.config.onDrop(b.name, "queue_full")
-			}
+			b.drop("queue_full")
 			return ErrBulkheadFull
 		}
 	}
@@ -112,22 +123,20 @@ func (b *Bulkhead) Do(ctx context.Context, fn func() error) error {
 	select {
 	case b.sem <- struct{}{}:
 	case <-timer.C:
+		b.releaseQueue()
 		if err := ctx.Err(); err != nil {
-			if b.config.onDrop != nil {
-				b.config.onDrop(b.name, "canceled")
-			}
+			b.drop("canceled")
 			return err
 		}
-		if b.config.onDrop != nil {
-			b.config.onDrop(b.name, "timeout")
-		}
+		b.drop("timeout")
 		return ErrBulkheadTimeout
 	case <-ctx.Done():
-		if b.config.onDrop != nil {
-			b.config.onDrop(b.name, "canceled")
-		}
+		b.releaseQueue()
+		b.drop("canceled")
 		return ctx.Err()
 	}
+
+	b.releaseQueue()
 
 	defer func() { <-b.sem }()
 
