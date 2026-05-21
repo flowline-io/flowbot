@@ -10,6 +10,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/reader"
 	serverModule "github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -17,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/trace"
 )
@@ -40,6 +43,7 @@ var Modules = fx.Options(
 		newController,
 		newDatabaseAdapter,
 		newHTTPServer,
+		newAuditor,
 	),
 	fx.Invoke(
 		setServerCacheStore,
@@ -49,6 +53,7 @@ var Modules = fx.Options(
 		setReaderCacheStore,
 		setKanbanCacheStore,
 		setGiteaCacheStore,
+		setRouteAuditor,
 		handleRoutes,
 		handleEvents,
 		handleModules,
@@ -85,4 +90,23 @@ func setKanbanCacheStore(store *cache.RedisStore) {
 
 func setGiteaCacheStore(store *cache.RedisStore) {
 	gitea.SetCacheStore(store)
+}
+
+// newAuditor creates an audit.Auditor from the global store database.
+// Returns nil if the database is not yet initialized.
+func newAuditor() audit.Auditor {
+	if store.Database == nil || store.Database.GetDB() == nil {
+		return nil
+	}
+	client, ok := store.Database.GetDB().(*store.Client)
+	if !ok {
+		return nil
+	}
+	return store.NewAuditStore(client)
+}
+
+// setRouteAuditor injects the global auditor into the route package
+// for auth failure audit logging in the Authorize middleware.
+func setRouteAuditor(a audit.Auditor) {
+	route.SetAuditor(a)
 }
