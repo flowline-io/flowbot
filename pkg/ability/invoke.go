@@ -79,6 +79,22 @@ func SetBulkheadCallbacks() {
 				mc.IncBulkheadDropped(name, reason)
 			}
 		}),
+		bulkhead.WithOnQueueEnter(func(name string) {
+			DefaultRegistry.mu.RLock()
+			mc := DefaultRegistry.metrics
+			DefaultRegistry.mu.RUnlock()
+			if mc != nil {
+				mc.IncBulkheadQueued(name)
+			}
+		}),
+		bulkhead.WithOnQueueLeave(func(name string) {
+			DefaultRegistry.mu.RLock()
+			mc := DefaultRegistry.metrics
+			DefaultRegistry.mu.RUnlock()
+			if mc != nil {
+				mc.DecBulkheadQueued(name)
+			}
+		}),
 	)
 }
 

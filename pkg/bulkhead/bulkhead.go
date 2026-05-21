@@ -20,6 +20,8 @@ type config struct {
 	onEnter       func(name string, waitDuration time.Duration)
 	onLeave       func(name string)
 	onDrop        func(name string, reason string)
+	onQueueEnter  func(name string)
+	onQueueLeave  func(name string)
 }
 
 // Option configures a Bulkhead instance.
@@ -55,6 +57,16 @@ func WithOnDrop(fn func(name string, reason string)) Option {
 	return func(c *config) { c.onDrop = fn }
 }
 
+// WithOnQueueEnter sets a callback invoked when a request enters the wait queue.
+func WithOnQueueEnter(fn func(name string)) Option {
+	return func(c *config) { c.onQueueEnter = fn }
+}
+
+// WithOnQueueLeave sets a callback invoked when a request leaves the wait queue.
+func WithOnQueueLeave(fn func(name string)) Option {
+	return func(c *config) { c.onQueueLeave = fn }
+}
+
 // Bulkhead controls concurrent access for a named resource.
 type Bulkhead struct {
 	name   string
@@ -84,6 +96,9 @@ func New(name string, opts ...Option) *Bulkhead {
 // releaseQueue drains one slot from the wait queue if queueing is enabled.
 func (b *Bulkhead) releaseQueue() {
 	if b.config.maxQueue > 0 {
+		if b.config.onQueueLeave != nil {
+			b.config.onQueueLeave(b.name)
+		}
 		<-b.queue
 	}
 }
@@ -103,6 +118,9 @@ func (b *Bulkhead) Do(ctx context.Context, fn func() error) error {
 	if b.config.maxQueue > 0 {
 		select {
 		case b.queue <- struct{}{}:
+			if b.config.onQueueEnter != nil {
+				b.config.onQueueEnter(b.name)
+			}
 		default:
 			b.drop("queue_full")
 			return ErrBulkheadFull
