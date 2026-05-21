@@ -184,8 +184,9 @@ func WebDocAction(_ *cobra.Command, _ []string) error {
 // collectPages walks the docs source directory and collects page metadata.
 func collectPages(srcDir string, pages *[]docPageInfo) error {
 	skipDirs := map[string]bool{
-		"api":     true,
-		"website": true,
+		"api":         true,
+		"website":     true,
+		"superpowers": true,
 	}
 
 	return filepath.WalkDir(srcDir, func(path string, d os.DirEntry, err error) error {
