@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -646,4 +648,245 @@ func TestSetMetricsCollector(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestRegistry_InvokeCacheHit(t *testing.T) {
+	// Cannot use t.Parallel(): tests share cache.Instance
+	t.Cleanup(func() {
+		cache.Instance = nil
+	})
+
+	tests := []struct {
+		name string
+	}{
+		{"second call with same params returns cached result without invoking handler"},
+		{"cache stores result data correctly on subsequent hit"},
+		{"cache preserves text field on hit"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = setupTestCache(t)
+			r := NewRegistry()
+			callCount := 0
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				callCount++
+				return &InvokeResult{Data: "result", Text: "cached text"}, nil
+			})
+			require.NoError(t, err)
+
+			result1, err := r.Invoke(t.Context(), hub.CapBookmark, "list", map[string]any{"key": "val"})
+			require.NoError(t, err)
+			require.Equal(t, 1, callCount)
+
+			result2, err := r.Invoke(t.Context(), hub.CapBookmark, "list", map[string]any{"key": "val"})
+			require.NoError(t, err)
+			require.Equal(t, 1, callCount, "handler should not be called again on cache hit")
+
+			assert.Equal(t, "result", result1.Data)
+			assert.Equal(t, "result", result2.Data)
+			assert.Equal(t, "cached text", result2.Text)
+		})
+	}
+}
+
+func TestRegistry_InvokeCacheMiss(t *testing.T) {
+	// Cannot use t.Parallel(): tests share cache.Instance
+	t.Cleanup(func() {
+		cache.Instance = nil
+	})
+
+	tests := []struct {
+		name string
+	}{
+		{"first call invokes handler and returns result"},
+		{"different params produce different cache keys"},
+		{"handler error is not cached"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = setupTestCache(t)
+			r := NewRegistry()
+			callCount := 0
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				callCount++
+				if tt.name == "handler error is not cached" {
+					return nil, errors.New("provider error")
+				}
+				return &InvokeResult{Data: "fresh"}, nil
+			})
+			require.NoError(t, err)
+
+			result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", map[string]any{"key": "first"})
+			if tt.name == "handler error is not cached" {
+				require.Error(t, err)
+				require.Equal(t, 1, callCount)
+				_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", map[string]any{"key": "first"})
+				require.Error(t, err)
+				require.Equal(t, 2, callCount, "error should not be cached, handler called again")
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, 1, callCount)
+			assert.Equal(t, "fresh", result.Data)
+
+			if tt.name == "different params produce different cache keys" {
+				result2, err := r.Invoke(t.Context(), hub.CapBookmark, "list", map[string]any{"key": "second"})
+				require.NoError(t, err)
+				require.Equal(t, 2, callCount, "different params should be cache miss")
+				assert.Equal(t, "fresh", result2.Data)
+			}
+		})
+	}
+}
+
+func TestRegistry_InvokeCacheMutationInvalidates(t *testing.T) {
+	// Cannot use t.Parallel(): tests share cache.Instance
+	t.Cleanup(func() {
+		cache.Instance = nil
+	})
+
+	tests := []struct {
+		name string
+	}{
+		{"write operation invalidates all cached read operations for same capability"},
+		{"write on one capability does not affect another capability"},
+		{"multiple writes invalidate progressively"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = setupTestCache(t)
+			r := NewRegistry()
+			listCallCount := 0
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				listCallCount++
+				return &InvokeResult{Data: "list result"}, nil
+			})
+			require.NoError(t, err)
+
+			kanbanCallCount := 0
+			if tt.name == "write on one capability does not affect another capability" {
+				err = r.Register(hub.CapKanban, "list_tasks", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+					kanbanCallCount++
+					return &InvokeResult{Data: "kanban result"}, nil
+				})
+				require.NoError(t, err)
+			}
+
+			createCallCount := 0
+			err = r.Register(hub.CapBookmark, "create", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				createCallCount++
+				return &InvokeResult{Text: "created"}, nil
+			})
+			require.NoError(t, err)
+
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+			require.NoError(t, err)
+			require.Equal(t, 1, listCallCount)
+
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "create", nil)
+			require.NoError(t, err)
+
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+			require.NoError(t, err)
+			require.Equal(t, 2, listCallCount, "cache should be invalidated after write")
+
+			if tt.name == "write on one capability does not affect another capability" {
+				_, err = r.Invoke(t.Context(), hub.CapKanban, "list_tasks", nil)
+				require.NoError(t, err)
+				_, err = r.Invoke(t.Context(), hub.CapKanban, "list_tasks", nil)
+				require.NoError(t, err)
+				require.Equal(t, 1, kanbanCallCount, "kanban cache should survive bookmark write")
+			}
+
+			if tt.name == "multiple writes invalidate progressively" {
+				_, err = r.Invoke(t.Context(), hub.CapBookmark, "create", nil)
+				require.NoError(t, err)
+				_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+				require.NoError(t, err)
+				require.Equal(t, 3, listCallCount)
+			}
+		})
+	}
+}
+
+func TestRegistry_InvokeCacheCursorSkip(t *testing.T) {
+	// Cannot use t.Parallel(): tests share cache.Instance
+	t.Cleanup(func() {
+		cache.Instance = nil
+	})
+
+	tests := []struct {
+		name string
+	}{
+		{"cursor param bypasses cache read"},
+		{"cursor param bypasses cache write"},
+		{"non-cursor params are cached normally"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = setupTestCache(t)
+			r := NewRegistry()
+			callCount := 0
+			err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+				callCount++
+				return &InvokeResult{Data: "result"}, nil
+			})
+			require.NoError(t, err)
+
+			params := map[string]any{"cursor": "next_page_token"}
+			if tt.name == "non-cursor params are cached normally" {
+				params = map[string]any{"archived": true}
+			}
+
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", params)
+			require.NoError(t, err)
+			_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", params)
+			require.NoError(t, err)
+
+			if tt.name == "non-cursor params are cached normally" {
+				require.Equal(t, 1, callCount, "non-cursor params should be cached")
+			} else {
+				require.Equal(t, 2, callCount, "cursor params should not be cached")
+			}
+		})
+	}
+}
+
+func TestRegistry_InvokeCacheSerializationRoundtrip(t *testing.T) {
+	// Cannot use t.Parallel(): tests share cache.Instance
+	t.Cleanup(func() {
+		cache.Instance = nil
+	})
+
+	t.Run("roundtrip preserves all result fields", func(t *testing.T) {
+		_ = setupTestCache(t)
+		r := NewRegistry()
+		err := r.Register(hub.CapBookmark, "list", func(_ context.Context, _ map[string]any) (*InvokeResult, error) {
+			return &InvokeResult{
+				Data: map[string]any{"nested": "value"},
+				Page: &PageInfo{HasMore: true},
+				Text: "some text",
+				Meta: map[string]any{"source": "cache"},
+			}, nil
+		})
+		require.NoError(t, err)
+
+		_, err = r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+		require.NoError(t, err)
+
+		result, err := r.Invoke(t.Context(), hub.CapBookmark, "list", nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.True(t, result.Page.HasMore)
+		assert.Equal(t, "some text", result.Text)
+		assert.Equal(t, "cache", result.Meta["source"])
+	})
+}
+
+func setupTestCache(t *testing.T) *cache.Cache {
+	t.Helper()
+	cache.Instance = nil
+	c, err := cache.NewCache(&config.Type{})
+	require.NoError(t, err)
+	return c
 }

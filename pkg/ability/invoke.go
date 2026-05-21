@@ -2,11 +2,17 @@ package ability
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
+	"slices"
 	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
@@ -43,8 +49,108 @@ func SetMetricsCollector(mc *metrics.AbilityCollector) {
 	DefaultRegistry.metrics = mc
 }
 
+func buildCacheKey(capability hub.CapabilityType, operation string, params map[string]any) string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	sorted := make(map[string]any, len(keys))
+	for _, k := range keys {
+		sorted[k] = params[k]
+	}
+	data, _ := sonic.MarshalString(sorted)
+	h := sha1.New()
+	_, _ = h.Write([]byte(data))
+	hash := hex.EncodeToString(h.Sum(nil))
+	return "ability:" + string(capability) + ":" + operation + ":" + hash
+}
+
+func hasCursorParam(params map[string]any) bool {
+	_, ok := params["cursor"]
+	return ok
+}
+
+func cacheRead(capability hub.CapabilityType, operation string, params map[string]any) *InvokeResult {
+	if cache.Instance == nil {
+		return nil
+	}
+	cacheKey := buildCacheKey(capability, operation, params)
+	cached, ok := cache.Instance.GetBytes(cacheKey)
+	if !ok {
+		return nil
+	}
+	var result InvokeResult
+	if err := sonic.UnmarshalString(string(cached), &result); err != nil {
+		return nil
+	}
+	return &result
+}
+
+func cacheWrite(capability hub.CapabilityType, operation string, params map[string]any, result *InvokeResult) {
+	if cache.Instance == nil {
+		return
+	}
+	cacheKey := buildCacheKey(capability, operation, params)
+	data, err := sonic.MarshalString(result)
+	if err != nil {
+		return
+	}
+	cache.Instance.SetWithTTLCap(cacheKey, []byte(data), 1, cache.TTLShort.Duration(), string(capability))
+	cache.Instance.Wait()
+}
+
+func cacheInvalidate(capability hub.CapabilityType) {
+	if cache.Instance == nil {
+		return
+	}
+	cache.Instance.DelByPrefix(string(capability))
+}
+
 func RegisterInvoker(capability hub.CapabilityType, operation string, invoker Invoker) error {
 	return DefaultRegistry.Register(capability, operation, invoker)
+}
+
+func (r *Registry) recordErrorMetrics(capability hub.CapabilityType, operation string, start time.Time, err error) {
+	r.mu.RLock()
+	mc := r.metrics
+	r.mu.RUnlock()
+	if mc == nil {
+		return
+	}
+	mc.IncInvokeTotal(string(capability), operation, "error")
+	mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
+	code := "unknown"
+	if te, ok := err.(*types.Error); ok {
+		code = te.Code
+	}
+	mc.IncInvokeError(string(capability), operation, code)
+}
+
+func (r *Registry) recordSuccessMetrics(capability hub.CapabilityType, operation string, start time.Time) {
+	r.mu.RLock()
+	mc := r.metrics
+	r.mu.RUnlock()
+	if mc == nil {
+		return
+	}
+	mc.IncInvokeTotal(string(capability), operation, "ok")
+	mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
+}
+
+func (r *Registry) emitEvents(ctx context.Context, capability hub.CapabilityType, operation string, result *InvokeResult) {
+	r.mu.RLock()
+	emitter := r.emitter
+	r.mu.RUnlock()
+	if emitter == nil || len(result.Events) == 0 {
+		return
+	}
+	capt := string(capability)
+	op := operation
+	res := result
+	submitEvent(capt, op, func() {
+		emitter(context.WithoutCancel(ctx), res)
+	})
 }
 
 func Invoke(ctx context.Context, capability hub.CapabilityType, operation string, params map[string]any) (*InvokeResult, error) {
@@ -86,6 +192,15 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 		return nil, types.Errorf(types.ErrNotImplemented, "operation %s.%s not implemented", capability, operation)
 	}
 
+	isMut := IsMutation(operation)
+	skipCache := isMut || hasCursorParam(params)
+
+	if !skipCache {
+		if cached := cacheRead(capability, operation, params); cached != nil {
+			return cached, nil
+		}
+	}
+
 	ctx, span := trace.StartSpan(ctx, "ability."+string(capability)+"."+operation,
 		attribute.String("capability.name", string(capability)),
 		attribute.String("capability.operation", operation),
@@ -96,18 +211,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	result, err := invoker(ctx, params)
 	if err != nil {
 		trace.RecordError(ctx, err)
-		r.mu.RLock()
-		mc := r.metrics
-		r.mu.RUnlock()
-		if mc != nil {
-			mc.IncInvokeTotal(string(capability), operation, "error")
-			mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
-			code := "unknown"
-			if te, ok := err.(*types.Error); ok {
-				code = te.Code
-			}
-			mc.IncInvokeError(string(capability), operation, code)
-		}
+		r.recordErrorMetrics(capability, operation, start, err)
 		return nil, err
 	}
 	if result == nil {
@@ -116,24 +220,14 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 	result.Capability = capability
 	result.Operation = operation
 
-	r.mu.RLock()
-	mc := r.metrics
-	r.mu.RUnlock()
-	if mc != nil {
-		mc.IncInvokeTotal(string(capability), operation, "ok")
-		mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
-	}
+	r.recordSuccessMetrics(capability, operation, start)
+	r.emitEvents(ctx, capability, operation, result)
 
-	r.mu.RLock()
-	emitter := r.emitter
-	r.mu.RUnlock()
-	if emitter != nil && len(result.Events) > 0 {
-		capt := string(capability)
-		op := operation
-		res := result
-		submitEvent(capt, op, func() {
-			emitter(context.WithoutCancel(ctx), res)
-		})
+	if !skipCache {
+		cacheWrite(capability, operation, params, result)
+	}
+	if isMut {
+		cacheInvalidate(capability)
 	}
 
 	return result, nil
