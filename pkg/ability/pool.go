@@ -60,6 +60,7 @@ func InitEventPool(size int, expiryDuration string, mc *metrics.AbilityCollector
 	pool, err := ants.NewPoolWithFunc(size, func(i any) {
 		task, ok := i.(*eventTask)
 		if !ok {
+			flog.Warn("ability: event pool received unknown task type: %T", i)
 			return
 		}
 		task.fn()
@@ -76,13 +77,14 @@ func InitEventPool(size int, expiryDuration string, mc *metrics.AbilityCollector
 // ShutdownEventPool releases the pool, waiting up to 30s for in-flight tasks.
 func ShutdownEventPool() {
 	epMu.Lock()
-	defer epMu.Unlock()
+	ep := epInst
+	epInst = nil
+	epMu.Unlock()
 
-	if epInst == nil {
+	if ep == nil {
 		return
 	}
-	epInst.pool.ReleaseTimeout(30 * time.Second)
-	epInst = nil
+	ep.pool.ReleaseTimeout(30 * time.Second)
 	flog.Info("ability: event pool released")
 }
 
@@ -106,11 +108,13 @@ func submitEvent(capability, operation string, fn func()) {
 
 	err := ep.pool.Invoke(task)
 	if err != nil {
+		if err == ants.ErrPoolClosed {
+			fn()
+			return
+		}
 		reason := "unknown"
 		if err == ants.ErrPoolOverload {
 			reason = "pool_overload"
-		} else if err == ants.ErrPoolClosed {
-			reason = "pool_closed"
 		}
 		flog.Warn("ability(%s.%s): event dropped: %v", capability, operation, err)
 		if ep.config.metrics != nil {

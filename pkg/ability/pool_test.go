@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/metrics"
+	"github.com/flowline-io/flowbot/pkg/stats"
 )
 
 // resetPool cleans up the global event pool instance between tests.
@@ -27,31 +28,33 @@ func TestInitEventPool(t *testing.T) {
 		name           string
 		size           int
 		expiryDuration string
+		doubleInit     bool
 		wantErr        bool
+		checkExpiry    bool
+		expectedExpiry time.Duration
 	}{
 		{
 			name:           "initializes pool with valid config",
 			size:           5,
 			expiryDuration: "30s",
-			wantErr:        false,
 		},
 		{
 			name:           "double init is safe",
 			size:           5,
 			expiryDuration: "30s",
-			wantErr:        false,
+			doubleInit:     true,
 		},
 		{
 			name:           "init with zero size uses ants default",
 			size:           0,
 			expiryDuration: "30s",
-			wantErr:        false,
 		},
 		{
 			name:           "init with invalid expiry duration falls back to default 30s",
 			size:           5,
 			expiryDuration: "invalid",
-			wantErr:        false,
+			checkExpiry:    true,
+			expectedExpiry: 30 * time.Second,
 		},
 	}
 	for _, tt := range tests {
@@ -59,7 +62,7 @@ func TestInitEventPool(t *testing.T) {
 			resetPool()
 
 			var err error
-			if tt.name == "double init is safe" {
+			if tt.doubleInit {
 				err = InitEventPool(5, "30s", nil)
 				require.NoError(t, err)
 				err = InitEventPool(5, "30s", nil)
@@ -79,8 +82,8 @@ func TestInitEventPool(t *testing.T) {
 			require.NotNil(t, inst)
 			require.NotNil(t, inst.pool)
 
-			if tt.name == "init with invalid expiry duration falls back to default 30s" {
-				assert.Equal(t, 30*time.Second, inst.config.expiry)
+			if tt.checkExpiry {
+				assert.Equal(t, tt.expectedExpiry, inst.config.expiry)
 			}
 
 			resetPool()
@@ -90,42 +93,43 @@ func TestInitEventPool(t *testing.T) {
 
 func TestSubmitEvent(t *testing.T) {
 	tests := []struct {
-		name string
+		name         string
+		initPool     bool
+		concurrent   int
+		checkContext bool
 	}{
-		{name: "submits and executes task via pool"},
-		{name: "submits multiple tasks concurrently"},
-		{name: "falls back to direct execution when pool is nil"},
-		{name: "task function captures correct capability and operation context"},
+		{
+			name:     "submits and executes task via pool",
+			initPool: true,
+		},
+		{
+			name:       "submits multiple tasks concurrently",
+			initPool:   true,
+			concurrent: 20,
+		},
+		{
+			name:     "falls back to direct execution when pool is nil",
+			initPool: false,
+		},
+		{
+			name:         "task function captures correct capability and operation context",
+			initPool:     true,
+			checkContext: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resetPool()
 			defer resetPool()
 
-			switch tt.name {
-			case "submits and executes task via pool":
-				err := InitEventPool(5, "30s", nil)
-				require.NoError(t, err)
-
-				done := make(chan struct{}, 1)
-				submitEvent("bookmark", "list", func() {
-					done <- struct{}{}
-				})
-				select {
-				case <-done:
-				case <-time.After(5 * time.Second):
-					t.Fatal("task did not execute within timeout")
-				}
-
-			case "submits multiple tasks concurrently":
-				err := InitEventPool(20, "30s", nil)
+			if tt.concurrent > 0 {
+				err := InitEventPool(tt.concurrent, "30s", nil)
 				require.NoError(t, err)
 
 				var counter atomic.Int32
-				const numTasks = 20
 				var wg sync.WaitGroup
-				wg.Add(numTasks)
-				for range numTasks {
+				wg.Add(tt.concurrent)
+				for range tt.concurrent {
 					go func() {
 						defer wg.Done()
 						submitEvent("test", "op", func() {
@@ -135,23 +139,16 @@ func TestSubmitEvent(t *testing.T) {
 				}
 				wg.Wait()
 				time.Sleep(200 * time.Millisecond)
-				assert.Equal(t, int32(numTasks), counter.Load())
+				assert.Equal(t, int32(tt.concurrent), counter.Load())
+				return
+			}
 
-			case "falls back to direct execution when pool is nil":
-				done := make(chan struct{}, 1)
-				submitEvent("bookmark", "list", func() {
-					done <- struct{}{}
-				})
-				select {
-				case <-done:
-				case <-time.After(1 * time.Second):
-					t.Fatal("direct execution did not happen")
-				}
-
-			case "task function captures correct capability and operation context":
+			if tt.initPool {
 				err := InitEventPool(5, "30s", nil)
 				require.NoError(t, err)
+			}
 
+			if tt.checkContext {
 				done := make(chan struct{}, 1)
 				var gotCap, gotOp string
 				testCap := "bookmark"
@@ -168,6 +165,17 @@ func TestSubmitEvent(t *testing.T) {
 				case <-time.After(5 * time.Second):
 					t.Fatal("task did not execute within timeout")
 				}
+				return
+			}
+
+			done := make(chan struct{}, 1)
+			submitEvent("bookmark", "list", func() {
+				done <- struct{}{}
+			})
+			select {
+			case <-done:
+			case <-time.After(5 * time.Second):
+				t.Fatal("task did not execute within timeout")
 			}
 		})
 	}
@@ -175,34 +183,91 @@ func TestSubmitEvent(t *testing.T) {
 
 func TestSubmitEventDropOnFull(t *testing.T) {
 	tests := []struct {
-		name string
+		name       string
+		poolSize   int
+		closePool  bool
+		useMetrics bool
+		wantDirect bool
 	}{
-		{name: "drops event when pool is full"},
-		{name: "drops event when pool is closed"},
-		{name: "increments dropped metric on drop without panic"},
+		{
+			name:     "drops event when pool is full",
+			poolSize: 2,
+		},
+		{
+			name:       "falls back to direct execution when pool is closed",
+			poolSize:   2,
+			closePool:  true,
+			wantDirect: true,
+		},
+		{
+			name:       "increments dropped metric on pool overflow with real stats",
+			poolSize:   1,
+			useMetrics: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resetPool()
 			defer resetPool()
 
-			switch tt.name {
-			case "drops event when pool is full":
-				err := InitEventPool(2, "30s", nil)
-				require.NoError(t, err)
+			var mc *metrics.AbilityCollector
+			if tt.useMetrics {
+				prev := stats.SetInitializedForTesting(true)
+				defer stats.SetInitializedForTesting(prev)
 
-				started := make(chan struct{}, 2)
-				release := make(chan struct{})
-				blockingTask := func() {
-					started <- struct{}{}
-					<-release
+				mc = metrics.NewAbilityCollector(stats.NewStats())
+			}
+
+			err := InitEventPool(tt.poolSize, "30s", mc)
+			require.NoError(t, err)
+
+			if tt.closePool {
+				epMu.Lock()
+				epInst.pool.Release()
+				epMu.Unlock()
+
+				if tt.wantDirect {
+					executed := make(chan struct{}, 1)
+					assert.NotPanics(t, func() {
+						submitEvent("test", "op", func() {
+							executed <- struct{}{}
+						})
+					})
+					select {
+					case <-executed:
+					case <-time.After(1 * time.Second):
+						t.Fatal("task was not executed directly")
+					}
+					return
 				}
 
-				submitEvent("test", "op", blockingTask)
-				submitEvent("test", "op", blockingTask)
-				<-started
-				<-started
+				assert.NotPanics(t, func() {
+					submitEvent("test", "op", func() {})
+				})
+				return
+			}
 
+			started := make(chan struct{}, tt.poolSize)
+			release := make(chan struct{})
+			blockingTask := func() {
+				started <- struct{}{}
+				<-release
+			}
+
+			for range tt.poolSize {
+				submitEvent("test", "op", blockingTask)
+			}
+			for range tt.poolSize {
+				<-started
+			}
+
+			if tt.useMetrics {
+				assert.NotPanics(t, func() {
+					submitEvent("bookmark", "list", func() {})
+					submitEvent("bookmark", "list", func() {})
+					submitEvent("kanban", "create", func() {})
+				})
+			} else {
 				executed := make(chan struct{}, 1)
 				submitEvent("test", "op", func() {
 					executed <- struct{}{}
@@ -213,57 +278,58 @@ func TestSubmitEventDropOnFull(t *testing.T) {
 					t.Fatal("task should have been dropped")
 				case <-time.After(200 * time.Millisecond):
 				}
-
-				close(release)
-
-			case "drops event when pool is closed":
-				err := InitEventPool(2, "30s", nil)
-				require.NoError(t, err)
-
-				epMu.Lock()
-				epInst.pool.Release()
-				epMu.Unlock()
-
-				assert.NotPanics(t, func() {
-					submitEvent("test", "op", func() {})
-				})
-
-			case "increments dropped metric on drop without panic":
-				mc := metrics.NewAbilityCollector(nil)
-				err := InitEventPool(2, "30s", mc)
-				require.NoError(t, err)
-
-				epMu.Lock()
-				epInst.pool.Release()
-				epMu.Unlock()
-
-				assert.NotPanics(t, func() {
-					submitEvent("bookmark", "list", func() {})
-					submitEvent("bookmark", "list", func() {})
-					submitEvent("kanban", "create", func() {})
-				})
 			}
+
+			close(release)
 		})
 	}
 }
 
 func TestShutdownEventPool(t *testing.T) {
 	tests := []struct {
-		name string
+		name         string
+		initPool     bool
+		submitTask   bool
+		wantNilAfter bool
 	}{
-		{name: "shutdown releases pool and sets instance to nil"},
-		{name: "shutdown when pool is nil does not panic"},
-		{name: "shutdown waits for in-flight tasks"},
+		{
+			name:         "shutdown releases pool and sets instance to nil",
+			initPool:     true,
+			wantNilAfter: true,
+		},
+		{
+			name:     "shutdown when pool is nil does not panic",
+			initPool: false,
+		},
+		{
+			name:         "shutdown waits for in-flight tasks",
+			initPool:     true,
+			submitTask:   true,
+			wantNilAfter: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resetPool()
 			defer resetPool()
 
-			switch tt.name {
-			case "shutdown releases pool and sets instance to nil":
+			if tt.initPool {
 				err := InitEventPool(5, "30s", nil)
 				require.NoError(t, err)
+
+				if tt.submitTask {
+					var completed atomic.Int32
+					submitEvent("test", "op", func() {
+						time.Sleep(100 * time.Millisecond)
+						completed.Store(1)
+					})
+
+					time.Sleep(20 * time.Millisecond)
+					ShutdownEventPool()
+
+					assert.Equal(t, int32(1), completed.Load())
+					return
+				}
 
 				epMu.Lock()
 				assert.NotNil(t, epInst)
@@ -271,34 +337,21 @@ func TestShutdownEventPool(t *testing.T) {
 
 				ShutdownEventPool()
 
-				epMu.Lock()
-				assert.Nil(t, epInst)
-				epMu.Unlock()
-
-			case "shutdown when pool is nil does not panic":
-				epMu.Lock()
-				epInst = nil
-				epMu.Unlock()
-
-				assert.NotPanics(t, func() {
-					ShutdownEventPool()
-				})
-
-			case "shutdown waits for in-flight tasks":
-				err := InitEventPool(5, "30s", nil)
-				require.NoError(t, err)
-
-				var completed atomic.Int32
-				submitEvent("test", "op", func() {
-					time.Sleep(100 * time.Millisecond)
-					completed.Store(1)
-				})
-
-				time.Sleep(20 * time.Millisecond)
-				ShutdownEventPool()
-
-				assert.Equal(t, int32(1), completed.Load())
+				if tt.wantNilAfter {
+					epMu.Lock()
+					assert.Nil(t, epInst)
+					epMu.Unlock()
+				}
+				return
 			}
+
+			epMu.Lock()
+			epInst = nil
+			epMu.Unlock()
+
+			assert.NotPanics(t, func() {
+				ShutdownEventPool()
+			})
 		})
 	}
 }
