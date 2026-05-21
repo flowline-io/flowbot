@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -71,6 +72,13 @@ func WithNotAuth() Option {
 	}
 }
 
+var routeAuditor audit.Auditor
+
+// SetAuditor sets the global auditor used for auth event recording.
+func SetAuditor(a audit.Auditor) {
+	routeAuditor = a
+}
+
 func ErrorResponse(ctx fiber.Ctx, text string) error {
 	ctx = ctx.Status(http.StatusBadRequest)
 	return ctx.SendString(text)
@@ -99,16 +107,19 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 
 		var r http.Request
 		if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
+			auditAuthReject(ctx, "auth.token.validate.fail", "request conversion failed")
 			return protocol.ErrNotAuthorized.Wrap(err)
 		}
 
 		accessToken := GetAccessToken(&r)
 		if accessToken == "" {
+			auditAuthReject(ctx, "auth.token.validate.fail", "missing token")
 			return protocol.ErrNotAuthorized.New("Missing token")
 		}
 
 		p, err := store.Database.ParameterGet(context.Background(), accessToken)
 		if err != nil || p.ID <= 0 || p.IsExpired() {
+			auditAuthReject(ctx, "auth.token.validate.fail", "invalid or expired")
 			return protocol.ErrNotAuthorized.New("parameter error")
 		}
 
@@ -118,6 +129,7 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 		uid := types.Uid(uidStr)
 
 		if uid.IsZero() {
+			auditAuthReject(ctx, "auth.token.validate.fail", "uid empty")
 			return protocol.ErrNotAuthorized.New("uid empty")
 		}
 
@@ -240,10 +252,51 @@ func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		scopes := GetScopes(ctx)
 		if !auth.HasScope(scopes, scope) {
+			auditScopeDeny(ctx, scope)
 			return protocol.ErrAccessDenied.New("insufficient scope: " + scope)
 		}
 		return handler(ctx)
 	}
+}
+
+func auditAuthReject(ctx fiber.Ctx, action, reason string) {
+	if routeAuditor == nil {
+		return
+	}
+	ip := ctx.IP()
+	ua := string(ctx.Request().Header.UserAgent())
+	_ = routeAuditor.RecordRejected(context.Background(), audit.Entry{
+		Subject: &audit.Subject{
+			SubjectType: "token",
+			IPAddress:   ip,
+			UserAgent:   ua,
+		},
+		Action: action,
+		Target: audit.Target{Type: "token"},
+	}, reason)
+}
+
+func auditScopeDeny(ctx fiber.Ctx, scope string) {
+	if routeAuditor == nil {
+		return
+	}
+	rc := GetRequestContext(ctx)
+	uid := ""
+	if rc != nil {
+		uid = string(rc.UID)
+	}
+	ip := ctx.IP()
+	ua := string(ctx.Request().Header.UserAgent())
+	_ = routeAuditor.RecordRejected(context.Background(), audit.Entry{
+		Subject: &audit.Subject{
+			SubjectType: "token",
+			UID:         uid,
+			IPAddress:   ip,
+			UserAgent:   ua,
+		},
+		Action: "auth.scope.deny",
+		Target: audit.Target{Type: "scope"},
+	}, "required: "+scope)
 }
 
 func ScopeHandler(ctx fiber.Ctx, scope string) bool {
