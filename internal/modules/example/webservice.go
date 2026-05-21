@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	"github.com/gofiber/fiber/v3"
@@ -16,11 +16,11 @@ var webserviceRules = []webservice.Rule{
 // example show example data
 //
 //	@Summary	Show example
-//	@Tags		dev
+//	@Tags		example
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	protocol.Response{data=types.KV}
-//	@Router		/dev/example [get]
+//	@Router		/example/example [get]
 func example(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(types.KV{
 		"title": "example",

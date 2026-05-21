@@ -19,7 +19,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/dev/example": {
+        "/example/example": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -28,7 +28,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dev"
+                    "example"
                 ],
                 "summary": "Show example",
                 "responses": {
@@ -37,13 +37,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.KV"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
                                         }
                                     }
                                 }
@@ -55,6 +55,11 @@ const docTemplate = `{
         },
         "/server/stacktrace": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -71,29 +76,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.KV"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/server/upload": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -110,29 +115,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.KV"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/bookmark": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -175,27 +180,27 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
+                }
+            },
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ]
-            },
-            "post": {
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -228,29 +233,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/bookmark/check-url": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -276,29 +281,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/bookmark/search": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -342,29 +347,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/bookmark/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -390,27 +395,27 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ]
-            },
-            "patch": {
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -436,29 +441,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/bookmark/{id}/tags": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -496,27 +501,27 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
+                }
+            },
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ]
-            },
-            "delete": {
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -554,29 +559,29 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/protocol.Response"
+                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/ability.InvokeResult"
+                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
                                         }
                                     }
                                 }
                             ]
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/reader": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -591,17 +596,17 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/protocol.Response"
+                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                         }
                     }
-                },
+                }
+            },
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ]
-            },
-            "post": {
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -619,7 +624,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/reader.createFeedRequest"
+                            "$ref": "#/definitions/internal_modules_reader.createFeedRequest"
                         }
                     }
                 ],
@@ -627,19 +632,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/protocol.Response"
+                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/service/reader/entries": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -668,17 +673,17 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/protocol.Response"
+                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                         }
                     }
-                },
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ]
-            },
-            "patch": {
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -696,7 +701,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/reader.updateEntriesRequest"
+                            "$ref": "#/definitions/internal_modules_reader.updateEntriesRequest"
                         }
                     }
                 ],
@@ -704,20 +709,15 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/protocol.Response"
+                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         }
     },
     "definitions": {
-        "ability.EventRef": {
+        "github_com_flowline-io_flowbot_pkg_ability.EventRef": {
             "type": "object",
             "properties": {
                 "entity_id": {
@@ -731,17 +731,17 @@ const docTemplate = `{
                 }
             }
         },
-        "ability.InvokeResult": {
+        "github_com_flowline-io_flowbot_pkg_ability.InvokeResult": {
             "type": "object",
             "properties": {
                 "capability": {
-                    "$ref": "#/definitions/hub.CapabilityType"
+                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_hub.CapabilityType"
                 },
                 "data": {},
                 "events": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ability.EventRef"
+                        "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.EventRef"
                     }
                 },
                 "meta": {
@@ -752,14 +752,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "page": {
-                    "$ref": "#/definitions/ability.PageInfo"
+                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.PageInfo"
                 },
                 "text": {
                     "type": "string"
                 }
             }
         },
-        "ability.PageInfo": {
+        "github_com_flowline-io_flowbot_pkg_ability.PageInfo": {
             "type": "object",
             "properties": {
                 "has_more": {
@@ -779,7 +779,7 @@ const docTemplate = `{
                 }
             }
         },
-        "hub.CapabilityType": {
+        "github_com_flowline-io_flowbot_pkg_hub.CapabilityType": {
             "type": "string",
             "enum": [
                 "bookmark",
@@ -802,7 +802,11 @@ const docTemplate = `{
                 "CapNotify"
             ]
         },
-        "protocol.Response": {
+        "github_com_flowline-io_flowbot_pkg_types.KV": {
+            "type": "object",
+            "additionalProperties": {}
+        },
+        "github_com_flowline-io_flowbot_pkg_types_protocol.Response": {
             "type": "object",
             "properties": {
                 "data": {
@@ -820,13 +824,13 @@ const docTemplate = `{
                     "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/protocol.ResponseStatus"
+                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus"
                         }
                     ]
                 }
             }
         },
-        "protocol.ResponseStatus": {
+        "github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus": {
             "type": "string",
             "enum": [
                 "ok",
@@ -837,7 +841,7 @@ const docTemplate = `{
                 "Failed"
             ]
         },
-        "reader.createFeedRequest": {
+        "internal_modules_reader.createFeedRequest": {
             "type": "object",
             "required": [
                 "feed_url"
@@ -852,7 +856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "reader.updateEntriesRequest": {
+        "internal_modules_reader.updateEntriesRequest": {
             "type": "object",
             "required": [
                 "entry_ids",
@@ -876,10 +880,6 @@ const docTemplate = `{
                     ]
                 }
             }
-        },
-        "types.KV": {
-            "type": "object",
-            "additionalProperties": {}
         }
     },
     "securityDefinitions": {

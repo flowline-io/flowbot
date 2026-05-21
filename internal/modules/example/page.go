@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	_ "embed"
@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	devPageId = "dev"
+	examplePageId = "example"
 )
 
 //go:embed static/example.css
@@ -25,7 +25,7 @@ var exampleJs string
 
 var pageRules = []page.Rule{
 	{
-		Id: devPageId,
+		Id: examplePageId,
 		UI: func(_ types.Context, _ string, _ types.KV) (*types.UI, error) {
 			css := []app.UI{
 				uikit.Css(exampleCss),
@@ -76,7 +76,7 @@ var pageRules = []page.Rule{
 						),
 					),
 					uikit.Button("Submit").Type("button").Attr("@click", "submit"),
-				).Method(http.MethodPost).Action("/service/dev/example"),
+				).Method(http.MethodPost).Action("/service/example/example"),
 				uikit.Placeholder("Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
 				uikit.Progress(10, 100),
 				uikit.Button("click event").Attr("@click", "greet"),
@@ -105,7 +105,6 @@ var pageRules = []page.Rule{
 				uikit.ModalToggle("example_modal", "modal"),
 				uikit.Modal("example_modal", "modal", uikit.Text("content......")),
 				uikit.Image("https://images.unsplash.com/photo-1490822180406-880c226c150b?fit=crop&w=650&h=433&q=80"),
-				// uikit.Countdown(p.ExpiredAt),
 			)
 
 			return &types.UI{

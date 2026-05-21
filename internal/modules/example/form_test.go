@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	"testing"
@@ -16,42 +16,11 @@ func TestFormRules_Metadata(t *testing.T) {
 		name string
 		test func(t *testing.T)
 	}{
-		{
-			name: "should have exactly 1 form rule",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.Len(t, formRules, 1)
-			},
-		},
-		{
-			name: "should have correct ID",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.Equal(t, devFormID, formRules[0].Id)
-				assert.Equal(t, "dev_form", devFormID)
-			},
-		},
-		{
-			name: "should have non-empty title",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.NotEmpty(t, formRules[0].Title)
-			},
-		},
-		{
-			name: "should have 8 fields",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.Len(t, formRules[0].Field, 8)
-			},
-		},
-		{
-			name: "should have handler",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.NotNil(t, formRules[0].Handler)
-			},
-		},
+		{name: "should have exactly 1 form rule", test: func(t *testing.T) { t.Parallel(); assert.Len(t, formRules, 1) }},
+		{name: "should have correct ID", test: func(t *testing.T) { t.Parallel(); assert.Equal(t, exampleFormID, formRules[0].Id); assert.Equal(t, "example_form", exampleFormID) }},
+		{name: "should have non-empty title", test: func(t *testing.T) { t.Parallel(); assert.NotEmpty(t, formRules[0].Title) }},
+		{name: "should have 8 fields", test: func(t *testing.T) { t.Parallel(); assert.Len(t, formRules[0].Field, 8) }},
+		{name: "should have handler", test: func(t *testing.T) { t.Parallel(); assert.NotNil(t, formRules[0].Handler) }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.test)
@@ -60,23 +29,13 @@ func TestFormRules_Metadata(t *testing.T) {
 
 func TestFormRules_FieldTypes(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "fields should have expected types in order"},
-	}
+	tests := []struct{ name string }{{name: "fields should have expected types in order"}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			expectedTypes := []types.FormFieldType{
-				types.FormFieldText,
-				types.FormFieldPassword,
-				types.FormFieldNumber,
-				types.FormFieldRadio,
-				types.FormFieldCheckbox,
-				types.FormFieldTextarea,
-				types.FormFieldSelect,
-				types.FormFieldRange,
+				types.FormFieldText, types.FormFieldPassword, types.FormFieldNumber, types.FormFieldRadio,
+				types.FormFieldCheckbox, types.FormFieldTextarea, types.FormFieldSelect, types.FormFieldRange,
 			}
 			for i, f := range formRules[0].Field {
 				assert.Equal(t, expectedTypes[i], f.Type, "field %d type mismatch", i)
@@ -87,11 +46,7 @@ func TestFormRules_FieldTypes(t *testing.T) {
 
 func TestFormRules_Comprehensive(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "all form rules should have required fields"},
-	}
+	tests := []struct{ name string }{{name: "all form rules should have required fields"}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -110,11 +65,7 @@ func TestFormRules_Comprehensive(t *testing.T) {
 
 func TestFormRules_AllFieldsHaveRequiredProperties(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "all fields should have key, type, and label"},
-	}
+	tests := []struct{ name string }{{name: "all fields should have key, type, and label"}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -140,56 +91,26 @@ func TestFormRules_HandlerExecution(t *testing.T) {
 		wantMsgType  string
 		wantContains string
 	}{
-		{
-			name:         "empty values",
-			values:       types.KV{},
-			wantMsgType:  "TextMsg",
-			wantContains: "ok",
-		},
-		{
-			name: "with text value",
-			values: types.KV{
-				"text": "hello",
-			},
-			wantMsgType:  "TextMsg",
-			wantContains: "ok",
-		},
-		{
-			name: "with multiple values",
-			values: types.KV{
-				"text":     "hello",
-				"password": "secret",
-				"number":   42,
-			},
-			wantMsgType:  "TextMsg",
-			wantContains: "ok",
-		},
+		{name: "empty values", values: types.KV{}, wantMsgType: "TextMsg", wantContains: "ok"},
+		{name: "with text value", values: types.KV{"text": "hello"}, wantMsgType: "TextMsg", wantContains: "ok"},
+		{name: "with multiple values", values: types.KV{"text": "hello", "password": "secret", "number": 42}, wantMsgType: "TextMsg", wantContains: "ok"},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var devFormRule *form.Rule
+			var exampleFormRule *form.Rule
 			for i := range formRules {
-				if formRules[i].Id == devFormID {
-					devFormRule = &formRules[i]
+				if formRules[i].Id == exampleFormID {
+					exampleFormRule = &formRules[i]
 					break
 				}
 			}
-			require.NotNil(t, devFormRule)
-			require.NotNil(t, devFormRule.Handler)
-
-			ctx := types.Context{
-				Platform: "test",
-				Topic:    "test",
-				AsUser:   types.Uid("test_user"),
-				FormId:   "test_form_id",
-			}
-
-			payload := devFormRule.Handler(ctx, tt.values)
+			require.NotNil(t, exampleFormRule)
+			require.NotNil(t, exampleFormRule.Handler)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test_user"), FormId: "test_form_id"}
+			payload := exampleFormRule.Handler(ctx, tt.values)
 			require.NotNil(t, payload)
 			assert.Equal(t, tt.wantMsgType, types.TypeOf(payload))
-
 			msg, ok := payload.(types.TextMsg)
 			require.True(t, ok)
 			assert.Contains(t, msg.Text, tt.wantContains)
@@ -207,46 +128,24 @@ func TestFormRuleset_ProcessForm(t *testing.T) {
 		wantNil     bool
 		wantContain string
 	}{
-		{
-			name:        "existing form returns payload",
-			ruleID:      devFormID,
-			wantErr:     false,
-			wantNil:     false,
-			wantContain: "ok",
-		},
-		{
-			name:        "nonexistent form returns nil payload",
-			ruleID:      "nonexistent_form",
-			wantErr:     false,
-			wantNil:     true,
-			wantContain: "",
-		},
+		{name: "existing form returns payload", ruleID: exampleFormID, wantErr: false, wantNil: false, wantContain: "ok"},
+		{name: "nonexistent form returns nil payload", ruleID: "nonexistent_form", wantErr: false, wantNil: true, wantContain: ""},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			rs := form.Ruleset(formRules)
 			ctx := types.Context{
-				Platform:   "test",
-				Topic:      "test",
-				AsUser:     types.Uid("test_user"),
-				FormRuleId: tt.ruleID,
-				FormId:     "test_form_id",
+				Platform: "test", Topic: "test", AsUser: types.Uid("test_user"),
+				FormRuleId: tt.ruleID, FormId: "test_form_id",
 			}
-
-			values := types.KV{
-				"text":     "hello",
-				"password": "secret",
-			}
-
+			values := types.KV{"text": "hello", "password": "secret"}
 			payload, err := rs.ProcessForm(ctx, values)
 			if tt.wantErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}
-
 			if tt.wantNil {
 				assert.Nil(t, payload)
 			} else {
@@ -261,11 +160,7 @@ func TestFormRuleset_ProcessForm(t *testing.T) {
 
 func TestFormRules_FieldsValidation(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "fields should have correct value types"},
-	}
+	tests := []struct{ name string }{{name: "fields should have correct value types"}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

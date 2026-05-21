@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	"github.com/flowline-io/flowbot/pkg/flog"

@@ -15,10 +15,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Dev Module", Label("module", "dev"), func() {
+var _ = Describe("Example Module", Label("module", "example"), func() {
 
 	BeforeEach(func() {
-		App.Get("/service/dev/example", func(c fiber.Ctx) error {
+		App.Get("/service/example/example", func(c fiber.Ctx) error {
 			return c.JSON(protocol.NewSuccessResponse(types.KV{
 				"title": "example",
 				"cpu":   "20%",
@@ -28,9 +28,9 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 		})
 	})
 
-	Describe("Webservice — GET /example", func() {
+	Describe("Webservice - GET /example", func() {
 		It("returns example JSON with title, cpu, mem, disk", func() {
-			resp := doDevGet()
+			resp := doExampleGet()
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			body := ReadBody(resp)
@@ -55,7 +55,7 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 		})
 
 		It("returns actual system values, not hardcoded", func() {
-			resp := doDevGet()
+			resp := doExampleGet()
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			body := ReadBody(resp)
@@ -79,19 +79,19 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 	})
 
 	Describe("Protocol - endpoint accessibility", func() {
-		It("dev example endpoint is accessible without auth", func() {
-			resp := doDevGet()
+		It("example endpoint is accessible without auth", func() {
+			resp := doExampleGet()
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 		})
 
 		It("returns proper Content-Type header", func() {
-			resp := doDevGet()
+			resp := doExampleGet()
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(resp.Header.Get("Content-Type")).To(ContainSubstring("json"))
 		})
 	})
 
-	Describe("Type helpers used in dev module", func() {
+	Describe("Type helpers used in example module", func() {
 		It("generates unique IDs", func() {
 			id1 := types.Id()
 			id2 := types.Id()
@@ -130,8 +130,8 @@ var _ = Describe("Dev Module", Label("module", "dev"), func() {
 	})
 })
 
-func doDevGet() *http.Response {
-	req := MakeRequest(http.MethodGet, "/service/dev/example", nil)
+func doExampleGet() *http.Response {
+	req := MakeRequest(http.MethodGet, "/service/example/example", nil)
 	resp, err := App.Test(req)
 	Expect(err).NotTo(HaveOccurred())
 	return resp

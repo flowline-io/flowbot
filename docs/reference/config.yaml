@@ -336,7 +336,7 @@ platform:
 
 # Bot configuration list
 bots:
-  - name: dev
+  - name: example
     enabled: true
     environment: development
 

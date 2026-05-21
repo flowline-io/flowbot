@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
-const Name = "dev"
+const Name = "example"
 
 var handler moduleHandler
 var config configType
@@ -34,22 +34,17 @@ type configType struct {
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
-	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
-
 	if err := sonic.Unmarshal(jsonconf, &config); err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
-
 	if !config.Enabled {
 		flog.Info("module %s disabled", Name)
 		return nil
 	}
-
 	handler.initialized = true
-
 	return nil
 }
 

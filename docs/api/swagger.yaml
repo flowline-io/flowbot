@@ -1,6 +1,6 @@
 basePath: /service
 definitions:
-  ability.EventRef:
+  github_com_flowline-io_flowbot_pkg_ability.EventRef:
     properties:
       entity_id:
         type: string
@@ -9,14 +9,14 @@ definitions:
       event_type:
         type: string
     type: object
-  ability.InvokeResult:
+  github_com_flowline-io_flowbot_pkg_ability.InvokeResult:
     properties:
       capability:
-        $ref: "#/definitions/hub.CapabilityType"
+        $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_hub.CapabilityType'
       data: {}
       events:
         items:
-          $ref: "#/definitions/ability.EventRef"
+          $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.EventRef'
         type: array
       meta:
         additionalProperties: {}
@@ -24,11 +24,11 @@ definitions:
       operation:
         type: string
       page:
-        $ref: "#/definitions/ability.PageInfo"
+        $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.PageInfo'
       text:
         type: string
     type: object
-  ability.PageInfo:
+  github_com_flowline-io_flowbot_pkg_ability.PageInfo:
     properties:
       has_more:
         type: boolean
@@ -41,27 +41,30 @@ definitions:
       total:
         type: integer
     type: object
-  hub.CapabilityType:
+  github_com_flowline-io_flowbot_pkg_hub.CapabilityType:
     enum:
-      - bookmark
-      - archive
-      - reader
-      - kanban
-      - finance
-      - infra
-      - shell_history
-      - notify
+    - bookmark
+    - archive
+    - reader
+    - kanban
+    - finance
+    - infra
+    - shell_history
+    - notify
     type: string
     x-enum-varnames:
-      - CapBookmark
-      - CapArchive
-      - CapReader
-      - CapKanban
-      - CapFinance
-      - CapInfra
-      - CapShellHistory
-      - CapNotify
-  protocol.Response:
+    - CapBookmark
+    - CapArchive
+    - CapReader
+    - CapKanban
+    - CapFinance
+    - CapInfra
+    - CapShellHistory
+    - CapNotify
+  github_com_flowline-io_flowbot_pkg_types.KV:
+    additionalProperties: {}
+    type: object
+  github_com_flowline-io_flowbot_pkg_types_protocol.Response:
     properties:
       data:
         description: Response data
@@ -71,26 +74,25 @@ definitions:
           or an empty string when it succeeds.
         type: string
       retcode:
-        description:
-          The return code, which must conform to the return code rules
+        description: The return code, which must conform to the return code rules
           defined later on this page
         type: string
       status:
         allOf:
-          - $ref: "#/definitions/protocol.ResponseStatus"
+        - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus'
         description: |-
           Execution status (success or failure), must be one of ok and failed,
           indicating successful and unsuccessful execution, respectively.
     type: object
-  protocol.ResponseStatus:
+  github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus:
     enum:
-      - ok
-      - failed
+    - ok
+    - failed
     type: string
     x-enum-varnames:
-      - Success
-      - Failed
-  reader.createFeedRequest:
+    - Success
+    - Failed
+  internal_modules_reader.createFeedRequest:
     properties:
       category_id:
         type: integer
@@ -98,9 +100,9 @@ definitions:
         maxLength: 2048
         type: string
     required:
-      - feed_url
+    - feed_url
     type: object
-  reader.updateEntriesRequest:
+  internal_modules_reader.updateEntriesRequest:
     properties:
       entry_ids:
         items:
@@ -110,16 +112,13 @@ definitions:
         type: array
       status:
         enum:
-          - read
-          - unread
-          - removed
+        - read
+        - unread
+        - removed
         type: string
     required:
-      - entry_ids
-      - status
-    type: object
-  types.KV:
-    additionalProperties: {}
+    - entry_ids
+    - status
     type: object
 host: localhost:6060
 info:
@@ -131,410 +130,410 @@ info:
   title: Flowbot API
   version: "1.0"
 paths:
-  /dev/example:
+  /example/example:
     get:
       consumes:
-        - application/json
+      - application/json
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/types.KV"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types.KV'
+              type: object
       summary: Show example
       tags:
-        - dev
+      - example
   /server/stacktrace:
     get:
       consumes:
-        - application/json
+      - application/json
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/types.KV"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types.KV'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: get server or goroutines stacktrace
       tags:
-        - dev
+      - dev
   /server/upload:
     post:
       consumes:
-        - application/json
+      - application/json
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/types.KV"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types.KV'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: upload PicGO upload api
       tags:
-        - dev
+      - dev
   /service/bookmark:
     get:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: page size
-          in: query
-          name: limit
-          type: integer
-        - description: pagination cursor
-          in: query
-          name: cursor
-          type: string
-        - description: include archived
-          in: query
-          name: archived
-          type: boolean
-        - description: favourited only
-          in: query
-          name: favourited
-          type: boolean
+      - description: page size
+        in: query
+        name: limit
+        type: integer
+      - description: pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - description: include archived
+        in: query
+        name: archived
+        type: boolean
+      - description: favourited only
+        in: query
+        name: favourited
+        type: boolean
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: List bookmarks
       tags:
-        - bookmark
+      - bookmark
     post:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: bookmark URL
-          in: body
-          name: body
-          required: true
-          schema:
-            properties:
-              url:
-                type: string
-            type: object
+      - description: bookmark URL
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            url:
+              type: string
+          type: object
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create a new bookmark
       tags:
-        - bookmark
+      - bookmark
   /service/bookmark/{id}:
     get:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: bookmark ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get bookmark by ID
       tags:
-        - bookmark
+      - bookmark
     patch:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: bookmark ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Archive bookmark
       tags:
-        - bookmark
+      - bookmark
   /service/bookmark/{id}/tags:
     delete:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: bookmark ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: tag names
-          in: body
-          name: body
-          required: true
-          schema:
-            items:
-              type: string
-            type: array
+      - description: bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: tag names
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Detach tags from a bookmark
       tags:
-        - bookmark
+      - bookmark
     post:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: bookmark ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: tag names
-          in: body
-          name: body
-          required: true
-          schema:
-            items:
-              type: string
-            type: array
+      - description: bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: tag names
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Attach tags to a bookmark
       tags:
-        - bookmark
+      - bookmark
   /service/bookmark/check-url:
     get:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: URL to check
-          in: query
-          name: url
-          required: true
-          type: string
+      - description: URL to check
+        in: query
+        name: url
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Check if URL exists in bookmarks
       tags:
-        - bookmark
+      - bookmark
   /service/bookmark/search:
     get:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: search query
-          in: query
-          name: q
-          required: true
-          type: string
-        - description: sort order
-          in: query
-          name: sort_order
-          type: string
-        - description: page size
-          in: query
-          name: limit
-          type: integer
-        - description: pagination cursor
-          in: query
-          name: cursor
-          type: string
+      - description: search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: sort order
+        in: query
+        name: sort_order
+        type: string
+      - description: page size
+        in: query
+        name: limit
+        type: integer
+      - description: pagination cursor
+        in: query
+        name: cursor
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/ability.InvokeResult"
-                type: object
+            - $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult'
+              type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Search bookmarks
       tags:
-        - bookmark
+      - bookmark
   /service/reader:
     get:
       consumes:
-        - application/json
+      - application/json
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/protocol.Response"
+            $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: List all feeds
       tags:
-        - reader
+      - reader
     post:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: feed data
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/reader.createFeedRequest"
+      - description: feed data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_reader.createFeedRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/protocol.Response"
+            $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create a new feed
       tags:
-        - reader
+      - reader
   /service/reader/entries:
     get:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: status filter (read, unread, removed)
-          in: query
-          name: status
-          type: string
-        - description: filter by feed ID
-          in: query
-          name: feed_id
-          type: integer
+      - description: status filter (read, unread, removed)
+        in: query
+        name: status
+        type: string
+      - description: filter by feed ID
+        in: query
+        name: feed_id
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/protocol.Response"
+            $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: List entries
       tags:
-        - reader
+      - reader
     patch:
       consumes:
-        - application/json
+      - application/json
       parameters:
-        - description: entry IDs and status
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/reader.updateEntriesRequest"
+      - description: entry IDs and status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_reader.updateEntriesRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/protocol.Response"
+            $ref: '#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update entries status
       tags:
-        - reader
+      - reader
 schemes:
-  - http
+- http
 securityDefinitions:
   ApiKeyAuth:
     description: access token

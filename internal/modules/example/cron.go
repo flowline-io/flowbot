@@ -1,4 +1,4 @@
-package dev
+package example
 
 import (
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -7,7 +7,7 @@ import (
 
 var cronRules = []cron.Rule{
 	{
-		Name:  "dev_demo",
+		Name:  "example_demo",
 		Help:  "cron example",
 		Scope: cron.CronScopeSystem,
 		When:  "0 */10 * * *",
