@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -130,6 +131,64 @@ func TestDefaultRestyClientHeaders(t *testing.T) {
 				req := client.R()
 				req.SetHeader("Content-Type", "application/json")
 				assert.Equal(t, "application/json", req.Header.Get("Content-Type"), "Should be able to override Content-Type header")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.fn)
+	}
+}
+
+func TestHTTPTransport(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		fn   func(t *testing.T)
+	}{
+		{
+			name: "returns non-nil transport",
+			fn: func(t *testing.T) {
+				t.Parallel()
+				tr := HTTPTransport()
+				require.NotNil(t, tr, "HTTPTransport() returned nil")
+			},
+		},
+		{
+			name: "has MaxIdleConnsPerHost set to 10",
+			fn: func(t *testing.T) {
+				t.Parallel()
+				tr := HTTPTransport()
+				assert.Equal(t, 10, tr.MaxIdleConnsPerHost, "HTTPTransport() MaxIdleConnsPerHost should be 10")
+			},
+		},
+		{
+			name: "has MaxIdleConns set to 100",
+			fn: func(t *testing.T) {
+				t.Parallel()
+				tr := HTTPTransport()
+				assert.Equal(t, 100, tr.MaxIdleConns, "HTTPTransport() MaxIdleConns should be 100")
+			},
+		},
+		{
+			name: "returns same instance on repeated calls",
+			fn: func(t *testing.T) {
+				t.Parallel()
+				tr1 := HTTPTransport()
+				tr2 := HTTPTransport()
+				assert.Same(t, tr1, tr2, "HTTPTransport() should return the same instance")
+			},
+		},
+		{
+			name: "transport is a clone of http.DefaultTransport",
+			fn: func(t *testing.T) {
+				t.Parallel()
+				tr := HTTPTransport()
+				defaultTr, ok := http.DefaultTransport.(*http.Transport)
+				require.True(t, ok, "http.DefaultTransport should be *http.Transport")
+				assert.Equal(t, defaultTr.TLSClientConfig, tr.TLSClientConfig, "TLS config should match DefaultTransport")
+				assert.NotNil(t, tr.Proxy, "Proxy func should be set")
 			},
 		},
 	}

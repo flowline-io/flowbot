@@ -8,10 +8,36 @@ import (
 	"resty.dev/v3"
 )
 
+// httpTransport is a shared HTTP transport with tuned connection pool settings
+// for inter-service provider calls. Cloned from http.DefaultTransport to preserve
+// default TLS, proxy, and dial settings while overriding pool limits.
+var httpTransport = func() *http.Transport {
+	t, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+		}
+	}
+	tr := t.Clone()
+	tr.MaxIdleConns = 100
+	tr.MaxIdleConnsPerHost = 10
+	return tr
+}()
+
+// HTTPTransport returns the shared HTTP transport with connection pool tuning.
+// Provider implementations that create raw http.Client instances should use this
+// instead of http.DefaultTransport to ensure consistent pool behavior across all
+// outgoing provider calls.
+func HTTPTransport() *http.Transport {
+	return httpTransport
+}
+
 func DefaultRestyClient() *resty.Client {
 	c := resty.New()
 	c.SetDisableWarn(true)
 	c.SetTimeout(time.Minute)
+	c.SetTransport(httpTransport)
 	c.AddContentTypeEncoder("json", EncodeJSON)
 	c.AddContentTypeDecoder("json", DecodeJSON)
 
@@ -26,6 +52,6 @@ func DefaultRestyClient() *resty.Client {
 // is propagated from the caller's context.
 func RestyClientWithTrace() *resty.Client {
 	c := DefaultRestyClient()
-	c.SetTransport(otelhttp.NewTransport(http.DefaultTransport))
+	c.SetTransport(otelhttp.NewTransport(httpTransport))
 	return c
 }

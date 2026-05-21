@@ -13,6 +13,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -65,7 +66,7 @@ func NewKanboard(endpoint string, username string, password string) (*Kanboard, 
 	v.channel = jhttp.NewChannel(endpoint, &jhttp.ChannelOptions{
 		Client: &http.Client{
 			Transport: &AuthTransport{
-				Transport: http.DefaultTransport,
+				Transport: utils.HTTPTransport(),
 				Username:  username,
 				Password:  password,
 			},

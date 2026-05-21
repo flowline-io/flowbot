@@ -12,6 +12,7 @@ import (
 	"github.com/hekmon/transmissionrpc/v3"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -68,7 +69,7 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 	}
 
 	// download the torrent file from url
-	httpClient := &http.Client{}
+	httpClient := &http.Client{Transport: utils.HTTPTransport()}
 	resp, err := httpClient.Get(magnetUrl)
 	if err != nil {
 		return transmissionrpc.Torrent{}, err
