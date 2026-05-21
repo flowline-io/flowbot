@@ -105,6 +105,12 @@ func TestAbilityCollector_NoopMethodsDontPanic(t *testing.T) {
 		{name: "ObserveInvokeDuration", fn: func() { c.ObserveInvokeDuration("c", "o", 1.0) }},
 		{name: "IncInvokeError", fn: func() { c.IncInvokeError("c", "o", "err") }},
 		{name: "IncEventDropped", fn: func() { c.IncEventDropped("c", "o", "pool_full") }},
+		{name: "IncBulkheadQueued", fn: func() { c.IncBulkheadQueued("c") }},
+		{name: "DecBulkheadQueued", fn: func() { c.DecBulkheadQueued("c") }},
+		{name: "IncBulkheadActive", fn: func() { c.IncBulkheadActive("c") }},
+		{name: "DecBulkheadActive", fn: func() { c.DecBulkheadActive("c") }},
+		{name: "IncBulkheadDropped", fn: func() { c.IncBulkheadDropped("c", "timeout") }},
+		{name: "ObserveBulkheadWaitDuration", fn: func() { c.ObserveBulkheadWaitDuration("c", 0.5) }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
