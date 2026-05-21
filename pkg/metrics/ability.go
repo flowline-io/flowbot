@@ -2,6 +2,8 @@
 package metrics
 
 import (
+	"log"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -17,17 +19,34 @@ type AbilityCollector struct {
 }
 
 // NewAbilityCollector creates an AbilityCollector backed by stats.
-// Returns a no-op collector when stats is nil.
+// Returns a no-op collector when stats is nil or if registration fails.
 func NewAbilityCollector(st *stats.Stats) *AbilityCollector {
 	if st == nil {
 		return &AbilityCollector{}
 	}
-	return &AbilityCollector{
-		invokeTotal:       st.RegisterCounterVec("ability_invoke_total", "Invocations by capability, operation, and status", "capability", "operation", "status"),
-		invokeDuration:    st.RegisterHistogramVec("ability_invoke_duration_seconds", "Invocation duration distribution", "capability", "operation"),
-		invokeErrorTotal:  st.RegisterCounterVec("ability_invoke_error_total", "Invocation errors by capability, operation, and error code", "capability", "operation", "error_code"),
-		eventDroppedTotal: st.RegisterCounterVec("ability_event_dropped_total", "Events dropped due to pool overflow or shutdown", "capability", "operation", "reason"),
+	var err error
+	c := &AbilityCollector{}
+	c.invokeTotal, err = st.RegisterCounterVec("ability_invoke_total", "Invocations by capability, operation, and status", "capability", "operation", "status")
+	if err != nil {
+		log.Printf("[metrics] ability: failed to register counter vec: %v", err)
+		return &AbilityCollector{}
 	}
+	c.invokeDuration, err = st.RegisterHistogramVec("ability_invoke_duration_seconds", "Invocation duration distribution", "capability", "operation")
+	if err != nil {
+		log.Printf("[metrics] ability: failed to register histogram vec: %v", err)
+		return &AbilityCollector{}
+	}
+	c.invokeErrorTotal, err = st.RegisterCounterVec("ability_invoke_error_total", "Invocation errors by capability, operation, and error code", "capability", "operation", "error_code")
+	if err != nil {
+		log.Printf("[metrics] ability: failed to register counter vec: %v", err)
+		return &AbilityCollector{}
+	}
+	c.eventDroppedTotal, err = st.RegisterCounterVec("ability_event_dropped_total", "Events dropped due to pool overflow or shutdown", "capability", "operation", "reason")
+	if err != nil {
+		log.Printf("[metrics] ability: failed to register counter vec: %v", err)
+		return &AbilityCollector{}
+	}
+	return c
 }
 
 // IncInvokeTotal increments the invoke counter for the given capability, operation, and status.

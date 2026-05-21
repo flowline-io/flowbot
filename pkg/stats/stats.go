@@ -3,6 +3,7 @@ package stats
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -76,6 +77,9 @@ var (
 	statsInstance     *Stats
 	statsInstanceOnce sync.Once
 )
+
+// ErrNilStats is returned when Register* methods are called on a nil Stats receiver.
+var ErrNilStats = errors.New("stats: called on nil Stats")
 
 // Stats provides access to the global Prometheus registry for creating vector metrics.
 type Stats struct {
@@ -213,15 +217,15 @@ func PushWithContext(ctx context.Context) error {
 }
 
 // RegisterCounterVec creates or returns an existing CounterVec registered with the global registry.
-func (s *Stats) RegisterCounterVec(name, help string, labelNames ...string) *prometheus.CounterVec {
+func (s *Stats) RegisterCounterVec(name, help string, labelNames ...string) (*prometheus.CounterVec, error) {
 	if s == nil {
-		panic("stats: RegisterCounterVec called on nil Stats")
+		return nil, ErrNilStats
 	}
 	mu.Lock()
 	defer mu.Unlock()
 
 	if cv, exists := s.vecCounters[name]; exists {
-		return cv
+		return cv, nil
 	}
 
 	cv := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -230,19 +234,19 @@ func (s *Stats) RegisterCounterVec(name, help string, labelNames ...string) *pro
 	}, labelNames)
 	registry.MustRegister(cv)
 	s.vecCounters[name] = cv
-	return cv
+	return cv, nil
 }
 
 // RegisterGaugeVec creates or returns an existing GaugeVec registered with the global registry.
-func (s *Stats) RegisterGaugeVec(name, help string, labelNames ...string) *prometheus.GaugeVec {
+func (s *Stats) RegisterGaugeVec(name, help string, labelNames ...string) (*prometheus.GaugeVec, error) {
 	if s == nil {
-		panic("stats: RegisterGaugeVec called on nil Stats")
+		return nil, ErrNilStats
 	}
 	mu.Lock()
 	defer mu.Unlock()
 
 	if gv, exists := s.vecGauges[name]; exists {
-		return gv
+		return gv, nil
 	}
 
 	gv := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -251,19 +255,19 @@ func (s *Stats) RegisterGaugeVec(name, help string, labelNames ...string) *prome
 	}, labelNames)
 	registry.MustRegister(gv)
 	s.vecGauges[name] = gv
-	return gv
+	return gv, nil
 }
 
 // RegisterHistogramVec creates or returns an existing HistogramVec registered with the global registry.
-func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) *prometheus.HistogramVec {
+func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) (*prometheus.HistogramVec, error) {
 	if s == nil {
-		panic("stats: RegisterHistogramVec called on nil Stats")
+		return nil, ErrNilStats
 	}
 	mu.Lock()
 	defer mu.Unlock()
 
 	if hv, exists := s.vecHistos[name]; exists {
-		return hv
+		return hv, nil
 	}
 
 	hv := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -273,7 +277,7 @@ func (s *Stats) RegisterHistogramVec(name, help string, labelNames ...string) *p
 	}, labelNames)
 	registry.MustRegister(hv)
 	s.vecHistos[name] = hv
-	return hv
+	return hv, nil
 }
 
 // SetInitializedForTesting sets the initialized flag for test purposes.

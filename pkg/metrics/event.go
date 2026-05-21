@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"log"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -16,17 +18,34 @@ type EventCollector struct {
 }
 
 // NewEventCollector creates an EventCollector backed by stats.
-// Returns a no-op collector when stats is nil.
+// Returns a no-op collector when stats is nil or if registration fails.
 func NewEventCollector(st *stats.Stats) *EventCollector {
 	if st == nil {
 		return &EventCollector{}
 	}
-	return &EventCollector{
-		receivedTotal: st.RegisterCounterVec("event_received_total", "Events received by event type and source", "event_type", "source"),
-		matchedTotal:  st.RegisterCounterVec("event_matched_total", "Events matched to a pipeline", "event_type", "pipeline"),
-		dedupTotal:    st.RegisterCounterVec("event_dedup_total", "Idempotent consumption filter hits", "event_type", "pipeline"),
-		lagSeconds:    st.RegisterHistogramVec("event_lag_seconds", "Delay from event creation to consumption", "event_type"),
+	var err error
+	c := &EventCollector{}
+	c.receivedTotal, err = st.RegisterCounterVec("event_received_total", "Events received by event type and source", "event_type", "source")
+	if err != nil {
+		log.Printf("[metrics] event: failed to register counter vec: %v", err)
+		return &EventCollector{}
 	}
+	c.matchedTotal, err = st.RegisterCounterVec("event_matched_total", "Events matched to a pipeline", "event_type", "pipeline")
+	if err != nil {
+		log.Printf("[metrics] event: failed to register counter vec: %v", err)
+		return &EventCollector{}
+	}
+	c.dedupTotal, err = st.RegisterCounterVec("event_dedup_total", "Idempotent consumption filter hits", "event_type", "pipeline")
+	if err != nil {
+		log.Printf("[metrics] event: failed to register counter vec: %v", err)
+		return &EventCollector{}
+	}
+	c.lagSeconds, err = st.RegisterHistogramVec("event_lag_seconds", "Delay from event creation to consumption", "event_type")
+	if err != nil {
+		log.Printf("[metrics] event: failed to register histogram vec: %v", err)
+		return &EventCollector{}
+	}
+	return c
 }
 
 // IncReceived increments the received counter for the given event type and source.

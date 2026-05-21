@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
@@ -251,7 +252,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 		It("creates engine with definitions and store", func() {
 			defs := []pipeline.Definition{}
 			pipelineStore := store.NewPipelineStore(EntClient)
-			eng := pipeline.NewEngine(defs, pipelineStore, metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			eng := pipeline.NewEngine(defs, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 			Expect(eng).NotTo(BeNil())
 
 			handler := eng.Handler()
@@ -262,7 +263,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 	Describe("ResumePipeline", func() {
 		It("handles non-existent run gracefully", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			eng := pipeline.NewEngine([]pipeline.Definition{}, pipelineStore, metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			eng := pipeline.NewEngine([]pipeline.Definition{}, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 
 			err := eng.ResumePipeline(context.Background(), 99999)
 			Expect(err).To(HaveOccurred())

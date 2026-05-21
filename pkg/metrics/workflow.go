@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"log"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -19,20 +21,49 @@ type WorkflowCollector struct {
 }
 
 // NewWorkflowCollector creates a WorkflowCollector backed by stats.
-// Returns a no-op collector when stats is nil.
+// Returns a no-op collector when stats is nil or if registration fails.
 func NewWorkflowCollector(st *stats.Stats) *WorkflowCollector {
 	if st == nil {
 		return &WorkflowCollector{}
 	}
-	return &WorkflowCollector{
-		runTotal:     st.RegisterCounterVec("workflow_run_total", "Runs by workflow and status", "workflow", "status"),
-		runDuration:  st.RegisterHistogramVec("workflow_run_duration_seconds", "Run duration distribution", "workflow", "status"),
-		stepTotal:    st.RegisterCounterVec("workflow_step_total", "Steps by workflow, step, and status", "workflow", "step", "status"),
-		stepDuration: st.RegisterHistogramVec("workflow_step_duration_seconds", "Step duration distribution", "workflow", "step", "action_type", "status"),
-		stepRetry:    st.RegisterCounterVec("workflow_step_retry_total", "Step retry count", "workflow", "step"),
-		resumeTotal:  st.RegisterCounterVec("workflow_resume_total", "Workflow resume count", "workflow"),
-		concurrency:  st.RegisterGaugeVec("workflow_concurrency_gauge", "Running tasks in DAG parallel mode", "workflow"),
+	var err error
+	c := &WorkflowCollector{}
+	c.runTotal, err = st.RegisterCounterVec("workflow_run_total", "Runs by workflow and status", "workflow", "status")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register counter vec: %v", err)
+		return &WorkflowCollector{}
 	}
+	c.runDuration, err = st.RegisterHistogramVec("workflow_run_duration_seconds", "Run duration distribution", "workflow", "status")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register histogram vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	c.stepTotal, err = st.RegisterCounterVec("workflow_step_total", "Steps by workflow, step, and status", "workflow", "step", "status")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register counter vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	c.stepDuration, err = st.RegisterHistogramVec("workflow_step_duration_seconds", "Step duration distribution", "workflow", "step", "action_type", "status")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register histogram vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	c.stepRetry, err = st.RegisterCounterVec("workflow_step_retry_total", "Step retry count", "workflow", "step")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register counter vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	c.resumeTotal, err = st.RegisterCounterVec("workflow_resume_total", "Workflow resume count", "workflow")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register counter vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	c.concurrency, err = st.RegisterGaugeVec("workflow_concurrency_gauge", "Running tasks in DAG parallel mode", "workflow")
+	if err != nil {
+		log.Printf("[metrics] workflow: failed to register gauge vec: %v", err)
+		return &WorkflowCollector{}
+	}
+	return c
 }
 
 // IncRunTotal increments the run counter for the given workflow and status.

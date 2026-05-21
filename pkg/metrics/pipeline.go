@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"log"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -18,19 +20,44 @@ type PipelineCollector struct {
 }
 
 // NewPipelineCollector creates a PipelineCollector backed by stats.
-// Returns a no-op collector when stats is nil.
+// Returns a no-op collector when stats is nil or if registration fails.
 func NewPipelineCollector(st *stats.Stats) *PipelineCollector {
 	if st == nil {
 		return &PipelineCollector{}
 	}
-	return &PipelineCollector{
-		runTotal:     st.RegisterCounterVec("pipeline_run_total", "Runs by pipeline and status", "pipeline", "status"),
-		runDuration:  st.RegisterHistogramVec("pipeline_run_duration_seconds", "Run duration distribution", "pipeline", "status"),
-		stepTotal:    st.RegisterCounterVec("pipeline_step_total", "Steps by pipeline, step, and status", "pipeline", "step", "status"),
-		stepDuration: st.RegisterHistogramVec("pipeline_step_duration_seconds", "Step duration distribution", "pipeline", "step", "capability", "status"),
-		stepRetry:    st.RegisterCounterVec("pipeline_step_retry_total", "Step retry count", "pipeline", "step"),
-		resumeTotal:  st.RegisterCounterVec("pipeline_resume_total", "Pipeline resume count", "pipeline"),
+	var err error
+	c := &PipelineCollector{}
+	c.runTotal, err = st.RegisterCounterVec("pipeline_run_total", "Runs by pipeline and status", "pipeline", "status")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
 	}
+	c.runDuration, err = st.RegisterHistogramVec("pipeline_run_duration_seconds", "Run duration distribution", "pipeline", "status")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register histogram vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.stepTotal, err = st.RegisterCounterVec("pipeline_step_total", "Steps by pipeline, step, and status", "pipeline", "step", "status")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.stepDuration, err = st.RegisterHistogramVec("pipeline_step_duration_seconds", "Step duration distribution", "pipeline", "step", "capability", "status")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register histogram vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.stepRetry, err = st.RegisterCounterVec("pipeline_step_retry_total", "Step retry count", "pipeline", "step")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.resumeTotal, err = st.RegisterCounterVec("pipeline_resume_total", "Pipeline resume count", "pipeline")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	return c
 }
 
 // IncRunTotal increments the run counter for the given pipeline and status.

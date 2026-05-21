@@ -80,7 +80,8 @@ func TestRegisterVecMetrics(t *testing.T) {
 		{
 			name: "counter vec registers and works",
 			fn: func(t *testing.T, s *Stats) {
-				cv := s.RegisterCounterVec("test_counter_vec_total", "help", "label_a")
+				cv, err := s.RegisterCounterVec("test_counter_vec_total", "help", "label_a")
+				require.NoError(t, err)
 				require.NotNil(t, cv)
 				cv.WithLabelValues("val1").Inc()
 				cv.WithLabelValues("val1").Inc()
@@ -90,7 +91,8 @@ func TestRegisterVecMetrics(t *testing.T) {
 		{
 			name: "gauge vec registers and works",
 			fn: func(t *testing.T, s *Stats) {
-				gv := s.RegisterGaugeVec("test_gauge_vec", "help", "label_a")
+				gv, err := s.RegisterGaugeVec("test_gauge_vec", "help", "label_a")
+				require.NoError(t, err)
 				require.NotNil(t, gv)
 				gv.WithLabelValues("val1").Set(42)
 				gv.WithLabelValues("val2").Inc()
@@ -100,7 +102,8 @@ func TestRegisterVecMetrics(t *testing.T) {
 		{
 			name: "histogram vec registers and works",
 			fn: func(t *testing.T, s *Stats) {
-				hv := s.RegisterHistogramVec("test_histogram_vec_seconds", "help", "label_a")
+				hv, err := s.RegisterHistogramVec("test_histogram_vec_seconds", "help", "label_a")
+				require.NoError(t, err)
 				require.NotNil(t, hv)
 				hv.WithLabelValues("val1").Observe(1.5)
 				hv.WithLabelValues("val2").Observe(0.5)
@@ -109,22 +112,29 @@ func TestRegisterVecMetrics(t *testing.T) {
 		{
 			name: "duplicate registration returns same vec",
 			fn: func(t *testing.T, s *Stats) {
-				cv1 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
-				cv2 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
+				cv1, err1 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
+				require.NoError(t, err1)
+				cv2, err2 := s.RegisterCounterVec("test_dup_vec_total", "help", "l")
+				require.NoError(t, err2)
 				assert.Same(t, cv1, cv2)
 			},
 		},
 		{
-			name: "nil stats panics on register",
+			name: "nil stats returns error on register",
 			fn: func(t *testing.T, _ *Stats) {
-				assert.Panics(t, func() {
-					var nilStats *Stats
-					nilStats.RegisterCounterVec("x", "h", "l")
-				})
+				var nilStats *Stats
+				cv, err := nilStats.RegisterCounterVec("x", "h", "l")
+				require.Error(t, err)
+				assert.Nil(t, cv)
+				gv, err := nilStats.RegisterGaugeVec("x", "h", "l")
+				require.Error(t, err)
+				assert.Nil(t, gv)
+				hv, err := nilStats.RegisterHistogramVec("x", "h", "l")
+				require.Error(t, err)
+				assert.Nil(t, hv)
 			},
 		},
 	}
-	// Set initialized once before all subtests since they share global state.
 	old := SetInitializedForTesting(true)
 	defer SetInitializedForTesting(old)
 	for _, tt := range tests {
