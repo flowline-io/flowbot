@@ -1,3 +1,4 @@
+// Package store provides database storage implementations.
 package store
 
 import (

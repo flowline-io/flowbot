@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/homelab"

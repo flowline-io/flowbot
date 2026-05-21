@@ -112,7 +112,8 @@ func TestAuthorize_AuditTokenMissing(t *testing.T) {
 			assert.True(t, resp.StatusCode == 401 || resp.StatusCode == 403,
 				"expected 401/403, got %d", resp.StatusCode)
 			if tt.expectRecord {
-				m := tt.auditor.(*mockAuditor)
+				m, ok := tt.auditor.(*mockAuditor)
+				require.True(t, ok)
 				require.Len(t, m.entries, 1)
 				assert.Equal(t, tt.expectAction, m.entries[0].Action)
 				assert.Equal(t, "token", m.entries[0].Target.Type)
@@ -156,7 +157,8 @@ func TestRequireScope_AuditDeny(t *testing.T) {
 			assert.True(t, resp.StatusCode == 401 || resp.StatusCode == 403,
 				"expected 401/403, got %d", resp.StatusCode)
 			if tt.expectRecord {
-				m := tt.auditor.(*mockAuditor)
+				m, ok := tt.auditor.(*mockAuditor)
+				require.True(t, ok)
 				require.Len(t, m.entries, 1)
 				assert.Equal(t, "auth.scope.deny", m.entries[0].Action)
 				assert.Equal(t, "scope", m.entries[0].Target.Type)
@@ -199,8 +201,9 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode)
 			if tt.expectRecord && tt.auditor != nil {
-				m := tt.auditor.(*mockAuditor)
-				assert.Len(t, m.entries, 0)
+				m, ok := tt.auditor.(*mockAuditor)
+				require.True(t, ok)
+				assert.Empty(t, m.entries)
 			}
 		})
 	}

@@ -827,7 +827,7 @@ func TestRunner_Audit(t *testing.T) {
 			m := &mockAuditor{}
 			runner := NewRunnerWithStore(nil, m, nil, "", "")
 			assert.NotNil(t, runner)
-			assert.Len(t, m.entries, 0) // audit not called just from construction
+			assert.Empty(t, m.entries)
 		})
 	}
 }
