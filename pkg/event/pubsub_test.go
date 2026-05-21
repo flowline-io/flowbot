@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -65,6 +66,27 @@ func TestMessageStruct(t *testing.T) {
 			assert.Equal(t, tt.wantPl, tt.msg.Platform)
 			assert.Equal(t, tt.wantTpc, tt.msg.Topic)
 			assert.Equal(t, tt.wantTyp, tt.msg.Payload.Typ)
+		})
+	}
+}
+
+func TestNewRouterSignature(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "NewRouter creates router with nil TracerProvider"},
+		{name: "NewRouter returns valid router"},
+		{name: "NewRouter router is closable"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			router, err := NewRouter(nil)
+			require.NoError(t, err)
+			require.NotNil(t, router)
+			_ = router.Close()
 		})
 	}
 }

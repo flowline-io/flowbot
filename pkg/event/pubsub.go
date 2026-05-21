@@ -1,3 +1,4 @@
+// Package event provides Watermill-based publish/subscribe infrastructure backed by Redis Streams.
 package event
 
 import (
@@ -25,11 +26,8 @@ import (
 
 var logger = flog.WatermillLogger
 
-func NewSubscriber(lc fx.Lifecycle) (message.Subscriber, error) {
-	client, err := newRedisClient()
-	if err != nil {
-		return nil, err
-	}
+// NewSubscriber creates a Watermill Redis Stream subscriber using the shared Redis client.
+func NewSubscriber(lc fx.Lifecycle, client *redis.Client) (message.Subscriber, error) {
 	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
 			Client:       client,
@@ -53,14 +51,12 @@ func NewSubscriber(lc fx.Lifecycle) (message.Subscriber, error) {
 	return subscriber, err
 }
 
+// Publisher is the global Watermill publisher, provided by NewPublisher via fx.
 var Publisher message.Publisher
 
-func NewPublisher(lc fx.Lifecycle) (message.Publisher, error) {
+// NewPublisher creates a Watermill Redis Stream publisher using the shared Redis client.
+func NewPublisher(lc fx.Lifecycle, client *redis.Client) (message.Publisher, error) {
 	var err error
-	client, err := newRedisClient()
-	if err != nil {
-		return nil, err
-	}
 	Publisher, err = redisstream.NewPublisher(
 		redisstream.PublisherConfig{
 			Client:     client,
@@ -81,7 +77,8 @@ func NewPublisher(lc fx.Lifecycle) (message.Publisher, error) {
 	return Publisher, err
 }
 
-func NewRouter(_ *redis.Client, _ *sdktrace.TracerProvider) (*message.Router, error) {
+// NewRouter creates a Watermill message router with standard middleware.
+func NewRouter(_ *sdktrace.TracerProvider) (*message.Router, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
@@ -118,6 +115,7 @@ func NewRouter(_ *redis.Client, _ *sdktrace.TracerProvider) (*message.Router, er
 	return router, nil
 }
 
+// NewMessage creates a Watermill message from the given payload, marshaled as JSON.
 func NewMessage(payload any) (*message.Message, error) {
 	data, err := sonic.Marshal(payload)
 	if err != nil {
@@ -130,6 +128,7 @@ func NewMessage(payload any) (*message.Message, error) {
 	return msg, nil
 }
 
+// PublishMessage publishes a message to the given topic with OpenTelemetry tracing.
 func PublishMessage(ctx context.Context, topic string, payload any) error {
 	msg, err := NewMessage(payload)
 	if err != nil {
