@@ -411,3 +411,11 @@ vendors:
   n8n:
     endpoint: ""
     api_key: ""
+
+# Ability invocation configuration
+ability:
+  event_pool:
+    # Max concurrent event emission workers (0 = ants default)
+    size: 0
+    # Idle worker eviction duration
+    expiry_duration: "30s"

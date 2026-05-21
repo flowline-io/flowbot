@@ -97,6 +97,11 @@ type Type struct {
 
 	// Pyroscope continuous profiling configuration
 	Profiling Profiling `json:"profiling" yaml:"profiling" mapstructure:"profiling"`
+
+	// Ability invocation configuration
+	Ability struct {
+		EventPool AbilityEventPool `json:"event_pool" yaml:"event_pool" mapstructure:"event_pool"`
+	} `json:"ability" yaml:"ability" mapstructure:"ability"`
 }
 
 // Notify holds notification gateway configuration including templates and rules.
@@ -472,6 +477,14 @@ type HomelabDiscovery struct {
 	ProbePortStrategy  string   `json:"probe_port_strategy" yaml:"probe_port_strategy" mapstructure:"probe_port_strategy"`
 	FingerprintEnabled bool     `json:"fingerprint_enabled" yaml:"fingerprint_enabled" mapstructure:"fingerprint_enabled"`
 	LabelPriority      bool     `json:"label_priority" yaml:"label_priority" mapstructure:"label_priority"`
+}
+
+// AbilityEventPool configures the goroutine pool for event emission.
+type AbilityEventPool struct {
+	// Size is the max number of goroutines in the pool (0 = ants default).
+	Size int `json:"size" yaml:"size" mapstructure:"size"`
+	// ExpiryDuration is the idle worker eviction interval (e.g. "30s").
+	ExpiryDuration string `json:"expiry_duration" yaml:"expiry_duration" mapstructure:"expiry_duration"`
 }
 
 type Pipeline struct {
