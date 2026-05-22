@@ -344,3 +344,100 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 		})
 	})
 })
+
+var _ = Describe("Webhook trigger", Label("pipeline"), func() {
+
+	It("executes pipeline on webhook invocation", func() {
+		def := pipeline.Definition{
+			Name:    "webhook-spec-" + types.Id(),
+			Enabled: true,
+			Trigger: pipeline.Trigger{
+				Webhook: &pipeline.WebhookConfig{
+					Path:      "spec-path",
+					Method:    "POST",
+					EventType: "spec.event",
+					Auth:      pipeline.WebhookAuthConfig{Token: "spec-token", TokenHeader: "X-Webhook-Token"},
+					Payload:   "raw",
+				},
+			},
+		}
+		engine := pipeline.NewEngine([]pipeline.Definition{def}, nil, nil, nil, nil)
+		DeferCleanup(engine.Stop)
+
+		event := types.DataEvent{
+			EventID:   "webhook:spec-path:123-abcdef",
+			EventType: "spec.event",
+			Source:    "webhook",
+		}
+		err := engine.ExecuteWebhook(context.Background(), &def, event)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("serializes concurrent webhook calls via mutex", func() {
+		def := pipeline.Definition{
+			Name:    "webhook-spec-mutex-" + types.Id(),
+			Enabled: true,
+			Trigger: pipeline.Trigger{
+				Webhook: &pipeline.WebhookConfig{
+					Path:      "spec-mtx",
+					Method:    "POST",
+					EventType: "spec.mutex.event",
+					Auth:      pipeline.WebhookAuthConfig{Token: "spec-token"},
+					Payload:   "raw",
+				},
+			},
+		}
+		engine := pipeline.NewEngine([]pipeline.Definition{def}, nil, nil, nil, nil)
+		DeferCleanup(engine.Stop)
+
+		mu := engine.MutexFor(def.Name)
+		Expect(mu).NotTo(BeNil())
+
+		mu.Lock()
+		done := make(chan struct{})
+		go func() {
+			event := types.DataEvent{EventID: "concurrent-spec", EventType: "spec.mutex.event"}
+			_ = engine.ExecuteWebhook(context.Background(), &def, event)
+			close(done)
+		}()
+
+		Consistently(done, 100*time.Millisecond).ShouldNot(BeClosed())
+		mu.Unlock()
+		Eventually(done, time.Second).Should(BeClosed())
+	})
+
+	It("records pipeline run for webhook trigger", func() {
+		if store.Database == nil {
+			Skip("database store not available")
+		}
+		client, ok := store.Database.GetDB().(*store.Client)
+		if !ok {
+			Skip("ent store not available")
+		}
+		runStore := store.NewPipelineStore(client)
+
+		def := pipeline.Definition{
+			Name:    "webhook-spec-record-" + types.Id(),
+			Enabled: true,
+			Trigger: pipeline.Trigger{
+				Webhook: &pipeline.WebhookConfig{
+					Path:      "spec-record",
+					Method:    "POST",
+					EventType: "spec.record.event",
+					Auth:      pipeline.WebhookAuthConfig{Token: "spec-token"},
+					Payload:   "raw",
+				},
+			},
+		}
+		engine := pipeline.NewEngine([]pipeline.Definition{def}, runStore, nil, nil, nil)
+		DeferCleanup(engine.Stop)
+
+		event := types.DataEvent{
+			EventID:   "webhook:spec-record:998",
+			EventType: "spec.record.event",
+			Source:    "webhook",
+		}
+		err := engine.ExecuteWebhook(context.Background(), &def, event)
+		Expect(err).NotTo(HaveOccurred())
+	})
+})
