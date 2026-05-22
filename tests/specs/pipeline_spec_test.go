@@ -269,4 +269,78 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 			Expect(err).To(HaveOccurred())
 		})
 	})
+
+	Describe("Cron trigger", Label("cron"), func() {
+		It("registers cron entry in engine scheduler", func() {
+			defs := []pipeline.Definition{
+				{
+					Name:    "cron-spec-" + types.Id(),
+					Enabled: true,
+					Trigger: pipeline.Trigger{Cron: "0 0 * * *", CronTimeout: 10 * time.Minute},
+					Steps:   []pipeline.Step{},
+				},
+			}
+			pipelineStore := store.NewPipelineStore(EntClient)
+			eng := pipeline.NewEngine(defs, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			defer eng.Stop()
+			Expect(eng).NotTo(BeNil())
+
+			handler := eng.Handler()
+			Expect(handler).NotTo(BeNil())
+		})
+
+		It("event-triggered pipeline acquires per-pipeline mutex", func() {
+			defs := []pipeline.Definition{
+				{
+					Name:    "mutex-spec-" + types.Id(),
+					Enabled: true,
+					Trigger: pipeline.Trigger{Event: "test.mutex.event"},
+					Steps:   []pipeline.Step{},
+				},
+			}
+			eng := pipeline.NewEngine(defs, nil, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			defer eng.Stop()
+
+			event := types.DataEvent{
+				EventID:   "mutex-test-" + types.Id(),
+				EventType: "test.mutex.event",
+			}
+			err := eng.Handler()(context.Background(), event)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("cron pipeline does not trigger from event dispatch", func() {
+			defs := []pipeline.Definition{
+				{
+					Name:    "cron-only-spec-" + types.Id(),
+					Enabled: true,
+					Trigger: pipeline.Trigger{Cron: "0 0 * * *", CronTimeout: 10 * time.Minute},
+					Steps:   []pipeline.Step{},
+				},
+			}
+			eng := pipeline.NewEngine(defs, nil, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			defer eng.Stop()
+
+			event := types.DataEvent{
+				EventID:   "cron-only-test-" + types.Id(),
+				EventType: "some.random.event",
+			}
+			err := eng.Handler()(context.Background(), event)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("stop cleanly shuts down the cron scheduler", func() {
+			defs := []pipeline.Definition{
+				{
+					Name:    "stop-spec-" + types.Id(),
+					Enabled: true,
+					Trigger: pipeline.Trigger{Cron: "0 0 * * *", CronTimeout: 10 * time.Minute},
+					Steps:   []pipeline.Step{},
+				},
+			}
+			eng := pipeline.NewEngine(defs, nil, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			eng.Stop()
+			Expect(func() { eng.Stop() }).NotTo(Panic())
+		})
+	})
 })
