@@ -49,7 +49,7 @@ func initPipeline(
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 
 	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			engine.Stop()
 			return nil
 		},
