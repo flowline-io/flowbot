@@ -47,6 +47,7 @@ func runWorkflow(ctx fiber.Ctx) error {
 		}
 		runner = workflowpkg.NewRunnerWithStore(runStore, auditor, nil, body.File, "manual")
 	}
+	defer runner.Close()
 	if err := runner.Execute(ctx.Context(), *wf, types.KV(body.Params), body.File); err != nil {
 		return fmt.Errorf("workflow execution: %w", err)
 	}

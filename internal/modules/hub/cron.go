@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -17,9 +16,9 @@ var cronRules = []cron.Rule{
 		Help:  "Periodic hub health check with alerting",
 		Scope: cron.CronScopeSystem,
 		When:  "*/5 * * * *",
-		Action: func(_ types.Context) []types.MsgPayload {
+		Action: func(ctx types.Context) []types.MsgPayload {
 			checker := hub.NewChecker(hub.Default)
-			result := checker.Check(context.Background())
+			result := checker.Check(ctx.Context())
 
 			if result.Status != hub.HealthHealthy {
 				msg := notify.Message{
@@ -28,7 +27,7 @@ var cronRules = []cron.Rule{
 					Priority: notify.High,
 				}
 
-				if err := notify.ChannelSend(types.Uid("system"), "hub_health", msg); err != nil {
+				if err := notify.ChannelSend(ctx.Context(), types.Uid("system"), "hub_health", msg); err != nil {
 					flog.Error(fmt.Errorf("hub health notify: %w", err))
 				}
 			}

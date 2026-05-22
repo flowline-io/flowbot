@@ -278,5 +278,9 @@ var Database Adapter
 
 func Init() {
 	Store = storeObj{}
-	Database = availableAdapters["postgres"] // default use postgres
+	pgAdapter, ok := availableAdapters["postgres"]
+	if !ok {
+		flog.Fatal("postgres adapter not available - check build tags")
+	}
+	Database = pgAdapter
 }

@@ -87,7 +87,7 @@ func Send(text string, message Message) error {
 		}
 		scheme, err := ParseSchema(v)
 		if err != nil {
-			flog.Info("[notify] %s parse schema error: %s", scheme, err)
+			flog.Error(fmt.Errorf("[notify] %s parse schema error: %w", scheme, err))
 			continue
 		}
 		if _, ok := handlers[scheme]; !ok {
@@ -96,11 +96,11 @@ func Send(text string, message Message) error {
 
 		tokens, err := ParseTemplate(v, handlers[scheme].Templates())
 		if err != nil {
-			flog.Info("[notify] %s parse template error: %s", scheme, err)
+			flog.Error(fmt.Errorf("[notify] %s parse template error: %w", scheme, err))
 			continue
 		}
 		if err := handlers[scheme].Send(tokens, message); err != nil {
-			flog.Info("[notify] %s send message error: %s", scheme, err)
+			flog.Error(fmt.Errorf("[notify] %s send message error: %w", scheme, err))
 		}
 		flog.Info("[notify] %s send message", scheme)
 	}
@@ -108,8 +108,8 @@ func Send(text string, message Message) error {
 	return nil
 }
 
-func ChannelSend(uid types.Uid, name string, message Message) error {
-	kv, err := store.Database.ConfigGet(context.Background(), uid, "", fmt.Sprintf("notify:%s", name))
+func ChannelSend(ctx context.Context, uid types.Uid, name string, message Message) error {
+	kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", name))
 	if err != nil {
 		return err
 	}

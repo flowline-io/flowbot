@@ -120,6 +120,11 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 		return protocol.ErrOAuthError.Wrap(err)
 	}
 
+	token, ok := tk["token"].(string)
+	if !ok {
+		return protocol.ErrBadParam.New("missing or invalid token in access token response")
+	}
+
 	// store
 	extra := types.KV{}
 	_ = extra.Scan(tk["extra"])
@@ -128,7 +133,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 		Topic: topic,
 		Name:  name,
 		Type:  name,
-		Token: tk["token"].(string),
+		Token: token,
 		Extra: model.JSON(extra),
 	})
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -398,7 +399,13 @@ func Shortcut(title, link string) (string, error) {
 }
 
 func FindRuleAndHandler[T types.Ruler](flag string, handlers map[string]Handler) (T, Handler) {
-	for _, handler := range handlers {
+	keys := make([]string, 0, len(handlers))
+	for k := range handlers {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		handler := handlers[k]
 		for _, item := range handler.Rules() {
 			if rules, ok := item.([]T); ok {
 				for _, rule := range rules {
@@ -449,12 +456,12 @@ func Init(jsonconf json.RawMessage) error {
 }
 
 func Bootstrap() error {
-	for _, module := range handlers {
+	for name, module := range handlers {
 		if !module.IsReady() {
 			continue
 		}
 		if err := module.Bootstrap(); err != nil {
-			return err
+			return fmt.Errorf("%s bootstrap: %w", name, err)
 		}
 	}
 	return nil
@@ -475,5 +482,9 @@ func Cron() ([]*cron.Ruleset, error) {
 }
 
 func List() map[string]Handler {
-	return handlers
+	copyMap := make(map[string]Handler, len(handlers))
+	for k, v := range handlers {
+		copyMap[k] = v
+	}
+	return copyMap
 }

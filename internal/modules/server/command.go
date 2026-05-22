@@ -143,7 +143,7 @@ var commandRules = []command.Rule{
 		Help:   `self inspection`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			// notify
-			err := notify.ChannelSend(ctx.AsUser, "slack", notify.Message{
+			err := notify.ChannelSend(ctx.Context(), ctx.AsUser, "slack", notify.Message{
 				Title: "notify check",
 				Body:  "notify check",
 				Url:   "https://example.com",

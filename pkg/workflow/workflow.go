@@ -209,8 +209,6 @@ func (r *Runner) Run(ctx context.Context, t *types.Task) error {
 }
 
 func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input types.KV, file string) error {
-	defer r.Close()
-
 	taskMap := make(map[string]types.WorkflowTask)
 	for _, wt := range wf.Tasks {
 		taskMap[wt.ID] = wt

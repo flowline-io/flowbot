@@ -424,6 +424,8 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		return fmt.Errorf("get run %d: %w", runID, err)
 	}
 
+	_ = e.store.UpdateRunStatus(ctx, runID, model.PipelineStart, "")
+
 	if e.pipelineMetrics != nil {
 		e.pipelineMetrics.IncResume(run.PipelineName)
 	}
