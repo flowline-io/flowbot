@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"gopkg.in/yaml.v3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -591,4 +592,69 @@ func TestModelAndAgentSlices(t *testing.T) {
 		assert.True(t, cfg.Agents[0].Enabled)
 		assert.False(t, cfg.Agents[1].Enabled)
 	})
+}
+
+func TestPipelineTrigger_CronFields(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		yamlData    string
+		wantEvent   string
+		wantCron    string
+		wantTimeout string
+	}{
+		{
+			name: "event only trigger",
+			yamlData: `
+name: event-only
+trigger:
+  event: bookmark.created
+`,
+			wantEvent: "bookmark.created",
+			wantCron:  "",
+		},
+		{
+			name: "cron only trigger",
+			yamlData: `
+name: cron-only
+trigger:
+  cron: "0 */6 * * *"
+`,
+			wantEvent: "",
+			wantCron:  "0 */6 * * *",
+		},
+		{
+			name: "both event and cron trigger",
+			yamlData: `
+name: mixed-trigger
+trigger:
+  event: bookmark.created
+  cron: "@daily"
+`,
+			wantEvent: "bookmark.created",
+			wantCron:  "@daily",
+		},
+		{
+			name: "cron with custom timeout",
+			yamlData: `
+name: cron-timeout
+trigger:
+  cron: "0 3 * * *"
+  cron_timeout: "30m"
+`,
+			wantCron:    "0 3 * * *",
+			wantTimeout: "30m",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var pl Pipeline
+			err := yaml.Unmarshal([]byte(tt.yamlData), &pl)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantEvent, pl.Trigger.Event)
+			assert.Equal(t, tt.wantCron, pl.Trigger.Cron)
+			assert.Equal(t, tt.wantTimeout, pl.Trigger.CronTimeout)
+		})
+	}
 }

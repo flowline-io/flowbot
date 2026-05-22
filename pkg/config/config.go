@@ -519,7 +519,9 @@ type PipelineStepRetry struct {
 }
 
 type PipelineTrigger struct {
-	Event string `json:"event" yaml:"event" mapstructure:"event"`
+	Event       string `json:"event" yaml:"event" mapstructure:"event"`
+	Cron        string `json:"cron" yaml:"cron" mapstructure:"cron"`
+	CronTimeout string `json:"cron_timeout" yaml:"cron_timeout" mapstructure:"cron_timeout"`
 }
 
 type Alarm struct {
