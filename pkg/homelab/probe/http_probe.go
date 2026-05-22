@@ -81,7 +81,7 @@ func (p *HTTPProbe) ProbeEndpoint(ctx context.Context, baseURL string) *Endpoint
 }
 
 func (p *HTTPProbe) probeURL(ctx context.Context, rawURL string) *homelab.AuthInfo {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, http.NoBody)
 	if err != nil {
 		return nil
 	}
@@ -103,7 +103,7 @@ func (p *HTTPProbe) discoverHealth(ctx context.Context, baseURL string) string {
 		if err != nil {
 			continue
 		}
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, http.NoBody)
 		if err != nil {
 			continue
 		}
@@ -163,7 +163,7 @@ func (p *HTTPProbe) hasOIDCDiscovery(ctx context.Context, baseURL string) bool {
 	if err != nil {
 		return false
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, wellKnownURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, wellKnownURL, http.NoBody)
 	if err != nil {
 		return false
 	}
@@ -178,7 +178,7 @@ func (p *HTTPProbe) hasOIDCDiscovery(ctx context.Context, baseURL string) bool {
 }
 
 func (p *HTTPProbe) pathReachable(ctx context.Context, rawURL string) bool {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, http.NoBody)
 	if err != nil {
 		return false
 	}

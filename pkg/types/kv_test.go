@@ -600,7 +600,7 @@ func TestKV_Value_Empty(t *testing.T) {
 	t.Parallel()
 	t.Run("empty KV value", func(t *testing.T) {
 		t.Parallel()
-		v, err := (KV{}).Value()
+		v, err := (&KV{}).Value()
 		require.NoError(t, err)
 		assert.Nil(t, v)
 	})

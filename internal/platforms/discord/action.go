@@ -32,8 +32,9 @@ func (*Action) GetVersion(_ protocol.Request) protocol.Response {
 }
 
 func (a *Action) SendMessage(req protocol.Request) protocol.Response {
-	channel, _ := types.KV(req.Params).String("topic") // fixme
-	message, _ := types.KV(req.Params).Any("message")
+	params := types.KV(req.Params)
+	channel, _ := params.String("topic") // fixme
+	message, _ := params.Any("message")
 	content, ok := message.(protocol.Message)
 	if !ok {
 		return protocol.NewFailedResponse(protocol.ErrBadSegmentType.New("message type error"))

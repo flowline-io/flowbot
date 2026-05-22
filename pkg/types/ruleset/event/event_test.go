@@ -93,7 +93,7 @@ func TestRuleset_ProcessEvent_MultipleRulesStopsOnError(t *testing.T) {
 	t.Parallel()
 	t.Run("multiple rules stops on error", func(t *testing.T) {
 		t.Parallel()
-		callOrder := []string{}
+		var callOrder []string
 		rules := Ruleset{
 			{
 				Id: "event1",

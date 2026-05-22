@@ -156,44 +156,13 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		return fmt.Errorf("error pulling image: %s, %w", t.Image, err)
 	}
 
-	var env []string
-	for name, value := range t.Env {
-		env = append(env, fmt.Sprintf("%s=%s", name, value))
-	}
-	env = append(env, "OUTPUT=/flowbot/stdout")
+	env := buildEnvVars(t)
 
-	var mounts []mount.Mount
-
-	for _, m := range t.Mounts {
-		var mt mount.Type
-		switch m.Type {
-		case types.MountTypeVolume:
-			mt = mount.TypeVolume
-			if m.Target == "" {
-				return fmt.Errorf("volume target is required")
-			}
-		case types.MountTypeBind:
-			mt = mount.TypeBind
-			if m.Target == "" {
-				return fmt.Errorf("bind target is required")
-			}
-			if m.Source == "" {
-				return fmt.Errorf("bind source is required")
-			}
-		case types.MountTypeTmpfs:
-			mt = mount.TypeTmpfs
-		default:
-			return fmt.Errorf("unknown mount type: %s", m.Type)
-		}
-		item := mount.Mount{
-			Type:   mt,
-			Source: m.Source,
-			Target: m.Target,
-		}
-		flog.Info("Mounting %s -> %s", item.Source, item.Target)
-		mounts = append(mounts, item)
+	mounts, err := buildContainerMounts(t)
+	if err != nil {
+		return err
 	}
-	// create the workdir mount
+
 	workdir := &types.Mount{Type: types.MountTypeVolume, Target: "/flowbot"}
 	if err := d.mounter.Mount(ctx, workdir); err != nil {
 		return err
@@ -211,27 +180,9 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		Target: workdir.Target,
 	})
 
-	// parse task limits
-	cpus, err := parseCPUs(t.Limits)
+	resources, err := buildResources(t)
 	if err != nil {
-		return fmt.Errorf("invalid CPUs value, %w", err)
-	}
-	mem, err := parseMemory(t.Limits)
-	if err != nil {
-		return fmt.Errorf("invalid memory value, %w", err)
-	}
-
-	resources := container.Resources{
-		NanoCPUs: cpus,
-		Memory:   mem,
-	}
-
-	if t.GPUs != "" {
-		gpuOpts := cliopts.GpuOpts{}
-		if err := gpuOpts.Set(t.GPUs); err != nil {
-			return fmt.Errorf("error setting GPUs, %w", err)
-		}
-		// resources.DeviceRequests = gpuOpts.Value() FIXME
+		return err
 	}
 
 	hc := container.HostConfig{
@@ -240,34 +191,8 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		Resources:       resources,
 	}
 
-	cmd := t.CMD
-	if len(cmd) == 0 {
-		cmd = []string{fmt.Sprintf("%s/entrypoint", workdir.Target)}
-	}
-	entrypoint := t.Entrypoint
-	if len(entrypoint) == 0 && t.Run != "" {
-		entrypoint = []string{"sh", "-c"}
-	}
-	cc := container.Config{
-		Image:      t.Image,
-		Env:        env,
-		Cmd:        cmd,
-		Entrypoint: entrypoint,
-	}
-	// we want to override the default
-	// image WORKDIR only if the task
-	// introduces work files
-	if len(t.Files) > 0 {
-		cc.WorkingDir = workdir.Target
-	}
-
-	nc := network.NetworkingConfig{
-		EndpointsConfig: make(map[string]*network.EndpointSettings),
-	}
-
-	for _, nw := range t.Networks {
-		nc.EndpointsConfig[nw] = &network.EndpointSettings{NetworkID: nw}
-	}
+	cc := buildContainerConfig(t, workdir.Target, env)
+	nc := buildNetworkConfig(t)
 
 	resp, err := d.client.ContainerCreate(
 		ctx, &cc, &hc, &nc, nil, "")
@@ -276,12 +201,9 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		return err
 	}
 
-	// create a mapping between task id and container id
 	d.tasks.Set(t.ID, resp.ID)
-
 	flog.Info("created container %s", resp.ID)
 
-	// remove the container
 	defer func() {
 		stopContext, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
@@ -290,28 +212,21 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		}
 	}()
 
-	// initialize the work directory
 	if err := d.initWorkdir(ctx, resp.ID, t); err != nil {
 		return fmt.Errorf("error initializing container, %w", err)
 	}
 
-	// start the container
 	flog.Info("Starting container %s", resp.ID)
-	err = d.client.ContainerStart(
-		ctx, resp.ID, container.StartOptions{})
+	err = d.client.ContainerStart(ctx, resp.ID, container.StartOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting container %s: %w", resp.ID, err)
 	}
-	// read the container's stdout
-	out, err := d.client.ContainerLogs(
-		ctx,
-		resp.ID,
-		container.LogsOptions{
-			ShowStdout: true,
-			ShowStderr: true,
-			Follow:     true,
-		},
-	)
+
+	out, err := d.client.ContainerLogs(ctx, resp.ID, container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     true,
+	})
 	if err != nil {
 		return fmt.Errorf("error getting logs for container %s: %w", resp.ID, err)
 	}
@@ -324,11 +239,111 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	if err != nil {
 		return fmt.Errorf("error reading the std out, %w", err)
 	}
-	// detect if the task was explicitly stopped while it was running
+
+	return d.waitForCompletion(ctx, t, resp.ID)
+}
+
+func buildEnvVars(t *types.Task) []string {
+	env := []string{"OUTPUT=/flowbot/stdout"}
+	for name, value := range t.Env {
+		env = append(env, fmt.Sprintf("%s=%s", name, value))
+	}
+	return env
+}
+
+func buildContainerMounts(t *types.Task) ([]mount.Mount, error) {
+	var mounts []mount.Mount
+	for _, m := range t.Mounts {
+		var mt mount.Type
+		switch m.Type {
+		case types.MountTypeVolume:
+			mt = mount.TypeVolume
+			if m.Target == "" {
+				return nil, fmt.Errorf("volume target is required")
+			}
+		case types.MountTypeBind:
+			mt = mount.TypeBind
+			if m.Target == "" {
+				return nil, fmt.Errorf("bind target is required")
+			}
+			if m.Source == "" {
+				return nil, fmt.Errorf("bind source is required")
+			}
+		case types.MountTypeTmpfs:
+			mt = mount.TypeTmpfs
+		default:
+			return nil, fmt.Errorf("unknown mount type: %s", m.Type)
+		}
+		item := mount.Mount{
+			Type:   mt,
+			Source: m.Source,
+			Target: m.Target,
+		}
+		flog.Info("Mounting %s -> %s", item.Source, item.Target)
+		mounts = append(mounts, item)
+	}
+	return mounts, nil
+}
+
+func buildResources(t *types.Task) (container.Resources, error) {
+	cpus, err := parseCPUs(t.Limits)
+	if err != nil {
+		return container.Resources{}, fmt.Errorf("invalid CPUs value, %w", err)
+	}
+	mem, err := parseMemory(t.Limits)
+	if err != nil {
+		return container.Resources{}, fmt.Errorf("invalid memory value, %w", err)
+	}
+	resources := container.Resources{
+		NanoCPUs: cpus,
+		Memory:   mem,
+	}
+	if t.GPUs != "" {
+		gpuOpts := cliopts.GpuOpts{}
+		if err := gpuOpts.Set(t.GPUs); err != nil {
+			return container.Resources{}, fmt.Errorf("error setting GPUs, %w", err)
+		}
+		// resources.DeviceRequests = gpuOpts.Value() FIXME
+	}
+	return resources, nil
+}
+
+func buildContainerConfig(t *types.Task, workdirTarget string, env []string) container.Config {
+	cmd := t.CMD
+	if len(cmd) == 0 {
+		cmd = []string{fmt.Sprintf("%s/entrypoint", workdirTarget)}
+	}
+	entrypoint := t.Entrypoint
+	if len(entrypoint) == 0 && t.Run != "" {
+		entrypoint = []string{"sh", "-c"}
+	}
+	cc := container.Config{
+		Image:      t.Image,
+		Env:        env,
+		Cmd:        cmd,
+		Entrypoint: entrypoint,
+	}
+	if len(t.Files) > 0 {
+		cc.WorkingDir = workdirTarget
+	}
+	return cc
+}
+
+func buildNetworkConfig(t *types.Task) network.NetworkingConfig {
+	nc := network.NetworkingConfig{
+		EndpointsConfig: make(map[string]*network.EndpointSettings),
+	}
+	for _, nw := range t.Networks {
+		nc.EndpointsConfig[nw] = &network.EndpointSettings{NetworkID: nw}
+	}
+	return nc
+}
+
+func (d *Runtime) waitForCompletion(ctx context.Context, t *types.Task, containerID string) error {
 	if _, ok := d.tasks.Get(t.ID); !ok {
 		return fmt.Errorf("task %s was stopped", t.ID)
 	}
-	statusCh, errCh := d.client.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	statusCh, errCh := d.client.ContainerWait(ctx, containerID, container.WaitConditionNotRunning)
 	var status container.WaitResponse
 	select {
 	case err := <-errCh:
@@ -338,16 +353,12 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		status = <-statusCh
 	case status = <-statusCh:
 	}
-	if status.StatusCode != 0 { // error
-		out, err := d.client.ContainerLogs(
-			ctx,
-			resp.ID,
-			container.LogsOptions{
-				ShowStdout: true,
-				ShowStderr: true,
-				Tail:       "10",
-			},
-		)
+	if status.StatusCode != 0 {
+		out, err := d.client.ContainerLogs(ctx, containerID, container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Tail:       "10",
+		})
 		if err != nil {
 			flog.Error(fmt.Errorf("error tailing the log, %w", err))
 			return fmt.Errorf("exit code %d, %w", status.StatusCode, err)
@@ -358,7 +369,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 		}
 		return fmt.Errorf("exit code %d: %s", status.StatusCode, string(buf))
 	}
-	stdout, err := d.readOutput(ctx, resp.ID)
+	stdout, err := d.readOutput(ctx, containerID)
 	if err != nil {
 		return err
 	}

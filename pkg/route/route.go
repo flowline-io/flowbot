@@ -201,7 +201,8 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	if p.ID <= 0 || p.IsExpired() {
 		return
 	}
-	u, _ := types.KV(p.Params).String("uid")
+	params := types.KV(p.Params)
+	u, _ := params.String("uid")
 	uid = types.Uid(u)
 	if uid.IsZero() {
 		return
