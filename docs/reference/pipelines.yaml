@@ -55,3 +55,35 @@
       params:
         channel: slack
         message: 'New feeds: {{step "fetch_feeds" "count"}}'
+
+# Cron-triggered pipeline example.
+# cron uses standard 5-field syntax (minute hour dom month dow)
+# plus optional seconds and descriptors (@every 1h, @daily).
+# cron_timeout defaults to 10m if omitted.
+- name: daily_cleanup
+  description: "Daily cleanup job at 3 AM"
+  enabled: false
+  resumable: false
+  trigger:
+    cron: "0 3 * * *"
+    cron_timeout: "30m"
+  steps:
+    - name: cleanup
+      capability: system
+      operation: cleanup
+      params: {}
+
+# Mixed trigger example — fires on event or schedule.
+- name: periodic_sync
+  description: "Sync on event or every 6 hours"
+  enabled: false
+  resumable: true
+  trigger:
+    event: data.sync.requested
+    cron: "0 */6 * * *"
+  steps:
+    - name: sync
+      capability: data
+      operation: sync
+      params:
+        full: true
