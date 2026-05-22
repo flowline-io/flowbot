@@ -30,10 +30,13 @@ Way 1: Inbound Webhook
   Provider ──HTTP POST──> /webhook/provider/{path}
                             │
                             ▼
-                     WebhookHook (signature verification)
+                     WebhookHandler (lookup converter)
                             │
                             ▼
-                     WebhookConverter.Convert() → []DataEvent
+                     converter.VerifySignature() ← provider-specific logic
+                            │
+                            ▼
+                     converter.Convert() → []DataEvent (with IdempotencyKey)
                             │
                             ▼
                      EventEmitter (PG + Redis Stream) → Pipeline
@@ -45,10 +48,13 @@ Way 2: Cron Polling
   PollingResource.List(cursor) → (items, nextCursor)
        │
        ▼
-  DiffKey + ContentHash compare → new/updated events
+  DiffKey + ContentHash compare → created / updated events
        │
        ▼
   EventEmitter (PG + Redis Stream) → Pipeline
+
+Note: `{resource}.deleted` events are out of scope for polling.
+Use native provider webhooks for delete detection.
 ```
 
 All DataEvents from either path include `Source: "provider_event"` to
@@ -80,7 +86,7 @@ internal/store/
 ```go
 type WebhookConverter interface {
     WebhookPath() string
-    GetWebhookSecret() (string, error)
+    VerifySignature(headers map[string]string, body []byte) error
     Convert(body []byte, headers map[string]string) ([]types.DataEvent, error)
 }
 
@@ -102,27 +108,25 @@ type PollResult struct {
 
 Interfaces live in `pkg/ability/` (ability defines the contract).
 Implementations live in `pkg/ability/{ability}/{provider}/event_source.go`.
-Providers expose `GetWebhookSecret()` method on their client struct for auth.
+Each `WebhookConverter` implementation encapsulates its own signature
+verification logic (HMAC-SHA256, plain token, Stripe-style multi-key, MD5,
+or asymmetric — all opaque to the ability layer).
+Providers expose a `GetWebhookSecret()` method on their client struct for
+use inside `VerifySignature`.
 
 ### EventSourceManager (`pkg/ability/event_source_manager.go`)
 
 ```go
 type EventSourceManager struct {
-    mu         sync.RWMutex
-    pollers    map[string]*pollEntry       // key: ResourceName()
+    mu         sync.RWMutex             // protects pollers / webhooks map add/delete only
+    pollers    map[string]*pollEntry     // key: ResourceName()
     webhooks   map[string]WebhookConverter // key: WebhookPath()
-    emitter    EventEmitter                // existing interface
+    emitter    EventEmitter              // func(ctx, DataEvents) error
     scheduler  *cron.Scheduler
     stateStore *PollingStateStore
-    pool       *ants.PoolWithFunc          // reuses ability/pool.go pattern
+    pool       *ants.PoolWithFunc        // reuses ability/pool.go pattern
     metrics    *EventSourceMetrics
 }
-
-func (m *EventSourceManager) RegisterPolling(r PollingResource, interval time.Duration)
-func (m *EventSourceManager) RegisterWebhook(c WebhookConverter)
-func (m *EventSourceManager) Start(ctx context.Context) error
-func (m *EventSourceManager) Stop(ctx context.Context) error
-func (m *EventSourceManager) WebhookHandler() fiber.Handler
 ```
 
 Registration happens in `internal/modules/{name}/fx.go` via fx dependency
@@ -130,15 +134,24 @@ injection.
 
 ### Diff strategy
 
-Each pollEntry maintains in-memory state (cursor + KnownItems):
+Each `pollEntry` maintains in-memory state (cursor + KnownItems) with its own
+lock to avoid global contention:
 
 ```go
-type PollingEntry struct {
-    Cursor     string            // last poll cursor
-    KnownItems map[string]string // DiffKey → ContentHash
-    UpdatedAt  time.Time
+type pollEntry struct {
+    mu         sync.Mutex          // protects cursor and knownItems
+    resource   PollingResource
+    cursor     string
+    knownItems map[string]string   // DiffKey → ContentHash
+    updatedAt  time.Time
 }
 ```
+
+The `EventSourceManager` has a global `sync.RWMutex` that protects only the
+`pollers` and `webhooks` map registrations (add/delete). Per-entry state
+reads and writes use the `pollEntry.mu` lock so that a background flush or
+one resource's poll tick never blocks webhook dispatch or other resources'
+poll ticks.
 
 Per-item comparison on each poll tick:
 
@@ -151,6 +164,25 @@ Per-item comparison on each poll tick:
 DataEvent IdempotencyKey is set to DiffKey for PostgreSQL-level dedup as a
 secondary safeguard.
 
+### KnownItems lifecycle (cursor-scoped)
+
+`KnownItems` is scoped to the current cursor window, not truncated
+arbitrarily by count. When a poll advances the cursor, KnownItems is
+refreshed to contain only the DiffKeys seen within the new cursor window.
+This prevents stale entries from being re-emitted as "created" on subsequent
+polls when the resource dataset exceeds any fixed limit.
+
+On `Start()` recovery from PostgreSQL, `knownItems` is loaded as-is from the
+persisted state (already cursor-scoped by the last `Flush()`).
+
+### Delete detection (out of scope)
+
+The current polling mechanism does **not** detect `{resource}.deleted`
+events. Detecting deletions requires pulling the full current dataset and
+diffing against the complete known-ID set — prohibitively expensive for
+large resources. Providers that support native delete webhooks should
+implement `WebhookConverter` for delete events instead.
+
 ### Webhook Hook (`pkg/ability/webhook_hook.go`)
 
 Route: `POST /webhook/provider/{path}`
@@ -161,22 +193,52 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
         path := c.Params("*")
         converter := m.webhooks[path]
         if converter == nil { return 404 }
-        secret, _ := converter.GetWebhookSecret()
-        if err := verifySignature(c, body, secret); err != nil { return 401 }
+        body := c.Body()
+        headers := c.GetReqHeaders()
+        if err := converter.VerifySignature(headers, body); err != nil {
+            return c.Status(fiber.StatusUnauthorized).JSON(...)
+        }
         events, err := converter.Convert(body, headers)
         if err != nil { return 400 }
         for _, ev := range events {
-            m.pool.Submit(func() { m.emitter.Emit(ev) })
+            ev := ev
+            m.pool.Submit(func() {
+                // Use background context, not the Fiber request context,
+                // to prevent cancellation after the HTTP 202 response.
+                m.emitter.Emit(context.Background(), ev)
+            })
         }
         return c.SendStatus(202)
     }
 }
 ```
 
-Signature verification: HMAC-SHA256 (`X-Hub-Signature-256`) or plain token
-(`X-Webhook-Token`). No verification when secret is empty (development only).
+Signature verification is delegated entirely to `WebhookConverter.VerifySignature()`.
+Each provider implementation encapsulates its own scheme (HMAC-SHA256, plain token,
+Stripe-style multi-key, MD5, asymmetric). The hook handler is agnostic to the
+verification mechanism.
 
-### Secret configuration
+### Webhook idempotency
+
+Each `DataEvent` produced by `WebhookConverter.Convert()` **must** set
+`IdempotencyKey` to a value extracted from the webhook payload. Examples:
+
+| Provider | IdempotencyKey source |
+|----------|-----------------------|
+| GitHub | `X-GitHub-Delivery` header |
+| Gitea | `X-Gitea-Delivery` header |
+| Stripe | `payload.id` (event ID) |
+| Custom | Any unique per-delivery identifier from headers or body |
+
+This ensures that provider-side HTTP retries (e.g., GitHub webhook timeout
+retry) do not produce duplicate DataEvents — the PostgreSQL `data_events`
+table enforces uniqueness on `IdempotencyKey` at the database level.
+
+### Secret configuration (implementation convention)
+
+Each provider stores its webhook secret in `flowbot.yaml` under the existing
+`providers.<name>` block. Converter implementations retrieve it via the
+provider's `GetWebhookSecret()` method inside `VerifySignature()`:
 
 ```yaml
 # flowbot.yaml
@@ -194,6 +256,9 @@ func (g *Github) GetWebhookSecret() (string, error) {
 }
 ```
 
+This is a provider-level convention, not part of the `WebhookConverter`
+interface contract.
+
 ### Polling state persistence (`pkg/ability/polling_state.go`)
 
 Memory-first with periodic PostgreSQL flush:
@@ -208,10 +273,13 @@ CREATE TABLE polling_state (
 ```
 
 Persistence timing:
-- After each poll tick: update in-memory, mark dirty
-- Background goroutine: flush dirty entries every 5 minutes
+- After each poll tick: update in-memory cursor + KnownItems, mark dirty
+- Background goroutine: flush dirty entries to PG every 5 minutes. During
+  flush, KnownItems is written as-is (already cursor-scoped from the poll
+  cycle — see Diff strategy above).
 - Stop(): force flush all dirty entries
-- Start(): Load from PG, truncate known_hashes to last 1000 entries
+- Start(): Load cursor and KnownItems from PG. Per-entry state is restored
+  exactly as persisted.
 
 ### Error handling
 
@@ -223,9 +291,11 @@ Per-poll errors:
 - Success resets consecutive failure counter to 0
 
 Webhook errors:
-- Signature mismatch: return 401, do not emit
+- `VerifySignature` error: return 401, do not emit
 - Converter error (malformed payload): return 400
 - Emit failure: log + metrics, HTTP already returned 202
+- Network retry safety: `IdempotencyKey` prevents duplicate events from
+  provider-side retries (see Webhook idempotency section)
 
 Poll timeout: each `List()` call receives a context with deadline set to
 `interval / 2` (minimum 30 seconds).
