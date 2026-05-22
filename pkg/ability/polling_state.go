@@ -31,7 +31,6 @@ type PollingState struct {
 type pollingEntryState struct {
 	mu    sync.Mutex
 	entry PollingEntry
-	dirty bool
 }
 
 // NewPollingState creates a PollingState backed by the given Persistence.
@@ -77,8 +76,11 @@ func (s *PollingState) Update(name string, entry PollingEntry) {
 		KnownHashes: copyMap(entry.KnownHashes),
 		UpdatedAt:   time.Now(),
 	}
-	e.dirty = true
 	e.mu.Unlock()
+
+	s.mu.Lock()
+	s.dirty[name] = true
+	s.mu.Unlock()
 }
 
 // MarkDirty marks a resource as needing persistence.
@@ -109,7 +111,6 @@ func (s *PollingState) Flush(ctx context.Context) error {
 			Cursor:      e.entry.Cursor,
 			KnownHashes: copyMap(e.entry.KnownHashes),
 		}
-		e.dirty = false
 		e.mu.Unlock()
 
 		if s.backend != nil {
