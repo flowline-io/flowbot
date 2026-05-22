@@ -52,7 +52,7 @@ func LoadConfig(cfg []config.Pipeline) []Definition {
 			Description: p.Description,
 			Enabled:     p.Enabled,
 			Resumable:   p.Resumable,
-			Trigger:     cronTrigger(p.Trigger),
+			Trigger:     cronTrigger(p.Name, p.Trigger),
 		}
 		for _, s := range p.Steps {
 			retry, err := convertRetryConfig(s.Retry)
@@ -117,12 +117,12 @@ func FindByEvent(defs []Definition, eventType string) []Definition {
 	return matched
 }
 
-func cronTrigger(cfg config.PipelineTrigger) Trigger {
+func cronTrigger(name string, cfg config.PipelineTrigger) Trigger {
 	t := Trigger{Event: cfg.Event, Cron: cfg.Cron}
 	if cfg.CronTimeout != "" {
 		d, err := time.ParseDuration(cfg.CronTimeout)
 		if err != nil {
-			flog.Error(fmt.Errorf("pipeline: invalid cron_timeout %q: %w", cfg.CronTimeout, err))
+			flog.Error(fmt.Errorf("pipeline %s: invalid cron_timeout %q: %w", name, cfg.CronTimeout, err))
 			return t
 		}
 		t.CronTimeout = d

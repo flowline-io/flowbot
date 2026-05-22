@@ -194,6 +194,35 @@ func TestLoadConfig_CronTrigger(t *testing.T) {
 				assert.Equal(t, 30*time.Minute, defs[0].Trigger.CronTimeout)
 			},
 		},
+		{
+			name: "invalid cron_timeout still loads pipeline",
+			cfg: []config.Pipeline{
+				{
+					Name:    "bad-timeout",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Cron: "0 0 * * *", CronTimeout: "not-a-duration"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, "bad-timeout", defs[0].Name)
+				assert.Equal(t, time.Duration(0), defs[0].Trigger.CronTimeout)
+			},
+		},
+		{
+			name: "event-only pipeline gets default timeout",
+			cfg: []config.Pipeline{
+				{
+					Name:    "event-only",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Event: "e1"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, 10*time.Minute, defs[0].Trigger.CronTimeout)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
