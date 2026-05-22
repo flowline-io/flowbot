@@ -653,13 +653,13 @@ func (m *mockAuditor) Record(_ context.Context, entry audit.Entry) error {
 	return nil
 }
 func (m *mockAuditor) RecordSuccess(_ context.Context, entry audit.Entry) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 func (m *mockAuditor) RecordFailure(_ context.Context, entry audit.Entry, _ error) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, _ string) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 
 func TestEngine_Audit(t *testing.T) {

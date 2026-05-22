@@ -27,11 +27,11 @@ func (j *JSON) Scan(value any) error {
 	return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 }
 
-func (j JSON) Value() (driver.Value, error) {
-	if len(j) == 0 {
+func (j *JSON) Value() (driver.Value, error) {
+	if len(*j) == 0 {
 		return nil, nil
 	}
-	return sonic.Marshal(j)
+	return sonic.Marshal(*j)
 }
 
 type IDList []int64
@@ -53,9 +53,9 @@ func (j *IDList) Scan(value any) error {
 	return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 }
 
-func (j IDList) Value() (driver.Value, error) {
-	if len(j) == 0 {
+func (j *IDList) Value() (driver.Value, error) {
+	if len(*j) == 0 {
 		return nil, nil
 	}
-	return sonic.Marshal(j)
+	return sonic.Marshal(*j)
 }

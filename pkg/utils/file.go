@@ -15,7 +15,7 @@ func FileExist(name string) bool {
 }
 
 func DownloadFile(url, filename string) error {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, http.NoBody)
 	if err != nil {
 		return err
 	}

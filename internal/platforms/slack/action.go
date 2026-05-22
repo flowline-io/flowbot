@@ -42,8 +42,9 @@ func (*Action) GetVersion(_ protocol.Request) protocol.Response {
 }
 
 func (a *Action) SendMessage(req protocol.Request) protocol.Response {
-	channel, _ := types.KV(req.Params).String("topic")
-	message, _ := types.KV(req.Params).Any("message")
+	params := types.KV(req.Params)
+	channel, _ := params.String("topic")
+	message, _ := params.Any("message")
 	content, ok := message.(protocol.Message)
 	if !ok {
 		return protocol.NewFailedResponse(protocol.ErrBadSegmentType.New("message type error"))
@@ -67,9 +68,10 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 
 // UpdateMessage updates an existing message (e.g. replace a "thinking…" indicator with the final result).
 func (a *Action) UpdateMessage(req protocol.Request) protocol.Response {
-	channel, _ := types.KV(req.Params).String("topic")
-	timestamp, _ := types.KV(req.Params).String("message_id")
-	message, _ := types.KV(req.Params).Any("message")
+	params := types.KV(req.Params)
+	channel, _ := params.String("topic")
+	timestamp, _ := params.String("message_id")
+	message, _ := params.Any("message")
 	content, ok := message.(protocol.Message)
 	if !ok {
 		return protocol.NewFailedResponse(protocol.ErrBadSegmentType.New("message type error"))
@@ -94,8 +96,9 @@ func (a *Action) UpdateMessage(req protocol.Request) protocol.Response {
 
 // DeleteMessage deletes an existing message.
 func (a *Action) DeleteMessage(req protocol.Request) protocol.Response {
-	channel, _ := types.KV(req.Params).String("topic")
-	timestamp, _ := types.KV(req.Params).String("message_id")
+	params := types.KV(req.Params)
+	channel, _ := params.String("topic")
+	timestamp, _ := params.String("message_id")
 	if timestamp == "" {
 		return protocol.NewFailedResponse(protocol.ErrBadParam.New("message_id required"))
 	}

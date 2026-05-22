@@ -288,7 +288,7 @@ func TestSlash_ListShortcuts_Empty(t *testing.T) {
 	t.Run("empty list shortcuts", func(t *testing.T) {
 		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			shortcuts := []*Shortcut{}
+			var shortcuts []*Shortcut
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			err := sonic.ConfigDefault.NewEncoder(w).Encode(shortcuts)

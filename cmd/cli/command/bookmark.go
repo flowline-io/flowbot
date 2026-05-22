@@ -96,7 +96,7 @@ func bookmarkListCommand() *cobra.Command {
 				_, _ = fmt.Println(string(data))
 			} else {
 				for _, b := range result.Bookmarks {
-					status := []string{}
+					var status []string
 					if b.Archived {
 						status = append(status, "archived")
 					}
@@ -364,7 +364,7 @@ func bookmarkSearchCommand() *cobra.Command {
 			} else {
 				_, _ = fmt.Printf("Found %d bookmark(s):\n\n", len(result.Bookmarks))
 				for _, b := range result.Bookmarks {
-					status := []string{}
+					var status []string
 					if b.Archived {
 						status = append(status, "archived")
 					}

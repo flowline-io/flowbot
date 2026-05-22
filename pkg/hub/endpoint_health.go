@@ -32,7 +32,7 @@ func (c *EndpointHealthChecker) Check(ctx context.Context, healthURL string) (He
 	if healthURL == "" {
 		return HealthHealthy, nil
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, http.NoBody)
 	if err != nil {
 		return HealthUnhealthy, err
 	}

@@ -133,7 +133,7 @@ var _ = Describe("Authentication", Label("auth"), func() {
 		})
 
 		It("denies access to unauthenticated requests", func() {
-			scopes := []string{}
+			var scopes []string
 			Expect(auth.HasScope(scopes, auth.ScopeServiceBookmarkRead)).To(BeFalse())
 			Expect(auth.HasScope(scopes, auth.ScopeAdmin)).To(BeFalse())
 		})

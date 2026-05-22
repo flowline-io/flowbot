@@ -106,8 +106,9 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 		return protocol.ErrFlagExpired.New("oauth error")
 	}
 
-	uid, _ := types.KV(p.Params).String("uid")
-	topic, _ := types.KV(p.Params).String("topic")
+	params := types.KV(p.Params)
+	uid, _ := params.String("uid")
+	topic, _ := params.String("topic")
 	if uid == "" {
 		return protocol.ErrBadParam.New("uid empty")
 	}
@@ -145,7 +146,8 @@ func (*Controller) getPage(ctx fiber.Ctx) error {
 		return protocol.ErrNotFound.Wrap(err)
 	}
 
-	title, _ := types.KV(p.Schema).String("title")
+	schema := types.KV(p.Schema)
+	title, _ := schema.String("title")
 	if title == "" {
 		title = "Page"
 	}
@@ -347,7 +349,8 @@ func getFormBotHandler(schema model.JSON, formId string) (*types.FormMsg, module
 		return nil, nil, err
 	}
 
-	formRuleId, ok := types.KV(schema).String("id")
+	formSchema := types.KV(schema)
+	formRuleId, ok := formSchema.String("id")
 	if !ok {
 		return &formMsg, nil, protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")
 	}

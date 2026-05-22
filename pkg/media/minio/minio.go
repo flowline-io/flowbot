@@ -211,7 +211,7 @@ func (ah *handler) GetIdFromUrl(fUrl string) types.Uid {
 
 func (ah *handler) presignedURL(fdef *types.FileDef) (string, error) {
 	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fdef.Name))
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=%q", fdef.Name))
 
 	presignedURL, err := ah.svc.PresignedGetObject(context.Background(), ah.conf.BucketName, fdef.Location, time.Hour, reqParams)
 	if err != nil {
