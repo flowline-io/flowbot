@@ -3,6 +3,7 @@ package route
 import (
 	"context"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -25,15 +26,15 @@ func (m *mockAuditor) Record(_ context.Context, entry audit.Entry) error {
 }
 
 func (m *mockAuditor) RecordSuccess(_ context.Context, entry audit.Entry) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 
 func (m *mockAuditor) RecordFailure(_ context.Context, entry audit.Entry, _ error) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 
 func (m *mockAuditor) RecordRejected(_ context.Context, entry audit.Entry, _ string) error {
-	return m.Record(nil, entry)
+	return m.Record(context.TODO(), entry)
 }
 
 func TestSetAuditor_NilSafe(t *testing.T) {
@@ -106,7 +107,7 @@ func TestAuthorize_AuditTokenMissing(t *testing.T) {
 			app.Get("/test", Authorize(0, func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
-			hreq := httptest.NewRequest("GET", "/test", nil)
+			hreq := httptest.NewRequest("GET", "/test", http.NoBody)
 			resp, err := app.Test(hreq)
 			require.NoError(t, err)
 			assert.True(t, resp.StatusCode == 401 || resp.StatusCode == 403,
@@ -151,7 +152,7 @@ func TestRequireScope_AuditDeny(t *testing.T) {
 			app.Get("/test", RequireScope("admin:test", func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
-			hreq := httptest.NewRequest("GET", "/test", nil)
+			hreq := httptest.NewRequest("GET", "/test", http.NoBody)
 			resp, err := app.Test(hreq)
 			require.NoError(t, err)
 			assert.True(t, resp.StatusCode == 401 || resp.StatusCode == 403,
@@ -196,7 +197,7 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 			app.Get("/noauth", Authorize(NoAuth, func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
-			hreq := httptest.NewRequest("GET", "/noauth", nil)
+			hreq := httptest.NewRequest("GET", "/noauth", http.NoBody)
 			resp, err := app.Test(hreq)
 			require.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode)

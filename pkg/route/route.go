@@ -38,7 +38,7 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 	}
 }
 
-func Route(method string, path string, function fiber.Handler, options ...Option) *Router {
+func Route(method, path string, function fiber.Handler, options ...Option) *Router {
 	r := &Router{
 		Method:   method,
 		Path:     path,
