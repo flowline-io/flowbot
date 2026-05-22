@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/flc1125/go-cron/v4"
@@ -22,9 +23,25 @@ type Definition struct {
 }
 
 type Trigger struct {
-	Event      string
-	Cron       string
+	Event       string
+	Cron        string
 	CronTimeout time.Duration
+	Webhook     *WebhookConfig
+}
+
+type WebhookConfig struct {
+	Path      string
+	Method    string
+	Auth      WebhookAuthConfig
+	Payload   config.WebhookPayloadMode
+	EventType string
+}
+
+type WebhookAuthConfig struct {
+	Token       string
+	HMACSecret  string
+	HMACHeader  string
+	TokenHeader string
 }
 
 type Step struct {
@@ -47,12 +64,17 @@ func LoadConfig(cfg []config.Pipeline) []Definition {
 				continue
 			}
 		}
+		trigger, err := convertTrigger(p.Name, p.Trigger)
+		if err != nil {
+			flog.Error(err)
+			continue
+		}
 		d := Definition{
 			Name:        p.Name,
 			Description: p.Description,
 			Enabled:     p.Enabled,
 			Resumable:   p.Resumable,
-			Trigger:     cronTrigger(p.Name, p.Trigger),
+			Trigger:     trigger,
 		}
 		for _, s := range p.Steps {
 			retry, err := convertRetryConfig(s.Retry)
@@ -117,19 +139,100 @@ func FindByEvent(defs []Definition, eventType string) []Definition {
 	return matched
 }
 
-func cronTrigger(name string, cfg config.PipelineTrigger) Trigger {
+func convertTrigger(name string, cfg config.PipelineTrigger) (Trigger, error) {
 	t := Trigger{Event: cfg.Event, Cron: cfg.Cron}
+
 	if cfg.CronTimeout != "" {
 		d, err := time.ParseDuration(cfg.CronTimeout)
 		if err != nil {
 			flog.Error(fmt.Errorf("pipeline %s: invalid cron_timeout %q: %w", name, cfg.CronTimeout, err))
-			return t
+		} else {
+			t.CronTimeout = d
 		}
-		t.CronTimeout = d
 	} else {
 		t.CronTimeout = 10 * time.Minute
 	}
-	return t
+
+	if cfg.Webhook != nil && (cfg.Event != "" || cfg.Cron != "") {
+		return t, fmt.Errorf("pipeline %s: webhook trigger cannot be combined with event or cron", name)
+	}
+
+	wh, err := convertWebhookTrigger(name, cfg.Webhook)
+	if err != nil {
+		return t, err
+	}
+	t.Webhook = wh
+
+	return t, nil
+}
+
+var allowedWebhookMethods = map[string]bool{
+	"GET":  true,
+	"POST": true,
+	"PUT":  true,
+}
+
+func convertWebhookTrigger(name string, wh *config.WebhookTrigger) (*WebhookConfig, error) {
+	if wh == nil {
+		return nil, nil
+	}
+
+	if wh.Path == "" {
+		return nil, fmt.Errorf("pipeline %s: webhook trigger path must not be empty", name)
+	}
+
+	method := wh.Method
+	if method == "" {
+		method = "POST"
+	}
+	method = strings.ToUpper(method)
+	if !allowedWebhookMethods[method] {
+		return nil, fmt.Errorf("pipeline %s: unsupported webhook method %q", name, wh.Method)
+	}
+
+	if wh.Auth == nil || (wh.Auth.Token == "" && wh.Auth.HMACSecret == "") {
+		return nil, fmt.Errorf("pipeline %s: webhook trigger requires at least one of auth.token or auth.hmac_secret", name)
+	}
+
+	payload := wh.Payload
+	if payload == "" {
+		payload = config.WebhookPayloadRaw
+	}
+	if payload != config.WebhookPayloadRaw && payload != config.WebhookPayloadMapped {
+		return nil, fmt.Errorf("pipeline %s: invalid webhook payload mode %q", name, wh.Payload)
+	}
+
+	eventType := wh.EventType
+	if eventType == "" {
+		eventType = "webhook." + wh.Path
+	}
+
+	hmacHeader := "X-Hub-Signature-256"
+	tokenHeader := "X-Webhook-Token"
+	if wh.Auth != nil {
+		if wh.Auth.HMACHeader != "" {
+			hmacHeader = wh.Auth.HMACHeader
+		}
+		if wh.Auth.TokenHeader != "" {
+			tokenHeader = wh.Auth.TokenHeader
+		}
+	}
+
+	wc := &WebhookConfig{
+		Path:      wh.Path,
+		Method:    method,
+		Payload:   payload,
+		EventType: eventType,
+	}
+	if wh.Auth != nil {
+		wc.Auth = WebhookAuthConfig{
+			Token:       wh.Auth.Token,
+			HMACSecret:  wh.Auth.HMACSecret,
+			HMACHeader:  hmacHeader,
+			TokenHeader: tokenHeader,
+		}
+	}
+	return wc, nil
 }
 
 func validateCronExpr(spec string) error {

@@ -233,6 +233,135 @@ func TestLoadConfig_CronTrigger(t *testing.T) {
 	}
 }
 
+func TestLoadConfig_WebhookTrigger(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		cfg         []config.Pipeline
+		wantDefs    int
+		wantPath    string
+		wantMethod  string
+		wantPayload config.WebhookPayloadMode
+	}{
+		{
+			name: "webhook valid definition",
+			cfg: []config.Pipeline{
+				{
+					Name:    "webhook1",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{
+						Webhook: &config.WebhookTrigger{
+							Path: "test-path",
+							Auth: &config.WebhookAuth{Token: "secret"},
+						},
+					},
+				},
+			},
+			wantDefs:    1,
+			wantPath:    "test-path",
+			wantMethod:  "POST",
+			wantPayload: config.WebhookPayloadRaw,
+		},
+		{
+			name: "webhook default method and payload",
+			cfg: []config.Pipeline{
+				{
+					Name:    "webhook2",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{
+						Webhook: &config.WebhookTrigger{
+							Path: "minimal",
+							Auth: &config.WebhookAuth{Token: "t"},
+						},
+					},
+				},
+			},
+			wantDefs:    1,
+			wantPath:    "minimal",
+			wantMethod:  "POST",
+			wantPayload: config.WebhookPayloadRaw,
+		},
+		{
+			name: "webhook with cron errors",
+			cfg: []config.Pipeline{
+				{
+					Name:    "mixed1",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{
+						Cron: "0 0 * * *",
+						Webhook: &config.WebhookTrigger{
+							Path: "mixed-path",
+							Auth: &config.WebhookAuth{Token: "x"},
+						},
+					},
+				},
+			},
+			wantDefs: 0,
+		},
+		{
+			name: "webhook with event errors",
+			cfg: []config.Pipeline{
+				{
+					Name:    "mixed2",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{
+						Event: "some.event",
+						Webhook: &config.WebhookTrigger{
+							Path: "ev-path",
+							Auth: &config.WebhookAuth{Token: "x"},
+						},
+					},
+				},
+			},
+			wantDefs: 0,
+		},
+		{
+			name: "webhook empty path errors",
+			cfg: []config.Pipeline{
+				{
+					Name:    "nopath",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{
+						Webhook: &config.WebhookTrigger{
+							Auth: &config.WebhookAuth{Token: "x"},
+						},
+					},
+				},
+			},
+			wantDefs: 0,
+		},
+		{
+			name: "webhook disabled pipeline skipped",
+			cfg: []config.Pipeline{
+				{
+					Name:    "disabled-webhook",
+					Enabled: false,
+					Trigger: config.PipelineTrigger{
+						Webhook: &config.WebhookTrigger{
+							Path: "disabled-path",
+							Auth: &config.WebhookAuth{Token: "x"},
+						},
+					},
+				},
+			},
+			wantDefs: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			defs := LoadConfig(tt.cfg)
+			assert.Len(t, defs, tt.wantDefs)
+			if tt.wantDefs > 0 && len(defs) > 0 {
+				assert.NotNil(t, defs[0].Trigger.Webhook)
+				assert.Equal(t, tt.wantPath, defs[0].Trigger.Webhook.Path)
+				assert.Equal(t, tt.wantMethod, defs[0].Trigger.Webhook.Method)
+				assert.Equal(t, tt.wantPayload, defs[0].Trigger.Webhook.Payload)
+			}
+		})
+	}
+}
+
 func TestFindByEvent(t *testing.T) {
 	t.Parallel()
 	t.Run("method-match", func(t *testing.T) {
