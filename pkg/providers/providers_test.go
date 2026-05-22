@@ -41,6 +41,7 @@ func TestRedirectURI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := RedirectURI(tt.provider, tt.flag)
 			assert.Contains(t, got, tt.want)
 		})
@@ -133,7 +134,8 @@ func TestGetConfig_MultipleCalls(t *testing.T) {
 
 func TestOAuthProviderInterface(t *testing.T) {
 	t.Parallel()
-	t.Run("interface compile-time check", func(_ *testing.T) {
+	t.Run("interface compile-time check", func(t *testing.T) {
+		t.Parallel()
 		var _ OAuthProvider = (*mockOAuthProvider)(nil)
 	})
 }

@@ -2,7 +2,7 @@ package ability
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"slices"
@@ -109,7 +109,7 @@ func buildCacheKey(capability hub.CapabilityType, operation string, params map[s
 		sorted[k] = params[k]
 	}
 	data, _ := sonic.MarshalString(sorted)
-	h := sha1.New()
+	h := sha256.New()
 	_, _ = h.Write([]byte(data))
 	hash := hex.EncodeToString(h.Sum(nil))
 	return "ability:" + string(capability) + ":" + operation + ":" + hash

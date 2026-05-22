@@ -117,7 +117,7 @@ func TestFirstUpper(t *testing.T) {
 	}
 }
 
-func TestSHA1(t *testing.T) {
+func TestSHA256(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		txt string
@@ -128,31 +128,31 @@ func TestSHA1(t *testing.T) {
 		want string
 	}{
 		{
-			name: "sha1",
+			name: "sha256",
 			args: args{
 				txt: "123456",
 			},
-			want: "7c4a8d09ca3762af61e59520943dc26494f8941b",
+			want: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
 		},
 		{
 			name: "empty_string",
 			args: args{
 				txt: "",
 			},
-			want: "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+			want: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		},
 		{
 			name: "unicode_string",
 			args: args{
 				txt: "hello世界",
 			},
-			want: "975930521ec6304d233626b03fafddce5c4d6bc7",
+			want: "9e83b014808bec990d9d3d35ed8d1a14232929fabf72cb72c1b472f466cc822b",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, SHA1(tt.args.txt))
+			assert.Equal(t, tt.want, SHA256(tt.args.txt))
 		})
 	}
 }

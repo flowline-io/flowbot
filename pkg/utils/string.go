@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -83,8 +83,8 @@ func FirstUpper(s string) string {
 	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
-func SHA1(txt string) string {
-	h := sha1.New()
+func SHA256(txt string) string {
+	h := sha256.New()
 	_, _ = h.Write(StringToBytes(txt))
 	return hex.EncodeToString(h.Sum(nil))
 }

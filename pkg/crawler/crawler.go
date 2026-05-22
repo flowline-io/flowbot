@@ -4,7 +4,7 @@ package crawler
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -248,7 +248,7 @@ func mapHash(m map[string]string) string {
 		_, _ = txt.WriteString(":")
 		_, _ = txt.WriteString(m[key])
 	}
-	h := sha1.New()
+	h := sha256.New()
 	_, _ = h.Write(txt.Bytes())
 	return string(h.Sum(nil))
 }

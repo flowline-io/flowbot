@@ -55,6 +55,7 @@ func TestCommand(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := Command(tt.cmdName)
 			// On unsupported platforms (like Windows), Command returns nil
 			if cmd == nil {

@@ -3,7 +3,7 @@ package cron
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -193,7 +193,7 @@ func (r *Ruleset) resultWorker() {
 func (r *Ruleset) filter(res result) result {
 	key := cache.NewKey("cron", "filter", res.name+":"+string(res.ctx.AsUser))
 	d := un(res.payload)
-	s := sha1.New()
+	s := sha256.New()
 	_, _ = s.Write(d)
 	hash := string(s.Sum(nil))
 	ctx := context.Background()

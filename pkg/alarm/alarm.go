@@ -4,7 +4,7 @@ package alarm
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -71,7 +71,7 @@ func filter(str string) bool {
 
 // nx checks if an alarm error has been seen before in the last 24 hours.
 func nx(text string) (bool, error) {
-	h := sha1.New()
+	h := sha256.New()
 	_, _ = h.Write([]byte(text))
 	hash := hex.EncodeToString(h.Sum(nil))
 	key := cache.NewKey("alarm", "dedup", hash)

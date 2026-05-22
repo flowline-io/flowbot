@@ -2,7 +2,7 @@ package cron
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
@@ -416,7 +416,7 @@ func TestRuleset_Filter_HashCorrectness(t *testing.T) {
 		rs := NewCronRuleset("test_cron", []Rule{}, store)
 
 		payload := types.TextMsg{Text: "hello"}
-		expectedHash := sha1.Sum([]byte(payload.Text))
+		expectedHash := sha256.Sum256([]byte(payload.Text))
 
 		res := result{
 			name:    "test_cron",

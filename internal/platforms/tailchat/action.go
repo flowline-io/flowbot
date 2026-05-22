@@ -44,7 +44,7 @@ func (v *client) auth() error {
 		SetResult(&TokenResponse{}).
 		SetBody(types.KV{
 			"appId": v.clientId,
-			"token": utils.SHA1(v.clientId + v.clientSecret),
+			"token": utils.SHA256(v.clientId + v.clientSecret),
 		}).
 		Post("/api/openapi/bot/login")
 	if err != nil {

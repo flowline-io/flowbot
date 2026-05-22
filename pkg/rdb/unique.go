@@ -44,7 +44,7 @@ func kvHash(item any) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal kv: %w", err)
 	}
-	return utils.SHA1(utils.BytesToString(b)), nil
+	return utils.SHA256(utils.BytesToString(b)), nil
 }
 
 func BloomUniqueString(ctx context.Context, id, latest string) (bool, error) {
