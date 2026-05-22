@@ -48,6 +48,11 @@ func initPipeline(
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 
+	// Register webhook routes.
+	if err := registerWebhookRoutes(engine); err != nil {
+		return fmt.Errorf("register webhook routes: %w", err)
+	}
+
 	lc.Append(fx.Hook{
 		OnStop: func(_ context.Context) error {
 			engine.Stop()
