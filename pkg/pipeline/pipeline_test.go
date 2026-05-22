@@ -111,6 +111,99 @@ func TestLoadConfig(t *testing.T) {
 	}
 }
 
+func TestLoadConfig_CronTrigger(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		cfg     []config.Pipeline
+		asserts func(t *testing.T, defs []Definition)
+	}{
+		{
+			name: "cron only definition",
+			cfg: []config.Pipeline{
+				{
+					Name:    "cron-pl",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Cron: "0 */6 * * *"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, "0 */6 * * *", defs[0].Trigger.Cron)
+				assert.Empty(t, defs[0].Trigger.Event)
+			},
+		},
+		{
+			name: "both event and cron",
+			cfg: []config.Pipeline{
+				{
+					Name:    "mixed-pl",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Event: "e1", Cron: "@daily"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, "e1", defs[0].Trigger.Event)
+				assert.Equal(t, "@daily", defs[0].Trigger.Cron)
+			},
+		},
+		{
+			name: "invalid cron expression skipped",
+			cfg: []config.Pipeline{
+				{
+					Name:    "bad-cron",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Cron: "not-a-valid-cron"},
+				},
+				{
+					Name:    "good-cron",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Cron: "0 0 * * *"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, "good-cron", defs[0].Name)
+			},
+		},
+		{
+			name: "disabled pipeline not loaded",
+			cfg: []config.Pipeline{
+				{
+					Name:    "disabled-pl",
+					Enabled: false,
+					Trigger: config.PipelineTrigger{Cron: "0 0 * * *"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				assert.Empty(t, defs)
+			},
+		},
+		{
+			name: "cron with timeout",
+			cfg: []config.Pipeline{
+				{
+					Name:    "timeout-pl",
+					Enabled: true,
+					Trigger: config.PipelineTrigger{Cron: "0 0 * * *", CronTimeout: "30m"},
+				},
+			},
+			asserts: func(t *testing.T, defs []Definition) {
+				require.Len(t, defs, 1)
+				assert.Equal(t, 30*time.Minute, defs[0].Trigger.CronTimeout)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			defs := LoadConfig(tt.cfg)
+			tt.asserts(t, defs)
+		})
+	}
+}
+
 func TestFindByEvent(t *testing.T) {
 	t.Parallel()
 	t.Run("method-match", func(t *testing.T) {

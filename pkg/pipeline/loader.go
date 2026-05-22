@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flc1125/go-cron/v4"
+
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,7 +22,9 @@ type Definition struct {
 }
 
 type Trigger struct {
-	Event string
+	Event      string
+	Cron       string
+	CronTimeout time.Duration
 }
 
 type Step struct {
@@ -37,12 +41,18 @@ func LoadConfig(cfg []config.Pipeline) []Definition {
 		if !p.Enabled {
 			continue
 		}
+		if p.Trigger.Cron != "" {
+			if err := validateCronExpr(p.Trigger.Cron); err != nil {
+				flog.Error(fmt.Errorf("pipeline %s: invalid cron expression %q: %w", p.Name, p.Trigger.Cron, err))
+				continue
+			}
+		}
 		d := Definition{
 			Name:        p.Name,
 			Description: p.Description,
 			Enabled:     p.Enabled,
 			Resumable:   p.Resumable,
-			Trigger:     Trigger{Event: p.Trigger.Event},
+			Trigger:     cronTrigger(p.Trigger),
 		}
 		for _, s := range p.Steps {
 			retry, err := convertRetryConfig(s.Retry)
@@ -105,4 +115,25 @@ func FindByEvent(defs []Definition, eventType string) []Definition {
 		}
 	}
 	return matched
+}
+
+func cronTrigger(cfg config.PipelineTrigger) Trigger {
+	t := Trigger{Event: cfg.Event, Cron: cfg.Cron}
+	if cfg.CronTimeout != "" {
+		d, err := time.ParseDuration(cfg.CronTimeout)
+		if err != nil {
+			flog.Error(fmt.Errorf("pipeline: invalid cron_timeout %q: %w", cfg.CronTimeout, err))
+			return t
+		}
+		t.CronTimeout = d
+	} else {
+		t.CronTimeout = 10 * time.Minute
+	}
+	return t
+}
+
+func validateCronExpr(spec string) error {
+	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
+	_, err := p.Parse(spec)
+	return err
 }
