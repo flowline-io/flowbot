@@ -21,8 +21,3 @@ func getThreadContext(channel string) string {
 	return threadContext[channel]
 }
 
-func clearThreadContext(channel string) {
-	threadMutex.Lock()
-	defer threadMutex.Unlock()
-	delete(threadContext, channel)
-}

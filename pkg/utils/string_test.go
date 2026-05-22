@@ -117,46 +117,6 @@ func TestFirstUpper(t *testing.T) {
 	}
 }
 
-func TestMD5(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		txt string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "md5",
-			args: args{
-				txt: "123456",
-			},
-			want: "e10adc3949ba59abbe56e057f20f883e",
-		},
-		{
-			name: "empty_string",
-			args: args{
-				txt: "",
-			},
-			want: "d41d8cd98f00b204e9800998ecf8427e",
-		},
-		{
-			name: "unicode_string",
-			args: args{
-				txt: "hello世界",
-			},
-			want: "e2c314313e19e12ed756183798a004d6",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, MD5(tt.args.txt))
-		})
-	}
-}
-
 func TestSHA1(t *testing.T) {
 	t.Parallel()
 	type args struct {

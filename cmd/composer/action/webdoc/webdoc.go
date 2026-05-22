@@ -361,7 +361,7 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 	htmlBody = mdLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1.html$2"`))
 	htmlBody = readmeLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1$2"`))
 
-	safeContent := template.HTML(htmlBody) //nolint:gosec // content sanitized by bluemonday above
+	safeContent := template.HTML(htmlBody) // #nosec G203 -- content sanitized by bluemonday above
 
 	outFile := relPathToOut(info.SourcePath)
 	absOut := filepath.Join(outDir, outFile)

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
@@ -82,12 +81,6 @@ func FirstUpper(s string) string {
 		return ""
 	}
 	return strings.ToUpper(string(s[0])) + s[1:]
-}
-
-func MD5(txt string) string {
-	h := md5.New()
-	_, _ = h.Write(StringToBytes(txt))
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 func SHA1(txt string) string {

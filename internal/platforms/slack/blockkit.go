@@ -105,14 +105,15 @@ type ButtonDef struct {
 	Confirm  *slack.ConfirmationBlockObject
 }
 
-// confirmDialog creates a confirmation dialog for destructive actions.
-func confirmDialog(title, text, confirm, deny string) *slack.ConfirmationBlockObject {
-	return slack.NewConfirmationBlockObject(
-		slack.NewTextBlockObject(slack.PlainTextType, title, false, false),
-		slack.NewTextBlockObject(slack.MarkdownType, text, false, false),
-		slack.NewTextBlockObject(slack.PlainTextType, confirm, false, false),
-		slack.NewTextBlockObject(slack.PlainTextType, deny, false, false),
-	)
+// FormFieldDef describes a field in a form segment.
+type FormFieldDef struct {
+	Label       string
+	Key         string
+	Type        string
+	Placeholder string
+	Options     []string
+	Optional    bool
+	InitialVal  string
 }
 
 // imageBlock creates an image block with title and alt text.
@@ -230,187 +231,6 @@ func renderPieChart(title string, labels []string, values []float64) []slack.Blo
 
 	blocks = append(blocks, section(strings.Join(lines, "\n")))
 	return blocks
-}
-
-// ──────────────────────────────────────────
-// Form / Modal builder
-// ──────────────────────────────────────────
-
-// FormFieldDef describes a field in a modal form.
-type FormFieldDef struct {
-	Label       string
-	Key         string
-	Type        string // text, number, email, url, date, time, select, radio, checkbox, textarea
-	Placeholder string
-	Options     []string // for select / radio / checkbox
-	Optional    bool
-	InitialVal  string
-}
-
-// modalElementBuilders maps form field types to their element constructors.
-var modalElementBuilders = map[string]func(FormFieldDef) slack.BlockElement{
-	"select":   buildSelectElement,
-	"radio":    buildRadioElement,
-	"checkbox": buildCheckboxElement,
-	"date":     buildDateElement,
-	"time":     buildTimeElement,
-	"textarea": buildTextareaElement,
-	"number":   buildNumberElement,
-	"url":      buildURLElement,
-	"email":    buildEmailElement,
-}
-
-// buildModalView creates a Slack modal view from form fields.
-func buildModalView(callbackID, title, submitLabel string, fields []FormFieldDef) slack.ModalViewRequest {
-	var inputBlocks slack.Blocks
-
-	for _, f := range fields {
-		builder, ok := modalElementBuilders[f.Type]
-		var element slack.BlockElement
-		if !ok {
-			element = buildDefaultElement(f)
-		} else {
-			element = builder(f)
-		}
-
-		inputBlock := slack.NewInputBlock(
-			f.Key,
-			slack.NewTextBlockObject(slack.PlainTextType, f.Label, false, false),
-			nil,
-			element,
-		)
-		inputBlock.Optional = f.Optional
-		inputBlocks.BlockSet = append(inputBlocks.BlockSet, inputBlock)
-	}
-
-	if submitLabel == "" {
-		submitLabel = "Submit"
-	}
-
-	return slack.ModalViewRequest{
-		Type:       slack.VTModal,
-		CallbackID: callbackID,
-		Title:      slack.NewTextBlockObject(slack.PlainTextType, truncate(title, 24), false, false),
-		Submit:     slack.NewTextBlockObject(slack.PlainTextType, submitLabel, false, false),
-		Close:      slack.NewTextBlockObject(slack.PlainTextType, "Cancel", false, false),
-		Blocks:     inputBlocks,
-	}
-}
-
-func buildSelectElement(f FormFieldDef) slack.BlockElement {
-	var opts []*slack.OptionBlockObject
-	for _, o := range f.Options {
-		opts = append(opts, slack.NewOptionBlockObject(o,
-			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-	}
-	sel := slack.NewOptionsSelectBlockElement(
-		slack.OptTypeStatic,
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key, opts...,
-	)
-	if f.InitialVal != "" {
-		sel.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
-			slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
-	}
-	return sel
-}
-
-func buildRadioElement(f FormFieldDef) slack.BlockElement {
-	var opts []*slack.OptionBlockObject
-	for _, o := range f.Options {
-		opts = append(opts, slack.NewOptionBlockObject(o,
-			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-	}
-	radio := slack.NewRadioButtonsBlockElement(f.Key, opts...)
-	if f.InitialVal != "" {
-		radio.InitialOption = slack.NewOptionBlockObject(f.InitialVal,
-			slack.NewTextBlockObject(slack.PlainTextType, f.InitialVal, false, false), nil)
-	}
-	return radio
-}
-
-func buildCheckboxElement(f FormFieldDef) slack.BlockElement {
-	var opts []*slack.OptionBlockObject
-	for _, o := range f.Options {
-		opts = append(opts, slack.NewOptionBlockObject(o,
-			slack.NewTextBlockObject(slack.PlainTextType, o, false, false), nil))
-	}
-	return slack.NewCheckboxGroupsBlockElement(f.Key, opts...)
-}
-
-func buildDateElement(f FormFieldDef) slack.BlockElement {
-	dp := slack.NewDatePickerBlockElement(f.Key)
-	if f.InitialVal != "" {
-		dp.InitialDate = f.InitialVal
-	}
-	if f.Placeholder != "" {
-		dp.Placeholder = slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false)
-	}
-	return dp
-}
-
-func buildTimeElement(f FormFieldDef) slack.BlockElement {
-	tp := slack.NewTimePickerBlockElement(f.Key)
-	if f.InitialVal != "" {
-		tp.InitialTime = f.InitialVal
-	}
-	return tp
-}
-
-func buildTextareaElement(f FormFieldDef) slack.BlockElement {
-	input := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key,
-	)
-	input.Multiline = true
-	if f.InitialVal != "" {
-		input.InitialValue = f.InitialVal
-	}
-	return input
-}
-
-func buildNumberElement(f FormFieldDef) slack.BlockElement {
-	input := slack.NewNumberInputBlockElement(
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key, false,
-	)
-	if f.InitialVal != "" {
-		input.InitialValue = f.InitialVal
-	}
-	return input
-}
-
-func buildURLElement(f FormFieldDef) slack.BlockElement {
-	input := slack.NewURLTextInputBlockElement(
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key,
-	)
-	if f.InitialVal != "" {
-		input.InitialValue = f.InitialVal
-	}
-	return input
-}
-
-func buildEmailElement(f FormFieldDef) slack.BlockElement {
-	input := slack.NewEmailTextInputBlockElement(
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key,
-	)
-	if f.InitialVal != "" {
-		input.InitialValue = f.InitialVal
-	}
-	return input
-}
-
-func buildDefaultElement(f FormFieldDef) slack.BlockElement {
-	input := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(slack.PlainTextType, f.Placeholder, false, false),
-		f.Key,
-	)
-	if f.InitialVal != "" {
-		input.InitialValue = f.InitialVal
-	}
-	return input
 }
 
 // ──────────────────────────────────────────
@@ -555,14 +375,4 @@ func tableLinesToBlocks(lines []string) []slack.Block {
 	return blocks
 }
 
-// ──────────────────────────────────────────
-// Utility
-// ──────────────────────────────────────────
 
-func truncate(s string, maxLen int) string {
-	runes := []rune(s)
-	if len(runes) <= maxLen {
-		return s
-	}
-	return string(runes[:maxLen-1]) + "…"
-}

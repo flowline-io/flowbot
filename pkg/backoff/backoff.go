@@ -106,7 +106,7 @@ func jitterDuration(d time.Duration) time.Duration {
 	if d <= 0 {
 		return 0
 	}
-	return time.Duration(rand.Int64N(int64(d)))
+	return time.Duration(rand.Int64N(int64(d))) // #nosec G404 -- jitter does not require cryptographic randomness
 }
 
 // retryableError is an optional interface that errors can implement to guide retry decisions.
