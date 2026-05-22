@@ -24,7 +24,7 @@ type SearchResult struct {
 
 // Search performs a full-text search.
 // The source parameter filters by data source (optional).
-func (s *SearchClient) Search(ctx context.Context, query string, source string) ([]SearchResult, error) {
+func (s *SearchClient) Search(ctx context.Context, query, source string) ([]SearchResult, error) {
 	if err := validateSearchQuery(query); err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func validateSearchQuery(query string) error {
 
 // Autocomplete performs a search autocomplete query.
 // The source parameter filters by data source (optional).
-func (s *SearchClient) Autocomplete(ctx context.Context, query string, source string) ([]SearchResult, error) {
+func (s *SearchClient) Autocomplete(ctx context.Context, query, source string) ([]SearchResult, error) {
 	if err := validateSearchQuery(query); err != nil {
 		return nil, err
 	}

@@ -7,10 +7,10 @@ import (
 )
 
 func foo1() {}
-func foo2(_ string, _ string) string {
+func foo2(_, _ string) string {
 	return ""
 }
-func foo3(_ string, _ string, _ int) *testing.InternalExample {
+func foo3(_, _ string, _ int) *testing.InternalExample {
 	return nil
 }
 

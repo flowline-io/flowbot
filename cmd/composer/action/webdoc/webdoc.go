@@ -161,7 +161,7 @@ func WebDocAction(_ *cobra.Command, _ []string) error {
 	if err := os.RemoveAll(outDir); err != nil {
 		return fmt.Errorf("cleaning output dir: %w", err)
 	}
-	if err := os.MkdirAll(outDir, 0o755); err != nil {
+	if err := os.MkdirAll(outDir, 0o750); err != nil {
 		return fmt.Errorf("creating output dir: %w", err)
 	}
 
@@ -328,7 +328,7 @@ func sectionTitle(items []DocNavPage, dir string) string {
 func dirToTitle(dir string) string {
 	words := strings.Split(dir, "-")
 	for i, w := range words {
-		if len(w) > 0 {
+		if w != "" {
 			words[i] = strings.ToUpper(w[:1]) + w[1:]
 		}
 	}
@@ -361,6 +361,8 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 	htmlBody = mdLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1.html$2"`))
 	htmlBody = readmeLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1$2"`))
 
+	safeContent := template.HTML(htmlBody) //nolint:gosec // content sanitized by bluemonday above
+
 	outFile := relPathToOut(info.SourcePath)
 	absOut := filepath.Join(outDir, outFile)
 	outRelDir := filepath.Dir(absOut)
@@ -370,14 +372,14 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 	}
 	basePath = filepath.ToSlash(basePath) + "/"
 
-	if err := os.MkdirAll(filepath.Dir(absOut), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(absOut), 0o750); err != nil {
 		return fmt.Errorf("creating dir for %s: %w", outFile, err)
 	}
 
 	page := Page{
 		Title:       info.Title,
 		Description: info.FrontMatter.Description,
-		Content:     template.HTML(htmlBody),
+		Content:     safeContent,
 		BasePath:    basePath,
 		DocSections: buildSectionsWithActive(allPages, activeIndex),
 		AccentColor: info.FrontMatter.AccentColor,

@@ -43,9 +43,6 @@ func Do(ctx context.Context, cfg Config, fn func(ctx context.Context) error) (at
 	for attempt = 1; attempt <= cfg.MaxAttempts; attempt++ {
 		err = fn(ctx)
 		if err == nil {
-			if cfg.Adaptive {
-				delay = max(cfg.InitialInterval, delay/2)
-			}
 			return attempt, nil
 		}
 

@@ -53,7 +53,7 @@ func (k *KanbanClient) Get(ctx context.Context, id int) (*kanboard.Task, error) 
 	return &result, nil
 }
 
-// CreateRequest contains the data needed to create a new kanban task.
+// KanbanCreateRequest contains the data needed to create a new kanban task.
 type KanbanCreateRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description,omitempty"`
@@ -61,7 +61,7 @@ type KanbanCreateRequest struct {
 	ColumnID    int    `json:"column_id,omitempty"`
 }
 
-// CreateResult contains the result of creating a kanban task.
+// KanbanCreateResult contains the result of creating a kanban task.
 type KanbanCreateResult struct {
 	ID int64 `json:"id"`
 }
@@ -93,13 +93,13 @@ func validateCreateRequest(req *KanbanCreateRequest) error {
 	return nil
 }
 
-// UpdateRequest contains the data for updating a kanban task.
+// KanbanUpdateRequest contains the data for updating a kanban task.
 type KanbanUpdateRequest struct {
 	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
-// UpdateResult contains the result of updating a kanban task.
+// KanbanUpdateResult contains the result of updating a kanban task.
 type KanbanUpdateResult struct {
 	Success bool `json:"success"`
 }
@@ -147,7 +147,7 @@ func (k *KanbanClient) Close(ctx context.Context, id int) (*KanbanUpdateResult, 
 	return &result, nil
 }
 
-// MoveRequest contains the parameters for moving a kanban task.
+// KanbanMoveRequest contains the parameters for moving a kanban task.
 type KanbanMoveRequest struct {
 	ColumnID   int `json:"column_id"`
 	Position   int `json:"position,omitempty"`
@@ -155,7 +155,7 @@ type KanbanMoveRequest struct {
 	ProjectID  int `json:"project_id,omitempty"`
 }
 
-// MoveResult contains the result of moving a kanban task.
+// KanbanMoveResult contains the result of moving a kanban task.
 type KanbanMoveResult struct {
 	Success bool `json:"success"`
 }
@@ -194,7 +194,7 @@ func validateMoveRequest(req *KanbanMoveRequest) error {
 	return nil
 }
 
-// Column represents a kanban column.
+// KanbanColumn represents a kanban column.
 type KanbanColumn struct {
 	ID    int    `json:"id"`
 	Title string `json:"title"`
@@ -212,7 +212,7 @@ func (k *KanbanClient) ListColumns(ctx context.Context, projectID int) ([]Kanban
 	return result, err
 }
 
-// SearchResult contains the result of searching kanban tasks.
+// KanbanSearchResult contains the result of searching kanban tasks.
 type KanbanSearchResult struct {
 	Tasks []kanboard.Task `json:"tasks"`
 }
@@ -232,7 +232,7 @@ func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) 
 	return result, err
 }
 
-// GetMetadataResult contains the result of getting task metadata.
+// KanbanGetMetadataResult contains the result of getting task metadata.
 type KanbanGetMetadataResult struct {
 	Metadata []kanboard.TaskMetadata `json:"metadata"`
 }
@@ -249,7 +249,7 @@ func (k *KanbanClient) GetMetadata(ctx context.Context, taskID int) ([]kanboard.
 	return result, err
 }
 
-// GetMetadataByNameResult contains the result of getting a single metadata value.
+// KanbanGetMetadataByNameResult contains the result of getting a single metadata value.
 type KanbanGetMetadataByNameResult struct {
 	Value string `json:"value"`
 }
@@ -269,12 +269,12 @@ func (k *KanbanClient) GetMetadataByName(ctx context.Context, taskID int, name s
 	return result, err
 }
 
-// SaveMetadataRequest contains the request for saving task metadata.
+// KanbanSaveMetadataRequest contains the request for saving task metadata.
 type KanbanSaveMetadataRequest struct {
 	Values kanboard.TaskMetadata `json:"values"`
 }
 
-// SaveMetadataResult contains the result of saving task metadata.
+// KanbanSaveMetadataResult contains the result of saving task metadata.
 type KanbanSaveMetadataResult struct {
 	Success bool `json:"success"`
 }
@@ -295,7 +295,7 @@ func (k *KanbanClient) SaveMetadata(ctx context.Context, taskID int, values kanb
 	return &result, nil
 }
 
-// RemoveMetadataResult contains the result of removing task metadata.
+// KanbanRemoveMetadataResult contains the result of removing task metadata.
 type KanbanRemoveMetadataResult struct {
 	Success bool `json:"success"`
 }
@@ -318,7 +318,7 @@ func (k *KanbanClient) RemoveMetadata(ctx context.Context, taskID int, name stri
 	return &result, nil
 }
 
-// Tag represents a kanban tag.
+// KanbanTag represents a kanban tag.
 type KanbanTag struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -344,14 +344,14 @@ func (k *KanbanClient) ListTagsByProject(ctx context.Context, projectID int) ([]
 	return result, err
 }
 
-// CreateTagRequest contains the data needed to create a new tag.
+// KanbanCreateTagRequest contains the data needed to create a new tag.
 type KanbanCreateTagRequest struct {
 	ProjectID int    `json:"project_id"`
 	Name      string `json:"name"`
 	ColorID   string `json:"color_id,omitempty"`
 }
 
-// CreateTagResult contains the result of creating a tag.
+// KanbanCreateTagResult contains the result of creating a tag.
 type KanbanCreateTagResult struct {
 	ID int64 `json:"id"`
 }
@@ -373,13 +373,13 @@ func (k *KanbanClient) CreateTag(ctx context.Context, req KanbanCreateTagRequest
 	return &result, nil
 }
 
-// UpdateTagRequest contains the data for updating a tag.
+// KanbanUpdateTagRequest contains the data for updating a tag.
 type KanbanUpdateTagRequest struct {
 	Name    string `json:"name"`
 	ColorID string `json:"color_id,omitempty"`
 }
 
-// UpdateTagResult contains the result of updating a tag.
+// KanbanUpdateTagResult contains the result of updating a tag.
 type KanbanUpdateTagResult struct {
 	Success bool `json:"success"`
 }
@@ -402,7 +402,7 @@ func (k *KanbanClient) UpdateTag(ctx context.Context, id int, req KanbanUpdateTa
 	return &result, nil
 }
 
-// RemoveTagResult contains the result of removing a tag.
+// KanbanRemoveTagResult contains the result of removing a tag.
 type KanbanRemoveTagResult struct {
 	Success bool `json:"success"`
 }
@@ -422,7 +422,7 @@ func (k *KanbanClient) RemoveTag(ctx context.Context, id int) (*KanbanRemoveTagR
 	return &result, nil
 }
 
-// GetTaskTagsResult contains the result of getting task tags.
+// KanbanGetTaskTagsResult contains the result of getting task tags.
 type KanbanGetTaskTagsResult struct {
 	Tags map[string]string `json:"tags"`
 }
@@ -439,13 +439,13 @@ func (k *KanbanClient) GetTaskTags(ctx context.Context, taskID int) (map[string]
 	return result, err
 }
 
-// SetTaskTagsRequest contains the request for setting task tags.
+// KanbanSetTaskTagsRequest contains the request for setting task tags.
 type KanbanSetTaskTagsRequest struct {
 	ProjectID int      `json:"project_id"`
 	Tags      []string `json:"tags"`
 }
 
-// SetTaskTagsResult contains the result of setting task tags.
+// KanbanSetTaskTagsResult contains the result of setting task tags.
 type KanbanSetTaskTagsResult struct {
 	Success bool `json:"success"`
 }
@@ -481,7 +481,7 @@ func (k *KanbanClient) ListSubtasks(ctx context.Context, taskID int) ([]kanboard
 }
 
 // GetSubtask returns a single subtask by ID.
-func (k *KanbanClient) GetSubtask(ctx context.Context, taskID int, subtaskID int) (*kanboard.Subtask, error) {
+func (k *KanbanClient) GetSubtask(ctx context.Context, taskID, subtaskID int) (*kanboard.Subtask, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -498,7 +498,7 @@ func (k *KanbanClient) GetSubtask(ctx context.Context, taskID int, subtaskID int
 	return &result, nil
 }
 
-// CreateSubtaskRequest contains the data needed to create a new subtask.
+// KanbanCreateSubtaskRequest contains the data needed to create a new subtask.
 type KanbanCreateSubtaskRequest struct {
 	Title         string `json:"title"`
 	UserID        int    `json:"user_id,omitempty"`
@@ -507,7 +507,7 @@ type KanbanCreateSubtaskRequest struct {
 	Status        int    `json:"status,omitempty"`
 }
 
-// CreateSubtaskResult contains the result of creating a subtask.
+// KanbanCreateSubtaskResult contains the result of creating a subtask.
 type KanbanCreateSubtaskResult struct {
 	ID int64 `json:"id"`
 }
@@ -530,7 +530,7 @@ func (k *KanbanClient) CreateSubtask(ctx context.Context, taskID int, req Kanban
 	return &result, nil
 }
 
-// UpdateSubtaskRequest contains the data for updating a subtask.
+// KanbanUpdateSubtaskRequest contains the data for updating a subtask.
 type KanbanUpdateSubtaskRequest struct {
 	Title         string `json:"title,omitempty"`
 	UserID        int    `json:"user_id,omitempty"`
@@ -539,13 +539,13 @@ type KanbanUpdateSubtaskRequest struct {
 	Status        int    `json:"status,omitempty"`
 }
 
-// UpdateSubtaskResult contains the result of updating a subtask.
+// KanbanUpdateSubtaskResult contains the result of updating a subtask.
 type KanbanUpdateSubtaskResult struct {
 	Success bool `json:"success"`
 }
 
 // UpdateSubtask updates an existing subtask.
-func (k *KanbanClient) UpdateSubtask(ctx context.Context, taskID int, subtaskID int, req KanbanUpdateSubtaskRequest) (*KanbanUpdateSubtaskResult, error) {
+func (k *KanbanClient) UpdateSubtask(ctx context.Context, taskID, subtaskID int, req KanbanUpdateSubtaskRequest) (*KanbanUpdateSubtaskResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -562,13 +562,13 @@ func (k *KanbanClient) UpdateSubtask(ctx context.Context, taskID int, subtaskID 
 	return &result, nil
 }
 
-// RemoveSubtaskResult contains the result of removing a subtask.
+// KanbanRemoveSubtaskResult contains the result of removing a subtask.
 type KanbanRemoveSubtaskResult struct {
 	Success bool `json:"success"`
 }
 
 // RemoveSubtask removes a subtask.
-func (k *KanbanClient) RemoveSubtask(ctx context.Context, taskID int, subtaskID int) (*KanbanRemoveSubtaskResult, error) {
+func (k *KanbanClient) RemoveSubtask(ctx context.Context, taskID, subtaskID int) (*KanbanRemoveSubtaskResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -591,7 +591,7 @@ type HasSubtaskTimerResult struct {
 }
 
 // HasSubtaskTimer checks if a timer is started for the given subtask and user.
-func (k *KanbanClient) HasSubtaskTimer(ctx context.Context, taskID int, subtaskID int, userID int) (*HasSubtaskTimerResult, error) {
+func (k *KanbanClient) HasSubtaskTimer(ctx context.Context, taskID, subtaskID, userID int) (*HasSubtaskTimerResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -617,7 +617,7 @@ type SetSubtaskStartTimeResult struct {
 }
 
 // SetSubtaskStartTime starts the subtask timer for a user.
-func (k *KanbanClient) SetSubtaskStartTime(ctx context.Context, taskID int, subtaskID int, userID int) (*SetSubtaskStartTimeResult, error) {
+func (k *KanbanClient) SetSubtaskStartTime(ctx context.Context, taskID, subtaskID, userID int) (*SetSubtaskStartTimeResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -643,7 +643,7 @@ type SetSubtaskEndTimeResult struct {
 }
 
 // SetSubtaskEndTime stops the subtask timer for a user.
-func (k *KanbanClient) SetSubtaskEndTime(ctx context.Context, taskID int, subtaskID int, userID int) (*SetSubtaskEndTimeResult, error) {
+func (k *KanbanClient) SetSubtaskEndTime(ctx context.Context, taskID, subtaskID, userID int) (*SetSubtaskEndTimeResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}
@@ -669,7 +669,7 @@ type GetSubtaskTimeSpentResult struct {
 }
 
 // GetSubtaskTimeSpent gets the time spent on a subtask for a user (in hours).
-func (k *KanbanClient) GetSubtaskTimeSpent(ctx context.Context, taskID int, subtaskID int, userID int) (*GetSubtaskTimeSpentResult, error) {
+func (k *KanbanClient) GetSubtaskTimeSpent(ctx context.Context, taskID, subtaskID, userID int) (*GetSubtaskTimeSpentResult, error) {
 	if taskID <= 0 {
 		return nil, fmt.Errorf("task_id must be positive, got %d", taskID)
 	}

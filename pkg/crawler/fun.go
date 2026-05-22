@@ -40,7 +40,7 @@ func PowerfulFind(s *goquery.Selection, q string) *goquery.Selection {
 			q = strings.TrimSpace(q[r[1]:])
 			sel = sel.Find(sq).Eq(i)
 		}
-		if len(q) > 0 {
+		if q != "" {
 			sel = sel.Find(q)
 		}
 		return sel
@@ -202,7 +202,7 @@ func ParseFun(sel *goquery.Selection, str string) *Fun {
 		fun.Params = ps
 	}
 	ls = ls[pl+1:]
-	if len(ls) > 0 {
+	if ls != "" {
 		ls = ls[1:]
 		fun.Append(ls)
 	}
@@ -210,7 +210,7 @@ func ParseFun(sel *goquery.Selection, str string) *Fun {
 	return fun
 }
 
-func charAtOffset(s string, i int, o int) rune {
+func charAtOffset(s string, i, o int) rune {
 	oi := i + o
 	if oi >= 0 && oi < len(s) {
 		return rune(s[oi])
@@ -218,7 +218,7 @@ func charAtOffset(s string, i int, o int) rune {
 	return 0
 }
 
-func charSkipWhitespace(s string, i int, o int) rune {
+func charSkipWhitespace(s string, i, o int) rune {
 	if i+o < 0 || i >= len(s) {
 		return 0
 	}
@@ -248,7 +248,7 @@ func isEntryDelim(co rune) bool {
 	return co == '(' || co == ','
 }
 
-func isStdPrefix(co1 rune, c rune) bool {
+func isStdPrefix(co1, c rune) bool {
 	return (co1 == '=' || co1 == ',' || co1 == '(') && !unicode.IsSpace(c) && c != '"' && c != '`'
 }
 

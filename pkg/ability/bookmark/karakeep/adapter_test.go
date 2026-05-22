@@ -106,7 +106,7 @@ func (f *fakeClient) CheckUrlExists(_ string) (*string, error) {
 	return &id, nil
 }
 
-func testBookmark(id string, url string) *provider.Bookmark {
+func testBookmark(id, url string) *provider.Bookmark {
 	title := "Example"
 	summary := "Summary"
 	return &provider.Bookmark{

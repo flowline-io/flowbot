@@ -20,7 +20,7 @@ func Accordion(elems ...app.UI) app.HTMLUl {
 }
 
 // AccordionWithOptions creates an accordion component with options
-func AccordionWithOptions(multiple bool, collapsible bool, animation bool, duration int, elems ...app.UI) app.HTMLUl {
+func AccordionWithOptions(multiple, collapsible, animation bool, duration int, elems ...app.UI) app.HTMLUl {
 	options := ""
 
 	if multiple {

@@ -59,7 +59,7 @@ func (*Adapter) EventConvert(data any) protocol.Event {
 			flog.Debug("Ignored interactive event: %+v", evt)
 			return result
 		}
-		result = convertInteractiveEvent(callback)
+		result = convertInteractiveEvent(&callback)
 	}
 
 	return result
@@ -107,7 +107,7 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 	return result
 }
 
-func convertInteractiveEvent(callback slack.InteractionCallback) protocol.Event {
+func convertInteractiveEvent(callback *slack.InteractionCallback) protocol.Event {
 	var result protocol.Event
 
 	switch callback.Type {

@@ -27,7 +27,7 @@ func GetClient() *Drone {
 	return NewDrone(endpoint.String(), tokenKey.String())
 }
 
-func NewDrone(endpoint string, token string) *Drone {
+func NewDrone(endpoint, token string) *Drone {
 	v := &Drone{}
 
 	v.c = utils.DefaultRestyClient()

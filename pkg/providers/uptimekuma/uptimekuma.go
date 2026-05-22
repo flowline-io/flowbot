@@ -29,7 +29,7 @@ func GetClient() *UptimeKuma {
 	return NewUptimeKuma(endpoint.String(), tokenKey.String())
 }
 
-func NewUptimeKuma(endpoint string, token string) *UptimeKuma {
+func NewUptimeKuma(endpoint, token string) *UptimeKuma {
 	v := &UptimeKuma{}
 
 	v.c = utils.DefaultRestyClient()

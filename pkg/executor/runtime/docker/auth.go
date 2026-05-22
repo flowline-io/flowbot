@@ -31,7 +31,7 @@ const tokenUsername = "<token>"
 //
 // This will use `LoadDefaultConfig` to read registry auth details from the config.
 // If the config doesn't exist, it will attempt to load registry credentials using the default credential helper for the platform.
-func getRegistryCredentials(configFile string, hostname string) (string, string, error) {
+func getRegistryCredentials(configFile, hostname string) (string, string, error) {
 	cfg, err := loadConfig(configFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -204,7 +204,8 @@ func loadConfig(configFile string) (config, error) {
 	if err != nil {
 		return cfg, err
 	}
-	return cfg, fromFile(p, &cfg)
+	err = fromFile(p, &cfg)
+	return cfg, err
 }
 
 // FromFile loads config from the specified path into cfg

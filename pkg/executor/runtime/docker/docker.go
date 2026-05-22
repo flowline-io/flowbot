@@ -272,7 +272,7 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	resp, err := d.client.ContainerCreate(
 		ctx, &cc, &hc, &nc, nil, "")
 	if err != nil {
-		flog.Error(fmt.Errorf("Error creating container using image %s: %w", t.Image, err))
+		flog.Error(fmt.Errorf("error creating container using image %s: %w", t.Image, err))
 		return err
 	}
 

@@ -28,7 +28,7 @@ func GetClient() *Slash {
 	return NewSlash(endpoint.String(), token.String())
 }
 
-func NewSlash(endpoint string, token string) *Slash {
+func NewSlash(endpoint, token string) *Slash {
 	v := &Slash{token: token}
 	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)

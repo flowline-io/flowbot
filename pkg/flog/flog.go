@@ -110,7 +110,7 @@ func Init(cfg Config) {
 				Compress:   cfg.Rotation.Compress,
 			})
 		} else {
-			f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+			f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 			if err != nil {
 				Err(fmt.Errorf("flog: failed to open log file: %w", err))
 			} else {

@@ -42,7 +42,7 @@ func (m *BindMounter) Mount(_ context.Context, mnt *types.Mount) error {
 	defer m.mu.Unlock()
 	// check if the source dir exists
 	if _, err := os.Stat(mnt.Source); os.IsNotExist(err) {
-		if err := os.MkdirAll(mnt.Source, 0707); err != nil {
+		if err := os.MkdirAll(mnt.Source, 0o750); err != nil {
 			return fmt.Errorf("error creating mount directory: %s, %w", mnt.Source, err)
 		}
 		flog.Info("Created bind mount: %s", mnt.Source)

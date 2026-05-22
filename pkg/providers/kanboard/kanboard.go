@@ -40,7 +40,7 @@ func (t *AuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.Transport.RoundTrip(req)
 }
 
-func setAuthHeader(header http.Header, username string, password string) {
+func setAuthHeader(header http.Header, username, password string) {
 	auth := fmt.Sprintf("%s:%s", username, password)
 	buf := bytes.Buffer{}
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
@@ -61,7 +61,7 @@ func GetClient() (*Kanboard, error) {
 	return NewKanboard(endpoint.String(), username.String(), password.String())
 }
 
-func NewKanboard(endpoint string, username string, password string) (*Kanboard, error) {
+func NewKanboard(endpoint, username, password string) (*Kanboard, error) {
 	v := &Kanboard{}
 	v.channel = jhttp.NewChannel(endpoint, &jhttp.ChannelOptions{
 		Client: &http.Client{
@@ -155,7 +155,7 @@ func (v *Kanboard) RemoveTask(ctx context.Context, taskId int) (result bool, err
 	return
 }
 
-func (v *Kanboard) MoveTaskPosition(ctx context.Context, projectId int, taskId int, columnId int, position int, swimlaneId int) (result bool, err error) {
+func (v *Kanboard) MoveTaskPosition(ctx context.Context, projectId, taskId, columnId, position, swimlaneId int) (result bool, err error) {
 	params := types.KV{
 		"project_id":  projectId,
 		"task_id":     taskId,
@@ -243,7 +243,7 @@ func (v *Kanboard) GetTagsByProject(ctx context.Context, projectId int) (tags []
 	return
 }
 
-func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag string, colorId string) (tagId int64, err error) {
+func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag, colorId string) (tagId int64, err error) {
 	params := []any{projectId, tag}
 	if colorId != "" {
 		params = append(params, colorId)
@@ -256,7 +256,7 @@ func (v *Kanboard) CreateTag(ctx context.Context, projectId int, tag string, col
 	return
 }
 
-func (v *Kanboard) UpdateTag(ctx context.Context, tagId int, tag string, colorId string) (result bool, err error) {
+func (v *Kanboard) UpdateTag(ctx context.Context, tagId int, tag, colorId string) (result bool, err error) {
 	params := []any{tagId, tag}
 	if colorId != "" {
 		params = append(params, colorId)
@@ -278,7 +278,7 @@ func (v *Kanboard) RemoveTag(ctx context.Context, tagId int) (result bool, err e
 	return
 }
 
-func (v *Kanboard) SetTaskTags(ctx context.Context, projectId int, taskId int, tags []string) (result bool, err error) {
+func (v *Kanboard) SetTaskTags(ctx context.Context, projectId, taskId int, tags []string) (result bool, err error) {
 	err = v.c.CallResult(ctx, "setTaskTags", []any{projectId, taskId, tags}, &result)
 	if err != nil {
 		err = fmt.Errorf("failed to set task tags, %w", err)
@@ -296,7 +296,7 @@ func (v *Kanboard) GetTaskTags(ctx context.Context, taskId int) (tags map[string
 	return
 }
 
-func (v *Kanboard) CreateSubtask(ctx context.Context, taskId int, title string, userId int, timeEstimated int, timeSpent int, status int) (subtaskId int64, err error) {
+func (v *Kanboard) CreateSubtask(ctx context.Context, taskId int, title string, userId, timeEstimated, timeSpent, status int) (subtaskId int64, err error) {
 	params := types.KV{"task_id": taskId, "title": title}
 	if userId > 0 {
 		params["user_id"] = userId
@@ -336,7 +336,7 @@ func (v *Kanboard) GetAllSubtasks(ctx context.Context, taskId int) (subtasks []*
 	return
 }
 
-func (v *Kanboard) UpdateSubtask(ctx context.Context, subtaskId int, taskId int, title string, userId int, timeEstimated int, timeSpent int, status int) (result bool, err error) {
+func (v *Kanboard) UpdateSubtask(ctx context.Context, subtaskId, taskId int, title string, userId, timeEstimated, timeSpent, status int) (result bool, err error) {
 	params := types.KV{"id": subtaskId, "task_id": taskId}
 	if title != "" {
 		params["title"] = title
@@ -370,7 +370,7 @@ func (v *Kanboard) RemoveSubtask(ctx context.Context, subtaskId int) (result boo
 	return
 }
 
-func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId, userId int) (result bool, err error) {
 	params := []any{subtaskId}
 	if userId > 0 {
 		params = append(params, userId)
@@ -383,7 +383,7 @@ func (v *Kanboard) HasSubtaskTimer(ctx context.Context, subtaskId int, userId in
 	return
 }
 
-func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId, userId int) (result bool, err error) {
 	params := []any{subtaskId}
 	if userId > 0 {
 		params = append(params, userId)
@@ -396,7 +396,7 @@ func (v *Kanboard) SetSubtaskStartTime(ctx context.Context, subtaskId int, userI
 	return
 }
 
-func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId int, userId int) (result bool, err error) {
+func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId, userId int) (result bool, err error) {
 	params := []any{subtaskId}
 	if userId > 0 {
 		params = append(params, userId)
@@ -409,7 +409,7 @@ func (v *Kanboard) SetSubtaskEndTime(ctx context.Context, subtaskId int, userId 
 	return
 }
 
-func (v *Kanboard) GetSubtaskTimeSpent(ctx context.Context, subtaskId int, userId int) (result float64, err error) {
+func (v *Kanboard) GetSubtaskTimeSpent(ctx context.Context, subtaskId, userId int) (result float64, err error) {
 	params := []any{subtaskId}
 	if userId > 0 {
 		params = append(params, userId)

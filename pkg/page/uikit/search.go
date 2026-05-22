@@ -13,7 +13,7 @@ const (
 )
 
 // Search creates a basic search box
-func Search(id string, name string, placeholder string) app.HTMLForm {
+func Search(id, name, placeholder string) app.HTMLForm {
 	return app.Form().Class(SearchClass, SearchDefaultClass).Body(
 		app.Span().Class(SearchIconClass).Attr("uk-search-icon", ""),
 		app.Input().
@@ -26,7 +26,7 @@ func Search(id string, name string, placeholder string) app.HTMLForm {
 }
 
 // SearchLarge creates a large-sized search box
-func SearchLarge(id string, name string, placeholder string) app.HTMLForm {
+func SearchLarge(id, name, placeholder string) app.HTMLForm {
 	return app.Form().Class(SearchClass, SearchLargeClass).Body(
 		app.Span().Class(SearchIconClass).Attr("uk-search-icon", ""),
 		app.Input().
@@ -39,7 +39,7 @@ func SearchLarge(id string, name string, placeholder string) app.HTMLForm {
 }
 
 // SearchNavbar creates a navigation bar search box
-func SearchNavbar(id string, name string, placeholder string) app.HTMLForm {
+func SearchNavbar(id, name, placeholder string) app.HTMLForm {
 	return app.Form().Class(SearchClass, SearchNavbarClass).Body(
 		app.Span().Class(SearchIconClass).Attr("uk-search-icon", ""),
 		app.Input().
@@ -52,7 +52,7 @@ func SearchNavbar(id string, name string, placeholder string) app.HTMLForm {
 }
 
 // SearchWithButton creates a search box with a button
-func SearchWithButton(id string, name string, placeholder string, _ string) app.HTMLForm {
+func SearchWithButton(id, name, placeholder, _ string) app.HTMLForm {
 	return app.Form().Class("uk-search uk-search-default uk-width-medium").Body(
 		app.Input().
 			ID(id).
@@ -65,7 +65,7 @@ func SearchWithButton(id string, name string, placeholder string, _ string) app.
 }
 
 // SearchWithDropdown creates a search box with a dropdown menu
-func SearchWithDropdown(id string, name string, placeholder string, dropdownID string, dropdownItems []app.UI) app.HTMLDiv {
+func SearchWithDropdown(id, name, placeholder, dropdownID string, dropdownItems []app.UI) app.HTMLDiv {
 	return app.Div().Body(
 		app.Form().Class(SearchClass, SearchDefaultClass).Body(
 			app.Span().Class(SearchIconClass).Attr("uk-search-icon", ""),
@@ -89,7 +89,7 @@ func SearchToggle(targetID string) app.HTMLA {
 }
 
 // SearchModal creates a modal search box
-func SearchModal(id string, name string, placeholder string) app.HTMLDiv {
+func SearchModal(id, name, placeholder string) app.HTMLDiv {
 	return app.Div().ID(id).Class("uk-modal-full uk-modal").Attr("uk-modal", "").Body(
 		app.Div().Class("uk-modal-dialog uk-flex uk-flex-center uk-flex-middle").Attr("uk-height-viewport", "").Body(
 			app.Button().Class("uk-modal-close-full").Type("button").Attr("uk-close", ""),

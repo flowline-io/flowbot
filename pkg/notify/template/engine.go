@@ -113,7 +113,7 @@ func (e *Engine) GetTemplateID(eventType string) string {
 	return ""
 }
 
-func compileTemplate(tmplStr string, _ string) (*template.Template, error) {
+func compileTemplate(tmplStr, _ string) (*template.Template, error) {
 	tmpl := template.New("notify").Funcs(sprig.FuncMap()).Funcs(template.FuncMap{
 		"eventTime": eventTime,
 		"shorten":   shorten,

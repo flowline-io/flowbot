@@ -26,7 +26,7 @@ func GetClient() *ArchiveBox {
 	return NewArchiveBox(endpoint.String(), tokenKey.String())
 }
 
-func NewArchiveBox(endpoint string, token string) *ArchiveBox {
+func NewArchiveBox(endpoint, token string) *ArchiveBox {
 	v := &ArchiveBox{}
 	v.c = utils.DefaultRestyClient()
 	v.c.SetBaseURL(endpoint)

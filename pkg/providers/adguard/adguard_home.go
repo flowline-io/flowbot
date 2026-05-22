@@ -29,7 +29,7 @@ func GetClient() *AdGuardHome {
 	return NewAdGuardHome(endpoint.String(), username.String(), password.String())
 }
 
-func NewAdGuardHome(endpoint string, username string, password string) *AdGuardHome {
+func NewAdGuardHome(endpoint, username, password string) *AdGuardHome {
 	v := &AdGuardHome{}
 
 	v.c = utils.DefaultRestyClient()

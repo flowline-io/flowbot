@@ -141,7 +141,7 @@ func (c *AbilityCollector) DecBulkheadActive(capability string) {
 	c.bulkheadActive.WithLabelValues(sanitizeLabel(capability)).Dec()
 }
 
-func (c *AbilityCollector) IncBulkheadDropped(capability string, reason string) {
+func (c *AbilityCollector) IncBulkheadDropped(capability, reason string) {
 	if c.bulkheadDroppedTotal == nil {
 		return
 	}

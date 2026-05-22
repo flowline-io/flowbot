@@ -24,7 +24,7 @@ type Config struct {
 	Password string
 }
 
-func SendEmail(config *Config, toMail string, title, content string) error {
+func SendEmail(config *Config, toMail, title, content string) error {
 	header := make(map[string]string)
 	header["From"] = "Assistant" + "<" + config.Username + ">"
 	header["To"] = toMail

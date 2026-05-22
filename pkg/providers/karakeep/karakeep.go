@@ -34,7 +34,7 @@ func GetClient() *Karakeep {
 	return NewKarakeep(endpoint.String(), apiKey.String())
 }
 
-func NewKarakeep(endpoint string, apiKey string) *Karakeep {
+func NewKarakeep(endpoint, apiKey string) *Karakeep {
 	v := &Karakeep{}
 
 	v.c = utils.DefaultRestyClient()

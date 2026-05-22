@@ -28,7 +28,7 @@ func GetClient() *FireflyIII {
 	return NewFireflyIII(endpoint.String(), tokenKey.String())
 }
 
-func NewFireflyIII(endpoint string, token string) *FireflyIII {
+func NewFireflyIII(endpoint, token string) *FireflyIII {
 	v := &FireflyIII{}
 
 	v.c = utils.DefaultRestyClient()

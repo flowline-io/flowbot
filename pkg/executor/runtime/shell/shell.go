@@ -122,7 +122,7 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 
 	r.cmds.Set(t.ID, cmd)
 
-	readProcessOutput(stdout)
+	go readProcessOutput(stdout)
 
 	errChan := make(chan error)
 	doneChan := make(chan any)
@@ -227,16 +227,14 @@ func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []
 	return args, env, nil
 }
 
-// readProcessOutput starts a goroutine that reads and prints lines from the command's stdout.
+// readProcessOutput reads and prints lines from the command's stdout.
 func readProcessOutput(stdout io.ReadCloser) {
-	go func() {
-		reader := bufio.NewReader(stdout)
-		line, err := reader.ReadString('\n')
-		for err == nil {
-			_, _ = fmt.Println(line)
-			line, err = reader.ReadString('\n')
-		}
-	}()
+	reader := bufio.NewReader(stdout)
+	line, err := reader.ReadString('\n')
+	for err == nil {
+		_, _ = fmt.Println(line)
+		line, err = reader.ReadString('\n')
+	}
 }
 
 func reexecRun() {

@@ -134,7 +134,7 @@ type File struct {
 	Size    string `json:"size,omitempty"`
 }
 
-// The value 1 for active tasks and 0 for inactive
+// StatusId represents the status of a task: 1 for active, 0 for inactive.
 type StatusId int
 
 const (

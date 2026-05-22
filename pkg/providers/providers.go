@@ -16,7 +16,7 @@ type OAuthProvider interface {
 	GetAccessToken(ctx fiber.Ctx) (types.KV, error)
 }
 
-func RedirectURI(name string, flag string) string {
+func RedirectURI(name, flag string) string {
 	return fmt.Sprintf("%s/oauth/%s/%s", types.AppUrl(), name, flag)
 }
 

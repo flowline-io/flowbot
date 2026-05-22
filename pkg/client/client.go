@@ -108,7 +108,7 @@ func (c *Client) Get(ctx context.Context, path string, result any) error {
 }
 
 // Post performs a POST request with the given body and unmarshals the response data into result.
-func (c *Client) Post(ctx context.Context, path string, body any, result any) error {
+func (c *Client) Post(ctx context.Context, path string, body, result any) error {
 	resp, err := c.rc.R().SetContext(ctx).SetBody(body).Post(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
@@ -117,7 +117,7 @@ func (c *Client) Post(ctx context.Context, path string, body any, result any) er
 }
 
 // Patch performs a PATCH request with the given body and unmarshals the response data into result.
-func (c *Client) Patch(ctx context.Context, path string, body any, result any) error {
+func (c *Client) Patch(ctx context.Context, path string, body, result any) error {
 	resp, err := c.rc.R().SetContext(ctx).SetBody(body).Patch(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
@@ -126,7 +126,7 @@ func (c *Client) Patch(ctx context.Context, path string, body any, result any) e
 }
 
 // Put performs a PUT request with the given body and unmarshals the response data into result.
-func (c *Client) Put(ctx context.Context, path string, body any, result any) error {
+func (c *Client) Put(ctx context.Context, path string, body, result any) error {
 	resp, err := c.rc.R().SetContext(ctx).SetBody(body).Put(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
@@ -135,7 +135,7 @@ func (c *Client) Put(ctx context.Context, path string, body any, result any) err
 }
 
 // Delete performs a DELETE request with the given body and unmarshals the response data into result.
-func (c *Client) Delete(ctx context.Context, path string, body any, result any) error {
+func (c *Client) Delete(ctx context.Context, path string, body, result any) error {
 	resp, err := c.rc.R().SetContext(ctx).SetBody(body).Delete(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
@@ -224,7 +224,7 @@ func IsUnauthorized(err error) bool {
 }
 
 // stringOr returns the string value for key from kv, or defaultVal if not found or not a string.
-func stringOr(kv map[string]any, key string, defaultVal string) string {
+func stringOr(kv map[string]any, key, defaultVal string) string {
 	if v, ok := kv[key]; ok {
 		if s, ok := v.(string); ok {
 			return s

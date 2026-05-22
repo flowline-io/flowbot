@@ -25,7 +25,7 @@ func DownloadFile(url, filename string) error {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

@@ -76,7 +76,7 @@ func ParseVersionPart(vers string) int {
 	var err error
 	if end > 0 {
 		t, err = strconv.Atoi(vers[:end])
-	} else if len(vers) > 0 {
+	} else if vers != "" {
 		t, err = strconv.Atoi(vers)
 	}
 	if err != nil || t > 0x1fff || t <= 0 {

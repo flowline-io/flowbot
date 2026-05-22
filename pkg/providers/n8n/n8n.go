@@ -31,7 +31,7 @@ func GetClient() (*N8N, error) {
 	return NewN8N(endpoint.String(), apiKey.String()), nil
 }
 
-func NewN8N(endpoint string, apiKey string) *N8N {
+func NewN8N(endpoint, apiKey string) *N8N {
 	v := &N8N{}
 
 	v.c = utils.DefaultRestyClient()
@@ -196,7 +196,7 @@ func (v *N8N) ExecuteWorkflow(id string, data map[string]any) error {
 	return fmt.Errorf("unexpected status code: %d, %s", resp.StatusCode(), resp.String())
 }
 
-func findWebhookNode(nodes []Node) (path string, id string) {
+func findWebhookNode(nodes []Node) (path, id string) {
 	for _, node := range nodes {
 		if node.Type == "n8n-nodes-base.webhook" || node.Type == "n8n-nodes-base.webhookV2" {
 			if node.Parameters != nil {
@@ -220,7 +220,7 @@ func sanitizeWebhookPath(path string) string {
 	return path
 }
 
-func buildWebhookURL(path string, id string) string {
+func buildWebhookURL(path, id string) string {
 	if path != "" {
 		return fmt.Sprintf("/webhook/%s", sanitizeWebhookPath(path))
 	}
