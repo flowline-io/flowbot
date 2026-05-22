@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -91,7 +92,9 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 		dataEvent.Data["_webhook_headers"] = headers
 
 		go func() {
-			if err := engine.ExecuteWebhook(c.Context(), def, dataEvent); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer cancel()
+			if err := engine.ExecuteWebhook(ctx, def, dataEvent); err != nil {
 				flog.Error(fmt.Errorf("webhook pipeline %s: %w", def.Name, err))
 			}
 		}()
