@@ -17,6 +17,7 @@ type PipelineCollector struct {
 	stepDuration *prometheus.HistogramVec
 	stepRetry    *prometheus.CounterVec
 	resumeTotal  *prometheus.CounterVec
+	cronSkipTotal *prometheus.CounterVec
 }
 
 // NewPipelineCollector creates a PipelineCollector backed by stats.
@@ -53,6 +54,11 @@ func NewPipelineCollector(st *stats.Stats) *PipelineCollector {
 		return &PipelineCollector{}
 	}
 	c.resumeTotal, err = st.RegisterCounterVec("pipeline_resume_total", "Pipeline resume count", "pipeline")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.cronSkipTotal, err = st.RegisterCounterVec("pipeline_cron_skip_total", "Cron job skip count by pipeline", "pipeline")
 	if err != nil {
 		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
 		return &PipelineCollector{}
@@ -112,4 +118,13 @@ func (c *PipelineCollector) IncResume(pipeline string) {
 	}
 	defer recoverLog("pipeline_resume_total")
 	c.resumeTotal.WithLabelValues(sanitizeLabel(pipeline)).Inc()
+}
+
+// IncCronSkip increments the cron skip counter for the given pipeline.
+func (c *PipelineCollector) IncCronSkip(pipeline string) {
+	if c.cronSkipTotal == nil {
+		return
+	}
+	defer recoverLog("pipeline_cron_skip_total")
+	c.cronSkipTotal.WithLabelValues(sanitizeLabel(pipeline)).Inc()
 }

@@ -19,6 +19,7 @@ func TestNewPipelineCollector(t *testing.T) {
 		c.ObserveStepDuration("p", "s", "cap", "done", 0.5)
 		c.IncStepRetry("p", "s")
 		c.IncResume("p")
+		c.IncCronSkip("p")
 	})
 }
 
@@ -123,6 +124,7 @@ func TestPipelineCollector_NoopMethodsDontPanic(t *testing.T) {
 		{name: "ObserveStepDuration", fn: func() { c.ObserveStepDuration("p", "s", "c", "done", 1.0) }},
 		{name: "IncStepRetry", fn: func() { c.IncStepRetry("p", "s") }},
 		{name: "IncResume", fn: func() { c.IncResume("p") }},
+		{name: "IncCronSkip", fn: func() { c.IncCronSkip("p") }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

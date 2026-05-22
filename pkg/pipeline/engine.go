@@ -2,12 +2,15 @@ package pipeline
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"maps"
+	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/flc1125/go-cron/v4"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/audit"
@@ -63,17 +66,53 @@ type Engine struct {
 	pipelineMetrics *metrics.PipelineCollector
 	eventMetrics    *metrics.EventCollector
 	handler         func(ctx context.Context, event types.DataEvent) error
+	mu              map[string]*sync.Mutex
+	cron            *cron.Cron
+	clock           Clock
 }
 
 func NewEngine(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
+	return NewEngineWithClock(defs, store, auditor, pc, ec, NewRealClock())
+}
+
+func NewEngineWithClock(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector, clock Clock) *Engine {
 	e := &Engine{
 		defs:            defs,
 		store:           store,
 		auditor:         auditor,
 		pipelineMetrics: pc,
 		eventMetrics:    ec,
+		mu:              make(map[string]*sync.Mutex),
+		clock:           clock,
 	}
 	e.handler = e.handleEvent
+
+	for _, def := range defs {
+		e.mu[def.Name] = &sync.Mutex{}
+	}
+
+	e.cron = cron.New(
+		cron.WithSeconds(),
+		cron.WithParser(cron.NewParser(cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
+	)
+
+	for _, def := range defs {
+		if def.Trigger.Cron == "" {
+			continue
+		}
+		defCopy := def
+		_, err := e.cron.AddFunc(def.Trigger.Cron, func(ctx context.Context) error {
+			e.executeCronJob(ctx, defCopy)
+			return nil
+		})
+		if err != nil {
+			flog.Error(fmt.Errorf("pipeline %s: failed to register cron job %q: %w", def.Name, def.Trigger.Cron, err))
+		} else {
+			flog.Info("pipeline %s: registered cron trigger %q", def.Name, def.Trigger.Cron)
+		}
+	}
+
+	e.cron.Start()
 	return e
 }
 
@@ -91,8 +130,15 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 		if e.eventMetrics != nil {
 			e.eventMetrics.IncMatched(event.EventType, def.Name)
 		}
+		mu := e.mu[def.Name]
+		if mu != nil {
+			mu.Lock()
+		}
 		if err := e.executePipeline(ctx, def, event); err != nil {
 			flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
+		}
+		if mu != nil {
+			mu.Unlock()
 		}
 	}
 
@@ -450,6 +496,12 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		return fmt.Errorf("no resumable pipeline definition for %s (run %d)", run.PipelineName, runID)
 	}
 
+	mu := e.mu[def.Name]
+	if mu != nil {
+		mu.Lock()
+		defer mu.Unlock()
+	}
+
 	rc := NewRenderContext(cp.Event)
 	for name, sr := range cp.StepResults {
 		rc.RecordStepResult(name, sr.Output)
@@ -477,4 +529,57 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 
 	e.finishRunRecord(ctx, runID, failed, finalErr)
 	return finalErr
+}
+
+// Stop shuts down the cron scheduler. It waits up to 30 seconds for
+// in-flight jobs to complete, then force-cancels and logs a warning.
+func (e *Engine) Stop() {
+	if e.cron == nil {
+		return
+	}
+	ctx := e.cron.Stop()
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(30 * time.Second):
+		flog.Warn("pipeline cron stop timed out after 30s, forcing shutdown")
+	}
+}
+
+func (e *Engine) executeCronJob(_ context.Context, def Definition) {
+	mu := e.mu[def.Name]
+	if !mu.TryLock() {
+		if e.pipelineMetrics != nil {
+			e.pipelineMetrics.IncCronSkip(def.Name)
+		}
+		flog.Info("pipeline %s: cron tick skipped, previous run still in progress", def.Name)
+		return
+	}
+	defer mu.Unlock()
+
+	eventID := fmt.Sprintf("cron:%s:%d-%s", def.Name, e.clock.Now().UnixNano(), randomHex(8))
+	dataEvent := types.DataEvent{
+		EventID:   eventID,
+		EventType: fmt.Sprintf("pipeline.cron:%s", def.Name),
+		Source:    "cron",
+		CreatedAt: e.clock.Now(),
+	}
+
+	timeout := def.Trigger.CronTimeout
+	if timeout <= 0 {
+		timeout = 10 * time.Minute
+	}
+	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := e.executePipeline(execCtx, def, dataEvent)
+	if err != nil {
+		flog.Error(fmt.Errorf("pipeline %s cron run: %w", def.Name, err))
+	}
+}
+
+func randomHex(n int) string {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
