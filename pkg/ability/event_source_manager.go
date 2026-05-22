@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/flc1125/go-cron/v4"
 	"github.com/panjf2000/ants/v2"
 
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -22,7 +23,7 @@ type EventSourceManager struct {
 	pollers    map[string]*pollEntry
 	webhooks   map[string]WebhookConverter
 	emitter    EventSourceEmitter
-	scheduler  any
+	scheduler  *cron.Cron
 	stateStore *PollingState
 	pool       *ants.PoolWithFunc
 	metrics    *metrics.EventSourceCollector
@@ -74,11 +75,14 @@ func (m *EventSourceManager) RegisterWebhook(c WebhookConverter) {
 }
 
 // Start begins the cron scheduler and loads persisted state.
-func (*EventSourceManager) Start(_ context.Context) error {
-	return nil
+func (m *EventSourceManager) Start(ctx context.Context) error {
+	return m.startPolling(ctx)
 }
 
 // Stop shuts down the cron scheduler and flushes state.
-func (*EventSourceManager) Stop(_ context.Context) error {
+func (m *EventSourceManager) Stop(ctx context.Context) error {
+	if m.scheduler != nil {
+		_ = m.scheduler.Stop()
+	}
 	return nil
 }
