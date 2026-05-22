@@ -141,10 +141,9 @@ func cacheWrite(capability hub.CapabilityType, operation string, params map[stri
 		return
 	}
 	cacheKey := buildCacheKey(capability, operation, params)
-	events := result.Events
-	result.Events = nil
-	data, err := sonic.MarshalString(result)
-	result.Events = events
+	clone := *result
+	clone.Events = nil
+	data, err := sonic.MarshalString(&clone)
 	if err != nil {
 		return
 	}
