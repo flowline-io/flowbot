@@ -210,7 +210,7 @@ func TestLoadConfig_CronTrigger(t *testing.T) {
 			},
 		},
 		{
-			name: "event-only pipeline gets default timeout",
+			name: "event-only pipeline has no cron timeout",
 			cfg: []config.Pipeline{
 				{
 					Name:    "event-only",
@@ -220,7 +220,7 @@ func TestLoadConfig_CronTrigger(t *testing.T) {
 			},
 			asserts: func(t *testing.T, defs []Definition) {
 				require.Len(t, defs, 1)
-				assert.Equal(t, 10*time.Minute, defs[0].Trigger.CronTimeout)
+				assert.Equal(t, time.Duration(0), defs[0].Trigger.CronTimeout)
 			},
 		},
 	}

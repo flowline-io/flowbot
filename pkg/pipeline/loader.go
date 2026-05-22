@@ -149,7 +149,7 @@ func convertTrigger(name string, cfg config.PipelineTrigger) (Trigger, error) {
 		} else {
 			t.CronTimeout = d
 		}
-	} else {
+	} else if cfg.Cron != "" {
 		t.CronTimeout = 10 * time.Minute
 	}
 
@@ -181,25 +181,18 @@ func convertWebhookTrigger(name string, wh *config.WebhookTrigger) (*WebhookConf
 		return nil, fmt.Errorf("pipeline %s: webhook trigger path must not be empty", name)
 	}
 
-	method := wh.Method
-	if method == "" {
-		method = "POST"
-	}
-	method = strings.ToUpper(method)
-	if !allowedWebhookMethods[method] {
-		return nil, fmt.Errorf("pipeline %s: unsupported webhook method %q", name, wh.Method)
+	method, err := validateWebhookMethod(name, wh.Method)
+	if err != nil {
+		return nil, err
 	}
 
-	if wh.Auth == nil || (wh.Auth.Token == "" && wh.Auth.HMACSecret == "") {
-		return nil, fmt.Errorf("pipeline %s: webhook trigger requires at least one of auth.token or auth.hmac_secret", name)
+	if err := validateWebhookAuth(name, wh.Auth); err != nil {
+		return nil, err
 	}
 
-	payload := wh.Payload
-	if payload == "" {
-		payload = config.WebhookPayloadRaw
-	}
-	if payload != config.WebhookPayloadRaw && payload != config.WebhookPayloadMapped {
-		return nil, fmt.Errorf("pipeline %s: invalid webhook payload mode %q", name, wh.Payload)
+	payload, err := validateWebhookPayload(name, wh.Payload)
+	if err != nil {
+		return nil, err
 	}
 
 	eventType := wh.EventType
@@ -207,32 +200,61 @@ func convertWebhookTrigger(name string, wh *config.WebhookTrigger) (*WebhookConf
 		eventType = "webhook." + wh.Path
 	}
 
-	hmacHeader := "X-Hub-Signature-256"
-	tokenHeader := "X-Webhook-Token"
-	if wh.Auth != nil {
-		if wh.Auth.HMACHeader != "" {
-			hmacHeader = wh.Auth.HMACHeader
-		}
-		if wh.Auth.TokenHeader != "" {
-			tokenHeader = wh.Auth.TokenHeader
-		}
-	}
-
-	wc := &WebhookConfig{
+	return &WebhookConfig{
 		Path:      wh.Path,
 		Method:    method,
+		Auth:      buildWebhookAuthConfig(wh.Auth),
 		Payload:   payload,
 		EventType: eventType,
+	}, nil
+}
+
+func validateWebhookMethod(name, method string) (string, error) {
+	if method == "" {
+		return "POST", nil
 	}
-	if wh.Auth != nil {
-		wc.Auth = WebhookAuthConfig{
-			Token:       wh.Auth.Token,
-			HMACSecret:  wh.Auth.HMACSecret,
-			HMACHeader:  hmacHeader,
-			TokenHeader: tokenHeader,
-		}
+	m := strings.ToUpper(method)
+	if !allowedWebhookMethods[m] {
+		return "", fmt.Errorf("pipeline %s: unsupported webhook method %q", name, method)
 	}
-	return wc, nil
+	return m, nil
+}
+
+func validateWebhookAuth(name string, auth *config.WebhookAuth) error {
+	if auth == nil || (auth.Token == "" && auth.HMACSecret == "") {
+		return fmt.Errorf("pipeline %s: webhook trigger requires at least one of auth.token or auth.hmac_secret", name)
+	}
+	return nil
+}
+
+func validateWebhookPayload(name string, payload config.WebhookPayloadMode) (config.WebhookPayloadMode, error) {
+	if payload == "" {
+		return config.WebhookPayloadRaw, nil
+	}
+	if payload != config.WebhookPayloadRaw && payload != config.WebhookPayloadMapped {
+		return "", fmt.Errorf("pipeline %s: invalid webhook payload mode %q", name, payload)
+	}
+	return payload, nil
+}
+
+func buildWebhookAuthConfig(auth *config.WebhookAuth) WebhookAuthConfig {
+	if auth == nil {
+		return WebhookAuthConfig{}
+	}
+	hmacHeader := auth.HMACHeader
+	if hmacHeader == "" {
+		hmacHeader = "X-Hub-Signature-256"
+	}
+	tokenHeader := auth.TokenHeader
+	if tokenHeader == "" {
+		tokenHeader = "X-Webhook-Token"
+	}
+	return WebhookAuthConfig{
+		Token:       auth.Token,
+		HMACSecret:  auth.HMACSecret,
+		HMACHeader:  hmacHeader,
+		TokenHeader: tokenHeader,
+	}
 }
 
 func validateCronExpr(spec string) error {
