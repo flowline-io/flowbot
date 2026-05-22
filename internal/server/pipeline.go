@@ -24,7 +24,7 @@ import (
 const DataEventTopic = "pipeline:data_event"
 
 func initPipeline(
-	_ fx.Lifecycle,
+	lc fx.Lifecycle,
 	cfg *config.Type,
 	router *message.Router,
 	subscriber message.Subscriber,
@@ -47,6 +47,13 @@ func initPipeline(
 	}
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
+
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			engine.Stop()
+			return nil
+		},
+	})
 
 	ability.SetMetricsCollector(ac)
 	ability.SetBulkheadCallbacks()
