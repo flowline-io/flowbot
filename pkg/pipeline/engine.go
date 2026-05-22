@@ -130,16 +130,16 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 		if e.eventMetrics != nil {
 			e.eventMetrics.IncMatched(event.EventType, def.Name)
 		}
-		mu := e.mu[def.Name]
-		if mu != nil {
-			mu.Lock()
-		}
-		if err := e.executePipeline(ctx, def, event); err != nil {
-			flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
-		}
-		if mu != nil {
-			mu.Unlock()
-		}
+		func() {
+			mu := e.mu[def.Name]
+			if mu != nil {
+				mu.Lock()
+				defer mu.Unlock()
+			}
+			if err := e.executePipeline(ctx, def, event); err != nil {
+				flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
+			}
+		}()
 	}
 
 	return nil
@@ -580,6 +580,8 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 
 func randomHex(n int) string {
 	b := make([]byte, n)
-	_, _ = rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		flog.Error(fmt.Errorf("randomHex: rand.Read failed: %w", err))
+	}
 	return fmt.Sprintf("%x", b)
 }
