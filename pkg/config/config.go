@@ -519,9 +519,35 @@ type PipelineStepRetry struct {
 }
 
 type PipelineTrigger struct {
-	Event       string `json:"event" yaml:"event" mapstructure:"event"`
-	Cron        string `json:"cron" yaml:"cron" mapstructure:"cron"`
-	CronTimeout string `json:"cron_timeout" yaml:"cron_timeout" mapstructure:"cron_timeout"`
+	Event       string          `json:"event" yaml:"event" mapstructure:"event"`
+	Cron        string          `json:"cron" yaml:"cron" mapstructure:"cron"`
+	CronTimeout string          `json:"cron_timeout" yaml:"cron_timeout" mapstructure:"cron_timeout"`
+	Webhook     *WebhookTrigger `json:"webhook" yaml:"webhook" mapstructure:"webhook"`
+}
+
+// WebhookPayloadMode specifies how incoming webhook payloads are handled.
+type WebhookPayloadMode string
+
+const (
+	WebhookPayloadRaw    WebhookPayloadMode = "raw"
+	WebhookPayloadMapped WebhookPayloadMode = "mapped"
+)
+
+// WebhookAuth holds webhook authentication configuration.
+type WebhookAuth struct {
+	Token      string `json:"token" yaml:"token" mapstructure:"token"`
+	HMACSecret string `json:"hmac_secret" yaml:"hmac_secret" mapstructure:"hmac_secret"`
+	HMACHeader string `json:"hmac_header" yaml:"hmac_header" mapstructure:"hmac_header"`
+	TokenHeader string `json:"token_header" yaml:"token_header" mapstructure:"token_header"`
+}
+
+// WebhookTrigger configures a webhook-based pipeline trigger.
+type WebhookTrigger struct {
+	Path      string             `json:"path" yaml:"path" mapstructure:"path"`
+	Method    string             `json:"method" yaml:"method" mapstructure:"method"`
+	Auth      *WebhookAuth       `json:"auth" yaml:"auth" mapstructure:"auth"`
+	Payload   WebhookPayloadMode `json:"payload" yaml:"payload" mapstructure:"payload"`
+	EventType string             `json:"event_type" yaml:"event_type" mapstructure:"event_type"`
 }
 
 type Alarm struct {

@@ -658,3 +658,106 @@ trigger:
 		})
 	}
 }
+
+func TestPipelineTrigger_WebhookFields(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		yamlData      string
+		wantPath      string
+		wantMethod    string
+		wantToken     string
+		wantHMAC      string
+		wantPayload   WebhookPayloadMode
+		wantEventType string
+	}{
+		{
+			name: "webhook complete config",
+			yamlData: `
+name: webhook-full
+trigger:
+  webhook:
+    path: "github-push"
+    method: POST
+    auth:
+      token: "secret123"
+      hmac_secret: "hmac-secret"
+    payload: raw
+    event_type: "github.push"
+`,
+			wantPath:      "github-push",
+			wantMethod:    "POST",
+			wantToken:     "secret123",
+			wantHMAC:      "hmac-secret",
+			wantPayload:   WebhookPayloadRaw,
+			wantEventType: "github.push",
+		},
+		{
+			name: "webhook token auth only",
+			yamlData: `
+name: webhook-token
+trigger:
+  webhook:
+    path: "token-callback"
+    auth:
+      token: "tok123"
+`,
+			wantPath:  "token-callback",
+			wantToken: "tok123",
+		},
+		{
+			name: "webhook HMAC auth only",
+			yamlData: `
+name: webhook-hmac
+trigger:
+  webhook:
+    path: "hmac-callback"
+    auth:
+      hmac_secret: "secret"
+`,
+			wantPath: "hmac-callback",
+			wantHMAC: "secret",
+		},
+		{
+			name: "webhook defaults",
+			yamlData: `
+name: webhook-defaults
+trigger:
+  webhook:
+    path: "minimal"
+`,
+			wantPath: "minimal",
+		},
+		{
+			name: "webhook mapped payload",
+			yamlData: `
+name: webhook-mapped
+trigger:
+  webhook:
+    path: "json-callback"
+    payload: mapped
+`,
+			wantPath:    "json-callback",
+			wantPayload: WebhookPayloadMapped,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var pl Pipeline
+			err := yaml.Unmarshal([]byte(tt.yamlData), &pl)
+			require.NoError(t, err)
+			if tt.wantPath != "" {
+				require.NotNil(t, pl.Trigger.Webhook)
+				assert.Equal(t, tt.wantPath, pl.Trigger.Webhook.Path)
+				assert.Equal(t, tt.wantMethod, pl.Trigger.Webhook.Method)
+				if pl.Trigger.Webhook.Auth != nil {
+					assert.Equal(t, tt.wantToken, pl.Trigger.Webhook.Auth.Token)
+					assert.Equal(t, tt.wantHMAC, pl.Trigger.Webhook.Auth.HMACSecret)
+				}
+				assert.Equal(t, tt.wantPayload, pl.Trigger.Webhook.Payload)
+				assert.Equal(t, tt.wantEventType, pl.Trigger.Webhook.EventType)
+			}
+		})
+	}
+}
