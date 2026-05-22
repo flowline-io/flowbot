@@ -7,8 +7,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestBotName(t *testing.T) {
@@ -123,24 +121,6 @@ func TestFormRules_Defined(t *testing.T) {
 	}
 }
 
-func TestEventRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain ExampleBotEventID"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, eventRules)
-			ids := make(map[string]bool)
-			for _, r := range eventRules {
-				ids[r.Id] = true
-			}
-			assert.True(t, ids[types.ExampleBotEventID])
-		})
-	}
-}
-
 func TestPageRules_Defined(t *testing.T) {
 	tests := []struct {
 		name string
@@ -176,14 +156,14 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "should return 5 rulesets"},
+		{name: "should return 4 rulesets"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 5)
+			assert.Len(t, rules, 4)
 		})
 	}
 }

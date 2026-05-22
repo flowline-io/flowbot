@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 type Handler interface {
@@ -35,17 +34,12 @@ type Handler interface {
 	// Form return module form result
 	Form(ctx types.Context, values types.KV) (types.MsgPayload, error)
 
-	// Cron cron script daemon
-	Cron() (*cron.Ruleset, error)
-
 	// Page return page
 	Page(ctx types.Context, flag string, args types.KV) (string, error)
 
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
 
-	// Event return event result
-	Event(ctx types.Context, param types.KV) error
 }
 
 type Base struct{}
@@ -74,17 +68,9 @@ func (Base) Form(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 	return nil, nil
 }
 
-func (Base) Cron() (*cron.Ruleset, error) {
-	return nil, nil
-}
-
 func (Base) Page(_ types.Context, _ string, _ types.KV) (string, error) {
 	return "", nil
 }
 
 func (Base) Webservice(_ *fiber.App) {
-}
-
-func (Base) Event(_ types.Context, _ types.KV) error {
-	return nil
 }

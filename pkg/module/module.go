@@ -13,15 +13,12 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/model"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -34,12 +31,6 @@ const (
 )
 
 var handlers map[string]Handler
-var cacheStore *cache.RedisStore
-
-// SetCacheStore sets the cache store for module cron rulesets.
-func SetCacheStore(s *cache.RedisStore) {
-	cacheStore = s
-}
 
 func Register(name string, module Handler) {
 	if handlers == nil {
@@ -60,8 +51,7 @@ func Help(rules []any) (map[string][]string, error) {
 	result := make(map[string][]string)
 
 	for _, rule := range rules {
-		switch v := rule.(type) {
-		case []command.Rule:
+		if v, ok := rule.([]command.Rule); ok {
 			rs := command.Ruleset(v)
 			var rows []string
 			for _, rule := range rs {
@@ -69,15 +59,6 @@ func Help(rules []any) (map[string][]string, error) {
 			}
 			if len(rows) > 0 {
 				result["command"] = rows
-			}
-		case []cron.Rule:
-			rs := v
-			var rows []string
-			for _, rule := range rs {
-				rows = append(rows, fmt.Sprintf("%s : %s", rule.Name, rule.Help))
-			}
-			if len(rows) > 0 {
-				result["cron"] = rows
 			}
 		}
 	}
@@ -179,17 +160,6 @@ func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
 	}
 
 	return fmt.Sprintf("%s/service/%s%s?p=%s", types.AppUrl(), group, path, flag)
-}
-
-func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
-	ruleset := cron.NewCronRuleset(name, cronRules, cacheStore)
-	ruleset.Daemon()
-	return ruleset, nil
-}
-
-func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
-	rs := event.Ruleset(eventRules)
-	return rs.ProcessEvent(ctx, param)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {
@@ -459,20 +429,6 @@ func Bootstrap() error {
 		}
 	}
 	return nil
-}
-
-func Cron() ([]*cron.Ruleset, error) {
-	rss := make([]*cron.Ruleset, 0)
-	for _, module := range handlers {
-		rs, err := module.Cron()
-		if err != nil {
-			return nil, err
-		}
-		if rs != nil {
-			rss = append(rss, rs)
-		}
-	}
-	return rss, nil
 }
 
 func List() map[string]Handler {

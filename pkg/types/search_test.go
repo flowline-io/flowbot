@@ -82,16 +82,6 @@ func TestRulesetTypeConstants(t *testing.T) {
 			want:     RulesetType("command"),
 		},
 		{
-			name:     "CronRule",
-			constant: CronRule,
-			want:     RulesetType("cron"),
-		},
-		{
-			name:     "EventRule",
-			constant: EventRule,
-			want:     RulesetType("event"),
-		},
-		{
 			name:     "FormRule",
 			constant: FormRule,
 			want:     RulesetType("form"),

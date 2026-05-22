@@ -19,12 +19,6 @@ func TestWorkflowExtra(t *testing.T) {
 			},
 		},
 		{
-			name: "cron rules are empty",
-			fn: func(t *testing.T) {
-				assert.Empty(t, cronRules)
-			},
-		},
-		{
 			name: "all command rules have help text",
 			fn: func(t *testing.T) {
 				for _, r := range commandRules {

@@ -68,11 +68,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 				flog.Error(err)
 			}
 
-			// Shutdown Extra
-			for _, ruleset := range globals.cronRuleset {
-				ruleset.Shutdown()
-			}
-
 			ability.ShutdownEventPool()
 
 			return nil

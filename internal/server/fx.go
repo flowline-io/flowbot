@@ -4,11 +4,6 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/modules"
-	"github.com/flowline-io/flowbot/internal/modules/bookmark"
-	"github.com/flowline-io/flowbot/internal/modules/gitea"
-	"github.com/flowline-io/flowbot/internal/modules/kanban"
-	"github.com/flowline-io/flowbot/internal/modules/reader"
-	serverModule "github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	storepkg "github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/audit"
@@ -16,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/metrics"
-	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -47,12 +41,6 @@ var Modules = fx.Options(
 	),
 	fx.Invoke(
 		setServerCacheStore,
-		setModuleServerCacheStore,
-		setModuleCacheStore,
-		setBookmarkCacheStore,
-		setReaderCacheStore,
-		setKanbanCacheStore,
-		setGiteaCacheStore,
 		setRouteAuditor,
 		handleRoutes,
 		handleEvents,
@@ -66,30 +54,6 @@ var Modules = fx.Options(
 
 func setServerCacheStore(store *cache.RedisStore) {
 	SetCacheStore(store)
-}
-
-func setModuleServerCacheStore(store *cache.RedisStore) {
-	serverModule.SetCacheStore(store)
-}
-
-func setModuleCacheStore(store *cache.RedisStore) {
-	module.SetCacheStore(store)
-}
-
-func setBookmarkCacheStore(store *cache.RedisStore) {
-	bookmark.SetCacheStore(store)
-}
-
-func setReaderCacheStore(store *cache.RedisStore) {
-	reader.SetCacheStore(store)
-}
-
-func setKanbanCacheStore(store *cache.RedisStore) {
-	kanban.SetCacheStore(store)
-}
-
-func setGiteaCacheStore(store *cache.RedisStore) {
-	gitea.SetCacheStore(store)
 }
 
 // newAuditor creates an audit.Auditor from the global store database.

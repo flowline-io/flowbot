@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestBotName(t *testing.T) {
@@ -123,95 +121,18 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestCronRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain all expected cron rules"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, cronRules)
-
-			names := make(map[string]bool)
-			for _, r := range cronRules {
-				names[r.Name] = true
-			}
-
-			assert.True(t, names["bookmarks_tag"])
-			assert.True(t, names["bookmarks_metrics"])
-			assert.True(t, names["bookmarks_search"])
-			assert.True(t, names["bookmarks_task"])
-			assert.True(t, names["bookmarks_tag_merge"])
-		})
-	}
-}
-
-func TestCronRules_HaveActions(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all cron rules should have non-nil action and non-empty when"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for _, r := range cronRules {
-				assert.NotNil(t, r.Action, "action for cron %q should not be nil", r.Name)
-				assert.NotEmpty(t, r.When, "when for cron %q should not be empty", r.Name)
-			}
-		})
-	}
-}
-
-func TestEventRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain all expected event IDs"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, eventRules)
-
-			ids := make(map[string]bool)
-			for _, r := range eventRules {
-				ids[r.Id] = true
-			}
-
-			assert.True(t, ids[types.BookmarkArchiveBotEventID])
-			assert.True(t, ids[types.BookmarkCreateBotEventID])
-			assert.True(t, ids[types.ArchiveBoxAddBotEventID])
-		})
-	}
-}
-
-func TestEventRules_HaveHandlers(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all event rules should have non-nil handlers"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for _, r := range eventRules {
-				assert.NotNil(t, r.Handler, "handler for event %q should not be nil", r.Id)
-			}
-		})
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "should return 4 rulesets"},
+		{name: "should return 2 rulesets"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 4) // commandRules, cronRules, eventRules, webserviceRules
+			assert.Len(t, rules, 2) // commandRules, webserviceRules
 		})
 	}
 }

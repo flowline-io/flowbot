@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestBotName(t *testing.T) {
@@ -117,69 +115,11 @@ func TestCommandRules(t *testing.T) {
 	}
 }
 
-func TestCronRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "kanban_metrics cron rule is defined"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, cronRules)
-
-			names := make(map[string]bool)
-			for _, r := range cronRules {
-				names[r.Name] = true
-			}
-
-			assert.True(t, names["kanban_metrics"])
-		})
-	}
-}
-
-func TestEventRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "task create bot event rule is defined"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, eventRules)
-
-			ids := make(map[string]bool)
-			for _, r := range eventRules {
-				ids[r.Id] = true
-			}
-
-			assert.True(t, ids[types.TaskCreateBotEventID])
-		})
-	}
-}
-
-func TestEventRules_HaveHandlers(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all event rules have handlers"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for _, r := range eventRules {
-				assert.NotNil(t, r.Handler, "handler for event %q should not be nil", r.Id)
-			}
-		})
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "handler returns four rulesets"},
+		{name: "handler returns two rulesets"},
 	}
 
 	for _, tt := range tests {
@@ -187,7 +127,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 4)
+			assert.Len(t, rules, 2)
 		})
 	}
 }

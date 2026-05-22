@@ -77,14 +77,7 @@ func initializeModules(modulesConfig any, vendorsConfig any) {
 		flog.Fatal("Failed to bootstrap bot: %v", err)
 	}
 
-	// bot cron
-	globals.cronRuleset, err = module.Cron()
-	if err != nil {
-		flog.Fatal("Failed to bot cron: %v", err)
-	}
-
 	stats.ModuleTotalCounter().Set(uint64(len(module.List())))
-	cacheStore.SetMetricsInt64(stats.ModuleTotalStatsName, int64(len(module.List())))
 }
 
 // register modules

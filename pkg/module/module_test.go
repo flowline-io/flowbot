@@ -10,7 +10,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 )
 
@@ -29,19 +28,6 @@ func TestHelp(t *testing.T) {
 			wantContains: map[string][]string{
 				"command": {"test cmd : Run a test", "info : Show info"},
 			},
-		},
-		{
-			name:   "cron rules produce help",
-			rules:  []any{[]cron.Rule{{Name: "cleanup", Help: "Clean up old data"}}},
-			wantKV: map[string]int{"cron": 1},
-			wantContains: map[string][]string{
-				"cron": {"cleanup : Clean up old data"},
-			},
-		},
-		{
-			name:   "mixed command and cron rules",
-			rules:  []any{[]command.Rule{{Define: "cmd", Help: "test"}}, []cron.Rule{{Name: "task", Help: "schedule"}}},
-			wantKV: map[string]int{"command": 1, "cron": 1},
 		},
 		{
 			name:   "nil rules returns empty",
@@ -119,23 +105,6 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 				html, err := b.Page(types.Context{}, "", nil)
 				require.NoError(t, err)
 				assert.Empty(t, html)
-				return nil
-			},
-		},
-		{
-			name: "Cron returns nil ruleset",
-			call: func() error {
-				rs, err := b.Cron()
-				require.NoError(t, err)
-				assert.Nil(t, rs)
-				return nil
-			},
-		},
-		{
-			name: "Event returns no error",
-			call: func() error {
-				err := b.Event(types.Context{}, nil)
-				assert.NoError(t, err)
 				return nil
 			},
 		},

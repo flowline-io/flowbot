@@ -121,26 +121,6 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestCronRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain gitea_metrics cron"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, cronRules)
-
-			names := make(map[string]bool)
-			for _, r := range cronRules {
-				names[r.Name] = true
-			}
-
-			assert.True(t, names["gitea_metrics"])
-		})
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string

@@ -119,50 +119,11 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestCronRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "reader_metrics and reader_daily_summary defined"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, cronRules)
-
-			names := make(map[string]bool)
-			for _, r := range cronRules {
-				names[r.Name] = true
-			}
-
-			assert.True(t, names["reader_metrics"])
-			assert.True(t, names["reader_daily_summary"])
-		})
-	}
-}
-
-func TestCronRules_HaveActions(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all cron rules have action and when expression"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for _, r := range cronRules {
-				assert.NotNil(t, r.Action, "action for cron %q should not be nil", r.Name)
-				assert.NotEmpty(t, r.When, "when for cron %q should not be empty", r.Name)
-			}
-		})
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "handler returns three rulesets"},
+		{name: "handler returns two rulesets"},
 	}
 
 	for _, tt := range tests {
@@ -170,7 +131,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 3)
+			assert.Len(t, rules, 2)
 		})
 	}
 }

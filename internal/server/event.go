@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
-
-	"github.com/flowline-io/flowbot/pkg/module"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
@@ -44,12 +41,6 @@ func handleEvents(lc fx.Lifecycle, router *message.Router, subscriber message.Su
 		types.InstructPushEvent,
 		subscriber,
 		onInstructPushEventHandler,
-	)
-	router.AddNoPublisherHandler(
-		"onModuleRunEventHandler",
-		types.BotRunEvent,
-		subscriber,
-		onModuleRunEventHandler,
 	)
 
 	lc.Append(fx.Hook{
@@ -110,34 +101,6 @@ func onMessageSendEventHandler(msg *message.Message) error {
 // push instruct
 func onInstructPushEventHandler(msg *message.Message) error {
 	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
-
-	return nil
-}
-
-// run bot event
-func onModuleRunEventHandler(msg *message.Message) error {
-	flog.Debug("[event] on event %+v %+v", msg.UUID, msg.Metadata)
-
-	var be types.BotEvent
-	err := sonic.Unmarshal(msg.Payload, &be)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal bot event: %w", err)
-	}
-
-	ctx := types.Context{
-		AsUser:      types.Uid(be.Uid),
-		Topic:       be.Topic,
-		EventRuleId: be.EventName,
-		TraceCtx:    msg.Context(),
-	}
-	ctx.SetTimeout(10 * time.Minute)
-
-	for name, handle := range module.List() {
-		err = handle.Event(ctx, be.Param)
-		if err != nil {
-			return fmt.Errorf("module %s event %s error %w", name, be.EventName, err)
-		}
-	}
 
 	return nil
 }

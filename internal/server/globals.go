@@ -2,8 +2,6 @@ package server
 
 import (
 	"time"
-
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 var globals struct {
@@ -17,7 +15,4 @@ var globals struct {
 	maxFileUploadSize int64
 	// Periodicity of a garbage collector for abandoned media uploads.
 	mediaGcPeriod time.Duration
-
-	// Cron
-	cronRuleset []*cron.Ruleset
 }

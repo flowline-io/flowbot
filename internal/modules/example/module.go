@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/cron"
 )
 
 const Name = "example"
@@ -61,12 +60,11 @@ func (moduleHandler) Webservice(app *fiber.App) {
 }
 
 func (moduleHandler) Rules() []any {
-		return []any{
+	return []any{
 		commandRules,
 		formRules,
 		pageRules,
 		webserviceRules,
-		eventRules,
 	}
 }
 
@@ -82,14 +80,6 @@ func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload,
 	return module.RunForm(formRules, ctx, values)
 }
 
-func (moduleHandler) Cron() (*cron.Ruleset, error) {
-	return module.RunCron(cronRules, Name)
-}
-
 func (moduleHandler) Page(ctx types.Context, flag string, args types.KV) (string, error) {
 	return module.RunPage(pageRules, ctx, flag, args)
-}
-
-func (moduleHandler) Event(ctx types.Context, param types.KV) error {
-	return module.RunEvent(eventRules, ctx, param)
 }

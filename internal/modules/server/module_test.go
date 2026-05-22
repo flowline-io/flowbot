@@ -125,31 +125,6 @@ func TestCommandRules(t *testing.T) {
 	}
 }
 
-func TestCronRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "five expected cron rules are defined"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, cronRules)
-
-			names := make(map[string]bool)
-			for _, r := range cronRules {
-				names[r.Name] = true
-			}
-
-			assert.True(t, names["server_user_online_change"])
-			assert.True(t, names["docker_images_prune"])
-			assert.True(t, names["docker_metrics"])
-			assert.True(t, names["monitor_metrics"])
-			assert.True(t, names["online_agent_checker"])
-		})
-	}
-}
-
 func TestWebserviceRules_Defined(t *testing.T) {
 	tests := []struct {
 		name string

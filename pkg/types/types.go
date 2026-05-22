@@ -24,8 +24,6 @@ type RulesetType string
 const (
 	ActionRule     RulesetType = "action"
 	CommandRule    RulesetType = "command"
-	CronRule       RulesetType = "cron"
-	EventRule      RulesetType = "event"
 	FormRule       RulesetType = "form"
 	PageRule       RulesetType = "page"
 	TriggerRule    RulesetType = "trigger"
