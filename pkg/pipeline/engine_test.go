@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -161,6 +162,171 @@ func TestEngine_SyntheticEventFormat(t *testing.T) {
 			assert.Contains(t, eventID, tt.wantContains)
 			assert.Len(t, randomHex(8), 16)
 		})
+	}
+}
+
+func TestEngine_RegisterWebhooks(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		defs      []Definition
+		wantPaths []string
+		wantErr   bool
+	}{
+		{
+			name: "returns webhook paths",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "path-a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+				{
+					Name: "wh2", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "path-b", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			wantPaths: []string{"path-a", "path-b"},
+		},
+		{
+			name: "skips non-webhook definitions",
+			defs: []Definition{
+				{Name: "ev1", Enabled: true, Trigger: Trigger{Event: "e1"}},
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "path-a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			wantPaths: []string{"path-a"},
+		},
+		{
+			name: "returns error on duplicate paths",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "dup", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+				{
+					Name: "wh2", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "dup", Method: "PUT", Auth: WebhookAuthConfig{HMACSecret: "s"}}},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngine(tt.defs, nil, nil, noopPC, noopEC)
+			defer e.Stop()
+			m, err := e.RegisterWebhooks()
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			for _, p := range tt.wantPaths {
+				assert.Contains(t, m, p)
+			}
+		})
+	}
+}
+
+func TestEngine_ExecuteWebhook(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		eventTypes []string
+	}{
+		{
+			name:       "execute webhook with single pipeline run",
+			eventTypes: []string{"webhook.run"},
+		},
+		{
+			name:       "execute webhook with differing event types",
+			eventTypes: []string{"custom.type", "another.type"},
+		},
+		{
+			name:       "execute webhook with empty steps completes immediately",
+			eventTypes: []string{"noop.event"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			for _, et := range tt.eventTypes {
+				defs := []Definition{
+					{
+						Name:    "wh-exec-" + et[len(et)-3:],
+						Enabled: true,
+						Trigger: Trigger{
+							Webhook: &WebhookConfig{
+								Path:      "exec-path",
+								Method:    "POST",
+								Auth:      WebhookAuthConfig{Token: "t"},
+								EventType: et,
+							},
+						},
+					},
+				}
+				e := NewEngine(defs, nil, nil, noopPC, noopEC)
+				defer e.Stop()
+				event := types.DataEvent{
+					EventID:   "test-id",
+					EventType: et,
+					Source:    "webhook",
+				}
+				err := e.ExecuteWebhook(context.Background(), &defs[0], event)
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestEngine_ExecuteWebhookMutex(t *testing.T) {
+	t.Parallel()
+	def := Definition{
+		Name:    "mutex-test",
+		Enabled: true,
+		Trigger: Trigger{
+			Webhook: &WebhookConfig{
+				Path:   "mtx",
+				Method: "POST",
+				Auth:   WebhookAuthConfig{Token: "t"},
+			},
+		},
+	}
+	e := NewEngine([]Definition{def}, nil, nil, noopPC, noopEC)
+	defer e.Stop()
+
+	mu := e.mu[def.Name]
+	require.NotNil(t, mu)
+
+	mu.Lock()
+
+	started := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		close(started)
+		event := types.DataEvent{EventID: "mtx-ev", EventType: "t"}
+		_ = e.ExecuteWebhook(context.Background(), &def, event)
+		close(done)
+	}()
+
+	<-started
+	time.Sleep(50 * time.Millisecond)
+
+	select {
+	case <-done:
+		t.Fatal("ExecuteWebhook completed before mutex released")
+	default:
+	}
+
+	mu.Unlock()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("ExecuteWebhook did not complete after mutex release")
 	}
 }
 

@@ -531,6 +531,23 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	return finalErr
 }
 
+// RegisterWebhooks returns a map of webhook path to pipeline Definition for
+// all webhook-enabled pipelines. Duplicate paths return an error.
+func (e *Engine) RegisterWebhooks() (map[string]*Definition, error) {
+	result := make(map[string]*Definition)
+	for i := range e.defs {
+		if e.defs[i].Trigger.Webhook == nil {
+			continue
+		}
+		path := e.defs[i].Trigger.Webhook.Path
+		if _, exists := result[path]; exists {
+			return nil, fmt.Errorf("duplicate webhook path %q", path)
+		}
+		result[path] = &e.defs[i]
+	}
+	return result, nil
+}
+
 // Stop shuts down the cron scheduler. It waits up to 30 seconds for
 // in-flight jobs to complete, then force-cancels and logs a warning.
 func (e *Engine) Stop() {
@@ -588,10 +605,33 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	}
 }
 
+// ExecuteWebhook executes a pipeline from a webhook trigger. It uses the
+// per-pipeline mutex for concurrency control and calls executePipeline
+// with a synthetic event.
+func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event types.DataEvent) error {
+	mu := e.mu[def.Name]
+	if mu != nil {
+		mu.Lock()
+		defer mu.Unlock()
+	}
+	return e.executePipeline(ctx, *def, event)
+}
+
 func randomHex(n int) string {
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
 		flog.Error(fmt.Errorf("randomHex: rand.Read failed: %w", err))
 	}
 	return fmt.Sprintf("%x", b)
+}
+
+// RandomHex generates n random bytes as a hex string (exported for use by server package).
+func RandomHex(n int) string {
+	return randomHex(n)
+}
+
+// MutexFor returns the per-pipeline mutex for the given pipeline name.
+// Exported for testing (BDD specs).
+func (e *Engine) MutexFor(name string) *sync.Mutex {
+	return e.mu[name]
 }
