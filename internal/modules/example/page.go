@@ -18,10 +18,10 @@ const (
 )
 
 //go:embed static/example.css
-var exampleCss string
+var exampleCss string // skipcq: SCC-compile
 
 //go:embed static/example.js
-var exampleJs string
+var exampleJs string // skipcq: SCC-compile
 
 var pageRules = []page.Rule{
 	{
