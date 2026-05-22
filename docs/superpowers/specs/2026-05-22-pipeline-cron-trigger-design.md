@@ -103,6 +103,40 @@ Cron-triggered pipeline steps use `auth.SystemCronContext()` so that
 - **Reuse execution path**: No new execution function. Cron shares the same
   `executePipeline` used by the event handler.
 
+## Testing
+
+### Unit tests (TDD, table-driven)
+
+All test functions use `for _, tt := range tests { t.Run(tt.name, ...) }`
+with at least 3 cases per table. Happy path first, error cases required.
+
+**`pkg/config/config_test.go`** -- parse cron field from YAML:
+
+- `tt.name`: "event only trigger", "cron only trigger", "both event and cron"
+- verify `PipelineTrigger.Cron` is empty/non-empty as expected
+
+**`pkg/pipeline/loader_test.go`** -- `LoadConfig` maps cron:
+
+- `tt.name`: "event only definition", "cron only definition", "both triggers definition"
+- verify `Trigger.Cron` and `Trigger.Event` mapped correctly
+
+**`pkg/pipeline/engine_test.go`** -- cron engine behavior:
+
+- `NewEngine` registers cron definitions: verify cron scheduler has expected number of entries (use a `CronEntryCount()` accessor or test via behavior)
+- Concurrency guard: launch a long-running pipeline, fire the cron job manually, verify the second invocation is skipped
+- `Stop()` clean shutdown: add a cron job, call `Stop()`, verify no more executions occur
+- Synthetic event: verify `EventID` format `cron:<name>:<unix-millis>`, `EventType` format `pipeline.cron:<name>`, `Source` is `cron`
+
+### BDD specs (Ginkgo v2 + Gomega)
+
+`tests/specs/pipeline_spec_test.go` -- `Describe("Cron trigger")`:
+
+- `It("executes pipeline on cron schedule")`: create pipeline with `@every 100ms` trigger, assert at least N runs complete within a timeout
+- `It("skips overlapping runs")`: create pipeline with a blocking step, assert only one run is in-flight at a time
+- `It("stops execution on engine shutdown")`: create pipeline with `@every 50ms`, call `Stop()`, assert no runs occur after stop
+- `It("supports mixed event and cron trigger")`: pipeline with both `event` and `cron` fires from both sources
+- `It("records correct DataEvent for cron run")`: assert run records have `event_type` = `pipeline.cron:<name>` and `source` = `cron`
+
 ## Files affected
 
 | File | Change |
@@ -115,3 +149,4 @@ Cron-triggered pipeline steps use `auth.SystemCronContext()` so that
 | `pkg/pipeline/engine_test.go` | Cron scheduling tests |
 | `pkg/pipeline/loader_test.go` | LoadConfig cron mapping tests |
 | `pkg/config/config_test.go` | Config parse cron field tests |
+| `tests/specs/pipeline_spec_test.go` | BDD cron trigger specs |
