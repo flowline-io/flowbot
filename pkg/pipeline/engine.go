@@ -557,6 +557,8 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	}
 	defer mu.Unlock()
 
+	start := e.clock.Now()
+
 	eventID := fmt.Sprintf("cron:%s:%d-%s", def.Name, e.clock.Now().UnixNano(), randomHex(8))
 	dataEvent := types.DataEvent{
 		EventID:   eventID,
@@ -573,6 +575,14 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	defer cancel()
 
 	err := e.executePipeline(execCtx, def, dataEvent)
+	if e.pipelineMetrics != nil {
+		status := "done"
+		if err != nil {
+			status = "cancel"
+		}
+		e.pipelineMetrics.IncCronExec(def.Name, status)
+		e.pipelineMetrics.ObserveCronDuration(def.Name, e.clock.Now().Sub(start).Seconds())
+	}
 	if err != nil {
 		flog.Error(fmt.Errorf("pipeline %s cron run: %w", def.Name, err))
 	}

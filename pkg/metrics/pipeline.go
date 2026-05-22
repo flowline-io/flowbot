@@ -11,13 +11,15 @@ import (
 // PipelineCollector holds typed metrics for pipeline execution.
 // When initialized with a nil stats, all methods are no-op.
 type PipelineCollector struct {
-	runTotal     *prometheus.CounterVec
-	runDuration  *prometheus.HistogramVec
-	stepTotal    *prometheus.CounterVec
-	stepDuration *prometheus.HistogramVec
-	stepRetry    *prometheus.CounterVec
-	resumeTotal  *prometheus.CounterVec
+	runTotal      *prometheus.CounterVec
+	runDuration   *prometheus.HistogramVec
+	stepTotal     *prometheus.CounterVec
+	stepDuration  *prometheus.HistogramVec
+	stepRetry     *prometheus.CounterVec
+	resumeTotal   *prometheus.CounterVec
 	cronSkipTotal *prometheus.CounterVec
+	cronExecTotal *prometheus.CounterVec
+	cronDuration  *prometheus.HistogramVec
 }
 
 // NewPipelineCollector creates a PipelineCollector backed by stats.
@@ -61,6 +63,16 @@ func NewPipelineCollector(st *stats.Stats) *PipelineCollector {
 	c.cronSkipTotal, err = st.RegisterCounterVec("pipeline_cron_skip_total", "Cron job skip count by pipeline", "pipeline")
 	if err != nil {
 		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.cronExecTotal, err = st.RegisterCounterVec("pipeline_cron_exec_total", "Cron job execution count by pipeline and status", "pipeline", "status")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register counter vec: %v", err)
+		return &PipelineCollector{}
+	}
+	c.cronDuration, err = st.RegisterHistogramVec("pipeline_cron_duration_seconds", "Cron job duration distribution", "pipeline")
+	if err != nil {
+		log.Printf("[metrics] pipeline: failed to register histogram vec: %v", err)
 		return &PipelineCollector{}
 	}
 	return c
@@ -127,4 +139,22 @@ func (c *PipelineCollector) IncCronSkip(pipeline string) {
 	}
 	defer recoverLog("pipeline_cron_skip_total")
 	c.cronSkipTotal.WithLabelValues(sanitizeLabel(pipeline)).Inc()
+}
+
+// IncCronExec increments the cron execution counter for the given pipeline and status.
+func (c *PipelineCollector) IncCronExec(pipeline, status string) {
+	if c.cronExecTotal == nil {
+		return
+	}
+	defer recoverLog("pipeline_cron_exec_total")
+	c.cronExecTotal.WithLabelValues(sanitizeLabel(pipeline), sanitizeLabel(status)).Inc()
+}
+
+// ObserveCronDuration records a cron job duration observation for the given pipeline.
+func (c *PipelineCollector) ObserveCronDuration(pipeline string, seconds float64) {
+	if c.cronDuration == nil {
+		return
+	}
+	defer recoverLog("pipeline_cron_duration_seconds")
+	c.cronDuration.WithLabelValues(sanitizeLabel(pipeline)).Observe(seconds)
 }
