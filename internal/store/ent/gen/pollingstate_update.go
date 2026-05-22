@@ -116,11 +116,6 @@ func (_u *PollingStateUpdate) check() error {
 			return &ValidationError{Name: "resource_name", err: fmt.Errorf(`gen: validator failed for field "PollingState.resource_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Cursor(); ok {
-		if err := pollingstate.CursorValidator(v); err != nil {
-			return &ValidationError{Name: "cursor", err: fmt.Errorf(`gen: validator failed for field "PollingState.cursor": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -267,11 +262,6 @@ func (_u *PollingStateUpdateOne) check() error {
 	if v, ok := _u.mutation.ResourceName(); ok {
 		if err := pollingstate.ResourceNameValidator(v); err != nil {
 			return &ValidationError{Name: "resource_name", err: fmt.Errorf(`gen: validator failed for field "PollingState.resource_name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Cursor(); ok {
-		if err := pollingstate.CursorValidator(v); err != nil {
-			return &ValidationError{Name: "cursor", err: fmt.Errorf(`gen: validator failed for field "PollingState.cursor": %w`, err)}
 		}
 	}
 	return nil

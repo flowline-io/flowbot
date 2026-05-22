@@ -49,8 +49,6 @@ var (
 	ResourceNameValidator func(string) error
 	// DefaultCursor holds the default value on creation for the "cursor" field.
 	DefaultCursor string
-	// CursorValidator is a validator for the "cursor" field. It is called by the builders before save.
-	CursorValidator func(string) error
 	// DefaultKnownHashes holds the default value on creation for the "known_hashes" field.
 	DefaultKnownHashes map[string]string
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

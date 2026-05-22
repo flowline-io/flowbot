@@ -17,7 +17,7 @@ func (PollingState) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Immutable(),
 		field.String("resource_name").NotEmpty().Unique(),
-		field.Text("cursor").NotEmpty().Default(""),
+		field.Text("cursor").Default(""),
 		field.JSON("known_hashes", map[string]string{}).Default(map[string]string{}),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

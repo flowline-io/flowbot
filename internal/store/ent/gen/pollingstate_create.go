@@ -128,11 +128,6 @@ func (_c *PollingStateCreate) check() error {
 	if _, ok := _c.mutation.Cursor(); !ok {
 		return &ValidationError{Name: "cursor", err: errors.New(`gen: missing required field "PollingState.cursor"`)}
 	}
-	if v, ok := _c.mutation.Cursor(); ok {
-		if err := pollingstate.CursorValidator(v); err != nil {
-			return &ValidationError{Name: "cursor", err: fmt.Errorf(`gen: validator failed for field "PollingState.cursor": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.KnownHashes(); !ok {
 		return &ValidationError{Name: "known_hashes", err: errors.New(`gen: missing required field "PollingState.known_hashes"`)}
 	}

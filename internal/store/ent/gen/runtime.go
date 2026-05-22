@@ -1290,8 +1290,6 @@ func init() {
 	pollingstateDescCursor := pollingstateFields[2].Descriptor()
 	// pollingstate.DefaultCursor holds the default value on creation for the cursor field.
 	pollingstate.DefaultCursor = pollingstateDescCursor.Default.(string)
-	// pollingstate.CursorValidator is a validator for the "cursor" field. It is called by the builders before save.
-	pollingstate.CursorValidator = pollingstateDescCursor.Validators[0].(func(string) error)
 	// pollingstateDescKnownHashes is the schema descriptor for known_hashes field.
 	pollingstateDescKnownHashes := pollingstateFields[3].Descriptor()
 	// pollingstate.DefaultKnownHashes holds the default value on creation for the known_hashes field.
