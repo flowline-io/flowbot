@@ -158,9 +158,9 @@ func TestEngine_SyntheticEventFormat(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-			eventID := fmt.Sprintf("cron:%s:%d-%s", tt.plName, seed.UnixNano(), randomHex(8))
+			eventID := fmt.Sprintf("cron:%s:%d-%s", tt.plName, seed.UnixNano(), RandomHex(8))
 			assert.Contains(t, eventID, tt.wantContains)
-			assert.Len(t, randomHex(8), 16)
+			assert.Len(t, RandomHex(8), 16)
 		})
 	}
 }
