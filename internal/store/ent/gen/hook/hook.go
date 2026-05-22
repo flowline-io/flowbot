@@ -513,6 +513,18 @@ func (f PlatformUserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PlatformUserMutation", m)
 }
 
+// The PollingStateFunc type is an adapter to allow the use of ordinary
+// function as PollingState mutator.
+type PollingStateFunc func(context.Context, *gen.PollingStateMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PollingStateFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PollingStateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PollingStateMutation", m)
+}
+
 // The RateLimitFunc type is an adapter to allow the use of ordinary
 // function as RateLimit mutator.
 type RateLimitFunc func(context.Context, *gen.RateLimitMutation) (gen.Value, error)

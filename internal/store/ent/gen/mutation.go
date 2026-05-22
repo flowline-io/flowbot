@@ -53,6 +53,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/predicate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
@@ -120,6 +121,7 @@ const (
 	TypePlatformChannel     = "PlatformChannel"
 	TypePlatformChannelUser = "PlatformChannelUser"
 	TypePlatformUser        = "PlatformUser"
+	TypePollingState        = "PollingState"
 	TypeRateLimit           = "RateLimit"
 	TypeReview              = "Review"
 	TypeReviewEvaluation    = "ReviewEvaluation"
@@ -33613,6 +33615,500 @@ func (m *PlatformUserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PlatformUserMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PlatformUser edge %s", name)
+}
+
+// PollingStateMutation represents an operation that mutates the PollingState nodes in the graph.
+type PollingStateMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	resource_name *string
+	cursor        *string
+	known_hashes  *map[string]string
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PollingState, error)
+	predicates    []predicate.PollingState
+}
+
+var _ ent.Mutation = (*PollingStateMutation)(nil)
+
+// pollingstateOption allows management of the mutation configuration using functional options.
+type pollingstateOption func(*PollingStateMutation)
+
+// newPollingStateMutation creates new mutation for the PollingState entity.
+func newPollingStateMutation(c config, op Op, opts ...pollingstateOption) *PollingStateMutation {
+	m := &PollingStateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePollingState,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPollingStateID sets the ID field of the mutation.
+func withPollingStateID(id int64) pollingstateOption {
+	return func(m *PollingStateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PollingState
+		)
+		m.oldValue = func(ctx context.Context) (*PollingState, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PollingState.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPollingState sets the old PollingState of the mutation.
+func withPollingState(node *PollingState) pollingstateOption {
+	return func(m *PollingStateMutation) {
+		m.oldValue = func(context.Context) (*PollingState, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PollingStateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PollingStateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PollingState entities.
+func (m *PollingStateMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PollingStateMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PollingStateMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PollingState.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetResourceName sets the "resource_name" field.
+func (m *PollingStateMutation) SetResourceName(s string) {
+	m.resource_name = &s
+}
+
+// ResourceName returns the value of the "resource_name" field in the mutation.
+func (m *PollingStateMutation) ResourceName() (r string, exists bool) {
+	v := m.resource_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceName returns the old "resource_name" field's value of the PollingState entity.
+// If the PollingState object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PollingStateMutation) OldResourceName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceName: %w", err)
+	}
+	return oldValue.ResourceName, nil
+}
+
+// ResetResourceName resets all changes to the "resource_name" field.
+func (m *PollingStateMutation) ResetResourceName() {
+	m.resource_name = nil
+}
+
+// SetCursor sets the "cursor" field.
+func (m *PollingStateMutation) SetCursor(s string) {
+	m.cursor = &s
+}
+
+// Cursor returns the value of the "cursor" field in the mutation.
+func (m *PollingStateMutation) Cursor() (r string, exists bool) {
+	v := m.cursor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCursor returns the old "cursor" field's value of the PollingState entity.
+// If the PollingState object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PollingStateMutation) OldCursor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCursor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCursor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCursor: %w", err)
+	}
+	return oldValue.Cursor, nil
+}
+
+// ResetCursor resets all changes to the "cursor" field.
+func (m *PollingStateMutation) ResetCursor() {
+	m.cursor = nil
+}
+
+// SetKnownHashes sets the "known_hashes" field.
+func (m *PollingStateMutation) SetKnownHashes(value map[string]string) {
+	m.known_hashes = &value
+}
+
+// KnownHashes returns the value of the "known_hashes" field in the mutation.
+func (m *PollingStateMutation) KnownHashes() (r map[string]string, exists bool) {
+	v := m.known_hashes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKnownHashes returns the old "known_hashes" field's value of the PollingState entity.
+// If the PollingState object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PollingStateMutation) OldKnownHashes(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKnownHashes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKnownHashes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKnownHashes: %w", err)
+	}
+	return oldValue.KnownHashes, nil
+}
+
+// ResetKnownHashes resets all changes to the "known_hashes" field.
+func (m *PollingStateMutation) ResetKnownHashes() {
+	m.known_hashes = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PollingStateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PollingStateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PollingState entity.
+// If the PollingState object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PollingStateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PollingStateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the PollingStateMutation builder.
+func (m *PollingStateMutation) Where(ps ...predicate.PollingState) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PollingStateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PollingStateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PollingState, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PollingStateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PollingStateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PollingState).
+func (m *PollingStateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PollingStateMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.resource_name != nil {
+		fields = append(fields, pollingstate.FieldResourceName)
+	}
+	if m.cursor != nil {
+		fields = append(fields, pollingstate.FieldCursor)
+	}
+	if m.known_hashes != nil {
+		fields = append(fields, pollingstate.FieldKnownHashes)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, pollingstate.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PollingStateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pollingstate.FieldResourceName:
+		return m.ResourceName()
+	case pollingstate.FieldCursor:
+		return m.Cursor()
+	case pollingstate.FieldKnownHashes:
+		return m.KnownHashes()
+	case pollingstate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PollingStateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pollingstate.FieldResourceName:
+		return m.OldResourceName(ctx)
+	case pollingstate.FieldCursor:
+		return m.OldCursor(ctx)
+	case pollingstate.FieldKnownHashes:
+		return m.OldKnownHashes(ctx)
+	case pollingstate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PollingState field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PollingStateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pollingstate.FieldResourceName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceName(v)
+		return nil
+	case pollingstate.FieldCursor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCursor(v)
+		return nil
+	case pollingstate.FieldKnownHashes:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKnownHashes(v)
+		return nil
+	case pollingstate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PollingState field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PollingStateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PollingStateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PollingStateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PollingState numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PollingStateMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PollingStateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PollingStateMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PollingState nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PollingStateMutation) ResetField(name string) error {
+	switch name {
+	case pollingstate.FieldResourceName:
+		m.ResetResourceName()
+		return nil
+	case pollingstate.FieldCursor:
+		m.ResetCursor()
+		return nil
+	case pollingstate.FieldKnownHashes:
+		m.ResetKnownHashes()
+		return nil
+	case pollingstate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PollingState field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PollingStateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PollingStateMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PollingStateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PollingStateMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PollingStateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PollingStateMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PollingStateMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PollingState unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PollingStateMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PollingState edge %s", name)
 }
 
 // RateLimitMutation represents an operation that mutates the RateLimit nodes in the graph.

@@ -96,6 +96,8 @@ type Tx struct {
 	PlatformChannelUser *PlatformChannelUserClient
 	// PlatformUser is the client for interacting with the PlatformUser builders.
 	PlatformUser *PlatformUserClient
+	// PollingState is the client for interacting with the PollingState builders.
+	PollingState *PollingStateClient
 	// RateLimit is the client for interacting with the RateLimit builders.
 	RateLimit *RateLimitClient
 	// Review is the client for interacting with the Review builders.
@@ -295,6 +297,7 @@ func (tx *Tx) init() {
 	tx.PlatformChannel = NewPlatformChannelClient(tx.config)
 	tx.PlatformChannelUser = NewPlatformChannelUserClient(tx.config)
 	tx.PlatformUser = NewPlatformUserClient(tx.config)
+	tx.PollingState = NewPollingStateClient(tx.config)
 	tx.RateLimit = NewRateLimitClient(tx.config)
 	tx.Review = NewReviewClient(tx.config)
 	tx.ReviewEvaluation = NewReviewEvaluationClient(tx.config)

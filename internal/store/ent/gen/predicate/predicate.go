@@ -132,6 +132,9 @@ type PlatformChannelUser func(*sql.Selector)
 // PlatformUser is the predicate function for platformuser builders.
 type PlatformUser func(*sql.Selector)
 
+// PollingState is the predicate function for pollingstate builders.
+type PollingState func(*sql.Selector)
+
 // RateLimit is the predicate function for ratelimit builders.
 type RateLimit func(*sql.Selector)
 

@@ -57,6 +57,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
@@ -161,6 +162,8 @@ type Client struct {
 	PlatformChannelUser *PlatformChannelUserClient
 	// PlatformUser is the client for interacting with the PlatformUser builders.
 	PlatformUser *PlatformUserClient
+	// PollingState is the client for interacting with the PollingState builders.
+	PollingState *PollingStateClient
 	// RateLimit is the client for interacting with the RateLimit builders.
 	RateLimit *RateLimitClient
 	// Review is the client for interacting with the Review builders.
@@ -240,6 +243,7 @@ func (c *Client) init() {
 	c.PlatformChannel = NewPlatformChannelClient(c.config)
 	c.PlatformChannelUser = NewPlatformChannelUserClient(c.config)
 	c.PlatformUser = NewPlatformUserClient(c.config)
+	c.PollingState = NewPollingStateClient(c.config)
 	c.RateLimit = NewRateLimitClient(c.config)
 	c.Review = NewReviewClient(c.config)
 	c.ReviewEvaluation = NewReviewEvaluationClient(c.config)
@@ -387,6 +391,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PlatformChannel:     NewPlatformChannelClient(cfg),
 		PlatformChannelUser: NewPlatformChannelUserClient(cfg),
 		PlatformUser:        NewPlatformUserClient(cfg),
+		PollingState:        NewPollingStateClient(cfg),
 		RateLimit:           NewRateLimitClient(cfg),
 		Review:              NewReviewClient(cfg),
 		ReviewEvaluation:    NewReviewEvaluationClient(cfg),
@@ -461,6 +466,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PlatformChannel:     NewPlatformChannelClient(cfg),
 		PlatformChannelUser: NewPlatformChannelUserClient(cfg),
 		PlatformUser:        NewPlatformUserClient(cfg),
+		PollingState:        NewPollingStateClient(cfg),
 		RateLimit:           NewRateLimitClient(cfg),
 		Review:              NewReviewClient(cfg),
 		ReviewEvaluation:    NewReviewEvaluationClient(cfg),
@@ -510,7 +516,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.RateLimit, c.Review,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit, c.Review,
 		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
 		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
@@ -529,7 +535,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.RateLimit, c.Review,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit, c.Review,
 		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
 		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
@@ -624,6 +630,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PlatformChannelUser.mutate(ctx, m)
 	case *PlatformUserMutation:
 		return c.PlatformUser.mutate(ctx, m)
+	case *PollingStateMutation:
+		return c.PollingState.mutate(ctx, m)
 	case *RateLimitMutation:
 		return c.RateLimit.mutate(ctx, m)
 	case *ReviewMutation:
@@ -6369,6 +6377,139 @@ func (c *PlatformUserClient) mutate(ctx context.Context, m *PlatformUserMutation
 	}
 }
 
+// PollingStateClient is a client for the PollingState schema.
+type PollingStateClient struct {
+	config
+}
+
+// NewPollingStateClient returns a client for the PollingState from the given config.
+func NewPollingStateClient(c config) *PollingStateClient {
+	return &PollingStateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pollingstate.Hooks(f(g(h())))`.
+func (c *PollingStateClient) Use(hooks ...Hook) {
+	c.hooks.PollingState = append(c.hooks.PollingState, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pollingstate.Intercept(f(g(h())))`.
+func (c *PollingStateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PollingState = append(c.inters.PollingState, interceptors...)
+}
+
+// Create returns a builder for creating a PollingState entity.
+func (c *PollingStateClient) Create() *PollingStateCreate {
+	mutation := newPollingStateMutation(c.config, OpCreate)
+	return &PollingStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PollingState entities.
+func (c *PollingStateClient) CreateBulk(builders ...*PollingStateCreate) *PollingStateCreateBulk {
+	return &PollingStateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PollingStateClient) MapCreateBulk(slice any, setFunc func(*PollingStateCreate, int)) *PollingStateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PollingStateCreateBulk{err: fmt.Errorf("calling to PollingStateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PollingStateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PollingStateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PollingState.
+func (c *PollingStateClient) Update() *PollingStateUpdate {
+	mutation := newPollingStateMutation(c.config, OpUpdate)
+	return &PollingStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PollingStateClient) UpdateOne(_m *PollingState) *PollingStateUpdateOne {
+	mutation := newPollingStateMutation(c.config, OpUpdateOne, withPollingState(_m))
+	return &PollingStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PollingStateClient) UpdateOneID(id int64) *PollingStateUpdateOne {
+	mutation := newPollingStateMutation(c.config, OpUpdateOne, withPollingStateID(id))
+	return &PollingStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PollingState.
+func (c *PollingStateClient) Delete() *PollingStateDelete {
+	mutation := newPollingStateMutation(c.config, OpDelete)
+	return &PollingStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PollingStateClient) DeleteOne(_m *PollingState) *PollingStateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PollingStateClient) DeleteOneID(id int64) *PollingStateDeleteOne {
+	builder := c.Delete().Where(pollingstate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PollingStateDeleteOne{builder}
+}
+
+// Query returns a query builder for PollingState.
+func (c *PollingStateClient) Query() *PollingStateQuery {
+	return &PollingStateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePollingState},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PollingState entity by its id.
+func (c *PollingStateClient) Get(ctx context.Context, id int64) (*PollingState, error) {
+	return c.Query().Where(pollingstate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PollingStateClient) GetX(ctx context.Context, id int64) *PollingState {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PollingStateClient) Hooks() []Hook {
+	return c.hooks.PollingState
+}
+
+// Interceptors returns the client interceptors.
+func (c *PollingStateClient) Interceptors() []Interceptor {
+	return c.inters.PollingState
+}
+
+func (c *PollingStateClient) mutate(ctx context.Context, m *PollingStateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PollingStateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PollingStateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PollingStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PollingStateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PollingState mutation op: %q", m.Op())
+	}
+}
+
 // RateLimitClient is a client for the RateLimit schema.
 type RateLimitClient struct {
 	config
@@ -8267,8 +8408,9 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Workflow,
-		WorkflowRun, WorkflowScript, WorkflowStepRun, WorkflowTrigger []ent.Hook
+		PollingState, RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url,
+		User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
+		WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
@@ -8277,7 +8419,8 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Workflow,
-		WorkflowRun, WorkflowScript, WorkflowStepRun, WorkflowTrigger []ent.Interceptor
+		PollingState, RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url,
+		User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
+		WorkflowTrigger []ent.Interceptor
 	}
 )

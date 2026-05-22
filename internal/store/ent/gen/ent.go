@@ -54,6 +54,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
@@ -169,6 +170,7 @@ func checkColumn(t, c string) error {
 			platformchannel.Table:     platformchannel.ValidColumn,
 			platformchanneluser.Table: platformchanneluser.ValidColumn,
 			platformuser.Table:        platformuser.ValidColumn,
+			pollingstate.Table:        pollingstate.ValidColumn,
 			ratelimit.Table:           ratelimit.ValidColumn,
 			review.Table:              review.ValidColumn,
 			reviewevaluation.Table:    reviewevaluation.ValidColumn,

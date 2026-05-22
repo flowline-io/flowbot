@@ -47,6 +47,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
@@ -1279,6 +1280,28 @@ func init() {
 	platformuser.DefaultUpdatedAt = platformuserDescUpdatedAt.Default.(func() time.Time)
 	// platformuser.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	platformuser.UpdateDefaultUpdatedAt = platformuserDescUpdatedAt.UpdateDefault.(func() time.Time)
+	pollingstateFields := schema.PollingState{}.Fields()
+	_ = pollingstateFields
+	// pollingstateDescResourceName is the schema descriptor for resource_name field.
+	pollingstateDescResourceName := pollingstateFields[1].Descriptor()
+	// pollingstate.ResourceNameValidator is a validator for the "resource_name" field. It is called by the builders before save.
+	pollingstate.ResourceNameValidator = pollingstateDescResourceName.Validators[0].(func(string) error)
+	// pollingstateDescCursor is the schema descriptor for cursor field.
+	pollingstateDescCursor := pollingstateFields[2].Descriptor()
+	// pollingstate.DefaultCursor holds the default value on creation for the cursor field.
+	pollingstate.DefaultCursor = pollingstateDescCursor.Default.(string)
+	// pollingstate.CursorValidator is a validator for the "cursor" field. It is called by the builders before save.
+	pollingstate.CursorValidator = pollingstateDescCursor.Validators[0].(func(string) error)
+	// pollingstateDescKnownHashes is the schema descriptor for known_hashes field.
+	pollingstateDescKnownHashes := pollingstateFields[3].Descriptor()
+	// pollingstate.DefaultKnownHashes holds the default value on creation for the known_hashes field.
+	pollingstate.DefaultKnownHashes = pollingstateDescKnownHashes.Default.(map[string]string)
+	// pollingstateDescUpdatedAt is the schema descriptor for updated_at field.
+	pollingstateDescUpdatedAt := pollingstateFields[4].Descriptor()
+	// pollingstate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	pollingstate.DefaultUpdatedAt = pollingstateDescUpdatedAt.Default.(func() time.Time)
+	// pollingstate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	pollingstate.UpdateDefaultUpdatedAt = pollingstateDescUpdatedAt.UpdateDefault.(func() time.Time)
 	ratelimitFields := schema.RateLimit{}.Fields()
 	_ = ratelimitFields
 	// ratelimitDescNodeID is the schema descriptor for node_id field.

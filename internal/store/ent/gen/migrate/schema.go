@@ -1041,6 +1041,20 @@ var (
 			},
 		},
 	}
+	// PollingStateColumns holds the columns for the "polling_state" table.
+	PollingStateColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "resource_name", Type: field.TypeString, Unique: true},
+		{Name: "cursor", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "known_hashes", Type: field.TypeJSON},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PollingStateTable holds the schema information for the "polling_state" table.
+	PollingStateTable = &schema.Table{
+		Name:       "polling_state",
+		Columns:    PollingStateColumns,
+		PrimaryKey: []*schema.Column{PollingStateColumns[0]},
+	}
 	// RateLimitsColumns holds the columns for the "rate_limits" table.
 	RateLimitsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1444,6 +1458,7 @@ var (
 		PlatformChannelsTable,
 		PlatformChannelUsersTable,
 		PlatformUsersTable,
+		PollingStateTable,
 		RateLimitsTable,
 		ReviewsTable,
 		ReviewEvaluationsTable,
@@ -1589,6 +1604,9 @@ func init() {
 	}
 	PlatformUsersTable.Annotation = &entsql.Annotation{
 		Table: "platform_users",
+	}
+	PollingStateTable.Annotation = &entsql.Annotation{
+		Table: "polling_state",
 	}
 	RateLimitsTable.Annotation = &entsql.Annotation{
 		Table: "rate_limits",
