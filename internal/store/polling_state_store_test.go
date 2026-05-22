@@ -24,16 +24,18 @@ func getTestClient(t *testing.T) *gen.Client {
 }
 
 func TestPollingStateStore_LoadEmpty(t *testing.T) {
-	client := getTestClient(t)
-	store := NewPollingStateStore(client)
+	t.Run("load empty database", func(t *testing.T) {
+		client := getTestClient(t)
+		store := NewPollingStateStore(client)
 
-	state, err := store.LoadAll(context.Background())
-	if err != nil {
-		t.Fatalf("LoadAll: %v", err)
-	}
-	if len(state) != 0 {
-		t.Fatalf("expected empty state, got %d entries", len(state))
-	}
+		state, err := store.LoadAll(context.Background())
+		if err != nil {
+			t.Fatalf("LoadAll: %v", err)
+		}
+		if len(state) != 0 {
+			t.Fatalf("expected empty state, got %d entries", len(state))
+		}
+	})
 }
 
 func TestPollingStateStore_SaveAndLoad(t *testing.T) {
@@ -84,6 +86,19 @@ func TestPollingStateStore_SaveAndLoad(t *testing.T) {
 			}
 			if entry.Cursor != tt.cursor {
 				t.Errorf("cursor = %q, want %q", entry.Cursor, tt.cursor)
+			}
+
+			expectedLen := len(tt.hashes)
+			if tt.hashes == nil {
+				expectedLen = 0
+			}
+			if len(entry.KnownHashes) != expectedLen {
+				t.Errorf("known_hashes len = %d, want %d", len(entry.KnownHashes), expectedLen)
+			}
+			for k, v := range tt.hashes {
+				if got := entry.KnownHashes[k]; got != v {
+					t.Errorf("known_hashes[%q] = %q, want %q", k, got, v)
+				}
 			}
 		})
 	}
