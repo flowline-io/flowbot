@@ -17,7 +17,7 @@ import (
 
 func makeHMACSig(secret string, body []byte) string {
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
+	_, _ = mac.Write(body)
 	return "sha256=" + hex.EncodeToString(mac.Sum(nil))
 }
 
@@ -77,13 +77,13 @@ func TestAuthenticateWebhook(t *testing.T) {
 			wcfg: &pipeline.WebhookConfig{
 				Auth: pipeline.WebhookAuthConfig{},
 			},
-			setHeaders: func(req *http.Request) {},
+			setHeaders: func(_ *http.Request) {},
 			wantOK:     false,
 		},
 		{
 			name:       "nil webhook config returns unauthorized",
 			wcfg:       nil,
-			setHeaders: func(req *http.Request) {},
+			setHeaders: func(_ *http.Request) {},
 			wantOK:     false,
 		},
 		{
@@ -140,7 +140,7 @@ func TestAuthenticateWebhook(t *testing.T) {
 
 func hmacSum(secret, body string) []byte {
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(body))
+	_, _ = mac.Write([]byte(body))
 	return mac.Sum(nil)
 }
 
@@ -262,7 +262,7 @@ func TestWebhookHandler_AuthFailureReturns401(t *testing.T) {
 				Auth:      pipeline.WebhookAuthConfig{Token: "secret"},
 				Payload:   "raw",
 			},
-			setHeaders: func(req *http.Request) {},
+			setHeaders: func(_ *http.Request) {},
 		},
 		{
 			name: "HMAC wrong in handler",

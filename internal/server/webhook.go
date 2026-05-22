@@ -148,7 +148,7 @@ func verifyHMACSHA256(secret string, body []byte, signature string) bool {
 		return false
 	}
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
+	_, _ = mac.Write(body)
 	actual := mac.Sum(nil)
 	return hmac.Equal(actual, expected)
 }
