@@ -4,8 +4,6 @@
 package specs
 
 import (
-	"time"
-
 	"github.com/flowline-io/flowbot/pkg/auth"
 
 	. "github.com/onsi/ginkgo/v2"
