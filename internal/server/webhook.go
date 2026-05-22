@@ -12,6 +12,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -36,6 +37,9 @@ func registerWebhookRoutes(engine *pipeline.Engine) error {
 			sharedApp.Post(routePath, handler)
 		case "PUT":
 			sharedApp.Put(routePath, handler)
+		default:
+			flog.Warn("webhook pipeline %s: unsupported method %q, skipping route registration", def.Name, method)
+			continue
 		}
 		flog.Info("webhook route registered: %s %s -> pipeline %s", method, routePath, def.Name)
 	}
@@ -47,6 +51,10 @@ func registerWebhookRoutes(engine *pipeline.Engine) error {
 // and dispatches to the engine.
 func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		if def == nil || def.Trigger.Webhook == nil {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+
 		wcfg := def.Trigger.Webhook
 
 		status, ok := authenticateWebhook(c, wcfg)
@@ -68,7 +76,7 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 
 		body := c.Body()
 
-		if wcfg.Payload == "mapped" {
+		if wcfg.Payload == config.WebhookPayloadMapped {
 			var parsed map[string]any
 			if err := sonic.Unmarshal(body, &parsed); err != nil {
 				return c.Status(fiber.StatusBadRequest).
@@ -76,20 +84,17 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 			}
 			dataEvent.Data = types.KV(parsed)
 		} else {
-			if dataEvent.Data == nil {
-				dataEvent.Data = make(types.KV)
-			}
+			dataEvent.Data = make(types.KV)
 			dataEvent.Data["_webhook_body"] = string(body)
 		}
 
-		if dataEvent.Data == nil {
-			dataEvent.Data = make(types.KV)
-		}
 		dataEvent.Data["_webhook_headers"] = headers
 
-		if err := engine.ExecuteWebhook(c.Context(), def, dataEvent); err != nil {
-			flog.Error(fmt.Errorf("webhook pipeline %s: %w", def.Name, err))
-		}
+		go func() {
+			if err := engine.ExecuteWebhook(c.Context(), def, dataEvent); err != nil {
+				flog.Error(fmt.Errorf("webhook pipeline %s: %w", def.Name, err))
+			}
+		}()
 
 		return c.SendStatus(fiber.StatusAccepted)
 	}
