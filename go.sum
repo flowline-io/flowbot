@@ -698,12 +698,12 @@ github.com/gofiber/contrib/v3/swaggo v1.0.6 h1:+SXhTzbFR7/e3Zrius+5nCtdxIFMQyN4E
 github.com/gofiber/contrib/v3/swaggo v1.0.6/go.mod h1:qvacLbDzYTYqvvjshzSrE5GOofaPcdYDKIaA+nNFEIs=
 github.com/gofiber/contrib/v3/zerolog v1.0.6 h1:iym9oq0vj0kppVSDyox8BxC7uxKUdCA6G68FXaigHkc=
 github.com/gofiber/contrib/v3/zerolog v1.0.6/go.mod h1:YZGeDbBKUhRdJ88lD/m8OkGviHdfp2B1ZGU/YKwc1+U=
-github.com/gofiber/fiber/v3 v3.2.0 h1:g9+09D320foINPpCnR3ibQ5oBEFHjAWRRfDG1te54u8=
-github.com/gofiber/fiber/v3 v3.2.0/go.mod h1:FHOsc2Db7HhHpsE62QAaJlXVV1pNkbZEptZ4jtti7m4=
+github.com/gofiber/fiber/v3 v3.3.0 h1:QBd3sYCqdy6Qs5gJYzSw4I4SbqL204jPqpdub/ueiw8=
+github.com/gofiber/fiber/v3 v3.3.0/go.mod h1:YH7/TAoRaU4kF8slDCtQuFJ1NzC+3MtxUI4KfvQtaIA=
 github.com/gofiber/schema v1.7.1 h1:oSJBKdgP8JeIME4TQSAqlNKTU2iBB+2RNmKi8Nsc+TI=
 github.com/gofiber/schema v1.7.1/go.mod h1:A/X5Ffyru4p9eBdp99qu+nzviHzQiZ7odLT+TwxWhbk=
-github.com/gofiber/utils/v2 v2.0.5 h1:IMXoI2A5Dao/aMMBURTNxnhbtQO4kUwUFOgcwFSIjLU=
-github.com/gofiber/utils/v2 v2.0.5/go.mod h1:FwwopfzwAQsoXLCHhOT24eH2jQfBgrrra9S5p0+luxg=
+github.com/gofiber/utils/v2 v2.0.6 h1:7fXYy7nSsyqbH0GQUMtK4Kwjy4J7R5742VM7JsZxzOs=
+github.com/gofiber/utils/v2 v2.0.6/go.mod h1:p7mAHAk3+oUK10ZX2xTw9fZQixb4hCg8SKd4IH2xroU=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/gohugoio/gift v0.2.0 h1:vA31pP0rTVmBxBrhpY3WEt+4zM4g+1sDqYeemwsYeqc=
@@ -1314,8 +1314,8 @@ github.com/securego/gosec/v2 v2.23.0/go.mod h1:qRHEgXLFuYUDkI2T7W7NJAmOkxVhkR0x9
 github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 github.com/sergi/go-diff v1.4.0 h1:n/SP9D5ad1fORl+llWyN+D6qoUETXNZARKjyY2/KVCw=
 github.com/sergi/go-diff v1.4.0/go.mod h1:A0bzQcvG0E7Rwjx0REVgAGH58e96+X0MeOfepqsbeW4=
-github.com/shamaton/msgpack/v3 v3.1.0 h1:jsk0vEAqVvvS9+fTZ5/EcQ9tz860c9pWxJ4Iwecz8gU=
-github.com/shamaton/msgpack/v3 v3.1.0/go.mod h1:DcQG8jrdrQCIxr3HlMYkiXdMhK+KfN2CitkyzsQV4uc=
+github.com/shamaton/msgpack/v3 v3.1.2 h1:d5gWAIyMU4M0WgDjz6IFSCuXJUA2dFwRHBpDclE8CLw=
+github.com/shamaton/msgpack/v3 v3.1.2/go.mod h1:DcQG8jrdrQCIxr3HlMYkiXdMhK+KfN2CitkyzsQV4uc=
 github.com/shibumi/go-pathspec v1.3.0 h1:QUyMZhFo0Md5B8zV8x2tesohbb5kfbpTi9rBnKh5dkI=
 github.com/shibumi/go-pathspec v1.3.0/go.mod h1:Xutfslp817l2I1cZvgcfeMQJG5QnU2lh5tVaaMCl3jE=
 github.com/shirou/gopsutil/v4 v4.26.4 h1:B4SXVbcwTyrocPHEmWBC4uCYr4Xcu3MK1TXqbprAOWY=
