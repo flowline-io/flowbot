@@ -29,20 +29,6 @@ var _ = Describe("Gitea Module", Label("module", "gitea"), func() {
 		})
 	})
 
-	Describe("Webhook event types", func() {
-		It("handles issue events", func() {
-			eventRules := []struct {
-				ID      string
-				Handler func()
-			}{
-				{ID: "issue_created", Handler: func() {}},
-				{ID: "issue_closed", Handler: func() {}},
-				{ID: "push", Handler: func() {}},
-			}
-			Expect(len(eventRules)).To(Equal(3))
-		})
-	})
-
 	Describe("Cron job definitions", func() {
 		It("has metrics collection cron", func() {
 			cronDef := struct {

@@ -141,27 +141,6 @@ func TestEventRules_Defined(t *testing.T) {
 	}
 }
 
-func TestWebhookRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain ExampleWebhookID and have Secret=true"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, webhookRules)
-			ids := make(map[string]bool)
-			for _, r := range webhookRules {
-				ids[r.Id] = true
-			}
-			assert.True(t, ids[ExampleWebhookID])
-			for _, r := range webhookRules {
-				assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
-			}
-		})
-	}
-}
-
 func TestPageRules_Defined(t *testing.T) {
 	tests := []struct {
 		name string
@@ -197,14 +176,14 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "should return 6 rulesets"},
+		{name: "should return 5 rulesets"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 6)
+			assert.Len(t, rules, 5)
 		})
 	}
 }

@@ -643,7 +643,6 @@ func TestTriggerType(t *testing.T) {
 	}{
 		{TriggerCron, "cron"},
 		{TriggerManual, "manual"},
-		{TriggerWebhook, "webhook"},
 	}
 
 	for _, tt := range tests {
@@ -890,41 +889,6 @@ func (c ChannelState) String() string {
 		return "ChannelActive"
 	case ChannelInactive:
 		return "ChannelInactive"
-	default:
-		return "Unknown"
-	}
-}
-
-// Test WebhookState
-func TestWebhookState(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		state    WebhookState
-		expected int64
-	}{
-		{WebhookStateUnknown, 0},
-		{WebhookActive, 1},
-		{WebhookInactive, 2},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.state.String(), func(t *testing.T) {
-			t.Parallel()
-			val, err := tt.state.Value()
-			require.NoError(t, err)
-			assert.Equal(t, tt.expected, val)
-		})
-	}
-}
-
-func (w WebhookState) String() string {
-	switch w {
-	case WebhookStateUnknown:
-		return "WebhookStateUnknown"
-	case WebhookActive:
-		return "WebhookActive"
-	case WebhookInactive:
-		return "WebhookInactive"
 	default:
 		return "Unknown"
 	}

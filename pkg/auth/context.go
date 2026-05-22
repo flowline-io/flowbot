@@ -7,7 +7,6 @@ type SubjectType string
 const (
 	SubjectUser     SubjectType = "user"
 	SubjectToken    SubjectType = "token"
-	SubjectWebhook  SubjectType = "webhook"
 	SubjectCron     SubjectType = "cron"
 	SubjectPipeline SubjectType = "pipeline"
 	SubjectWorkflow SubjectType = "workflow"

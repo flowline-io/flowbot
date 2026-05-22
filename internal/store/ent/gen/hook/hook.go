@@ -609,18 +609,6 @@ func (f UserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMutation", m)
 }
 
-// The WebhookFunc type is an adapter to allow the use of ordinary
-// function as Webhook mutator.
-type WebhookFunc func(context.Context, *gen.WebhookMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f WebhookFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.WebhookMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WebhookMutation", m)
-}
-
 // The WorkflowFunc type is an adapter to allow the use of ordinary
 // function as Workflow mutator.
 type WorkflowFunc func(context.Context, *gen.WorkflowMutation) (gen.Value, error)

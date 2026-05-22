@@ -13,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/notify"
 	"github.com/flowline-io/flowbot/internal/modules/reader"
 	"github.com/flowline-io/flowbot/internal/modules/server"
-	"github.com/flowline-io/flowbot/internal/modules/webhook"
 	"github.com/flowline-io/flowbot/internal/modules/workflow"
 )
 
@@ -29,7 +28,6 @@ var Modules = fx.Options(
 		notify.Register,
 		reader.Register,
 		server.Register,
-		webhook.Register,
 		workflow.Register,
 	),
 )

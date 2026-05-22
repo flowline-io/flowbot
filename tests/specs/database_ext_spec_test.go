@@ -488,7 +488,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 				SetUID("uid-" + types.Id()).
 				SetTopic("conn-del").
 				SetName("del-conn").
-				SetType("webhook").
+				SetType("manual").
 				SetConfig(map[string]any{}).
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())

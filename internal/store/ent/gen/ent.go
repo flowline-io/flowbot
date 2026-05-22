@@ -62,7 +62,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowscript"
@@ -178,7 +177,6 @@ func checkColumn(t, c string) error {
 			topic.Table:               topic.ValidColumn,
 			url.Table:                 url.ValidColumn,
 			user.Table:                user.ValidColumn,
-			webhook.Table:             webhook.ValidColumn,
 			workflow.Table:            workflow.ValidColumn,
 			workflowrun.Table:         workflowrun.ValidColumn,
 			workflowscript.Table:      workflowscript.ValidColumn,

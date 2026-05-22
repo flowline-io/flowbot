@@ -140,15 +140,6 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			},
 		},
 		{
-			name: "Webhook returns nil payload",
-			call: func() error {
-				payload, err := b.Webhook(types.Context{}, nil)
-				require.NoError(t, err)
-				assert.Nil(t, payload)
-				return nil
-			},
-		},
-		{
 			name: "Input returns nil payload",
 			call: func() error {
 				payload, err := b.Input(types.Context{}, nil, nil)

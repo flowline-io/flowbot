@@ -65,7 +65,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowscript"
@@ -178,8 +177,6 @@ type Client struct {
 	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// Webhook is the client for interacting with the Webhook builders.
-	Webhook *WebhookClient
 	// Workflow is the client for interacting with the Workflow builders.
 	Workflow *WorkflowClient
 	// WorkflowRun is the client for interacting with the WorkflowRun builders.
@@ -251,7 +248,6 @@ func (c *Client) init() {
 	c.Topic = NewTopicClient(c.config)
 	c.Url = NewURLClient(c.config)
 	c.User = NewUserClient(c.config)
-	c.Webhook = NewWebhookClient(c.config)
 	c.Workflow = NewWorkflowClient(c.config)
 	c.WorkflowRun = NewWorkflowRunClient(c.config)
 	c.WorkflowScript = NewWorkflowScriptClient(c.config)
@@ -399,7 +395,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Topic:               NewTopicClient(cfg),
 		Url:                 NewURLClient(cfg),
 		User:                NewUserClient(cfg),
-		Webhook:             NewWebhookClient(cfg),
 		Workflow:            NewWorkflowClient(cfg),
 		WorkflowRun:         NewWorkflowRunClient(cfg),
 		WorkflowScript:      NewWorkflowScriptClient(cfg),
@@ -474,7 +469,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Topic:               NewTopicClient(cfg),
 		Url:                 NewURLClient(cfg),
 		User:                NewUserClient(cfg),
-		Webhook:             NewWebhookClient(cfg),
 		Workflow:            NewWorkflowClient(cfg),
 		WorkflowRun:         NewWorkflowRunClient(cfg),
 		WorkflowScript:      NewWorkflowScriptClient(cfg),
@@ -517,9 +511,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.RateLimit, c.Review,
-		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Webhook,
-		c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
-		c.WorkflowTrigger,
+		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
+		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -537,9 +530,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.RateLimit, c.Review,
-		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Webhook,
-		c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
-		c.WorkflowTrigger,
+		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
+		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -648,8 +640,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Url.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
-	case *WebhookMutation:
-		return c.Webhook.mutate(ctx, m)
 	case *WorkflowMutation:
 		return c.Workflow.mutate(ctx, m)
 	case *WorkflowRunMutation:
@@ -7555,139 +7545,6 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
-// WebhookClient is a client for the Webhook schema.
-type WebhookClient struct {
-	config
-}
-
-// NewWebhookClient returns a client for the Webhook from the given config.
-func NewWebhookClient(c config) *WebhookClient {
-	return &WebhookClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `webhook.Hooks(f(g(h())))`.
-func (c *WebhookClient) Use(hooks ...Hook) {
-	c.hooks.Webhook = append(c.hooks.Webhook, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `webhook.Intercept(f(g(h())))`.
-func (c *WebhookClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Webhook = append(c.inters.Webhook, interceptors...)
-}
-
-// Create returns a builder for creating a Webhook entity.
-func (c *WebhookClient) Create() *WebhookCreate {
-	mutation := newWebhookMutation(c.config, OpCreate)
-	return &WebhookCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Webhook entities.
-func (c *WebhookClient) CreateBulk(builders ...*WebhookCreate) *WebhookCreateBulk {
-	return &WebhookCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *WebhookClient) MapCreateBulk(slice any, setFunc func(*WebhookCreate, int)) *WebhookCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &WebhookCreateBulk{err: fmt.Errorf("calling to WebhookClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*WebhookCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &WebhookCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Webhook.
-func (c *WebhookClient) Update() *WebhookUpdate {
-	mutation := newWebhookMutation(c.config, OpUpdate)
-	return &WebhookUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *WebhookClient) UpdateOne(_m *Webhook) *WebhookUpdateOne {
-	mutation := newWebhookMutation(c.config, OpUpdateOne, withWebhook(_m))
-	return &WebhookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *WebhookClient) UpdateOneID(id int64) *WebhookUpdateOne {
-	mutation := newWebhookMutation(c.config, OpUpdateOne, withWebhookID(id))
-	return &WebhookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Webhook.
-func (c *WebhookClient) Delete() *WebhookDelete {
-	mutation := newWebhookMutation(c.config, OpDelete)
-	return &WebhookDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *WebhookClient) DeleteOne(_m *Webhook) *WebhookDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *WebhookClient) DeleteOneID(id int64) *WebhookDeleteOne {
-	builder := c.Delete().Where(webhook.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &WebhookDeleteOne{builder}
-}
-
-// Query returns a query builder for Webhook.
-func (c *WebhookClient) Query() *WebhookQuery {
-	return &WebhookQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeWebhook},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Webhook entity by its id.
-func (c *WebhookClient) Get(ctx context.Context, id int64) (*Webhook, error) {
-	return c.Query().Where(webhook.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *WebhookClient) GetX(ctx context.Context, id int64) *Webhook {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *WebhookClient) Hooks() []Hook {
-	return c.hooks.Webhook
-}
-
-// Interceptors returns the client interceptors.
-func (c *WebhookClient) Interceptors() []Interceptor {
-	return c.inters.Webhook
-}
-
-func (c *WebhookClient) mutate(ctx context.Context, m *WebhookMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&WebhookCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&WebhookUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&WebhookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&WebhookDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown Webhook mutation op: %q", m.Op())
-	}
-}
-
 // WorkflowClient is a client for the Workflow schema.
 type WorkflowClient struct {
 	config
@@ -8410,9 +8267,8 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Webhook,
-		Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
-		WorkflowTrigger []ent.Hook
+		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Workflow,
+		WorkflowRun, WorkflowScript, WorkflowStepRun, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
@@ -8421,8 +8277,7 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Webhook,
-		Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
-		WorkflowTrigger []ent.Interceptor
+		RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url, User, Workflow,
+		WorkflowRun, WorkflowScript, WorkflowStepRun, WorkflowTrigger []ent.Interceptor
 	}
 )

@@ -60,9 +60,8 @@ func (moduleHandler) Bootstrap() error {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{
+		return []any{
 		commandRules,
-		webhookRules,
 	}
 }
 
@@ -72,8 +71,4 @@ func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, 
 
 func (moduleHandler) Cron() (*cron.Ruleset, error) {
 	return module.RunCron(cronRules, Name)
-}
-
-func (moduleHandler) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
-	return module.RunWebhook(webhookRules, ctx, data)
 }

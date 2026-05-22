@@ -55,7 +55,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowscript"
@@ -1568,42 +1567,6 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
-	webhookFields := schema.Webhook{}.Fields()
-	_ = webhookFields
-	// webhookDescUID is the schema descriptor for uid field.
-	webhookDescUID := webhookFields[1].Descriptor()
-	// webhook.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	webhook.UIDValidator = webhookDescUID.Validators[0].(func(string) error)
-	// webhookDescTopic is the schema descriptor for topic field.
-	webhookDescTopic := webhookFields[2].Descriptor()
-	// webhook.TopicValidator is a validator for the "topic" field. It is called by the builders before save.
-	webhook.TopicValidator = webhookDescTopic.Validators[0].(func(string) error)
-	// webhookDescFlag is the schema descriptor for flag field.
-	webhookDescFlag := webhookFields[3].Descriptor()
-	// webhook.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
-	webhook.FlagValidator = webhookDescFlag.Validators[0].(func(string) error)
-	// webhookDescSecret is the schema descriptor for secret field.
-	webhookDescSecret := webhookFields[4].Descriptor()
-	// webhook.SecretValidator is a validator for the "secret" field. It is called by the builders before save.
-	webhook.SecretValidator = webhookDescSecret.Validators[0].(func(string) error)
-	// webhookDescTriggerCount is the schema descriptor for trigger_count field.
-	webhookDescTriggerCount := webhookFields[5].Descriptor()
-	// webhook.DefaultTriggerCount holds the default value on creation for the trigger_count field.
-	webhook.DefaultTriggerCount = webhookDescTriggerCount.Default.(int32)
-	// webhookDescState is the schema descriptor for state field.
-	webhookDescState := webhookFields[6].Descriptor()
-	// webhook.DefaultState holds the default value on creation for the state field.
-	webhook.DefaultState = webhookDescState.Default.(int)
-	// webhookDescCreatedAt is the schema descriptor for created_at field.
-	webhookDescCreatedAt := webhookFields[7].Descriptor()
-	// webhook.DefaultCreatedAt holds the default value on creation for the created_at field.
-	webhook.DefaultCreatedAt = webhookDescCreatedAt.Default.(func() time.Time)
-	// webhookDescUpdatedAt is the schema descriptor for updated_at field.
-	webhookDescUpdatedAt := webhookFields[8].Descriptor()
-	// webhook.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	webhook.DefaultUpdatedAt = webhookDescUpdatedAt.Default.(func() time.Time)
-	// webhook.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	webhook.UpdateDefaultUpdatedAt = webhookDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowFields := schema.Workflow{}.Fields()
 	_ = workflowFields
 	// workflowDescUID is the schema descriptor for uid field.

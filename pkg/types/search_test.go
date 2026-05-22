@@ -107,11 +107,6 @@ func TestRulesetTypeConstants(t *testing.T) {
 			want:     RulesetType("trigger"),
 		},
 		{
-			name:     "WebhookRule",
-			constant: WebhookRule,
-			want:     RulesetType("webhook"),
-		},
-		{
 			name:     "WebserviceRule",
 			constant: WebserviceRule,
 			want:     RulesetType("webservice"),

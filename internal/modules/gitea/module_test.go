@@ -121,46 +121,6 @@ func TestCommandRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestWebhookRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain issue and repo webhooks with Secret=true"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, webhookRules)
-
-			ids := make(map[string]bool)
-			for _, r := range webhookRules {
-				ids[r.Id] = true
-			}
-
-			assert.True(t, ids[IssueWebhookID])
-			assert.True(t, ids[RepoWebhookID])
-
-			for _, r := range webhookRules {
-				assert.True(t, r.Secret, "webhook %q should have Secret=true", r.Id)
-			}
-		})
-	}
-}
-
-func TestWebhookRules_HaveHandlers(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all webhook rules should have non-nil handlers"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for _, r := range webhookRules {
-				assert.NotNil(t, r.Handler, "handler for webhook %q should not be nil", r.Id)
-			}
-		})
-	}
-}
-
 func TestCronRules_Defined(t *testing.T) {
 	tests := []struct {
 		name string
@@ -185,14 +145,14 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "should return 2 rulesets"},
+		{name: "should return 1 ruleset"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 2) // commandRules, webhookRules
+			assert.Len(t, rules, 1) // commandRules
 		})
 	}
 }

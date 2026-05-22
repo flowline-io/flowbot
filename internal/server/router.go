@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -33,7 +32,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	formRule "github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	pageRule "github.com/flowline-io/flowbot/pkg/types/ruleset/page"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
@@ -72,8 +70,6 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get("/page/:id/:flag", ctl.renderPage)
 	// agent
 	a.Post("/agent", ctl.agentData)
-	// webhook
-	a.All("/webhook/:flag", ctl.doWebhook)
 	// platform
 	a.All("/platform/:platform", ctl.platformCallback)
 }
@@ -414,110 +410,4 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse(nil))
-}
-
-func (c *Controller) doWebhook(ctx fiber.Ctx) error {
-	flag := ctx.Params("flag")
-	if flag == "" {
-		return protocol.ErrBadParam.New("flag is required")
-	}
-	if len(flag) > 100 {
-		return protocol.ErrBadParam.New("flag too long")
-	}
-
-	method := ctx.Method()
-
-	flog.Info("[webhook] incoming %s flag: %s", method, flag)
-
-	webhookRule, botHandler := module.FindRuleAndHandler[webhook.Rule](flag, module.List())
-
-	if botHandler == nil {
-		return protocol.ErrNotFound.New("module not found")
-	}
-
-	typesCtx := types.Context{
-		TraceCtx: ctx.Context(),
-	}
-
-	var err error
-	var find *model.Webhook
-	if webhookRule.Secret {
-		secret := extractWebhookSecret(ctx)
-		if secret == "" {
-			return protocol.ErrParamVerificationFailed.New("secret not verification")
-		}
-		find, err = store.Database.GetWebhookBySecret(ctx.Context(), secret)
-		if err != nil {
-			return protocol.ErrNotAuthorized.Wrap(err)
-		}
-		if find.State != model.WebhookActive {
-			return protocol.ErrAccessDenied.New("inactive")
-		}
-
-		typesCtx.AsUser = types.Uid(find.UID)
-		typesCtx.Topic = find.Topic
-	}
-
-	var data []byte
-	switch method {
-	case http.MethodGet:
-		data = ctx.Request().URI().QueryArgs().QueryString()
-	case http.MethodPost:
-		data = ctx.Body()
-	}
-
-	typesCtx.WebhookRuleId = flag
-	typesCtx.Method = method
-	typesCtx.Headers = ctx.GetReqHeaders()
-
-	payload, err := botHandler.Webhook(typesCtx, data)
-	if err != nil {
-		c.auditWebhook(ctx, "webhook.receive.fail", flag, err)
-		return protocol.ErrFlagError.Wrap(err)
-	}
-
-	if find != nil {
-		err = store.Database.IncreaseWebhookCount(ctx.Context(), find.ID)
-		if err != nil {
-			flog.Error(err)
-		}
-	}
-
-	c.auditWebhook(ctx, "webhook.receive", flag, nil)
-	return ctx.JSON(payload)
-}
-
-func extractWebhookSecret(ctx fiber.Ctx) string {
-	secret := ""
-	if val := ctx.FormValue("secret"); val != "" {
-		secret = val
-	}
-	if val := ctx.Query("secret"); val != "" {
-		secret = val
-	}
-	if val := ctx.Cookies("secret"); val != "" {
-		secret = val
-	}
-	if val := ctx.Get("X-Secret"); val != "" {
-		secret = val
-	}
-	if val := ctx.Get("Authorization"); val != "" {
-		secret = strings.TrimPrefix(val, "Bearer ")
-	}
-	return secret
-}
-
-func (c *Controller) auditWebhook(ctx fiber.Ctx, action, flag string, err error) {
-	if c.auditor == nil {
-		return
-	}
-	entry := audit.Entry{
-		Action: action,
-		Target: audit.Target{Type: "webhook", ID: flag},
-	}
-	if err != nil {
-		_ = c.auditor.RecordFailure(ctx.Context(), entry, err)
-	} else {
-		_ = c.auditor.RecordSuccess(ctx.Context(), entry)
-	}
 }

@@ -56,10 +56,9 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{
+		return []any{
 		commandRules,
 		formRules,
-		webhookRules,
 	}
 }
 
@@ -73,8 +72,4 @@ func (moduleHandler) Cron() (*cron.Ruleset, error) {
 
 func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return module.RunForm(formRules, ctx, values)
-}
-
-func (moduleHandler) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
-	return module.RunWebhook(webhookRules, ctx, data)
 }

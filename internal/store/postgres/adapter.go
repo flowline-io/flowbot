@@ -34,7 +34,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/webhook"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -1183,108 +1182,6 @@ func (a *adapter) UpdateInstruct(ctx context.Context, instructModel *model.Instr
 }
 
 // ---------------------------------------------------------------------------
-// Webhook
-// ---------------------------------------------------------------------------
-
-func (a *adapter) ListWebhook(ctx context.Context, uid types.Uid) ([]*model.Webhook, error) {
-	webhooks, err := a.client.Webhook.Query().
-		Where(webhook.UID(uid.String())).
-		Order(gen.Asc(webhook.FieldCreatedAt)).
-		Limit(a.maxResults).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: listwebhook: %w", err)
-	}
-	result := make([]*model.Webhook, len(webhooks))
-	for i, w := range webhooks {
-		result[i] = entWebhookToModel(w)
-	}
-	return result, nil
-}
-
-func (a *adapter) CreateWebhook(ctx context.Context, webhookModel *model.Webhook) (int64, error) {
-	w, err := a.client.Webhook.Create().
-		SetUID(webhookModel.UID).
-		SetTopic(webhookModel.Topic).
-		SetFlag(webhookModel.Flag).
-		SetSecret(webhookModel.Secret).
-		SetTriggerCount(webhookModel.TriggerCount).
-		SetState(int(webhookModel.State)).
-		SetCreatedAt(webhookModel.CreatedAt).
-		SetUpdatedAt(webhookModel.UpdatedAt).
-		Save(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("postgres: createwebhook: %w", err)
-	}
-	return w.ID, nil
-}
-
-func (a *adapter) UpdateWebhook(ctx context.Context, webhookModel *model.Webhook) error {
-	_, err := a.client.Webhook.Update().Where(webhook.IDEQ(webhookModel.ID)).
-		SetUID(webhookModel.UID).
-		SetTopic(webhookModel.Topic).
-		SetFlag(webhookModel.Flag).
-		SetSecret(webhookModel.Secret).
-		SetTriggerCount(webhookModel.TriggerCount).
-		SetState(int(webhookModel.State)).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return types.ErrNotFound
-		}
-		return fmt.Errorf("postgres: updatewebhook: %w", err)
-	}
-	return nil
-}
-
-func (a *adapter) DeleteWebhook(ctx context.Context, id int64) error {
-	_, err := a.client.Webhook.Delete().Where(webhook.IDEQ(id)).Exec(ctx)
-	if err != nil {
-		return fmt.Errorf("postgres: deletewebhook: %w", err)
-	}
-	return nil
-}
-
-func (a *adapter) IncreaseWebhookCount(ctx context.Context, id int64) error {
-	_, err := a.client.Webhook.Update().Where(webhook.IDEQ(id)).
-		AddTriggerCount(1).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return types.ErrNotFound
-		}
-		return fmt.Errorf("postgres: increasewebhookcount: %w", err)
-	}
-	return nil
-}
-
-func (a *adapter) GetWebhookBySecret(ctx context.Context, secret string) (*model.Webhook, error) {
-	w, err := a.client.Webhook.Query().Where(webhook.SecretEQ(secret)).Only(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return nil, types.ErrNotFound
-		}
-		return nil, fmt.Errorf("postgres: getwebhookbysecret: %w", err)
-	}
-	return entWebhookToModel(w), nil
-}
-
-func (a *adapter) GetWebhookByUidAndFlag(ctx context.Context, uid types.Uid, flag string) (*model.Webhook, error) {
-	w, err := a.client.Webhook.Query().
-		Where(webhook.UID(uid.String()), webhook.FlagEQ(flag)).
-		Only(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return nil, types.ErrNotFound
-		}
-		return nil, fmt.Errorf("postgres: getwebhookbyuidandflag: %w", err)
-	}
-	return entWebhookToModel(w), nil
-}
-
-// ---------------------------------------------------------------------------
 // Counter
 // ---------------------------------------------------------------------------
 
@@ -1820,20 +1717,6 @@ func entBehaviorToModel(b *gen.Behavior) model.Behavior {
 		result.Extra = &extra
 	}
 	return result
-}
-
-func entWebhookToModel(w *gen.Webhook) *model.Webhook {
-	return &model.Webhook{
-		ID:           w.ID,
-		UID:          w.UID,
-		Topic:        w.Topic,
-		Flag:         w.Flag,
-		Secret:       w.Secret,
-		TriggerCount: w.TriggerCount,
-		State:        model.WebhookState(w.State),
-		CreatedAt:    w.CreatedAt,
-		UpdatedAt:    w.UpdatedAt,
-	}
 }
 
 func entCounterToModel(c *gen.Counter) model.Counter {

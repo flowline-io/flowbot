@@ -156,9 +156,6 @@ type Url func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
-// Webhook is the predicate function for webhook builders.
-type Webhook func(*sql.Selector)
-
 // Workflow is the predicate function for workflow builders.
 type Workflow func(*sql.Selector)
 

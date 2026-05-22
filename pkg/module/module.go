@@ -24,7 +24,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/event"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/webhook"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -191,11 +190,6 @@ func RunCron(cronRules []cron.Rule, name string) (*cron.Ruleset, error) {
 func RunEvent(eventRules []event.Rule, ctx types.Context, param types.KV) error {
 	rs := event.Ruleset(eventRules)
 	return rs.ProcessEvent(ctx, param)
-}
-
-func RunWebhook(webhookRules []webhook.Rule, ctx types.Context, data []byte) (types.MsgPayload, error) {
-	rs := webhook.Ruleset(webhookRules)
-	return rs.ProcessRule(ctx, data)
 }
 
 func FormMsg(ctx types.Context, id string) types.MsgPayload {

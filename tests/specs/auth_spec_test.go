@@ -61,33 +61,6 @@ var _ = Describe("Authentication", Label("auth"), func() {
 			})
 		})
 
-		Context("Webhook context", func() {
-			It("validates webhook secret", func() {
-				body := []byte(`{"event":"push"}`)
-				hash := auth.WebhookBodyHash(body)
-				Expect(hash).NotTo(BeEmpty())
-
-				now := time.Now()
-				sig := auth.SignWebhook("mysecret", "POST", "/webhook", now, body)
-				Expect(sig).NotTo(BeEmpty())
-
-				valid := auth.VerifyWebhookSignature("mysecret", "POST", "/webhook", now, body, sig, now.Add(time.Minute), auth.DefaultWebhookMaxSkew)
-				Expect(valid).To(BeTrue())
-			})
-
-			It("associates webhook with owning user", func() {
-				body := []byte(`{"test":true}`)
-				hash := auth.WebhookBodyHash(body)
-				Expect(hash).NotTo(BeEmpty())
-
-				now := time.Now()
-				sig := auth.SignWebhook("secret", "GET", "/hook/test", now, body)
-
-				wrong := auth.VerifyWebhookSignature("wrong_secret", "GET", "/hook/test", now, body, sig, now.Add(time.Minute), auth.DefaultWebhookMaxSkew)
-				Expect(wrong).To(BeFalse())
-			})
-		})
-
 		Context("Cron context", func() {
 			It("runs as system user", func() {
 				ctx := auth.SystemCronContext()

@@ -269,63 +269,6 @@ func TestErrorHandler_NoError(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Webhook endpoint (param routing)
-// ---------------------------------------------------------------------------
-
-func TestWebhookRoute_NoBot(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "webhook with nonexistent flag returns error"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			app := newTestApp()
-			ctl := &Controller{}
-			app.All("/webhook/:flag", ctl.doWebhook)
-
-			req := httptest.NewRequest(http.MethodGet, "/webhook/nonexistent-flag", nil)
-			resp, err := app.Test(req)
-			require.NoError(t, err)
-			// The handler returns ErrNotFound when bot is not found → error handler returns 400
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-			r := decodeResponse(t, resp)
-			assert.Equal(t, protocol.Failed, r.Status)
-			assert.Contains(t, r.Message, "not found")
-		})
-	}
-}
-
-func TestWebhookRoute_PostNoBot(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "POST webhook with unknown flag returns error"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			app := newTestApp()
-			ctl := &Controller{}
-			app.All("/webhook/:flag", ctl.doWebhook)
-
-			body := strings.NewReader(`{"key":"value"}`)
-			req := httptest.NewRequest(http.MethodPost, "/webhook/unknown-flag", body)
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := app.Test(req)
-			require.NoError(t, err)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
 // Platform callback endpoint
 // ---------------------------------------------------------------------------
 
@@ -518,7 +461,6 @@ func TestRouteRegistration(t *testing.T) {
 		{name: "form", expectedPath: "/form"},
 		{name: "render page", expectedPath: "/page/:id/:flag"},
 		{name: "agent", expectedPath: "/agent"},
-		{name: "webhook", expectedPath: "/webhook/:flag"},
 		{name: "platform", expectedPath: "/platform/:platform"},
 	}
 
@@ -537,7 +479,6 @@ func TestRouteRegistration(t *testing.T) {
 			app.Post("/form", ctl.postForm)
 			app.Get("/page/:id/:flag", ctl.renderPage)
 			app.Post("/agent", ctl.agentData)
-			app.All("/webhook/:flag", ctl.doWebhook)
 			app.All("/platform/:platform", ctl.platformCallback)
 
 			routes := app.GetRoutes()
@@ -615,34 +556,6 @@ func TestNewFailedResponse_NilError(t *testing.T) {
 // ---------------------------------------------------------------------------
 // HTTP method routing
 // ---------------------------------------------------------------------------
-
-func TestWebhook_MethodRouting(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name   string
-		method string
-	}{
-		{name: "GET", method: http.MethodGet},
-		{name: "POST", method: http.MethodPost},
-		{name: "PUT", method: http.MethodPut},
-		{name: "DELETE", method: http.MethodDelete},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			app := newTestApp()
-			ctl := &Controller{}
-			app.All("/webhook/:flag", ctl.doWebhook)
-
-			req := httptest.NewRequest(tt.method, "/webhook/test-flag", nil)
-			resp, err := app.Test(req)
-			require.NoError(t, err)
-			// All methods should reach the handler (which returns bot not found)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		})
-	}
-}
 
 func TestPlatform_MethodRouting(t *testing.T) {
 	t.Parallel()

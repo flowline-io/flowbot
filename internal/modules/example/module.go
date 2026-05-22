@@ -61,12 +61,11 @@ func (moduleHandler) Webservice(app *fiber.App) {
 }
 
 func (moduleHandler) Rules() []any {
-	return []any{
+		return []any{
 		commandRules,
 		formRules,
 		pageRules,
 		webserviceRules,
-		webhookRules,
 		eventRules,
 	}
 }
@@ -89,10 +88,6 @@ func (moduleHandler) Cron() (*cron.Ruleset, error) {
 
 func (moduleHandler) Page(ctx types.Context, flag string, args types.KV) (string, error) {
 	return module.RunPage(pageRules, ctx, flag, args)
-}
-
-func (moduleHandler) Webhook(ctx types.Context, data []byte) (types.MsgPayload, error) {
-	return module.RunWebhook(webhookRules, ctx, data)
 }
 
 func (moduleHandler) Event(ctx types.Context, param types.KV) error {

@@ -150,66 +150,6 @@ var _ = Describe("Database Core Models", Label("database", "integration"), func(
 		})
 	})
 
-	Describe("Webhook", func() {
-		It("creates a new webhook with valid data", func() {
-			w, err := EntClient.Webhook.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("test-topic").
-				SetFlag("test-flag").
-				SetSecret("secret-123").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(w.ID).NotTo(BeZero())
-
-			EntClient.Webhook.DeleteOne(w).Exec(ctx)
-		})
-
-		It("retrieves a webhook by ID", func() {
-			w, err := EntClient.Webhook.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("get-topic").
-				SetFlag("get-flag").
-				SetSecret("get-secret").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			got, err := EntClient.Webhook.Get(ctx, w.ID)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(got.Secret).To(Equal("get-secret"))
-
-			EntClient.Webhook.DeleteOne(w).Exec(ctx)
-		})
-
-		It("updates webhook fields", func() {
-			w, err := EntClient.Webhook.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("upd-topic").
-				SetFlag("upd-flag").
-				SetSecret("upd-secret").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updated, err := EntClient.Webhook.UpdateOne(w).SetState(1).Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.State).To(Equal(1))
-
-			EntClient.Webhook.DeleteOne(w).Exec(ctx)
-		})
-
-		It("deletes a webhook", func() {
-			w, err := EntClient.Webhook.Create().
-				SetUID("uid-" + types.Id()).
-				SetTopic("del-topic").
-				SetFlag("del-flag").
-				SetSecret("del-secret").
-				Save(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = EntClient.Webhook.DeleteOne(w).Exec(ctx)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
 	Describe("Data", func() {
 		It("creates a new data record", func() {
 			d, err := EntClient.Data.Create().

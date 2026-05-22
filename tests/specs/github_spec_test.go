@@ -88,27 +88,6 @@ var _ = Describe("GitHub Module", Label("module", "github"), func() {
 		})
 	})
 
-	Describe("Webhook event types", func() {
-		It("handles ping event", func() {
-			pingHandler := func(data []byte) string { return "pong" }
-			Expect(pingHandler([]byte{})).To(Equal("pong"))
-		})
-
-		It("handles package:published event", func() {
-			event := struct {
-				Action    string `json:"action"`
-				Package   string `json:"package"`
-				PackageType string `json:"package_type"`
-			}{
-				Action:      "published",
-				Package:     "my-app",
-				PackageType: "docker",
-			}
-			Expect(event.Action).To(Equal("published"))
-			Expect(event.PackageType).To(Equal("docker"))
-		})
-	})
-
 	Describe("Cron job definitions", func() {
 		It("has starred repos sync cron", func() {
 			cronDef := struct {

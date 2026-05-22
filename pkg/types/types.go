@@ -29,7 +29,6 @@ const (
 	FormRule       RulesetType = "form"
 	PageRule       RulesetType = "page"
 	TriggerRule    RulesetType = "trigger"
-	WebhookRule    RulesetType = "webhook"
 	WebserviceRule RulesetType = "webservice"
 	WorkflowRule   RulesetType = "workflow"
 )

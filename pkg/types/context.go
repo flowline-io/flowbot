@@ -38,8 +38,6 @@ type Context struct {
 	// event rule id
 	EventRuleId string
 
-	// webhook rule id
-	WebhookRuleId string
 	// HTTP method
 	Method string
 	// HTTP headers

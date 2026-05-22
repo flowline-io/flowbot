@@ -44,9 +44,6 @@ type Handler interface {
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
 
-	// Webhook return webhook result
-	Webhook(ctx types.Context, data []byte) (types.MsgPayload, error)
-
 	// Event return event result
 	Event(ctx types.Context, param types.KV) error
 }
@@ -86,10 +83,6 @@ func (Base) Page(_ types.Context, _ string, _ types.KV) (string, error) {
 }
 
 func (Base) Webservice(_ *fiber.App) {
-}
-
-func (Base) Webhook(_ types.Context, _ []byte) (types.MsgPayload, error) {
-	return nil, nil
 }
 
 func (Base) Event(_ types.Context, _ types.KV) error {

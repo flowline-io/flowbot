@@ -1278,24 +1278,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// WebhookColumns holds the columns for the "webhook" table.
-	WebhookColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "flag", Type: field.TypeString},
-		{Name: "secret", Type: field.TypeString},
-		{Name: "trigger_count", Type: field.TypeInt32, Default: 0},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// WebhookTable holds the schema information for the "webhook" table.
-	WebhookTable = &schema.Table{
-		Name:       "webhook",
-		Columns:    WebhookColumns,
-		PrimaryKey: []*schema.Column{WebhookColumns[0]},
-	}
 	// WorkflowColumns holds the columns for the "workflow" table.
 	WorkflowColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1470,7 +1452,6 @@ var (
 		TopicsTable,
 		UrlsTable,
 		UsersTable,
-		WebhookTable,
 		WorkflowTable,
 		WorkflowRunsTable,
 		WorkflowScriptTable,
@@ -1637,9 +1618,6 @@ func init() {
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
-	}
-	WebhookTable.Annotation = &entsql.Annotation{
-		Table: "webhook",
 	}
 	WorkflowTable.Annotation = &entsql.Annotation{
 		Table: "workflow",

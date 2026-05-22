@@ -252,14 +252,6 @@ type Adapter interface {
 	CreateInstruct(ctx context.Context, instruct *model.Instruct) (int64, error)
 	ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error)
 	UpdateInstruct(ctx context.Context, instruct *model.Instruct) error
-	ListWebhook(ctx context.Context, uid types.Uid) ([]*model.Webhook, error)
-	CreateWebhook(ctx context.Context, webhook *model.Webhook) (int64, error)
-	UpdateWebhook(ctx context.Context, webhook *model.Webhook) error
-	DeleteWebhook(ctx context.Context, id int64) error
-	IncreaseWebhookCount(ctx context.Context, id int64) error
-	GetWebhookBySecret(ctx context.Context, secret string) (*model.Webhook, error)
-	GetWebhookByUidAndFlag(ctx context.Context, uid types.Uid, flag string) (*model.Webhook, error)
-
 	CreateCounter(ctx context.Context, counter *model.Counter) (int64, error)
 	IncreaseCounter(ctx context.Context, id, amount int64) error
 	DecreaseCounter(ctx context.Context, id, amount int64) error

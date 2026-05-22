@@ -254,7 +254,6 @@ type TriggerType string
 const (
 	TriggerCron    TriggerType = "cron"
 	TriggerManual  TriggerType = "manual"
-	TriggerWebhook TriggerType = "webhook"
 )
 
 func (j TriggerType) Value() (driver.Value, error) {
@@ -398,18 +397,6 @@ const (
 )
 
 func (j ChannelState) Value() (driver.Value, error) {
-	return int64(j), nil
-}
-
-type WebhookState int
-
-const (
-	WebhookStateUnknown WebhookState = iota
-	WebhookActive
-	WebhookInactive
-)
-
-func (j WebhookState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 

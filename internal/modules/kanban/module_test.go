@@ -175,46 +175,11 @@ func TestEventRules_HaveHandlers(t *testing.T) {
 	}
 }
 
-func TestWebhookRules(t *testing.T) {
-	tests := []struct {
-		name string
-		fn   func(t *testing.T)
-	}{
-		{
-			name: "at least one webhook rule defined",
-			fn: func(t *testing.T) {
-				assert.NotEmpty(t, webhookRules)
-
-				ids := make(map[string]bool)
-				for _, r := range webhookRules {
-					ids[r.Id] = true
-				}
-
-				assert.True(t, ids[KanbanWebhookID])
-			},
-		},
-		{
-			name: "all webhook rules have handlers",
-			fn: func(t *testing.T) {
-				for _, r := range webhookRules {
-					assert.NotNil(t, r.Handler, "handler for webhook %q should not be nil", r.Id)
-				}
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.fn(t)
-		})
-	}
-}
-
 func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "handler returns five rulesets"},
+		{name: "handler returns four rulesets"},
 	}
 
 	for _, tt := range tests {
@@ -222,7 +187,7 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 5)
+			assert.Len(t, rules, 4)
 		})
 	}
 }
