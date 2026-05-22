@@ -10,11 +10,32 @@ import (
 func TestRealClock(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name  string
+		extra func(t *testing.T, c *RealClock, now1 time.Time)
 	}{
-		{name: "now returns current time"},
-		{name: "after fires within tolerance"},
-		{name: "now always advances forward"},
+		{
+			name: "now returns current time",
+			extra: func(t *testing.T, c *RealClock, _ time.Time) {
+				assert.WithinDuration(t, time.Now(), c.Now(), 100*time.Millisecond)
+			},
+		},
+		{
+			name: "after fires within tolerance",
+			extra: func(t *testing.T, c *RealClock, _ time.Time) {
+				ch := c.After(10 * time.Millisecond)
+				st := time.Now()
+				<-ch
+				assert.WithinDuration(t, st.Add(10*time.Millisecond), time.Now(), 50*time.Millisecond)
+			},
+		},
+		{
+			name: "now always advances forward",
+			extra: func(t *testing.T, c *RealClock, now1 time.Time) {
+				time.Sleep(1 * time.Millisecond)
+				now2 := c.Now()
+				assert.True(t, now2.After(now1))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -22,40 +43,27 @@ func TestRealClock(t *testing.T) {
 			c := NewRealClock()
 			now1 := c.Now()
 			assert.WithinDuration(t, time.Now(), now1, 100*time.Millisecond)
-
-			if tt.name == "after fires within tolerance" {
-				ch := c.After(10 * time.Millisecond)
-				st := time.Now()
-				<-ch
-				assert.WithinDuration(t, st.Add(10*time.Millisecond), time.Now(), 50*time.Millisecond)
-			}
-
-			if tt.name == "now always advances forward" {
-				time.Sleep(1 * time.Millisecond)
-				now2 := c.Now()
-				assert.True(t, now2.After(now1))
-			}
+			tt.extra(t, c, now1)
 		})
 	}
 }
 
 func TestFakeClock(t *testing.T) {
 	t.Parallel()
+	seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	tests := []struct {
-		name string
+		name  string
+		extra func(t *testing.T, c *FakeClock)
 	}{
-		{name: "now returns seed time"},
-		{name: "after fires on advance"},
-		{name: "advance triggers pending timers in order"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-			c := NewFakeClock(seed)
-			assert.Equal(t, seed, c.Now())
-
-			if tt.name == "after fires on advance" {
+		{
+			name: "now returns seed time",
+			extra: func(t *testing.T, c *FakeClock) {
+				assert.Equal(t, seed, c.Now())
+			},
+		},
+		{
+			name: "after fires on advance",
+			extra: func(t *testing.T, c *FakeClock) {
 				ch := c.After(1 * time.Hour)
 				done := make(chan time.Time, 1)
 				go func() { done <- <-ch }()
@@ -66,9 +74,11 @@ func TestFakeClock(t *testing.T) {
 				case <-time.After(100 * time.Millisecond):
 					t.Fatal("After channel did not fire")
 				}
-			}
-
-			if tt.name == "advance triggers pending timers in order" {
+			},
+		},
+		{
+			name: "advance triggers pending timers in order",
+			extra: func(t *testing.T, c *FakeClock) {
 				ch1 := c.After(2 * time.Hour)
 				ch2 := c.After(1 * time.Hour)
 				done1 := make(chan time.Time, 1)
@@ -80,7 +90,14 @@ func TestFakeClock(t *testing.T) {
 				r2 := <-done1
 				assert.Equal(t, seed.Add(1*time.Hour), r1)
 				assert.Equal(t, seed.Add(2*time.Hour), r2)
-			}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			c := NewFakeClock(seed)
+			tt.extra(t, c)
 		})
 	}
 }
