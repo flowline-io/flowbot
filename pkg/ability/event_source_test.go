@@ -7,8 +7,11 @@ import (
 func TestPollResult_Fields(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
-		pr   PollResult
+		name        string
+		pr          PollResult
+		wantLen     int
+		wantCursor  string
+		wantHasMore bool
 	}{
 		{
 			name: "with items and cursor",
@@ -17,6 +20,9 @@ func TestPollResult_Fields(t *testing.T) {
 				NextCursor: "cursor-next",
 				HasMore:    true,
 			},
+			wantLen:     2,
+			wantCursor:  "cursor-next",
+			wantHasMore: true,
 		},
 		{
 			name: "empty result",
@@ -25,6 +31,9 @@ func TestPollResult_Fields(t *testing.T) {
 				NextCursor: "",
 				HasMore:    false,
 			},
+			wantLen:     0,
+			wantCursor:  "",
+			wantHasMore: false,
 		},
 		{
 			name: "single item no more",
@@ -33,14 +42,23 @@ func TestPollResult_Fields(t *testing.T) {
 				NextCursor: "c42",
 				HasMore:    false,
 			},
+			wantLen:     1,
+			wantCursor:  "c42",
+			wantHasMore: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if tt.pr.Items == nil && len(tt.pr.Items) != 0 {
-				t.Error("expected nil Items to have length 0")
+			if got := len(tt.pr.Items); got != tt.wantLen {
+				t.Errorf("len(Items) = %d, want %d", got, tt.wantLen)
+			}
+			if got := tt.pr.NextCursor; got != tt.wantCursor {
+				t.Errorf("NextCursor = %q, want %q", got, tt.wantCursor)
+			}
+			if got := tt.pr.HasMore; got != tt.wantHasMore {
+				t.Errorf("HasMore = %v, want %v", got, tt.wantHasMore)
 			}
 		})
 	}
@@ -49,21 +67,11 @@ func TestPollResult_Fields(t *testing.T) {
 func TestWebhookConverter_Interface(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		assertion string
+		name string
 	}{
-		{
-			name:      "has WebhookPath method",
-			assertion: "WebhookPath returns string",
-		},
-		{
-			name:      "has VerifySignature method",
-			assertion: "VerifySignature returns error",
-		},
-		{
-			name:      "has Convert method",
-			assertion: "Convert returns []DataEvent and error",
-		},
+		{name: "has WebhookPath method"},
+		{name: "has VerifySignature method"},
+		{name: "has Convert method"},
 	}
 
 	for _, tt := range tests {
@@ -77,33 +85,14 @@ func TestWebhookConverter_Interface(t *testing.T) {
 func TestPollingResource_Interface(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		assertion string
+		name string
 	}{
-		{
-			name:      "has ResourceName method",
-			assertion: "ResourceName returns string",
-		},
-		{
-			name:      "has DefaultInterval method",
-			assertion: "DefaultInterval returns time.Duration",
-		},
-		{
-			name:      "has DiffKey method",
-			assertion: "DiffKey returns string",
-		},
-		{
-			name:      "has ContentHash method",
-			assertion: "ContentHash returns string",
-		},
-		{
-			name:      "has CursorField method",
-			assertion: "CursorField returns string",
-		},
-		{
-			name:      "has List method",
-			assertion: "List returns PollResult and error",
-		},
+		{name: "has ResourceName method"},
+		{name: "has DefaultInterval method"},
+		{name: "has DiffKey method"},
+		{name: "has ContentHash method"},
+		{name: "has CursorField method"},
+		{name: "has List method"},
 	}
 
 	for _, tt := range tests {
