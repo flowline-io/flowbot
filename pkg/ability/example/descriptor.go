@@ -116,7 +116,10 @@ func invokeUpdate(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		data, _ := params["data"].(map[string]any)
+		data, ok := params["data"].(map[string]any)
+		if !ok {
+			data = nil
+		}
 		item, err := svc.UpdateItem(ctx, id, data)
 		if err != nil {
 			return nil, err

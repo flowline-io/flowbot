@@ -5,24 +5,24 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	example "github.com/flowline-io/flowbot/pkg/ability/example"
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	provider "github.com/flowline-io/flowbot/pkg/providers/example"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type conformanceWrapper struct {
 	*Adapter
-	cfg example.Config
+	cfg exsvc.Config
 }
 
-func (w *conformanceWrapper) ListItems(_ context.Context, _ *example.ListQuery) (*ability.ListResult[ability.Host], error) {
+func (w *conformanceWrapper) ListItems(_ context.Context, _ *exsvc.ListQuery) (*ability.ListResult[ability.Host], error) {
 	if w.cfg.ListErr != nil {
 		return nil, types.WrapError(types.ErrProvider, "list failed", w.cfg.ListErr)
 	}
 	if w.cfg.ListItems != nil {
 		return &ability.ListResult[ability.Host]{Items: w.cfg.ListItems}, nil
 	}
-	return w.Adapter.ListItems(context.Background(), &example.ListQuery{})
+	return w.Adapter.ListItems(context.Background(), &exsvc.ListQuery{})
 }
 
 func (w *conformanceWrapper) HealthCheck(ctx context.Context) (bool, error) {
@@ -48,7 +48,7 @@ func TestExampleConformance(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			example.RunExampleConformance(t, func(_ *testing.T, cfg example.Config) example.Service {
+			exsvc.RunExampleConformance(t, func(_ *testing.T, cfg exsvc.Config) exsvc.Service {
 				c := &fakeClient{
 					getErr:    cfg.GetErr,
 					postErr:   cfg.CreateErr,
@@ -56,10 +56,10 @@ func TestExampleConformance(t *testing.T) {
 					statusErr: cfg.HealthErr,
 				}
 				if cfg.GetItem != nil {
-					c.getResp = &provider.Response{Origin: cfg.GetItem.Name, URL: cfg.GetItem.Status}
+					c.getResp = &provider.Response{Title: cfg.GetItem.Name, Body: cfg.GetItem.Status}
 				}
 				if cfg.CreateItem != nil {
-					c.postResp = &provider.Response{URL: "https://example.com"}
+					c.postResp = &provider.Response{ID: 101}
 				}
 				if cfg.HealthOk {
 					c.statusResp = &provider.Response{}

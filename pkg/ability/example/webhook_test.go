@@ -35,7 +35,7 @@ func TestExampleWebhook_VerifySignature(t *testing.T) {
 	body := []byte(`{"event_type":"test.created","entity_id":"123"}`)
 	secret := "test-secret"
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
+	_, _ = mac.Write(body)
 	validSig := hex.EncodeToString(mac.Sum(nil))
 
 	tests := []struct {

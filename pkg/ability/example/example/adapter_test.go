@@ -56,7 +56,7 @@ func TestAdapter_GetItem(t *testing.T) {
 	}{
 		{
 			name:    "success",
-			client:  &fakeClient{getResp: &provider.Response{Origin: "1.2.3.4", URL: "https://example.com"}},
+			client:  &fakeClient{getResp: &provider.Response{Title: "hello", Body: "world"}},
 			id:      "item-1",
 			wantErr: false,
 		},
@@ -99,7 +99,7 @@ func TestAdapter_ListItems(t *testing.T) {
 	}{
 		{
 			name:    "success",
-			client:  &fakeClient{getResp: &provider.Response{Origin: "1.2.3.4"}},
+			client:  &fakeClient{getResp: &provider.Response{Title: "hello"}},
 			wantLen: 1,
 			wantErr: false,
 		},
@@ -138,7 +138,7 @@ func TestAdapter_CreateItem(t *testing.T) {
 		title   string
 		wantErr bool
 	}{
-		{name: "success", client: &fakeClient{postResp: &provider.Response{URL: "https://example.com"}}, title: "test", wantErr: false},
+		{name: "success", client: &fakeClient{postResp: &provider.Response{ID: 101}}, title: "test", wantErr: false},
 		{name: "empty title", client: &fakeClient{}, title: "", wantErr: true},
 		{name: "provider error", client: &fakeClient{postErr: errors.New("fail")}, title: "test", wantErr: true},
 	}
@@ -193,7 +193,7 @@ func TestAdapter_HealthCheck(t *testing.T) {
 	}{
 		{name: "healthy", client: &fakeClient{statusResp: &provider.Response{}}, wantOk: true, wantErr: false},
 		{name: "unhealthy", client: &fakeClient{statusErr: errors.New("timeout")}, wantErr: true},
-		{name: "success returns true", client: &fakeClient{statusResp: &provider.Response{Origin: "10.0.0.1"}}, wantOk: true, wantErr: false},
+		{name: "success returns true", client: &fakeClient{statusResp: &provider.Response{Title: "hello"}}, wantOk: true, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

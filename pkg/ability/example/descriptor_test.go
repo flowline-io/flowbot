@@ -12,13 +12,19 @@ import (
 
 type mockService struct{}
 
-func (m mockService) GetItem(_ context.Context, _ string) (*ability.Host, error)                       { return nil, nil }
-func (m mockService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) { return nil, nil }
-func (m mockService) CreateItem(_ context.Context, _ string) (*ability.Host, error)                      { return nil, nil }
-func (m mockService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error)    { return nil, nil }
-func (m mockService) DeleteItem(_ context.Context, _ string) error                                        { return nil }
-func (m mockService) HealthCheck(_ context.Context) (bool, error)                                         { return true, nil }
-func (m mockService) ListRawEvents(_ context.Context, _ string) ([]any, string, error)                   { return nil, "", nil }
+func (mockService) GetItem(_ context.Context, _ string) (*ability.Host, error) { return nil, nil }
+func (mockService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
+	return nil, nil
+}
+func (mockService) CreateItem(_ context.Context, _ string) (*ability.Host, error) { return nil, nil }
+func (mockService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
+	return nil, nil
+}
+func (mockService) DeleteItem(_ context.Context, _ string) error { return nil }
+func (mockService) HealthCheck(_ context.Context) (bool, error)  { return true, nil }
+func (mockService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
+	return nil, "", nil
+}
 
 func TestDescriptor_NilService(t *testing.T) {
 	t.Parallel()

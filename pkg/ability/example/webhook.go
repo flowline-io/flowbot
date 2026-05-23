@@ -22,7 +22,7 @@ func NewExampleWebhook(secret string) *ExampleWebhook {
 }
 
 // WebhookPath returns the URL path that receives webhook events from the example provider.
-func (w *ExampleWebhook) WebhookPath() string {
+func (*ExampleWebhook) WebhookPath() string {
 	return "example"
 }
 
@@ -45,7 +45,7 @@ func (w *ExampleWebhook) VerifySignature(headers map[string]string, body []byte)
 }
 
 // Convert transforms the raw webhook body into one or more DataEvent records.
-func (w *ExampleWebhook) Convert(body []byte, _ map[string]string) ([]types.DataEvent, error) {
+func (*ExampleWebhook) Convert(body []byte, _ map[string]string) ([]types.DataEvent, error) {
 	var payload struct {
 		EventType string `json:"event_type"`
 		EntityID  string `json:"entity_id"`

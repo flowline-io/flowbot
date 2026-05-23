@@ -3,10 +3,11 @@ package example
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	example "github.com/flowline-io/flowbot/pkg/ability/example"
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	provider "github.com/flowline-io/flowbot/pkg/providers/example"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -28,12 +29,12 @@ type Adapter struct {
 }
 
 // New creates an Adapter using the default provider client (reads config from YAML).
-func New() example.Service {
+func New() exsvc.Service {
 	return NewWithClient(provider.GetClient())
 }
 
 // NewWithClient creates an Adapter with a specific client, useful for testing.
-func NewWithClient(c client) example.Service {
+func NewWithClient(c client) exsvc.Service {
 	return &Adapter{
 		client: c,
 		now:    time.Now,
@@ -51,10 +52,10 @@ func (a *Adapter) GetItem(ctx context.Context, id string) (*ability.Host, error)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example get failed", err)
 	}
-	return &ability.Host{ID: id, Name: resp.Origin, Status: resp.URL}, nil
+	return &ability.Host{ID: id, Name: resp.Title, Status: resp.Body}, nil
 }
 
-func (a *Adapter) ListItems(ctx context.Context, _ *example.ListQuery) (*ability.ListResult[ability.Host], error) {
+func (a *Adapter) ListItems(ctx context.Context, _ *exsvc.ListQuery) (*ability.ListResult[ability.Host], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
@@ -62,7 +63,7 @@ func (a *Adapter) ListItems(ctx context.Context, _ *example.ListQuery) (*ability
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example list failed", err)
 	}
-	item := &ability.Host{ID: "item-1", Name: resp.Origin, Status: "active"}
+	item := &ability.Host{ID: "item-1", Name: resp.Title, Status: "active"}
 	return &ability.ListResult[ability.Host]{
 		Items: []*ability.Host{item},
 	}, nil
@@ -79,7 +80,7 @@ func (a *Adapter) CreateItem(ctx context.Context, title string) (*ability.Host, 
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example create failed", err)
 	}
-	return &ability.Host{ID: "created-1", Name: title, Status: resp.URL}, nil
+	return &ability.Host{ID: "created-1", Name: title, Status: strconv.Itoa(resp.ID)}, nil
 }
 
 func (a *Adapter) UpdateItem(ctx context.Context, id string, data map[string]any) (*ability.Host, error) {
@@ -93,7 +94,7 @@ func (a *Adapter) UpdateItem(ctx context.Context, id string, data map[string]any
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example update failed", err)
 	}
-	return &ability.Host{ID: id, Name: resp.Origin, Status: "updated"}, nil
+	return &ability.Host{ID: id, Name: resp.Title, Status: "updated"}, nil
 }
 
 func (a *Adapter) DeleteItem(ctx context.Context, id string) error {

@@ -22,9 +22,9 @@ func TestGetClient_Defaults(t *testing.T) {
 		wantURL string
 	}{
 		{
-			name:    "empty config defaults to httpbin",
+			name:    "empty config defaults to jsonplaceholder",
 			configs: json.RawMessage(`{}`),
-			wantURL: "https://httpbin.org",
+			wantURL: "https://jsonplaceholder.typicode.com",
 		},
 		{
 			name:    "custom endpoint",
@@ -66,7 +66,7 @@ func TestNewExample(t *testing.T) {
 			name:     "empty endpoint defaults",
 			endpoint: "",
 			token:    "",
-			wantURL:  "https://httpbin.org",
+			wantURL:  "https://jsonplaceholder.typicode.com",
 		},
 		{
 			name:     "with auth token",
@@ -90,23 +90,25 @@ func TestGet(t *testing.T) {
 	tests := []struct {
 		name     string
 		handler  http.HandlerFunc
+		path     string
 		wantErr  bool
 		closeSrv bool
 	}{
 		{
-			name: "successful get returns response",
+			name: "successful get returns post",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				assert.Equal(t, "/get", r.URL.Path)
-				_, _ = w.Write([]byte(`{"url":"https://example.com/get","origin":"1.2.3.4","method":"GET"}`))
+				assert.Equal(t, "/posts/42", r.URL.Path)
+				_, _ = w.Write([]byte(`{"userId":1,"id":42,"title":"hello","body":"world"}`))
 			},
+			path: "42",
 		},
 		{
-			name: "get with path sets query param",
+			name: "empty path defaults to post 1",
 			handler: func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "my-path", r.URL.Query().Get("path"))
+				assert.Equal(t, "/posts/1", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/get","method":"GET"}`))
+				_, _ = w.Write([]byte(`{"userId":1,"id":1,"title":"default","body":"post"}`))
 			},
 		},
 		{
@@ -129,11 +131,7 @@ func TestGet(t *testing.T) {
 			} else {
 				defer srv.Close()
 			}
-			var path string
-			if tt.name == "get with path sets query param" {
-				path = "my-path"
-			}
-			resp, err := c.Get(context.Background(), path)
+			resp, err := c.Get(context.Background(), tt.path)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -154,7 +152,7 @@ func TestPost(t *testing.T) {
 	}{
 		{
 			name: "successful post returns response",
-			data: map[string]string{"title": "test"},
+			data: map[string]string{"title": "test", "body": "bar", "userId": "1"},
 		},
 		{
 			name: "post with nil data",
@@ -174,8 +172,9 @@ func TestPost(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				callCount.Add(1)
 				assert.Equal(t, "POST", r.Method)
+				assert.Equal(t, "/posts", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/post","method":"POST"}`))
+				_, _ = w.Write([]byte(`{"userId":1,"id":101,"title":"test","body":"bar"}`))
 			}))
 			c := NewExample(srv.URL, "")
 			if tt.closeSrv {
@@ -199,16 +198,19 @@ func TestPut(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
+		path     string
 		handler  http.HandlerFunc
 		wantErr  bool
 		closeSrv bool
 	}{
 		{
 			name: "successful put",
+			path: "1",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "PUT", r.Method)
+				assert.Equal(t, "/posts/1", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/put","method":"PUT"}`))
+				_, _ = w.Write([]byte(`{"userId":1,"id":1,"title":"updated","body":"new body"}`))
 			},
 		},
 		{
@@ -217,11 +219,13 @@ func TestPut(t *testing.T) {
 			closeSrv: true,
 		},
 		{
-			name: "put with data",
+			name: "put with data and path",
+			path: "99",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "PUT", r.Method)
+				assert.Equal(t, "/posts/99", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/put","method":"PUT"}`))
+				_, _ = w.Write([]byte(`{"userId":1,"id":99,"title":"patched","body":"data"}`))
 			},
 		},
 	}
@@ -239,7 +243,7 @@ func TestPut(t *testing.T) {
 			} else {
 				defer srv.Close()
 			}
-			resp, err := c.Put(context.Background(), "", map[string]string{"key": "val"})
+			resp, err := c.Put(context.Background(), tt.path, map[string]string{"key": "val"})
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -254,16 +258,19 @@ func TestDelete(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
+		path     string
 		handler  http.HandlerFunc
 		wantErr  bool
 		closeSrv bool
 	}{
 		{
 			name: "successful delete",
+			path: "1",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "DELETE", r.Method)
+				assert.Equal(t, "/posts/1", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/delete","method":"DELETE"}`))
+				_, _ = w.Write([]byte(`{}`))
 			},
 		},
 		{
@@ -273,10 +280,12 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			name: "delete with path",
+			path: "42",
 			handler: func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "my-resource", r.URL.Query().Get("path"))
+				assert.Equal(t, "DELETE", r.Method)
+				assert.Equal(t, "/posts/42", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/delete","method":"DELETE"}`))
+				_, _ = w.Write([]byte(`{}`))
 			},
 		},
 	}
@@ -294,11 +303,7 @@ func TestDelete(t *testing.T) {
 			} else {
 				defer srv.Close()
 			}
-			var path string
-			if tt.name == "delete with path" {
-				path = "my-resource"
-			}
-			resp, err := c.Delete(context.Background(), path)
+			resp, err := c.Delete(context.Background(), tt.path)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -314,22 +319,49 @@ func TestGetStatus(t *testing.T) {
 	tests := []struct {
 		name    string
 		code    int
+		handler http.HandlerFunc
 		wantErr bool
 	}{
-		{name: "status 200", code: 200, wantErr: false},
-		{name: "status 418", code: 418, wantErr: false},
-		{name: "status 404", code: 404, wantErr: false},
+		{
+			name: "status 200 for existing post",
+			code: 1,
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"userId":1,"id":1,"title":"hello","body":"world"}`))
+			},
+			wantErr: false,
+		},
+		{
+			name: "post that exists returns ok",
+			code: 42,
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"userId":1,"id":42,"title":"hello","body":"world"}`))
+			},
+			wantErr: false,
+		},
+		{
+			name:    "connection error returns err",
+			code:    1,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(tt.code)
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/status","method":"GET"}`))
-			}))
-			defer srv.Close()
+			handler := tt.handler
+			if handler == nil {
+				handler = func(_ http.ResponseWriter, _ *http.Request) {}
+			}
+			srv := httptest.NewServer(handler)
 			c := NewExample(srv.URL, "")
+			if tt.wantErr {
+				srv.Close()
+			} else {
+				defer srv.Close()
+			}
 			resp, err := c.GetStatus(context.Background(), tt.code)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -354,9 +386,10 @@ func TestGetWithDelay(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/posts/1", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/delay","method":"GET"}`))
+				_, _ = w.Write([]byte(`{"userId":1,"id":1,"title":"hello","body":"world"}`))
 			}))
 			defer srv.Close()
 			c := NewExample(srv.URL, "")
@@ -386,18 +419,19 @@ func TestListRawEvents(t *testing.T) {
 		closeSrv bool
 	}{
 		{name: "list with no cursor", cursor: ""},
-		{name: "list with cursor", cursor: "next-page"},
+		{name: "list with cursor pagination", cursor: "1"},
 		{name: "connection error", cursor: "", wantErr: true, closeSrv: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/posts", r.URL.Path)
 				if tt.cursor != "" {
-					assert.Equal(t, tt.cursor, r.URL.Query().Get("cursor"))
+					assert.Equal(t, tt.cursor, r.URL.Query().Get("_page"))
 				}
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"url":"https://example.com/get","origin":"1.2.3.4","headers":{}}`))
+				_, _ = w.Write([]byte(`[{"userId":1,"id":1,"title":"hello","body":"world"}]`))
 			}))
 			c := NewExample(srv.URL, "")
 			if tt.closeSrv {
@@ -412,7 +446,11 @@ func TestListRawEvents(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.NotEmpty(t, items)
-			assert.Empty(t, next)
+			if tt.cursor == "1" {
+				assert.Equal(t, "2", next)
+			} else {
+				assert.Empty(t, next)
+			}
 		})
 	}
 }
@@ -421,20 +459,20 @@ func TestOAuthMethods(t *testing.T) {
 	t.Parallel()
 	t.Run("GetAuthorizeURL returns URL", func(t *testing.T) {
 		t.Parallel()
-		c := NewExample("https://httpbin.org", "")
+		c := NewExample("https://jsonplaceholder.typicode.com", "")
 		url := c.GetAuthorizeURL()
-		assert.Contains(t, url, "https://httpbin.org/authorize")
+		assert.Contains(t, url, "https://jsonplaceholder.typicode.com/authorize")
 	})
 	t.Run("GetAccessToken returns token KV", func(t *testing.T) {
 		t.Parallel()
-		c := NewExample("https://httpbin.org", "")
+		c := NewExample("https://jsonplaceholder.typicode.com", "")
 		kv, err := c.GetAccessToken(nil)
 		require.NoError(t, err)
 		assert.Equal(t, "example-token", kv["access_token"])
 	})
 	t.Run("OAuthProvider interface compliance", func(t *testing.T) {
 		t.Parallel()
-		var _ providers.OAuthProvider = NewExample("https://httpbin.org", "")
+		var _ providers.OAuthProvider = NewExample("https://jsonplaceholder.typicode.com", "")
 	})
 }
 
@@ -442,7 +480,7 @@ func TestListRawEvents_ContextCanceled(t *testing.T) {
 	t.Run("canceled context returns error", func(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(`{"url":"https://example.com/get","origin":"1.2.3.4"}`))
+			_, _ = w.Write([]byte(`[{"userId":1,"id":1,"title":"hello","body":"world"}]`))
 		}))
 		defer srv.Close()
 		ctx, cancel := context.WithCancel(context.Background())

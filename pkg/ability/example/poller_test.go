@@ -17,20 +17,20 @@ type fakePollerService struct {
 	err    error
 }
 
-func (f *fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, error) {
+func (*fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, error) {
 	return nil, nil
 }
-func (f *fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
+func (*fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
 	return nil, nil
 }
-func (f *fakePollerService) CreateItem(_ context.Context, _ string) (*ability.Host, error) {
+func (*fakePollerService) CreateItem(_ context.Context, _ string) (*ability.Host, error) {
 	return nil, nil
 }
-func (f *fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
+func (*fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
 	return nil, nil
 }
-func (f *fakePollerService) DeleteItem(_ context.Context, _ string) error { return nil }
-func (f *fakePollerService) HealthCheck(_ context.Context) (bool, error)  { return true, nil }
+func (*fakePollerService) DeleteItem(_ context.Context, _ string) error { return nil }
+func (*fakePollerService) HealthCheck(_ context.Context) (bool, error)  { return true, nil }
 func (f *fakePollerService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
 	return f.items, f.cursor, f.err
 }

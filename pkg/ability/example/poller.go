@@ -27,17 +27,17 @@ func NewExamplePoller(svc Service) *ExamplePoller {
 }
 
 // ResourceName returns the unique name for this polling resource.
-func (p *ExamplePoller) ResourceName() string {
+func (*ExamplePoller) ResourceName() string {
 	return "example/events"
 }
 
 // DefaultInterval returns the recommended polling interval.
-func (p *ExamplePoller) DefaultInterval() time.Duration {
+func (*ExamplePoller) DefaultInterval() time.Duration {
 	return 60 * time.Second
 }
 
 // DiffKey returns the unique identifier for an item, used for change detection.
-func (p *ExamplePoller) DiffKey(item any) string {
+func (*ExamplePoller) DiffKey(item any) string {
 	if m, ok := item.(map[string]any); ok {
 		if id, ok := m["id"].(string); ok {
 			return id
@@ -47,7 +47,7 @@ func (p *ExamplePoller) DiffKey(item any) string {
 }
 
 // ContentHash returns a SHA256 hash of the item for content-based change detection.
-func (p *ExamplePoller) ContentHash(item any) string {
+func (*ExamplePoller) ContentHash(item any) string {
 	data := fmt.Sprintf("%v", item)
 	h := sha256.New()
 	_, _ = h.Write([]byte(data))
@@ -55,7 +55,7 @@ func (p *ExamplePoller) ContentHash(item any) string {
 }
 
 // CursorField returns the field name used for cursor-based pagination.
-func (p *ExamplePoller) CursorField() string {
+func (*ExamplePoller) CursorField() string {
 	return "cursor"
 }
 

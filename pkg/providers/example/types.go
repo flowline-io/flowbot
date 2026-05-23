@@ -1,20 +1,15 @@
-// Package example implements the example provider using httpbin.org for demonstration.
+// Package example implements the example provider using jsonplaceholder.typicode.com for demonstration.
 package example
 
 // MaxPageSize is the maximum number of items per page.
 const MaxPageSize = 100
 
-// Response mirrors httpbin response JSON structure for GET/POST/PUT/DELETE endpoints.
+// Response mirrors jsonplaceholder post response JSON structure.
 type Response struct {
-	Args    map[string]string `json:"args"`
-	Data    string            `json:"data"`
-	Files   map[string]string `json:"files"`
-	Form    map[string]string `json:"form"`
-	Headers map[string]string `json:"headers"`
-	JSON    any               `json:"json"`
-	Method  string            `json:"method"`
-	Origin  string            `json:"origin"`
-	URL     string            `json:"url"`
+	UserID int    `json:"userId"`
+	ID     int    `json:"id"`
+	Title  string `json:"title"`
+	Body   string `json:"body"`
 }
 
 // WebhookPayload represents a webhook event payload from the example provider.

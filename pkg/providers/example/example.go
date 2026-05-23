@@ -1,9 +1,10 @@
-// Package example implements the example provider using httpbin.org for demonstration.
+// Package example implements the example provider using jsonplaceholder.typicode.com for demonstration.
 package example
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"resty.dev/v3"
@@ -22,7 +23,7 @@ const (
 	TokenKey    = "token"
 )
 
-// Example wraps the httpbin.org API client for demonstration purposes.
+// Example wraps the jsonplaceholder.typicode.com API client for demonstration purposes.
 // It provides CRUD operations, OAuth stubs, and polling support.
 type Example struct {
 	c     *resty.Client
@@ -30,7 +31,7 @@ type Example struct {
 }
 
 // GetClient reads provider config and returns a new Example client.
-// It falls back to https://httpbin.org when no endpoint is configured.
+// It falls back to https://jsonplaceholder.typicode.com when no endpoint is configured.
 func GetClient() *Example {
 	endpoint, err := providers.GetConfig(ID, EndpointKey)
 	if err != nil {
@@ -44,10 +45,10 @@ func GetClient() *Example {
 }
 
 // NewExample creates an Example client with the given endpoint and optional auth token.
-// If endpoint is empty, it defaults to https://httpbin.org.
+// If endpoint is empty, it defaults to https://jsonplaceholder.typicode.com.
 func NewExample(endpoint, token string) *Example {
 	if endpoint == "" {
-		endpoint = "https://httpbin.org"
+		endpoint = "https://jsonplaceholder.typicode.com"
 	}
 	v := &Example{token: token}
 	v.c = utils.DefaultRestyClient()
@@ -58,107 +59,102 @@ func NewExample(endpoint, token string) *Example {
 	return v
 }
 
-// Get sends a GET request to httpbin /get, returning the echoed request details.
+// Get fetches a jsonplaceholder post by ID via GET /posts/{path}.
+// If path is empty it defaults to "1".
 func (e *Example) Get(ctx context.Context, path string) (*Response, error) {
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetResult(resp)
-	if path != "" {
-		req.SetQueryParam("path", path)
+	if path == "" {
+		path = "1"
 	}
-	_, err := req.Get("/get")
+	_, err := e.c.R().SetContext(ctx).SetResult(resp).Get("/posts/" + path)
 	if err != nil {
 		return nil, fmt.Errorf("example get: %w", err)
 	}
 	return resp, nil
 }
 
-// Post sends a POST request to httpbin /post with the given data as JSON body.
-func (e *Example) Post(ctx context.Context, path string, data any) (*Response, error) {
+// Post creates a new jsonplaceholder post via POST /posts with the given data as JSON body.
+func (e *Example) Post(ctx context.Context, _ string, data any) (*Response, error) {
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetBody(data).SetResult(resp)
-	if path != "" {
-		req.SetQueryParam("path", path)
-	}
-	_, err := req.Post("/post")
+	_, err := e.c.R().SetContext(ctx).SetBody(data).SetResult(resp).Post("/posts")
 	if err != nil {
 		return nil, fmt.Errorf("example post: %w", err)
 	}
 	return resp, nil
 }
 
-// Put sends a PUT request to httpbin /put with the given data as JSON body.
+// Put updates a jsonplaceholder post via PUT /posts/{path} with the given data as JSON body.
+// If path is empty it defaults to "1".
 func (e *Example) Put(ctx context.Context, path string, data any) (*Response, error) {
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetBody(data).SetResult(resp)
-	if path != "" {
-		req.SetQueryParam("path", path)
+	if path == "" {
+		path = "1"
 	}
-	_, err := req.Put("/put")
+	_, err := e.c.R().SetContext(ctx).SetBody(data).SetResult(resp).Put("/posts/" + path)
 	if err != nil {
 		return nil, fmt.Errorf("example put: %w", err)
 	}
 	return resp, nil
 }
 
-// Delete sends a DELETE request to httpbin /delete.
+// Delete deletes a jsonplaceholder post via DELETE /posts/{path}.
+// If path is empty it defaults to "1".
 func (e *Example) Delete(ctx context.Context, path string) (*Response, error) {
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetResult(resp)
-	if path != "" {
-		req.SetQueryParam("path", path)
+	if path == "" {
+		path = "1"
 	}
-	_, err := req.Delete("/delete")
+	_, err := e.c.R().SetContext(ctx).SetResult(resp).Delete("/posts/" + path)
 	if err != nil {
 		return nil, fmt.Errorf("example delete: %w", err)
 	}
 	return resp, nil
 }
 
-// GetStatus fetches httpbin /status/{code} to demonstrate error handling.
+// GetStatus fetches a jsonplaceholder post by ID to demonstrate HTTP status handling.
+// Non-existent IDs return 404 errors.
 func (e *Example) GetStatus(ctx context.Context, code int) (*Response, error) {
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetResult(resp)
-	_, err := req.Get(fmt.Sprintf("/status/%d", code))
+	_, err := e.c.R().SetContext(ctx).SetResult(resp).Get(fmt.Sprintf("/posts/%d", code))
 	if err != nil {
 		return nil, fmt.Errorf("example status %d: %w", code, err)
 	}
 	return resp, nil
 }
 
-// GetWithDelay fetches httpbin /delay/{seconds} to demonstrate timeout handling.
+// GetWithDelay fetches a jsonplaceholder post with a timeout context to demonstrate
+// timeout handling patterns.
 func (e *Example) GetWithDelay(ctx context.Context, seconds int) (*Response, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(seconds+2)*time.Second)
 	defer cancel()
 	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetResult(resp)
-	_, err := req.Get(fmt.Sprintf("/delay/%d", seconds))
+	_, err := e.c.R().SetContext(ctx).SetResult(resp).Get("/posts/1")
 	if err != nil {
 		return nil, fmt.Errorf("example delay %ds: %w", seconds, err)
 	}
 	return resp, nil
 }
 
-// ListRawEvents fetches items from httpbin /get, parsing the response as a list
-// for polling demonstration. The cursor is passed as a query parameter.
+// ListRawEvents fetches jsonplaceholder posts as a list for polling demonstration.
+// The cursor is used as a page number for pagination.
 func (e *Example) ListRawEvents(ctx context.Context, cursor string) ([]map[string]any, string, error) {
-	resp := &Response{}
-	req := e.c.R().SetContext(ctx).SetResult(resp)
+	var raw []map[string]any
+	req := e.c.R().SetContext(ctx).SetResult(&raw)
 	if cursor != "" {
-		req.SetQueryParam("cursor", cursor)
+		req.SetQueryParam("_page", cursor)
 	}
-	_, err := req.Get("/get")
+	_, err := req.Get("/posts")
 	if err != nil {
 		return nil, "", fmt.Errorf("example list raw: %w", err)
 	}
-	items := []map[string]any{
-		{
-			"id":      "item-1",
-			"origin":  resp.Origin,
-			"url":     resp.URL,
-			"headers": resp.Headers,
-		},
+	nextCursor := ""
+	if len(raw) > 0 && cursor != "" {
+		page, parseErr := strconv.Atoi(cursor)
+		if parseErr == nil {
+			nextCursor = strconv.Itoa(page + 1)
+		}
 	}
-	return items, "", nil
+	return raw, nextCursor, nil
 }
 
 // GetAuthorizeURL returns a constructed OAuth authorize URL for demonstration.
