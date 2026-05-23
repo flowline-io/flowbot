@@ -1,4 +1,4 @@
-package resourcechain
+package hub
 
 import (
 	"context"
@@ -57,7 +57,7 @@ func queryByTag(ctx fiber.Ctx) error {
 
 	links, err := rcStore.FindResourceLinks(context.Background(), eventIDs)
 	if err != nil {
-		flog.Error(fmt.Errorf("resourcechain: find links: %w", err))
+		flog.Error(fmt.Errorf("hub resource-chain: find links: %w", err))
 	}
 
 	type resEntry struct {

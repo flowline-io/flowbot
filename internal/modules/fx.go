@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/kanban"
 	"github.com/flowline-io/flowbot/internal/modules/notify"
 	"github.com/flowline-io/flowbot/internal/modules/reader"
-	"github.com/flowline-io/flowbot/internal/modules/resourcechain"
 	"github.com/flowline-io/flowbot/internal/modules/server"
 	"github.com/flowline-io/flowbot/internal/modules/workflow"
 )
@@ -28,7 +27,6 @@ var Modules = fx.Options(
 		kanban.Register,
 		notify.Register,
 		reader.Register,
-		resourcechain.Register,
 		server.Register,
 		workflow.Register,
 	),
