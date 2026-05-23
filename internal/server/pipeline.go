@@ -131,5 +131,79 @@ func initPipeline(
 
 	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
 
+	// --- EventSourceManager ---
+	srcCollector := metrics.NewEventSourceCollector(nil)
+
+	var srcStateStore *ability.PollingState
+	if store.Database != nil && store.Database.GetDB() != nil {
+		if client, ok := store.Database.GetDB().(*store.Client); ok {
+			pollStore := store.NewPollingStateStore(client)
+			srcStateStore = ability.NewPollingState(
+				&pollingPersistenceAdapter{store: pollStore},
+			)
+		}
+	}
+	if srcStateStore == nil {
+		srcStateStore = ability.NewPollingState(nil)
+	}
+
+	srcMgr := ability.NewEventSourceManager(
+		func(ctx context.Context, events []types.DataEvent) error {
+			if store.Database == nil || store.Database.GetDB() == nil {
+				return nil
+			}
+			client, ok := store.Database.GetDB().(*store.Client)
+			if !ok {
+				return nil
+			}
+			eventStore := store.NewEventStore(client)
+			for _, de := range events {
+				_ = eventStore.AppendDataEvent(ctx, de)
+				_ = eventStore.AppendEventOutbox(ctx, de)
+				_ = event.PublishMessage(ctx, DataEventTopic, de)
+			}
+			return nil
+		},
+		srcStateStore,
+		srcCollector,
+	)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return srcMgr.Start(ctx)
+		},
+		OnStop: func(ctx context.Context) error {
+			return srcMgr.Stop(ctx)
+		},
+	})
+
+	// Register webhook provider route
+	sharedApp.Post("/webhook/provider/*", srcMgr.WebhookHandler())
+	flog.Info("event source manager initialized")
+
 	return nil
+}
+
+// pollingPersistenceAdapter adapts store.PollingStateStore to ability.Persistence.
+type pollingPersistenceAdapter struct {
+	store *store.PollingStateStore
+}
+
+func (a *pollingPersistenceAdapter) LoadAll(ctx context.Context) (map[string]ability.PollingEntry, error) {
+	entries, err := a.store.LoadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string]ability.PollingEntry, len(entries))
+	for name, e := range entries {
+		result[name] = ability.PollingEntry{
+			Cursor:      e.Cursor,
+			KnownHashes: e.KnownHashes,
+		}
+	}
+	return result, nil
+}
+
+func (a *pollingPersistenceAdapter) Save(ctx context.Context, resourceName, cursor string, knownHashes map[string]string) error {
+	return a.store.Save(ctx, resourceName, cursor, knownHashes)
 }
