@@ -33,6 +33,7 @@ func (ResourceLink) Fields() []ent.Field {
 
 func (ResourceLink) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("source_event_id", "target_event_id").Unique(),
 		index.Fields("source_app", "source_entity_id"),
 		index.Fields("target_app", "target_entity_id"),
 		index.Fields("source_event_id"),

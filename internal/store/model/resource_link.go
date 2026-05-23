@@ -2,6 +2,8 @@ package model
 
 import "time"
 
+// ResourceLink records a source->target resource lineage relationship
+// created by a pipeline execution step.
 type ResourceLink struct {
 	ID               int64     `json:"id"`
 	SourceEventID    string    `json:"source_event_id"`
@@ -17,6 +19,8 @@ type ResourceLink struct {
 	CreatedAt        time.Time `json:"created_at"`
 }
 
+// ResourceRelations holds upstream and downstream resource references
+// for a specific resource identified by app and entity_id.
 type ResourceRelations struct {
 	App        string        `json:"app"`
 	EntityID   string        `json:"entity_id"`
@@ -24,6 +28,7 @@ type ResourceRelations struct {
 	Downstream []ResourceRef `json:"downstream"`
 }
 
+// ResourceRef identifies a resource by app, entity_id, and optional metadata.
 type ResourceRef struct {
 	App          string `json:"app"`
 	EntityID     string `json:"entity_id"`
