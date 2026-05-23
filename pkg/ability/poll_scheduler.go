@@ -14,7 +14,7 @@ import (
 const defaultPollTimeout = 30 * time.Second
 
 // startPolling initializes the cron scheduler and registers one job per polling resource.
-func (m *EventSourceManager) startPolling(ctx context.Context) error {
+func (m *EventSourceManager) startPolling(_ context.Context) error {
 	if len(m.pollers) == 0 {
 		return nil
 	}

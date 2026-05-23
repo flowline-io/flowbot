@@ -80,7 +80,7 @@ func (m *EventSourceManager) Start(ctx context.Context) error {
 }
 
 // Stop shuts down the cron scheduler and flushes state.
-func (m *EventSourceManager) Stop(ctx context.Context) error {
+func (m *EventSourceManager) Stop(_ context.Context) error {
 	if m.scheduler != nil {
 		_ = m.scheduler.Stop()
 	}
