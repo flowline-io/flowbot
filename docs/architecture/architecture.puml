@@ -146,7 +146,6 @@ package "Cross-Cutting Packages" as CrossCutting #ECEFF1 {
   [cache\npkg/cache/] as Cache
   [locker\npkg/locker/] as Locker
   [media\npkg/media/] as Media
-  [search\npkg/search/] as Search
   [stats\npkg/stats/] as Stats
 }
 

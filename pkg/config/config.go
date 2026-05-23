@@ -411,14 +411,6 @@ type Metrics struct {
 }
 
 type Search struct {
-	// Enabled
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Search endpoint
-	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
-	// Search master key
-	MasterKey string `json:"master_key" yaml:"master_key" mapstructure:"master_key"`
-	// Search data index
-	DataIndex string `json:"data_index" yaml:"data_index" mapstructure:"data_index"`
 	// Search URL base map
 	UrlBaseMap map[string]string `json:"url_base_map" yaml:"url_base_map" mapstructure:"url_base_map"`
 }

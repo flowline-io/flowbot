@@ -226,8 +226,6 @@ All 21 custom metrics, each producing a `_counter` and `_gauge` suffix variant:
 | `module_run_total`                | `ruleset`    | `internal/server/router.go`, `func.go` | Counter |
 | `event_total`                     | —            | `pkg/event/pubsub.go`                  | Counter |
 | `bookmark_total`                  | —            | `internal/modules/bookmark/cron.go`    | Gauge   |
-| `search_total`                    | `index`      | `pkg/search/search.go`                 | Counter |
-| `search_processed_document_total` | `index`      | `pkg/search/search.go`                 | Counter |
 | `torrent_download_total`          | —            | `internal/modules/torrent/cron.go`     | Gauge   |
 | `torrent_status_total`            | `status`     | `internal/modules/torrent/cron.go`     | Gauge   |
 | `gitea_issue_total`               | `status`     | `internal/modules/gitea/cron.go`       | Gauge   |

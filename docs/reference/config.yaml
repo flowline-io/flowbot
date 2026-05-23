@@ -148,12 +148,8 @@ profiling:
     - "block_count"
     - "block_duration"
 
-# Search service configuration
+# Search URL base map
 search:
-  enabled: true
-  endpoint: "http://127.0.0.1:7700"
-  master_key: ""
-  data_index: "data"
   url_base_map:
     karakeep: "http://127.0.0.1:8000"
     kanboard: "http://127.0.0.1:8001"

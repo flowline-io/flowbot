@@ -453,19 +453,11 @@ func TestMetrics(t *testing.T) {
 func TestSearch(t *testing.T) {
 	t.Parallel()
 	search := Search{
-		Enabled:    true,
-		Endpoint:   "https://search.example.com",
-		MasterKey:  "key123",
-		DataIndex:  "flowbot",
 		UrlBaseMap: map[string]string{"github": "https://github.com"},
 	}
 
 	t.Run("search fields", func(t *testing.T) {
 		t.Parallel()
-		assert.True(t, search.Enabled)
-		assert.Equal(t, "https://search.example.com", search.Endpoint)
-		assert.Equal(t, "key123", search.MasterKey)
-		assert.Equal(t, "flowbot", search.DataIndex)
 		assert.Len(t, search.UrlBaseMap, 1)
 	})
 }

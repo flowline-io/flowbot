@@ -27,9 +27,6 @@ func TestStatsSystem(t *testing.T) {
 		botRunCounter := BotRunTotalCounter(AgentRuleset)
 		botRunCounter.Inc()
 
-		searchCounter := SearchTotalCounter("test-index")
-		searchCounter.Inc()
-
 		queueCounter := QueueProcessedTasksTotalCounter("test-task")
 		queueCounter.Add(3)
 

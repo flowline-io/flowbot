@@ -22,8 +22,6 @@ const (
 	ModuleTotalStatsName                  = "module_total"
 	ModuleRunTotalStatsName               = "module_run_total"
 	BookmarkTotalStatsName                = "bookmark_total"
-	SearchTotalStatsName                  = "search_total"
-	SearchProcessedDocumentTotalStatsName = "search_processed_document_total"
 	QueueProcessedTasksTotalStatsName     = "queue_processed_tasks_total"
 	QueueFailedTasksTotalStatsName        = "queue_failed_tasks_total"
 	QueueInProgressTasksStatsName         = "queue_in_progress_tasks"
@@ -358,18 +356,6 @@ func ModuleRunTotalCounter(rulesetLabel RulesetLabel) MetricInterface {
 
 func BookmarkTotalCounter() MetricInterface {
 	return getOrCreateMetric(BookmarkTotalStatsName, prometheus.Labels{})
-}
-
-func SearchTotalCounter(index string) MetricInterface {
-	return getOrCreateMetric(SearchTotalStatsName, prometheus.Labels{
-		"index": index,
-	})
-}
-
-func SearchProcessedDocumentTotalCounter(index string) MetricInterface {
-	return getOrCreateMetric(SearchProcessedDocumentTotalStatsName, prometheus.Labels{
-		"index": index,
-	})
 }
 
 func QueueProcessedTasksTotalCounter(taskType string) MetricInterface {
