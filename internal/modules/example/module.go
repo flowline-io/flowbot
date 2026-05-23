@@ -8,6 +8,9 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	abilityexample "github.com/flowline-io/flowbot/pkg/ability/example"
+	adapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
+
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -44,6 +47,11 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return nil
 	}
 	handler.initialized = true
+	// Register the example capability with the adapter.
+	svc := adapter.New()
+	if err := abilityexample.RegisterService("example", config.Environment, svc); err != nil {
+		return fmt.Errorf("register example ability: %w", err)
+	}
 	return nil
 }
 
@@ -65,6 +73,7 @@ func (moduleHandler) Rules() []any {
 		formRules,
 		pageRules,
 		webserviceRules,
+		webhookRules,
 	}
 }
 
