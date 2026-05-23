@@ -39,6 +39,33 @@ func initPipeline(
 		return nil
 	}
 
+	engine, err := setupPipelineEngine(lc, pipelineDefs, auditor, pc, ec)
+	if err != nil {
+		return fmt.Errorf("setup pipeline engine: %w", err)
+	}
+
+	if err := setupAbilityEmitter(cfg, ac); err != nil {
+		return fmt.Errorf("setup ability emitter: %w", err)
+	}
+
+	registerPipelineHandler(router, subscriber, engine, ec)
+
+	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
+
+	if err := initEventSourceManager(lc); err != nil {
+		return fmt.Errorf("init event source manager: %w", err)
+	}
+
+	return nil
+}
+
+func setupPipelineEngine(
+	lc fx.Lifecycle,
+	pipelineDefs []pipeline.Definition,
+	auditor audit.Auditor,
+	pc *metrics.PipelineCollector,
+	ec *metrics.EventCollector,
+) (*pipeline.Engine, error) {
 	var runStore pipeline.RunStore
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
@@ -48,9 +75,8 @@ func initPipeline(
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 
-	// Register webhook routes.
 	if err := registerWebhookRoutes(engine); err != nil {
-		return fmt.Errorf("register webhook routes: %w", err)
+		return nil, fmt.Errorf("register webhook routes: %w", err)
 	}
 
 	lc.Append(fx.Hook{
@@ -60,6 +86,10 @@ func initPipeline(
 		},
 	})
 
+	return engine, nil
+}
+
+func setupAbilityEmitter(cfg *config.Type, ac *metrics.AbilityCollector) error {
 	ability.SetMetricsCollector(ac)
 	ability.SetBulkheadCallbacks()
 
@@ -95,17 +125,22 @@ func initPipeline(
 				CreatedAt:      time.Now(),
 			}
 
-			// Persist to event store
 			eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))
 			_ = eventStore.AppendDataEvent(ctx, dataEvent)
 			_ = eventStore.AppendEventOutbox(ctx, dataEvent)
-
-			// Publish to Redis Stream via Watermill
 			_ = event.PublishMessage(ctx, DataEventTopic, dataEvent)
 		}
 	})
 
-	// Register pipeline handler in Watermill
+	return nil
+}
+
+func registerPipelineHandler(
+	router *message.Router,
+	subscriber message.Subscriber,
+	engine *pipeline.Engine,
+	ec *metrics.EventCollector,
+) {
 	router.AddNoPublisherHandler(
 		"onPipelineDataEvent",
 		DataEventTopic,
@@ -128,24 +163,12 @@ func initPipeline(
 			return engine.Handler()(ctx, dataEvent)
 		},
 	)
+}
 
-	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
-
-	// --- EventSourceManager ---
+func initEventSourceManager(lc fx.Lifecycle) error {
 	srcCollector := metrics.NewEventSourceCollector(nil)
 
-	var srcStateStore *ability.PollingState
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			pollStore := store.NewPollingStateStore(client)
-			srcStateStore = ability.NewPollingState(
-				&pollingPersistenceAdapter{store: pollStore},
-			)
-		}
-	}
-	if srcStateStore == nil {
-		srcStateStore = ability.NewPollingState(nil)
-	}
+	srcStateStore := buildPollingState()
 
 	srcMgr := ability.NewEventSourceManager(
 		func(ctx context.Context, events []types.DataEvent) error {
@@ -186,6 +209,18 @@ func initPipeline(
 	flog.Info("event source manager initialized")
 
 	return nil
+}
+
+func buildPollingState() *ability.PollingState {
+	if store.Database != nil && store.Database.GetDB() != nil {
+		if client, ok := store.Database.GetDB().(*store.Client); ok {
+			pollStore := store.NewPollingStateStore(client)
+			return ability.NewPollingState(
+				&pollingPersistenceAdapter{store: pollStore},
+			)
+		}
+	}
+	return ability.NewPollingState(nil)
 }
 
 // pollingPersistenceAdapter adapts store.PollingStateStore to ability.Persistence.

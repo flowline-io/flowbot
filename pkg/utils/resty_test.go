@@ -185,9 +185,10 @@ func TestHTTPTransport(t *testing.T) {
 			fn: func(t *testing.T) {
 				t.Parallel()
 				tr := HTTPTransport()
-				defaultTr, ok := http.DefaultTransport.(*http.Transport)
+				_, ok := http.DefaultTransport.(*http.Transport)
 				require.True(t, ok, "http.DefaultTransport should be *http.Transport")
-				assert.Equal(t, defaultTr.TLSClientConfig, tr.TLSClientConfig, "TLS config should match DefaultTransport")
+				require.NotNil(t, tr.TLSClientConfig, "TLS config should not be nil in clone")
+				assert.Equal(t, []string{"h2", "http/1.1"}, tr.TLSClientConfig.NextProtos, "clone should preserve NextProtos from DefaultTransport")
 				assert.NotNil(t, tr.Proxy, "Proxy func should be set")
 			},
 		},
