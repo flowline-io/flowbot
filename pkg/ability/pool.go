@@ -92,6 +92,16 @@ func ShutdownEventPool() {
 	flog.Info("ability: event pool released")
 }
 
+// GetEventPool returns the global event pool, or nil if not initialized.
+func GetEventPool() *ants.PoolWithFunc {
+	epMu.Lock()
+	defer epMu.Unlock()
+	if epInst == nil {
+		return nil
+	}
+	return epInst.pool
+}
+
 // submitEvent submits an event emission function to the pool.
 // Falls back to direct execution if pool is nil (not initialized).
 func submitEvent(capability, operation string, fn func()) {

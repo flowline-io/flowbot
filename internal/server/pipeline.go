@@ -168,6 +168,10 @@ func initPipeline(
 		srcCollector,
 	)
 
+	if pool := ability.GetEventPool(); pool != nil {
+		srcMgr.SetPool(pool)
+	}
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			return srcMgr.Start(ctx)

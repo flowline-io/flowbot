@@ -90,6 +90,13 @@ func (m *EventSourceManager) Start(ctx context.Context) error {
 	return nil
 }
 
+// SetPool assigns the event pool for non-blocking webhook event submission.
+func (m *EventSourceManager) SetPool(pool *ants.PoolWithFunc) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.pool = pool
+}
+
 // Stop shuts down the cron scheduler, flushes state, and releases the event pool.
 func (m *EventSourceManager) Stop(ctx context.Context) error {
 	if m.scheduler != nil {
