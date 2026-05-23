@@ -6,6 +6,7 @@ COPY . .
 
 RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o flowbot -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o composer -ldflags "-X github.com/flowline-io/flowbot/version.Buildstamp=`date -u '+%Y-%m-%dT%H:%M:%SZ'` -X github.com/flowline-io/flowbot/version.Buildtags=`git describe --tags --always`" github.com/flowline-io/flowbot/cmd/composer
 
 
 FROM alpine:latest
@@ -15,6 +16,7 @@ RUN apk add --no-cache bash curl tzdata
 WORKDIR /opt/app
 
 COPY --from=builder /opt/app/flowbot .
+COPY --from=builder /opt/app/composer /usr/local/bin/composer
 
 RUN chmod +x flowbot
 
