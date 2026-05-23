@@ -15,7 +15,7 @@ store/
 
 ## Patterns
 
-- **Migrations**: `pkg/migrate/migrations/` — `<timestamp>_<name>.up.sql` / `.down.sql`. Auto-run on startup.
+- **Migrations**: Ent auto-migration via `client.Schema.Create()` on startup. No manual SQL migrations.
 - Always use transactions for multi-step operations.
 - All ORM operations through ent `gen.Client` (see `internal/store/postgres/adapter.go`).
 
