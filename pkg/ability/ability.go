@@ -70,10 +70,18 @@ type InvokeResult struct {
 	Text       string             `json:"text,omitzero"`
 	Meta       map[string]any     `json:"meta,omitzero"`
 	Events     []EventRef         `json:"events,omitzero"`
+	Resource   *ResourceMeta      `json:"_resource,omitempty"`
 }
 
 type EventRef struct {
 	EventID   string `json:"event_id"`
 	EventType string `json:"event_type"`
 	EntityID  string `json:"entity_id,omitzero"`
+}
+
+// ResourceMeta identifies a resource created by a capability mutation operation.
+type ResourceMeta struct {
+	EventID  string `json:"event_id"`
+	EntityID string `json:"entity_id"`
+	App      string `json:"app"`
 }

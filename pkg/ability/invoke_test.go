@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -906,6 +907,42 @@ func TestRegistry_InvokeCacheSerializationRoundtrip(t *testing.T) {
 
 			assert.Equal(t, "some text", result.Text)
 			assert.Equal(t, "cache", result.Meta["source"])
+		})
+	}
+}
+
+func TestInvokeResult_ResourceMetaJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		result   InvokeResult
+		wantJSON bool
+	}{
+		{"nil Resource omitted", InvokeResult{Data: "ok"}, false},
+		{
+			"non-nil Resource serializes",
+			InvokeResult{
+				Data:     "ok",
+				Resource: &ResourceMeta{EventID: "evt-1", EntityID: "123", App: "test-app"},
+			},
+			true,
+		},
+		{
+			"zero-value Resource still appears",
+			InvokeResult{Data: "ok", Resource: &ResourceMeta{}},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := sonic.Marshal(tt.result)
+			require.NoError(t, err)
+			var decoded map[string]any
+			require.NoError(t, sonic.Unmarshal(data, &decoded))
+			if tt.wantJSON {
+				assert.Contains(t, decoded, "_resource")
+			} else {
+				assert.NotContains(t, decoded, "_resource")
+			}
 		})
 	}
 }
