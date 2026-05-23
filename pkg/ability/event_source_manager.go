@@ -2,12 +2,14 @@ package ability
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/flc1125/go-cron/v4"
 	"github.com/panjf2000/ants/v2"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -74,15 +76,57 @@ func (m *EventSourceManager) RegisterWebhook(c WebhookConverter) {
 	m.webhooks[c.WebhookPath()] = c
 }
 
-// Start begins the cron scheduler and loads persisted state.
+// Start begins the cron scheduler, loads persisted state, and starts periodic flush.
 func (m *EventSourceManager) Start(ctx context.Context) error {
-	return m.startPolling(ctx)
+	if m.stateStore != nil {
+		if err := m.stateStore.Load(ctx); err != nil {
+			return fmt.Errorf("load polling state: %w", err)
+		}
+	}
+	if err := m.startPolling(ctx); err != nil {
+		return fmt.Errorf("start polling: %w", err)
+	}
+	m.startFlushLoop(ctx)
+	return nil
 }
 
-// Stop shuts down the cron scheduler and flushes state.
-func (m *EventSourceManager) Stop(_ context.Context) error {
+// Stop shuts down the cron scheduler, flushes state, and releases the event pool.
+func (m *EventSourceManager) Stop(ctx context.Context) error {
 	if m.scheduler != nil {
 		_ = m.scheduler.Stop()
 	}
+	if m.stateStore != nil {
+		if err := m.stateStore.Flush(ctx); err != nil {
+			flog.Warn("event_source: flush on stop error: %v", err)
+		}
+	}
+	if m.pool != nil {
+		m.pool.ReleaseTimeout(30 * time.Second)
+	}
 	return nil
+}
+
+// startFlushLoop runs a background goroutine that periodically flushes dirty state.
+func (m *EventSourceManager) startFlushLoop(ctx context.Context) {
+	if m.stateStore == nil {
+		return
+	}
+	go func() {
+		ticker := time.NewTicker(m.stateStore.FlushInterval())
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				start := time.Now()
+				if err := m.stateStore.Flush(context.Background()); err != nil {
+					flog.Warn("event_source: periodic flush failed: %v", err)
+				}
+				if m.metrics != nil {
+					m.metrics.ObserveStateFlushDuration(time.Since(start).Seconds())
+				}
+			}
+		}
+	}()
 }

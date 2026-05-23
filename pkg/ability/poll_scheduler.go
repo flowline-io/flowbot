@@ -33,8 +33,7 @@ func (m *EventSourceManager) startPolling(_ context.Context) error {
 			}
 		}
 
-		interval := entry.resource.DefaultInterval()
-		spec := fmt.Sprintf("@every %s", interval.String())
+		spec := fmt.Sprintf("@every %s", entry.interval.String())
 		_, err := s.AddFunc(spec, func(ctx context.Context) error {
 			m.pollOnce(ctx, name, entry)
 			return nil
@@ -42,7 +41,6 @@ func (m *EventSourceManager) startPolling(_ context.Context) error {
 		if err != nil {
 			return fmt.Errorf("register cron for %s: %w", name, err)
 		}
-		flog.Info("event_source: polling registered %s interval=%s", name, interval)
 	}
 
 	s.Start()
