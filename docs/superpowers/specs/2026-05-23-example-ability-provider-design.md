@@ -30,6 +30,9 @@ pkg/ability/example/
 ├── webhook.go            # WebhookConverter implementation
 ├── poller.go             # PollingResource implementation
 ├── conformance.go        # RunExampleConformance entry point
+├── example/              # Concrete Service implementation → calls providers/example
+│   ├── service.go        # Implements Service interface using provider API methods
+│   └── service_test.go   # TDD: service method unit tests, provider interaction
 ├── descriptor_test.go    # TDD: descriptor registration, operation constant assertions
 ├── webhook_test.go       # TDD: signature verification, payload conversion
 ├── poller_test.go        # TDD: single poll cycle, cursor, diff/hash detection
@@ -91,6 +94,13 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - `HealthCheck(ctx) (bool, error)` — health/status
 - `ListRawEvents(ctx, cursor string) ([]any, string, error)` — for polling data source
 
+**Concrete Service** (`example/service.go`):
+- `ServiceImpl` struct wrapping `*providers.Example` client
+- Implements all 7 methods of `Service` interface
+- Each method delegates to the corresponding provider method (e.g., `GetItem` → `client.Get`, `CreateItem` → `client.Post`)
+- Demonstrates error translation from provider errors to typed errors
+- Follows existing pattern: `bookmark/karakeep/`, `kanban/kanboard/`, `reader/miniflux/`
+
 **Descriptor** (`descriptor.go`):
 - Capability constant: `CapabilityExample hub.CapabilityType = "example"`
 - Operation constants for each service method, with mutation verbs properly marked (create, update, delete → `IsMutation`)
@@ -130,8 +140,8 @@ Demonstrates the full startup wiring from module initialization through HTTP han
 **`module.go`** — `Init(app *fiber.App, esm *ability.EventSourceManager) error`:
 1. Reads provider config via `providers.GetConfig(ID, ...)`
 2. Creates provider client via `example.NewExample(endpoint, token)`
-3. Wraps provider in ability service implementation
-4. Calls `ability.RegisterService(...)` to register all invokers
+3. Creates concrete ability service via `abilityexample.NewService(providerClient)`
+4. Calls `abilityexample.RegisterService(...)` to register all invokers
 5. Registers `ExampleWebhook` and `ExamplePoller` with `esm.RegisterWebhook` / `esm.RegisterPolling`
 6. Mounts Fiber routes
 7. Returns `hub.Descriptor` for hub registration
@@ -190,6 +200,8 @@ Demonstrates the full startup wiring from module initialization through HTTP han
 
 ### Ability Layer
 - [x] Service interface with query + mutation methods
+- [x] Concrete Service implementation (example/service.go) calling provider
+- [x] ServiceImpl TDD unit tests
 - [x] Descriptor + RegisterService
 - [x] Operation constants
 - [x] IsMutation marking for write operations
