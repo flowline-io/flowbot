@@ -6,11 +6,11 @@ Homelab Data Hub & Capability Orchestration Center.
 
 | Task             | Location            | Notes                   |
 | ---------------- | ------------------- | ----------------------- |
-| Add new module   | `internal/modules/` | See `AGENTS.md` there   |
+| Add new module   | `internal/modules/` | See `AGENTS.md` there; reference `modules/example/` |
 | Module framework | `pkg/module/`       | Handler interface       |
 | Database work    | `internal/store/`   | DAO pattern, migrations |
-| New provider     | `pkg/providers/`    | OAuth + API clients     |
-| Capability layer | `pkg/ability/`      | ability.Invoke()        |
+| New provider     | `pkg/providers/`    | See `AGENTS.md` there; reference `providers/example/` |
+| Capability layer | `pkg/ability/`      | reference `ability/example/` |
 | Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines  |
 | Workflow engine  | `pkg/workflow/`     | Workflow runtime        |
 | Hub management   | `pkg/hub/`          | App lifecycle           |
@@ -25,6 +25,10 @@ Homelab Data Hub & Capability Orchestration Center.
 
 ## Key Patterns
 
+- **Reference implementations**: When creating or modifying provider, ability, or module code, reference the corresponding `example/` package for file structure and code style:
+  - Provider: `pkg/providers/example/` — demonstrates `GetClient()`/`NewXxx()`, OAuth, CRUD, config reading, webhook payload types
+  - Ability: `pkg/ability/example/` — demonstrates `Service` interface, `Descriptor()`/`RegisterService()`, `WebhookConverter`, `PollingResource`, conformance, and adapter pattern (`example/adapter.go`)
+  - Module: `internal/modules/example/` — demonstrates `moduleHandler`, `module.Base`, `Register()`, `Init()`, `Rules()`, `Webservice()`, rule definitions
 - **Format**: `go fmt` + `npx prettier`
 - **Lint**: `revive` (strict, see `revive.toml`)
 - **Imports**: stdlib → third-party → internal

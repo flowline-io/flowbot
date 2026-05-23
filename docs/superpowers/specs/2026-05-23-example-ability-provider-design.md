@@ -147,10 +147,9 @@ Demonstrates the full startup wiring following the standard module contract.
 - `type configType struct { Enabled bool }` with JSON tags
 - `func (moduleHandler) Init(jsonconf json.RawMessage) error`:
   1. Parse config; if `!Config.Enabled`, return nil (graceful disable)
-  2. Create provider: `example.NewExample(endpoint, token)`
-  3. Create adapter: `abilityexample.NewWithClient(providerClient)`
-  4. Register ability: `abilityexample.RegisterService("example", app, adapter)`
-  5. Set initialized = true
+  2. Create adapter: `adapter := abilityexample.New()` (provider creation inside adapter)
+  3. Register ability: `abilityexample.RegisterService("example", app, adapter)`
+  4. Set initialized = true
 - `func (moduleHandler) IsReady() bool { return handler.initialized }`
 - `func (moduleHandler) Rules() []any` — returns webserviceRules, webhookRules
 - `func (moduleHandler) Webservice(app *fiber.App)` — `module.Webservice(app, Name, webserviceRules)`
