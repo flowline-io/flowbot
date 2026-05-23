@@ -20,9 +20,9 @@ https://httpbin.org             External API for demonstration
 
 ```
 pkg/providers/example/
-├── example.go            # Provider struct, GetClient, NewXxx, CRUD, OAuth interface
+├── example.go            # Provider struct, GetClient, NewExample, CRUD, OAuth
 ├── types.go              # Request/response/webhook-payload types
-└── example_test.go       # TDD: unit tests for client methods, config, errors
+└── example_test.go       # TDD: client methods, config, errors (table-driven)
 
 pkg/ability/example/
 ├── interface.go          # Service interface (7 methods)
@@ -30,18 +30,19 @@ pkg/ability/example/
 ├── webhook.go            # WebhookConverter implementation
 ├── poller.go             # PollingResource implementation
 ├── conformance.go        # RunExampleConformance entry point
-├── example/              # Concrete Service implementation → calls providers/example
-│   ├── service.go        # Implements Service interface using provider API methods
-│   └── service_test.go   # TDD: service method unit tests, provider interaction
+├── example/              # Provider adapter (mirrors karakeep/, kanboard/, miniflux/)
+│   ├── adapter.go        # Implements Service interface, wraps providers/example client
+│   ├── adapter_test.go   # TDD: adapter method unit tests with mock client
+│   └── conformance_test.go  # BDD: adapter conformance suite
 ├── descriptor_test.go    # TDD: descriptor registration, operation constant assertions
 ├── webhook_test.go       # TDD: signature verification, payload conversion
 ├── poller_test.go        # TDD: single poll cycle, cursor, diff/hash detection
 └── conformance_test.go   # TDD: conformance helper self-assertions
 
 internal/modules/example/
-├── module.go             # Init(app, esm): provider → ability → Descriptor → EventSource → routes
-├── webservice.go         # REST: GET/POST/DELETE /service/example/*
-├── webhook.go            # Webhook callback: EventSourceManager.WebhookHandler()
+├── module.go             # moduleHandler + module.Base, Register(), Init(), Rules(), Webservice()
+├── webservice.go         # REST: GET/POST/DELETE /service/example/* rule definitions
+├── webhook.go            # Webhook callback rule: EventSourceManager.WebhookHandler()
 ├── module_test.go        # TDD: handler unit tests with mock ability
 └── module_suite_test.go  # BDD: full-chain integration (Ginkgo + Gomega)
 ```
@@ -94,12 +95,14 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - `HealthCheck(ctx) (bool, error)` — health/status
 - `ListRawEvents(ctx, cursor string) ([]any, string, error)` — for polling data source
 
-**Concrete Service** (`example/service.go`):
-- `ServiceImpl` struct wrapping `*providers.Example` client
+**Concrete Adapter** (`example/adapter.go`):
+- `Adapter` struct wrapping `*example.Example` provider client
+- `client` interface (local, unexported) for testability
+- `func New() abilityexample.Service` — primary constructor, calls `providers.GetClient()`
+- `func NewWithClient(client client) abilityexample.Service` — test constructor
 - Implements all 7 methods of `Service` interface
-- Each method delegates to the corresponding provider method (e.g., `GetItem` → `client.Get`, `CreateItem` → `client.Post`)
-- Demonstrates error translation from provider errors to typed errors
-- Follows existing pattern: `bookmark/karakeep/`, `kanban/kanboard/`, `reader/miniflux/`
+- Each method: checks ctx.Err(), validates inputs, calls client method, wraps errors with `types.WrapError`
+- Follows exact pattern: `bookmark/karakeep/adapter.go`, `kanban/kanboard/adapter.go`, `reader/miniflux/adapter.go`
 
 **Descriptor** (`descriptor.go`):
 - Capability constant: `CapabilityExample hub.CapabilityType = "example"`
@@ -135,28 +138,35 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 
 ### Module: `internal/modules/example/`
 
-Demonstrates the full startup wiring from module initialization through HTTP handler registration.
+Demonstrates the full startup wiring following the standard module contract.
 
-**`module.go`** — `Init(app *fiber.App, esm *ability.EventSourceManager) error`:
-1. Reads provider config via `providers.GetConfig(ID, ...)`
-2. Creates provider client via `example.NewExample(endpoint, token)`
-3. Creates concrete ability service via `abilityexample.NewService(providerClient)`
-4. Calls `abilityexample.RegisterService(...)` to register all invokers
-5. Registers `ExampleWebhook` and `ExamplePoller` with `esm.RegisterWebhook` / `esm.RegisterPolling`
-6. Mounts Fiber routes
-7. Returns `hub.Descriptor` for hub registration
+**`module.go`** — Core module structure:
+- Package-level `const Name = "example"`; `var handler moduleHandler`
+- `func Register() { module.Register(Name, &handler) }`
+- `type moduleHandler struct { module.Base; initialized bool }`
+- `type configType struct { Enabled bool }` with JSON tags
+- `func (moduleHandler) Init(jsonconf json.RawMessage) error`:
+  1. Parse config; if `!Config.Enabled`, return nil (graceful disable)
+  2. Create provider: `example.NewExample(endpoint, token)`
+  3. Create adapter: `abilityexample.NewWithClient(providerClient)`
+  4. Register ability: `abilityexample.RegisterService("example", app, adapter)`
+  5. Set initialized = true
+- `func (moduleHandler) IsReady() bool { return handler.initialized }`
+- `func (moduleHandler) Rules() []any` — returns webserviceRules, webhookRules
+- `func (moduleHandler) Webservice(app *fiber.App)` — `module.Webservice(app, Name, webserviceRules)`
 
-**`webservice.go`** — REST handler demonstrations:
-- `GET /service/example/get?id=xxx` → `ability.Invoke(ctx, example.CapabilityExample, "get", params)`
-- `GET /service/example/list?limit=10` → list with pagination
+**`webservice.go`** — REST rule definitions:
+- Rule structs with `Path`, `Method`, `Handler`, `Scopes` following `module.FiberRule` pattern
+- `GET /service/example/get` → `ability.Invoke(ctx, abilityexample.Cap, "get", params)`
+- `GET /service/example/list` → list with pagination
 - `POST /service/example/create` → body → params → invoke
-- `DELETE /service/example/delete?id=xxx` → mutation invoke
+- `DELETE /service/example/delete` → mutation invoke
 - `GET /service/example/health` → health check
 - Each handler demonstrates: params extraction, invoke call, error classification, response marshaling
 
-**`webhook.go`** — webhook handler:
+**`webhook.go`** — Webhook rule:
 - `POST /service/example/webhook/*` → delegates to `esm.WebhookHandler()`
-- Demonstrates how Fiber wildcard routes connect to EventSourceManager
+- Demonstrates how Fiber wildcard routes connect to EventSourceManager via module rules
 
 **Tests:**
 - **TDD** (`module_test.go`) — table-driven handler unit tests with mocked ability registry (registering a test invoker that returns canned results). Tests: handler routing, params parsing, error responses, pagination.
@@ -200,8 +210,9 @@ Demonstrates the full startup wiring from module initialization through HTTP han
 
 ### Ability Layer
 - [x] Service interface with query + mutation methods
-- [x] Concrete Service implementation (example/service.go) calling provider
-- [x] ServiceImpl TDD unit tests
+- [x] Adapter implementation (example/adapter.go) wrapping provider client
+- [x] Adapter TDD unit tests (example/adapter_test.go)
+- [x] Adapter BDD conformance tests (example/conformance_test.go)
 - [x] Descriptor + RegisterService
 - [x] Operation constants
 - [x] IsMutation marking for write operations
@@ -212,11 +223,15 @@ Demonstrates the full startup wiring from module initialization through HTTP han
 - [x] TDD unit tests for descriptor, webhook, poller, conformance
 
 ### Module Layer
-- [x] Init() assembly (provider → ability → EventSource → routes)
-- [x] Hub Descriptor registration
+- [x] `moduleHandler` struct embedding `module.Base`
+- [x] `Register()` → `module.Register(Name, &handler)`
+- [x] `Init(jsonconf) error` with `configType{Enabled bool}` and graceful disable
+- [x] `Rules() []any` returning rule slices
+- [x] `Webservice(app)` using `module.Webservice(app, Name, rules)`
+- [x] Provider → Adapter → ability wiring inside `Init()`
 - [x] EventSource registration (webhook + polling)
-- [x] REST handlers (GET, POST, DELETE)
-- [x] Webhook callback handler
+- [x] REST rule definitions (GET, POST, DELETE) in `webservice.go`
+- [x] Webhook callback rule in `webhook.go`
 - [x] TDD unit tests for handlers
 - [x] BDD integration tests for full chain
 
