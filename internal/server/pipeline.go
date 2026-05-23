@@ -111,10 +111,7 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.AbilityCollector) error {
 			return
 		}
 		for _, ref := range result.Events {
-			eventID := ref.EventID
-			if eventID == "" {
-				eventID = types.Id()
-			}
+			eventID := types.Id()
 
 			dataEvent := types.DataEvent{
 				EventID:        eventID,

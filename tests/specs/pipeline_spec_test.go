@@ -365,7 +365,7 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 		DeferCleanup(engine.Stop)
 
 		event := types.DataEvent{
-			EventID:   "webhook:spec-path:123-abcdef",
+			EventID:   types.Id(),
 			EventType: "spec.event",
 			Source:    "webhook",
 		}

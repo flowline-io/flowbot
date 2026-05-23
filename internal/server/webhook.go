@@ -63,7 +63,7 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 			return c.Status(status).SendString(http.StatusText(status))
 		}
 
-		eventID := fmt.Sprintf("webhook:%s:%d-%s", wcfg.Path, time.Now().UnixNano(), pipeline.RandomHex(8))
+		eventID := types.Id()
 		dataEvent := types.DataEvent{
 			EventID:   eventID,
 			EventType: wcfg.EventType,

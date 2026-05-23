@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"maps"
@@ -640,9 +639,8 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 
 	start := e.clock.Now()
 
-	eventID := fmt.Sprintf("cron:%s:%d-%s", def.Name, e.clock.Now().UnixNano(), RandomHex(8))
 	dataEvent := types.DataEvent{
-		EventID:   eventID,
+		EventID:   types.Id(),
 		EventType: fmt.Sprintf("pipeline.cron:%s", def.Name),
 		Source:    "cron",
 		CreatedAt: e.clock.Now(),
@@ -679,15 +677,6 @@ func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event type
 		defer mu.Unlock()
 	}
 	return e.executePipeline(ctx, *def, event)
-}
-
-// RandomHex generates n random bytes as a hex string.
-func RandomHex(n int) string {
-	b := make([]byte, n)
-	if _, err := rand.Read(b); err != nil {
-		flog.Error(fmt.Errorf("RandomHex: rand.Read failed: %w", err))
-	}
-	return fmt.Sprintf("%x", b)
 }
 
 // MutexFor returns the per-pipeline mutex for the given pipeline name.

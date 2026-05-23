@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -131,36 +130,31 @@ func TestEngine_StopShutsDownCron(t *testing.T) {
 	e.Stop()
 }
 
-func TestEngine_SyntheticEventFormat(t *testing.T) {
+func TestEngine_EventIDFormat(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name         string
-		plName       string
-		wantContains string
+		name string
 	}{
 		{
-			name:         "event ID contains pipeline name",
-			plName:       "test-pl",
-			wantContains: "cron:test-pl:",
+			name: "shortuuid is 22 chars",
 		},
 		{
-			name:         "event ID format is correct",
-			plName:       "my-cron-pipeline",
-			wantContains: "cron:my-cron-pipeline:",
+			name: "shortuuids are unique across calls",
 		},
 		{
-			name:         "hex part is 16 chars",
-			plName:       "pl",
-			wantContains: "cron:pl:",
+			name: "shortuuid does not contain legacy prefixes",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-			eventID := fmt.Sprintf("cron:%s:%d-%s", tt.plName, seed.UnixNano(), RandomHex(8))
-			assert.Contains(t, eventID, tt.wantContains)
-			assert.Len(t, RandomHex(8), 16)
+			id := types.Id()
+			assert.Len(t, id, 22)
+			assert.NotContains(t, id, "cron:")
+			assert.NotContains(t, id, "webhook:")
+			id2 := types.Id()
+			assert.Len(t, id2, 22)
+			assert.NotEqual(t, id, id2)
 		})
 	}
 }
