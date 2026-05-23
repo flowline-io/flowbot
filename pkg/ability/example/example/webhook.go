@@ -64,6 +64,7 @@ func (*ExampleWebhook) Convert(body []byte, _ map[string]string) ([]types.DataEv
 		EventID:        types.Id(),
 		EventType:      payload.EventType,
 		Source:         "example_webhook",
+		EntityID:       payload.EntityID,
 		IdempotencyKey: payload.EntityID,
 		Data:           types.KV{"event": payload.Data},
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/pprof"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"github.com/samber/oops"
 
@@ -92,21 +93,19 @@ func newHTTPServer() *fiber.App {
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
 	// logger
-	logger := flog.GetLogger()
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
-		Logger: &logger,
-		SkipHeader: func(_ string, c fiber.Ctx) bool {
-			skipURIs := []string{
+		GetLogger: func(_ fiber.Ctx) zerolog.Logger {
+			return flog.GetLogger()
+		},
+		Next: func(c fiber.Ctx) bool {
+			skipPaths := []string{
 				healthcheck.LivenessEndpoint,
 				healthcheck.ReadinessEndpoint,
 				healthcheck.StartupEndpoint,
 				"/",
 				"/service/user/metrics",
 			}
-			if lo.Contains(skipURIs, c.Path()) {
-				return true
-			}
-			return false
+			return lo.Contains(skipPaths, c.Path())
 		},
 	}))
 	// pprof

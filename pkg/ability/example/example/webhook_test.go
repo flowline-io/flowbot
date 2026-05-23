@@ -161,6 +161,7 @@ func TestExampleWebhook_Convert_EventType(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, events, 1)
 			assert.Equal(t, tt.eventType, events[0].EventType)
+			assert.Equal(t, tt.entityID, events[0].EntityID)
 			assert.Equal(t, tt.entityID, events[0].IdempotencyKey)
 		})
 	}
