@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -18,6 +19,7 @@ type PipelineRunCreate struct {
 	config
 	mutation *PipelineRunMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetPipelineName sets the "pipeline_name" field.
@@ -245,6 +247,7 @@ func (_c *PipelineRunCreate) createSpec() (*PipelineRun, *sqlgraph.CreateSpec) {
 		_node = &PipelineRun{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(pipelinerun.Table, sqlgraph.NewFieldSpec(pipelinerun.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -292,11 +295,444 @@ func (_c *PipelineRunCreate) createSpec() (*PipelineRun, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PipelineRun.Create().
+//		SetPipelineName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PipelineRunUpsert) {
+//			SetPipelineName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PipelineRunCreate) OnConflict(opts ...sql.ConflictOption) *PipelineRunUpsertOne {
+	_c.conflict = opts
+	return &PipelineRunUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PipelineRunCreate) OnConflictColumns(columns ...string) *PipelineRunUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PipelineRunUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PipelineRunUpsertOne is the builder for "upsert"-ing
+	//  one PipelineRun node.
+	PipelineRunUpsertOne struct {
+		create *PipelineRunCreate
+	}
+
+	// PipelineRunUpsert is the "OnConflict" setter.
+	PipelineRunUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *PipelineRunUpsert) SetPipelineName(v string) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldPipelineName, v)
+	return u
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdatePipelineName() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldPipelineName)
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *PipelineRunUpsert) SetEventID(v string) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldEventID, v)
+	return u
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateEventID() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldEventID)
+	return u
+}
+
+// SetEventType sets the "event_type" field.
+func (u *PipelineRunUpsert) SetEventType(v string) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldEventType, v)
+	return u
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateEventType() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldEventType)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineRunUpsert) SetStatus(v int) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateStatus() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldStatus)
+	return u
+}
+
+// AddStatus adds v to the "status" field.
+func (u *PipelineRunUpsert) AddStatus(v int) *PipelineRunUpsert {
+	u.Add(pipelinerun.FieldStatus, v)
+	return u
+}
+
+// SetError sets the "error" field.
+func (u *PipelineRunUpsert) SetError(v string) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldError, v)
+	return u
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateError() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldError)
+	return u
+}
+
+// ClearError clears the value of the "error" field.
+func (u *PipelineRunUpsert) ClearError() *PipelineRunUpsert {
+	u.SetNull(pipelinerun.FieldError)
+	return u
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *PipelineRunUpsert) SetCheckpointData(v map[string]interface{}) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldCheckpointData, v)
+	return u
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateCheckpointData() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldCheckpointData)
+	return u
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *PipelineRunUpsert) ClearCheckpointData() *PipelineRunUpsert {
+	u.SetNull(pipelinerun.FieldCheckpointData)
+	return u
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *PipelineRunUpsert) SetLastHeartbeat(v time.Time) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldLastHeartbeat, v)
+	return u
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateLastHeartbeat() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldLastHeartbeat)
+	return u
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *PipelineRunUpsert) ClearLastHeartbeat() *PipelineRunUpsert {
+	u.SetNull(pipelinerun.FieldLastHeartbeat)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *PipelineRunUpsert) SetStartedAt(v time.Time) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateStartedAt() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *PipelineRunUpsert) SetCompletedAt(v time.Time) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateCompletedAt() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *PipelineRunUpsert) ClearCompletedAt() *PipelineRunUpsert {
+	u.SetNull(pipelinerun.FieldCompletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pipelinerun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PipelineRunUpsertOne) UpdateNewValues() *PipelineRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(pipelinerun.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(pipelinerun.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PipelineRunUpsertOne) Ignore() *PipelineRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PipelineRunUpsertOne) DoNothing() *PipelineRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PipelineRunCreate.OnConflict
+// documentation for more info.
+func (u *PipelineRunUpsertOne) Update(set func(*PipelineRunUpsert)) *PipelineRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PipelineRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *PipelineRunUpsertOne) SetPipelineName(v string) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetPipelineName(v)
+	})
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdatePipelineName() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdatePipelineName()
+	})
+}
+
+// SetEventID sets the "event_id" field.
+func (u *PipelineRunUpsertOne) SetEventID(v string) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateEventID() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *PipelineRunUpsertOne) SetEventType(v string) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateEventType() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineRunUpsertOne) SetStatus(v int) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *PipelineRunUpsertOne) AddStatus(v int) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateStatus() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *PipelineRunUpsertOne) SetError(v string) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateError() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *PipelineRunUpsertOne) ClearError() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *PipelineRunUpsertOne) SetCheckpointData(v map[string]interface{}) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetCheckpointData(v)
+	})
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateCheckpointData() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateCheckpointData()
+	})
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *PipelineRunUpsertOne) ClearCheckpointData() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearCheckpointData()
+	})
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *PipelineRunUpsertOne) SetLastHeartbeat(v time.Time) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetLastHeartbeat(v)
+	})
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateLastHeartbeat() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateLastHeartbeat()
+	})
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *PipelineRunUpsertOne) ClearLastHeartbeat() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearLastHeartbeat()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *PipelineRunUpsertOne) SetStartedAt(v time.Time) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateStartedAt() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *PipelineRunUpsertOne) SetCompletedAt(v time.Time) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateCompletedAt() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *PipelineRunUpsertOne) ClearCompletedAt() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PipelineRunUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PipelineRunCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PipelineRunUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PipelineRunUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PipelineRunUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PipelineRunCreateBulk is the builder for creating many PipelineRun entities in bulk.
 type PipelineRunCreateBulk struct {
 	config
 	err      error
 	builders []*PipelineRunCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PipelineRun entities in the database.
@@ -326,6 +762,7 @@ func (_c *PipelineRunCreateBulk) Save(ctx context.Context) ([]*PipelineRun, erro
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -376,6 +813,284 @@ func (_c *PipelineRunCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PipelineRunCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PipelineRun.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PipelineRunUpsert) {
+//			SetPipelineName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PipelineRunCreateBulk) OnConflict(opts ...sql.ConflictOption) *PipelineRunUpsertBulk {
+	_c.conflict = opts
+	return &PipelineRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PipelineRunCreateBulk) OnConflictColumns(columns ...string) *PipelineRunUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PipelineRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// PipelineRunUpsertBulk is the builder for "upsert"-ing
+// a bulk of PipelineRun nodes.
+type PipelineRunUpsertBulk struct {
+	create *PipelineRunCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pipelinerun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PipelineRunUpsertBulk) UpdateNewValues() *PipelineRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(pipelinerun.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(pipelinerun.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PipelineRun.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PipelineRunUpsertBulk) Ignore() *PipelineRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PipelineRunUpsertBulk) DoNothing() *PipelineRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PipelineRunCreateBulk.OnConflict
+// documentation for more info.
+func (u *PipelineRunUpsertBulk) Update(set func(*PipelineRunUpsert)) *PipelineRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PipelineRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *PipelineRunUpsertBulk) SetPipelineName(v string) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetPipelineName(v)
+	})
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdatePipelineName() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdatePipelineName()
+	})
+}
+
+// SetEventID sets the "event_id" field.
+func (u *PipelineRunUpsertBulk) SetEventID(v string) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateEventID() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *PipelineRunUpsertBulk) SetEventType(v string) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateEventType() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineRunUpsertBulk) SetStatus(v int) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *PipelineRunUpsertBulk) AddStatus(v int) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateStatus() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *PipelineRunUpsertBulk) SetError(v string) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateError() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *PipelineRunUpsertBulk) ClearError() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *PipelineRunUpsertBulk) SetCheckpointData(v map[string]interface{}) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetCheckpointData(v)
+	})
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateCheckpointData() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateCheckpointData()
+	})
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *PipelineRunUpsertBulk) ClearCheckpointData() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearCheckpointData()
+	})
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *PipelineRunUpsertBulk) SetLastHeartbeat(v time.Time) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetLastHeartbeat(v)
+	})
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateLastHeartbeat() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateLastHeartbeat()
+	})
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *PipelineRunUpsertBulk) ClearLastHeartbeat() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearLastHeartbeat()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *PipelineRunUpsertBulk) SetStartedAt(v time.Time) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateStartedAt() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *PipelineRunUpsertBulk) SetCompletedAt(v time.Time) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateCompletedAt() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *PipelineRunUpsertBulk) ClearCompletedAt() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PipelineRunUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the PipelineRunCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PipelineRunCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PipelineRunUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

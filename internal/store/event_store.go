@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/model"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -367,4 +368,30 @@ func (s *PipelineStore) GetRun(ctx context.Context, runID int64) (*model.Pipelin
 		CompletedAt:    run.CompletedAt,
 		CreatedAt:      run.CreatedAt,
 	}, nil
+}
+
+// RecordResourceLink inserts a resource link with UPSERT semantics.
+func (s *PipelineStore) RecordResourceLink(ctx context.Context, link model.ResourceLink) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	err := s.client.ResourceLink.Create().
+		SetSourceEventID(link.SourceEventID).
+		SetTargetEventID(link.TargetEventID).
+		SetSourceApp(link.SourceApp).
+		SetTargetApp(link.TargetApp).
+		SetSourceCapability(link.SourceCapability).
+		SetTargetCapability(link.TargetCapability).
+		SetSourceEntityID(link.SourceEntityID).
+		SetTargetEntityID(link.TargetEntityID).
+		SetPipelineRunID(link.PipelineRunID).
+		SetPipelineName(link.PipelineName).
+		SetCreatedAt(time.Now()).
+		OnConflictColumns(
+			resourcelink.FieldSourceEventID,
+			resourcelink.FieldTargetEventID,
+		).
+		Ignore().
+		Exec(ctx)
+	return err
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/flowjob"
@@ -18,6 +19,7 @@ type FlowJobCreate struct {
 	config
 	mutation *FlowJobMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetFlowID sets the "flow_id" field.
@@ -314,6 +316,7 @@ func (_c *FlowJobCreate) createSpec() (*FlowJob, *sqlgraph.CreateSpec) {
 		_node = &FlowJob{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(flowjob.Table, sqlgraph.NewFieldSpec(flowjob.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -381,11 +384,613 @@ func (_c *FlowJobCreate) createSpec() (*FlowJob, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FlowJob.Create().
+//		SetFlowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowJobUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowJobCreate) OnConflict(opts ...sql.ConflictOption) *FlowJobUpsertOne {
+	_c.conflict = opts
+	return &FlowJobUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowJobCreate) OnConflictColumns(columns ...string) *FlowJobUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowJobUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FlowJobUpsertOne is the builder for "upsert"-ing
+	//  one FlowJob node.
+	FlowJobUpsertOne struct {
+		create *FlowJobCreate
+	}
+
+	// FlowJobUpsert is the "OnConflict" setter.
+	FlowJobUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowJobUpsert) SetFlowID(v int64) *FlowJobUpsert {
+	u.Set(flowjob.FieldFlowID, v)
+	return u
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateFlowID() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldFlowID)
+	return u
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowJobUpsert) AddFlowID(v int64) *FlowJobUpsert {
+	u.Add(flowjob.FieldFlowID, v)
+	return u
+}
+
+// SetExecutionID sets the "execution_id" field.
+func (u *FlowJobUpsert) SetExecutionID(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldExecutionID, v)
+	return u
+}
+
+// UpdateExecutionID sets the "execution_id" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateExecutionID() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldExecutionID)
+	return u
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *FlowJobUpsert) SetNodeID(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldNodeID, v)
+	return u
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateNodeID() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldNodeID)
+	return u
+}
+
+// SetNodeType sets the "node_type" field.
+func (u *FlowJobUpsert) SetNodeType(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldNodeType, v)
+	return u
+}
+
+// UpdateNodeType sets the "node_type" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateNodeType() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldNodeType)
+	return u
+}
+
+// SetBot sets the "bot" field.
+func (u *FlowJobUpsert) SetBot(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldBot, v)
+	return u
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateBot() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldBot)
+	return u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FlowJobUpsert) SetRuleID(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldRuleID, v)
+	return u
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateRuleID() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldRuleID)
+	return u
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *FlowJobUpsert) SetAttempt(v int) *FlowJobUpsert {
+	u.Set(flowjob.FieldAttempt, v)
+	return u
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateAttempt() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldAttempt)
+	return u
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *FlowJobUpsert) AddAttempt(v int) *FlowJobUpsert {
+	u.Add(flowjob.FieldAttempt, v)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *FlowJobUpsert) SetState(v int) *FlowJobUpsert {
+	u.Set(flowjob.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateState() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowJobUpsert) AddState(v int) *FlowJobUpsert {
+	u.Add(flowjob.FieldState, v)
+	return u
+}
+
+// SetParams sets the "params" field.
+func (u *FlowJobUpsert) SetParams(v map[string]interface{}) *FlowJobUpsert {
+	u.Set(flowjob.FieldParams, v)
+	return u
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateParams() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldParams)
+	return u
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *FlowJobUpsert) ClearParams() *FlowJobUpsert {
+	u.SetNull(flowjob.FieldParams)
+	return u
+}
+
+// SetResult sets the "result" field.
+func (u *FlowJobUpsert) SetResult(v map[string]interface{}) *FlowJobUpsert {
+	u.Set(flowjob.FieldResult, v)
+	return u
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateResult() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldResult)
+	return u
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *FlowJobUpsert) ClearResult() *FlowJobUpsert {
+	u.SetNull(flowjob.FieldResult)
+	return u
+}
+
+// SetError sets the "error" field.
+func (u *FlowJobUpsert) SetError(v string) *FlowJobUpsert {
+	u.Set(flowjob.FieldError, v)
+	return u
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateError() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldError)
+	return u
+}
+
+// ClearError clears the value of the "error" field.
+func (u *FlowJobUpsert) ClearError() *FlowJobUpsert {
+	u.SetNull(flowjob.FieldError)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *FlowJobUpsert) SetStartedAt(v time.Time) *FlowJobUpsert {
+	u.Set(flowjob.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateStartedAt() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *FlowJobUpsert) ClearStartedAt() *FlowJobUpsert {
+	u.SetNull(flowjob.FieldStartedAt)
+	return u
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (u *FlowJobUpsert) SetFinishedAt(v time.Time) *FlowJobUpsert {
+	u.Set(flowjob.FieldFinishedAt, v)
+	return u
+}
+
+// UpdateFinishedAt sets the "finished_at" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateFinishedAt() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldFinishedAt)
+	return u
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (u *FlowJobUpsert) ClearFinishedAt() *FlowJobUpsert {
+	u.SetNull(flowjob.FieldFinishedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowJobUpsert) SetUpdatedAt(v time.Time) *FlowJobUpsert {
+	u.Set(flowjob.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowJobUpsert) UpdateUpdatedAt() *FlowJobUpsert {
+	u.SetExcluded(flowjob.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flowjob.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowJobUpsertOne) UpdateNewValues() *FlowJobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(flowjob.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(flowjob.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FlowJobUpsertOne) Ignore() *FlowJobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowJobUpsertOne) DoNothing() *FlowJobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowJobCreate.OnConflict
+// documentation for more info.
+func (u *FlowJobUpsertOne) Update(set func(*FlowJobUpsert)) *FlowJobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowJobUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowJobUpsertOne) SetFlowID(v int64) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowJobUpsertOne) AddFlowID(v int64) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateFlowID() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// SetExecutionID sets the "execution_id" field.
+func (u *FlowJobUpsertOne) SetExecutionID(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetExecutionID(v)
+	})
+}
+
+// UpdateExecutionID sets the "execution_id" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateExecutionID() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateExecutionID()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *FlowJobUpsertOne) SetNodeID(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateNodeID() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// SetNodeType sets the "node_type" field.
+func (u *FlowJobUpsertOne) SetNodeType(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetNodeType(v)
+	})
+}
+
+// UpdateNodeType sets the "node_type" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateNodeType() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateNodeType()
+	})
+}
+
+// SetBot sets the "bot" field.
+func (u *FlowJobUpsertOne) SetBot(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetBot(v)
+	})
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateBot() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateBot()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FlowJobUpsertOne) SetRuleID(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateRuleID() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *FlowJobUpsertOne) SetAttempt(v int) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetAttempt(v)
+	})
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *FlowJobUpsertOne) AddAttempt(v int) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddAttempt(v)
+	})
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateAttempt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateAttempt()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FlowJobUpsertOne) SetState(v int) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowJobUpsertOne) AddState(v int) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateState() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetParams sets the "params" field.
+func (u *FlowJobUpsertOne) SetParams(v map[string]interface{}) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetParams(v)
+	})
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateParams() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateParams()
+	})
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *FlowJobUpsertOne) ClearParams() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearParams()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *FlowJobUpsertOne) SetResult(v map[string]interface{}) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateResult() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *FlowJobUpsertOne) ClearResult() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearResult()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *FlowJobUpsertOne) SetError(v string) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateError() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *FlowJobUpsertOne) ClearError() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *FlowJobUpsertOne) SetStartedAt(v time.Time) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateStartedAt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *FlowJobUpsertOne) ClearStartedAt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (u *FlowJobUpsertOne) SetFinishedAt(v time.Time) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetFinishedAt(v)
+	})
+}
+
+// UpdateFinishedAt sets the "finished_at" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateFinishedAt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateFinishedAt()
+	})
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (u *FlowJobUpsertOne) ClearFinishedAt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearFinishedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowJobUpsertOne) SetUpdatedAt(v time.Time) *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowJobUpsertOne) UpdateUpdatedAt() *FlowJobUpsertOne {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowJobUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowJobCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowJobUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FlowJobUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FlowJobUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FlowJobCreateBulk is the builder for creating many FlowJob entities in bulk.
 type FlowJobCreateBulk struct {
 	config
 	err      error
 	builders []*FlowJobCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FlowJob entities in the database.
@@ -415,6 +1020,7 @@ func (_c *FlowJobCreateBulk) Save(ctx context.Context) ([]*FlowJob, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -465,6 +1071,375 @@ func (_c *FlowJobCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FlowJobCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FlowJob.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowJobUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowJobCreateBulk) OnConflict(opts ...sql.ConflictOption) *FlowJobUpsertBulk {
+	_c.conflict = opts
+	return &FlowJobUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowJobCreateBulk) OnConflictColumns(columns ...string) *FlowJobUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowJobUpsertBulk{
+		create: _c,
+	}
+}
+
+// FlowJobUpsertBulk is the builder for "upsert"-ing
+// a bulk of FlowJob nodes.
+type FlowJobUpsertBulk struct {
+	create *FlowJobCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flowjob.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowJobUpsertBulk) UpdateNewValues() *FlowJobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(flowjob.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(flowjob.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FlowJob.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FlowJobUpsertBulk) Ignore() *FlowJobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowJobUpsertBulk) DoNothing() *FlowJobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowJobCreateBulk.OnConflict
+// documentation for more info.
+func (u *FlowJobUpsertBulk) Update(set func(*FlowJobUpsert)) *FlowJobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowJobUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowJobUpsertBulk) SetFlowID(v int64) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowJobUpsertBulk) AddFlowID(v int64) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateFlowID() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// SetExecutionID sets the "execution_id" field.
+func (u *FlowJobUpsertBulk) SetExecutionID(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetExecutionID(v)
+	})
+}
+
+// UpdateExecutionID sets the "execution_id" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateExecutionID() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateExecutionID()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *FlowJobUpsertBulk) SetNodeID(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateNodeID() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// SetNodeType sets the "node_type" field.
+func (u *FlowJobUpsertBulk) SetNodeType(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetNodeType(v)
+	})
+}
+
+// UpdateNodeType sets the "node_type" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateNodeType() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateNodeType()
+	})
+}
+
+// SetBot sets the "bot" field.
+func (u *FlowJobUpsertBulk) SetBot(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetBot(v)
+	})
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateBot() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateBot()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FlowJobUpsertBulk) SetRuleID(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateRuleID() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *FlowJobUpsertBulk) SetAttempt(v int) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetAttempt(v)
+	})
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *FlowJobUpsertBulk) AddAttempt(v int) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddAttempt(v)
+	})
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateAttempt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateAttempt()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FlowJobUpsertBulk) SetState(v int) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowJobUpsertBulk) AddState(v int) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateState() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetParams sets the "params" field.
+func (u *FlowJobUpsertBulk) SetParams(v map[string]interface{}) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetParams(v)
+	})
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateParams() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateParams()
+	})
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *FlowJobUpsertBulk) ClearParams() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearParams()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *FlowJobUpsertBulk) SetResult(v map[string]interface{}) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateResult() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *FlowJobUpsertBulk) ClearResult() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearResult()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *FlowJobUpsertBulk) SetError(v string) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateError() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *FlowJobUpsertBulk) ClearError() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *FlowJobUpsertBulk) SetStartedAt(v time.Time) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateStartedAt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *FlowJobUpsertBulk) ClearStartedAt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (u *FlowJobUpsertBulk) SetFinishedAt(v time.Time) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetFinishedAt(v)
+	})
+}
+
+// UpdateFinishedAt sets the "finished_at" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateFinishedAt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateFinishedAt()
+	})
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (u *FlowJobUpsertBulk) ClearFinishedAt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.ClearFinishedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowJobUpsertBulk) SetUpdatedAt(v time.Time) *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowJobUpsertBulk) UpdateUpdatedAt() *FlowJobUpsertBulk {
+	return u.Update(func(s *FlowJobUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowJobUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the FlowJobCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowJobCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowJobUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

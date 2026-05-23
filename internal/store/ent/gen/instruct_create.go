@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
@@ -18,6 +19,7 @@ type InstructCreate struct {
 	config
 	mutation *InstructMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetNo sets the "no" field.
@@ -265,6 +267,7 @@ func (_c *InstructCreate) createSpec() (*Instruct, *sqlgraph.CreateSpec) {
 		_node = &Instruct{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(instruct.Table, sqlgraph.NewFieldSpec(instruct.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -316,11 +319,431 @@ func (_c *InstructCreate) createSpec() (*Instruct, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Instruct.Create().
+//		SetNo(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.InstructUpsert) {
+//			SetNo(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *InstructCreate) OnConflict(opts ...sql.ConflictOption) *InstructUpsertOne {
+	_c.conflict = opts
+	return &InstructUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *InstructCreate) OnConflictColumns(columns ...string) *InstructUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &InstructUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// InstructUpsertOne is the builder for "upsert"-ing
+	//  one Instruct node.
+	InstructUpsertOne struct {
+		create *InstructCreate
+	}
+
+	// InstructUpsert is the "OnConflict" setter.
+	InstructUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetNo sets the "no" field.
+func (u *InstructUpsert) SetNo(v string) *InstructUpsert {
+	u.Set(instruct.FieldNo, v)
+	return u
+}
+
+// UpdateNo sets the "no" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateNo() *InstructUpsert {
+	u.SetExcluded(instruct.FieldNo)
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *InstructUpsert) SetUID(v string) *InstructUpsert {
+	u.Set(instruct.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateUID() *InstructUpsert {
+	u.SetExcluded(instruct.FieldUID)
+	return u
+}
+
+// SetObject sets the "object" field.
+func (u *InstructUpsert) SetObject(v string) *InstructUpsert {
+	u.Set(instruct.FieldObject, v)
+	return u
+}
+
+// UpdateObject sets the "object" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateObject() *InstructUpsert {
+	u.SetExcluded(instruct.FieldObject)
+	return u
+}
+
+// SetBot sets the "bot" field.
+func (u *InstructUpsert) SetBot(v string) *InstructUpsert {
+	u.Set(instruct.FieldBot, v)
+	return u
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateBot() *InstructUpsert {
+	u.SetExcluded(instruct.FieldBot)
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *InstructUpsert) SetFlag(v string) *InstructUpsert {
+	u.Set(instruct.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateFlag() *InstructUpsert {
+	u.SetExcluded(instruct.FieldFlag)
+	return u
+}
+
+// SetContent sets the "content" field.
+func (u *InstructUpsert) SetContent(v map[string]interface{}) *InstructUpsert {
+	u.Set(instruct.FieldContent, v)
+	return u
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateContent() *InstructUpsert {
+	u.SetExcluded(instruct.FieldContent)
+	return u
+}
+
+// SetPriority sets the "priority" field.
+func (u *InstructUpsert) SetPriority(v int) *InstructUpsert {
+	u.Set(instruct.FieldPriority, v)
+	return u
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *InstructUpsert) UpdatePriority() *InstructUpsert {
+	u.SetExcluded(instruct.FieldPriority)
+	return u
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *InstructUpsert) AddPriority(v int) *InstructUpsert {
+	u.Add(instruct.FieldPriority, v)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *InstructUpsert) SetState(v int) *InstructUpsert {
+	u.Set(instruct.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateState() *InstructUpsert {
+	u.SetExcluded(instruct.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *InstructUpsert) AddState(v int) *InstructUpsert {
+	u.Add(instruct.FieldState, v)
+	return u
+}
+
+// SetExpireAt sets the "expire_at" field.
+func (u *InstructUpsert) SetExpireAt(v time.Time) *InstructUpsert {
+	u.Set(instruct.FieldExpireAt, v)
+	return u
+}
+
+// UpdateExpireAt sets the "expire_at" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateExpireAt() *InstructUpsert {
+	u.SetExcluded(instruct.FieldExpireAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *InstructUpsert) SetUpdatedAt(v time.Time) *InstructUpsert {
+	u.Set(instruct.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *InstructUpsert) UpdateUpdatedAt() *InstructUpsert {
+	u.SetExcluded(instruct.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(instruct.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *InstructUpsertOne) UpdateNewValues() *InstructUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(instruct.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(instruct.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *InstructUpsertOne) Ignore() *InstructUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *InstructUpsertOne) DoNothing() *InstructUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the InstructCreate.OnConflict
+// documentation for more info.
+func (u *InstructUpsertOne) Update(set func(*InstructUpsert)) *InstructUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&InstructUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNo sets the "no" field.
+func (u *InstructUpsertOne) SetNo(v string) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetNo(v)
+	})
+}
+
+// UpdateNo sets the "no" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateNo() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateNo()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *InstructUpsertOne) SetUID(v string) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateUID() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetObject sets the "object" field.
+func (u *InstructUpsertOne) SetObject(v string) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetObject(v)
+	})
+}
+
+// UpdateObject sets the "object" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateObject() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateObject()
+	})
+}
+
+// SetBot sets the "bot" field.
+func (u *InstructUpsertOne) SetBot(v string) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetBot(v)
+	})
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateBot() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateBot()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *InstructUpsertOne) SetFlag(v string) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateFlag() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetContent sets the "content" field.
+func (u *InstructUpsertOne) SetContent(v map[string]interface{}) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetContent(v)
+	})
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateContent() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateContent()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *InstructUpsertOne) SetPriority(v int) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *InstructUpsertOne) AddPriority(v int) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdatePriority() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *InstructUpsertOne) SetState(v int) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *InstructUpsertOne) AddState(v int) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateState() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetExpireAt sets the "expire_at" field.
+func (u *InstructUpsertOne) SetExpireAt(v time.Time) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetExpireAt(v)
+	})
+}
+
+// UpdateExpireAt sets the "expire_at" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateExpireAt() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateExpireAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *InstructUpsertOne) SetUpdatedAt(v time.Time) *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *InstructUpsertOne) UpdateUpdatedAt() *InstructUpsertOne {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *InstructUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for InstructCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *InstructUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *InstructUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *InstructUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // InstructCreateBulk is the builder for creating many Instruct entities in bulk.
 type InstructCreateBulk struct {
 	config
 	err      error
 	builders []*InstructCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Instruct entities in the database.
@@ -350,6 +773,7 @@ func (_c *InstructCreateBulk) Save(ctx context.Context) ([]*Instruct, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -400,6 +824,277 @@ func (_c *InstructCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *InstructCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Instruct.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.InstructUpsert) {
+//			SetNo(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *InstructCreateBulk) OnConflict(opts ...sql.ConflictOption) *InstructUpsertBulk {
+	_c.conflict = opts
+	return &InstructUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *InstructCreateBulk) OnConflictColumns(columns ...string) *InstructUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &InstructUpsertBulk{
+		create: _c,
+	}
+}
+
+// InstructUpsertBulk is the builder for "upsert"-ing
+// a bulk of Instruct nodes.
+type InstructUpsertBulk struct {
+	create *InstructCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(instruct.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *InstructUpsertBulk) UpdateNewValues() *InstructUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(instruct.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(instruct.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Instruct.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *InstructUpsertBulk) Ignore() *InstructUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *InstructUpsertBulk) DoNothing() *InstructUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the InstructCreateBulk.OnConflict
+// documentation for more info.
+func (u *InstructUpsertBulk) Update(set func(*InstructUpsert)) *InstructUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&InstructUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetNo sets the "no" field.
+func (u *InstructUpsertBulk) SetNo(v string) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetNo(v)
+	})
+}
+
+// UpdateNo sets the "no" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateNo() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateNo()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *InstructUpsertBulk) SetUID(v string) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateUID() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetObject sets the "object" field.
+func (u *InstructUpsertBulk) SetObject(v string) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetObject(v)
+	})
+}
+
+// UpdateObject sets the "object" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateObject() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateObject()
+	})
+}
+
+// SetBot sets the "bot" field.
+func (u *InstructUpsertBulk) SetBot(v string) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetBot(v)
+	})
+}
+
+// UpdateBot sets the "bot" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateBot() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateBot()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *InstructUpsertBulk) SetFlag(v string) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateFlag() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetContent sets the "content" field.
+func (u *InstructUpsertBulk) SetContent(v map[string]interface{}) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetContent(v)
+	})
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateContent() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateContent()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *InstructUpsertBulk) SetPriority(v int) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *InstructUpsertBulk) AddPriority(v int) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdatePriority() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *InstructUpsertBulk) SetState(v int) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *InstructUpsertBulk) AddState(v int) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateState() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetExpireAt sets the "expire_at" field.
+func (u *InstructUpsertBulk) SetExpireAt(v time.Time) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetExpireAt(v)
+	})
+}
+
+// UpdateExpireAt sets the "expire_at" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateExpireAt() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateExpireAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *InstructUpsertBulk) SetUpdatedAt(v time.Time) *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *InstructUpsertBulk) UpdateUpdatedAt() *InstructUpsertBulk {
+	return u.Update(func(s *InstructUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *InstructUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the InstructCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for InstructCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *InstructUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counterrecord"
@@ -18,6 +19,7 @@ type CounterRecordCreate struct {
 	config
 	mutation *CounterRecordMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCounterID sets the "counter_id" field.
@@ -136,6 +138,7 @@ func (_c *CounterRecordCreate) createSpec() (*CounterRecord, *sqlgraph.CreateSpe
 		_node = &CounterRecord{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(counterrecord.Table, sqlgraph.NewFieldSpec(counterrecord.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = _c.conflict
 	if value, ok := _c.mutation.CounterID(); ok {
 		_spec.SetField(counterrecord.FieldCounterID, field.TypeInt64, value)
 		_node.CounterID = value
@@ -151,11 +154,217 @@ func (_c *CounterRecordCreate) createSpec() (*CounterRecord, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CounterRecord.Create().
+//		SetCounterID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CounterRecordUpsert) {
+//			SetCounterID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CounterRecordCreate) OnConflict(opts ...sql.ConflictOption) *CounterRecordUpsertOne {
+	_c.conflict = opts
+	return &CounterRecordUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CounterRecordCreate) OnConflictColumns(columns ...string) *CounterRecordUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CounterRecordUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// CounterRecordUpsertOne is the builder for "upsert"-ing
+	//  one CounterRecord node.
+	CounterRecordUpsertOne struct {
+		create *CounterRecordCreate
+	}
+
+	// CounterRecordUpsert is the "OnConflict" setter.
+	CounterRecordUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCounterID sets the "counter_id" field.
+func (u *CounterRecordUpsert) SetCounterID(v int64) *CounterRecordUpsert {
+	u.Set(counterrecord.FieldCounterID, v)
+	return u
+}
+
+// UpdateCounterID sets the "counter_id" field to the value that was provided on create.
+func (u *CounterRecordUpsert) UpdateCounterID() *CounterRecordUpsert {
+	u.SetExcluded(counterrecord.FieldCounterID)
+	return u
+}
+
+// AddCounterID adds v to the "counter_id" field.
+func (u *CounterRecordUpsert) AddCounterID(v int64) *CounterRecordUpsert {
+	u.Add(counterrecord.FieldCounterID, v)
+	return u
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterRecordUpsert) SetDigit(v int32) *CounterRecordUpsert {
+	u.Set(counterrecord.FieldDigit, v)
+	return u
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterRecordUpsert) UpdateDigit() *CounterRecordUpsert {
+	u.SetExcluded(counterrecord.FieldDigit)
+	return u
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterRecordUpsert) AddDigit(v int32) *CounterRecordUpsert {
+	u.Add(counterrecord.FieldDigit, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *CounterRecordUpsertOne) UpdateNewValues() *CounterRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(counterrecord.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CounterRecordUpsertOne) Ignore() *CounterRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CounterRecordUpsertOne) DoNothing() *CounterRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CounterRecordCreate.OnConflict
+// documentation for more info.
+func (u *CounterRecordUpsertOne) Update(set func(*CounterRecordUpsert)) *CounterRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CounterRecordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCounterID sets the "counter_id" field.
+func (u *CounterRecordUpsertOne) SetCounterID(v int64) *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.SetCounterID(v)
+	})
+}
+
+// AddCounterID adds v to the "counter_id" field.
+func (u *CounterRecordUpsertOne) AddCounterID(v int64) *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.AddCounterID(v)
+	})
+}
+
+// UpdateCounterID sets the "counter_id" field to the value that was provided on create.
+func (u *CounterRecordUpsertOne) UpdateCounterID() *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.UpdateCounterID()
+	})
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterRecordUpsertOne) SetDigit(v int32) *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.SetDigit(v)
+	})
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterRecordUpsertOne) AddDigit(v int32) *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.AddDigit(v)
+	})
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterRecordUpsertOne) UpdateDigit() *CounterRecordUpsertOne {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.UpdateDigit()
+	})
+}
+
+// Exec executes the query.
+func (u *CounterRecordUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CounterRecordCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CounterRecordUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CounterRecordUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CounterRecordUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CounterRecordCreateBulk is the builder for creating many CounterRecord entities in bulk.
 type CounterRecordCreateBulk struct {
 	config
 	err      error
 	builders []*CounterRecordCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the CounterRecord entities in the database.
@@ -185,6 +394,7 @@ func (_c *CounterRecordCreateBulk) Save(ctx context.Context) ([]*CounterRecord, 
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -235,6 +445,159 @@ func (_c *CounterRecordCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *CounterRecordCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CounterRecord.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CounterRecordUpsert) {
+//			SetCounterID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CounterRecordCreateBulk) OnConflict(opts ...sql.ConflictOption) *CounterRecordUpsertBulk {
+	_c.conflict = opts
+	return &CounterRecordUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CounterRecordCreateBulk) OnConflictColumns(columns ...string) *CounterRecordUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CounterRecordUpsertBulk{
+		create: _c,
+	}
+}
+
+// CounterRecordUpsertBulk is the builder for "upsert"-ing
+// a bulk of CounterRecord nodes.
+type CounterRecordUpsertBulk struct {
+	create *CounterRecordCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *CounterRecordUpsertBulk) UpdateNewValues() *CounterRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(counterrecord.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CounterRecord.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CounterRecordUpsertBulk) Ignore() *CounterRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CounterRecordUpsertBulk) DoNothing() *CounterRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CounterRecordCreateBulk.OnConflict
+// documentation for more info.
+func (u *CounterRecordUpsertBulk) Update(set func(*CounterRecordUpsert)) *CounterRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CounterRecordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCounterID sets the "counter_id" field.
+func (u *CounterRecordUpsertBulk) SetCounterID(v int64) *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.SetCounterID(v)
+	})
+}
+
+// AddCounterID adds v to the "counter_id" field.
+func (u *CounterRecordUpsertBulk) AddCounterID(v int64) *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.AddCounterID(v)
+	})
+}
+
+// UpdateCounterID sets the "counter_id" field to the value that was provided on create.
+func (u *CounterRecordUpsertBulk) UpdateCounterID() *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.UpdateCounterID()
+	})
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterRecordUpsertBulk) SetDigit(v int32) *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.SetDigit(v)
+	})
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterRecordUpsertBulk) AddDigit(v int32) *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.AddDigit(v)
+	})
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterRecordUpsertBulk) UpdateDigit() *CounterRecordUpsertBulk {
+	return u.Update(func(s *CounterRecordUpsert) {
+		s.UpdateDigit()
+	})
+}
+
+// Exec executes the query.
+func (u *CounterRecordUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the CounterRecordCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CounterRecordCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CounterRecordUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

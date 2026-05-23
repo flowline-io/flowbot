@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchannel"
@@ -18,6 +19,7 @@ type PlatformChannelCreate struct {
 	config
 	mutation *PlatformChannelMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetPlatformID sets the "platform_id" field.
@@ -179,6 +181,7 @@ func (_c *PlatformChannelCreate) createSpec() (*PlatformChannel, *sqlgraph.Creat
 		_node = &PlatformChannel{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(platformchannel.Table, sqlgraph.NewFieldSpec(platformchannel.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -206,11 +209,275 @@ func (_c *PlatformChannelCreate) createSpec() (*PlatformChannel, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PlatformChannel.Create().
+//		SetPlatformID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PlatformChannelUpsert) {
+//			SetPlatformID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PlatformChannelCreate) OnConflict(opts ...sql.ConflictOption) *PlatformChannelUpsertOne {
+	_c.conflict = opts
+	return &PlatformChannelUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PlatformChannelCreate) OnConflictColumns(columns ...string) *PlatformChannelUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PlatformChannelUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PlatformChannelUpsertOne is the builder for "upsert"-ing
+	//  one PlatformChannel node.
+	PlatformChannelUpsertOne struct {
+		create *PlatformChannelCreate
+	}
+
+	// PlatformChannelUpsert is the "OnConflict" setter.
+	PlatformChannelUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformChannelUpsert) SetPlatformID(v int64) *PlatformChannelUpsert {
+	u.Set(platformchannel.FieldPlatformID, v)
+	return u
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsert) UpdatePlatformID() *PlatformChannelUpsert {
+	u.SetExcluded(platformchannel.FieldPlatformID)
+	return u
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformChannelUpsert) AddPlatformID(v int64) *PlatformChannelUpsert {
+	u.Add(platformchannel.FieldPlatformID, v)
+	return u
+}
+
+// SetChannelID sets the "channel_id" field.
+func (u *PlatformChannelUpsert) SetChannelID(v int64) *PlatformChannelUpsert {
+	u.Set(platformchannel.FieldChannelID, v)
+	return u
+}
+
+// UpdateChannelID sets the "channel_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsert) UpdateChannelID() *PlatformChannelUpsert {
+	u.SetExcluded(platformchannel.FieldChannelID)
+	return u
+}
+
+// AddChannelID adds v to the "channel_id" field.
+func (u *PlatformChannelUpsert) AddChannelID(v int64) *PlatformChannelUpsert {
+	u.Add(platformchannel.FieldChannelID, v)
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformChannelUpsert) SetFlag(v string) *PlatformChannelUpsert {
+	u.Set(platformchannel.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformChannelUpsert) UpdateFlag() *PlatformChannelUpsert {
+	u.SetExcluded(platformchannel.FieldFlag)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformChannelUpsert) SetUpdatedAt(v time.Time) *PlatformChannelUpsert {
+	u.Set(platformchannel.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformChannelUpsert) UpdateUpdatedAt() *PlatformChannelUpsert {
+	u.SetExcluded(platformchannel.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(platformchannel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PlatformChannelUpsertOne) UpdateNewValues() *PlatformChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(platformchannel.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(platformchannel.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PlatformChannelUpsertOne) Ignore() *PlatformChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PlatformChannelUpsertOne) DoNothing() *PlatformChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PlatformChannelCreate.OnConflict
+// documentation for more info.
+func (u *PlatformChannelUpsertOne) Update(set func(*PlatformChannelUpsert)) *PlatformChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PlatformChannelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformChannelUpsertOne) SetPlatformID(v int64) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetPlatformID(v)
+	})
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformChannelUpsertOne) AddPlatformID(v int64) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.AddPlatformID(v)
+	})
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsertOne) UpdatePlatformID() *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdatePlatformID()
+	})
+}
+
+// SetChannelID sets the "channel_id" field.
+func (u *PlatformChannelUpsertOne) SetChannelID(v int64) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetChannelID(v)
+	})
+}
+
+// AddChannelID adds v to the "channel_id" field.
+func (u *PlatformChannelUpsertOne) AddChannelID(v int64) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.AddChannelID(v)
+	})
+}
+
+// UpdateChannelID sets the "channel_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsertOne) UpdateChannelID() *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateChannelID()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformChannelUpsertOne) SetFlag(v string) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformChannelUpsertOne) UpdateFlag() *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformChannelUpsertOne) SetUpdatedAt(v time.Time) *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformChannelUpsertOne) UpdateUpdatedAt() *PlatformChannelUpsertOne {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PlatformChannelUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PlatformChannelCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PlatformChannelUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PlatformChannelUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PlatformChannelUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PlatformChannelCreateBulk is the builder for creating many PlatformChannel entities in bulk.
 type PlatformChannelCreateBulk struct {
 	config
 	err      error
 	builders []*PlatformChannelCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PlatformChannel entities in the database.
@@ -240,6 +507,7 @@ func (_c *PlatformChannelCreateBulk) Save(ctx context.Context) ([]*PlatformChann
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -290,6 +558,193 @@ func (_c *PlatformChannelCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PlatformChannelCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PlatformChannel.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PlatformChannelUpsert) {
+//			SetPlatformID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PlatformChannelCreateBulk) OnConflict(opts ...sql.ConflictOption) *PlatformChannelUpsertBulk {
+	_c.conflict = opts
+	return &PlatformChannelUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PlatformChannelCreateBulk) OnConflictColumns(columns ...string) *PlatformChannelUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PlatformChannelUpsertBulk{
+		create: _c,
+	}
+}
+
+// PlatformChannelUpsertBulk is the builder for "upsert"-ing
+// a bulk of PlatformChannel nodes.
+type PlatformChannelUpsertBulk struct {
+	create *PlatformChannelCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(platformchannel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PlatformChannelUpsertBulk) UpdateNewValues() *PlatformChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(platformchannel.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(platformchannel.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PlatformChannel.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PlatformChannelUpsertBulk) Ignore() *PlatformChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PlatformChannelUpsertBulk) DoNothing() *PlatformChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PlatformChannelCreateBulk.OnConflict
+// documentation for more info.
+func (u *PlatformChannelUpsertBulk) Update(set func(*PlatformChannelUpsert)) *PlatformChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PlatformChannelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformChannelUpsertBulk) SetPlatformID(v int64) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetPlatformID(v)
+	})
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformChannelUpsertBulk) AddPlatformID(v int64) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.AddPlatformID(v)
+	})
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsertBulk) UpdatePlatformID() *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdatePlatformID()
+	})
+}
+
+// SetChannelID sets the "channel_id" field.
+func (u *PlatformChannelUpsertBulk) SetChannelID(v int64) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetChannelID(v)
+	})
+}
+
+// AddChannelID adds v to the "channel_id" field.
+func (u *PlatformChannelUpsertBulk) AddChannelID(v int64) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.AddChannelID(v)
+	})
+}
+
+// UpdateChannelID sets the "channel_id" field to the value that was provided on create.
+func (u *PlatformChannelUpsertBulk) UpdateChannelID() *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateChannelID()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformChannelUpsertBulk) SetFlag(v string) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformChannelUpsertBulk) UpdateFlag() *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformChannelUpsertBulk) SetUpdatedAt(v time.Time) *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformChannelUpsertBulk) UpdateUpdatedAt() *PlatformChannelUpsertBulk {
+	return u.Update(func(s *PlatformChannelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PlatformChannelUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the PlatformChannelCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PlatformChannelCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PlatformChannelUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

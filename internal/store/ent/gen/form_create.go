@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
@@ -18,6 +19,7 @@ type FormCreate struct {
 	config
 	mutation *FormMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetFormID sets the "form_id" field.
@@ -219,6 +221,7 @@ func (_c *FormCreate) createSpec() (*Form, *sqlgraph.CreateSpec) {
 		_node = &Form{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(form.Table, sqlgraph.NewFieldSpec(form.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -262,11 +265,392 @@ func (_c *FormCreate) createSpec() (*Form, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Form.Create().
+//		SetFormID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FormUpsert) {
+//			SetFormID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FormCreate) OnConflict(opts ...sql.ConflictOption) *FormUpsertOne {
+	_c.conflict = opts
+	return &FormUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FormCreate) OnConflictColumns(columns ...string) *FormUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FormUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FormUpsertOne is the builder for "upsert"-ing
+	//  one Form node.
+	FormUpsertOne struct {
+		create *FormCreate
+	}
+
+	// FormUpsert is the "OnConflict" setter.
+	FormUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetFormID sets the "form_id" field.
+func (u *FormUpsert) SetFormID(v string) *FormUpsert {
+	u.Set(form.FieldFormID, v)
+	return u
+}
+
+// UpdateFormID sets the "form_id" field to the value that was provided on create.
+func (u *FormUpsert) UpdateFormID() *FormUpsert {
+	u.SetExcluded(form.FieldFormID)
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *FormUpsert) SetUID(v string) *FormUpsert {
+	u.Set(form.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FormUpsert) UpdateUID() *FormUpsert {
+	u.SetExcluded(form.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *FormUpsert) SetTopic(v string) *FormUpsert {
+	u.Set(form.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FormUpsert) UpdateTopic() *FormUpsert {
+	u.SetExcluded(form.FieldTopic)
+	return u
+}
+
+// SetSchema sets the "schema" field.
+func (u *FormUpsert) SetSchema(v map[string]interface{}) *FormUpsert {
+	u.Set(form.FieldSchema, v)
+	return u
+}
+
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *FormUpsert) UpdateSchema() *FormUpsert {
+	u.SetExcluded(form.FieldSchema)
+	return u
+}
+
+// SetValues sets the "values" field.
+func (u *FormUpsert) SetValues(v map[string]interface{}) *FormUpsert {
+	u.Set(form.FieldValues, v)
+	return u
+}
+
+// UpdateValues sets the "values" field to the value that was provided on create.
+func (u *FormUpsert) UpdateValues() *FormUpsert {
+	u.SetExcluded(form.FieldValues)
+	return u
+}
+
+// ClearValues clears the value of the "values" field.
+func (u *FormUpsert) ClearValues() *FormUpsert {
+	u.SetNull(form.FieldValues)
+	return u
+}
+
+// SetExtra sets the "extra" field.
+func (u *FormUpsert) SetExtra(v map[string]interface{}) *FormUpsert {
+	u.Set(form.FieldExtra, v)
+	return u
+}
+
+// UpdateExtra sets the "extra" field to the value that was provided on create.
+func (u *FormUpsert) UpdateExtra() *FormUpsert {
+	u.SetExcluded(form.FieldExtra)
+	return u
+}
+
+// ClearExtra clears the value of the "extra" field.
+func (u *FormUpsert) ClearExtra() *FormUpsert {
+	u.SetNull(form.FieldExtra)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *FormUpsert) SetState(v int) *FormUpsert {
+	u.Set(form.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FormUpsert) UpdateState() *FormUpsert {
+	u.SetExcluded(form.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *FormUpsert) AddState(v int) *FormUpsert {
+	u.Add(form.FieldState, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FormUpsert) SetUpdatedAt(v time.Time) *FormUpsert {
+	u.Set(form.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FormUpsert) UpdateUpdatedAt() *FormUpsert {
+	u.SetExcluded(form.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(form.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FormUpsertOne) UpdateNewValues() *FormUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(form.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(form.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FormUpsertOne) Ignore() *FormUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FormUpsertOne) DoNothing() *FormUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FormCreate.OnConflict
+// documentation for more info.
+func (u *FormUpsertOne) Update(set func(*FormUpsert)) *FormUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FormUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFormID sets the "form_id" field.
+func (u *FormUpsertOne) SetFormID(v string) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetFormID(v)
+	})
+}
+
+// UpdateFormID sets the "form_id" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateFormID() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateFormID()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *FormUpsertOne) SetUID(v string) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateUID() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *FormUpsertOne) SetTopic(v string) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateTopic() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetSchema sets the "schema" field.
+func (u *FormUpsertOne) SetSchema(v map[string]interface{}) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetSchema(v)
+	})
+}
+
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateSchema() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateSchema()
+	})
+}
+
+// SetValues sets the "values" field.
+func (u *FormUpsertOne) SetValues(v map[string]interface{}) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetValues(v)
+	})
+}
+
+// UpdateValues sets the "values" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateValues() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateValues()
+	})
+}
+
+// ClearValues clears the value of the "values" field.
+func (u *FormUpsertOne) ClearValues() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.ClearValues()
+	})
+}
+
+// SetExtra sets the "extra" field.
+func (u *FormUpsertOne) SetExtra(v map[string]interface{}) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetExtra(v)
+	})
+}
+
+// UpdateExtra sets the "extra" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateExtra() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateExtra()
+	})
+}
+
+// ClearExtra clears the value of the "extra" field.
+func (u *FormUpsertOne) ClearExtra() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.ClearExtra()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FormUpsertOne) SetState(v int) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FormUpsertOne) AddState(v int) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateState() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FormUpsertOne) SetUpdatedAt(v time.Time) *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FormUpsertOne) UpdateUpdatedAt() *FormUpsertOne {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FormUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FormCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FormUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FormUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FormUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FormCreateBulk is the builder for creating many Form entities in bulk.
 type FormCreateBulk struct {
 	config
 	err      error
 	builders []*FormCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Form entities in the database.
@@ -296,6 +680,7 @@ func (_c *FormCreateBulk) Save(ctx context.Context) ([]*Form, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -346,6 +731,256 @@ func (_c *FormCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FormCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Form.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FormUpsert) {
+//			SetFormID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FormCreateBulk) OnConflict(opts ...sql.ConflictOption) *FormUpsertBulk {
+	_c.conflict = opts
+	return &FormUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FormCreateBulk) OnConflictColumns(columns ...string) *FormUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FormUpsertBulk{
+		create: _c,
+	}
+}
+
+// FormUpsertBulk is the builder for "upsert"-ing
+// a bulk of Form nodes.
+type FormUpsertBulk struct {
+	create *FormCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(form.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FormUpsertBulk) UpdateNewValues() *FormUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(form.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(form.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Form.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FormUpsertBulk) Ignore() *FormUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FormUpsertBulk) DoNothing() *FormUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FormCreateBulk.OnConflict
+// documentation for more info.
+func (u *FormUpsertBulk) Update(set func(*FormUpsert)) *FormUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FormUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFormID sets the "form_id" field.
+func (u *FormUpsertBulk) SetFormID(v string) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetFormID(v)
+	})
+}
+
+// UpdateFormID sets the "form_id" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateFormID() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateFormID()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *FormUpsertBulk) SetUID(v string) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateUID() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *FormUpsertBulk) SetTopic(v string) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateTopic() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetSchema sets the "schema" field.
+func (u *FormUpsertBulk) SetSchema(v map[string]interface{}) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetSchema(v)
+	})
+}
+
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateSchema() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateSchema()
+	})
+}
+
+// SetValues sets the "values" field.
+func (u *FormUpsertBulk) SetValues(v map[string]interface{}) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetValues(v)
+	})
+}
+
+// UpdateValues sets the "values" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateValues() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateValues()
+	})
+}
+
+// ClearValues clears the value of the "values" field.
+func (u *FormUpsertBulk) ClearValues() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.ClearValues()
+	})
+}
+
+// SetExtra sets the "extra" field.
+func (u *FormUpsertBulk) SetExtra(v map[string]interface{}) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetExtra(v)
+	})
+}
+
+// UpdateExtra sets the "extra" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateExtra() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateExtra()
+	})
+}
+
+// ClearExtra clears the value of the "extra" field.
+func (u *FormUpsertBulk) ClearExtra() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.ClearExtra()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FormUpsertBulk) SetState(v int) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FormUpsertBulk) AddState(v int) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateState() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FormUpsertBulk) SetUpdatedAt(v time.Time) *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FormUpsertBulk) UpdateUpdatedAt() *FormUpsertBulk {
+	return u.Update(func(s *FormUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FormUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the FormCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FormCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FormUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

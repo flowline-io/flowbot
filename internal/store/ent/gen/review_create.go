@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/objective"
@@ -20,6 +21,7 @@ type ReviewCreate struct {
 	config
 	mutation *ReviewMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -241,6 +243,7 @@ func (_c *ReviewCreate) createSpec() (*Review, *sqlgraph.CreateSpec) {
 		_node = &Review{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(review.Table, sqlgraph.NewFieldSpec(review.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -305,11 +308,340 @@ func (_c *ReviewCreate) createSpec() (*Review, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Review.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ReviewUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ReviewCreate) OnConflict(opts ...sql.ConflictOption) *ReviewUpsertOne {
+	_c.conflict = opts
+	return &ReviewUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ReviewCreate) OnConflictColumns(columns ...string) *ReviewUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ReviewUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ReviewUpsertOne is the builder for "upsert"-ing
+	//  one Review node.
+	ReviewUpsertOne struct {
+		create *ReviewCreate
+	}
+
+	// ReviewUpsert is the "OnConflict" setter.
+	ReviewUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *ReviewUpsert) SetUID(v string) *ReviewUpsert {
+	u.Set(review.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateUID() *ReviewUpsert {
+	u.SetExcluded(review.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *ReviewUpsert) SetTopic(v string) *ReviewUpsert {
+	u.Set(review.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateTopic() *ReviewUpsert {
+	u.SetExcluded(review.FieldTopic)
+	return u
+}
+
+// SetObjectiveID sets the "objective_id" field.
+func (u *ReviewUpsert) SetObjectiveID(v int64) *ReviewUpsert {
+	u.Set(review.FieldObjectiveID, v)
+	return u
+}
+
+// UpdateObjectiveID sets the "objective_id" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateObjectiveID() *ReviewUpsert {
+	u.SetExcluded(review.FieldObjectiveID)
+	return u
+}
+
+// ClearObjectiveID clears the value of the "objective_id" field.
+func (u *ReviewUpsert) ClearObjectiveID() *ReviewUpsert {
+	u.SetNull(review.FieldObjectiveID)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ReviewUpsert) SetType(v int32) *ReviewUpsert {
+	u.Set(review.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateType() *ReviewUpsert {
+	u.SetExcluded(review.FieldType)
+	return u
+}
+
+// AddType adds v to the "type" field.
+func (u *ReviewUpsert) AddType(v int32) *ReviewUpsert {
+	u.Add(review.FieldType, v)
+	return u
+}
+
+// SetRating sets the "rating" field.
+func (u *ReviewUpsert) SetRating(v int32) *ReviewUpsert {
+	u.Set(review.FieldRating, v)
+	return u
+}
+
+// UpdateRating sets the "rating" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateRating() *ReviewUpsert {
+	u.SetExcluded(review.FieldRating)
+	return u
+}
+
+// AddRating adds v to the "rating" field.
+func (u *ReviewUpsert) AddRating(v int32) *ReviewUpsert {
+	u.Add(review.FieldRating, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ReviewUpsert) SetUpdatedAt(v time.Time) *ReviewUpsert {
+	u.Set(review.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ReviewUpsert) UpdateUpdatedAt() *ReviewUpsert {
+	u.SetExcluded(review.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(review.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ReviewUpsertOne) UpdateNewValues() *ReviewUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(review.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(review.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ReviewUpsertOne) Ignore() *ReviewUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ReviewUpsertOne) DoNothing() *ReviewUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ReviewCreate.OnConflict
+// documentation for more info.
+func (u *ReviewUpsertOne) Update(set func(*ReviewUpsert)) *ReviewUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ReviewUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ReviewUpsertOne) SetUID(v string) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateUID() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ReviewUpsertOne) SetTopic(v string) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateTopic() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetObjectiveID sets the "objective_id" field.
+func (u *ReviewUpsertOne) SetObjectiveID(v int64) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetObjectiveID(v)
+	})
+}
+
+// UpdateObjectiveID sets the "objective_id" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateObjectiveID() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateObjectiveID()
+	})
+}
+
+// ClearObjectiveID clears the value of the "objective_id" field.
+func (u *ReviewUpsertOne) ClearObjectiveID() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.ClearObjectiveID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *ReviewUpsertOne) SetType(v int32) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetType(v)
+	})
+}
+
+// AddType adds v to the "type" field.
+func (u *ReviewUpsertOne) AddType(v int32) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.AddType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateType() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetRating sets the "rating" field.
+func (u *ReviewUpsertOne) SetRating(v int32) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetRating(v)
+	})
+}
+
+// AddRating adds v to the "rating" field.
+func (u *ReviewUpsertOne) AddRating(v int32) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.AddRating(v)
+	})
+}
+
+// UpdateRating sets the "rating" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateRating() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateRating()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ReviewUpsertOne) SetUpdatedAt(v time.Time) *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ReviewUpsertOne) UpdateUpdatedAt() *ReviewUpsertOne {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ReviewUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ReviewCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ReviewUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ReviewUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ReviewUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ReviewCreateBulk is the builder for creating many Review entities in bulk.
 type ReviewCreateBulk struct {
 	config
 	err      error
 	builders []*ReviewCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Review entities in the database.
@@ -339,6 +671,7 @@ func (_c *ReviewCreateBulk) Save(ctx context.Context) ([]*Review, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -389,6 +722,228 @@ func (_c *ReviewCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ReviewCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Review.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ReviewUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ReviewCreateBulk) OnConflict(opts ...sql.ConflictOption) *ReviewUpsertBulk {
+	_c.conflict = opts
+	return &ReviewUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ReviewCreateBulk) OnConflictColumns(columns ...string) *ReviewUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ReviewUpsertBulk{
+		create: _c,
+	}
+}
+
+// ReviewUpsertBulk is the builder for "upsert"-ing
+// a bulk of Review nodes.
+type ReviewUpsertBulk struct {
+	create *ReviewCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(review.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ReviewUpsertBulk) UpdateNewValues() *ReviewUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(review.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(review.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Review.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ReviewUpsertBulk) Ignore() *ReviewUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ReviewUpsertBulk) DoNothing() *ReviewUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ReviewCreateBulk.OnConflict
+// documentation for more info.
+func (u *ReviewUpsertBulk) Update(set func(*ReviewUpsert)) *ReviewUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ReviewUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ReviewUpsertBulk) SetUID(v string) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateUID() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ReviewUpsertBulk) SetTopic(v string) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateTopic() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetObjectiveID sets the "objective_id" field.
+func (u *ReviewUpsertBulk) SetObjectiveID(v int64) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetObjectiveID(v)
+	})
+}
+
+// UpdateObjectiveID sets the "objective_id" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateObjectiveID() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateObjectiveID()
+	})
+}
+
+// ClearObjectiveID clears the value of the "objective_id" field.
+func (u *ReviewUpsertBulk) ClearObjectiveID() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.ClearObjectiveID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *ReviewUpsertBulk) SetType(v int32) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetType(v)
+	})
+}
+
+// AddType adds v to the "type" field.
+func (u *ReviewUpsertBulk) AddType(v int32) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.AddType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateType() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetRating sets the "rating" field.
+func (u *ReviewUpsertBulk) SetRating(v int32) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetRating(v)
+	})
+}
+
+// AddRating adds v to the "rating" field.
+func (u *ReviewUpsertBulk) AddRating(v int32) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.AddRating(v)
+	})
+}
+
+// UpdateRating sets the "rating" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateRating() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateRating()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ReviewUpsertBulk) SetUpdatedAt(v time.Time) *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ReviewUpsertBulk) UpdateUpdatedAt() *ReviewUpsertBulk {
+	return u.Update(func(s *ReviewUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ReviewUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the ReviewCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ReviewCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ReviewUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

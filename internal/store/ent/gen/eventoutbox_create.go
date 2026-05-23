@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
@@ -18,6 +19,7 @@ type EventOutboxCreate struct {
 	config
 	mutation *EventOutboxMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetEventID sets the "event_id" field.
@@ -158,6 +160,7 @@ func (_c *EventOutboxCreate) createSpec() (*EventOutbox, *sqlgraph.CreateSpec) {
 		_node = &EventOutbox{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(eventoutbox.Table, sqlgraph.NewFieldSpec(eventoutbox.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -181,11 +184,223 @@ func (_c *EventOutboxCreate) createSpec() (*EventOutbox, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EventOutbox.Create().
+//		SetEventID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EventOutboxUpsert) {
+//			SetEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EventOutboxCreate) OnConflict(opts ...sql.ConflictOption) *EventOutboxUpsertOne {
+	_c.conflict = opts
+	return &EventOutboxUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EventOutboxCreate) OnConflictColumns(columns ...string) *EventOutboxUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EventOutboxUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EventOutboxUpsertOne is the builder for "upsert"-ing
+	//  one EventOutbox node.
+	EventOutboxUpsertOne struct {
+		create *EventOutboxCreate
+	}
+
+	// EventOutboxUpsert is the "OnConflict" setter.
+	EventOutboxUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetEventID sets the "event_id" field.
+func (u *EventOutboxUpsert) SetEventID(v string) *EventOutboxUpsert {
+	u.Set(eventoutbox.FieldEventID, v)
+	return u
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventOutboxUpsert) UpdateEventID() *EventOutboxUpsert {
+	u.SetExcluded(eventoutbox.FieldEventID)
+	return u
+}
+
+// SetPayload sets the "payload" field.
+func (u *EventOutboxUpsert) SetPayload(v map[string]interface{}) *EventOutboxUpsert {
+	u.Set(eventoutbox.FieldPayload, v)
+	return u
+}
+
+// UpdatePayload sets the "payload" field to the value that was provided on create.
+func (u *EventOutboxUpsert) UpdatePayload() *EventOutboxUpsert {
+	u.SetExcluded(eventoutbox.FieldPayload)
+	return u
+}
+
+// SetPublished sets the "published" field.
+func (u *EventOutboxUpsert) SetPublished(v bool) *EventOutboxUpsert {
+	u.Set(eventoutbox.FieldPublished, v)
+	return u
+}
+
+// UpdatePublished sets the "published" field to the value that was provided on create.
+func (u *EventOutboxUpsert) UpdatePublished() *EventOutboxUpsert {
+	u.SetExcluded(eventoutbox.FieldPublished)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(eventoutbox.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EventOutboxUpsertOne) UpdateNewValues() *EventOutboxUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(eventoutbox.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(eventoutbox.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EventOutboxUpsertOne) Ignore() *EventOutboxUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EventOutboxUpsertOne) DoNothing() *EventOutboxUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EventOutboxCreate.OnConflict
+// documentation for more info.
+func (u *EventOutboxUpsertOne) Update(set func(*EventOutboxUpsert)) *EventOutboxUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EventOutboxUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *EventOutboxUpsertOne) SetEventID(v string) *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventOutboxUpsertOne) UpdateEventID() *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetPayload sets the "payload" field.
+func (u *EventOutboxUpsertOne) SetPayload(v map[string]interface{}) *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetPayload(v)
+	})
+}
+
+// UpdatePayload sets the "payload" field to the value that was provided on create.
+func (u *EventOutboxUpsertOne) UpdatePayload() *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdatePayload()
+	})
+}
+
+// SetPublished sets the "published" field.
+func (u *EventOutboxUpsertOne) SetPublished(v bool) *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetPublished(v)
+	})
+}
+
+// UpdatePublished sets the "published" field to the value that was provided on create.
+func (u *EventOutboxUpsertOne) UpdatePublished() *EventOutboxUpsertOne {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdatePublished()
+	})
+}
+
+// Exec executes the query.
+func (u *EventOutboxUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for EventOutboxCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EventOutboxUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EventOutboxUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EventOutboxUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EventOutboxCreateBulk is the builder for creating many EventOutbox entities in bulk.
 type EventOutboxCreateBulk struct {
 	config
 	err      error
 	builders []*EventOutboxCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EventOutbox entities in the database.
@@ -215,6 +430,7 @@ func (_c *EventOutboxCreateBulk) Save(ctx context.Context) ([]*EventOutbox, erro
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -265,6 +481,165 @@ func (_c *EventOutboxCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EventOutboxCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EventOutbox.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EventOutboxUpsert) {
+//			SetEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EventOutboxCreateBulk) OnConflict(opts ...sql.ConflictOption) *EventOutboxUpsertBulk {
+	_c.conflict = opts
+	return &EventOutboxUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EventOutboxCreateBulk) OnConflictColumns(columns ...string) *EventOutboxUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EventOutboxUpsertBulk{
+		create: _c,
+	}
+}
+
+// EventOutboxUpsertBulk is the builder for "upsert"-ing
+// a bulk of EventOutbox nodes.
+type EventOutboxUpsertBulk struct {
+	create *EventOutboxCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(eventoutbox.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EventOutboxUpsertBulk) UpdateNewValues() *EventOutboxUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(eventoutbox.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(eventoutbox.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EventOutbox.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EventOutboxUpsertBulk) Ignore() *EventOutboxUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EventOutboxUpsertBulk) DoNothing() *EventOutboxUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EventOutboxCreateBulk.OnConflict
+// documentation for more info.
+func (u *EventOutboxUpsertBulk) Update(set func(*EventOutboxUpsert)) *EventOutboxUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EventOutboxUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *EventOutboxUpsertBulk) SetEventID(v string) *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventOutboxUpsertBulk) UpdateEventID() *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetPayload sets the "payload" field.
+func (u *EventOutboxUpsertBulk) SetPayload(v map[string]interface{}) *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetPayload(v)
+	})
+}
+
+// UpdatePayload sets the "payload" field to the value that was provided on create.
+func (u *EventOutboxUpsertBulk) UpdatePayload() *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdatePayload()
+	})
+}
+
+// SetPublished sets the "published" field.
+func (u *EventOutboxUpsertBulk) SetPublished(v bool) *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.SetPublished(v)
+	})
+}
+
+// UpdatePublished sets the "published" field to the value that was provided on create.
+func (u *EventOutboxUpsertBulk) UpdatePublished() *EventOutboxUpsertBulk {
+	return u.Update(func(s *EventOutboxUpsert) {
+		s.UpdatePublished()
+	})
+}
+
+// Exec executes the query.
+func (u *EventOutboxUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the EventOutboxCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for EventOutboxCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EventOutboxUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

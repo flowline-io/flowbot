@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
@@ -18,6 +19,7 @@ type RateLimitCreate struct {
 	config
 	mutation *RateLimitMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetFlowID sets the "flow_id" field.
@@ -244,6 +246,7 @@ func (_c *RateLimitCreate) createSpec() (*RateLimit, *sqlgraph.CreateSpec) {
 		_node = &RateLimit{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ratelimit.Table, sqlgraph.NewFieldSpec(ratelimit.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -283,11 +286,392 @@ func (_c *RateLimitCreate) createSpec() (*RateLimit, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RateLimit.Create().
+//		SetFlowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RateLimitUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *RateLimitCreate) OnConflict(opts ...sql.ConflictOption) *RateLimitUpsertOne {
+	_c.conflict = opts
+	return &RateLimitUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *RateLimitCreate) OnConflictColumns(columns ...string) *RateLimitUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &RateLimitUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// RateLimitUpsertOne is the builder for "upsert"-ing
+	//  one RateLimit node.
+	RateLimitUpsertOne struct {
+		create *RateLimitCreate
+	}
+
+	// RateLimitUpsert is the "OnConflict" setter.
+	RateLimitUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetFlowID sets the "flow_id" field.
+func (u *RateLimitUpsert) SetFlowID(v int64) *RateLimitUpsert {
+	u.Set(ratelimit.FieldFlowID, v)
+	return u
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateFlowID() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldFlowID)
+	return u
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *RateLimitUpsert) AddFlowID(v int64) *RateLimitUpsert {
+	u.Add(ratelimit.FieldFlowID, v)
+	return u
+}
+
+// ClearFlowID clears the value of the "flow_id" field.
+func (u *RateLimitUpsert) ClearFlowID() *RateLimitUpsert {
+	u.SetNull(ratelimit.FieldFlowID)
+	return u
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *RateLimitUpsert) SetNodeID(v string) *RateLimitUpsert {
+	u.Set(ratelimit.FieldNodeID, v)
+	return u
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateNodeID() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldNodeID)
+	return u
+}
+
+// ClearNodeID clears the value of the "node_id" field.
+func (u *RateLimitUpsert) ClearNodeID() *RateLimitUpsert {
+	u.SetNull(ratelimit.FieldNodeID)
+	return u
+}
+
+// SetLimitType sets the "limit_type" field.
+func (u *RateLimitUpsert) SetLimitType(v string) *RateLimitUpsert {
+	u.Set(ratelimit.FieldLimitType, v)
+	return u
+}
+
+// UpdateLimitType sets the "limit_type" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateLimitType() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldLimitType)
+	return u
+}
+
+// SetLimitValue sets the "limit_value" field.
+func (u *RateLimitUpsert) SetLimitValue(v int) *RateLimitUpsert {
+	u.Set(ratelimit.FieldLimitValue, v)
+	return u
+}
+
+// UpdateLimitValue sets the "limit_value" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateLimitValue() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldLimitValue)
+	return u
+}
+
+// AddLimitValue adds v to the "limit_value" field.
+func (u *RateLimitUpsert) AddLimitValue(v int) *RateLimitUpsert {
+	u.Add(ratelimit.FieldLimitValue, v)
+	return u
+}
+
+// SetWindowSize sets the "window_size" field.
+func (u *RateLimitUpsert) SetWindowSize(v int) *RateLimitUpsert {
+	u.Set(ratelimit.FieldWindowSize, v)
+	return u
+}
+
+// UpdateWindowSize sets the "window_size" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateWindowSize() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldWindowSize)
+	return u
+}
+
+// AddWindowSize adds v to the "window_size" field.
+func (u *RateLimitUpsert) AddWindowSize(v int) *RateLimitUpsert {
+	u.Add(ratelimit.FieldWindowSize, v)
+	return u
+}
+
+// SetWindowUnit sets the "window_unit" field.
+func (u *RateLimitUpsert) SetWindowUnit(v string) *RateLimitUpsert {
+	u.Set(ratelimit.FieldWindowUnit, v)
+	return u
+}
+
+// UpdateWindowUnit sets the "window_unit" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateWindowUnit() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldWindowUnit)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RateLimitUpsert) SetUpdatedAt(v time.Time) *RateLimitUpsert {
+	u.Set(ratelimit.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RateLimitUpsert) UpdateUpdatedAt() *RateLimitUpsert {
+	u.SetExcluded(ratelimit.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ratelimit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RateLimitUpsertOne) UpdateNewValues() *RateLimitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ratelimit.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ratelimit.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *RateLimitUpsertOne) Ignore() *RateLimitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RateLimitUpsertOne) DoNothing() *RateLimitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RateLimitCreate.OnConflict
+// documentation for more info.
+func (u *RateLimitUpsertOne) Update(set func(*RateLimitUpsert)) *RateLimitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RateLimitUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *RateLimitUpsertOne) SetFlowID(v int64) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *RateLimitUpsertOne) AddFlowID(v int64) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateFlowID() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// ClearFlowID clears the value of the "flow_id" field.
+func (u *RateLimitUpsertOne) ClearFlowID() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.ClearFlowID()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *RateLimitUpsertOne) SetNodeID(v string) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateNodeID() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// ClearNodeID clears the value of the "node_id" field.
+func (u *RateLimitUpsertOne) ClearNodeID() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.ClearNodeID()
+	})
+}
+
+// SetLimitType sets the "limit_type" field.
+func (u *RateLimitUpsertOne) SetLimitType(v string) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetLimitType(v)
+	})
+}
+
+// UpdateLimitType sets the "limit_type" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateLimitType() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateLimitType()
+	})
+}
+
+// SetLimitValue sets the "limit_value" field.
+func (u *RateLimitUpsertOne) SetLimitValue(v int) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetLimitValue(v)
+	})
+}
+
+// AddLimitValue adds v to the "limit_value" field.
+func (u *RateLimitUpsertOne) AddLimitValue(v int) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddLimitValue(v)
+	})
+}
+
+// UpdateLimitValue sets the "limit_value" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateLimitValue() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateLimitValue()
+	})
+}
+
+// SetWindowSize sets the "window_size" field.
+func (u *RateLimitUpsertOne) SetWindowSize(v int) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetWindowSize(v)
+	})
+}
+
+// AddWindowSize adds v to the "window_size" field.
+func (u *RateLimitUpsertOne) AddWindowSize(v int) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddWindowSize(v)
+	})
+}
+
+// UpdateWindowSize sets the "window_size" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateWindowSize() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateWindowSize()
+	})
+}
+
+// SetWindowUnit sets the "window_unit" field.
+func (u *RateLimitUpsertOne) SetWindowUnit(v string) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetWindowUnit(v)
+	})
+}
+
+// UpdateWindowUnit sets the "window_unit" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateWindowUnit() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateWindowUnit()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RateLimitUpsertOne) SetUpdatedAt(v time.Time) *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RateLimitUpsertOne) UpdateUpdatedAt() *RateLimitUpsertOne {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RateLimitUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for RateLimitCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RateLimitUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RateLimitUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RateLimitUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RateLimitCreateBulk is the builder for creating many RateLimit entities in bulk.
 type RateLimitCreateBulk struct {
 	config
 	err      error
 	builders []*RateLimitCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the RateLimit entities in the database.
@@ -317,6 +701,7 @@ func (_c *RateLimitCreateBulk) Save(ctx context.Context) ([]*RateLimit, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -367,6 +752,256 @@ func (_c *RateLimitCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *RateLimitCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RateLimit.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RateLimitUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *RateLimitCreateBulk) OnConflict(opts ...sql.ConflictOption) *RateLimitUpsertBulk {
+	_c.conflict = opts
+	return &RateLimitUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *RateLimitCreateBulk) OnConflictColumns(columns ...string) *RateLimitUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &RateLimitUpsertBulk{
+		create: _c,
+	}
+}
+
+// RateLimitUpsertBulk is the builder for "upsert"-ing
+// a bulk of RateLimit nodes.
+type RateLimitUpsertBulk struct {
+	create *RateLimitCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ratelimit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RateLimitUpsertBulk) UpdateNewValues() *RateLimitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ratelimit.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ratelimit.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RateLimit.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *RateLimitUpsertBulk) Ignore() *RateLimitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RateLimitUpsertBulk) DoNothing() *RateLimitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RateLimitCreateBulk.OnConflict
+// documentation for more info.
+func (u *RateLimitUpsertBulk) Update(set func(*RateLimitUpsert)) *RateLimitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RateLimitUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *RateLimitUpsertBulk) SetFlowID(v int64) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *RateLimitUpsertBulk) AddFlowID(v int64) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateFlowID() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// ClearFlowID clears the value of the "flow_id" field.
+func (u *RateLimitUpsertBulk) ClearFlowID() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.ClearFlowID()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *RateLimitUpsertBulk) SetNodeID(v string) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateNodeID() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// ClearNodeID clears the value of the "node_id" field.
+func (u *RateLimitUpsertBulk) ClearNodeID() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.ClearNodeID()
+	})
+}
+
+// SetLimitType sets the "limit_type" field.
+func (u *RateLimitUpsertBulk) SetLimitType(v string) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetLimitType(v)
+	})
+}
+
+// UpdateLimitType sets the "limit_type" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateLimitType() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateLimitType()
+	})
+}
+
+// SetLimitValue sets the "limit_value" field.
+func (u *RateLimitUpsertBulk) SetLimitValue(v int) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetLimitValue(v)
+	})
+}
+
+// AddLimitValue adds v to the "limit_value" field.
+func (u *RateLimitUpsertBulk) AddLimitValue(v int) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddLimitValue(v)
+	})
+}
+
+// UpdateLimitValue sets the "limit_value" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateLimitValue() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateLimitValue()
+	})
+}
+
+// SetWindowSize sets the "window_size" field.
+func (u *RateLimitUpsertBulk) SetWindowSize(v int) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetWindowSize(v)
+	})
+}
+
+// AddWindowSize adds v to the "window_size" field.
+func (u *RateLimitUpsertBulk) AddWindowSize(v int) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.AddWindowSize(v)
+	})
+}
+
+// UpdateWindowSize sets the "window_size" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateWindowSize() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateWindowSize()
+	})
+}
+
+// SetWindowUnit sets the "window_unit" field.
+func (u *RateLimitUpsertBulk) SetWindowUnit(v string) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetWindowUnit(v)
+	})
+}
+
+// UpdateWindowUnit sets the "window_unit" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateWindowUnit() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateWindowUnit()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RateLimitUpsertBulk) SetUpdatedAt(v time.Time) *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RateLimitUpsertBulk) UpdateUpdatedAt() *RateLimitUpsertBulk {
+	return u.Update(func(s *RateLimitUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RateLimitUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the RateLimitCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for RateLimitCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RateLimitUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

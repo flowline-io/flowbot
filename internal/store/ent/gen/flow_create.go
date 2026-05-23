@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/flow"
@@ -18,6 +19,7 @@ type FlowCreate struct {
 	config
 	mutation *FlowMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -237,6 +239,7 @@ func (_c *FlowCreate) createSpec() (*Flow, *sqlgraph.CreateSpec) {
 		_node = &Flow{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(flow.Table, sqlgraph.NewFieldSpec(flow.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -276,11 +279,353 @@ func (_c *FlowCreate) createSpec() (*Flow, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Flow.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowCreate) OnConflict(opts ...sql.ConflictOption) *FlowUpsertOne {
+	_c.conflict = opts
+	return &FlowUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowCreate) OnConflictColumns(columns ...string) *FlowUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FlowUpsertOne is the builder for "upsert"-ing
+	//  one Flow node.
+	FlowUpsertOne struct {
+		create *FlowCreate
+	}
+
+	// FlowUpsert is the "OnConflict" setter.
+	FlowUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *FlowUpsert) SetUID(v string) *FlowUpsert {
+	u.Set(flow.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateUID() *FlowUpsert {
+	u.SetExcluded(flow.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *FlowUpsert) SetTopic(v string) *FlowUpsert {
+	u.Set(flow.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateTopic() *FlowUpsert {
+	u.SetExcluded(flow.FieldTopic)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *FlowUpsert) SetName(v string) *FlowUpsert {
+	u.Set(flow.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateName() *FlowUpsert {
+	u.SetExcluded(flow.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *FlowUpsert) SetDescription(v string) *FlowUpsert {
+	u.Set(flow.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateDescription() *FlowUpsert {
+	u.SetExcluded(flow.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *FlowUpsert) ClearDescription() *FlowUpsert {
+	u.SetNull(flow.FieldDescription)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *FlowUpsert) SetState(v int) *FlowUpsert {
+	u.Set(flow.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateState() *FlowUpsert {
+	u.SetExcluded(flow.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowUpsert) AddState(v int) *FlowUpsert {
+	u.Add(flow.FieldState, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FlowUpsert) SetEnabled(v bool) *FlowUpsert {
+	u.Set(flow.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateEnabled() *FlowUpsert {
+	u.SetExcluded(flow.FieldEnabled)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowUpsert) SetUpdatedAt(v time.Time) *FlowUpsert {
+	u.Set(flow.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowUpsert) UpdateUpdatedAt() *FlowUpsert {
+	u.SetExcluded(flow.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flow.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowUpsertOne) UpdateNewValues() *FlowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(flow.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(flow.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FlowUpsertOne) Ignore() *FlowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowUpsertOne) DoNothing() *FlowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowCreate.OnConflict
+// documentation for more info.
+func (u *FlowUpsertOne) Update(set func(*FlowUpsert)) *FlowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *FlowUpsertOne) SetUID(v string) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateUID() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *FlowUpsertOne) SetTopic(v string) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateTopic() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FlowUpsertOne) SetName(v string) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateName() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *FlowUpsertOne) SetDescription(v string) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateDescription() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *FlowUpsertOne) ClearDescription() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FlowUpsertOne) SetState(v int) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowUpsertOne) AddState(v int) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateState() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FlowUpsertOne) SetEnabled(v bool) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateEnabled() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowUpsertOne) SetUpdatedAt(v time.Time) *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowUpsertOne) UpdateUpdatedAt() *FlowUpsertOne {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FlowUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FlowUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FlowCreateBulk is the builder for creating many Flow entities in bulk.
 type FlowCreateBulk struct {
 	config
 	err      error
 	builders []*FlowCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Flow entities in the database.
@@ -310,6 +655,7 @@ func (_c *FlowCreateBulk) Save(ctx context.Context) ([]*Flow, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -360,6 +706,235 @@ func (_c *FlowCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FlowCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Flow.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowCreateBulk) OnConflict(opts ...sql.ConflictOption) *FlowUpsertBulk {
+	_c.conflict = opts
+	return &FlowUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowCreateBulk) OnConflictColumns(columns ...string) *FlowUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowUpsertBulk{
+		create: _c,
+	}
+}
+
+// FlowUpsertBulk is the builder for "upsert"-ing
+// a bulk of Flow nodes.
+type FlowUpsertBulk struct {
+	create *FlowCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flow.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowUpsertBulk) UpdateNewValues() *FlowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(flow.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(flow.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Flow.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FlowUpsertBulk) Ignore() *FlowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowUpsertBulk) DoNothing() *FlowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowCreateBulk.OnConflict
+// documentation for more info.
+func (u *FlowUpsertBulk) Update(set func(*FlowUpsert)) *FlowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *FlowUpsertBulk) SetUID(v string) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateUID() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *FlowUpsertBulk) SetTopic(v string) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateTopic() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FlowUpsertBulk) SetName(v string) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateName() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *FlowUpsertBulk) SetDescription(v string) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateDescription() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *FlowUpsertBulk) ClearDescription() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FlowUpsertBulk) SetState(v int) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FlowUpsertBulk) AddState(v int) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateState() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FlowUpsertBulk) SetEnabled(v bool) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateEnabled() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowUpsertBulk) SetUpdatedAt(v time.Time) *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowUpsertBulk) UpdateUpdatedAt() *FlowUpsertBulk {
+	return u.Update(func(s *FlowUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the FlowCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

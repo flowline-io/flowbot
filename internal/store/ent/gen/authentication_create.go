@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -18,6 +19,7 @@ type AuthenticationCreate struct {
 	config
 	mutation *AuthenticationMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -249,6 +251,7 @@ func (_c *AuthenticationCreate) createSpec() (*Authentication, *sqlgraph.CreateS
 		_node = &Authentication{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(authentication.Table, sqlgraph.NewFieldSpec(authentication.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -296,11 +299,418 @@ func (_c *AuthenticationCreate) createSpec() (*Authentication, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Authentication.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AuthenticationUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AuthenticationCreate) OnConflict(opts ...sql.ConflictOption) *AuthenticationUpsertOne {
+	_c.conflict = opts
+	return &AuthenticationUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AuthenticationCreate) OnConflictColumns(columns ...string) *AuthenticationUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AuthenticationUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// AuthenticationUpsertOne is the builder for "upsert"-ing
+	//  one Authentication node.
+	AuthenticationUpsertOne struct {
+		create *AuthenticationCreate
+	}
+
+	// AuthenticationUpsert is the "OnConflict" setter.
+	AuthenticationUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *AuthenticationUpsert) SetUID(v string) *AuthenticationUpsert {
+	u.Set(authentication.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateUID() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *AuthenticationUpsert) SetTopic(v string) *AuthenticationUpsert {
+	u.Set(authentication.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateTopic() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldTopic)
+	return u
+}
+
+// SetConnectionID sets the "connection_id" field.
+func (u *AuthenticationUpsert) SetConnectionID(v int64) *AuthenticationUpsert {
+	u.Set(authentication.FieldConnectionID, v)
+	return u
+}
+
+// UpdateConnectionID sets the "connection_id" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateConnectionID() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldConnectionID)
+	return u
+}
+
+// AddConnectionID adds v to the "connection_id" field.
+func (u *AuthenticationUpsert) AddConnectionID(v int64) *AuthenticationUpsert {
+	u.Add(authentication.FieldConnectionID, v)
+	return u
+}
+
+// ClearConnectionID clears the value of the "connection_id" field.
+func (u *AuthenticationUpsert) ClearConnectionID() *AuthenticationUpsert {
+	u.SetNull(authentication.FieldConnectionID)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *AuthenticationUpsert) SetName(v string) *AuthenticationUpsert {
+	u.Set(authentication.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateName() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldName)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *AuthenticationUpsert) SetType(v string) *AuthenticationUpsert {
+	u.Set(authentication.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateType() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldType)
+	return u
+}
+
+// SetCredentials sets the "credentials" field.
+func (u *AuthenticationUpsert) SetCredentials(v map[string]interface{}) *AuthenticationUpsert {
+	u.Set(authentication.FieldCredentials, v)
+	return u
+}
+
+// UpdateCredentials sets the "credentials" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateCredentials() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldCredentials)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthenticationUpsert) SetExpiresAt(v time.Time) *AuthenticationUpsert {
+	u.Set(authentication.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateExpiresAt() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldExpiresAt)
+	return u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthenticationUpsert) ClearExpiresAt() *AuthenticationUpsert {
+	u.SetNull(authentication.FieldExpiresAt)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AuthenticationUpsert) SetEnabled(v bool) *AuthenticationUpsert {
+	u.Set(authentication.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateEnabled() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldEnabled)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AuthenticationUpsert) SetUpdatedAt(v time.Time) *AuthenticationUpsert {
+	u.Set(authentication.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AuthenticationUpsert) UpdateUpdatedAt() *AuthenticationUpsert {
+	u.SetExcluded(authentication.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(authentication.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AuthenticationUpsertOne) UpdateNewValues() *AuthenticationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(authentication.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(authentication.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *AuthenticationUpsertOne) Ignore() *AuthenticationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AuthenticationUpsertOne) DoNothing() *AuthenticationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AuthenticationCreate.OnConflict
+// documentation for more info.
+func (u *AuthenticationUpsertOne) Update(set func(*AuthenticationUpsert)) *AuthenticationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AuthenticationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *AuthenticationUpsertOne) SetUID(v string) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateUID() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *AuthenticationUpsertOne) SetTopic(v string) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateTopic() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetConnectionID sets the "connection_id" field.
+func (u *AuthenticationUpsertOne) SetConnectionID(v int64) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetConnectionID(v)
+	})
+}
+
+// AddConnectionID adds v to the "connection_id" field.
+func (u *AuthenticationUpsertOne) AddConnectionID(v int64) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.AddConnectionID(v)
+	})
+}
+
+// UpdateConnectionID sets the "connection_id" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateConnectionID() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateConnectionID()
+	})
+}
+
+// ClearConnectionID clears the value of the "connection_id" field.
+func (u *AuthenticationUpsertOne) ClearConnectionID() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.ClearConnectionID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *AuthenticationUpsertOne) SetName(v string) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateName() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AuthenticationUpsertOne) SetType(v string) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateType() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCredentials sets the "credentials" field.
+func (u *AuthenticationUpsertOne) SetCredentials(v map[string]interface{}) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetCredentials(v)
+	})
+}
+
+// UpdateCredentials sets the "credentials" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateCredentials() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateCredentials()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthenticationUpsertOne) SetExpiresAt(v time.Time) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateExpiresAt() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthenticationUpsertOne) ClearExpiresAt() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.ClearExpiresAt()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AuthenticationUpsertOne) SetEnabled(v bool) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateEnabled() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AuthenticationUpsertOne) SetUpdatedAt(v time.Time) *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AuthenticationUpsertOne) UpdateUpdatedAt() *AuthenticationUpsertOne {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AuthenticationUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for AuthenticationCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AuthenticationUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *AuthenticationUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *AuthenticationUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // AuthenticationCreateBulk is the builder for creating many Authentication entities in bulk.
 type AuthenticationCreateBulk struct {
 	config
 	err      error
 	builders []*AuthenticationCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Authentication entities in the database.
@@ -330,6 +740,7 @@ func (_c *AuthenticationCreateBulk) Save(ctx context.Context) ([]*Authentication
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -380,6 +791,270 @@ func (_c *AuthenticationCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *AuthenticationCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Authentication.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AuthenticationUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AuthenticationCreateBulk) OnConflict(opts ...sql.ConflictOption) *AuthenticationUpsertBulk {
+	_c.conflict = opts
+	return &AuthenticationUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AuthenticationCreateBulk) OnConflictColumns(columns ...string) *AuthenticationUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AuthenticationUpsertBulk{
+		create: _c,
+	}
+}
+
+// AuthenticationUpsertBulk is the builder for "upsert"-ing
+// a bulk of Authentication nodes.
+type AuthenticationUpsertBulk struct {
+	create *AuthenticationCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(authentication.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AuthenticationUpsertBulk) UpdateNewValues() *AuthenticationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(authentication.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(authentication.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Authentication.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *AuthenticationUpsertBulk) Ignore() *AuthenticationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AuthenticationUpsertBulk) DoNothing() *AuthenticationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AuthenticationCreateBulk.OnConflict
+// documentation for more info.
+func (u *AuthenticationUpsertBulk) Update(set func(*AuthenticationUpsert)) *AuthenticationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AuthenticationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *AuthenticationUpsertBulk) SetUID(v string) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateUID() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *AuthenticationUpsertBulk) SetTopic(v string) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateTopic() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetConnectionID sets the "connection_id" field.
+func (u *AuthenticationUpsertBulk) SetConnectionID(v int64) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetConnectionID(v)
+	})
+}
+
+// AddConnectionID adds v to the "connection_id" field.
+func (u *AuthenticationUpsertBulk) AddConnectionID(v int64) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.AddConnectionID(v)
+	})
+}
+
+// UpdateConnectionID sets the "connection_id" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateConnectionID() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateConnectionID()
+	})
+}
+
+// ClearConnectionID clears the value of the "connection_id" field.
+func (u *AuthenticationUpsertBulk) ClearConnectionID() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.ClearConnectionID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *AuthenticationUpsertBulk) SetName(v string) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateName() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AuthenticationUpsertBulk) SetType(v string) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateType() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetCredentials sets the "credentials" field.
+func (u *AuthenticationUpsertBulk) SetCredentials(v map[string]interface{}) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetCredentials(v)
+	})
+}
+
+// UpdateCredentials sets the "credentials" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateCredentials() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateCredentials()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *AuthenticationUpsertBulk) SetExpiresAt(v time.Time) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateExpiresAt() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *AuthenticationUpsertBulk) ClearExpiresAt() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.ClearExpiresAt()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AuthenticationUpsertBulk) SetEnabled(v bool) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateEnabled() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AuthenticationUpsertBulk) SetUpdatedAt(v time.Time) *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AuthenticationUpsertBulk) UpdateUpdatedAt() *AuthenticationUpsertBulk {
+	return u.Update(func(s *AuthenticationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AuthenticationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the AuthenticationCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for AuthenticationCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AuthenticationUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

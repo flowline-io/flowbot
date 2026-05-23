@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/job"
@@ -19,6 +20,7 @@ type JobCreate struct {
 	config
 	mutation *JobMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -276,6 +278,7 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_node = &Job{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(job.Table, sqlgraph.NewFieldSpec(job.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -343,11 +346,496 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Job.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JobUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *JobCreate) OnConflict(opts ...sql.ConflictOption) *JobUpsertOne {
+	_c.conflict = opts
+	return &JobUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *JobCreate) OnConflictColumns(columns ...string) *JobUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &JobUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// JobUpsertOne is the builder for "upsert"-ing
+	//  one Job node.
+	JobUpsertOne struct {
+		create *JobCreate
+	}
+
+	// JobUpsert is the "OnConflict" setter.
+	JobUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *JobUpsert) SetUID(v string) *JobUpsert {
+	u.Set(job.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *JobUpsert) UpdateUID() *JobUpsert {
+	u.SetExcluded(job.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *JobUpsert) SetTopic(v string) *JobUpsert {
+	u.Set(job.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *JobUpsert) UpdateTopic() *JobUpsert {
+	u.SetExcluded(job.FieldTopic)
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *JobUpsert) SetWorkflowID(v int64) *JobUpsert {
+	u.Set(job.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *JobUpsert) UpdateWorkflowID() *JobUpsert {
+	u.SetExcluded(job.FieldWorkflowID)
+	return u
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *JobUpsert) AddWorkflowID(v int64) *JobUpsert {
+	u.Add(job.FieldWorkflowID, v)
+	return u
+}
+
+// SetDagID sets the "dag_id" field.
+func (u *JobUpsert) SetDagID(v int64) *JobUpsert {
+	u.Set(job.FieldDagID, v)
+	return u
+}
+
+// UpdateDagID sets the "dag_id" field to the value that was provided on create.
+func (u *JobUpsert) UpdateDagID() *JobUpsert {
+	u.SetExcluded(job.FieldDagID)
+	return u
+}
+
+// AddDagID adds v to the "dag_id" field.
+func (u *JobUpsert) AddDagID(v int64) *JobUpsert {
+	u.Add(job.FieldDagID, v)
+	return u
+}
+
+// SetTriggerID sets the "trigger_id" field.
+func (u *JobUpsert) SetTriggerID(v int64) *JobUpsert {
+	u.Set(job.FieldTriggerID, v)
+	return u
+}
+
+// UpdateTriggerID sets the "trigger_id" field to the value that was provided on create.
+func (u *JobUpsert) UpdateTriggerID() *JobUpsert {
+	u.SetExcluded(job.FieldTriggerID)
+	return u
+}
+
+// AddTriggerID adds v to the "trigger_id" field.
+func (u *JobUpsert) AddTriggerID(v int64) *JobUpsert {
+	u.Add(job.FieldTriggerID, v)
+	return u
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *JobUpsert) SetScriptVersion(v int32) *JobUpsert {
+	u.Set(job.FieldScriptVersion, v)
+	return u
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *JobUpsert) UpdateScriptVersion() *JobUpsert {
+	u.SetExcluded(job.FieldScriptVersion)
+	return u
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *JobUpsert) AddScriptVersion(v int32) *JobUpsert {
+	u.Add(job.FieldScriptVersion, v)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *JobUpsert) SetState(v int) *JobUpsert {
+	u.Set(job.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *JobUpsert) UpdateState() *JobUpsert {
+	u.SetExcluded(job.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *JobUpsert) AddState(v int) *JobUpsert {
+	u.Add(job.FieldState, v)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *JobUpsert) SetStartedAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *JobUpsert) UpdateStartedAt() *JobUpsert {
+	u.SetExcluded(job.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *JobUpsert) ClearStartedAt() *JobUpsert {
+	u.SetNull(job.FieldStartedAt)
+	return u
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *JobUpsert) SetEndedAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldEndedAt, v)
+	return u
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *JobUpsert) UpdateEndedAt() *JobUpsert {
+	u.SetExcluded(job.FieldEndedAt)
+	return u
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *JobUpsert) ClearEndedAt() *JobUpsert {
+	u.SetNull(job.FieldEndedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobUpsert) SetUpdatedAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobUpsert) UpdateUpdatedAt() *JobUpsert {
+	u.SetExcluded(job.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(job.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *JobUpsertOne) UpdateNewValues() *JobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(job.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(job.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *JobUpsertOne) Ignore() *JobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JobUpsertOne) DoNothing() *JobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JobCreate.OnConflict
+// documentation for more info.
+func (u *JobUpsertOne) Update(set func(*JobUpsert)) *JobUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JobUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *JobUpsertOne) SetUID(v string) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateUID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *JobUpsertOne) SetTopic(v string) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateTopic() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *JobUpsertOne) SetWorkflowID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *JobUpsertOne) AddWorkflowID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateWorkflowID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// SetDagID sets the "dag_id" field.
+func (u *JobUpsertOne) SetDagID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetDagID(v)
+	})
+}
+
+// AddDagID adds v to the "dag_id" field.
+func (u *JobUpsertOne) AddDagID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddDagID(v)
+	})
+}
+
+// UpdateDagID sets the "dag_id" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateDagID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateDagID()
+	})
+}
+
+// SetTriggerID sets the "trigger_id" field.
+func (u *JobUpsertOne) SetTriggerID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetTriggerID(v)
+	})
+}
+
+// AddTriggerID adds v to the "trigger_id" field.
+func (u *JobUpsertOne) AddTriggerID(v int64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddTriggerID(v)
+	})
+}
+
+// UpdateTriggerID sets the "trigger_id" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateTriggerID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateTriggerID()
+	})
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *JobUpsertOne) SetScriptVersion(v int32) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetScriptVersion(v)
+	})
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *JobUpsertOne) AddScriptVersion(v int32) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddScriptVersion(v)
+	})
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateScriptVersion() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateScriptVersion()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *JobUpsertOne) SetState(v int) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *JobUpsertOne) AddState(v int) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateState() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *JobUpsertOne) SetStartedAt(v time.Time) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateStartedAt() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *JobUpsertOne) ClearStartedAt() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *JobUpsertOne) SetEndedAt(v time.Time) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateEndedAt() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *JobUpsertOne) ClearEndedAt() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobUpsertOne) SetUpdatedAt(v time.Time) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateUpdatedAt() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JobUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for JobCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JobUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *JobUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *JobUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // JobCreateBulk is the builder for creating many Job entities in bulk.
 type JobCreateBulk struct {
 	config
 	err      error
 	builders []*JobCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Job entities in the database.
@@ -377,6 +865,7 @@ func (_c *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -427,6 +916,312 @@ func (_c *JobCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *JobCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Job.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JobUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *JobCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobUpsertBulk {
+	_c.conflict = opts
+	return &JobUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *JobCreateBulk) OnConflictColumns(columns ...string) *JobUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &JobUpsertBulk{
+		create: _c,
+	}
+}
+
+// JobUpsertBulk is the builder for "upsert"-ing
+// a bulk of Job nodes.
+type JobUpsertBulk struct {
+	create *JobCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(job.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *JobUpsertBulk) UpdateNewValues() *JobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(job.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(job.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Job.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *JobUpsertBulk) Ignore() *JobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JobUpsertBulk) DoNothing() *JobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JobCreateBulk.OnConflict
+// documentation for more info.
+func (u *JobUpsertBulk) Update(set func(*JobUpsert)) *JobUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JobUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *JobUpsertBulk) SetUID(v string) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateUID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *JobUpsertBulk) SetTopic(v string) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateTopic() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *JobUpsertBulk) SetWorkflowID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *JobUpsertBulk) AddWorkflowID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateWorkflowID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// SetDagID sets the "dag_id" field.
+func (u *JobUpsertBulk) SetDagID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetDagID(v)
+	})
+}
+
+// AddDagID adds v to the "dag_id" field.
+func (u *JobUpsertBulk) AddDagID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddDagID(v)
+	})
+}
+
+// UpdateDagID sets the "dag_id" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateDagID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateDagID()
+	})
+}
+
+// SetTriggerID sets the "trigger_id" field.
+func (u *JobUpsertBulk) SetTriggerID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetTriggerID(v)
+	})
+}
+
+// AddTriggerID adds v to the "trigger_id" field.
+func (u *JobUpsertBulk) AddTriggerID(v int64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddTriggerID(v)
+	})
+}
+
+// UpdateTriggerID sets the "trigger_id" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateTriggerID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateTriggerID()
+	})
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *JobUpsertBulk) SetScriptVersion(v int32) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetScriptVersion(v)
+	})
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *JobUpsertBulk) AddScriptVersion(v int32) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddScriptVersion(v)
+	})
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateScriptVersion() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateScriptVersion()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *JobUpsertBulk) SetState(v int) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *JobUpsertBulk) AddState(v int) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateState() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *JobUpsertBulk) SetStartedAt(v time.Time) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateStartedAt() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *JobUpsertBulk) ClearStartedAt() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *JobUpsertBulk) SetEndedAt(v time.Time) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateEndedAt() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *JobUpsertBulk) ClearEndedAt() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobUpsertBulk) SetUpdatedAt(v time.Time) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateUpdatedAt() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JobUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the JobCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for JobCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JobUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

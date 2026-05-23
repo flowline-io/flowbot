@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowscript"
@@ -18,6 +19,7 @@ type WorkflowScriptCreate struct {
 	config
 	mutation *WorkflowScriptMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowID sets the "workflow_id" field.
@@ -198,6 +200,7 @@ func (_c *WorkflowScriptCreate) createSpec() (*WorkflowScript, *sqlgraph.CreateS
 		_node = &WorkflowScript{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(workflowscript.Table, sqlgraph.NewFieldSpec(workflowscript.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -229,11 +232,314 @@ func (_c *WorkflowScriptCreate) createSpec() (*WorkflowScript, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowScript.Create().
+//		SetWorkflowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowScriptUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowScriptCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowScriptUpsertOne {
+	_c.conflict = opts
+	return &WorkflowScriptUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowScriptCreate) OnConflictColumns(columns ...string) *WorkflowScriptUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowScriptUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// WorkflowScriptUpsertOne is the builder for "upsert"-ing
+	//  one WorkflowScript node.
+	WorkflowScriptUpsertOne struct {
+		create *WorkflowScriptCreate
+	}
+
+	// WorkflowScriptUpsert is the "OnConflict" setter.
+	WorkflowScriptUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowScriptUpsert) SetWorkflowID(v int64) *WorkflowScriptUpsert {
+	u.Set(workflowscript.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowScriptUpsert) UpdateWorkflowID() *WorkflowScriptUpsert {
+	u.SetExcluded(workflowscript.FieldWorkflowID)
+	return u
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowScriptUpsert) AddWorkflowID(v int64) *WorkflowScriptUpsert {
+	u.Add(workflowscript.FieldWorkflowID, v)
+	return u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowScriptUpsert) ClearWorkflowID() *WorkflowScriptUpsert {
+	u.SetNull(workflowscript.FieldWorkflowID)
+	return u
+}
+
+// SetLang sets the "lang" field.
+func (u *WorkflowScriptUpsert) SetLang(v string) *WorkflowScriptUpsert {
+	u.Set(workflowscript.FieldLang, v)
+	return u
+}
+
+// UpdateLang sets the "lang" field to the value that was provided on create.
+func (u *WorkflowScriptUpsert) UpdateLang() *WorkflowScriptUpsert {
+	u.SetExcluded(workflowscript.FieldLang)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *WorkflowScriptUpsert) SetCode(v string) *WorkflowScriptUpsert {
+	u.Set(workflowscript.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *WorkflowScriptUpsert) UpdateCode() *WorkflowScriptUpsert {
+	u.SetExcluded(workflowscript.FieldCode)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *WorkflowScriptUpsert) SetVersion(v int32) *WorkflowScriptUpsert {
+	u.Set(workflowscript.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *WorkflowScriptUpsert) UpdateVersion() *WorkflowScriptUpsert {
+	u.SetExcluded(workflowscript.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *WorkflowScriptUpsert) AddVersion(v int32) *WorkflowScriptUpsert {
+	u.Add(workflowscript.FieldVersion, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowScriptUpsert) SetUpdatedAt(v time.Time) *WorkflowScriptUpsert {
+	u.Set(workflowscript.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowScriptUpsert) UpdateUpdatedAt() *WorkflowScriptUpsert {
+	u.SetExcluded(workflowscript.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowscript.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowScriptUpsertOne) UpdateNewValues() *WorkflowScriptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(workflowscript.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(workflowscript.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WorkflowScriptUpsertOne) Ignore() *WorkflowScriptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowScriptUpsertOne) DoNothing() *WorkflowScriptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowScriptCreate.OnConflict
+// documentation for more info.
+func (u *WorkflowScriptUpsertOne) Update(set func(*WorkflowScriptUpsert)) *WorkflowScriptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowScriptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowScriptUpsertOne) SetWorkflowID(v int64) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowScriptUpsertOne) AddWorkflowID(v int64) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertOne) UpdateWorkflowID() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowScriptUpsertOne) ClearWorkflowID() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetLang sets the "lang" field.
+func (u *WorkflowScriptUpsertOne) SetLang(v string) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetLang(v)
+	})
+}
+
+// UpdateLang sets the "lang" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertOne) UpdateLang() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateLang()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *WorkflowScriptUpsertOne) SetCode(v string) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertOne) UpdateCode() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *WorkflowScriptUpsertOne) SetVersion(v int32) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *WorkflowScriptUpsertOne) AddVersion(v int32) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertOne) UpdateVersion() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowScriptUpsertOne) SetUpdatedAt(v time.Time) *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertOne) UpdateUpdatedAt() *WorkflowScriptUpsertOne {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowScriptUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowScriptCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowScriptUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WorkflowScriptUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WorkflowScriptUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WorkflowScriptCreateBulk is the builder for creating many WorkflowScript entities in bulk.
 type WorkflowScriptCreateBulk struct {
 	config
 	err      error
 	builders []*WorkflowScriptCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the WorkflowScript entities in the database.
@@ -263,6 +569,7 @@ func (_c *WorkflowScriptCreateBulk) Save(ctx context.Context) ([]*WorkflowScript
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -313,6 +620,214 @@ func (_c *WorkflowScriptCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *WorkflowScriptCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowScript.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowScriptUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowScriptCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowScriptUpsertBulk {
+	_c.conflict = opts
+	return &WorkflowScriptUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowScriptCreateBulk) OnConflictColumns(columns ...string) *WorkflowScriptUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowScriptUpsertBulk{
+		create: _c,
+	}
+}
+
+// WorkflowScriptUpsertBulk is the builder for "upsert"-ing
+// a bulk of WorkflowScript nodes.
+type WorkflowScriptUpsertBulk struct {
+	create *WorkflowScriptCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowscript.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowScriptUpsertBulk) UpdateNewValues() *WorkflowScriptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(workflowscript.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(workflowscript.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowScript.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WorkflowScriptUpsertBulk) Ignore() *WorkflowScriptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowScriptUpsertBulk) DoNothing() *WorkflowScriptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowScriptCreateBulk.OnConflict
+// documentation for more info.
+func (u *WorkflowScriptUpsertBulk) Update(set func(*WorkflowScriptUpsert)) *WorkflowScriptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowScriptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowScriptUpsertBulk) SetWorkflowID(v int64) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowScriptUpsertBulk) AddWorkflowID(v int64) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertBulk) UpdateWorkflowID() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowScriptUpsertBulk) ClearWorkflowID() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetLang sets the "lang" field.
+func (u *WorkflowScriptUpsertBulk) SetLang(v string) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetLang(v)
+	})
+}
+
+// UpdateLang sets the "lang" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertBulk) UpdateLang() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateLang()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *WorkflowScriptUpsertBulk) SetCode(v string) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertBulk) UpdateCode() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *WorkflowScriptUpsertBulk) SetVersion(v int32) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *WorkflowScriptUpsertBulk) AddVersion(v int32) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertBulk) UpdateVersion() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowScriptUpsertBulk) SetUpdatedAt(v time.Time) *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowScriptUpsertBulk) UpdateUpdatedAt() *WorkflowScriptUpsertBulk {
+	return u.Update(func(s *WorkflowScriptUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowScriptUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the WorkflowScriptCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowScriptCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowScriptUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

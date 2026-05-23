@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
@@ -18,6 +19,7 @@ type AgentCreate struct {
 	config
 	mutation *AgentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -221,6 +223,7 @@ func (_c *AgentCreate) createSpec() (*Agent, *sqlgraph.CreateSpec) {
 		_node = &Agent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(agent.Table, sqlgraph.NewFieldSpec(agent.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -260,11 +263,340 @@ func (_c *AgentCreate) createSpec() (*Agent, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Agent.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AgentUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AgentCreate) OnConflict(opts ...sql.ConflictOption) *AgentUpsertOne {
+	_c.conflict = opts
+	return &AgentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AgentCreate) OnConflictColumns(columns ...string) *AgentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AgentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// AgentUpsertOne is the builder for "upsert"-ing
+	//  one Agent node.
+	AgentUpsertOne struct {
+		create *AgentCreate
+	}
+
+	// AgentUpsert is the "OnConflict" setter.
+	AgentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *AgentUpsert) SetUID(v string) *AgentUpsert {
+	u.Set(agent.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateUID() *AgentUpsert {
+	u.SetExcluded(agent.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *AgentUpsert) SetTopic(v string) *AgentUpsert {
+	u.Set(agent.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateTopic() *AgentUpsert {
+	u.SetExcluded(agent.FieldTopic)
+	return u
+}
+
+// SetHostid sets the "hostid" field.
+func (u *AgentUpsert) SetHostid(v string) *AgentUpsert {
+	u.Set(agent.FieldHostid, v)
+	return u
+}
+
+// UpdateHostid sets the "hostid" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateHostid() *AgentUpsert {
+	u.SetExcluded(agent.FieldHostid)
+	return u
+}
+
+// SetHostname sets the "hostname" field.
+func (u *AgentUpsert) SetHostname(v string) *AgentUpsert {
+	u.Set(agent.FieldHostname, v)
+	return u
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateHostname() *AgentUpsert {
+	u.SetExcluded(agent.FieldHostname)
+	return u
+}
+
+// SetOnlineDuration sets the "online_duration" field.
+func (u *AgentUpsert) SetOnlineDuration(v int32) *AgentUpsert {
+	u.Set(agent.FieldOnlineDuration, v)
+	return u
+}
+
+// UpdateOnlineDuration sets the "online_duration" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateOnlineDuration() *AgentUpsert {
+	u.SetExcluded(agent.FieldOnlineDuration)
+	return u
+}
+
+// AddOnlineDuration adds v to the "online_duration" field.
+func (u *AgentUpsert) AddOnlineDuration(v int32) *AgentUpsert {
+	u.Add(agent.FieldOnlineDuration, v)
+	return u
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *AgentUpsert) SetLastOnlineAt(v time.Time) *AgentUpsert {
+	u.Set(agent.FieldLastOnlineAt, v)
+	return u
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateLastOnlineAt() *AgentUpsert {
+	u.SetExcluded(agent.FieldLastOnlineAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AgentUpsert) SetUpdatedAt(v time.Time) *AgentUpsert {
+	u.Set(agent.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AgentUpsert) UpdateUpdatedAt() *AgentUpsert {
+	u.SetExcluded(agent.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(agent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AgentUpsertOne) UpdateNewValues() *AgentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(agent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(agent.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *AgentUpsertOne) Ignore() *AgentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AgentUpsertOne) DoNothing() *AgentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AgentCreate.OnConflict
+// documentation for more info.
+func (u *AgentUpsertOne) Update(set func(*AgentUpsert)) *AgentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AgentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *AgentUpsertOne) SetUID(v string) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateUID() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *AgentUpsertOne) SetTopic(v string) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateTopic() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetHostid sets the "hostid" field.
+func (u *AgentUpsertOne) SetHostid(v string) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetHostid(v)
+	})
+}
+
+// UpdateHostid sets the "hostid" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateHostid() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateHostid()
+	})
+}
+
+// SetHostname sets the "hostname" field.
+func (u *AgentUpsertOne) SetHostname(v string) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetHostname(v)
+	})
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateHostname() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateHostname()
+	})
+}
+
+// SetOnlineDuration sets the "online_duration" field.
+func (u *AgentUpsertOne) SetOnlineDuration(v int32) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetOnlineDuration(v)
+	})
+}
+
+// AddOnlineDuration adds v to the "online_duration" field.
+func (u *AgentUpsertOne) AddOnlineDuration(v int32) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.AddOnlineDuration(v)
+	})
+}
+
+// UpdateOnlineDuration sets the "online_duration" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateOnlineDuration() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateOnlineDuration()
+	})
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *AgentUpsertOne) SetLastOnlineAt(v time.Time) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetLastOnlineAt(v)
+	})
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateLastOnlineAt() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateLastOnlineAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AgentUpsertOne) SetUpdatedAt(v time.Time) *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AgentUpsertOne) UpdateUpdatedAt() *AgentUpsertOne {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AgentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for AgentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AgentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *AgentUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *AgentUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // AgentCreateBulk is the builder for creating many Agent entities in bulk.
 type AgentCreateBulk struct {
 	config
 	err      error
 	builders []*AgentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Agent entities in the database.
@@ -294,6 +626,7 @@ func (_c *AgentCreateBulk) Save(ctx context.Context) ([]*Agent, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -344,6 +677,228 @@ func (_c *AgentCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *AgentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Agent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AgentUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AgentCreateBulk) OnConflict(opts ...sql.ConflictOption) *AgentUpsertBulk {
+	_c.conflict = opts
+	return &AgentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AgentCreateBulk) OnConflictColumns(columns ...string) *AgentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AgentUpsertBulk{
+		create: _c,
+	}
+}
+
+// AgentUpsertBulk is the builder for "upsert"-ing
+// a bulk of Agent nodes.
+type AgentUpsertBulk struct {
+	create *AgentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(agent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AgentUpsertBulk) UpdateNewValues() *AgentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(agent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(agent.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Agent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *AgentUpsertBulk) Ignore() *AgentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AgentUpsertBulk) DoNothing() *AgentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AgentCreateBulk.OnConflict
+// documentation for more info.
+func (u *AgentUpsertBulk) Update(set func(*AgentUpsert)) *AgentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AgentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *AgentUpsertBulk) SetUID(v string) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateUID() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *AgentUpsertBulk) SetTopic(v string) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateTopic() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetHostid sets the "hostid" field.
+func (u *AgentUpsertBulk) SetHostid(v string) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetHostid(v)
+	})
+}
+
+// UpdateHostid sets the "hostid" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateHostid() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateHostid()
+	})
+}
+
+// SetHostname sets the "hostname" field.
+func (u *AgentUpsertBulk) SetHostname(v string) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetHostname(v)
+	})
+}
+
+// UpdateHostname sets the "hostname" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateHostname() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateHostname()
+	})
+}
+
+// SetOnlineDuration sets the "online_duration" field.
+func (u *AgentUpsertBulk) SetOnlineDuration(v int32) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetOnlineDuration(v)
+	})
+}
+
+// AddOnlineDuration adds v to the "online_duration" field.
+func (u *AgentUpsertBulk) AddOnlineDuration(v int32) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.AddOnlineDuration(v)
+	})
+}
+
+// UpdateOnlineDuration sets the "online_duration" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateOnlineDuration() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateOnlineDuration()
+	})
+}
+
+// SetLastOnlineAt sets the "last_online_at" field.
+func (u *AgentUpsertBulk) SetLastOnlineAt(v time.Time) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetLastOnlineAt(v)
+	})
+}
+
+// UpdateLastOnlineAt sets the "last_online_at" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateLastOnlineAt() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateLastOnlineAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AgentUpsertBulk) SetUpdatedAt(v time.Time) *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AgentUpsertBulk) UpdateUpdatedAt() *AgentUpsertBulk {
+	return u.Update(func(s *AgentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AgentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the AgentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for AgentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AgentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

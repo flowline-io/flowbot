@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/keyresult"
@@ -19,6 +20,7 @@ type TodoCreate struct {
 	config
 	mutation *TodoMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -441,6 +443,7 @@ func (_c *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		_node = &Todo{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(todo.Table, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -558,11 +561,665 @@ func (_c *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Todo.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TodoUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *TodoCreate) OnConflict(opts ...sql.ConflictOption) *TodoUpsertOne {
+	_c.conflict = opts
+	return &TodoUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *TodoCreate) OnConflictColumns(columns ...string) *TodoUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &TodoUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// TodoUpsertOne is the builder for "upsert"-ing
+	//  one Todo node.
+	TodoUpsertOne struct {
+		create *TodoCreate
+	}
+
+	// TodoUpsert is the "OnConflict" setter.
+	TodoUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *TodoUpsert) SetUID(v string) *TodoUpsert {
+	u.Set(todo.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateUID() *TodoUpsert {
+	u.SetExcluded(todo.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *TodoUpsert) SetTopic(v string) *TodoUpsert {
+	u.Set(todo.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateTopic() *TodoUpsert {
+	u.SetExcluded(todo.FieldTopic)
+	return u
+}
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *TodoUpsert) SetKeyResultID(v int64) *TodoUpsert {
+	u.Set(todo.FieldKeyResultID, v)
+	return u
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateKeyResultID() *TodoUpsert {
+	u.SetExcluded(todo.FieldKeyResultID)
+	return u
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *TodoUpsert) ClearKeyResultID() *TodoUpsert {
+	u.SetNull(todo.FieldKeyResultID)
+	return u
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *TodoUpsert) SetParentID(v int64) *TodoUpsert {
+	u.Set(todo.FieldParentID, v)
+	return u
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateParentID() *TodoUpsert {
+	u.SetExcluded(todo.FieldParentID)
+	return u
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *TodoUpsert) ClearParentID() *TodoUpsert {
+	u.SetNull(todo.FieldParentID)
+	return u
+}
+
+// SetSequence sets the "sequence" field.
+func (u *TodoUpsert) SetSequence(v int32) *TodoUpsert {
+	u.Set(todo.FieldSequence, v)
+	return u
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateSequence() *TodoUpsert {
+	u.SetExcluded(todo.FieldSequence)
+	return u
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *TodoUpsert) AddSequence(v int32) *TodoUpsert {
+	u.Add(todo.FieldSequence, v)
+	return u
+}
+
+// SetContent sets the "content" field.
+func (u *TodoUpsert) SetContent(v string) *TodoUpsert {
+	u.Set(todo.FieldContent, v)
+	return u
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateContent() *TodoUpsert {
+	u.SetExcluded(todo.FieldContent)
+	return u
+}
+
+// SetCategory sets the "category" field.
+func (u *TodoUpsert) SetCategory(v string) *TodoUpsert {
+	u.Set(todo.FieldCategory, v)
+	return u
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateCategory() *TodoUpsert {
+	u.SetExcluded(todo.FieldCategory)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *TodoUpsert) SetRemark(v string) *TodoUpsert {
+	u.Set(todo.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateRemark() *TodoUpsert {
+	u.SetExcluded(todo.FieldRemark)
+	return u
+}
+
+// SetPriority sets the "priority" field.
+func (u *TodoUpsert) SetPriority(v int32) *TodoUpsert {
+	u.Set(todo.FieldPriority, v)
+	return u
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *TodoUpsert) UpdatePriority() *TodoUpsert {
+	u.SetExcluded(todo.FieldPriority)
+	return u
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *TodoUpsert) AddPriority(v int32) *TodoUpsert {
+	u.Add(todo.FieldPriority, v)
+	return u
+}
+
+// SetIsRemindAtTime sets the "is_remind_at_time" field.
+func (u *TodoUpsert) SetIsRemindAtTime(v int32) *TodoUpsert {
+	u.Set(todo.FieldIsRemindAtTime, v)
+	return u
+}
+
+// UpdateIsRemindAtTime sets the "is_remind_at_time" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateIsRemindAtTime() *TodoUpsert {
+	u.SetExcluded(todo.FieldIsRemindAtTime)
+	return u
+}
+
+// AddIsRemindAtTime adds v to the "is_remind_at_time" field.
+func (u *TodoUpsert) AddIsRemindAtTime(v int32) *TodoUpsert {
+	u.Add(todo.FieldIsRemindAtTime, v)
+	return u
+}
+
+// SetRemindAt sets the "remind_at" field.
+func (u *TodoUpsert) SetRemindAt(v int64) *TodoUpsert {
+	u.Set(todo.FieldRemindAt, v)
+	return u
+}
+
+// UpdateRemindAt sets the "remind_at" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateRemindAt() *TodoUpsert {
+	u.SetExcluded(todo.FieldRemindAt)
+	return u
+}
+
+// AddRemindAt adds v to the "remind_at" field.
+func (u *TodoUpsert) AddRemindAt(v int64) *TodoUpsert {
+	u.Add(todo.FieldRemindAt, v)
+	return u
+}
+
+// SetRepeatMethod sets the "repeat_method" field.
+func (u *TodoUpsert) SetRepeatMethod(v string) *TodoUpsert {
+	u.Set(todo.FieldRepeatMethod, v)
+	return u
+}
+
+// UpdateRepeatMethod sets the "repeat_method" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateRepeatMethod() *TodoUpsert {
+	u.SetExcluded(todo.FieldRepeatMethod)
+	return u
+}
+
+// SetRepeatRule sets the "repeat_rule" field.
+func (u *TodoUpsert) SetRepeatRule(v string) *TodoUpsert {
+	u.Set(todo.FieldRepeatRule, v)
+	return u
+}
+
+// UpdateRepeatRule sets the "repeat_rule" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateRepeatRule() *TodoUpsert {
+	u.SetExcluded(todo.FieldRepeatRule)
+	return u
+}
+
+// SetRepeatEndAt sets the "repeat_end_at" field.
+func (u *TodoUpsert) SetRepeatEndAt(v int64) *TodoUpsert {
+	u.Set(todo.FieldRepeatEndAt, v)
+	return u
+}
+
+// UpdateRepeatEndAt sets the "repeat_end_at" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateRepeatEndAt() *TodoUpsert {
+	u.SetExcluded(todo.FieldRepeatEndAt)
+	return u
+}
+
+// AddRepeatEndAt adds v to the "repeat_end_at" field.
+func (u *TodoUpsert) AddRepeatEndAt(v int64) *TodoUpsert {
+	u.Add(todo.FieldRepeatEndAt, v)
+	return u
+}
+
+// SetComplete sets the "complete" field.
+func (u *TodoUpsert) SetComplete(v int32) *TodoUpsert {
+	u.Set(todo.FieldComplete, v)
+	return u
+}
+
+// UpdateComplete sets the "complete" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateComplete() *TodoUpsert {
+	u.SetExcluded(todo.FieldComplete)
+	return u
+}
+
+// AddComplete adds v to the "complete" field.
+func (u *TodoUpsert) AddComplete(v int32) *TodoUpsert {
+	u.Add(todo.FieldComplete, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TodoUpsert) SetUpdatedAt(v time.Time) *TodoUpsert {
+	u.Set(todo.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TodoUpsert) UpdateUpdatedAt() *TodoUpsert {
+	u.SetExcluded(todo.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(todo.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TodoUpsertOne) UpdateNewValues() *TodoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(todo.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(todo.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *TodoUpsertOne) Ignore() *TodoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TodoUpsertOne) DoNothing() *TodoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TodoCreate.OnConflict
+// documentation for more info.
+func (u *TodoUpsertOne) Update(set func(*TodoUpsert)) *TodoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TodoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *TodoUpsertOne) SetUID(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateUID() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *TodoUpsertOne) SetTopic(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateTopic() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *TodoUpsertOne) SetKeyResultID(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetKeyResultID(v)
+	})
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateKeyResultID() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateKeyResultID()
+	})
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *TodoUpsertOne) ClearKeyResultID() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.ClearKeyResultID()
+	})
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *TodoUpsertOne) SetParentID(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetParentID(v)
+	})
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateParentID() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *TodoUpsertOne) ClearParentID() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.ClearParentID()
+	})
+}
+
+// SetSequence sets the "sequence" field.
+func (u *TodoUpsertOne) SetSequence(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetSequence(v)
+	})
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *TodoUpsertOne) AddSequence(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddSequence(v)
+	})
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateSequence() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateSequence()
+	})
+}
+
+// SetContent sets the "content" field.
+func (u *TodoUpsertOne) SetContent(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetContent(v)
+	})
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateContent() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateContent()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *TodoUpsertOne) SetCategory(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateCategory() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateCategory()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *TodoUpsertOne) SetRemark(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateRemark() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *TodoUpsertOne) SetPriority(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *TodoUpsertOne) AddPriority(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdatePriority() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetIsRemindAtTime sets the "is_remind_at_time" field.
+func (u *TodoUpsertOne) SetIsRemindAtTime(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetIsRemindAtTime(v)
+	})
+}
+
+// AddIsRemindAtTime adds v to the "is_remind_at_time" field.
+func (u *TodoUpsertOne) AddIsRemindAtTime(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddIsRemindAtTime(v)
+	})
+}
+
+// UpdateIsRemindAtTime sets the "is_remind_at_time" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateIsRemindAtTime() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateIsRemindAtTime()
+	})
+}
+
+// SetRemindAt sets the "remind_at" field.
+func (u *TodoUpsertOne) SetRemindAt(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRemindAt(v)
+	})
+}
+
+// AddRemindAt adds v to the "remind_at" field.
+func (u *TodoUpsertOne) AddRemindAt(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddRemindAt(v)
+	})
+}
+
+// UpdateRemindAt sets the "remind_at" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateRemindAt() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRemindAt()
+	})
+}
+
+// SetRepeatMethod sets the "repeat_method" field.
+func (u *TodoUpsertOne) SetRepeatMethod(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatMethod(v)
+	})
+}
+
+// UpdateRepeatMethod sets the "repeat_method" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateRepeatMethod() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatMethod()
+	})
+}
+
+// SetRepeatRule sets the "repeat_rule" field.
+func (u *TodoUpsertOne) SetRepeatRule(v string) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatRule(v)
+	})
+}
+
+// UpdateRepeatRule sets the "repeat_rule" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateRepeatRule() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatRule()
+	})
+}
+
+// SetRepeatEndAt sets the "repeat_end_at" field.
+func (u *TodoUpsertOne) SetRepeatEndAt(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatEndAt(v)
+	})
+}
+
+// AddRepeatEndAt adds v to the "repeat_end_at" field.
+func (u *TodoUpsertOne) AddRepeatEndAt(v int64) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddRepeatEndAt(v)
+	})
+}
+
+// UpdateRepeatEndAt sets the "repeat_end_at" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateRepeatEndAt() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatEndAt()
+	})
+}
+
+// SetComplete sets the "complete" field.
+func (u *TodoUpsertOne) SetComplete(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetComplete(v)
+	})
+}
+
+// AddComplete adds v to the "complete" field.
+func (u *TodoUpsertOne) AddComplete(v int32) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddComplete(v)
+	})
+}
+
+// UpdateComplete sets the "complete" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateComplete() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateComplete()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TodoUpsertOne) SetUpdatedAt(v time.Time) *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TodoUpsertOne) UpdateUpdatedAt() *TodoUpsertOne {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TodoUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for TodoCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TodoUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TodoUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TodoUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TodoCreateBulk is the builder for creating many Todo entities in bulk.
 type TodoCreateBulk struct {
 	config
 	err      error
 	builders []*TodoCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Todo entities in the database.
@@ -592,6 +1249,7 @@ func (_c *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -642,6 +1300,403 @@ func (_c *TodoCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *TodoCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Todo.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TodoUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *TodoCreateBulk) OnConflict(opts ...sql.ConflictOption) *TodoUpsertBulk {
+	_c.conflict = opts
+	return &TodoUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *TodoCreateBulk) OnConflictColumns(columns ...string) *TodoUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &TodoUpsertBulk{
+		create: _c,
+	}
+}
+
+// TodoUpsertBulk is the builder for "upsert"-ing
+// a bulk of Todo nodes.
+type TodoUpsertBulk struct {
+	create *TodoCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(todo.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TodoUpsertBulk) UpdateNewValues() *TodoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(todo.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(todo.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Todo.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *TodoUpsertBulk) Ignore() *TodoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TodoUpsertBulk) DoNothing() *TodoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TodoCreateBulk.OnConflict
+// documentation for more info.
+func (u *TodoUpsertBulk) Update(set func(*TodoUpsert)) *TodoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TodoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *TodoUpsertBulk) SetUID(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateUID() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *TodoUpsertBulk) SetTopic(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateTopic() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *TodoUpsertBulk) SetKeyResultID(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetKeyResultID(v)
+	})
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateKeyResultID() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateKeyResultID()
+	})
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *TodoUpsertBulk) ClearKeyResultID() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.ClearKeyResultID()
+	})
+}
+
+// SetParentID sets the "parent_id" field.
+func (u *TodoUpsertBulk) SetParentID(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetParentID(v)
+	})
+}
+
+// UpdateParentID sets the "parent_id" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateParentID() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateParentID()
+	})
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (u *TodoUpsertBulk) ClearParentID() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.ClearParentID()
+	})
+}
+
+// SetSequence sets the "sequence" field.
+func (u *TodoUpsertBulk) SetSequence(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetSequence(v)
+	})
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *TodoUpsertBulk) AddSequence(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddSequence(v)
+	})
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateSequence() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateSequence()
+	})
+}
+
+// SetContent sets the "content" field.
+func (u *TodoUpsertBulk) SetContent(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetContent(v)
+	})
+}
+
+// UpdateContent sets the "content" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateContent() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateContent()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *TodoUpsertBulk) SetCategory(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateCategory() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateCategory()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *TodoUpsertBulk) SetRemark(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateRemark() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *TodoUpsertBulk) SetPriority(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *TodoUpsertBulk) AddPriority(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdatePriority() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetIsRemindAtTime sets the "is_remind_at_time" field.
+func (u *TodoUpsertBulk) SetIsRemindAtTime(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetIsRemindAtTime(v)
+	})
+}
+
+// AddIsRemindAtTime adds v to the "is_remind_at_time" field.
+func (u *TodoUpsertBulk) AddIsRemindAtTime(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddIsRemindAtTime(v)
+	})
+}
+
+// UpdateIsRemindAtTime sets the "is_remind_at_time" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateIsRemindAtTime() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateIsRemindAtTime()
+	})
+}
+
+// SetRemindAt sets the "remind_at" field.
+func (u *TodoUpsertBulk) SetRemindAt(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRemindAt(v)
+	})
+}
+
+// AddRemindAt adds v to the "remind_at" field.
+func (u *TodoUpsertBulk) AddRemindAt(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddRemindAt(v)
+	})
+}
+
+// UpdateRemindAt sets the "remind_at" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateRemindAt() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRemindAt()
+	})
+}
+
+// SetRepeatMethod sets the "repeat_method" field.
+func (u *TodoUpsertBulk) SetRepeatMethod(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatMethod(v)
+	})
+}
+
+// UpdateRepeatMethod sets the "repeat_method" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateRepeatMethod() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatMethod()
+	})
+}
+
+// SetRepeatRule sets the "repeat_rule" field.
+func (u *TodoUpsertBulk) SetRepeatRule(v string) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatRule(v)
+	})
+}
+
+// UpdateRepeatRule sets the "repeat_rule" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateRepeatRule() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatRule()
+	})
+}
+
+// SetRepeatEndAt sets the "repeat_end_at" field.
+func (u *TodoUpsertBulk) SetRepeatEndAt(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetRepeatEndAt(v)
+	})
+}
+
+// AddRepeatEndAt adds v to the "repeat_end_at" field.
+func (u *TodoUpsertBulk) AddRepeatEndAt(v int64) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddRepeatEndAt(v)
+	})
+}
+
+// UpdateRepeatEndAt sets the "repeat_end_at" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateRepeatEndAt() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateRepeatEndAt()
+	})
+}
+
+// SetComplete sets the "complete" field.
+func (u *TodoUpsertBulk) SetComplete(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetComplete(v)
+	})
+}
+
+// AddComplete adds v to the "complete" field.
+func (u *TodoUpsertBulk) AddComplete(v int32) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.AddComplete(v)
+	})
+}
+
+// UpdateComplete sets the "complete" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateComplete() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateComplete()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TodoUpsertBulk) SetUpdatedAt(v time.Time) *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TodoUpsertBulk) UpdateUpdatedAt() *TodoUpsertBulk {
+	return u.Update(func(s *TodoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TodoUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the TodoCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for TodoCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TodoUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

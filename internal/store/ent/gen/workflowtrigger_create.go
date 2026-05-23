@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
@@ -19,6 +20,7 @@ type WorkflowTriggerCreate struct {
 	config
 	mutation *WorkflowTriggerMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowID sets the "workflow_id" field.
@@ -217,6 +219,7 @@ func (_c *WorkflowTriggerCreate) createSpec() (*WorkflowTrigger, *sqlgraph.Creat
 		_node = &WorkflowTrigger{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(workflowtrigger.Table, sqlgraph.NewFieldSpec(workflowtrigger.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -265,11 +268,353 @@ func (_c *WorkflowTriggerCreate) createSpec() (*WorkflowTrigger, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowTrigger.Create().
+//		SetWorkflowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowTriggerUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowTriggerCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowTriggerUpsertOne {
+	_c.conflict = opts
+	return &WorkflowTriggerUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowTriggerCreate) OnConflictColumns(columns ...string) *WorkflowTriggerUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowTriggerUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// WorkflowTriggerUpsertOne is the builder for "upsert"-ing
+	//  one WorkflowTrigger node.
+	WorkflowTriggerUpsertOne struct {
+		create *WorkflowTriggerCreate
+	}
+
+	// WorkflowTriggerUpsert is the "OnConflict" setter.
+	WorkflowTriggerUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowTriggerUpsert) SetWorkflowID(v int64) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateWorkflowID() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldWorkflowID)
+	return u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowTriggerUpsert) ClearWorkflowID() *WorkflowTriggerUpsert {
+	u.SetNull(workflowtrigger.FieldWorkflowID)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *WorkflowTriggerUpsert) SetType(v string) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateType() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldType)
+	return u
+}
+
+// SetRule sets the "rule" field.
+func (u *WorkflowTriggerUpsert) SetRule(v map[string]interface{}) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldRule, v)
+	return u
+}
+
+// UpdateRule sets the "rule" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateRule() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldRule)
+	return u
+}
+
+// ClearRule clears the value of the "rule" field.
+func (u *WorkflowTriggerUpsert) ClearRule() *WorkflowTriggerUpsert {
+	u.SetNull(workflowtrigger.FieldRule)
+	return u
+}
+
+// SetCount sets the "count" field.
+func (u *WorkflowTriggerUpsert) SetCount(v int32) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldCount, v)
+	return u
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateCount() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldCount)
+	return u
+}
+
+// AddCount adds v to the "count" field.
+func (u *WorkflowTriggerUpsert) AddCount(v int32) *WorkflowTriggerUpsert {
+	u.Add(workflowtrigger.FieldCount, v)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowTriggerUpsert) SetState(v int) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateState() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *WorkflowTriggerUpsert) AddState(v int) *WorkflowTriggerUpsert {
+	u.Add(workflowtrigger.FieldState, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowTriggerUpsert) SetUpdatedAt(v time.Time) *WorkflowTriggerUpsert {
+	u.Set(workflowtrigger.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsert) UpdateUpdatedAt() *WorkflowTriggerUpsert {
+	u.SetExcluded(workflowtrigger.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowtrigger.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowTriggerUpsertOne) UpdateNewValues() *WorkflowTriggerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(workflowtrigger.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(workflowtrigger.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WorkflowTriggerUpsertOne) Ignore() *WorkflowTriggerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowTriggerUpsertOne) DoNothing() *WorkflowTriggerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowTriggerCreate.OnConflict
+// documentation for more info.
+func (u *WorkflowTriggerUpsertOne) Update(set func(*WorkflowTriggerUpsert)) *WorkflowTriggerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowTriggerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowTriggerUpsertOne) SetWorkflowID(v int64) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateWorkflowID() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowTriggerUpsertOne) ClearWorkflowID() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *WorkflowTriggerUpsertOne) SetType(v string) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateType() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetRule sets the "rule" field.
+func (u *WorkflowTriggerUpsertOne) SetRule(v map[string]interface{}) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetRule(v)
+	})
+}
+
+// UpdateRule sets the "rule" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateRule() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateRule()
+	})
+}
+
+// ClearRule clears the value of the "rule" field.
+func (u *WorkflowTriggerUpsertOne) ClearRule() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.ClearRule()
+	})
+}
+
+// SetCount sets the "count" field.
+func (u *WorkflowTriggerUpsertOne) SetCount(v int32) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetCount(v)
+	})
+}
+
+// AddCount adds v to the "count" field.
+func (u *WorkflowTriggerUpsertOne) AddCount(v int32) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.AddCount(v)
+	})
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateCount() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateCount()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowTriggerUpsertOne) SetState(v int) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *WorkflowTriggerUpsertOne) AddState(v int) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateState() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowTriggerUpsertOne) SetUpdatedAt(v time.Time) *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertOne) UpdateUpdatedAt() *WorkflowTriggerUpsertOne {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowTriggerUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowTriggerCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowTriggerUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WorkflowTriggerUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WorkflowTriggerUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WorkflowTriggerCreateBulk is the builder for creating many WorkflowTrigger entities in bulk.
 type WorkflowTriggerCreateBulk struct {
 	config
 	err      error
 	builders []*WorkflowTriggerCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the WorkflowTrigger entities in the database.
@@ -299,6 +644,7 @@ func (_c *WorkflowTriggerCreateBulk) Save(ctx context.Context) ([]*WorkflowTrigg
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -349,6 +695,235 @@ func (_c *WorkflowTriggerCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *WorkflowTriggerCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowTrigger.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowTriggerUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowTriggerCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowTriggerUpsertBulk {
+	_c.conflict = opts
+	return &WorkflowTriggerUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowTriggerCreateBulk) OnConflictColumns(columns ...string) *WorkflowTriggerUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowTriggerUpsertBulk{
+		create: _c,
+	}
+}
+
+// WorkflowTriggerUpsertBulk is the builder for "upsert"-ing
+// a bulk of WorkflowTrigger nodes.
+type WorkflowTriggerUpsertBulk struct {
+	create *WorkflowTriggerCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowtrigger.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowTriggerUpsertBulk) UpdateNewValues() *WorkflowTriggerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(workflowtrigger.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(workflowtrigger.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowTrigger.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WorkflowTriggerUpsertBulk) Ignore() *WorkflowTriggerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowTriggerUpsertBulk) DoNothing() *WorkflowTriggerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowTriggerCreateBulk.OnConflict
+// documentation for more info.
+func (u *WorkflowTriggerUpsertBulk) Update(set func(*WorkflowTriggerUpsert)) *WorkflowTriggerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowTriggerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowTriggerUpsertBulk) SetWorkflowID(v int64) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateWorkflowID() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowTriggerUpsertBulk) ClearWorkflowID() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *WorkflowTriggerUpsertBulk) SetType(v string) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateType() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetRule sets the "rule" field.
+func (u *WorkflowTriggerUpsertBulk) SetRule(v map[string]interface{}) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetRule(v)
+	})
+}
+
+// UpdateRule sets the "rule" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateRule() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateRule()
+	})
+}
+
+// ClearRule clears the value of the "rule" field.
+func (u *WorkflowTriggerUpsertBulk) ClearRule() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.ClearRule()
+	})
+}
+
+// SetCount sets the "count" field.
+func (u *WorkflowTriggerUpsertBulk) SetCount(v int32) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetCount(v)
+	})
+}
+
+// AddCount adds v to the "count" field.
+func (u *WorkflowTriggerUpsertBulk) AddCount(v int32) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.AddCount(v)
+	})
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateCount() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateCount()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowTriggerUpsertBulk) SetState(v int) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *WorkflowTriggerUpsertBulk) AddState(v int) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateState() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WorkflowTriggerUpsertBulk) SetUpdatedAt(v time.Time) *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WorkflowTriggerUpsertBulk) UpdateUpdatedAt() *WorkflowTriggerUpsertBulk {
+	return u.Update(func(s *WorkflowTriggerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowTriggerUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the WorkflowTriggerCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowTriggerCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowTriggerUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

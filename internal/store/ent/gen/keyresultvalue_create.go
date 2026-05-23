@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/keyresult"
@@ -19,6 +20,7 @@ type KeyResultValueCreate struct {
 	config
 	mutation *KeyResultValueMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetKeyResultID sets the "key_result_id" field.
@@ -197,6 +199,7 @@ func (_c *KeyResultValueCreate) createSpec() (*KeyResultValue, *sqlgraph.CreateS
 		_node = &KeyResultValue{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(keyresultvalue.Table, sqlgraph.NewFieldSpec(keyresultvalue.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -237,11 +240,275 @@ func (_c *KeyResultValueCreate) createSpec() (*KeyResultValue, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.KeyResultValue.Create().
+//		SetKeyResultID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.KeyResultValueUpsert) {
+//			SetKeyResultID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *KeyResultValueCreate) OnConflict(opts ...sql.ConflictOption) *KeyResultValueUpsertOne {
+	_c.conflict = opts
+	return &KeyResultValueUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *KeyResultValueCreate) OnConflictColumns(columns ...string) *KeyResultValueUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &KeyResultValueUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// KeyResultValueUpsertOne is the builder for "upsert"-ing
+	//  one KeyResultValue node.
+	KeyResultValueUpsertOne struct {
+		create *KeyResultValueCreate
+	}
+
+	// KeyResultValueUpsert is the "OnConflict" setter.
+	KeyResultValueUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *KeyResultValueUpsert) SetKeyResultID(v int64) *KeyResultValueUpsert {
+	u.Set(keyresultvalue.FieldKeyResultID, v)
+	return u
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *KeyResultValueUpsert) UpdateKeyResultID() *KeyResultValueUpsert {
+	u.SetExcluded(keyresultvalue.FieldKeyResultID)
+	return u
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *KeyResultValueUpsert) ClearKeyResultID() *KeyResultValueUpsert {
+	u.SetNull(keyresultvalue.FieldKeyResultID)
+	return u
+}
+
+// SetValue sets the "value" field.
+func (u *KeyResultValueUpsert) SetValue(v int32) *KeyResultValueUpsert {
+	u.Set(keyresultvalue.FieldValue, v)
+	return u
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *KeyResultValueUpsert) UpdateValue() *KeyResultValueUpsert {
+	u.SetExcluded(keyresultvalue.FieldValue)
+	return u
+}
+
+// AddValue adds v to the "value" field.
+func (u *KeyResultValueUpsert) AddValue(v int32) *KeyResultValueUpsert {
+	u.Add(keyresultvalue.FieldValue, v)
+	return u
+}
+
+// SetMemo sets the "memo" field.
+func (u *KeyResultValueUpsert) SetMemo(v string) *KeyResultValueUpsert {
+	u.Set(keyresultvalue.FieldMemo, v)
+	return u
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *KeyResultValueUpsert) UpdateMemo() *KeyResultValueUpsert {
+	u.SetExcluded(keyresultvalue.FieldMemo)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyResultValueUpsert) SetUpdatedAt(v time.Time) *KeyResultValueUpsert {
+	u.Set(keyresultvalue.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyResultValueUpsert) UpdateUpdatedAt() *KeyResultValueUpsert {
+	u.SetExcluded(keyresultvalue.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(keyresultvalue.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *KeyResultValueUpsertOne) UpdateNewValues() *KeyResultValueUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(keyresultvalue.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(keyresultvalue.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *KeyResultValueUpsertOne) Ignore() *KeyResultValueUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *KeyResultValueUpsertOne) DoNothing() *KeyResultValueUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the KeyResultValueCreate.OnConflict
+// documentation for more info.
+func (u *KeyResultValueUpsertOne) Update(set func(*KeyResultValueUpsert)) *KeyResultValueUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&KeyResultValueUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *KeyResultValueUpsertOne) SetKeyResultID(v int64) *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetKeyResultID(v)
+	})
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *KeyResultValueUpsertOne) UpdateKeyResultID() *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateKeyResultID()
+	})
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *KeyResultValueUpsertOne) ClearKeyResultID() *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.ClearKeyResultID()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *KeyResultValueUpsertOne) SetValue(v int32) *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// AddValue adds v to the "value" field.
+func (u *KeyResultValueUpsertOne) AddValue(v int32) *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.AddValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *KeyResultValueUpsertOne) UpdateValue() *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *KeyResultValueUpsertOne) SetMemo(v string) *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *KeyResultValueUpsertOne) UpdateMemo() *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyResultValueUpsertOne) SetUpdatedAt(v time.Time) *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyResultValueUpsertOne) UpdateUpdatedAt() *KeyResultValueUpsertOne {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *KeyResultValueUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for KeyResultValueCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *KeyResultValueUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *KeyResultValueUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *KeyResultValueUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // KeyResultValueCreateBulk is the builder for creating many KeyResultValue entities in bulk.
 type KeyResultValueCreateBulk struct {
 	config
 	err      error
 	builders []*KeyResultValueCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the KeyResultValue entities in the database.
@@ -271,6 +538,7 @@ func (_c *KeyResultValueCreateBulk) Save(ctx context.Context) ([]*KeyResultValue
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -321,6 +589,193 @@ func (_c *KeyResultValueCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *KeyResultValueCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.KeyResultValue.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.KeyResultValueUpsert) {
+//			SetKeyResultID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *KeyResultValueCreateBulk) OnConflict(opts ...sql.ConflictOption) *KeyResultValueUpsertBulk {
+	_c.conflict = opts
+	return &KeyResultValueUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *KeyResultValueCreateBulk) OnConflictColumns(columns ...string) *KeyResultValueUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &KeyResultValueUpsertBulk{
+		create: _c,
+	}
+}
+
+// KeyResultValueUpsertBulk is the builder for "upsert"-ing
+// a bulk of KeyResultValue nodes.
+type KeyResultValueUpsertBulk struct {
+	create *KeyResultValueCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(keyresultvalue.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *KeyResultValueUpsertBulk) UpdateNewValues() *KeyResultValueUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(keyresultvalue.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(keyresultvalue.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.KeyResultValue.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *KeyResultValueUpsertBulk) Ignore() *KeyResultValueUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *KeyResultValueUpsertBulk) DoNothing() *KeyResultValueUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the KeyResultValueCreateBulk.OnConflict
+// documentation for more info.
+func (u *KeyResultValueUpsertBulk) Update(set func(*KeyResultValueUpsert)) *KeyResultValueUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&KeyResultValueUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetKeyResultID sets the "key_result_id" field.
+func (u *KeyResultValueUpsertBulk) SetKeyResultID(v int64) *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetKeyResultID(v)
+	})
+}
+
+// UpdateKeyResultID sets the "key_result_id" field to the value that was provided on create.
+func (u *KeyResultValueUpsertBulk) UpdateKeyResultID() *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateKeyResultID()
+	})
+}
+
+// ClearKeyResultID clears the value of the "key_result_id" field.
+func (u *KeyResultValueUpsertBulk) ClearKeyResultID() *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.ClearKeyResultID()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *KeyResultValueUpsertBulk) SetValue(v int32) *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// AddValue adds v to the "value" field.
+func (u *KeyResultValueUpsertBulk) AddValue(v int32) *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.AddValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *KeyResultValueUpsertBulk) UpdateValue() *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *KeyResultValueUpsertBulk) SetMemo(v string) *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *KeyResultValueUpsertBulk) UpdateMemo() *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *KeyResultValueUpsertBulk) SetUpdatedAt(v time.Time) *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *KeyResultValueUpsertBulk) UpdateUpdatedAt() *KeyResultValueUpsertBulk {
+	return u.Update(func(s *KeyResultValueUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *KeyResultValueUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the KeyResultValueCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for KeyResultValueCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *KeyResultValueUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

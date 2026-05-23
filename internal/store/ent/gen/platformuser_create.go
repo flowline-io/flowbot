@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
@@ -18,6 +19,7 @@ type PlatformUserCreate struct {
 	config
 	mutation *PlatformUserMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetPlatformID sets the "platform_id" field.
@@ -230,6 +232,7 @@ func (_c *PlatformUserCreate) createSpec() (*PlatformUser, *sqlgraph.CreateSpec)
 		_node = &PlatformUser{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(platformuser.Table, sqlgraph.NewFieldSpec(platformuser.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -273,11 +276,379 @@ func (_c *PlatformUserCreate) createSpec() (*PlatformUser, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PlatformUser.Create().
+//		SetPlatformID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PlatformUserUpsert) {
+//			SetPlatformID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PlatformUserCreate) OnConflict(opts ...sql.ConflictOption) *PlatformUserUpsertOne {
+	_c.conflict = opts
+	return &PlatformUserUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PlatformUserCreate) OnConflictColumns(columns ...string) *PlatformUserUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PlatformUserUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PlatformUserUpsertOne is the builder for "upsert"-ing
+	//  one PlatformUser node.
+	PlatformUserUpsertOne struct {
+		create *PlatformUserCreate
+	}
+
+	// PlatformUserUpsert is the "OnConflict" setter.
+	PlatformUserUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformUserUpsert) SetPlatformID(v int64) *PlatformUserUpsert {
+	u.Set(platformuser.FieldPlatformID, v)
+	return u
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdatePlatformID() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldPlatformID)
+	return u
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformUserUpsert) AddPlatformID(v int64) *PlatformUserUpsert {
+	u.Add(platformuser.FieldPlatformID, v)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PlatformUserUpsert) SetUserID(v int64) *PlatformUserUpsert {
+	u.Set(platformuser.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateUserID() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldUserID)
+	return u
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *PlatformUserUpsert) AddUserID(v int64) *PlatformUserUpsert {
+	u.Add(platformuser.FieldUserID, v)
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformUserUpsert) SetFlag(v string) *PlatformUserUpsert {
+	u.Set(platformuser.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateFlag() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldFlag)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PlatformUserUpsert) SetName(v string) *PlatformUserUpsert {
+	u.Set(platformuser.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateName() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldName)
+	return u
+}
+
+// SetEmail sets the "email" field.
+func (u *PlatformUserUpsert) SetEmail(v string) *PlatformUserUpsert {
+	u.Set(platformuser.FieldEmail, v)
+	return u
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateEmail() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldEmail)
+	return u
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *PlatformUserUpsert) SetAvatarURL(v string) *PlatformUserUpsert {
+	u.Set(platformuser.FieldAvatarURL, v)
+	return u
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateAvatarURL() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldAvatarURL)
+	return u
+}
+
+// SetIsBot sets the "is_bot" field.
+func (u *PlatformUserUpsert) SetIsBot(v bool) *PlatformUserUpsert {
+	u.Set(platformuser.FieldIsBot, v)
+	return u
+}
+
+// UpdateIsBot sets the "is_bot" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateIsBot() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldIsBot)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformUserUpsert) SetUpdatedAt(v time.Time) *PlatformUserUpsert {
+	u.Set(platformuser.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformUserUpsert) UpdateUpdatedAt() *PlatformUserUpsert {
+	u.SetExcluded(platformuser.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(platformuser.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PlatformUserUpsertOne) UpdateNewValues() *PlatformUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(platformuser.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(platformuser.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PlatformUserUpsertOne) Ignore() *PlatformUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PlatformUserUpsertOne) DoNothing() *PlatformUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PlatformUserCreate.OnConflict
+// documentation for more info.
+func (u *PlatformUserUpsertOne) Update(set func(*PlatformUserUpsert)) *PlatformUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PlatformUserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformUserUpsertOne) SetPlatformID(v int64) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetPlatformID(v)
+	})
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformUserUpsertOne) AddPlatformID(v int64) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.AddPlatformID(v)
+	})
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdatePlatformID() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdatePlatformID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PlatformUserUpsertOne) SetUserID(v int64) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *PlatformUserUpsertOne) AddUserID(v int64) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateUserID() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformUserUpsertOne) SetFlag(v string) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateFlag() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PlatformUserUpsertOne) SetName(v string) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateName() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *PlatformUserUpsertOne) SetEmail(v string) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateEmail() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *PlatformUserUpsertOne) SetAvatarURL(v string) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateAvatarURL() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// SetIsBot sets the "is_bot" field.
+func (u *PlatformUserUpsertOne) SetIsBot(v bool) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetIsBot(v)
+	})
+}
+
+// UpdateIsBot sets the "is_bot" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateIsBot() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateIsBot()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformUserUpsertOne) SetUpdatedAt(v time.Time) *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformUserUpsertOne) UpdateUpdatedAt() *PlatformUserUpsertOne {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PlatformUserUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PlatformUserCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PlatformUserUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PlatformUserUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PlatformUserUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PlatformUserCreateBulk is the builder for creating many PlatformUser entities in bulk.
 type PlatformUserCreateBulk struct {
 	config
 	err      error
 	builders []*PlatformUserCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PlatformUser entities in the database.
@@ -307,6 +678,7 @@ func (_c *PlatformUserCreateBulk) Save(ctx context.Context) ([]*PlatformUser, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -357,6 +729,249 @@ func (_c *PlatformUserCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PlatformUserCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PlatformUser.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PlatformUserUpsert) {
+//			SetPlatformID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PlatformUserCreateBulk) OnConflict(opts ...sql.ConflictOption) *PlatformUserUpsertBulk {
+	_c.conflict = opts
+	return &PlatformUserUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PlatformUserCreateBulk) OnConflictColumns(columns ...string) *PlatformUserUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PlatformUserUpsertBulk{
+		create: _c,
+	}
+}
+
+// PlatformUserUpsertBulk is the builder for "upsert"-ing
+// a bulk of PlatformUser nodes.
+type PlatformUserUpsertBulk struct {
+	create *PlatformUserCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(platformuser.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PlatformUserUpsertBulk) UpdateNewValues() *PlatformUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(platformuser.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(platformuser.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PlatformUser.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PlatformUserUpsertBulk) Ignore() *PlatformUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PlatformUserUpsertBulk) DoNothing() *PlatformUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PlatformUserCreateBulk.OnConflict
+// documentation for more info.
+func (u *PlatformUserUpsertBulk) Update(set func(*PlatformUserUpsert)) *PlatformUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PlatformUserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetPlatformID sets the "platform_id" field.
+func (u *PlatformUserUpsertBulk) SetPlatformID(v int64) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetPlatformID(v)
+	})
+}
+
+// AddPlatformID adds v to the "platform_id" field.
+func (u *PlatformUserUpsertBulk) AddPlatformID(v int64) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.AddPlatformID(v)
+	})
+}
+
+// UpdatePlatformID sets the "platform_id" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdatePlatformID() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdatePlatformID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PlatformUserUpsertBulk) SetUserID(v int64) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// AddUserID adds v to the "user_id" field.
+func (u *PlatformUserUpsertBulk) AddUserID(v int64) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.AddUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateUserID() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *PlatformUserUpsertBulk) SetFlag(v string) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateFlag() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PlatformUserUpsertBulk) SetName(v string) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateName() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *PlatformUserUpsertBulk) SetEmail(v string) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateEmail() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *PlatformUserUpsertBulk) SetAvatarURL(v string) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateAvatarURL() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// SetIsBot sets the "is_bot" field.
+func (u *PlatformUserUpsertBulk) SetIsBot(v bool) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetIsBot(v)
+	})
+}
+
+// UpdateIsBot sets the "is_bot" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateIsBot() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateIsBot()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PlatformUserUpsertBulk) SetUpdatedAt(v time.Time) *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PlatformUserUpsertBulk) UpdateUpdatedAt() *PlatformUserUpsertBulk {
+	return u.Update(func(s *PlatformUserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PlatformUserUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the PlatformUserCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PlatformUserCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PlatformUserUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

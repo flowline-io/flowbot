@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
@@ -18,6 +19,7 @@ type FileuploadCreate struct {
 	config
 	mutation *FileuploadMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -247,6 +249,7 @@ func (_c *FileuploadCreate) createSpec() (*Fileupload, *sqlgraph.CreateSpec) {
 		_node = &Fileupload{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(fileupload.Table, sqlgraph.NewFieldSpec(fileupload.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -290,11 +293,379 @@ func (_c *FileuploadCreate) createSpec() (*Fileupload, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Fileupload.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FileuploadUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FileuploadCreate) OnConflict(opts ...sql.ConflictOption) *FileuploadUpsertOne {
+	_c.conflict = opts
+	return &FileuploadUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FileuploadCreate) OnConflictColumns(columns ...string) *FileuploadUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FileuploadUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FileuploadUpsertOne is the builder for "upsert"-ing
+	//  one Fileupload node.
+	FileuploadUpsertOne struct {
+		create *FileuploadCreate
+	}
+
+	// FileuploadUpsert is the "OnConflict" setter.
+	FileuploadUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *FileuploadUpsert) SetUID(v string) *FileuploadUpsert {
+	u.Set(fileupload.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateUID() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldUID)
+	return u
+}
+
+// SetFid sets the "fid" field.
+func (u *FileuploadUpsert) SetFid(v string) *FileuploadUpsert {
+	u.Set(fileupload.FieldFid, v)
+	return u
+}
+
+// UpdateFid sets the "fid" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateFid() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldFid)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *FileuploadUpsert) SetName(v string) *FileuploadUpsert {
+	u.Set(fileupload.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateName() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldName)
+	return u
+}
+
+// SetMimetype sets the "mimetype" field.
+func (u *FileuploadUpsert) SetMimetype(v string) *FileuploadUpsert {
+	u.Set(fileupload.FieldMimetype, v)
+	return u
+}
+
+// UpdateMimetype sets the "mimetype" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateMimetype() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldMimetype)
+	return u
+}
+
+// SetSize sets the "size" field.
+func (u *FileuploadUpsert) SetSize(v int64) *FileuploadUpsert {
+	u.Set(fileupload.FieldSize, v)
+	return u
+}
+
+// UpdateSize sets the "size" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateSize() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldSize)
+	return u
+}
+
+// AddSize adds v to the "size" field.
+func (u *FileuploadUpsert) AddSize(v int64) *FileuploadUpsert {
+	u.Add(fileupload.FieldSize, v)
+	return u
+}
+
+// SetLocation sets the "location" field.
+func (u *FileuploadUpsert) SetLocation(v string) *FileuploadUpsert {
+	u.Set(fileupload.FieldLocation, v)
+	return u
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateLocation() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldLocation)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *FileuploadUpsert) SetState(v int) *FileuploadUpsert {
+	u.Set(fileupload.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateState() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *FileuploadUpsert) AddState(v int) *FileuploadUpsert {
+	u.Add(fileupload.FieldState, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FileuploadUpsert) SetUpdatedAt(v time.Time) *FileuploadUpsert {
+	u.Set(fileupload.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FileuploadUpsert) UpdateUpdatedAt() *FileuploadUpsert {
+	u.SetExcluded(fileupload.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(fileupload.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FileuploadUpsertOne) UpdateNewValues() *FileuploadUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(fileupload.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(fileupload.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FileuploadUpsertOne) Ignore() *FileuploadUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FileuploadUpsertOne) DoNothing() *FileuploadUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FileuploadCreate.OnConflict
+// documentation for more info.
+func (u *FileuploadUpsertOne) Update(set func(*FileuploadUpsert)) *FileuploadUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FileuploadUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *FileuploadUpsertOne) SetUID(v string) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateUID() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetFid sets the "fid" field.
+func (u *FileuploadUpsertOne) SetFid(v string) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetFid(v)
+	})
+}
+
+// UpdateFid sets the "fid" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateFid() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateFid()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FileuploadUpsertOne) SetName(v string) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateName() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetMimetype sets the "mimetype" field.
+func (u *FileuploadUpsertOne) SetMimetype(v string) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetMimetype(v)
+	})
+}
+
+// UpdateMimetype sets the "mimetype" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateMimetype() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateMimetype()
+	})
+}
+
+// SetSize sets the "size" field.
+func (u *FileuploadUpsertOne) SetSize(v int64) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetSize(v)
+	})
+}
+
+// AddSize adds v to the "size" field.
+func (u *FileuploadUpsertOne) AddSize(v int64) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.AddSize(v)
+	})
+}
+
+// UpdateSize sets the "size" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateSize() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateSize()
+	})
+}
+
+// SetLocation sets the "location" field.
+func (u *FileuploadUpsertOne) SetLocation(v string) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetLocation(v)
+	})
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateLocation() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateLocation()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FileuploadUpsertOne) SetState(v int) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FileuploadUpsertOne) AddState(v int) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateState() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FileuploadUpsertOne) SetUpdatedAt(v time.Time) *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FileuploadUpsertOne) UpdateUpdatedAt() *FileuploadUpsertOne {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FileuploadUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FileuploadCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FileuploadUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FileuploadUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FileuploadUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FileuploadCreateBulk is the builder for creating many Fileupload entities in bulk.
 type FileuploadCreateBulk struct {
 	config
 	err      error
 	builders []*FileuploadCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Fileupload entities in the database.
@@ -324,6 +695,7 @@ func (_c *FileuploadCreateBulk) Save(ctx context.Context) ([]*Fileupload, error)
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -374,6 +746,249 @@ func (_c *FileuploadCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FileuploadCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Fileupload.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FileuploadUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FileuploadCreateBulk) OnConflict(opts ...sql.ConflictOption) *FileuploadUpsertBulk {
+	_c.conflict = opts
+	return &FileuploadUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FileuploadCreateBulk) OnConflictColumns(columns ...string) *FileuploadUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FileuploadUpsertBulk{
+		create: _c,
+	}
+}
+
+// FileuploadUpsertBulk is the builder for "upsert"-ing
+// a bulk of Fileupload nodes.
+type FileuploadUpsertBulk struct {
+	create *FileuploadCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(fileupload.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FileuploadUpsertBulk) UpdateNewValues() *FileuploadUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(fileupload.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(fileupload.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Fileupload.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FileuploadUpsertBulk) Ignore() *FileuploadUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FileuploadUpsertBulk) DoNothing() *FileuploadUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FileuploadCreateBulk.OnConflict
+// documentation for more info.
+func (u *FileuploadUpsertBulk) Update(set func(*FileuploadUpsert)) *FileuploadUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FileuploadUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *FileuploadUpsertBulk) SetUID(v string) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateUID() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetFid sets the "fid" field.
+func (u *FileuploadUpsertBulk) SetFid(v string) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetFid(v)
+	})
+}
+
+// UpdateFid sets the "fid" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateFid() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateFid()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FileuploadUpsertBulk) SetName(v string) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateName() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetMimetype sets the "mimetype" field.
+func (u *FileuploadUpsertBulk) SetMimetype(v string) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetMimetype(v)
+	})
+}
+
+// UpdateMimetype sets the "mimetype" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateMimetype() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateMimetype()
+	})
+}
+
+// SetSize sets the "size" field.
+func (u *FileuploadUpsertBulk) SetSize(v int64) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetSize(v)
+	})
+}
+
+// AddSize adds v to the "size" field.
+func (u *FileuploadUpsertBulk) AddSize(v int64) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.AddSize(v)
+	})
+}
+
+// UpdateSize sets the "size" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateSize() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateSize()
+	})
+}
+
+// SetLocation sets the "location" field.
+func (u *FileuploadUpsertBulk) SetLocation(v string) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetLocation(v)
+	})
+}
+
+// UpdateLocation sets the "location" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateLocation() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateLocation()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *FileuploadUpsertBulk) SetState(v int) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *FileuploadUpsertBulk) AddState(v int) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateState() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FileuploadUpsertBulk) SetUpdatedAt(v time.Time) *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FileuploadUpsertBulk) UpdateUpdatedAt() *FileuploadUpsertBulk {
+	return u.Update(func(s *FileuploadUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FileuploadUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the FileuploadCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FileuploadCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FileuploadUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

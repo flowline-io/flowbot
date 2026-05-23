@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
@@ -18,6 +19,7 @@ type DataCreate struct {
 	config
 	mutation *DataMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -186,6 +188,7 @@ func (_c *DataCreate) createSpec() (*Data, *sqlgraph.CreateSpec) {
 		_node = &Data{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(data.Table, sqlgraph.NewFieldSpec(data.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -217,11 +220,275 @@ func (_c *DataCreate) createSpec() (*Data, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Data.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DataUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DataCreate) OnConflict(opts ...sql.ConflictOption) *DataUpsertOne {
+	_c.conflict = opts
+	return &DataUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DataCreate) OnConflictColumns(columns ...string) *DataUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DataUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// DataUpsertOne is the builder for "upsert"-ing
+	//  one Data node.
+	DataUpsertOne struct {
+		create *DataCreate
+	}
+
+	// DataUpsert is the "OnConflict" setter.
+	DataUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *DataUpsert) SetUID(v string) *DataUpsert {
+	u.Set(data.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataUpsert) UpdateUID() *DataUpsert {
+	u.SetExcluded(data.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataUpsert) SetTopic(v string) *DataUpsert {
+	u.Set(data.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataUpsert) UpdateTopic() *DataUpsert {
+	u.SetExcluded(data.FieldTopic)
+	return u
+}
+
+// SetKey sets the "key" field.
+func (u *DataUpsert) SetKey(v string) *DataUpsert {
+	u.Set(data.FieldKey, v)
+	return u
+}
+
+// UpdateKey sets the "key" field to the value that was provided on create.
+func (u *DataUpsert) UpdateKey() *DataUpsert {
+	u.SetExcluded(data.FieldKey)
+	return u
+}
+
+// SetValue sets the "value" field.
+func (u *DataUpsert) SetValue(v map[string]interface{}) *DataUpsert {
+	u.Set(data.FieldValue, v)
+	return u
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *DataUpsert) UpdateValue() *DataUpsert {
+	u.SetExcluded(data.FieldValue)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DataUpsert) SetUpdatedAt(v time.Time) *DataUpsert {
+	u.Set(data.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DataUpsert) UpdateUpdatedAt() *DataUpsert {
+	u.SetExcluded(data.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(data.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DataUpsertOne) UpdateNewValues() *DataUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(data.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(data.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DataUpsertOne) Ignore() *DataUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DataUpsertOne) DoNothing() *DataUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DataCreate.OnConflict
+// documentation for more info.
+func (u *DataUpsertOne) Update(set func(*DataUpsert)) *DataUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DataUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *DataUpsertOne) SetUID(v string) *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataUpsertOne) UpdateUID() *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataUpsertOne) SetTopic(v string) *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataUpsertOne) UpdateTopic() *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetKey sets the "key" field.
+func (u *DataUpsertOne) SetKey(v string) *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.SetKey(v)
+	})
+}
+
+// UpdateKey sets the "key" field to the value that was provided on create.
+func (u *DataUpsertOne) UpdateKey() *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateKey()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *DataUpsertOne) SetValue(v map[string]interface{}) *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *DataUpsertOne) UpdateValue() *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DataUpsertOne) SetUpdatedAt(v time.Time) *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DataUpsertOne) UpdateUpdatedAt() *DataUpsertOne {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DataUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DataCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DataUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DataUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DataUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DataCreateBulk is the builder for creating many Data entities in bulk.
 type DataCreateBulk struct {
 	config
 	err      error
 	builders []*DataCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Data entities in the database.
@@ -251,6 +518,7 @@ func (_c *DataCreateBulk) Save(ctx context.Context) ([]*Data, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -301,6 +569,193 @@ func (_c *DataCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *DataCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Data.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DataUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DataCreateBulk) OnConflict(opts ...sql.ConflictOption) *DataUpsertBulk {
+	_c.conflict = opts
+	return &DataUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DataCreateBulk) OnConflictColumns(columns ...string) *DataUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DataUpsertBulk{
+		create: _c,
+	}
+}
+
+// DataUpsertBulk is the builder for "upsert"-ing
+// a bulk of Data nodes.
+type DataUpsertBulk struct {
+	create *DataCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(data.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DataUpsertBulk) UpdateNewValues() *DataUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(data.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(data.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Data.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DataUpsertBulk) Ignore() *DataUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DataUpsertBulk) DoNothing() *DataUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DataCreateBulk.OnConflict
+// documentation for more info.
+func (u *DataUpsertBulk) Update(set func(*DataUpsert)) *DataUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DataUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *DataUpsertBulk) SetUID(v string) *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataUpsertBulk) UpdateUID() *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataUpsertBulk) SetTopic(v string) *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataUpsertBulk) UpdateTopic() *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetKey sets the "key" field.
+func (u *DataUpsertBulk) SetKey(v string) *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.SetKey(v)
+	})
+}
+
+// UpdateKey sets the "key" field to the value that was provided on create.
+func (u *DataUpsertBulk) UpdateKey() *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateKey()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *DataUpsertBulk) SetValue(v map[string]interface{}) *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *DataUpsertBulk) UpdateValue() *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DataUpsertBulk) SetUpdatedAt(v time.Time) *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DataUpsertBulk) UpdateUpdatedAt() *DataUpsertBulk {
+	return u.Update(func(s *DataUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DataUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the DataCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DataCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DataUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/job"
@@ -19,6 +20,7 @@ type StepCreate struct {
 	config
 	mutation *StepMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -343,6 +345,7 @@ func (_c *StepCreate) createSpec() (*Step, *sqlgraph.CreateSpec) {
 		_node = &Step{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(step.Table, sqlgraph.NewFieldSpec(step.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -427,11 +430,626 @@ func (_c *StepCreate) createSpec() (*Step, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Step.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.StepUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *StepCreate) OnConflict(opts ...sql.ConflictOption) *StepUpsertOne {
+	_c.conflict = opts
+	return &StepUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *StepCreate) OnConflictColumns(columns ...string) *StepUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &StepUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// StepUpsertOne is the builder for "upsert"-ing
+	//  one Step node.
+	StepUpsertOne struct {
+		create *StepCreate
+	}
+
+	// StepUpsert is the "OnConflict" setter.
+	StepUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *StepUpsert) SetUID(v string) *StepUpsert {
+	u.Set(step.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *StepUpsert) UpdateUID() *StepUpsert {
+	u.SetExcluded(step.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *StepUpsert) SetTopic(v string) *StepUpsert {
+	u.Set(step.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *StepUpsert) UpdateTopic() *StepUpsert {
+	u.SetExcluded(step.FieldTopic)
+	return u
+}
+
+// SetJobID sets the "job_id" field.
+func (u *StepUpsert) SetJobID(v int64) *StepUpsert {
+	u.Set(step.FieldJobID, v)
+	return u
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *StepUpsert) UpdateJobID() *StepUpsert {
+	u.SetExcluded(step.FieldJobID)
+	return u
+}
+
+// ClearJobID clears the value of the "job_id" field.
+func (u *StepUpsert) ClearJobID() *StepUpsert {
+	u.SetNull(step.FieldJobID)
+	return u
+}
+
+// SetAction sets the "action" field.
+func (u *StepUpsert) SetAction(v map[string]interface{}) *StepUpsert {
+	u.Set(step.FieldAction, v)
+	return u
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *StepUpsert) UpdateAction() *StepUpsert {
+	u.SetExcluded(step.FieldAction)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *StepUpsert) SetName(v string) *StepUpsert {
+	u.Set(step.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *StepUpsert) UpdateName() *StepUpsert {
+	u.SetExcluded(step.FieldName)
+	return u
+}
+
+// SetDescribe sets the "describe" field.
+func (u *StepUpsert) SetDescribe(v string) *StepUpsert {
+	u.Set(step.FieldDescribe, v)
+	return u
+}
+
+// UpdateDescribe sets the "describe" field to the value that was provided on create.
+func (u *StepUpsert) UpdateDescribe() *StepUpsert {
+	u.SetExcluded(step.FieldDescribe)
+	return u
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *StepUpsert) SetNodeID(v string) *StepUpsert {
+	u.Set(step.FieldNodeID, v)
+	return u
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *StepUpsert) UpdateNodeID() *StepUpsert {
+	u.SetExcluded(step.FieldNodeID)
+	return u
+}
+
+// SetDepend sets the "depend" field.
+func (u *StepUpsert) SetDepend(v []string) *StepUpsert {
+	u.Set(step.FieldDepend, v)
+	return u
+}
+
+// UpdateDepend sets the "depend" field to the value that was provided on create.
+func (u *StepUpsert) UpdateDepend() *StepUpsert {
+	u.SetExcluded(step.FieldDepend)
+	return u
+}
+
+// SetInput sets the "input" field.
+func (u *StepUpsert) SetInput(v map[string]interface{}) *StepUpsert {
+	u.Set(step.FieldInput, v)
+	return u
+}
+
+// UpdateInput sets the "input" field to the value that was provided on create.
+func (u *StepUpsert) UpdateInput() *StepUpsert {
+	u.SetExcluded(step.FieldInput)
+	return u
+}
+
+// ClearInput clears the value of the "input" field.
+func (u *StepUpsert) ClearInput() *StepUpsert {
+	u.SetNull(step.FieldInput)
+	return u
+}
+
+// SetOutput sets the "output" field.
+func (u *StepUpsert) SetOutput(v map[string]interface{}) *StepUpsert {
+	u.Set(step.FieldOutput, v)
+	return u
+}
+
+// UpdateOutput sets the "output" field to the value that was provided on create.
+func (u *StepUpsert) UpdateOutput() *StepUpsert {
+	u.SetExcluded(step.FieldOutput)
+	return u
+}
+
+// ClearOutput clears the value of the "output" field.
+func (u *StepUpsert) ClearOutput() *StepUpsert {
+	u.SetNull(step.FieldOutput)
+	return u
+}
+
+// SetError sets the "error" field.
+func (u *StepUpsert) SetError(v string) *StepUpsert {
+	u.Set(step.FieldError, v)
+	return u
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *StepUpsert) UpdateError() *StepUpsert {
+	u.SetExcluded(step.FieldError)
+	return u
+}
+
+// ClearError clears the value of the "error" field.
+func (u *StepUpsert) ClearError() *StepUpsert {
+	u.SetNull(step.FieldError)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *StepUpsert) SetState(v int) *StepUpsert {
+	u.Set(step.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *StepUpsert) UpdateState() *StepUpsert {
+	u.SetExcluded(step.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *StepUpsert) AddState(v int) *StepUpsert {
+	u.Add(step.FieldState, v)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *StepUpsert) SetStartedAt(v time.Time) *StepUpsert {
+	u.Set(step.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *StepUpsert) UpdateStartedAt() *StepUpsert {
+	u.SetExcluded(step.FieldStartedAt)
+	return u
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *StepUpsert) ClearStartedAt() *StepUpsert {
+	u.SetNull(step.FieldStartedAt)
+	return u
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *StepUpsert) SetEndedAt(v time.Time) *StepUpsert {
+	u.Set(step.FieldEndedAt, v)
+	return u
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *StepUpsert) UpdateEndedAt() *StepUpsert {
+	u.SetExcluded(step.FieldEndedAt)
+	return u
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *StepUpsert) ClearEndedAt() *StepUpsert {
+	u.SetNull(step.FieldEndedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *StepUpsert) SetUpdatedAt(v time.Time) *StepUpsert {
+	u.Set(step.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *StepUpsert) UpdateUpdatedAt() *StepUpsert {
+	u.SetExcluded(step.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(step.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *StepUpsertOne) UpdateNewValues() *StepUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(step.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(step.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *StepUpsertOne) Ignore() *StepUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *StepUpsertOne) DoNothing() *StepUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the StepCreate.OnConflict
+// documentation for more info.
+func (u *StepUpsertOne) Update(set func(*StepUpsert)) *StepUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&StepUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *StepUpsertOne) SetUID(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateUID() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *StepUpsertOne) SetTopic(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateTopic() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetJobID sets the "job_id" field.
+func (u *StepUpsertOne) SetJobID(v int64) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateJobID() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// ClearJobID clears the value of the "job_id" field.
+func (u *StepUpsertOne) ClearJobID() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearJobID()
+	})
+}
+
+// SetAction sets the "action" field.
+func (u *StepUpsertOne) SetAction(v map[string]interface{}) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetAction(v)
+	})
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateAction() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateAction()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *StepUpsertOne) SetName(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateName() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescribe sets the "describe" field.
+func (u *StepUpsertOne) SetDescribe(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetDescribe(v)
+	})
+}
+
+// UpdateDescribe sets the "describe" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateDescribe() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateDescribe()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *StepUpsertOne) SetNodeID(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateNodeID() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// SetDepend sets the "depend" field.
+func (u *StepUpsertOne) SetDepend(v []string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetDepend(v)
+	})
+}
+
+// UpdateDepend sets the "depend" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateDepend() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateDepend()
+	})
+}
+
+// SetInput sets the "input" field.
+func (u *StepUpsertOne) SetInput(v map[string]interface{}) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetInput(v)
+	})
+}
+
+// UpdateInput sets the "input" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateInput() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateInput()
+	})
+}
+
+// ClearInput clears the value of the "input" field.
+func (u *StepUpsertOne) ClearInput() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearInput()
+	})
+}
+
+// SetOutput sets the "output" field.
+func (u *StepUpsertOne) SetOutput(v map[string]interface{}) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetOutput(v)
+	})
+}
+
+// UpdateOutput sets the "output" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateOutput() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateOutput()
+	})
+}
+
+// ClearOutput clears the value of the "output" field.
+func (u *StepUpsertOne) ClearOutput() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearOutput()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *StepUpsertOne) SetError(v string) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateError() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *StepUpsertOne) ClearError() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *StepUpsertOne) SetState(v int) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *StepUpsertOne) AddState(v int) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateState() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *StepUpsertOne) SetStartedAt(v time.Time) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateStartedAt() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *StepUpsertOne) ClearStartedAt() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *StepUpsertOne) SetEndedAt(v time.Time) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateEndedAt() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *StepUpsertOne) ClearEndedAt() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *StepUpsertOne) SetUpdatedAt(v time.Time) *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *StepUpsertOne) UpdateUpdatedAt() *StepUpsertOne {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *StepUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for StepCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *StepUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *StepUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *StepUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // StepCreateBulk is the builder for creating many Step entities in bulk.
 type StepCreateBulk struct {
 	config
 	err      error
 	builders []*StepCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Step entities in the database.
@@ -461,6 +1079,7 @@ func (_c *StepCreateBulk) Save(ctx context.Context) ([]*Step, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -511,6 +1130,382 @@ func (_c *StepCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *StepCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Step.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.StepUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *StepCreateBulk) OnConflict(opts ...sql.ConflictOption) *StepUpsertBulk {
+	_c.conflict = opts
+	return &StepUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *StepCreateBulk) OnConflictColumns(columns ...string) *StepUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &StepUpsertBulk{
+		create: _c,
+	}
+}
+
+// StepUpsertBulk is the builder for "upsert"-ing
+// a bulk of Step nodes.
+type StepUpsertBulk struct {
+	create *StepCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(step.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *StepUpsertBulk) UpdateNewValues() *StepUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(step.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(step.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Step.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *StepUpsertBulk) Ignore() *StepUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *StepUpsertBulk) DoNothing() *StepUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the StepCreateBulk.OnConflict
+// documentation for more info.
+func (u *StepUpsertBulk) Update(set func(*StepUpsert)) *StepUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&StepUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *StepUpsertBulk) SetUID(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateUID() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *StepUpsertBulk) SetTopic(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateTopic() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetJobID sets the "job_id" field.
+func (u *StepUpsertBulk) SetJobID(v int64) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateJobID() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// ClearJobID clears the value of the "job_id" field.
+func (u *StepUpsertBulk) ClearJobID() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearJobID()
+	})
+}
+
+// SetAction sets the "action" field.
+func (u *StepUpsertBulk) SetAction(v map[string]interface{}) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetAction(v)
+	})
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateAction() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateAction()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *StepUpsertBulk) SetName(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateName() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescribe sets the "describe" field.
+func (u *StepUpsertBulk) SetDescribe(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetDescribe(v)
+	})
+}
+
+// UpdateDescribe sets the "describe" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateDescribe() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateDescribe()
+	})
+}
+
+// SetNodeID sets the "node_id" field.
+func (u *StepUpsertBulk) SetNodeID(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetNodeID(v)
+	})
+}
+
+// UpdateNodeID sets the "node_id" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateNodeID() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateNodeID()
+	})
+}
+
+// SetDepend sets the "depend" field.
+func (u *StepUpsertBulk) SetDepend(v []string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetDepend(v)
+	})
+}
+
+// UpdateDepend sets the "depend" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateDepend() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateDepend()
+	})
+}
+
+// SetInput sets the "input" field.
+func (u *StepUpsertBulk) SetInput(v map[string]interface{}) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetInput(v)
+	})
+}
+
+// UpdateInput sets the "input" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateInput() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateInput()
+	})
+}
+
+// ClearInput clears the value of the "input" field.
+func (u *StepUpsertBulk) ClearInput() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearInput()
+	})
+}
+
+// SetOutput sets the "output" field.
+func (u *StepUpsertBulk) SetOutput(v map[string]interface{}) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetOutput(v)
+	})
+}
+
+// UpdateOutput sets the "output" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateOutput() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateOutput()
+	})
+}
+
+// ClearOutput clears the value of the "output" field.
+func (u *StepUpsertBulk) ClearOutput() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearOutput()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *StepUpsertBulk) SetError(v string) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateError() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *StepUpsertBulk) ClearError() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *StepUpsertBulk) SetState(v int) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *StepUpsertBulk) AddState(v int) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateState() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *StepUpsertBulk) SetStartedAt(v time.Time) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateStartedAt() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// ClearStartedAt clears the value of the "started_at" field.
+func (u *StepUpsertBulk) ClearStartedAt() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *StepUpsertBulk) SetEndedAt(v time.Time) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateEndedAt() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *StepUpsertBulk) ClearEndedAt() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *StepUpsertBulk) SetUpdatedAt(v time.Time) *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *StepUpsertBulk) UpdateUpdatedAt() *StepUpsertBulk {
+	return u.Update(func(s *StepUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *StepUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the StepCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for StepCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *StepUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

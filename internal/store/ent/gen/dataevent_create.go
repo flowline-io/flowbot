@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
@@ -18,6 +19,7 @@ type DataEventCreate struct {
 	config
 	mutation *DataEventMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetEventID sets the "event_id" field.
@@ -343,6 +345,7 @@ func (_c *DataEventCreate) createSpec() (*DataEvent, *sqlgraph.CreateSpec) {
 		_node = &DataEvent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(dataevent.Table, sqlgraph.NewFieldSpec(dataevent.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -406,11 +409,509 @@ func (_c *DataEventCreate) createSpec() (*DataEvent, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DataEvent.Create().
+//		SetEventID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DataEventUpsert) {
+//			SetEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DataEventCreate) OnConflict(opts ...sql.ConflictOption) *DataEventUpsertOne {
+	_c.conflict = opts
+	return &DataEventUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DataEventCreate) OnConflictColumns(columns ...string) *DataEventUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DataEventUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// DataEventUpsertOne is the builder for "upsert"-ing
+	//  one DataEvent node.
+	DataEventUpsertOne struct {
+		create *DataEventCreate
+	}
+
+	// DataEventUpsert is the "OnConflict" setter.
+	DataEventUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetEventID sets the "event_id" field.
+func (u *DataEventUpsert) SetEventID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldEventID, v)
+	return u
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateEventID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldEventID)
+	return u
+}
+
+// SetEventType sets the "event_type" field.
+func (u *DataEventUpsert) SetEventType(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldEventType, v)
+	return u
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateEventType() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldEventType)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *DataEventUpsert) SetSource(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateSource() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldSource)
+	return u
+}
+
+// SetCapability sets the "capability" field.
+func (u *DataEventUpsert) SetCapability(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldCapability, v)
+	return u
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateCapability() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldCapability)
+	return u
+}
+
+// SetOperation sets the "operation" field.
+func (u *DataEventUpsert) SetOperation(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldOperation, v)
+	return u
+}
+
+// UpdateOperation sets the "operation" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateOperation() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldOperation)
+	return u
+}
+
+// SetBackend sets the "backend" field.
+func (u *DataEventUpsert) SetBackend(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldBackend, v)
+	return u
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateBackend() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldBackend)
+	return u
+}
+
+// SetApp sets the "app" field.
+func (u *DataEventUpsert) SetApp(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldApp, v)
+	return u
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateApp() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldApp)
+	return u
+}
+
+// SetEntityID sets the "entity_id" field.
+func (u *DataEventUpsert) SetEntityID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldEntityID, v)
+	return u
+}
+
+// UpdateEntityID sets the "entity_id" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateEntityID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldEntityID)
+	return u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *DataEventUpsert) SetIdempotencyKey(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldIdempotencyKey, v)
+	return u
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateIdempotencyKey() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldIdempotencyKey)
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *DataEventUpsert) SetUID(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateUID() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataEventUpsert) SetTopic(v string) *DataEventUpsert {
+	u.Set(dataevent.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateTopic() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldTopic)
+	return u
+}
+
+// SetData sets the "data" field.
+func (u *DataEventUpsert) SetData(v map[string]interface{}) *DataEventUpsert {
+	u.Set(dataevent.FieldData, v)
+	return u
+}
+
+// UpdateData sets the "data" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateData() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldData)
+	return u
+}
+
+// ClearData clears the value of the "data" field.
+func (u *DataEventUpsert) ClearData() *DataEventUpsert {
+	u.SetNull(dataevent.FieldData)
+	return u
+}
+
+// SetTags sets the "tags" field.
+func (u *DataEventUpsert) SetTags(v map[string]interface{}) *DataEventUpsert {
+	u.Set(dataevent.FieldTags, v)
+	return u
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *DataEventUpsert) UpdateTags() *DataEventUpsert {
+	u.SetExcluded(dataevent.FieldTags)
+	return u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *DataEventUpsert) ClearTags() *DataEventUpsert {
+	u.SetNull(dataevent.FieldTags)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dataevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DataEventUpsertOne) UpdateNewValues() *DataEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(dataevent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(dataevent.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DataEventUpsertOne) Ignore() *DataEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DataEventUpsertOne) DoNothing() *DataEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DataEventCreate.OnConflict
+// documentation for more info.
+func (u *DataEventUpsertOne) Update(set func(*DataEventUpsert)) *DataEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DataEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *DataEventUpsertOne) SetEventID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateEventID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *DataEventUpsertOne) SetEventType(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateEventType() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *DataEventUpsertOne) SetSource(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateSource() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetCapability sets the "capability" field.
+func (u *DataEventUpsertOne) SetCapability(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCapability(v)
+	})
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateCapability() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCapability()
+	})
+}
+
+// SetOperation sets the "operation" field.
+func (u *DataEventUpsertOne) SetOperation(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetOperation(v)
+	})
+}
+
+// UpdateOperation sets the "operation" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateOperation() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateOperation()
+	})
+}
+
+// SetBackend sets the "backend" field.
+func (u *DataEventUpsertOne) SetBackend(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetBackend(v)
+	})
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateBackend() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateBackend()
+	})
+}
+
+// SetApp sets the "app" field.
+func (u *DataEventUpsertOne) SetApp(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetApp(v)
+	})
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateApp() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateApp()
+	})
+}
+
+// SetEntityID sets the "entity_id" field.
+func (u *DataEventUpsertOne) SetEntityID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEntityID(v)
+	})
+}
+
+// UpdateEntityID sets the "entity_id" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateEntityID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEntityID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *DataEventUpsertOne) SetIdempotencyKey(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateIdempotencyKey() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *DataEventUpsertOne) SetUID(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateUID() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataEventUpsertOne) SetTopic(v string) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateTopic() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetData sets the "data" field.
+func (u *DataEventUpsertOne) SetData(v map[string]interface{}) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetData(v)
+	})
+}
+
+// UpdateData sets the "data" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateData() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateData()
+	})
+}
+
+// ClearData clears the value of the "data" field.
+func (u *DataEventUpsertOne) ClearData() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.ClearData()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *DataEventUpsertOne) SetTags(v map[string]interface{}) *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *DataEventUpsertOne) UpdateTags() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *DataEventUpsertOne) ClearTags() *DataEventUpsertOne {
+	return u.Update(func(s *DataEventUpsert) {
+		s.ClearTags()
+	})
+}
+
+// Exec executes the query.
+func (u *DataEventUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DataEventCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DataEventUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DataEventUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DataEventUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DataEventCreateBulk is the builder for creating many DataEvent entities in bulk.
 type DataEventCreateBulk struct {
 	config
 	err      error
 	builders []*DataEventCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the DataEvent entities in the database.
@@ -440,6 +941,7 @@ func (_c *DataEventCreateBulk) Save(ctx context.Context) ([]*DataEvent, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -490,6 +992,319 @@ func (_c *DataEventCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *DataEventCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DataEvent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DataEventUpsert) {
+//			SetEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DataEventCreateBulk) OnConflict(opts ...sql.ConflictOption) *DataEventUpsertBulk {
+	_c.conflict = opts
+	return &DataEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DataEventCreateBulk) OnConflictColumns(columns ...string) *DataEventUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DataEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// DataEventUpsertBulk is the builder for "upsert"-ing
+// a bulk of DataEvent nodes.
+type DataEventUpsertBulk struct {
+	create *DataEventCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dataevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DataEventUpsertBulk) UpdateNewValues() *DataEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(dataevent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(dataevent.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DataEvent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DataEventUpsertBulk) Ignore() *DataEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DataEventUpsertBulk) DoNothing() *DataEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DataEventCreateBulk.OnConflict
+// documentation for more info.
+func (u *DataEventUpsertBulk) Update(set func(*DataEventUpsert)) *DataEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DataEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *DataEventUpsertBulk) SetEventID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateEventID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *DataEventUpsertBulk) SetEventType(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateEventType() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *DataEventUpsertBulk) SetSource(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateSource() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetCapability sets the "capability" field.
+func (u *DataEventUpsertBulk) SetCapability(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetCapability(v)
+	})
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateCapability() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateCapability()
+	})
+}
+
+// SetOperation sets the "operation" field.
+func (u *DataEventUpsertBulk) SetOperation(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetOperation(v)
+	})
+}
+
+// UpdateOperation sets the "operation" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateOperation() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateOperation()
+	})
+}
+
+// SetBackend sets the "backend" field.
+func (u *DataEventUpsertBulk) SetBackend(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetBackend(v)
+	})
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateBackend() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateBackend()
+	})
+}
+
+// SetApp sets the "app" field.
+func (u *DataEventUpsertBulk) SetApp(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetApp(v)
+	})
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateApp() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateApp()
+	})
+}
+
+// SetEntityID sets the "entity_id" field.
+func (u *DataEventUpsertBulk) SetEntityID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetEntityID(v)
+	})
+}
+
+// UpdateEntityID sets the "entity_id" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateEntityID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateEntityID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *DataEventUpsertBulk) SetIdempotencyKey(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateIdempotencyKey() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetUID sets the "uid" field.
+func (u *DataEventUpsertBulk) SetUID(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateUID() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *DataEventUpsertBulk) SetTopic(v string) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateTopic() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetData sets the "data" field.
+func (u *DataEventUpsertBulk) SetData(v map[string]interface{}) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetData(v)
+	})
+}
+
+// UpdateData sets the "data" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateData() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateData()
+	})
+}
+
+// ClearData clears the value of the "data" field.
+func (u *DataEventUpsertBulk) ClearData() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.ClearData()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *DataEventUpsertBulk) SetTags(v map[string]interface{}) *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *DataEventUpsertBulk) UpdateTags() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *DataEventUpsertBulk) ClearTags() *DataEventUpsertBulk {
+	return u.Update(func(s *DataEventUpsert) {
+		s.ClearTags()
+	})
+}
+
+// Exec executes the query.
+func (u *DataEventUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the DataEventCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DataEventCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DataEventUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

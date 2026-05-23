@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/flowedge"
@@ -18,6 +19,7 @@ type FlowEdgeCreate struct {
 	config
 	mutation *FlowEdgeMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetFlowID sets the "flow_id" field.
@@ -240,6 +242,7 @@ func (_c *FlowEdgeCreate) createSpec() (*FlowEdge, *sqlgraph.CreateSpec) {
 		_node = &FlowEdge{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(flowedge.Table, sqlgraph.NewFieldSpec(flowedge.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -283,11 +286,405 @@ func (_c *FlowEdgeCreate) createSpec() (*FlowEdge, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FlowEdge.Create().
+//		SetFlowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowEdgeUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowEdgeCreate) OnConflict(opts ...sql.ConflictOption) *FlowEdgeUpsertOne {
+	_c.conflict = opts
+	return &FlowEdgeUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowEdgeCreate) OnConflictColumns(columns ...string) *FlowEdgeUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowEdgeUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FlowEdgeUpsertOne is the builder for "upsert"-ing
+	//  one FlowEdge node.
+	FlowEdgeUpsertOne struct {
+		create *FlowEdgeCreate
+	}
+
+	// FlowEdgeUpsert is the "OnConflict" setter.
+	FlowEdgeUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowEdgeUpsert) SetFlowID(v int64) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldFlowID, v)
+	return u
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateFlowID() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldFlowID)
+	return u
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowEdgeUpsert) AddFlowID(v int64) *FlowEdgeUpsert {
+	u.Add(flowedge.FieldFlowID, v)
+	return u
+}
+
+// SetEdgeID sets the "edge_id" field.
+func (u *FlowEdgeUpsert) SetEdgeID(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldEdgeID, v)
+	return u
+}
+
+// UpdateEdgeID sets the "edge_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateEdgeID() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldEdgeID)
+	return u
+}
+
+// SetSourceNode sets the "source_node" field.
+func (u *FlowEdgeUpsert) SetSourceNode(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldSourceNode, v)
+	return u
+}
+
+// UpdateSourceNode sets the "source_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateSourceNode() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldSourceNode)
+	return u
+}
+
+// SetTargetNode sets the "target_node" field.
+func (u *FlowEdgeUpsert) SetTargetNode(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldTargetNode, v)
+	return u
+}
+
+// UpdateTargetNode sets the "target_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateTargetNode() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldTargetNode)
+	return u
+}
+
+// SetSourcePort sets the "source_port" field.
+func (u *FlowEdgeUpsert) SetSourcePort(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldSourcePort, v)
+	return u
+}
+
+// UpdateSourcePort sets the "source_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateSourcePort() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldSourcePort)
+	return u
+}
+
+// ClearSourcePort clears the value of the "source_port" field.
+func (u *FlowEdgeUpsert) ClearSourcePort() *FlowEdgeUpsert {
+	u.SetNull(flowedge.FieldSourcePort)
+	return u
+}
+
+// SetTargetPort sets the "target_port" field.
+func (u *FlowEdgeUpsert) SetTargetPort(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldTargetPort, v)
+	return u
+}
+
+// UpdateTargetPort sets the "target_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateTargetPort() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldTargetPort)
+	return u
+}
+
+// ClearTargetPort clears the value of the "target_port" field.
+func (u *FlowEdgeUpsert) ClearTargetPort() *FlowEdgeUpsert {
+	u.SetNull(flowedge.FieldTargetPort)
+	return u
+}
+
+// SetLabel sets the "label" field.
+func (u *FlowEdgeUpsert) SetLabel(v string) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldLabel, v)
+	return u
+}
+
+// UpdateLabel sets the "label" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateLabel() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldLabel)
+	return u
+}
+
+// ClearLabel clears the value of the "label" field.
+func (u *FlowEdgeUpsert) ClearLabel() *FlowEdgeUpsert {
+	u.SetNull(flowedge.FieldLabel)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowEdgeUpsert) SetUpdatedAt(v time.Time) *FlowEdgeUpsert {
+	u.Set(flowedge.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowEdgeUpsert) UpdateUpdatedAt() *FlowEdgeUpsert {
+	u.SetExcluded(flowedge.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flowedge.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowEdgeUpsertOne) UpdateNewValues() *FlowEdgeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(flowedge.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(flowedge.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FlowEdgeUpsertOne) Ignore() *FlowEdgeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowEdgeUpsertOne) DoNothing() *FlowEdgeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowEdgeCreate.OnConflict
+// documentation for more info.
+func (u *FlowEdgeUpsertOne) Update(set func(*FlowEdgeUpsert)) *FlowEdgeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowEdgeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowEdgeUpsertOne) SetFlowID(v int64) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowEdgeUpsertOne) AddFlowID(v int64) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateFlowID() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// SetEdgeID sets the "edge_id" field.
+func (u *FlowEdgeUpsertOne) SetEdgeID(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetEdgeID(v)
+	})
+}
+
+// UpdateEdgeID sets the "edge_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateEdgeID() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateEdgeID()
+	})
+}
+
+// SetSourceNode sets the "source_node" field.
+func (u *FlowEdgeUpsertOne) SetSourceNode(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetSourceNode(v)
+	})
+}
+
+// UpdateSourceNode sets the "source_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateSourceNode() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateSourceNode()
+	})
+}
+
+// SetTargetNode sets the "target_node" field.
+func (u *FlowEdgeUpsertOne) SetTargetNode(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetTargetNode(v)
+	})
+}
+
+// UpdateTargetNode sets the "target_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateTargetNode() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateTargetNode()
+	})
+}
+
+// SetSourcePort sets the "source_port" field.
+func (u *FlowEdgeUpsertOne) SetSourcePort(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetSourcePort(v)
+	})
+}
+
+// UpdateSourcePort sets the "source_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateSourcePort() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateSourcePort()
+	})
+}
+
+// ClearSourcePort clears the value of the "source_port" field.
+func (u *FlowEdgeUpsertOne) ClearSourcePort() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearSourcePort()
+	})
+}
+
+// SetTargetPort sets the "target_port" field.
+func (u *FlowEdgeUpsertOne) SetTargetPort(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetTargetPort(v)
+	})
+}
+
+// UpdateTargetPort sets the "target_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateTargetPort() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateTargetPort()
+	})
+}
+
+// ClearTargetPort clears the value of the "target_port" field.
+func (u *FlowEdgeUpsertOne) ClearTargetPort() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearTargetPort()
+	})
+}
+
+// SetLabel sets the "label" field.
+func (u *FlowEdgeUpsertOne) SetLabel(v string) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetLabel(v)
+	})
+}
+
+// UpdateLabel sets the "label" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateLabel() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateLabel()
+	})
+}
+
+// ClearLabel clears the value of the "label" field.
+func (u *FlowEdgeUpsertOne) ClearLabel() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearLabel()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowEdgeUpsertOne) SetUpdatedAt(v time.Time) *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowEdgeUpsertOne) UpdateUpdatedAt() *FlowEdgeUpsertOne {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowEdgeUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowEdgeCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowEdgeUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FlowEdgeUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FlowEdgeUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FlowEdgeCreateBulk is the builder for creating many FlowEdge entities in bulk.
 type FlowEdgeCreateBulk struct {
 	config
 	err      error
 	builders []*FlowEdgeCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FlowEdge entities in the database.
@@ -317,6 +714,7 @@ func (_c *FlowEdgeCreateBulk) Save(ctx context.Context) ([]*FlowEdge, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -367,6 +765,263 @@ func (_c *FlowEdgeCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FlowEdgeCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FlowEdge.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FlowEdgeUpsert) {
+//			SetFlowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FlowEdgeCreateBulk) OnConflict(opts ...sql.ConflictOption) *FlowEdgeUpsertBulk {
+	_c.conflict = opts
+	return &FlowEdgeUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FlowEdgeCreateBulk) OnConflictColumns(columns ...string) *FlowEdgeUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FlowEdgeUpsertBulk{
+		create: _c,
+	}
+}
+
+// FlowEdgeUpsertBulk is the builder for "upsert"-ing
+// a bulk of FlowEdge nodes.
+type FlowEdgeUpsertBulk struct {
+	create *FlowEdgeCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(flowedge.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FlowEdgeUpsertBulk) UpdateNewValues() *FlowEdgeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(flowedge.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(flowedge.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FlowEdge.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FlowEdgeUpsertBulk) Ignore() *FlowEdgeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FlowEdgeUpsertBulk) DoNothing() *FlowEdgeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FlowEdgeCreateBulk.OnConflict
+// documentation for more info.
+func (u *FlowEdgeUpsertBulk) Update(set func(*FlowEdgeUpsert)) *FlowEdgeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FlowEdgeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlowID sets the "flow_id" field.
+func (u *FlowEdgeUpsertBulk) SetFlowID(v int64) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetFlowID(v)
+	})
+}
+
+// AddFlowID adds v to the "flow_id" field.
+func (u *FlowEdgeUpsertBulk) AddFlowID(v int64) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.AddFlowID(v)
+	})
+}
+
+// UpdateFlowID sets the "flow_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateFlowID() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateFlowID()
+	})
+}
+
+// SetEdgeID sets the "edge_id" field.
+func (u *FlowEdgeUpsertBulk) SetEdgeID(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetEdgeID(v)
+	})
+}
+
+// UpdateEdgeID sets the "edge_id" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateEdgeID() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateEdgeID()
+	})
+}
+
+// SetSourceNode sets the "source_node" field.
+func (u *FlowEdgeUpsertBulk) SetSourceNode(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetSourceNode(v)
+	})
+}
+
+// UpdateSourceNode sets the "source_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateSourceNode() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateSourceNode()
+	})
+}
+
+// SetTargetNode sets the "target_node" field.
+func (u *FlowEdgeUpsertBulk) SetTargetNode(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetTargetNode(v)
+	})
+}
+
+// UpdateTargetNode sets the "target_node" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateTargetNode() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateTargetNode()
+	})
+}
+
+// SetSourcePort sets the "source_port" field.
+func (u *FlowEdgeUpsertBulk) SetSourcePort(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetSourcePort(v)
+	})
+}
+
+// UpdateSourcePort sets the "source_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateSourcePort() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateSourcePort()
+	})
+}
+
+// ClearSourcePort clears the value of the "source_port" field.
+func (u *FlowEdgeUpsertBulk) ClearSourcePort() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearSourcePort()
+	})
+}
+
+// SetTargetPort sets the "target_port" field.
+func (u *FlowEdgeUpsertBulk) SetTargetPort(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetTargetPort(v)
+	})
+}
+
+// UpdateTargetPort sets the "target_port" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateTargetPort() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateTargetPort()
+	})
+}
+
+// ClearTargetPort clears the value of the "target_port" field.
+func (u *FlowEdgeUpsertBulk) ClearTargetPort() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearTargetPort()
+	})
+}
+
+// SetLabel sets the "label" field.
+func (u *FlowEdgeUpsertBulk) SetLabel(v string) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetLabel(v)
+	})
+}
+
+// UpdateLabel sets the "label" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateLabel() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateLabel()
+	})
+}
+
+// ClearLabel clears the value of the "label" field.
+func (u *FlowEdgeUpsertBulk) ClearLabel() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.ClearLabel()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FlowEdgeUpsertBulk) SetUpdatedAt(v time.Time) *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FlowEdgeUpsertBulk) UpdateUpdatedAt() *FlowEdgeUpsertBulk {
+	return u.Update(func(s *FlowEdgeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FlowEdgeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the FlowEdgeCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for FlowEdgeCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FlowEdgeUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

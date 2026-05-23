@@ -370,3 +370,56 @@ func TestEngine_HandleEventMutex(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeTags(t *testing.T) {
+	tests := []struct {
+		name     string
+		upstream types.KV
+		stepTags any
+		want     types.KV
+	}{
+		{"nil upstream returns empty", nil, nil, types.KV{}},
+		{"upstream no step tags passes through", types.KV{"project": "alpha"}, nil, types.KV{"project": "alpha"}},
+		{
+			"step overrides on collision",
+			types.KV{"project": "alpha", "env": "staging"},
+			types.KV{"project": "beta", "processed": "true"},
+			types.KV{"project": "beta", "env": "staging", "processed": "true"},
+		},
+		{
+			"step as map[string]any merges",
+			types.KV{"project": "alpha"},
+			map[string]any{"processed": "true"},
+			types.KV{"project": "alpha", "processed": "true"},
+		},
+		{"non-map step tags returns upstream", types.KV{"project": "alpha"}, "string", types.KV{"project": "alpha"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, mergeTags(tt.upstream, tt.stepTags))
+		})
+	}
+}
+
+func TestHandleEvent_WithTagsDoesNotCrash(t *testing.T) {
+	t.Parallel()
+	defs := []Definition{
+		{
+			Name:    "tag-test",
+			Enabled: true,
+			Trigger: Trigger{Event: "test.event"},
+			Steps: []Step{
+				{Name: "s1", Capability: "test", Operation: "create", Params: map[string]any{"title": "x"}},
+			},
+		},
+	}
+	e := NewEngine(defs, nil, nil, noopPC, noopEC)
+	defer e.Stop()
+	event := types.DataEvent{
+		EventID: "evt-1", EventType: "test.event", EntityID: "src-1", App: "app-a",
+		Tags: types.KV{"project": "alpha"},
+	}
+	// handleEvent returns nil even on step failure; verify no crash from tag merge or nil Resource check
+	err := e.Handler()(context.Background(), event)
+	assert.NoError(t, err)
+}

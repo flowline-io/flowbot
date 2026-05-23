@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
@@ -18,6 +19,7 @@ type ConnectionCreate struct {
 	config
 	mutation *ConnectionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -221,6 +223,7 @@ func (_c *ConnectionCreate) createSpec() (*Connection, *sqlgraph.CreateSpec) {
 		_node = &Connection{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(connection.Table, sqlgraph.NewFieldSpec(connection.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -260,11 +263,327 @@ func (_c *ConnectionCreate) createSpec() (*Connection, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Connection.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ConnectionUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ConnectionCreate) OnConflict(opts ...sql.ConflictOption) *ConnectionUpsertOne {
+	_c.conflict = opts
+	return &ConnectionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ConnectionCreate) OnConflictColumns(columns ...string) *ConnectionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ConnectionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ConnectionUpsertOne is the builder for "upsert"-ing
+	//  one Connection node.
+	ConnectionUpsertOne struct {
+		create *ConnectionCreate
+	}
+
+	// ConnectionUpsert is the "OnConflict" setter.
+	ConnectionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *ConnectionUpsert) SetUID(v string) *ConnectionUpsert {
+	u.Set(connection.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateUID() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *ConnectionUpsert) SetTopic(v string) *ConnectionUpsert {
+	u.Set(connection.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateTopic() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldTopic)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *ConnectionUpsert) SetName(v string) *ConnectionUpsert {
+	u.Set(connection.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateName() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldName)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ConnectionUpsert) SetType(v string) *ConnectionUpsert {
+	u.Set(connection.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateType() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldType)
+	return u
+}
+
+// SetConfig sets the "config" field.
+func (u *ConnectionUpsert) SetConfig(v map[string]interface{}) *ConnectionUpsert {
+	u.Set(connection.FieldConfig, v)
+	return u
+}
+
+// UpdateConfig sets the "config" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateConfig() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldConfig)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ConnectionUpsert) SetEnabled(v bool) *ConnectionUpsert {
+	u.Set(connection.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateEnabled() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldEnabled)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ConnectionUpsert) SetUpdatedAt(v time.Time) *ConnectionUpsert {
+	u.Set(connection.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ConnectionUpsert) UpdateUpdatedAt() *ConnectionUpsert {
+	u.SetExcluded(connection.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(connection.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ConnectionUpsertOne) UpdateNewValues() *ConnectionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(connection.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(connection.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ConnectionUpsertOne) Ignore() *ConnectionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ConnectionUpsertOne) DoNothing() *ConnectionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ConnectionCreate.OnConflict
+// documentation for more info.
+func (u *ConnectionUpsertOne) Update(set func(*ConnectionUpsert)) *ConnectionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ConnectionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ConnectionUpsertOne) SetUID(v string) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateUID() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ConnectionUpsertOne) SetTopic(v string) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateTopic() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *ConnectionUpsertOne) SetName(v string) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateName() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *ConnectionUpsertOne) SetType(v string) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateType() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetConfig sets the "config" field.
+func (u *ConnectionUpsertOne) SetConfig(v map[string]interface{}) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetConfig(v)
+	})
+}
+
+// UpdateConfig sets the "config" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateConfig() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateConfig()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ConnectionUpsertOne) SetEnabled(v bool) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateEnabled() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ConnectionUpsertOne) SetUpdatedAt(v time.Time) *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ConnectionUpsertOne) UpdateUpdatedAt() *ConnectionUpsertOne {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ConnectionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ConnectionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ConnectionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ConnectionUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ConnectionUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ConnectionCreateBulk is the builder for creating many Connection entities in bulk.
 type ConnectionCreateBulk struct {
 	config
 	err      error
 	builders []*ConnectionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Connection entities in the database.
@@ -294,6 +613,7 @@ func (_c *ConnectionCreateBulk) Save(ctx context.Context) ([]*Connection, error)
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -344,6 +664,221 @@ func (_c *ConnectionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ConnectionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Connection.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ConnectionUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ConnectionCreateBulk) OnConflict(opts ...sql.ConflictOption) *ConnectionUpsertBulk {
+	_c.conflict = opts
+	return &ConnectionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ConnectionCreateBulk) OnConflictColumns(columns ...string) *ConnectionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ConnectionUpsertBulk{
+		create: _c,
+	}
+}
+
+// ConnectionUpsertBulk is the builder for "upsert"-ing
+// a bulk of Connection nodes.
+type ConnectionUpsertBulk struct {
+	create *ConnectionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(connection.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ConnectionUpsertBulk) UpdateNewValues() *ConnectionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(connection.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(connection.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Connection.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ConnectionUpsertBulk) Ignore() *ConnectionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ConnectionUpsertBulk) DoNothing() *ConnectionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ConnectionCreateBulk.OnConflict
+// documentation for more info.
+func (u *ConnectionUpsertBulk) Update(set func(*ConnectionUpsert)) *ConnectionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ConnectionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ConnectionUpsertBulk) SetUID(v string) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateUID() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ConnectionUpsertBulk) SetTopic(v string) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateTopic() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *ConnectionUpsertBulk) SetName(v string) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateName() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *ConnectionUpsertBulk) SetType(v string) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateType() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetConfig sets the "config" field.
+func (u *ConnectionUpsertBulk) SetConfig(v map[string]interface{}) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetConfig(v)
+	})
+}
+
+// UpdateConfig sets the "config" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateConfig() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateConfig()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ConnectionUpsertBulk) SetEnabled(v bool) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateEnabled() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ConnectionUpsertBulk) SetUpdatedAt(v time.Time) *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ConnectionUpsertBulk) UpdateUpdatedAt() *ConnectionUpsertBulk {
+	return u.Update(func(s *ConnectionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ConnectionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the ConnectionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ConnectionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ConnectionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

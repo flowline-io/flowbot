@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
@@ -18,6 +19,7 @@ type PipelineDefinitionCreate struct {
 	config
 	mutation *PipelineDefinitionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -200,6 +202,7 @@ func (_c *PipelineDefinitionCreate) createSpec() (*PipelineDefinition, *sqlgraph
 		_node = &PipelineDefinition{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(pipelinedefinition.Table, sqlgraph.NewFieldSpec(pipelinedefinition.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -235,11 +238,340 @@ func (_c *PipelineDefinitionCreate) createSpec() (*PipelineDefinition, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PipelineDefinition.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PipelineDefinitionUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PipelineDefinitionCreate) OnConflict(opts ...sql.ConflictOption) *PipelineDefinitionUpsertOne {
+	_c.conflict = opts
+	return &PipelineDefinitionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PipelineDefinitionCreate) OnConflictColumns(columns ...string) *PipelineDefinitionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PipelineDefinitionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PipelineDefinitionUpsertOne is the builder for "upsert"-ing
+	//  one PipelineDefinition node.
+	PipelineDefinitionUpsertOne struct {
+		create *PipelineDefinitionCreate
+	}
+
+	// PipelineDefinitionUpsert is the "OnConflict" setter.
+	PipelineDefinitionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *PipelineDefinitionUpsert) SetName(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateName() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *PipelineDefinitionUpsert) SetDescription(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateDescription() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PipelineDefinitionUpsert) ClearDescription() *PipelineDefinitionUpsert {
+	u.SetNull(pipelinedefinition.FieldDescription)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PipelineDefinitionUpsert) SetEnabled(v bool) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateEnabled() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldEnabled)
+	return u
+}
+
+// SetTrigger sets the "trigger" field.
+func (u *PipelineDefinitionUpsert) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldTrigger, v)
+	return u
+}
+
+// UpdateTrigger sets the "trigger" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateTrigger() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldTrigger)
+	return u
+}
+
+// ClearTrigger clears the value of the "trigger" field.
+func (u *PipelineDefinitionUpsert) ClearTrigger() *PipelineDefinitionUpsert {
+	u.SetNull(pipelinedefinition.FieldTrigger)
+	return u
+}
+
+// SetSteps sets the "steps" field.
+func (u *PipelineDefinitionUpsert) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldSteps, v)
+	return u
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateSteps() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldSteps)
+	return u
+}
+
+// ClearSteps clears the value of the "steps" field.
+func (u *PipelineDefinitionUpsert) ClearSteps() *PipelineDefinitionUpsert {
+	u.SetNull(pipelinedefinition.FieldSteps)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PipelineDefinitionUpsert) SetUpdatedAt(v time.Time) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateUpdatedAt() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pipelinedefinition.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PipelineDefinitionUpsertOne) UpdateNewValues() *PipelineDefinitionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(pipelinedefinition.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(pipelinedefinition.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PipelineDefinitionUpsertOne) Ignore() *PipelineDefinitionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PipelineDefinitionUpsertOne) DoNothing() *PipelineDefinitionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PipelineDefinitionCreate.OnConflict
+// documentation for more info.
+func (u *PipelineDefinitionUpsertOne) Update(set func(*PipelineDefinitionUpsert)) *PipelineDefinitionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PipelineDefinitionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PipelineDefinitionUpsertOne) SetName(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateName() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *PipelineDefinitionUpsertOne) SetDescription(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateDescription() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PipelineDefinitionUpsertOne) ClearDescription() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PipelineDefinitionUpsertOne) SetEnabled(v bool) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateEnabled() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetTrigger sets the "trigger" field.
+func (u *PipelineDefinitionUpsertOne) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetTrigger(v)
+	})
+}
+
+// UpdateTrigger sets the "trigger" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateTrigger() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateTrigger()
+	})
+}
+
+// ClearTrigger clears the value of the "trigger" field.
+func (u *PipelineDefinitionUpsertOne) ClearTrigger() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearTrigger()
+	})
+}
+
+// SetSteps sets the "steps" field.
+func (u *PipelineDefinitionUpsertOne) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetSteps(v)
+	})
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateSteps() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateSteps()
+	})
+}
+
+// ClearSteps clears the value of the "steps" field.
+func (u *PipelineDefinitionUpsertOne) ClearSteps() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearSteps()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PipelineDefinitionUpsertOne) SetUpdatedAt(v time.Time) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateUpdatedAt() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PipelineDefinitionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PipelineDefinitionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PipelineDefinitionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PipelineDefinitionUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PipelineDefinitionUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PipelineDefinitionCreateBulk is the builder for creating many PipelineDefinition entities in bulk.
 type PipelineDefinitionCreateBulk struct {
 	config
 	err      error
 	builders []*PipelineDefinitionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PipelineDefinition entities in the database.
@@ -269,6 +601,7 @@ func (_c *PipelineDefinitionCreateBulk) Save(ctx context.Context) ([]*PipelineDe
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -319,6 +652,228 @@ func (_c *PipelineDefinitionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PipelineDefinitionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PipelineDefinition.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PipelineDefinitionUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PipelineDefinitionCreateBulk) OnConflict(opts ...sql.ConflictOption) *PipelineDefinitionUpsertBulk {
+	_c.conflict = opts
+	return &PipelineDefinitionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PipelineDefinitionCreateBulk) OnConflictColumns(columns ...string) *PipelineDefinitionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PipelineDefinitionUpsertBulk{
+		create: _c,
+	}
+}
+
+// PipelineDefinitionUpsertBulk is the builder for "upsert"-ing
+// a bulk of PipelineDefinition nodes.
+type PipelineDefinitionUpsertBulk struct {
+	create *PipelineDefinitionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pipelinedefinition.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PipelineDefinitionUpsertBulk) UpdateNewValues() *PipelineDefinitionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(pipelinedefinition.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(pipelinedefinition.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PipelineDefinition.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PipelineDefinitionUpsertBulk) Ignore() *PipelineDefinitionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PipelineDefinitionUpsertBulk) DoNothing() *PipelineDefinitionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PipelineDefinitionCreateBulk.OnConflict
+// documentation for more info.
+func (u *PipelineDefinitionUpsertBulk) Update(set func(*PipelineDefinitionUpsert)) *PipelineDefinitionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PipelineDefinitionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PipelineDefinitionUpsertBulk) SetName(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateName() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *PipelineDefinitionUpsertBulk) SetDescription(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateDescription() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PipelineDefinitionUpsertBulk) ClearDescription() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PipelineDefinitionUpsertBulk) SetEnabled(v bool) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateEnabled() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetTrigger sets the "trigger" field.
+func (u *PipelineDefinitionUpsertBulk) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetTrigger(v)
+	})
+}
+
+// UpdateTrigger sets the "trigger" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateTrigger() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateTrigger()
+	})
+}
+
+// ClearTrigger clears the value of the "trigger" field.
+func (u *PipelineDefinitionUpsertBulk) ClearTrigger() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearTrigger()
+	})
+}
+
+// SetSteps sets the "steps" field.
+func (u *PipelineDefinitionUpsertBulk) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetSteps(v)
+	})
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateSteps() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateSteps()
+	})
+}
+
+// ClearSteps clears the value of the "steps" field.
+func (u *PipelineDefinitionUpsertBulk) ClearSteps() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.ClearSteps()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PipelineDefinitionUpsertBulk) SetUpdatedAt(v time.Time) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateUpdatedAt() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PipelineDefinitionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the PipelineDefinitionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PipelineDefinitionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PipelineDefinitionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

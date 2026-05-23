@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
@@ -18,6 +19,7 @@ type ChannelCreate struct {
 	config
 	mutation *ChannelMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -184,6 +186,7 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 		_node = &Channel{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(channel.Table, sqlgraph.NewFieldSpec(channel.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -211,11 +214,262 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Channel.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ChannelUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ChannelCreate) OnConflict(opts ...sql.ConflictOption) *ChannelUpsertOne {
+	_c.conflict = opts
+	return &ChannelUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ChannelCreate) OnConflictColumns(columns ...string) *ChannelUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ChannelUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ChannelUpsertOne is the builder for "upsert"-ing
+	//  one Channel node.
+	ChannelUpsertOne struct {
+		create *ChannelCreate
+	}
+
+	// ChannelUpsert is the "OnConflict" setter.
+	ChannelUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *ChannelUpsert) SetName(v string) *ChannelUpsert {
+	u.Set(channel.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateName() *ChannelUpsert {
+	u.SetExcluded(channel.FieldName)
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *ChannelUpsert) SetFlag(v string) *ChannelUpsert {
+	u.Set(channel.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateFlag() *ChannelUpsert {
+	u.SetExcluded(channel.FieldFlag)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *ChannelUpsert) SetState(v int) *ChannelUpsert {
+	u.Set(channel.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateState() *ChannelUpsert {
+	u.SetExcluded(channel.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *ChannelUpsert) AddState(v int) *ChannelUpsert {
+	u.Add(channel.FieldState, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ChannelUpsert) SetUpdatedAt(v time.Time) *ChannelUpsert {
+	u.Set(channel.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateUpdatedAt() *ChannelUpsert {
+	u.SetExcluded(channel.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(channel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ChannelUpsertOne) UpdateNewValues() *ChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(channel.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(channel.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ChannelUpsertOne) Ignore() *ChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ChannelUpsertOne) DoNothing() *ChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ChannelCreate.OnConflict
+// documentation for more info.
+func (u *ChannelUpsertOne) Update(set func(*ChannelUpsert)) *ChannelUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ChannelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *ChannelUpsertOne) SetName(v string) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateName() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *ChannelUpsertOne) SetFlag(v string) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateFlag() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *ChannelUpsertOne) SetState(v int) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *ChannelUpsertOne) AddState(v int) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateState() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ChannelUpsertOne) SetUpdatedAt(v time.Time) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateUpdatedAt() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ChannelUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ChannelCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ChannelUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ChannelUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ChannelUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ChannelCreateBulk is the builder for creating many Channel entities in bulk.
 type ChannelCreateBulk struct {
 	config
 	err      error
 	builders []*ChannelCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Channel entities in the database.
@@ -245,6 +499,7 @@ func (_c *ChannelCreateBulk) Save(ctx context.Context) ([]*Channel, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -295,6 +550,186 @@ func (_c *ChannelCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ChannelCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Channel.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ChannelUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ChannelCreateBulk) OnConflict(opts ...sql.ConflictOption) *ChannelUpsertBulk {
+	_c.conflict = opts
+	return &ChannelUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ChannelCreateBulk) OnConflictColumns(columns ...string) *ChannelUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ChannelUpsertBulk{
+		create: _c,
+	}
+}
+
+// ChannelUpsertBulk is the builder for "upsert"-ing
+// a bulk of Channel nodes.
+type ChannelUpsertBulk struct {
+	create *ChannelCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(channel.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ChannelUpsertBulk) UpdateNewValues() *ChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(channel.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(channel.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Channel.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ChannelUpsertBulk) Ignore() *ChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ChannelUpsertBulk) DoNothing() *ChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ChannelCreateBulk.OnConflict
+// documentation for more info.
+func (u *ChannelUpsertBulk) Update(set func(*ChannelUpsert)) *ChannelUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ChannelUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *ChannelUpsertBulk) SetName(v string) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateName() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *ChannelUpsertBulk) SetFlag(v string) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateFlag() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *ChannelUpsertBulk) SetState(v int) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *ChannelUpsertBulk) AddState(v int) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateState() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ChannelUpsertBulk) SetUpdatedAt(v time.Time) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateUpdatedAt() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *ChannelUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the ChannelCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ChannelCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ChannelUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

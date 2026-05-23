@@ -52,6 +52,9 @@ func (rc *RenderContext) templateData() *template.TemplateData {
 	event["idempotency_key"] = rc.Event.IdempotencyKey
 	event["uid"] = rc.Event.UID
 	event["topic"] = rc.Event.Topic
+	if rc.Event.Tags != nil {
+		event["tags"] = map[string]any(rc.Event.Tags)
+	}
 
 	return &template.TemplateData{
 		Event: event,

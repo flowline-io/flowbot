@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventconsumption"
@@ -18,6 +19,7 @@ type EventConsumptionCreate struct {
 	config
 	mutation *EventConsumptionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetConsumerName sets the "consumer_name" field.
@@ -142,6 +144,7 @@ func (_c *EventConsumptionCreate) createSpec() (*EventConsumption, *sqlgraph.Cre
 		_node = &EventConsumption{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(eventconsumption.Table, sqlgraph.NewFieldSpec(eventconsumption.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -161,11 +164,197 @@ func (_c *EventConsumptionCreate) createSpec() (*EventConsumption, *sqlgraph.Cre
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EventConsumption.Create().
+//		SetConsumerName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EventConsumptionUpsert) {
+//			SetConsumerName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EventConsumptionCreate) OnConflict(opts ...sql.ConflictOption) *EventConsumptionUpsertOne {
+	_c.conflict = opts
+	return &EventConsumptionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EventConsumptionCreate) OnConflictColumns(columns ...string) *EventConsumptionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EventConsumptionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EventConsumptionUpsertOne is the builder for "upsert"-ing
+	//  one EventConsumption node.
+	EventConsumptionUpsertOne struct {
+		create *EventConsumptionCreate
+	}
+
+	// EventConsumptionUpsert is the "OnConflict" setter.
+	EventConsumptionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetConsumerName sets the "consumer_name" field.
+func (u *EventConsumptionUpsert) SetConsumerName(v string) *EventConsumptionUpsert {
+	u.Set(eventconsumption.FieldConsumerName, v)
+	return u
+}
+
+// UpdateConsumerName sets the "consumer_name" field to the value that was provided on create.
+func (u *EventConsumptionUpsert) UpdateConsumerName() *EventConsumptionUpsert {
+	u.SetExcluded(eventconsumption.FieldConsumerName)
+	return u
+}
+
+// SetEventID sets the "event_id" field.
+func (u *EventConsumptionUpsert) SetEventID(v string) *EventConsumptionUpsert {
+	u.Set(eventconsumption.FieldEventID, v)
+	return u
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventConsumptionUpsert) UpdateEventID() *EventConsumptionUpsert {
+	u.SetExcluded(eventconsumption.FieldEventID)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(eventconsumption.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EventConsumptionUpsertOne) UpdateNewValues() *EventConsumptionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(eventconsumption.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(eventconsumption.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EventConsumptionUpsertOne) Ignore() *EventConsumptionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EventConsumptionUpsertOne) DoNothing() *EventConsumptionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EventConsumptionCreate.OnConflict
+// documentation for more info.
+func (u *EventConsumptionUpsertOne) Update(set func(*EventConsumptionUpsert)) *EventConsumptionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EventConsumptionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetConsumerName sets the "consumer_name" field.
+func (u *EventConsumptionUpsertOne) SetConsumerName(v string) *EventConsumptionUpsertOne {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.SetConsumerName(v)
+	})
+}
+
+// UpdateConsumerName sets the "consumer_name" field to the value that was provided on create.
+func (u *EventConsumptionUpsertOne) UpdateConsumerName() *EventConsumptionUpsertOne {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.UpdateConsumerName()
+	})
+}
+
+// SetEventID sets the "event_id" field.
+func (u *EventConsumptionUpsertOne) SetEventID(v string) *EventConsumptionUpsertOne {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventConsumptionUpsertOne) UpdateEventID() *EventConsumptionUpsertOne {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// Exec executes the query.
+func (u *EventConsumptionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for EventConsumptionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EventConsumptionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EventConsumptionUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EventConsumptionUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EventConsumptionCreateBulk is the builder for creating many EventConsumption entities in bulk.
 type EventConsumptionCreateBulk struct {
 	config
 	err      error
 	builders []*EventConsumptionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EventConsumption entities in the database.
@@ -195,6 +384,7 @@ func (_c *EventConsumptionCreateBulk) Save(ctx context.Context) ([]*EventConsump
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -245,6 +435,151 @@ func (_c *EventConsumptionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EventConsumptionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EventConsumption.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EventConsumptionUpsert) {
+//			SetConsumerName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EventConsumptionCreateBulk) OnConflict(opts ...sql.ConflictOption) *EventConsumptionUpsertBulk {
+	_c.conflict = opts
+	return &EventConsumptionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EventConsumptionCreateBulk) OnConflictColumns(columns ...string) *EventConsumptionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EventConsumptionUpsertBulk{
+		create: _c,
+	}
+}
+
+// EventConsumptionUpsertBulk is the builder for "upsert"-ing
+// a bulk of EventConsumption nodes.
+type EventConsumptionUpsertBulk struct {
+	create *EventConsumptionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(eventconsumption.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EventConsumptionUpsertBulk) UpdateNewValues() *EventConsumptionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(eventconsumption.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(eventconsumption.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EventConsumption.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EventConsumptionUpsertBulk) Ignore() *EventConsumptionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EventConsumptionUpsertBulk) DoNothing() *EventConsumptionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EventConsumptionCreateBulk.OnConflict
+// documentation for more info.
+func (u *EventConsumptionUpsertBulk) Update(set func(*EventConsumptionUpsert)) *EventConsumptionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EventConsumptionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetConsumerName sets the "consumer_name" field.
+func (u *EventConsumptionUpsertBulk) SetConsumerName(v string) *EventConsumptionUpsertBulk {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.SetConsumerName(v)
+	})
+}
+
+// UpdateConsumerName sets the "consumer_name" field to the value that was provided on create.
+func (u *EventConsumptionUpsertBulk) UpdateConsumerName() *EventConsumptionUpsertBulk {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.UpdateConsumerName()
+	})
+}
+
+// SetEventID sets the "event_id" field.
+func (u *EventConsumptionUpsertBulk) SetEventID(v string) *EventConsumptionUpsertBulk {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.SetEventID(v)
+	})
+}
+
+// UpdateEventID sets the "event_id" field to the value that was provided on create.
+func (u *EventConsumptionUpsertBulk) UpdateEventID() *EventConsumptionUpsertBulk {
+	return u.Update(func(s *EventConsumptionUpsert) {
+		s.UpdateEventID()
+	})
+}
+
+// Exec executes the query.
+func (u *EventConsumptionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the EventConsumptionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for EventConsumptionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EventConsumptionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

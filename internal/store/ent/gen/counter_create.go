@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -18,6 +19,7 @@ type CounterCreate struct {
 	config
 	mutation *CounterMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -219,6 +221,7 @@ func (_c *CounterCreate) createSpec() (*Counter, *sqlgraph.CreateSpec) {
 		_node = &Counter{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(counter.Table, sqlgraph.NewFieldSpec(counter.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -254,11 +257,327 @@ func (_c *CounterCreate) createSpec() (*Counter, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Counter.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CounterUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CounterCreate) OnConflict(opts ...sql.ConflictOption) *CounterUpsertOne {
+	_c.conflict = opts
+	return &CounterUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CounterCreate) OnConflictColumns(columns ...string) *CounterUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CounterUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// CounterUpsertOne is the builder for "upsert"-ing
+	//  one Counter node.
+	CounterUpsertOne struct {
+		create *CounterCreate
+	}
+
+	// CounterUpsert is the "OnConflict" setter.
+	CounterUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *CounterUpsert) SetUID(v string) *CounterUpsert {
+	u.Set(counter.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateUID() *CounterUpsert {
+	u.SetExcluded(counter.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *CounterUpsert) SetTopic(v string) *CounterUpsert {
+	u.Set(counter.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateTopic() *CounterUpsert {
+	u.SetExcluded(counter.FieldTopic)
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *CounterUpsert) SetFlag(v string) *CounterUpsert {
+	u.Set(counter.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateFlag() *CounterUpsert {
+	u.SetExcluded(counter.FieldFlag)
+	return u
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterUpsert) SetDigit(v int64) *CounterUpsert {
+	u.Set(counter.FieldDigit, v)
+	return u
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateDigit() *CounterUpsert {
+	u.SetExcluded(counter.FieldDigit)
+	return u
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterUpsert) AddDigit(v int64) *CounterUpsert {
+	u.Add(counter.FieldDigit, v)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *CounterUpsert) SetStatus(v int32) *CounterUpsert {
+	u.Set(counter.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateStatus() *CounterUpsert {
+	u.SetExcluded(counter.FieldStatus)
+	return u
+}
+
+// AddStatus adds v to the "status" field.
+func (u *CounterUpsert) AddStatus(v int32) *CounterUpsert {
+	u.Add(counter.FieldStatus, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CounterUpsert) SetUpdatedAt(v time.Time) *CounterUpsert {
+	u.Set(counter.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CounterUpsert) UpdateUpdatedAt() *CounterUpsert {
+	u.SetExcluded(counter.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(counter.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CounterUpsertOne) UpdateNewValues() *CounterUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(counter.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(counter.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CounterUpsertOne) Ignore() *CounterUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CounterUpsertOne) DoNothing() *CounterUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CounterCreate.OnConflict
+// documentation for more info.
+func (u *CounterUpsertOne) Update(set func(*CounterUpsert)) *CounterUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CounterUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *CounterUpsertOne) SetUID(v string) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateUID() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *CounterUpsertOne) SetTopic(v string) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateTopic() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *CounterUpsertOne) SetFlag(v string) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateFlag() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterUpsertOne) SetDigit(v int64) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetDigit(v)
+	})
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterUpsertOne) AddDigit(v int64) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.AddDigit(v)
+	})
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateDigit() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateDigit()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *CounterUpsertOne) SetStatus(v int32) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *CounterUpsertOne) AddStatus(v int32) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateStatus() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CounterUpsertOne) SetUpdatedAt(v time.Time) *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CounterUpsertOne) UpdateUpdatedAt() *CounterUpsertOne {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CounterUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CounterCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CounterUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CounterUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CounterUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CounterCreateBulk is the builder for creating many Counter entities in bulk.
 type CounterCreateBulk struct {
 	config
 	err      error
 	builders []*CounterCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Counter entities in the database.
@@ -288,6 +607,7 @@ func (_c *CounterCreateBulk) Save(ctx context.Context) ([]*Counter, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -338,6 +658,221 @@ func (_c *CounterCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *CounterCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Counter.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CounterUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CounterCreateBulk) OnConflict(opts ...sql.ConflictOption) *CounterUpsertBulk {
+	_c.conflict = opts
+	return &CounterUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CounterCreateBulk) OnConflictColumns(columns ...string) *CounterUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CounterUpsertBulk{
+		create: _c,
+	}
+}
+
+// CounterUpsertBulk is the builder for "upsert"-ing
+// a bulk of Counter nodes.
+type CounterUpsertBulk struct {
+	create *CounterCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(counter.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CounterUpsertBulk) UpdateNewValues() *CounterUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(counter.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(counter.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Counter.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CounterUpsertBulk) Ignore() *CounterUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CounterUpsertBulk) DoNothing() *CounterUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CounterCreateBulk.OnConflict
+// documentation for more info.
+func (u *CounterUpsertBulk) Update(set func(*CounterUpsert)) *CounterUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CounterUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *CounterUpsertBulk) SetUID(v string) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateUID() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *CounterUpsertBulk) SetTopic(v string) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateTopic() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetFlag sets the "flag" field.
+func (u *CounterUpsertBulk) SetFlag(v string) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateFlag() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetDigit sets the "digit" field.
+func (u *CounterUpsertBulk) SetDigit(v int64) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetDigit(v)
+	})
+}
+
+// AddDigit adds v to the "digit" field.
+func (u *CounterUpsertBulk) AddDigit(v int64) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.AddDigit(v)
+	})
+}
+
+// UpdateDigit sets the "digit" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateDigit() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateDigit()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *CounterUpsertBulk) SetStatus(v int32) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *CounterUpsertBulk) AddStatus(v int32) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateStatus() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CounterUpsertBulk) SetUpdatedAt(v time.Time) *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CounterUpsertBulk) UpdateUpdatedAt() *CounterUpsertBulk {
+	return u.Update(func(s *CounterUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CounterUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the CounterCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CounterCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CounterUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

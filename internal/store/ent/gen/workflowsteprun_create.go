@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
@@ -18,6 +19,7 @@ type WorkflowStepRunCreate struct {
 	config
 	mutation *WorkflowStepRunMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowRunID sets the "workflow_run_id" field.
@@ -281,6 +283,7 @@ func (_c *WorkflowStepRunCreate) createSpec() (*WorkflowStepRun, *sqlgraph.Creat
 		_node = &WorkflowStepRun{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(workflowsteprun.Table, sqlgraph.NewFieldSpec(workflowsteprun.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -340,11 +343,548 @@ func (_c *WorkflowStepRunCreate) createSpec() (*WorkflowStepRun, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowStepRun.Create().
+//		SetWorkflowRunID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowStepRunUpsert) {
+//			SetWorkflowRunID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowStepRunCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowStepRunUpsertOne {
+	_c.conflict = opts
+	return &WorkflowStepRunUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowStepRunCreate) OnConflictColumns(columns ...string) *WorkflowStepRunUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowStepRunUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// WorkflowStepRunUpsertOne is the builder for "upsert"-ing
+	//  one WorkflowStepRun node.
+	WorkflowStepRunUpsertOne struct {
+		create *WorkflowStepRunCreate
+	}
+
+	// WorkflowStepRunUpsert is the "OnConflict" setter.
+	WorkflowStepRunUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowRunID sets the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsert) SetWorkflowRunID(v int64) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldWorkflowRunID, v)
+	return u
+}
+
+// UpdateWorkflowRunID sets the "workflow_run_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateWorkflowRunID() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldWorkflowRunID)
+	return u
+}
+
+// AddWorkflowRunID adds v to the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsert) AddWorkflowRunID(v int64) *WorkflowStepRunUpsert {
+	u.Add(workflowsteprun.FieldWorkflowRunID, v)
+	return u
+}
+
+// SetStepID sets the "step_id" field.
+func (u *WorkflowStepRunUpsert) SetStepID(v string) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldStepID, v)
+	return u
+}
+
+// UpdateStepID sets the "step_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateStepID() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldStepID)
+	return u
+}
+
+// SetStepName sets the "step_name" field.
+func (u *WorkflowStepRunUpsert) SetStepName(v string) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldStepName, v)
+	return u
+}
+
+// UpdateStepName sets the "step_name" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateStepName() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldStepName)
+	return u
+}
+
+// SetAction sets the "action" field.
+func (u *WorkflowStepRunUpsert) SetAction(v string) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldAction, v)
+	return u
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateAction() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldAction)
+	return u
+}
+
+// SetActionType sets the "action_type" field.
+func (u *WorkflowStepRunUpsert) SetActionType(v string) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldActionType, v)
+	return u
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateActionType() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldActionType)
+	return u
+}
+
+// SetParams sets the "params" field.
+func (u *WorkflowStepRunUpsert) SetParams(v map[string]interface{}) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldParams, v)
+	return u
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateParams() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldParams)
+	return u
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *WorkflowStepRunUpsert) ClearParams() *WorkflowStepRunUpsert {
+	u.SetNull(workflowsteprun.FieldParams)
+	return u
+}
+
+// SetResult sets the "result" field.
+func (u *WorkflowStepRunUpsert) SetResult(v map[string]interface{}) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldResult, v)
+	return u
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateResult() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldResult)
+	return u
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *WorkflowStepRunUpsert) ClearResult() *WorkflowStepRunUpsert {
+	u.SetNull(workflowsteprun.FieldResult)
+	return u
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *WorkflowStepRunUpsert) SetAttempt(v int) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldAttempt, v)
+	return u
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateAttempt() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldAttempt)
+	return u
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *WorkflowStepRunUpsert) AddAttempt(v int) *WorkflowStepRunUpsert {
+	u.Add(workflowsteprun.FieldAttempt, v)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowStepRunUpsert) SetStatus(v int) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateStatus() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldStatus)
+	return u
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowStepRunUpsert) AddStatus(v int) *WorkflowStepRunUpsert {
+	u.Add(workflowsteprun.FieldStatus, v)
+	return u
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowStepRunUpsert) SetError(v string) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldError, v)
+	return u
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateError() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldError)
+	return u
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowStepRunUpsert) ClearError() *WorkflowStepRunUpsert {
+	u.SetNull(workflowsteprun.FieldError)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowStepRunUpsert) SetStartedAt(v time.Time) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateStartedAt() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowStepRunUpsert) SetCompletedAt(v time.Time) *WorkflowStepRunUpsert {
+	u.Set(workflowsteprun.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsert) UpdateCompletedAt() *WorkflowStepRunUpsert {
+	u.SetExcluded(workflowsteprun.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowStepRunUpsert) ClearCompletedAt() *WorkflowStepRunUpsert {
+	u.SetNull(workflowsteprun.FieldCompletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowsteprun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowStepRunUpsertOne) UpdateNewValues() *WorkflowStepRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(workflowsteprun.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(workflowsteprun.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WorkflowStepRunUpsertOne) Ignore() *WorkflowStepRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowStepRunUpsertOne) DoNothing() *WorkflowStepRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowStepRunCreate.OnConflict
+// documentation for more info.
+func (u *WorkflowStepRunUpsertOne) Update(set func(*WorkflowStepRunUpsert)) *WorkflowStepRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowStepRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowRunID sets the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsertOne) SetWorkflowRunID(v int64) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetWorkflowRunID(v)
+	})
+}
+
+// AddWorkflowRunID adds v to the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsertOne) AddWorkflowRunID(v int64) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddWorkflowRunID(v)
+	})
+}
+
+// UpdateWorkflowRunID sets the "workflow_run_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateWorkflowRunID() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateWorkflowRunID()
+	})
+}
+
+// SetStepID sets the "step_id" field.
+func (u *WorkflowStepRunUpsertOne) SetStepID(v string) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStepID(v)
+	})
+}
+
+// UpdateStepID sets the "step_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateStepID() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStepID()
+	})
+}
+
+// SetStepName sets the "step_name" field.
+func (u *WorkflowStepRunUpsertOne) SetStepName(v string) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStepName(v)
+	})
+}
+
+// UpdateStepName sets the "step_name" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateStepName() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStepName()
+	})
+}
+
+// SetAction sets the "action" field.
+func (u *WorkflowStepRunUpsertOne) SetAction(v string) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetAction(v)
+	})
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateAction() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateAction()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *WorkflowStepRunUpsertOne) SetActionType(v string) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateActionType() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateActionType()
+	})
+}
+
+// SetParams sets the "params" field.
+func (u *WorkflowStepRunUpsertOne) SetParams(v map[string]interface{}) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetParams(v)
+	})
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateParams() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateParams()
+	})
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *WorkflowStepRunUpsertOne) ClearParams() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearParams()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *WorkflowStepRunUpsertOne) SetResult(v map[string]interface{}) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateResult() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *WorkflowStepRunUpsertOne) ClearResult() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearResult()
+	})
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *WorkflowStepRunUpsertOne) SetAttempt(v int) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetAttempt(v)
+	})
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *WorkflowStepRunUpsertOne) AddAttempt(v int) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddAttempt(v)
+	})
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateAttempt() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateAttempt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowStepRunUpsertOne) SetStatus(v int) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowStepRunUpsertOne) AddStatus(v int) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateStatus() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowStepRunUpsertOne) SetError(v string) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateError() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowStepRunUpsertOne) ClearError() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowStepRunUpsertOne) SetStartedAt(v time.Time) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateStartedAt() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowStepRunUpsertOne) SetCompletedAt(v time.Time) *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertOne) UpdateCompletedAt() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowStepRunUpsertOne) ClearCompletedAt() *WorkflowStepRunUpsertOne {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowStepRunUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowStepRunCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowStepRunUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WorkflowStepRunUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WorkflowStepRunUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WorkflowStepRunCreateBulk is the builder for creating many WorkflowStepRun entities in bulk.
 type WorkflowStepRunCreateBulk struct {
 	config
 	err      error
 	builders []*WorkflowStepRunCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the WorkflowStepRun entities in the database.
@@ -374,6 +914,7 @@ func (_c *WorkflowStepRunCreateBulk) Save(ctx context.Context) ([]*WorkflowStepR
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -424,6 +965,340 @@ func (_c *WorkflowStepRunCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *WorkflowStepRunCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowStepRun.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowStepRunUpsert) {
+//			SetWorkflowRunID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowStepRunCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowStepRunUpsertBulk {
+	_c.conflict = opts
+	return &WorkflowStepRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowStepRunCreateBulk) OnConflictColumns(columns ...string) *WorkflowStepRunUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowStepRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// WorkflowStepRunUpsertBulk is the builder for "upsert"-ing
+// a bulk of WorkflowStepRun nodes.
+type WorkflowStepRunUpsertBulk struct {
+	create *WorkflowStepRunCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowsteprun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowStepRunUpsertBulk) UpdateNewValues() *WorkflowStepRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(workflowsteprun.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(workflowsteprun.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowStepRun.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WorkflowStepRunUpsertBulk) Ignore() *WorkflowStepRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowStepRunUpsertBulk) DoNothing() *WorkflowStepRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowStepRunCreateBulk.OnConflict
+// documentation for more info.
+func (u *WorkflowStepRunUpsertBulk) Update(set func(*WorkflowStepRunUpsert)) *WorkflowStepRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowStepRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowRunID sets the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsertBulk) SetWorkflowRunID(v int64) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetWorkflowRunID(v)
+	})
+}
+
+// AddWorkflowRunID adds v to the "workflow_run_id" field.
+func (u *WorkflowStepRunUpsertBulk) AddWorkflowRunID(v int64) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddWorkflowRunID(v)
+	})
+}
+
+// UpdateWorkflowRunID sets the "workflow_run_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateWorkflowRunID() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateWorkflowRunID()
+	})
+}
+
+// SetStepID sets the "step_id" field.
+func (u *WorkflowStepRunUpsertBulk) SetStepID(v string) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStepID(v)
+	})
+}
+
+// UpdateStepID sets the "step_id" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateStepID() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStepID()
+	})
+}
+
+// SetStepName sets the "step_name" field.
+func (u *WorkflowStepRunUpsertBulk) SetStepName(v string) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStepName(v)
+	})
+}
+
+// UpdateStepName sets the "step_name" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateStepName() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStepName()
+	})
+}
+
+// SetAction sets the "action" field.
+func (u *WorkflowStepRunUpsertBulk) SetAction(v string) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetAction(v)
+	})
+}
+
+// UpdateAction sets the "action" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateAction() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateAction()
+	})
+}
+
+// SetActionType sets the "action_type" field.
+func (u *WorkflowStepRunUpsertBulk) SetActionType(v string) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetActionType(v)
+	})
+}
+
+// UpdateActionType sets the "action_type" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateActionType() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateActionType()
+	})
+}
+
+// SetParams sets the "params" field.
+func (u *WorkflowStepRunUpsertBulk) SetParams(v map[string]interface{}) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetParams(v)
+	})
+}
+
+// UpdateParams sets the "params" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateParams() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateParams()
+	})
+}
+
+// ClearParams clears the value of the "params" field.
+func (u *WorkflowStepRunUpsertBulk) ClearParams() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearParams()
+	})
+}
+
+// SetResult sets the "result" field.
+func (u *WorkflowStepRunUpsertBulk) SetResult(v map[string]interface{}) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetResult(v)
+	})
+}
+
+// UpdateResult sets the "result" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateResult() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateResult()
+	})
+}
+
+// ClearResult clears the value of the "result" field.
+func (u *WorkflowStepRunUpsertBulk) ClearResult() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearResult()
+	})
+}
+
+// SetAttempt sets the "attempt" field.
+func (u *WorkflowStepRunUpsertBulk) SetAttempt(v int) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetAttempt(v)
+	})
+}
+
+// AddAttempt adds v to the "attempt" field.
+func (u *WorkflowStepRunUpsertBulk) AddAttempt(v int) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddAttempt(v)
+	})
+}
+
+// UpdateAttempt sets the "attempt" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateAttempt() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateAttempt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowStepRunUpsertBulk) SetStatus(v int) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowStepRunUpsertBulk) AddStatus(v int) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateStatus() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowStepRunUpsertBulk) SetError(v string) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateError() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowStepRunUpsertBulk) ClearError() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowStepRunUpsertBulk) SetStartedAt(v time.Time) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateStartedAt() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowStepRunUpsertBulk) SetCompletedAt(v time.Time) *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowStepRunUpsertBulk) UpdateCompletedAt() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowStepRunUpsertBulk) ClearCompletedAt() *WorkflowStepRunUpsertBulk {
+	return u.Update(func(s *WorkflowStepRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowStepRunUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the WorkflowStepRunCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowStepRunCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowStepRunUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

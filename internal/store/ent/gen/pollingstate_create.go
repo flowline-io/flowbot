@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
@@ -18,6 +19,7 @@ type PollingStateCreate struct {
 	config
 	mutation *PollingStateMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetResourceName sets the "resource_name" field.
@@ -162,6 +164,7 @@ func (_c *PollingStateCreate) createSpec() (*PollingState, *sqlgraph.CreateSpec)
 		_node = &PollingState{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(pollingstate.Table, sqlgraph.NewFieldSpec(pollingstate.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -185,11 +188,246 @@ func (_c *PollingStateCreate) createSpec() (*PollingState, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PollingState.Create().
+//		SetResourceName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PollingStateUpsert) {
+//			SetResourceName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PollingStateCreate) OnConflict(opts ...sql.ConflictOption) *PollingStateUpsertOne {
+	_c.conflict = opts
+	return &PollingStateUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PollingStateCreate) OnConflictColumns(columns ...string) *PollingStateUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PollingStateUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PollingStateUpsertOne is the builder for "upsert"-ing
+	//  one PollingState node.
+	PollingStateUpsertOne struct {
+		create *PollingStateCreate
+	}
+
+	// PollingStateUpsert is the "OnConflict" setter.
+	PollingStateUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetResourceName sets the "resource_name" field.
+func (u *PollingStateUpsert) SetResourceName(v string) *PollingStateUpsert {
+	u.Set(pollingstate.FieldResourceName, v)
+	return u
+}
+
+// UpdateResourceName sets the "resource_name" field to the value that was provided on create.
+func (u *PollingStateUpsert) UpdateResourceName() *PollingStateUpsert {
+	u.SetExcluded(pollingstate.FieldResourceName)
+	return u
+}
+
+// SetCursor sets the "cursor" field.
+func (u *PollingStateUpsert) SetCursor(v string) *PollingStateUpsert {
+	u.Set(pollingstate.FieldCursor, v)
+	return u
+}
+
+// UpdateCursor sets the "cursor" field to the value that was provided on create.
+func (u *PollingStateUpsert) UpdateCursor() *PollingStateUpsert {
+	u.SetExcluded(pollingstate.FieldCursor)
+	return u
+}
+
+// SetKnownHashes sets the "known_hashes" field.
+func (u *PollingStateUpsert) SetKnownHashes(v map[string]string) *PollingStateUpsert {
+	u.Set(pollingstate.FieldKnownHashes, v)
+	return u
+}
+
+// UpdateKnownHashes sets the "known_hashes" field to the value that was provided on create.
+func (u *PollingStateUpsert) UpdateKnownHashes() *PollingStateUpsert {
+	u.SetExcluded(pollingstate.FieldKnownHashes)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PollingStateUpsert) SetUpdatedAt(v time.Time) *PollingStateUpsert {
+	u.Set(pollingstate.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PollingStateUpsert) UpdateUpdatedAt() *PollingStateUpsert {
+	u.SetExcluded(pollingstate.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pollingstate.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PollingStateUpsertOne) UpdateNewValues() *PollingStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(pollingstate.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PollingStateUpsertOne) Ignore() *PollingStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PollingStateUpsertOne) DoNothing() *PollingStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PollingStateCreate.OnConflict
+// documentation for more info.
+func (u *PollingStateUpsertOne) Update(set func(*PollingStateUpsert)) *PollingStateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PollingStateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetResourceName sets the "resource_name" field.
+func (u *PollingStateUpsertOne) SetResourceName(v string) *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetResourceName(v)
+	})
+}
+
+// UpdateResourceName sets the "resource_name" field to the value that was provided on create.
+func (u *PollingStateUpsertOne) UpdateResourceName() *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateResourceName()
+	})
+}
+
+// SetCursor sets the "cursor" field.
+func (u *PollingStateUpsertOne) SetCursor(v string) *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetCursor(v)
+	})
+}
+
+// UpdateCursor sets the "cursor" field to the value that was provided on create.
+func (u *PollingStateUpsertOne) UpdateCursor() *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateCursor()
+	})
+}
+
+// SetKnownHashes sets the "known_hashes" field.
+func (u *PollingStateUpsertOne) SetKnownHashes(v map[string]string) *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetKnownHashes(v)
+	})
+}
+
+// UpdateKnownHashes sets the "known_hashes" field to the value that was provided on create.
+func (u *PollingStateUpsertOne) UpdateKnownHashes() *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateKnownHashes()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PollingStateUpsertOne) SetUpdatedAt(v time.Time) *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PollingStateUpsertOne) UpdateUpdatedAt() *PollingStateUpsertOne {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PollingStateUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PollingStateCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PollingStateUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PollingStateUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PollingStateUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PollingStateCreateBulk is the builder for creating many PollingState entities in bulk.
 type PollingStateCreateBulk struct {
 	config
 	err      error
 	builders []*PollingStateCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PollingState entities in the database.
@@ -219,6 +457,7 @@ func (_c *PollingStateCreateBulk) Save(ctx context.Context) ([]*PollingState, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -269,6 +508,176 @@ func (_c *PollingStateCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PollingStateCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PollingState.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PollingStateUpsert) {
+//			SetResourceName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PollingStateCreateBulk) OnConflict(opts ...sql.ConflictOption) *PollingStateUpsertBulk {
+	_c.conflict = opts
+	return &PollingStateUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PollingStateCreateBulk) OnConflictColumns(columns ...string) *PollingStateUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PollingStateUpsertBulk{
+		create: _c,
+	}
+}
+
+// PollingStateUpsertBulk is the builder for "upsert"-ing
+// a bulk of PollingState nodes.
+type PollingStateUpsertBulk struct {
+	create *PollingStateCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(pollingstate.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PollingStateUpsertBulk) UpdateNewValues() *PollingStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(pollingstate.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PollingState.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PollingStateUpsertBulk) Ignore() *PollingStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PollingStateUpsertBulk) DoNothing() *PollingStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PollingStateCreateBulk.OnConflict
+// documentation for more info.
+func (u *PollingStateUpsertBulk) Update(set func(*PollingStateUpsert)) *PollingStateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PollingStateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetResourceName sets the "resource_name" field.
+func (u *PollingStateUpsertBulk) SetResourceName(v string) *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetResourceName(v)
+	})
+}
+
+// UpdateResourceName sets the "resource_name" field to the value that was provided on create.
+func (u *PollingStateUpsertBulk) UpdateResourceName() *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateResourceName()
+	})
+}
+
+// SetCursor sets the "cursor" field.
+func (u *PollingStateUpsertBulk) SetCursor(v string) *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetCursor(v)
+	})
+}
+
+// UpdateCursor sets the "cursor" field to the value that was provided on create.
+func (u *PollingStateUpsertBulk) UpdateCursor() *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateCursor()
+	})
+}
+
+// SetKnownHashes sets the "known_hashes" field.
+func (u *PollingStateUpsertBulk) SetKnownHashes(v map[string]string) *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetKnownHashes(v)
+	})
+}
+
+// UpdateKnownHashes sets the "known_hashes" field to the value that was provided on create.
+func (u *PollingStateUpsertBulk) UpdateKnownHashes() *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateKnownHashes()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PollingStateUpsertBulk) SetUpdatedAt(v time.Time) *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PollingStateUpsertBulk) UpdateUpdatedAt() *PollingStateUpsertBulk {
+	return u.Update(func(s *PollingStateUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PollingStateUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the PollingStateCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for PollingStateCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PollingStateUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

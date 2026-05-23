@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
@@ -18,6 +19,7 @@ type CapabilityBindingCreate struct {
 	config
 	mutation *CapabilityBindingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCapability sets the "capability" field.
@@ -198,6 +200,7 @@ func (_c *CapabilityBindingCreate) createSpec() (*CapabilityBinding, *sqlgraph.C
 		_node = &CapabilityBinding{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(capabilitybinding.Table, sqlgraph.NewFieldSpec(capabilitybinding.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -229,11 +232,275 @@ func (_c *CapabilityBindingCreate) createSpec() (*CapabilityBinding, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CapabilityBinding.Create().
+//		SetCapability(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CapabilityBindingUpsert) {
+//			SetCapability(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CapabilityBindingCreate) OnConflict(opts ...sql.ConflictOption) *CapabilityBindingUpsertOne {
+	_c.conflict = opts
+	return &CapabilityBindingUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CapabilityBindingCreate) OnConflictColumns(columns ...string) *CapabilityBindingUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CapabilityBindingUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// CapabilityBindingUpsertOne is the builder for "upsert"-ing
+	//  one CapabilityBinding node.
+	CapabilityBindingUpsertOne struct {
+		create *CapabilityBindingCreate
+	}
+
+	// CapabilityBindingUpsert is the "OnConflict" setter.
+	CapabilityBindingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCapability sets the "capability" field.
+func (u *CapabilityBindingUpsert) SetCapability(v string) *CapabilityBindingUpsert {
+	u.Set(capabilitybinding.FieldCapability, v)
+	return u
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *CapabilityBindingUpsert) UpdateCapability() *CapabilityBindingUpsert {
+	u.SetExcluded(capabilitybinding.FieldCapability)
+	return u
+}
+
+// SetBackend sets the "backend" field.
+func (u *CapabilityBindingUpsert) SetBackend(v string) *CapabilityBindingUpsert {
+	u.Set(capabilitybinding.FieldBackend, v)
+	return u
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *CapabilityBindingUpsert) UpdateBackend() *CapabilityBindingUpsert {
+	u.SetExcluded(capabilitybinding.FieldBackend)
+	return u
+}
+
+// SetApp sets the "app" field.
+func (u *CapabilityBindingUpsert) SetApp(v string) *CapabilityBindingUpsert {
+	u.Set(capabilitybinding.FieldApp, v)
+	return u
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *CapabilityBindingUpsert) UpdateApp() *CapabilityBindingUpsert {
+	u.SetExcluded(capabilitybinding.FieldApp)
+	return u
+}
+
+// SetHealthy sets the "healthy" field.
+func (u *CapabilityBindingUpsert) SetHealthy(v bool) *CapabilityBindingUpsert {
+	u.Set(capabilitybinding.FieldHealthy, v)
+	return u
+}
+
+// UpdateHealthy sets the "healthy" field to the value that was provided on create.
+func (u *CapabilityBindingUpsert) UpdateHealthy() *CapabilityBindingUpsert {
+	u.SetExcluded(capabilitybinding.FieldHealthy)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CapabilityBindingUpsert) SetUpdatedAt(v time.Time) *CapabilityBindingUpsert {
+	u.Set(capabilitybinding.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CapabilityBindingUpsert) UpdateUpdatedAt() *CapabilityBindingUpsert {
+	u.SetExcluded(capabilitybinding.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(capabilitybinding.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CapabilityBindingUpsertOne) UpdateNewValues() *CapabilityBindingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(capabilitybinding.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(capabilitybinding.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CapabilityBindingUpsertOne) Ignore() *CapabilityBindingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CapabilityBindingUpsertOne) DoNothing() *CapabilityBindingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CapabilityBindingCreate.OnConflict
+// documentation for more info.
+func (u *CapabilityBindingUpsertOne) Update(set func(*CapabilityBindingUpsert)) *CapabilityBindingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CapabilityBindingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCapability sets the "capability" field.
+func (u *CapabilityBindingUpsertOne) SetCapability(v string) *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetCapability(v)
+	})
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertOne) UpdateCapability() *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateCapability()
+	})
+}
+
+// SetBackend sets the "backend" field.
+func (u *CapabilityBindingUpsertOne) SetBackend(v string) *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetBackend(v)
+	})
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertOne) UpdateBackend() *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateBackend()
+	})
+}
+
+// SetApp sets the "app" field.
+func (u *CapabilityBindingUpsertOne) SetApp(v string) *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetApp(v)
+	})
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertOne) UpdateApp() *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateApp()
+	})
+}
+
+// SetHealthy sets the "healthy" field.
+func (u *CapabilityBindingUpsertOne) SetHealthy(v bool) *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetHealthy(v)
+	})
+}
+
+// UpdateHealthy sets the "healthy" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertOne) UpdateHealthy() *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateHealthy()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CapabilityBindingUpsertOne) SetUpdatedAt(v time.Time) *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertOne) UpdateUpdatedAt() *CapabilityBindingUpsertOne {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CapabilityBindingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CapabilityBindingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CapabilityBindingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CapabilityBindingUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CapabilityBindingUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CapabilityBindingCreateBulk is the builder for creating many CapabilityBinding entities in bulk.
 type CapabilityBindingCreateBulk struct {
 	config
 	err      error
 	builders []*CapabilityBindingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the CapabilityBinding entities in the database.
@@ -263,6 +530,7 @@ func (_c *CapabilityBindingCreateBulk) Save(ctx context.Context) ([]*CapabilityB
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -313,6 +581,193 @@ func (_c *CapabilityBindingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *CapabilityBindingCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CapabilityBinding.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CapabilityBindingUpsert) {
+//			SetCapability(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CapabilityBindingCreateBulk) OnConflict(opts ...sql.ConflictOption) *CapabilityBindingUpsertBulk {
+	_c.conflict = opts
+	return &CapabilityBindingUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CapabilityBindingCreateBulk) OnConflictColumns(columns ...string) *CapabilityBindingUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CapabilityBindingUpsertBulk{
+		create: _c,
+	}
+}
+
+// CapabilityBindingUpsertBulk is the builder for "upsert"-ing
+// a bulk of CapabilityBinding nodes.
+type CapabilityBindingUpsertBulk struct {
+	create *CapabilityBindingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(capabilitybinding.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CapabilityBindingUpsertBulk) UpdateNewValues() *CapabilityBindingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(capabilitybinding.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(capabilitybinding.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CapabilityBinding.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CapabilityBindingUpsertBulk) Ignore() *CapabilityBindingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CapabilityBindingUpsertBulk) DoNothing() *CapabilityBindingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CapabilityBindingCreateBulk.OnConflict
+// documentation for more info.
+func (u *CapabilityBindingUpsertBulk) Update(set func(*CapabilityBindingUpsert)) *CapabilityBindingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CapabilityBindingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCapability sets the "capability" field.
+func (u *CapabilityBindingUpsertBulk) SetCapability(v string) *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetCapability(v)
+	})
+}
+
+// UpdateCapability sets the "capability" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertBulk) UpdateCapability() *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateCapability()
+	})
+}
+
+// SetBackend sets the "backend" field.
+func (u *CapabilityBindingUpsertBulk) SetBackend(v string) *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetBackend(v)
+	})
+}
+
+// UpdateBackend sets the "backend" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertBulk) UpdateBackend() *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateBackend()
+	})
+}
+
+// SetApp sets the "app" field.
+func (u *CapabilityBindingUpsertBulk) SetApp(v string) *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetApp(v)
+	})
+}
+
+// UpdateApp sets the "app" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertBulk) UpdateApp() *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateApp()
+	})
+}
+
+// SetHealthy sets the "healthy" field.
+func (u *CapabilityBindingUpsertBulk) SetHealthy(v bool) *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetHealthy(v)
+	})
+}
+
+// UpdateHealthy sets the "healthy" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertBulk) UpdateHealthy() *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateHealthy()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CapabilityBindingUpsertBulk) SetUpdatedAt(v time.Time) *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CapabilityBindingUpsertBulk) UpdateUpdatedAt() *CapabilityBindingUpsertBulk {
+	return u.Update(func(s *CapabilityBindingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CapabilityBindingUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the CapabilityBindingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CapabilityBindingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CapabilityBindingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

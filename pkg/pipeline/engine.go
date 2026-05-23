@@ -44,6 +44,33 @@ type StepResult struct {
 	CompletedAt time.Time      `json:"completed_at"`
 }
 
+// mergeTags merges upstream tags with step-declared tags.
+// Upstream tags are the base; step-declared tags override on key collision.
+func mergeTags(upstream types.KV, stepTags any) types.KV {
+	if upstream == nil {
+		upstream = types.KV{}
+	}
+	stepKV, ok := stepTags.(types.KV)
+	if !ok {
+		sm, ok := stepTags.(map[string]any)
+		if !ok {
+			return upstream
+		}
+		stepKV = types.KV(sm)
+	}
+	if len(stepKV) == 0 {
+		return upstream
+	}
+	result := make(types.KV, len(upstream)+len(stepKV))
+	for k, v := range upstream {
+		result[k] = v
+	}
+	for k, v := range stepKV {
+		result[k] = v
+	}
+	return result
+}
+
 // RunStore abstracts persistence for pipeline runs, steps, checkpoints and event consumption.
 type RunStore interface {
 	CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*model.PipelineRun, error)
@@ -57,6 +84,7 @@ type RunStore interface {
 	UpdateRunHeartbeat(ctx context.Context, runID int64) error
 	HasConsumed(ctx context.Context, consumerName, eventID string) (bool, error)
 	RecordConsumption(ctx context.Context, consumerName, eventID string) error
+	RecordResourceLink(ctx context.Context, link model.ResourceLink) error
 }
 
 type Engine struct {
@@ -218,6 +246,10 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		return fmt.Errorf("render params step %s: %w", step.Name, err)
 	}
 
+	if ability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
+		injectTags(rc, renderedParams)
+	}
+
 	attempt := 1
 	stepRunID, err := e.createStepRunRecord(ctx, runID, step.Name, string(step.Capability), step.Operation, renderedParams, attempt)
 	if err != nil {
@@ -248,6 +280,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	}
 
 	var stepResult map[string]any
+	var stepResource *ability.ResourceMeta
 	attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
 		res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 		if invokeErr != nil {
@@ -255,27 +288,61 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 			return invokeErr
 		}
 		stepResult = extractResult(res)
+		stepResource = res.Resource
 		return nil
 	})
 
 	if retryErr != nil {
-		var stepErr error
-		switch {
-		case errors.Is(retryErr, context.Canceled) || errors.Is(retryErr, context.DeadlineExceeded):
-			stepErr = fmt.Errorf("step %s cancelled: %w", step.Name, retryErr)
-		case attempt > 1:
-			stepErr = fmt.Errorf("step %s (retries exhausted): %w", step.Name, retryErr)
-		default:
-			stepErr = fmt.Errorf("step %s: %w", step.Name, retryErr)
-		}
+		stepErr := formatStepError(step.Name, retryErr, attempt)
 		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr.Error(), attempt, stepStart)
 		return stepErr
 	}
 
 	rc.RecordStepResult(step.Name, stepResult)
+	e.saveResourceLink(ctx, rc, step, stepResource, runID, pipelineName)
 	e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
 	flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
 	return nil
+}
+
+// injectTags merges event tags into rendered params for mutation steps.
+func injectTags(rc *RenderContext, renderedParams map[string]any) {
+	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
+}
+
+// saveResourceLink records a resource link when a capability step reports a created resource.
+func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step Step, stepResource *ability.ResourceMeta, runID int64, pipelineName string) {
+	if stepResource == nil || stepResource.EntityID == "" || stepResource.EventID == "" {
+		return
+	}
+	if e.store == nil {
+		return
+	}
+	link := model.ResourceLink{
+		SourceEventID:    rc.Event.EventID,
+		TargetEventID:    stepResource.EventID,
+		SourceApp:        rc.Event.App,
+		TargetApp:        stepResource.App,
+		SourceCapability: rc.Event.Capability,
+		TargetCapability: string(step.Capability),
+		SourceEntityID:   rc.Event.EntityID,
+		TargetEntityID:   stepResource.EntityID,
+		PipelineRunID:    runID,
+		PipelineName:     pipelineName,
+	}
+	_ = e.store.RecordResourceLink(ctx, link)
+}
+
+// formatStepError builds a descriptive error message from a step invoke failure.
+func formatStepError(stepName string, err error, attempt int) error {
+	switch {
+	case errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded):
+		return fmt.Errorf("step %s cancelled: %w", stepName, err)
+	case attempt > 1:
+		return fmt.Errorf("step %s (retries exhausted): %w", stepName, err)
+	default:
+		return fmt.Errorf("step %s: %w", stepName, err)
+	}
 }
 
 func (e *Engine) heartbeatLoop(ctx context.Context, runID int64, pipelineName string) {

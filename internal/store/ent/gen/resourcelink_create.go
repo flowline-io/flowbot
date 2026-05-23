@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
@@ -18,6 +19,7 @@ type ResourceLinkCreate struct {
 	config
 	mutation *ResourceLinkMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetSourceEventID sets the "source_event_id" field.
@@ -303,6 +305,7 @@ func (_c *ResourceLinkCreate) createSpec() (*ResourceLink, *sqlgraph.CreateSpec)
 		_node = &ResourceLink{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(resourcelink.Table, sqlgraph.NewFieldSpec(resourcelink.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -354,11 +357,431 @@ func (_c *ResourceLinkCreate) createSpec() (*ResourceLink, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ResourceLink.Create().
+//		SetSourceEventID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ResourceLinkUpsert) {
+//			SetSourceEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ResourceLinkCreate) OnConflict(opts ...sql.ConflictOption) *ResourceLinkUpsertOne {
+	_c.conflict = opts
+	return &ResourceLinkUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ResourceLinkCreate) OnConflictColumns(columns ...string) *ResourceLinkUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ResourceLinkUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ResourceLinkUpsertOne is the builder for "upsert"-ing
+	//  one ResourceLink node.
+	ResourceLinkUpsertOne struct {
+		create *ResourceLinkCreate
+	}
+
+	// ResourceLinkUpsert is the "OnConflict" setter.
+	ResourceLinkUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetSourceEventID sets the "source_event_id" field.
+func (u *ResourceLinkUpsert) SetSourceEventID(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldSourceEventID, v)
+	return u
+}
+
+// UpdateSourceEventID sets the "source_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateSourceEventID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldSourceEventID)
+	return u
+}
+
+// SetTargetEventID sets the "target_event_id" field.
+func (u *ResourceLinkUpsert) SetTargetEventID(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldTargetEventID, v)
+	return u
+}
+
+// UpdateTargetEventID sets the "target_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateTargetEventID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldTargetEventID)
+	return u
+}
+
+// SetSourceApp sets the "source_app" field.
+func (u *ResourceLinkUpsert) SetSourceApp(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldSourceApp, v)
+	return u
+}
+
+// UpdateSourceApp sets the "source_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateSourceApp() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldSourceApp)
+	return u
+}
+
+// SetTargetApp sets the "target_app" field.
+func (u *ResourceLinkUpsert) SetTargetApp(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldTargetApp, v)
+	return u
+}
+
+// UpdateTargetApp sets the "target_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateTargetApp() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldTargetApp)
+	return u
+}
+
+// SetSourceCapability sets the "source_capability" field.
+func (u *ResourceLinkUpsert) SetSourceCapability(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldSourceCapability, v)
+	return u
+}
+
+// UpdateSourceCapability sets the "source_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateSourceCapability() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldSourceCapability)
+	return u
+}
+
+// SetTargetCapability sets the "target_capability" field.
+func (u *ResourceLinkUpsert) SetTargetCapability(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldTargetCapability, v)
+	return u
+}
+
+// UpdateTargetCapability sets the "target_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateTargetCapability() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldTargetCapability)
+	return u
+}
+
+// SetSourceEntityID sets the "source_entity_id" field.
+func (u *ResourceLinkUpsert) SetSourceEntityID(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldSourceEntityID, v)
+	return u
+}
+
+// UpdateSourceEntityID sets the "source_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateSourceEntityID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldSourceEntityID)
+	return u
+}
+
+// SetTargetEntityID sets the "target_entity_id" field.
+func (u *ResourceLinkUpsert) SetTargetEntityID(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldTargetEntityID, v)
+	return u
+}
+
+// UpdateTargetEntityID sets the "target_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdateTargetEntityID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldTargetEntityID)
+	return u
+}
+
+// SetPipelineRunID sets the "pipeline_run_id" field.
+func (u *ResourceLinkUpsert) SetPipelineRunID(v int64) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldPipelineRunID, v)
+	return u
+}
+
+// UpdatePipelineRunID sets the "pipeline_run_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdatePipelineRunID() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldPipelineRunID)
+	return u
+}
+
+// AddPipelineRunID adds v to the "pipeline_run_id" field.
+func (u *ResourceLinkUpsert) AddPipelineRunID(v int64) *ResourceLinkUpsert {
+	u.Add(resourcelink.FieldPipelineRunID, v)
+	return u
+}
+
+// ClearPipelineRunID clears the value of the "pipeline_run_id" field.
+func (u *ResourceLinkUpsert) ClearPipelineRunID() *ResourceLinkUpsert {
+	u.SetNull(resourcelink.FieldPipelineRunID)
+	return u
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *ResourceLinkUpsert) SetPipelineName(v string) *ResourceLinkUpsert {
+	u.Set(resourcelink.FieldPipelineName, v)
+	return u
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *ResourceLinkUpsert) UpdatePipelineName() *ResourceLinkUpsert {
+	u.SetExcluded(resourcelink.FieldPipelineName)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(resourcelink.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ResourceLinkUpsertOne) UpdateNewValues() *ResourceLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(resourcelink.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(resourcelink.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ResourceLinkUpsertOne) Ignore() *ResourceLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ResourceLinkUpsertOne) DoNothing() *ResourceLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ResourceLinkCreate.OnConflict
+// documentation for more info.
+func (u *ResourceLinkUpsertOne) Update(set func(*ResourceLinkUpsert)) *ResourceLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ResourceLinkUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetSourceEventID sets the "source_event_id" field.
+func (u *ResourceLinkUpsertOne) SetSourceEventID(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceEventID(v)
+	})
+}
+
+// UpdateSourceEventID sets the "source_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateSourceEventID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceEventID()
+	})
+}
+
+// SetTargetEventID sets the "target_event_id" field.
+func (u *ResourceLinkUpsertOne) SetTargetEventID(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetEventID(v)
+	})
+}
+
+// UpdateTargetEventID sets the "target_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateTargetEventID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetEventID()
+	})
+}
+
+// SetSourceApp sets the "source_app" field.
+func (u *ResourceLinkUpsertOne) SetSourceApp(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceApp(v)
+	})
+}
+
+// UpdateSourceApp sets the "source_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateSourceApp() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceApp()
+	})
+}
+
+// SetTargetApp sets the "target_app" field.
+func (u *ResourceLinkUpsertOne) SetTargetApp(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetApp(v)
+	})
+}
+
+// UpdateTargetApp sets the "target_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateTargetApp() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetApp()
+	})
+}
+
+// SetSourceCapability sets the "source_capability" field.
+func (u *ResourceLinkUpsertOne) SetSourceCapability(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceCapability(v)
+	})
+}
+
+// UpdateSourceCapability sets the "source_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateSourceCapability() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceCapability()
+	})
+}
+
+// SetTargetCapability sets the "target_capability" field.
+func (u *ResourceLinkUpsertOne) SetTargetCapability(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetCapability(v)
+	})
+}
+
+// UpdateTargetCapability sets the "target_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateTargetCapability() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetCapability()
+	})
+}
+
+// SetSourceEntityID sets the "source_entity_id" field.
+func (u *ResourceLinkUpsertOne) SetSourceEntityID(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceEntityID(v)
+	})
+}
+
+// UpdateSourceEntityID sets the "source_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateSourceEntityID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceEntityID()
+	})
+}
+
+// SetTargetEntityID sets the "target_entity_id" field.
+func (u *ResourceLinkUpsertOne) SetTargetEntityID(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetEntityID(v)
+	})
+}
+
+// UpdateTargetEntityID sets the "target_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdateTargetEntityID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetEntityID()
+	})
+}
+
+// SetPipelineRunID sets the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertOne) SetPipelineRunID(v int64) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetPipelineRunID(v)
+	})
+}
+
+// AddPipelineRunID adds v to the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertOne) AddPipelineRunID(v int64) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.AddPipelineRunID(v)
+	})
+}
+
+// UpdatePipelineRunID sets the "pipeline_run_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdatePipelineRunID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdatePipelineRunID()
+	})
+}
+
+// ClearPipelineRunID clears the value of the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertOne) ClearPipelineRunID() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.ClearPipelineRunID()
+	})
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *ResourceLinkUpsertOne) SetPipelineName(v string) *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetPipelineName(v)
+	})
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *ResourceLinkUpsertOne) UpdatePipelineName() *ResourceLinkUpsertOne {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdatePipelineName()
+	})
+}
+
+// Exec executes the query.
+func (u *ResourceLinkUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ResourceLinkCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ResourceLinkUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ResourceLinkUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ResourceLinkUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ResourceLinkCreateBulk is the builder for creating many ResourceLink entities in bulk.
 type ResourceLinkCreateBulk struct {
 	config
 	err      error
 	builders []*ResourceLinkCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ResourceLink entities in the database.
@@ -388,6 +811,7 @@ func (_c *ResourceLinkCreateBulk) Save(ctx context.Context) ([]*ResourceLink, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -438,6 +862,277 @@ func (_c *ResourceLinkCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ResourceLinkCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ResourceLink.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ResourceLinkUpsert) {
+//			SetSourceEventID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ResourceLinkCreateBulk) OnConflict(opts ...sql.ConflictOption) *ResourceLinkUpsertBulk {
+	_c.conflict = opts
+	return &ResourceLinkUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ResourceLinkCreateBulk) OnConflictColumns(columns ...string) *ResourceLinkUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ResourceLinkUpsertBulk{
+		create: _c,
+	}
+}
+
+// ResourceLinkUpsertBulk is the builder for "upsert"-ing
+// a bulk of ResourceLink nodes.
+type ResourceLinkUpsertBulk struct {
+	create *ResourceLinkCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(resourcelink.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ResourceLinkUpsertBulk) UpdateNewValues() *ResourceLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(resourcelink.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(resourcelink.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ResourceLink.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ResourceLinkUpsertBulk) Ignore() *ResourceLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ResourceLinkUpsertBulk) DoNothing() *ResourceLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ResourceLinkCreateBulk.OnConflict
+// documentation for more info.
+func (u *ResourceLinkUpsertBulk) Update(set func(*ResourceLinkUpsert)) *ResourceLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ResourceLinkUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetSourceEventID sets the "source_event_id" field.
+func (u *ResourceLinkUpsertBulk) SetSourceEventID(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceEventID(v)
+	})
+}
+
+// UpdateSourceEventID sets the "source_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateSourceEventID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceEventID()
+	})
+}
+
+// SetTargetEventID sets the "target_event_id" field.
+func (u *ResourceLinkUpsertBulk) SetTargetEventID(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetEventID(v)
+	})
+}
+
+// UpdateTargetEventID sets the "target_event_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateTargetEventID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetEventID()
+	})
+}
+
+// SetSourceApp sets the "source_app" field.
+func (u *ResourceLinkUpsertBulk) SetSourceApp(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceApp(v)
+	})
+}
+
+// UpdateSourceApp sets the "source_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateSourceApp() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceApp()
+	})
+}
+
+// SetTargetApp sets the "target_app" field.
+func (u *ResourceLinkUpsertBulk) SetTargetApp(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetApp(v)
+	})
+}
+
+// UpdateTargetApp sets the "target_app" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateTargetApp() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetApp()
+	})
+}
+
+// SetSourceCapability sets the "source_capability" field.
+func (u *ResourceLinkUpsertBulk) SetSourceCapability(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceCapability(v)
+	})
+}
+
+// UpdateSourceCapability sets the "source_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateSourceCapability() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceCapability()
+	})
+}
+
+// SetTargetCapability sets the "target_capability" field.
+func (u *ResourceLinkUpsertBulk) SetTargetCapability(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetCapability(v)
+	})
+}
+
+// UpdateTargetCapability sets the "target_capability" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateTargetCapability() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetCapability()
+	})
+}
+
+// SetSourceEntityID sets the "source_entity_id" field.
+func (u *ResourceLinkUpsertBulk) SetSourceEntityID(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetSourceEntityID(v)
+	})
+}
+
+// UpdateSourceEntityID sets the "source_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateSourceEntityID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateSourceEntityID()
+	})
+}
+
+// SetTargetEntityID sets the "target_entity_id" field.
+func (u *ResourceLinkUpsertBulk) SetTargetEntityID(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetTargetEntityID(v)
+	})
+}
+
+// UpdateTargetEntityID sets the "target_entity_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdateTargetEntityID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdateTargetEntityID()
+	})
+}
+
+// SetPipelineRunID sets the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertBulk) SetPipelineRunID(v int64) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetPipelineRunID(v)
+	})
+}
+
+// AddPipelineRunID adds v to the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertBulk) AddPipelineRunID(v int64) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.AddPipelineRunID(v)
+	})
+}
+
+// UpdatePipelineRunID sets the "pipeline_run_id" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdatePipelineRunID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdatePipelineRunID()
+	})
+}
+
+// ClearPipelineRunID clears the value of the "pipeline_run_id" field.
+func (u *ResourceLinkUpsertBulk) ClearPipelineRunID() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.ClearPipelineRunID()
+	})
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (u *ResourceLinkUpsertBulk) SetPipelineName(v string) *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.SetPipelineName(v)
+	})
+}
+
+// UpdatePipelineName sets the "pipeline_name" field to the value that was provided on create.
+func (u *ResourceLinkUpsertBulk) UpdatePipelineName() *ResourceLinkUpsertBulk {
+	return u.Update(func(s *ResourceLinkUpsert) {
+		s.UpdatePipelineName()
+	})
+}
+
+// Exec executes the query.
+func (u *ResourceLinkUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the ResourceLinkCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ResourceLinkCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ResourceLinkUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

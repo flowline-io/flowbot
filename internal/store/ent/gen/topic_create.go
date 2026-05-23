@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
@@ -18,6 +19,7 @@ type TopicCreate struct {
 	config
 	mutation *TopicMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetFlag sets the "flag" field.
@@ -253,6 +255,7 @@ func (_c *TopicCreate) createSpec() (*Topic, *sqlgraph.CreateSpec) {
 		_node = &Topic{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(topic.Table, sqlgraph.NewFieldSpec(topic.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -300,11 +303,431 @@ func (_c *TopicCreate) createSpec() (*Topic, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Topic.Create().
+//		SetFlag(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TopicUpsert) {
+//			SetFlag(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *TopicCreate) OnConflict(opts ...sql.ConflictOption) *TopicUpsertOne {
+	_c.conflict = opts
+	return &TopicUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *TopicCreate) OnConflictColumns(columns ...string) *TopicUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &TopicUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// TopicUpsertOne is the builder for "upsert"-ing
+	//  one Topic node.
+	TopicUpsertOne struct {
+		create *TopicCreate
+	}
+
+	// TopicUpsert is the "OnConflict" setter.
+	TopicUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetFlag sets the "flag" field.
+func (u *TopicUpsert) SetFlag(v string) *TopicUpsert {
+	u.Set(topic.FieldFlag, v)
+	return u
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateFlag() *TopicUpsert {
+	u.SetExcluded(topic.FieldFlag)
+	return u
+}
+
+// SetPlatform sets the "platform" field.
+func (u *TopicUpsert) SetPlatform(v string) *TopicUpsert {
+	u.Set(topic.FieldPlatform, v)
+	return u
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *TopicUpsert) UpdatePlatform() *TopicUpsert {
+	u.SetExcluded(topic.FieldPlatform)
+	return u
+}
+
+// SetOwner sets the "owner" field.
+func (u *TopicUpsert) SetOwner(v int64) *TopicUpsert {
+	u.Set(topic.FieldOwner, v)
+	return u
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateOwner() *TopicUpsert {
+	u.SetExcluded(topic.FieldOwner)
+	return u
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *TopicUpsert) AddOwner(v int64) *TopicUpsert {
+	u.Add(topic.FieldOwner, v)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *TopicUpsert) SetName(v string) *TopicUpsert {
+	u.Set(topic.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateName() *TopicUpsert {
+	u.SetExcluded(topic.FieldName)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *TopicUpsert) SetType(v string) *TopicUpsert {
+	u.Set(topic.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateType() *TopicUpsert {
+	u.SetExcluded(topic.FieldType)
+	return u
+}
+
+// SetTags sets the "tags" field.
+func (u *TopicUpsert) SetTags(v string) *TopicUpsert {
+	u.Set(topic.FieldTags, v)
+	return u
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateTags() *TopicUpsert {
+	u.SetExcluded(topic.FieldTags)
+	return u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *TopicUpsert) ClearTags() *TopicUpsert {
+	u.SetNull(topic.FieldTags)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *TopicUpsert) SetState(v int) *TopicUpsert {
+	u.Set(topic.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateState() *TopicUpsert {
+	u.SetExcluded(topic.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *TopicUpsert) AddState(v int) *TopicUpsert {
+	u.Add(topic.FieldState, v)
+	return u
+}
+
+// SetTouchedAt sets the "touched_at" field.
+func (u *TopicUpsert) SetTouchedAt(v time.Time) *TopicUpsert {
+	u.Set(topic.FieldTouchedAt, v)
+	return u
+}
+
+// UpdateTouchedAt sets the "touched_at" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateTouchedAt() *TopicUpsert {
+	u.SetExcluded(topic.FieldTouchedAt)
+	return u
+}
+
+// ClearTouchedAt clears the value of the "touched_at" field.
+func (u *TopicUpsert) ClearTouchedAt() *TopicUpsert {
+	u.SetNull(topic.FieldTouchedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TopicUpsert) SetUpdatedAt(v time.Time) *TopicUpsert {
+	u.Set(topic.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TopicUpsert) UpdateUpdatedAt() *TopicUpsert {
+	u.SetExcluded(topic.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(topic.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TopicUpsertOne) UpdateNewValues() *TopicUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(topic.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(topic.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *TopicUpsertOne) Ignore() *TopicUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TopicUpsertOne) DoNothing() *TopicUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TopicCreate.OnConflict
+// documentation for more info.
+func (u *TopicUpsertOne) Update(set func(*TopicUpsert)) *TopicUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TopicUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *TopicUpsertOne) SetFlag(v string) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateFlag() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetPlatform sets the "platform" field.
+func (u *TopicUpsertOne) SetPlatform(v string) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetPlatform(v)
+	})
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdatePlatform() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdatePlatform()
+	})
+}
+
+// SetOwner sets the "owner" field.
+func (u *TopicUpsertOne) SetOwner(v int64) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *TopicUpsertOne) AddOwner(v int64) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.AddOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateOwner() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateOwner()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *TopicUpsertOne) SetName(v string) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateName() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *TopicUpsertOne) SetType(v string) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateType() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *TopicUpsertOne) SetTags(v string) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateTags() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *TopicUpsertOne) ClearTags() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.ClearTags()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *TopicUpsertOne) SetState(v int) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *TopicUpsertOne) AddState(v int) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateState() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetTouchedAt sets the "touched_at" field.
+func (u *TopicUpsertOne) SetTouchedAt(v time.Time) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetTouchedAt(v)
+	})
+}
+
+// UpdateTouchedAt sets the "touched_at" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateTouchedAt() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateTouchedAt()
+	})
+}
+
+// ClearTouchedAt clears the value of the "touched_at" field.
+func (u *TopicUpsertOne) ClearTouchedAt() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.ClearTouchedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TopicUpsertOne) SetUpdatedAt(v time.Time) *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TopicUpsertOne) UpdateUpdatedAt() *TopicUpsertOne {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TopicUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for TopicCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TopicUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TopicUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TopicUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TopicCreateBulk is the builder for creating many Topic entities in bulk.
 type TopicCreateBulk struct {
 	config
 	err      error
 	builders []*TopicCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Topic entities in the database.
@@ -334,6 +757,7 @@ func (_c *TopicCreateBulk) Save(ctx context.Context) ([]*Topic, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -384,6 +808,277 @@ func (_c *TopicCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *TopicCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Topic.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TopicUpsert) {
+//			SetFlag(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *TopicCreateBulk) OnConflict(opts ...sql.ConflictOption) *TopicUpsertBulk {
+	_c.conflict = opts
+	return &TopicUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *TopicCreateBulk) OnConflictColumns(columns ...string) *TopicUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &TopicUpsertBulk{
+		create: _c,
+	}
+}
+
+// TopicUpsertBulk is the builder for "upsert"-ing
+// a bulk of Topic nodes.
+type TopicUpsertBulk struct {
+	create *TopicCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(topic.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *TopicUpsertBulk) UpdateNewValues() *TopicUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(topic.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(topic.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Topic.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *TopicUpsertBulk) Ignore() *TopicUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TopicUpsertBulk) DoNothing() *TopicUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TopicCreateBulk.OnConflict
+// documentation for more info.
+func (u *TopicUpsertBulk) Update(set func(*TopicUpsert)) *TopicUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TopicUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetFlag sets the "flag" field.
+func (u *TopicUpsertBulk) SetFlag(v string) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetFlag(v)
+	})
+}
+
+// UpdateFlag sets the "flag" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateFlag() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateFlag()
+	})
+}
+
+// SetPlatform sets the "platform" field.
+func (u *TopicUpsertBulk) SetPlatform(v string) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetPlatform(v)
+	})
+}
+
+// UpdatePlatform sets the "platform" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdatePlatform() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdatePlatform()
+	})
+}
+
+// SetOwner sets the "owner" field.
+func (u *TopicUpsertBulk) SetOwner(v int64) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetOwner(v)
+	})
+}
+
+// AddOwner adds v to the "owner" field.
+func (u *TopicUpsertBulk) AddOwner(v int64) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.AddOwner(v)
+	})
+}
+
+// UpdateOwner sets the "owner" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateOwner() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateOwner()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *TopicUpsertBulk) SetName(v string) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateName() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *TopicUpsertBulk) SetType(v string) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateType() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *TopicUpsertBulk) SetTags(v string) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateTags() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateTags()
+	})
+}
+
+// ClearTags clears the value of the "tags" field.
+func (u *TopicUpsertBulk) ClearTags() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.ClearTags()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *TopicUpsertBulk) SetState(v int) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *TopicUpsertBulk) AddState(v int) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateState() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetTouchedAt sets the "touched_at" field.
+func (u *TopicUpsertBulk) SetTouchedAt(v time.Time) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetTouchedAt(v)
+	})
+}
+
+// UpdateTouchedAt sets the "touched_at" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateTouchedAt() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateTouchedAt()
+	})
+}
+
+// ClearTouchedAt clears the value of the "touched_at" field.
+func (u *TopicUpsertBulk) ClearTouchedAt() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.ClearTouchedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *TopicUpsertBulk) SetUpdatedAt(v time.Time) *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *TopicUpsertBulk) UpdateUpdatedAt() *TopicUpsertBulk {
+	return u.Update(func(s *TopicUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TopicUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the TopicCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for TopicCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TopicUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

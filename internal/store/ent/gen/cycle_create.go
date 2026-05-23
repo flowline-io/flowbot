@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/cycle"
@@ -18,6 +19,7 @@ type CycleCreate struct {
 	config
 	mutation *CycleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -216,6 +218,7 @@ func (_c *CycleCreate) createSpec() (*Cycle, *sqlgraph.CreateSpec) {
 		_node = &Cycle{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(cycle.Table, sqlgraph.NewFieldSpec(cycle.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -255,11 +258,340 @@ func (_c *CycleCreate) createSpec() (*Cycle, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Cycle.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CycleUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CycleCreate) OnConflict(opts ...sql.ConflictOption) *CycleUpsertOne {
+	_c.conflict = opts
+	return &CycleUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CycleCreate) OnConflictColumns(columns ...string) *CycleUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CycleUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// CycleUpsertOne is the builder for "upsert"-ing
+	//  one Cycle node.
+	CycleUpsertOne struct {
+		create *CycleCreate
+	}
+
+	// CycleUpsert is the "OnConflict" setter.
+	CycleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *CycleUpsert) SetUID(v string) *CycleUpsert {
+	u.Set(cycle.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateUID() *CycleUpsert {
+	u.SetExcluded(cycle.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *CycleUpsert) SetTopic(v string) *CycleUpsert {
+	u.Set(cycle.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateTopic() *CycleUpsert {
+	u.SetExcluded(cycle.FieldTopic)
+	return u
+}
+
+// SetObjectives sets the "objectives" field.
+func (u *CycleUpsert) SetObjectives(v string) *CycleUpsert {
+	u.Set(cycle.FieldObjectives, v)
+	return u
+}
+
+// UpdateObjectives sets the "objectives" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateObjectives() *CycleUpsert {
+	u.SetExcluded(cycle.FieldObjectives)
+	return u
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *CycleUpsert) SetStartDate(v time.Time) *CycleUpsert {
+	u.Set(cycle.FieldStartDate, v)
+	return u
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateStartDate() *CycleUpsert {
+	u.SetExcluded(cycle.FieldStartDate)
+	return u
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *CycleUpsert) SetEndDate(v time.Time) *CycleUpsert {
+	u.Set(cycle.FieldEndDate, v)
+	return u
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateEndDate() *CycleUpsert {
+	u.SetExcluded(cycle.FieldEndDate)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *CycleUpsert) SetState(v int) *CycleUpsert {
+	u.Set(cycle.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateState() *CycleUpsert {
+	u.SetExcluded(cycle.FieldState)
+	return u
+}
+
+// AddState adds v to the "state" field.
+func (u *CycleUpsert) AddState(v int) *CycleUpsert {
+	u.Add(cycle.FieldState, v)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CycleUpsert) SetUpdatedAt(v time.Time) *CycleUpsert {
+	u.Set(cycle.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CycleUpsert) UpdateUpdatedAt() *CycleUpsert {
+	u.SetExcluded(cycle.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(cycle.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CycleUpsertOne) UpdateNewValues() *CycleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(cycle.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(cycle.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CycleUpsertOne) Ignore() *CycleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CycleUpsertOne) DoNothing() *CycleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CycleCreate.OnConflict
+// documentation for more info.
+func (u *CycleUpsertOne) Update(set func(*CycleUpsert)) *CycleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CycleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *CycleUpsertOne) SetUID(v string) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateUID() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *CycleUpsertOne) SetTopic(v string) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateTopic() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetObjectives sets the "objectives" field.
+func (u *CycleUpsertOne) SetObjectives(v string) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetObjectives(v)
+	})
+}
+
+// UpdateObjectives sets the "objectives" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateObjectives() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateObjectives()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *CycleUpsertOne) SetStartDate(v time.Time) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateStartDate() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *CycleUpsertOne) SetEndDate(v time.Time) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetEndDate(v)
+	})
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateEndDate() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateEndDate()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *CycleUpsertOne) SetState(v int) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *CycleUpsertOne) AddState(v int) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateState() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CycleUpsertOne) SetUpdatedAt(v time.Time) *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CycleUpsertOne) UpdateUpdatedAt() *CycleUpsertOne {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CycleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CycleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CycleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CycleUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CycleUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CycleCreateBulk is the builder for creating many Cycle entities in bulk.
 type CycleCreateBulk struct {
 	config
 	err      error
 	builders []*CycleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Cycle entities in the database.
@@ -289,6 +621,7 @@ func (_c *CycleCreateBulk) Save(ctx context.Context) ([]*Cycle, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -339,6 +672,228 @@ func (_c *CycleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *CycleCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Cycle.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CycleUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *CycleCreateBulk) OnConflict(opts ...sql.ConflictOption) *CycleUpsertBulk {
+	_c.conflict = opts
+	return &CycleUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *CycleCreateBulk) OnConflictColumns(columns ...string) *CycleUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &CycleUpsertBulk{
+		create: _c,
+	}
+}
+
+// CycleUpsertBulk is the builder for "upsert"-ing
+// a bulk of Cycle nodes.
+type CycleUpsertBulk struct {
+	create *CycleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(cycle.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CycleUpsertBulk) UpdateNewValues() *CycleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(cycle.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(cycle.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Cycle.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CycleUpsertBulk) Ignore() *CycleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CycleUpsertBulk) DoNothing() *CycleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CycleCreateBulk.OnConflict
+// documentation for more info.
+func (u *CycleUpsertBulk) Update(set func(*CycleUpsert)) *CycleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CycleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *CycleUpsertBulk) SetUID(v string) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateUID() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *CycleUpsertBulk) SetTopic(v string) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateTopic() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetObjectives sets the "objectives" field.
+func (u *CycleUpsertBulk) SetObjectives(v string) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetObjectives(v)
+	})
+}
+
+// UpdateObjectives sets the "objectives" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateObjectives() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateObjectives()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *CycleUpsertBulk) SetStartDate(v time.Time) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateStartDate() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *CycleUpsertBulk) SetEndDate(v time.Time) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetEndDate(v)
+	})
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateEndDate() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateEndDate()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *CycleUpsertBulk) SetState(v int) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetState(v)
+	})
+}
+
+// AddState adds v to the "state" field.
+func (u *CycleUpsertBulk) AddState(v int) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.AddState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateState() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *CycleUpsertBulk) SetUpdatedAt(v time.Time) *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *CycleUpsertBulk) UpdateUpdatedAt() *CycleUpsertBulk {
+	return u.Update(func(s *CycleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *CycleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the CycleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for CycleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CycleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

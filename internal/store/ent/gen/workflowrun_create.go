@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
@@ -18,6 +19,7 @@ type WorkflowRunCreate struct {
 	config
 	mutation *WorkflowRunMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowName sets the "workflow_name" field.
@@ -257,6 +259,7 @@ func (_c *WorkflowRunCreate) createSpec() (*WorkflowRun, *sqlgraph.CreateSpec) {
 		_node = &WorkflowRun{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(workflowrun.Table, sqlgraph.NewFieldSpec(workflowrun.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -312,11 +315,522 @@ func (_c *WorkflowRunCreate) createSpec() (*WorkflowRun, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowRun.Create().
+//		SetWorkflowName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowRunUpsert) {
+//			SetWorkflowName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowRunCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowRunUpsertOne {
+	_c.conflict = opts
+	return &WorkflowRunUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowRunCreate) OnConflictColumns(columns ...string) *WorkflowRunUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowRunUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// WorkflowRunUpsertOne is the builder for "upsert"-ing
+	//  one WorkflowRun node.
+	WorkflowRunUpsertOne struct {
+		create *WorkflowRunCreate
+	}
+
+	// WorkflowRunUpsert is the "OnConflict" setter.
+	WorkflowRunUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowRunUpsert) SetWorkflowName(v string) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldWorkflowName, v)
+	return u
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateWorkflowName() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldWorkflowName)
+	return u
+}
+
+// SetWorkflowFile sets the "workflow_file" field.
+func (u *WorkflowRunUpsert) SetWorkflowFile(v string) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldWorkflowFile, v)
+	return u
+}
+
+// UpdateWorkflowFile sets the "workflow_file" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateWorkflowFile() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldWorkflowFile)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowRunUpsert) SetStatus(v int) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateStatus() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldStatus)
+	return u
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowRunUpsert) AddStatus(v int) *WorkflowRunUpsert {
+	u.Add(workflowrun.FieldStatus, v)
+	return u
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *WorkflowRunUpsert) SetTriggerType(v string) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldTriggerType, v)
+	return u
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateTriggerType() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldTriggerType)
+	return u
+}
+
+// SetTriggerInfo sets the "trigger_info" field.
+func (u *WorkflowRunUpsert) SetTriggerInfo(v map[string]interface{}) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldTriggerInfo, v)
+	return u
+}
+
+// UpdateTriggerInfo sets the "trigger_info" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateTriggerInfo() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldTriggerInfo)
+	return u
+}
+
+// ClearTriggerInfo clears the value of the "trigger_info" field.
+func (u *WorkflowRunUpsert) ClearTriggerInfo() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldTriggerInfo)
+	return u
+}
+
+// SetInputParams sets the "input_params" field.
+func (u *WorkflowRunUpsert) SetInputParams(v map[string]interface{}) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldInputParams, v)
+	return u
+}
+
+// UpdateInputParams sets the "input_params" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateInputParams() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldInputParams)
+	return u
+}
+
+// ClearInputParams clears the value of the "input_params" field.
+func (u *WorkflowRunUpsert) ClearInputParams() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldInputParams)
+	return u
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *WorkflowRunUpsert) SetCheckpointData(v map[string]interface{}) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldCheckpointData, v)
+	return u
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateCheckpointData() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldCheckpointData)
+	return u
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *WorkflowRunUpsert) ClearCheckpointData() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldCheckpointData)
+	return u
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *WorkflowRunUpsert) SetLastHeartbeat(v time.Time) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldLastHeartbeat, v)
+	return u
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateLastHeartbeat() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldLastHeartbeat)
+	return u
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *WorkflowRunUpsert) ClearLastHeartbeat() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldLastHeartbeat)
+	return u
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowRunUpsert) SetError(v string) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldError, v)
+	return u
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateError() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldError)
+	return u
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowRunUpsert) ClearError() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldError)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowRunUpsert) SetStartedAt(v time.Time) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateStartedAt() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldStartedAt)
+	return u
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowRunUpsert) SetCompletedAt(v time.Time) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldCompletedAt, v)
+	return u
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateCompletedAt() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldCompletedAt)
+	return u
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowRunUpsert) ClearCompletedAt() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldCompletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowrun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowRunUpsertOne) UpdateNewValues() *WorkflowRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(workflowrun.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(workflowrun.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WorkflowRunUpsertOne) Ignore() *WorkflowRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowRunUpsertOne) DoNothing() *WorkflowRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowRunCreate.OnConflict
+// documentation for more info.
+func (u *WorkflowRunUpsertOne) Update(set func(*WorkflowRunUpsert)) *WorkflowRunUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowRunUpsertOne) SetWorkflowName(v string) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowName(v)
+	})
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateWorkflowName() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowName()
+	})
+}
+
+// SetWorkflowFile sets the "workflow_file" field.
+func (u *WorkflowRunUpsertOne) SetWorkflowFile(v string) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowFile(v)
+	})
+}
+
+// UpdateWorkflowFile sets the "workflow_file" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateWorkflowFile() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowFile()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowRunUpsertOne) SetStatus(v int) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowRunUpsertOne) AddStatus(v int) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateStatus() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *WorkflowRunUpsertOne) SetTriggerType(v string) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetTriggerType(v)
+	})
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateTriggerType() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateTriggerType()
+	})
+}
+
+// SetTriggerInfo sets the "trigger_info" field.
+func (u *WorkflowRunUpsertOne) SetTriggerInfo(v map[string]interface{}) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetTriggerInfo(v)
+	})
+}
+
+// UpdateTriggerInfo sets the "trigger_info" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateTriggerInfo() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateTriggerInfo()
+	})
+}
+
+// ClearTriggerInfo clears the value of the "trigger_info" field.
+func (u *WorkflowRunUpsertOne) ClearTriggerInfo() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearTriggerInfo()
+	})
+}
+
+// SetInputParams sets the "input_params" field.
+func (u *WorkflowRunUpsertOne) SetInputParams(v map[string]interface{}) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetInputParams(v)
+	})
+}
+
+// UpdateInputParams sets the "input_params" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateInputParams() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateInputParams()
+	})
+}
+
+// ClearInputParams clears the value of the "input_params" field.
+func (u *WorkflowRunUpsertOne) ClearInputParams() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearInputParams()
+	})
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *WorkflowRunUpsertOne) SetCheckpointData(v map[string]interface{}) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetCheckpointData(v)
+	})
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateCheckpointData() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateCheckpointData()
+	})
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *WorkflowRunUpsertOne) ClearCheckpointData() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearCheckpointData()
+	})
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *WorkflowRunUpsertOne) SetLastHeartbeat(v time.Time) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetLastHeartbeat(v)
+	})
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateLastHeartbeat() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateLastHeartbeat()
+	})
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *WorkflowRunUpsertOne) ClearLastHeartbeat() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearLastHeartbeat()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowRunUpsertOne) SetError(v string) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateError() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowRunUpsertOne) ClearError() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowRunUpsertOne) SetStartedAt(v time.Time) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateStartedAt() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowRunUpsertOne) SetCompletedAt(v time.Time) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateCompletedAt() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowRunUpsertOne) ClearCompletedAt() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowRunUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowRunCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowRunUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WorkflowRunUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WorkflowRunUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WorkflowRunCreateBulk is the builder for creating many WorkflowRun entities in bulk.
 type WorkflowRunCreateBulk struct {
 	config
 	err      error
 	builders []*WorkflowRunCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the WorkflowRun entities in the database.
@@ -346,6 +860,7 @@ func (_c *WorkflowRunCreateBulk) Save(ctx context.Context) ([]*WorkflowRun, erro
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -396,6 +911,326 @@ func (_c *WorkflowRunCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *WorkflowRunCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WorkflowRun.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowRunUpsert) {
+//			SetWorkflowName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *WorkflowRunCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowRunUpsertBulk {
+	_c.conflict = opts
+	return &WorkflowRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *WorkflowRunCreateBulk) OnConflictColumns(columns ...string) *WorkflowRunUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowRunUpsertBulk{
+		create: _c,
+	}
+}
+
+// WorkflowRunUpsertBulk is the builder for "upsert"-ing
+// a bulk of WorkflowRun nodes.
+type WorkflowRunUpsertBulk struct {
+	create *WorkflowRunCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(workflowrun.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *WorkflowRunUpsertBulk) UpdateNewValues() *WorkflowRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(workflowrun.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(workflowrun.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WorkflowRun.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WorkflowRunUpsertBulk) Ignore() *WorkflowRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowRunUpsertBulk) DoNothing() *WorkflowRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowRunCreateBulk.OnConflict
+// documentation for more info.
+func (u *WorkflowRunUpsertBulk) Update(set func(*WorkflowRunUpsert)) *WorkflowRunUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowRunUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowRunUpsertBulk) SetWorkflowName(v string) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowName(v)
+	})
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateWorkflowName() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowName()
+	})
+}
+
+// SetWorkflowFile sets the "workflow_file" field.
+func (u *WorkflowRunUpsertBulk) SetWorkflowFile(v string) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowFile(v)
+	})
+}
+
+// UpdateWorkflowFile sets the "workflow_file" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateWorkflowFile() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowFile()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *WorkflowRunUpsertBulk) SetStatus(v int) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *WorkflowRunUpsertBulk) AddStatus(v int) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.AddStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateStatus() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *WorkflowRunUpsertBulk) SetTriggerType(v string) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetTriggerType(v)
+	})
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateTriggerType() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateTriggerType()
+	})
+}
+
+// SetTriggerInfo sets the "trigger_info" field.
+func (u *WorkflowRunUpsertBulk) SetTriggerInfo(v map[string]interface{}) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetTriggerInfo(v)
+	})
+}
+
+// UpdateTriggerInfo sets the "trigger_info" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateTriggerInfo() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateTriggerInfo()
+	})
+}
+
+// ClearTriggerInfo clears the value of the "trigger_info" field.
+func (u *WorkflowRunUpsertBulk) ClearTriggerInfo() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearTriggerInfo()
+	})
+}
+
+// SetInputParams sets the "input_params" field.
+func (u *WorkflowRunUpsertBulk) SetInputParams(v map[string]interface{}) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetInputParams(v)
+	})
+}
+
+// UpdateInputParams sets the "input_params" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateInputParams() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateInputParams()
+	})
+}
+
+// ClearInputParams clears the value of the "input_params" field.
+func (u *WorkflowRunUpsertBulk) ClearInputParams() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearInputParams()
+	})
+}
+
+// SetCheckpointData sets the "checkpoint_data" field.
+func (u *WorkflowRunUpsertBulk) SetCheckpointData(v map[string]interface{}) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetCheckpointData(v)
+	})
+}
+
+// UpdateCheckpointData sets the "checkpoint_data" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateCheckpointData() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateCheckpointData()
+	})
+}
+
+// ClearCheckpointData clears the value of the "checkpoint_data" field.
+func (u *WorkflowRunUpsertBulk) ClearCheckpointData() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearCheckpointData()
+	})
+}
+
+// SetLastHeartbeat sets the "last_heartbeat" field.
+func (u *WorkflowRunUpsertBulk) SetLastHeartbeat(v time.Time) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetLastHeartbeat(v)
+	})
+}
+
+// UpdateLastHeartbeat sets the "last_heartbeat" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateLastHeartbeat() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateLastHeartbeat()
+	})
+}
+
+// ClearLastHeartbeat clears the value of the "last_heartbeat" field.
+func (u *WorkflowRunUpsertBulk) ClearLastHeartbeat() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearLastHeartbeat()
+	})
+}
+
+// SetError sets the "error" field.
+func (u *WorkflowRunUpsertBulk) SetError(v string) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetError(v)
+	})
+}
+
+// UpdateError sets the "error" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateError() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateError()
+	})
+}
+
+// ClearError clears the value of the "error" field.
+func (u *WorkflowRunUpsertBulk) ClearError() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearError()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *WorkflowRunUpsertBulk) SetStartedAt(v time.Time) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateStartedAt() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (u *WorkflowRunUpsertBulk) SetCompletedAt(v time.Time) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetCompletedAt(v)
+	})
+}
+
+// UpdateCompletedAt sets the "completed_at" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateCompletedAt() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateCompletedAt()
+	})
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (u *WorkflowRunUpsertBulk) ClearCompletedAt() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearCompletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowRunUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the WorkflowRunCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for WorkflowRunCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowRunUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

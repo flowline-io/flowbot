@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dag"
@@ -19,6 +20,7 @@ type DagCreate struct {
 	config
 	mutation *DagMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowID sets the "workflow_id" field.
@@ -203,6 +205,7 @@ func (_c *DagCreate) createSpec() (*Dag, *sqlgraph.CreateSpec) {
 		_node = &Dag{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(dag.Table, sqlgraph.NewFieldSpec(dag.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -251,11 +254,340 @@ func (_c *DagCreate) createSpec() (*Dag, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Dag.Create().
+//		SetWorkflowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DagUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DagCreate) OnConflict(opts ...sql.ConflictOption) *DagUpsertOne {
+	_c.conflict = opts
+	return &DagUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DagCreate) OnConflictColumns(columns ...string) *DagUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DagUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// DagUpsertOne is the builder for "upsert"-ing
+	//  one Dag node.
+	DagUpsertOne struct {
+		create *DagCreate
+	}
+
+	// DagUpsert is the "OnConflict" setter.
+	DagUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *DagUpsert) SetWorkflowID(v int64) *DagUpsert {
+	u.Set(dag.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *DagUpsert) UpdateWorkflowID() *DagUpsert {
+	u.SetExcluded(dag.FieldWorkflowID)
+	return u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *DagUpsert) ClearWorkflowID() *DagUpsert {
+	u.SetNull(dag.FieldWorkflowID)
+	return u
+}
+
+// SetScriptID sets the "script_id" field.
+func (u *DagUpsert) SetScriptID(v int64) *DagUpsert {
+	u.Set(dag.FieldScriptID, v)
+	return u
+}
+
+// UpdateScriptID sets the "script_id" field to the value that was provided on create.
+func (u *DagUpsert) UpdateScriptID() *DagUpsert {
+	u.SetExcluded(dag.FieldScriptID)
+	return u
+}
+
+// AddScriptID adds v to the "script_id" field.
+func (u *DagUpsert) AddScriptID(v int64) *DagUpsert {
+	u.Add(dag.FieldScriptID, v)
+	return u
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *DagUpsert) SetScriptVersion(v int32) *DagUpsert {
+	u.Set(dag.FieldScriptVersion, v)
+	return u
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *DagUpsert) UpdateScriptVersion() *DagUpsert {
+	u.SetExcluded(dag.FieldScriptVersion)
+	return u
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *DagUpsert) AddScriptVersion(v int32) *DagUpsert {
+	u.Add(dag.FieldScriptVersion, v)
+	return u
+}
+
+// SetNodes sets the "nodes" field.
+func (u *DagUpsert) SetNodes(v []map[string]interface{}) *DagUpsert {
+	u.Set(dag.FieldNodes, v)
+	return u
+}
+
+// UpdateNodes sets the "nodes" field to the value that was provided on create.
+func (u *DagUpsert) UpdateNodes() *DagUpsert {
+	u.SetExcluded(dag.FieldNodes)
+	return u
+}
+
+// SetEdgesData sets the "edges_data" field.
+func (u *DagUpsert) SetEdgesData(v []map[string]interface{}) *DagUpsert {
+	u.Set(dag.FieldEdgesData, v)
+	return u
+}
+
+// UpdateEdgesData sets the "edges_data" field to the value that was provided on create.
+func (u *DagUpsert) UpdateEdgesData() *DagUpsert {
+	u.SetExcluded(dag.FieldEdgesData)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DagUpsert) SetUpdatedAt(v time.Time) *DagUpsert {
+	u.Set(dag.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DagUpsert) UpdateUpdatedAt() *DagUpsert {
+	u.SetExcluded(dag.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DagUpsertOne) UpdateNewValues() *DagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(dag.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(dag.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DagUpsertOne) Ignore() *DagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DagUpsertOne) DoNothing() *DagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DagCreate.OnConflict
+// documentation for more info.
+func (u *DagUpsertOne) Update(set func(*DagUpsert)) *DagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *DagUpsertOne) SetWorkflowID(v int64) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateWorkflowID() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *DagUpsertOne) ClearWorkflowID() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetScriptID sets the "script_id" field.
+func (u *DagUpsertOne) SetScriptID(v int64) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetScriptID(v)
+	})
+}
+
+// AddScriptID adds v to the "script_id" field.
+func (u *DagUpsertOne) AddScriptID(v int64) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.AddScriptID(v)
+	})
+}
+
+// UpdateScriptID sets the "script_id" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateScriptID() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateScriptID()
+	})
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *DagUpsertOne) SetScriptVersion(v int32) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetScriptVersion(v)
+	})
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *DagUpsertOne) AddScriptVersion(v int32) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.AddScriptVersion(v)
+	})
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateScriptVersion() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateScriptVersion()
+	})
+}
+
+// SetNodes sets the "nodes" field.
+func (u *DagUpsertOne) SetNodes(v []map[string]interface{}) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetNodes(v)
+	})
+}
+
+// UpdateNodes sets the "nodes" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateNodes() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateNodes()
+	})
+}
+
+// SetEdgesData sets the "edges_data" field.
+func (u *DagUpsertOne) SetEdgesData(v []map[string]interface{}) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetEdgesData(v)
+	})
+}
+
+// UpdateEdgesData sets the "edges_data" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateEdgesData() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateEdgesData()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DagUpsertOne) SetUpdatedAt(v time.Time) *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DagUpsertOne) UpdateUpdatedAt() *DagUpsertOne {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DagUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DagCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DagUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DagUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DagUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DagCreateBulk is the builder for creating many Dag entities in bulk.
 type DagCreateBulk struct {
 	config
 	err      error
 	builders []*DagCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Dag entities in the database.
@@ -285,6 +617,7 @@ func (_c *DagCreateBulk) Save(ctx context.Context) ([]*Dag, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -335,6 +668,228 @@ func (_c *DagCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *DagCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Dag.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DagUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DagCreateBulk) OnConflict(opts ...sql.ConflictOption) *DagUpsertBulk {
+	_c.conflict = opts
+	return &DagUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DagCreateBulk) OnConflictColumns(columns ...string) *DagUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DagUpsertBulk{
+		create: _c,
+	}
+}
+
+// DagUpsertBulk is the builder for "upsert"-ing
+// a bulk of Dag nodes.
+type DagUpsertBulk struct {
+	create *DagCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DagUpsertBulk) UpdateNewValues() *DagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(dag.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(dag.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Dag.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DagUpsertBulk) Ignore() *DagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DagUpsertBulk) DoNothing() *DagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DagCreateBulk.OnConflict
+// documentation for more info.
+func (u *DagUpsertBulk) Update(set func(*DagUpsert)) *DagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *DagUpsertBulk) SetWorkflowID(v int64) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateWorkflowID() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *DagUpsertBulk) ClearWorkflowID() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.ClearWorkflowID()
+	})
+}
+
+// SetScriptID sets the "script_id" field.
+func (u *DagUpsertBulk) SetScriptID(v int64) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetScriptID(v)
+	})
+}
+
+// AddScriptID adds v to the "script_id" field.
+func (u *DagUpsertBulk) AddScriptID(v int64) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.AddScriptID(v)
+	})
+}
+
+// UpdateScriptID sets the "script_id" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateScriptID() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateScriptID()
+	})
+}
+
+// SetScriptVersion sets the "script_version" field.
+func (u *DagUpsertBulk) SetScriptVersion(v int32) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetScriptVersion(v)
+	})
+}
+
+// AddScriptVersion adds v to the "script_version" field.
+func (u *DagUpsertBulk) AddScriptVersion(v int32) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.AddScriptVersion(v)
+	})
+}
+
+// UpdateScriptVersion sets the "script_version" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateScriptVersion() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateScriptVersion()
+	})
+}
+
+// SetNodes sets the "nodes" field.
+func (u *DagUpsertBulk) SetNodes(v []map[string]interface{}) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetNodes(v)
+	})
+}
+
+// UpdateNodes sets the "nodes" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateNodes() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateNodes()
+	})
+}
+
+// SetEdgesData sets the "edges_data" field.
+func (u *DagUpsertBulk) SetEdgesData(v []map[string]interface{}) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetEdgesData(v)
+	})
+}
+
+// UpdateEdgesData sets the "edges_data" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateEdgesData() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateEdgesData()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DagUpsertBulk) SetUpdatedAt(v time.Time) *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DagUpsertBulk) UpdateUpdatedAt() *DagUpsertBulk {
+	return u.Update(func(s *DagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *DagUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the DagCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for DagCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DagUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

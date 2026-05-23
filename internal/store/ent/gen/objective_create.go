@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/keyresult"
@@ -20,6 +21,7 @@ type ObjectiveCreate struct {
 	config
 	mutation *ObjectiveMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUID sets the "uid" field.
@@ -416,6 +418,7 @@ func (_c *ObjectiveCreate) createSpec() (*Objective, *sqlgraph.CreateSpec) {
 		_node = &Objective{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(objective.Table, sqlgraph.NewFieldSpec(objective.FieldID, field.TypeInt64))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -519,11 +522,600 @@ func (_c *ObjectiveCreate) createSpec() (*Objective, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Objective.Create().
+//		SetUID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ObjectiveUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ObjectiveCreate) OnConflict(opts ...sql.ConflictOption) *ObjectiveUpsertOne {
+	_c.conflict = opts
+	return &ObjectiveUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ObjectiveCreate) OnConflictColumns(columns ...string) *ObjectiveUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ObjectiveUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ObjectiveUpsertOne is the builder for "upsert"-ing
+	//  one Objective node.
+	ObjectiveUpsertOne struct {
+		create *ObjectiveCreate
+	}
+
+	// ObjectiveUpsert is the "OnConflict" setter.
+	ObjectiveUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUID sets the "uid" field.
+func (u *ObjectiveUpsert) SetUID(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldUID, v)
+	return u
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateUID() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldUID)
+	return u
+}
+
+// SetTopic sets the "topic" field.
+func (u *ObjectiveUpsert) SetTopic(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldTopic, v)
+	return u
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateTopic() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldTopic)
+	return u
+}
+
+// SetSequence sets the "sequence" field.
+func (u *ObjectiveUpsert) SetSequence(v int32) *ObjectiveUpsert {
+	u.Set(objective.FieldSequence, v)
+	return u
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateSequence() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldSequence)
+	return u
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *ObjectiveUpsert) AddSequence(v int32) *ObjectiveUpsert {
+	u.Add(objective.FieldSequence, v)
+	return u
+}
+
+// SetProgress sets the "progress" field.
+func (u *ObjectiveUpsert) SetProgress(v int32) *ObjectiveUpsert {
+	u.Set(objective.FieldProgress, v)
+	return u
+}
+
+// UpdateProgress sets the "progress" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateProgress() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldProgress)
+	return u
+}
+
+// AddProgress adds v to the "progress" field.
+func (u *ObjectiveUpsert) AddProgress(v int32) *ObjectiveUpsert {
+	u.Add(objective.FieldProgress, v)
+	return u
+}
+
+// SetTitle sets the "title" field.
+func (u *ObjectiveUpsert) SetTitle(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldTitle, v)
+	return u
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateTitle() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldTitle)
+	return u
+}
+
+// SetMemo sets the "memo" field.
+func (u *ObjectiveUpsert) SetMemo(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldMemo, v)
+	return u
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateMemo() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldMemo)
+	return u
+}
+
+// SetMotive sets the "motive" field.
+func (u *ObjectiveUpsert) SetMotive(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldMotive, v)
+	return u
+}
+
+// UpdateMotive sets the "motive" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateMotive() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldMotive)
+	return u
+}
+
+// SetFeasibility sets the "feasibility" field.
+func (u *ObjectiveUpsert) SetFeasibility(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldFeasibility, v)
+	return u
+}
+
+// UpdateFeasibility sets the "feasibility" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateFeasibility() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldFeasibility)
+	return u
+}
+
+// SetIsPlan sets the "is_plan" field.
+func (u *ObjectiveUpsert) SetIsPlan(v int32) *ObjectiveUpsert {
+	u.Set(objective.FieldIsPlan, v)
+	return u
+}
+
+// UpdateIsPlan sets the "is_plan" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateIsPlan() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldIsPlan)
+	return u
+}
+
+// AddIsPlan adds v to the "is_plan" field.
+func (u *ObjectiveUpsert) AddIsPlan(v int32) *ObjectiveUpsert {
+	u.Add(objective.FieldIsPlan, v)
+	return u
+}
+
+// SetPlanStart sets the "plan_start" field.
+func (u *ObjectiveUpsert) SetPlanStart(v time.Time) *ObjectiveUpsert {
+	u.Set(objective.FieldPlanStart, v)
+	return u
+}
+
+// UpdatePlanStart sets the "plan_start" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdatePlanStart() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldPlanStart)
+	return u
+}
+
+// SetPlanEnd sets the "plan_end" field.
+func (u *ObjectiveUpsert) SetPlanEnd(v time.Time) *ObjectiveUpsert {
+	u.Set(objective.FieldPlanEnd, v)
+	return u
+}
+
+// UpdatePlanEnd sets the "plan_end" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdatePlanEnd() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldPlanEnd)
+	return u
+}
+
+// SetTotalValue sets the "total_value" field.
+func (u *ObjectiveUpsert) SetTotalValue(v int32) *ObjectiveUpsert {
+	u.Set(objective.FieldTotalValue, v)
+	return u
+}
+
+// UpdateTotalValue sets the "total_value" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateTotalValue() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldTotalValue)
+	return u
+}
+
+// AddTotalValue adds v to the "total_value" field.
+func (u *ObjectiveUpsert) AddTotalValue(v int32) *ObjectiveUpsert {
+	u.Add(objective.FieldTotalValue, v)
+	return u
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *ObjectiveUpsert) SetCurrentValue(v int32) *ObjectiveUpsert {
+	u.Set(objective.FieldCurrentValue, v)
+	return u
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateCurrentValue() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldCurrentValue)
+	return u
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *ObjectiveUpsert) AddCurrentValue(v int32) *ObjectiveUpsert {
+	u.Add(objective.FieldCurrentValue, v)
+	return u
+}
+
+// SetTag sets the "tag" field.
+func (u *ObjectiveUpsert) SetTag(v string) *ObjectiveUpsert {
+	u.Set(objective.FieldTag, v)
+	return u
+}
+
+// UpdateTag sets the "tag" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateTag() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldTag)
+	return u
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (u *ObjectiveUpsert) SetUpdatedDate(v time.Time) *ObjectiveUpsert {
+	u.Set(objective.FieldUpdatedDate, v)
+	return u
+}
+
+// UpdateUpdatedDate sets the "updated_date" field to the value that was provided on create.
+func (u *ObjectiveUpsert) UpdateUpdatedDate() *ObjectiveUpsert {
+	u.SetExcluded(objective.FieldUpdatedDate)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(objective.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ObjectiveUpsertOne) UpdateNewValues() *ObjectiveUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(objective.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedData(); exists {
+			s.SetIgnore(objective.FieldCreatedData)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ObjectiveUpsertOne) Ignore() *ObjectiveUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ObjectiveUpsertOne) DoNothing() *ObjectiveUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ObjectiveCreate.OnConflict
+// documentation for more info.
+func (u *ObjectiveUpsertOne) Update(set func(*ObjectiveUpsert)) *ObjectiveUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ObjectiveUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ObjectiveUpsertOne) SetUID(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateUID() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ObjectiveUpsertOne) SetTopic(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateTopic() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetSequence sets the "sequence" field.
+func (u *ObjectiveUpsertOne) SetSequence(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetSequence(v)
+	})
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *ObjectiveUpsertOne) AddSequence(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddSequence(v)
+	})
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateSequence() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateSequence()
+	})
+}
+
+// SetProgress sets the "progress" field.
+func (u *ObjectiveUpsertOne) SetProgress(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetProgress(v)
+	})
+}
+
+// AddProgress adds v to the "progress" field.
+func (u *ObjectiveUpsertOne) AddProgress(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddProgress(v)
+	})
+}
+
+// UpdateProgress sets the "progress" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateProgress() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateProgress()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *ObjectiveUpsertOne) SetTitle(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateTitle() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTitle()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *ObjectiveUpsertOne) SetMemo(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateMemo() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// SetMotive sets the "motive" field.
+func (u *ObjectiveUpsertOne) SetMotive(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetMotive(v)
+	})
+}
+
+// UpdateMotive sets the "motive" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateMotive() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateMotive()
+	})
+}
+
+// SetFeasibility sets the "feasibility" field.
+func (u *ObjectiveUpsertOne) SetFeasibility(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetFeasibility(v)
+	})
+}
+
+// UpdateFeasibility sets the "feasibility" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateFeasibility() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateFeasibility()
+	})
+}
+
+// SetIsPlan sets the "is_plan" field.
+func (u *ObjectiveUpsertOne) SetIsPlan(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetIsPlan(v)
+	})
+}
+
+// AddIsPlan adds v to the "is_plan" field.
+func (u *ObjectiveUpsertOne) AddIsPlan(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddIsPlan(v)
+	})
+}
+
+// UpdateIsPlan sets the "is_plan" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateIsPlan() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateIsPlan()
+	})
+}
+
+// SetPlanStart sets the "plan_start" field.
+func (u *ObjectiveUpsertOne) SetPlanStart(v time.Time) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetPlanStart(v)
+	})
+}
+
+// UpdatePlanStart sets the "plan_start" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdatePlanStart() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdatePlanStart()
+	})
+}
+
+// SetPlanEnd sets the "plan_end" field.
+func (u *ObjectiveUpsertOne) SetPlanEnd(v time.Time) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetPlanEnd(v)
+	})
+}
+
+// UpdatePlanEnd sets the "plan_end" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdatePlanEnd() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdatePlanEnd()
+	})
+}
+
+// SetTotalValue sets the "total_value" field.
+func (u *ObjectiveUpsertOne) SetTotalValue(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTotalValue(v)
+	})
+}
+
+// AddTotalValue adds v to the "total_value" field.
+func (u *ObjectiveUpsertOne) AddTotalValue(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddTotalValue(v)
+	})
+}
+
+// UpdateTotalValue sets the "total_value" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateTotalValue() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTotalValue()
+	})
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *ObjectiveUpsertOne) SetCurrentValue(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetCurrentValue(v)
+	})
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *ObjectiveUpsertOne) AddCurrentValue(v int32) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddCurrentValue(v)
+	})
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateCurrentValue() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateCurrentValue()
+	})
+}
+
+// SetTag sets the "tag" field.
+func (u *ObjectiveUpsertOne) SetTag(v string) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTag(v)
+	})
+}
+
+// UpdateTag sets the "tag" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateTag() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTag()
+	})
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (u *ObjectiveUpsertOne) SetUpdatedDate(v time.Time) *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetUpdatedDate(v)
+	})
+}
+
+// UpdateUpdatedDate sets the "updated_date" field to the value that was provided on create.
+func (u *ObjectiveUpsertOne) UpdateUpdatedDate() *ObjectiveUpsertOne {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateUpdatedDate()
+	})
+}
+
+// Exec executes the query.
+func (u *ObjectiveUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ObjectiveCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ObjectiveUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ObjectiveUpsertOne) ID(ctx context.Context) (id int64, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ObjectiveUpsertOne) IDX(ctx context.Context) int64 {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ObjectiveCreateBulk is the builder for creating many Objective entities in bulk.
 type ObjectiveCreateBulk struct {
 	config
 	err      error
 	builders []*ObjectiveCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Objective entities in the database.
@@ -553,6 +1145,7 @@ func (_c *ObjectiveCreateBulk) Save(ctx context.Context) ([]*Objective, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -603,6 +1196,368 @@ func (_c *ObjectiveCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ObjectiveCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Objective.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ObjectiveUpsert) {
+//			SetUID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ObjectiveCreateBulk) OnConflict(opts ...sql.ConflictOption) *ObjectiveUpsertBulk {
+	_c.conflict = opts
+	return &ObjectiveUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ObjectiveCreateBulk) OnConflictColumns(columns ...string) *ObjectiveUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ObjectiveUpsertBulk{
+		create: _c,
+	}
+}
+
+// ObjectiveUpsertBulk is the builder for "upsert"-ing
+// a bulk of Objective nodes.
+type ObjectiveUpsertBulk struct {
+	create *ObjectiveCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(objective.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ObjectiveUpsertBulk) UpdateNewValues() *ObjectiveUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(objective.FieldID)
+			}
+			if _, exists := b.mutation.CreatedData(); exists {
+				s.SetIgnore(objective.FieldCreatedData)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Objective.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ObjectiveUpsertBulk) Ignore() *ObjectiveUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ObjectiveUpsertBulk) DoNothing() *ObjectiveUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ObjectiveCreateBulk.OnConflict
+// documentation for more info.
+func (u *ObjectiveUpsertBulk) Update(set func(*ObjectiveUpsert)) *ObjectiveUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ObjectiveUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUID sets the "uid" field.
+func (u *ObjectiveUpsertBulk) SetUID(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetUID(v)
+	})
+}
+
+// UpdateUID sets the "uid" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateUID() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateUID()
+	})
+}
+
+// SetTopic sets the "topic" field.
+func (u *ObjectiveUpsertBulk) SetTopic(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTopic(v)
+	})
+}
+
+// UpdateTopic sets the "topic" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateTopic() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTopic()
+	})
+}
+
+// SetSequence sets the "sequence" field.
+func (u *ObjectiveUpsertBulk) SetSequence(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetSequence(v)
+	})
+}
+
+// AddSequence adds v to the "sequence" field.
+func (u *ObjectiveUpsertBulk) AddSequence(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddSequence(v)
+	})
+}
+
+// UpdateSequence sets the "sequence" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateSequence() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateSequence()
+	})
+}
+
+// SetProgress sets the "progress" field.
+func (u *ObjectiveUpsertBulk) SetProgress(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetProgress(v)
+	})
+}
+
+// AddProgress adds v to the "progress" field.
+func (u *ObjectiveUpsertBulk) AddProgress(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddProgress(v)
+	})
+}
+
+// UpdateProgress sets the "progress" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateProgress() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateProgress()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *ObjectiveUpsertBulk) SetTitle(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateTitle() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTitle()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *ObjectiveUpsertBulk) SetMemo(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateMemo() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// SetMotive sets the "motive" field.
+func (u *ObjectiveUpsertBulk) SetMotive(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetMotive(v)
+	})
+}
+
+// UpdateMotive sets the "motive" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateMotive() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateMotive()
+	})
+}
+
+// SetFeasibility sets the "feasibility" field.
+func (u *ObjectiveUpsertBulk) SetFeasibility(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetFeasibility(v)
+	})
+}
+
+// UpdateFeasibility sets the "feasibility" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateFeasibility() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateFeasibility()
+	})
+}
+
+// SetIsPlan sets the "is_plan" field.
+func (u *ObjectiveUpsertBulk) SetIsPlan(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetIsPlan(v)
+	})
+}
+
+// AddIsPlan adds v to the "is_plan" field.
+func (u *ObjectiveUpsertBulk) AddIsPlan(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddIsPlan(v)
+	})
+}
+
+// UpdateIsPlan sets the "is_plan" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateIsPlan() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateIsPlan()
+	})
+}
+
+// SetPlanStart sets the "plan_start" field.
+func (u *ObjectiveUpsertBulk) SetPlanStart(v time.Time) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetPlanStart(v)
+	})
+}
+
+// UpdatePlanStart sets the "plan_start" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdatePlanStart() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdatePlanStart()
+	})
+}
+
+// SetPlanEnd sets the "plan_end" field.
+func (u *ObjectiveUpsertBulk) SetPlanEnd(v time.Time) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetPlanEnd(v)
+	})
+}
+
+// UpdatePlanEnd sets the "plan_end" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdatePlanEnd() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdatePlanEnd()
+	})
+}
+
+// SetTotalValue sets the "total_value" field.
+func (u *ObjectiveUpsertBulk) SetTotalValue(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTotalValue(v)
+	})
+}
+
+// AddTotalValue adds v to the "total_value" field.
+func (u *ObjectiveUpsertBulk) AddTotalValue(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddTotalValue(v)
+	})
+}
+
+// UpdateTotalValue sets the "total_value" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateTotalValue() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTotalValue()
+	})
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *ObjectiveUpsertBulk) SetCurrentValue(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetCurrentValue(v)
+	})
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *ObjectiveUpsertBulk) AddCurrentValue(v int32) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.AddCurrentValue(v)
+	})
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateCurrentValue() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateCurrentValue()
+	})
+}
+
+// SetTag sets the "tag" field.
+func (u *ObjectiveUpsertBulk) SetTag(v string) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetTag(v)
+	})
+}
+
+// UpdateTag sets the "tag" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateTag() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateTag()
+	})
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (u *ObjectiveUpsertBulk) SetUpdatedDate(v time.Time) *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.SetUpdatedDate(v)
+	})
+}
+
+// UpdateUpdatedDate sets the "updated_date" field to the value that was provided on create.
+func (u *ObjectiveUpsertBulk) UpdateUpdatedDate() *ObjectiveUpsertBulk {
+	return u.Update(func(s *ObjectiveUpsert) {
+		s.UpdateUpdatedDate()
+	})
+}
+
+// Exec executes the query.
+func (u *ObjectiveUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("gen: OnConflict was set for builder %d. Set it on the ObjectiveCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("gen: missing options for ObjectiveCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ObjectiveUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
