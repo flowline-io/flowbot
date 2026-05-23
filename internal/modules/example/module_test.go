@@ -156,14 +156,27 @@ func TestRules_ReturnsAllRulesets(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "should return 4 rulesets"},
+		{name: "should return 5 rulesets"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 4)
+			assert.Len(t, rules, 5)
+		})
+	}
+}
+
+func TestWebhookRules_Defined(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "should not be empty"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, webhookRules)
 		})
 	}
 }
