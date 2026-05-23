@@ -1104,6 +1104,11 @@ var (
 		PrimaryKey: []*schema.Column{ResourceLinksColumns[0]},
 		Indexes: []*schema.Index{
 			{
+				Name:    "resourcelink_source_event_id_target_event_id",
+				Unique:  true,
+				Columns: []*schema.Column{ResourceLinksColumns[1], ResourceLinksColumns[2]},
+			},
+			{
 				Name:    "resourcelink_source_app_source_entity_id",
 				Unique:  false,
 				Columns: []*schema.Column{ResourceLinksColumns[3], ResourceLinksColumns[7]},
