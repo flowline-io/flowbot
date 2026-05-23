@@ -8,7 +8,6 @@ tasks:
       - task: format
       - task: lint
       - task: scc
-      - task: codegraph
       - echo "All checks completed"
 
   check:
@@ -185,7 +184,6 @@ tasks:
     cmds:
       - go mod download
       - npm install -g prettier
-      - npx @colbymchenry/codegraph
 
   # Release tasks
   snapshot:
@@ -216,9 +214,3 @@ tasks:
     desc: Generate ent code from database
     cmds:
       - go generate ./internal/store/ent/
-
-  codegraph:
-    desc: Generate ent code from database
-    cmds:
-      - codegraph install --location=local --target=opencode --yes
-      - codegraph index
