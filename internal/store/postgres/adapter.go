@@ -34,7 +34,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -183,7 +183,7 @@ func (a *adapter) GetDB() any {
 // User
 // ---------------------------------------------------------------------------
 
-func (a *adapter) UserCreate(ctx context.Context, usr *model.User) error {
+func (a *adapter) UserCreate(ctx context.Context, usr *gen.User) error {
 	_, err := a.client.User.Create().
 		SetFlag(usr.Flag).
 		SetName(usr.Name).
@@ -198,7 +198,7 @@ func (a *adapter) UserCreate(ctx context.Context, usr *model.User) error {
 	return nil
 }
 
-func (a *adapter) UserGet(ctx context.Context, uid types.Uid) (*model.User, error) {
+func (a *adapter) UserGet(ctx context.Context, uid types.Uid) (*gen.User, error) {
 	u, err := a.client.User.Query().Where(user.FlagEQ(uid.String())).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -206,10 +206,10 @@ func (a *adapter) UserGet(ctx context.Context, uid types.Uid) (*model.User, erro
 		}
 		return nil, fmt.Errorf("postgres: get user: %w", err)
 	}
-	return entUserToModel(u), nil
+	return u, nil
 }
 
-func (a *adapter) UserGetAll(ctx context.Context, ids ...types.Uid) ([]*model.User, error) {
+func (a *adapter) UserGetAll(ctx context.Context, ids ...types.Uid) ([]*gen.User, error) {
 	q := a.client.User.Query()
 	if len(ids) > 0 {
 		flags := make([]string, len(ids))
@@ -223,14 +223,14 @@ func (a *adapter) UserGetAll(ctx context.Context, ids ...types.Uid) ([]*model.Us
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get all users: %w", err)
 	}
-	result := make([]*model.User, len(users))
+	result := make([]*gen.User, len(users))
 	for i, u := range users {
-		result[i] = entUserToModel(u)
+		result[i] = u
 	}
 	return result, nil
 }
 
-func (a *adapter) FirstUser(ctx context.Context) (*model.User, error) {
+func (a *adapter) FirstUser(ctx context.Context) (*gen.User, error) {
 	u, err := a.client.User.Query().Order(gen.Asc(user.FieldID)).First(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -238,7 +238,7 @@ func (a *adapter) FirstUser(ctx context.Context) (*model.User, error) {
 		}
 		return nil, fmt.Errorf("postgres: first user: %w", err)
 	}
-	return entUserToModel(u), nil
+	return u, nil
 }
 
 func (a *adapter) UserDelete(ctx context.Context, uid types.Uid, hard bool) error {
@@ -250,7 +250,7 @@ func (a *adapter) UserDelete(ctx context.Context, uid types.Uid, hard bool) erro
 		return nil
 	}
 	_, err := a.client.User.Update().Where(user.FlagEQ(uid.String())).
-		SetState(int(model.UserInactive)).
+		SetState(int(int(schema.UserInactive))).
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: soft delete user: %w", err)
@@ -289,7 +289,7 @@ func (a *adapter) FileStartUpload(ctx context.Context, fd *types.FileDef) error 
 		SetMimetype(fd.MimeType).
 		SetSize(fd.Size).
 		SetLocation(fd.Location).
-		SetState(int(model.FileStart)).
+		SetState(int(schema.FileStart)).
 		SetCreatedAt(time.Now()).
 		SetUpdatedAt(time.Now()).
 		Save(ctx)
@@ -300,9 +300,9 @@ func (a *adapter) FileStartUpload(ctx context.Context, fd *types.FileDef) error 
 }
 
 func (a *adapter) FileFinishUpload(ctx context.Context, fd *types.FileDef, success bool, size int64) (*types.FileDef, error) {
-	st := int(model.FileFailed)
+	st := int(schema.FileFailed)
 	if success {
-		st = int(model.FileFinish)
+		st = int(schema.FileFinish)
 	}
 	_, err := a.client.Fileupload.Update().
 		Where(fileupload.FidEQ(fd.Id)).
@@ -332,7 +332,7 @@ func (a *adapter) FileGet(ctx context.Context, fid string) (*types.FileDef, erro
 
 func (a *adapter) FileDeleteUnused(ctx context.Context, olderThan time.Time, limit int) ([]string, error) {
 	q := a.client.Fileupload.Query().
-		Where(fileupload.StateEQ(int(model.FileFinish)))
+		Where(fileupload.StateEQ(int(schema.FileFinish)))
 	if !olderThan.IsZero() {
 		q = q.Where(fileupload.UpdatedAtLT(olderThan))
 	}
@@ -364,11 +364,11 @@ func (a *adapter) FileDeleteUnused(ctx context.Context, olderThan time.Time, lim
 // Users (by id/flag)
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetUsers(ctx context.Context) ([]*model.User, error) {
+func (a *adapter) GetUsers(ctx context.Context) ([]*gen.User, error) {
 	return a.UserGetAll(ctx)
 }
 
-func (a *adapter) GetUserById(ctx context.Context, id int64) (*model.User, error) {
+func (a *adapter) GetUserById(ctx context.Context, id int64) (*gen.User, error) {
 	u, err := a.client.User.Query().Where(user.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -376,10 +376,10 @@ func (a *adapter) GetUserById(ctx context.Context, id int64) (*model.User, error
 		}
 		return nil, fmt.Errorf("postgres: get user by id: %w", err)
 	}
-	return entUserToModel(u), nil
+	return u, nil
 }
 
-func (a *adapter) GetUserByFlag(ctx context.Context, flag string) (*model.User, error) {
+func (a *adapter) GetUserByFlag(ctx context.Context, flag string) (*gen.User, error) {
 	return a.UserGet(ctx, types.Uid(flag))
 }
 
@@ -387,7 +387,7 @@ func (a *adapter) GetUserByFlag(ctx context.Context, flag string) (*model.User, 
 // PlatformUser
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreatePlatformUser(ctx context.Context, item *model.PlatformUser) (int64, error) {
+func (a *adapter) CreatePlatformUser(ctx context.Context, item *gen.PlatformUser) (int64, error) {
 	u, err := a.client.PlatformUser.Create().
 		SetPlatformID(item.PlatformID).
 		SetUserID(item.UserID).
@@ -405,19 +405,19 @@ func (a *adapter) CreatePlatformUser(ctx context.Context, item *model.PlatformUs
 	return u.ID, nil
 }
 
-func (a *adapter) GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*model.PlatformUser, error) {
+func (a *adapter) GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*gen.PlatformUser, error) {
 	users, err := a.client.PlatformUser.Query().Where(platformuser.UserIDEQ(userId)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform users by user id: %w", err)
 	}
-	result := make([]*model.PlatformUser, len(users))
+	result := make([]*gen.PlatformUser, len(users))
 	for i, u := range users {
-		result[i] = entPlatformUserToModel(u)
+		result[i] = u
 	}
 	return result, nil
 }
 
-func (a *adapter) GetPlatformUserByFlag(ctx context.Context, flag string) (*model.PlatformUser, error) {
+func (a *adapter) GetPlatformUserByFlag(ctx context.Context, flag string) (*gen.PlatformUser, error) {
 	u, err := a.client.PlatformUser.Query().Where(platformuser.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -425,10 +425,10 @@ func (a *adapter) GetPlatformUserByFlag(ctx context.Context, flag string) (*mode
 		}
 		return nil, fmt.Errorf("postgres: get platform user by flag: %w", err)
 	}
-	return entPlatformUserToModel(u), nil
+	return u, nil
 }
 
-func (a *adapter) UpdatePlatformUser(ctx context.Context, item *model.PlatformUser) error {
+func (a *adapter) UpdatePlatformUser(ctx context.Context, item *gen.PlatformUser) error {
 	_, err := a.client.PlatformUser.Update().Where(platformuser.IDEQ(item.ID)).
 		SetPlatformID(item.PlatformID).
 		SetUserID(item.UserID).
@@ -452,7 +452,7 @@ func (a *adapter) UpdatePlatformUser(ctx context.Context, item *model.PlatformUs
 // PlatformChannel
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetPlatformChannelByFlag(ctx context.Context, flag string) (*model.PlatformChannel, error) {
+func (a *adapter) GetPlatformChannelByFlag(ctx context.Context, flag string) (*gen.PlatformChannel, error) {
 	u, err := a.client.PlatformChannel.Query().Where(platformchannel.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -460,22 +460,22 @@ func (a *adapter) GetPlatformChannelByFlag(ctx context.Context, flag string) (*m
 		}
 		return nil, fmt.Errorf("postgres: get platform channel by flag: %w", err)
 	}
-	return entPlatformChannelToModel(u), nil
+	return u, nil
 }
 
-func (a *adapter) GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*model.PlatformChannel, error) {
+func (a *adapter) GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*gen.PlatformChannel, error) {
 	channels, err := a.client.PlatformChannel.Query().Where(platformchannel.PlatformIDIn(platformIds...)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform channels by platform ids: %w", err)
 	}
-	result := make([]*model.PlatformChannel, len(channels))
+	result := make([]*gen.PlatformChannel, len(channels))
 	for i, c := range channels {
-		result[i] = entPlatformChannelToModel(c)
+		result[i] = c
 	}
 	return result, nil
 }
 
-func (a *adapter) GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*model.PlatformChannel, error) {
+func (a *adapter) GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*gen.PlatformChannel, error) {
 	u, err := a.client.PlatformChannel.Query().Where(platformchannel.ChannelIDEQ(channelId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -483,10 +483,10 @@ func (a *adapter) GetPlatformChannelsByChannelId(ctx context.Context, channelId 
 		}
 		return nil, fmt.Errorf("postgres: get platform channel by channel id: %w", err)
 	}
-	return entPlatformChannelToModel(u), nil
+	return u, nil
 }
 
-func (a *adapter) CreatePlatformChannel(ctx context.Context, item *model.PlatformChannel) (int64, error) {
+func (a *adapter) CreatePlatformChannel(ctx context.Context, item *gen.PlatformChannel) (int64, error) {
 	u, err := a.client.PlatformChannel.Create().
 		SetPlatformID(item.PlatformID).
 		SetChannelID(item.ChannelID).
@@ -504,7 +504,7 @@ func (a *adapter) CreatePlatformChannel(ctx context.Context, item *model.Platfor
 // PlatformChannelUser
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreatePlatformChannelUser(ctx context.Context, item *model.PlatformChannelUser) (int64, error) {
+func (a *adapter) CreatePlatformChannelUser(ctx context.Context, item *gen.PlatformChannelUser) (int64, error) {
 	u, err := a.client.PlatformChannelUser.Create().
 		SetPlatformID(item.PlatformID).
 		SetChannelFlag(item.ChannelFlag).
@@ -518,22 +518,22 @@ func (a *adapter) CreatePlatformChannelUser(ctx context.Context, item *model.Pla
 	return u.ID, nil
 }
 
-func (a *adapter) GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*model.PlatformChannelUser, error) {
+func (a *adapter) GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*gen.PlatformChannelUser, error) {
 	users, err := a.client.PlatformChannelUser.Query().
 		Where(platformchanneluser.UserFlagEQ(userFlag)).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform channel users by user flag: %w", err)
 	}
-	result := make([]*model.PlatformChannelUser, len(users))
+	result := make([]*gen.PlatformChannelUser, len(users))
 	for i, u := range users {
-		result[i] = entPlatformChannelUserToModel(u)
+		result[i] = u
 	}
 	return result, nil
 }
 
 // GetPlatformChannelUsersByUserFlags returns platform channel user records for a batch of user flags.
-func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error) {
+func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error) {
 	if len(userFlags) == 0 {
 		return nil, nil
 	}
@@ -543,9 +543,9 @@ func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFl
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get platform channel users by user flags: %w", err)
 	}
-	result := make([]*model.PlatformChannelUser, len(users))
+	result := make([]*gen.PlatformChannelUser, len(users))
 	for i, u := range users {
-		result[i] = entPlatformChannelUserToModel(u)
+		result[i] = u
 	}
 	return result, nil
 }
@@ -554,7 +554,7 @@ func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFl
 // Message
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetMessage(ctx context.Context, flag string) (*model.Message, error) {
+func (a *adapter) GetMessage(ctx context.Context, flag string) (*gen.Message, error) {
 	m, err := a.client.Message.Query().Where(message.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -562,10 +562,10 @@ func (a *adapter) GetMessage(ctx context.Context, flag string) (*model.Message, 
 		}
 		return nil, fmt.Errorf("postgres: get message: %w", err)
 	}
-	return entMessageToModel(m), nil
+	return m, nil
 }
 
-func (a *adapter) GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*model.Message, error) {
+func (a *adapter) GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*gen.Message, error) {
 	m, err := a.client.Message.Query().
 		Where(message.PlatformIDEQ(platformId), message.PlatformMsgIDEQ(platformMsgId)).
 		Only(ctx)
@@ -575,10 +575,10 @@ func (a *adapter) GetMessageByPlatform(ctx context.Context, platformId int64, pl
 		}
 		return nil, fmt.Errorf("postgres: get message by platform: %w", err)
 	}
-	return entMessageToModel(m), nil
+	return m, nil
 }
 
-func (a *adapter) GetMessagesBySession(ctx context.Context, session string) ([]*model.Message, error) {
+func (a *adapter) GetMessagesBySession(ctx context.Context, session string) ([]*gen.Message, error) {
 	messages, err := a.client.Message.Query().
 		Where(message.SessionEQ(session)).
 		Order(gen.Asc(message.FieldCreatedAt)).
@@ -587,14 +587,14 @@ func (a *adapter) GetMessagesBySession(ctx context.Context, session string) ([]*
 	if err != nil {
 		return nil, fmt.Errorf("postgres: get messages by session: %w", err)
 	}
-	result := make([]*model.Message, len(messages))
+	result := make([]*gen.Message, len(messages))
 	for i, m := range messages {
-		result[i] = entMessageToModel(m)
+		result[i] = m
 	}
 	return result, nil
 }
 
-func (a *adapter) CreateMessage(ctx context.Context, msg model.Message) error {
+func (a *adapter) CreateMessage(ctx context.Context, msg gen.Message) error {
 	c := a.client.Message.Create().
 		SetFlag(msg.Flag).
 		SetPlatformID(msg.PlatformID).
@@ -664,7 +664,7 @@ func (a *adapter) DataGet(ctx context.Context, uid types.Uid, topic, key string)
 	return types.KV(d.Value), nil
 }
 
-func (a *adapter) DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error) {
+func (a *adapter) DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*gen.Data, error) {
 	q := a.client.Data.Query().Where(data.UID(uid.String()), data.Topic(topic))
 	if filter.Prefix != nil && *filter.Prefix != "" {
 		q = q.Where(data.KeyHasPrefix(*filter.Prefix))
@@ -680,14 +680,14 @@ func (a *adapter) DataList(ctx context.Context, uid types.Uid, topic string, fil
 	if err != nil {
 		return nil, fmt.Errorf("postgres: datalist: %w", err)
 	}
-	result := make([]*model.Data, len(items))
+	result := make([]*gen.Data, len(items))
 	for i, d := range items {
-		result[i] = &model.Data{
+		result[i] = &gen.Data{
 			ID:        d.ID,
 			UID:       d.UID,
 			Topic:     d.Topic,
 			Key:       d.Key,
-			Value:     model.JSON(d.Value),
+			Value:     schema.JSON(d.Value),
 			CreatedAt: d.CreatedAt,
 			UpdatedAt: d.UpdatedAt,
 		}
@@ -751,7 +751,7 @@ func (a *adapter) ConfigGet(ctx context.Context, uid types.Uid, topic, key strin
 	return types.KV(d.Value), nil
 }
 
-func (a *adapter) ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*model.Config, error) {
+func (a *adapter) ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*gen.ConfigData, error) {
 	q := a.client.ConfigData.Query().Where(configdata.UID(uid.String()), configdata.Topic(topic))
 	if prefix != "" {
 		q = q.Where(configdata.KeyHasPrefix(prefix))
@@ -761,14 +761,14 @@ func (a *adapter) ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, 
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listconfigbyprefix: %w", err)
 	}
-	result := make([]*model.Config, len(items))
+	result := make([]*gen.ConfigData, len(items))
 	for i, d := range items {
-		result[i] = &model.Config{
+		result[i] = &gen.ConfigData{
 			ID:        d.ID,
 			UID:       d.UID,
 			Topic:     d.Topic,
 			Key:       d.Key,
-			Value:     model.JSON(d.Value),
+			Value:     schema.JSON(d.Value),
 			CreatedAt: d.CreatedAt,
 			UpdatedAt: d.UpdatedAt,
 		}
@@ -790,7 +790,7 @@ func (a *adapter) ConfigDelete(ctx context.Context, uid types.Uid, topic, key st
 // OAuth
 // ---------------------------------------------------------------------------
 
-func (a *adapter) OAuthSet(ctx context.Context, oauthModel model.OAuth) error {
+func (a *adapter) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
 	existing, err := a.client.OAuth.Query().
 		Where(
 			oauth.UID(oauthModel.UID),
@@ -831,27 +831,27 @@ func (a *adapter) OAuthSet(ctx context.Context, oauthModel model.OAuth) error {
 	return nil
 }
 
-func (a *adapter) OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (model.OAuth, error) {
+func (a *adapter) OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (gen.OAuth, error) {
 	o, err := a.client.OAuth.Query().
 		Where(oauth.UID(uid.String()), oauth.Topic(topic), oauth.Type(t)).
 		Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.OAuth{}, types.ErrNotFound
+			return gen.OAuth{}, types.ErrNotFound
 		}
-		return model.OAuth{}, fmt.Errorf("postgres: oauthget: %w", err)
+		return gen.OAuth{}, fmt.Errorf("postgres: oauthget: %w", err)
 	}
-	return entOAuthToModel(o), nil
+	return *o, nil
 }
 
-func (a *adapter) OAuthGetAvailable(ctx context.Context, t string) ([]model.OAuth, error) {
+func (a *adapter) OAuthGetAvailable(ctx context.Context, t string) ([]gen.OAuth, error) {
 	oauths, err := a.client.OAuth.Query().Where(oauth.Type(t)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: oauthgetavailable: %w", err)
 	}
-	result := make([]model.OAuth, len(oauths))
+	result := make([]gen.OAuth, len(oauths))
 	for i, o := range oauths {
-		result[i] = entOAuthToModel(o)
+		result[i] = *o
 	}
 	return result, nil
 }
@@ -860,7 +860,7 @@ func (a *adapter) OAuthGetAvailable(ctx context.Context, t string) ([]model.OAut
 // Form
 // ---------------------------------------------------------------------------
 
-func (a *adapter) FormSet(ctx context.Context, formId string, formModel model.Form) error {
+func (a *adapter) FormSet(ctx context.Context, formId string, formModel gen.Form) error {
 	existing, err := a.client.Form.Query().Where(form.FormIDEQ(formId)).Only(ctx)
 	if err != nil && !gen.IsNotFound(err) {
 		return fmt.Errorf("postgres: formset query: %w", err)
@@ -907,22 +907,22 @@ func (a *adapter) FormSet(ctx context.Context, formId string, formModel model.Fo
 	return nil
 }
 
-func (a *adapter) FormGet(ctx context.Context, formId string) (model.Form, error) {
+func (a *adapter) FormGet(ctx context.Context, formId string) (gen.Form, error) {
 	f, err := a.client.Form.Query().Where(form.FormIDEQ(formId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Form{}, types.ErrNotFound
+			return gen.Form{}, types.ErrNotFound
 		}
-		return model.Form{}, fmt.Errorf("postgres: formget: %w", err)
+		return gen.Form{}, fmt.Errorf("postgres: formget: %w", err)
 	}
-	return entFormToModel(f), nil
+	return *f, nil
 }
 
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
-func (a *adapter) PageSet(ctx context.Context, pageId string, pageModel model.Page) error {
+func (a *adapter) PageSet(ctx context.Context, pageId string, pageModel gen.Page) error {
 	existing, err := a.client.Page.Query().Where(page.PageIDEQ(pageId)).Only(ctx)
 	if err != nil && !gen.IsNotFound(err) {
 		return fmt.Errorf("postgres: pageset query: %w", err)
@@ -959,22 +959,22 @@ func (a *adapter) PageSet(ctx context.Context, pageId string, pageModel model.Pa
 	return nil
 }
 
-func (a *adapter) PageGet(ctx context.Context, pageId string) (model.Page, error) {
+func (a *adapter) PageGet(ctx context.Context, pageId string) (gen.Page, error) {
 	p, err := a.client.Page.Query().Where(page.PageIDEQ(pageId)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Page{}, types.ErrNotFound
+			return gen.Page{}, types.ErrNotFound
 		}
-		return model.Page{}, fmt.Errorf("postgres: pageget: %w", err)
+		return gen.Page{}, fmt.Errorf("postgres: pageget: %w", err)
 	}
-	return entPageToModel(p), nil
+	return *p, nil
 }
 
 // ---------------------------------------------------------------------------
 // Behavior
 // ---------------------------------------------------------------------------
 
-func (a *adapter) BehaviorSet(ctx context.Context, behaviorModel model.Behavior) error {
+func (a *adapter) BehaviorSet(ctx context.Context, behaviorModel gen.Behavior) error {
 	existing, err := a.client.Behavior.Query().
 		Where(behavior.UID(behaviorModel.UID), behavior.Flag(behaviorModel.Flag)).
 		Only(ctx)
@@ -984,21 +984,21 @@ func (a *adapter) BehaviorSet(ctx context.Context, behaviorModel model.Behavior)
 
 	if existing != nil {
 		u := a.client.Behavior.Update().Where(behavior.IDEQ(existing.ID)).
-			SetCount(behaviorModel.Count_).
+			SetCount(behaviorModel.Count).
 			SetUpdatedAt(time.Now())
 		if behaviorModel.Extra != nil {
-			u = u.SetExtra(map[string]any(*behaviorModel.Extra))
+			u = u.SetExtra(behaviorModel.Extra)
 		}
 		_, err = u.Save(ctx)
 	} else {
 		c := a.client.Behavior.Create().
 			SetUID(behaviorModel.UID).
 			SetFlag(behaviorModel.Flag).
-			SetCount(behaviorModel.Count_).
+			SetCount(behaviorModel.Count).
 			SetCreatedAt(behaviorModel.CreatedAt).
 			SetUpdatedAt(behaviorModel.UpdatedAt)
 		if behaviorModel.Extra != nil {
-			c = c.SetExtra(map[string]any(*behaviorModel.Extra))
+			c = c.SetExtra(behaviorModel.Extra)
 		}
 		_, err = c.Save(ctx)
 	}
@@ -1008,20 +1008,20 @@ func (a *adapter) BehaviorSet(ctx context.Context, behaviorModel model.Behavior)
 	return nil
 }
 
-func (a *adapter) BehaviorGet(ctx context.Context, uid types.Uid, flag string) (model.Behavior, error) {
+func (a *adapter) BehaviorGet(ctx context.Context, uid types.Uid, flag string) (gen.Behavior, error) {
 	b, err := a.client.Behavior.Query().
 		Where(behavior.UID(uid.String()), behavior.FlagEQ(flag)).
 		Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Behavior{}, types.ErrNotFound
+			return gen.Behavior{}, types.ErrNotFound
 		}
-		return model.Behavior{}, fmt.Errorf("postgres: behaviorget: %w", err)
+		return gen.Behavior{}, fmt.Errorf("postgres: behaviorget: %w", err)
 	}
-	return entBehaviorToModel(b), nil
+	return *b, nil
 }
 
-func (a *adapter) BehaviorList(ctx context.Context, uid types.Uid) ([]*model.Behavior, error) {
+func (a *adapter) BehaviorList(ctx context.Context, uid types.Uid) ([]*gen.Behavior, error) {
 	behaviors, err := a.client.Behavior.Query().
 		Where(behavior.UID(uid.String())).
 		Order(gen.Asc(behavior.FieldCreatedAt)).
@@ -1030,12 +1030,7 @@ func (a *adapter) BehaviorList(ctx context.Context, uid types.Uid) ([]*model.Beh
 	if err != nil {
 		return nil, fmt.Errorf("postgres: behaviorlist: %w", err)
 	}
-	result := make([]*model.Behavior, len(behaviors))
-	for i, b := range behaviors {
-		modelB := entBehaviorToModel(b)
-		result[i] = &modelB
-	}
-	return result, nil
+	return behaviors, nil
 }
 
 func (a *adapter) BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error {
@@ -1082,18 +1077,18 @@ func (a *adapter) ParameterSet(ctx context.Context, flag string, params types.KV
 	return nil
 }
 
-func (a *adapter) ParameterGet(ctx context.Context, flag string) (model.Parameter, error) {
+func (a *adapter) ParameterGet(ctx context.Context, flag string) (gen.Parameter, error) {
 	p, err := a.client.Parameter.Query().Where(parameter.FlagEQ(flag)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Parameter{}, types.ErrNotFound
+			return gen.Parameter{}, types.ErrNotFound
 		}
-		return model.Parameter{}, fmt.Errorf("postgres: parameterget: %w", err)
+		return gen.Parameter{}, fmt.Errorf("postgres: parameterget: %w", err)
 	}
-	return model.Parameter{
+	return gen.Parameter{
 		ID:        p.ID,
 		Flag:      p.Flag,
-		Params:    model.JSON(p.Params),
+		Params:    schema.JSON(p.Params),
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 		ExpiredAt: p.ExpiredAt,
@@ -1112,7 +1107,7 @@ func (a *adapter) ParameterDelete(ctx context.Context, flag string) error {
 // Instruct
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreateInstruct(ctx context.Context, instructModel *model.Instruct) (int64, error) {
+func (a *adapter) CreateInstruct(ctx context.Context, instructModel *gen.Instruct) (int64, error) {
 	c := a.client.Instruct.Create().
 		SetNo(instructModel.No).
 		SetUID(instructModel.UID).
@@ -1134,7 +1129,7 @@ func (a *adapter) CreateInstruct(ctx context.Context, instructModel *model.Instr
 	return u.ID, nil
 }
 
-func (a *adapter) ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error) {
+func (a *adapter) ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*gen.Instruct, error) {
 	q := a.client.Instruct.Query().Where(instruct.UID(uid.String()))
 	if isExpire {
 		q = q.Where(instruct.ExpireAtLTE(time.Now()))
@@ -1149,27 +1144,10 @@ func (a *adapter) ListInstruct(ctx context.Context, uid types.Uid, isExpire bool
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listinstruct: %w", err)
 	}
-	result := make([]*model.Instruct, len(items))
-	for i, ins := range items {
-		result[i] = &model.Instruct{
-			ID:        ins.ID,
-			No:        ins.No,
-			UID:       ins.UID,
-			Object:    model.InstructObject(ins.Object),
-			Bot:       ins.Bot,
-			Flag:      ins.Flag,
-			Content:   model.JSON(ins.Content),
-			Priority:  model.InstructPriority(ins.Priority),
-			State:     model.InstructState(ins.State),
-			ExpireAt:  ins.ExpireAt,
-			CreatedAt: ins.CreatedAt,
-			UpdatedAt: ins.UpdatedAt,
-		}
-	}
-	return result, nil
+	return items, nil
 }
 
-func (a *adapter) UpdateInstruct(ctx context.Context, instructModel *model.Instruct) error {
+func (a *adapter) UpdateInstruct(ctx context.Context, instructModel *gen.Instruct) error {
 	_, err := a.client.Instruct.Update().
 		Where(instruct.NoEQ(instructModel.No)).
 		SetState(int(instructModel.State)).
@@ -1185,7 +1163,7 @@ func (a *adapter) UpdateInstruct(ctx context.Context, instructModel *model.Instr
 // Counter
 // ---------------------------------------------------------------------------
 
-func (a *adapter) CreateCounter(ctx context.Context, counterModel *model.Counter) (int64, error) {
+func (a *adapter) CreateCounter(ctx context.Context, counterModel *gen.Counter) (int64, error) {
 	c, err := a.client.Counter.Create().
 		SetUID(counterModel.UID).
 		SetTopic(counterModel.Topic).
@@ -1229,7 +1207,7 @@ func (a *adapter) DecreaseCounter(ctx context.Context, id, amount int64) error {
 	return a.record(ctx, id, -amount)
 }
 
-func (a *adapter) ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*model.Counter, error) {
+func (a *adapter) ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*gen.Counter, error) {
 	counters, err := a.client.Counter.Query().
 		Where(counter.UID(uid.String()), counter.Topic(topic)).
 		Order(gen.Asc(counter.FieldCreatedAt)).
@@ -1238,44 +1216,31 @@ func (a *adapter) ListCounter(ctx context.Context, uid types.Uid, topic string) 
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listcounter: %w", err)
 	}
-	result := make([]*model.Counter, len(counters))
-	for i, c := range counters {
-		result[i] = &model.Counter{
-			ID:        c.ID,
-			UID:       c.UID,
-			Topic:     c.Topic,
-			Flag:      c.Flag,
-			Digit:     c.Digit,
-			Status:    c.Status,
-			CreatedAt: c.CreatedAt,
-			UpdatedAt: c.UpdatedAt,
-		}
-	}
-	return result, nil
+	return counters, nil
 }
 
-func (a *adapter) GetCounter(ctx context.Context, id int64) (model.Counter, error) {
+func (a *adapter) GetCounter(ctx context.Context, id int64) (gen.Counter, error) {
 	c, err := a.client.Counter.Query().Where(counter.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Counter{}, types.ErrNotFound
+			return gen.Counter{}, types.ErrNotFound
 		}
-		return model.Counter{}, fmt.Errorf("postgres: getcounter: %w", err)
+		return gen.Counter{}, fmt.Errorf("postgres: getcounter: %w", err)
 	}
-	return entCounterToModel(c), nil
+	return *c, nil
 }
 
-func (a *adapter) GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (model.Counter, error) {
+func (a *adapter) GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (gen.Counter, error) {
 	c, err := a.client.Counter.Query().
 		Where(counter.UID(uid.String()), counter.Topic(topic), counter.FlagEQ(flag)).
 		Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return model.Counter{}, types.ErrNotFound
+			return gen.Counter{}, types.ErrNotFound
 		}
-		return model.Counter{}, fmt.Errorf("postgres: getcounterbyflag: %w", err)
+		return gen.Counter{}, fmt.Errorf("postgres: getcounterbyflag: %w", err)
 	}
-	return entCounterToModel(c), nil
+	return *c, nil
 }
 
 func (a *adapter) record(ctx context.Context, id, digit int64) error {
@@ -1294,7 +1259,7 @@ func (a *adapter) record(ctx context.Context, id, digit int64) error {
 // Bot
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetBot(ctx context.Context, id int64) (*model.Bot, error) {
+func (a *adapter) GetBot(ctx context.Context, id int64) (*gen.Bot, error) {
 	b, err := a.client.Bot.Query().Where(bot.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1302,10 +1267,10 @@ func (a *adapter) GetBot(ctx context.Context, id int64) (*model.Bot, error) {
 		}
 		return nil, fmt.Errorf("postgres: getbot: %w", err)
 	}
-	return entBotToModel(b), nil
+	return b, nil
 }
 
-func (a *adapter) GetBotByName(ctx context.Context, name string) (*model.Bot, error) {
+func (a *adapter) GetBotByName(ctx context.Context, name string) (*gen.Bot, error) {
 	b, err := a.client.Bot.Query().Where(bot.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1313,10 +1278,10 @@ func (a *adapter) GetBotByName(ctx context.Context, name string) (*model.Bot, er
 		}
 		return nil, fmt.Errorf("postgres: getbotbyname: %w", err)
 	}
-	return entBotToModel(b), nil
+	return b, nil
 }
 
-func (a *adapter) CreateBot(ctx context.Context, botModel *model.Bot) (int64, error) {
+func (a *adapter) CreateBot(ctx context.Context, botModel *gen.Bot) (int64, error) {
 	b, err := a.client.Bot.Create().
 		SetName(botModel.Name).
 		SetState(int(botModel.State)).
@@ -1329,7 +1294,7 @@ func (a *adapter) CreateBot(ctx context.Context, botModel *model.Bot) (int64, er
 	return b.ID, nil
 }
 
-func (a *adapter) UpdateBot(ctx context.Context, botModel *model.Bot) error {
+func (a *adapter) UpdateBot(ctx context.Context, botModel *gen.Bot) error {
 	_, err := a.client.Bot.Update().Where(bot.IDEQ(botModel.ID)).
 		SetName(botModel.Name).
 		SetState(int(botModel.State)).
@@ -1352,14 +1317,14 @@ func (a *adapter) DeleteBot(ctx context.Context, name string) error {
 	return nil
 }
 
-func (a *adapter) GetBots(ctx context.Context) ([]*model.Bot, error) {
+func (a *adapter) GetBots(ctx context.Context) ([]*gen.Bot, error) {
 	bots, err := a.client.Bot.Query().Order(gen.Asc(bot.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getbots: %w", err)
 	}
-	result := make([]*model.Bot, len(bots))
+	result := make([]*gen.Bot, len(bots))
 	for i, b := range bots {
-		result[i] = entBotToModel(b)
+		result[i] = b
 	}
 	return result, nil
 }
@@ -1368,7 +1333,7 @@ func (a *adapter) GetBots(ctx context.Context) ([]*model.Bot, error) {
 // Platform
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetPlatform(ctx context.Context, id int64) (*model.Platform, error) {
+func (a *adapter) GetPlatform(ctx context.Context, id int64) (*gen.Platform, error) {
 	p, err := a.client.Platform.Query().Where(platform.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1376,10 +1341,10 @@ func (a *adapter) GetPlatform(ctx context.Context, id int64) (*model.Platform, e
 		}
 		return nil, fmt.Errorf("postgres: getplatform: %w", err)
 	}
-	return entPlatformToModel(p), nil
+	return p, nil
 }
 
-func (a *adapter) GetPlatformByName(ctx context.Context, name string) (*model.Platform, error) {
+func (a *adapter) GetPlatformByName(ctx context.Context, name string) (*gen.Platform, error) {
 	p, err := a.client.Platform.Query().Where(platform.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1387,22 +1352,22 @@ func (a *adapter) GetPlatformByName(ctx context.Context, name string) (*model.Pl
 		}
 		return nil, fmt.Errorf("postgres: getplatformbyname: %w", err)
 	}
-	return entPlatformToModel(p), nil
+	return p, nil
 }
 
-func (a *adapter) GetPlatforms(ctx context.Context) ([]*model.Platform, error) {
+func (a *adapter) GetPlatforms(ctx context.Context) ([]*gen.Platform, error) {
 	platforms, err := a.client.Platform.Query().Order(gen.Asc(platform.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getplatforms: %w", err)
 	}
-	result := make([]*model.Platform, len(platforms))
+	result := make([]*gen.Platform, len(platforms))
 	for i, p := range platforms {
-		result[i] = entPlatformToModel(p)
+		result[i] = p
 	}
 	return result, nil
 }
 
-func (a *adapter) CreatePlatform(ctx context.Context, platformModel *model.Platform) (int64, error) {
+func (a *adapter) CreatePlatform(ctx context.Context, platformModel *gen.Platform) (int64, error) {
 	p, err := a.client.Platform.Create().
 		SetName(platformModel.Name).
 		SetCreatedAt(platformModel.CreatedAt).
@@ -1418,7 +1383,7 @@ func (a *adapter) CreatePlatform(ctx context.Context, platformModel *model.Platf
 // Channel
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetChannel(ctx context.Context, id int64) (*model.Channel, error) {
+func (a *adapter) GetChannel(ctx context.Context, id int64) (*gen.Channel, error) {
 	c, err := a.client.Channel.Query().Where(channel.IDEQ(id)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1426,10 +1391,10 @@ func (a *adapter) GetChannel(ctx context.Context, id int64) (*model.Channel, err
 		}
 		return nil, fmt.Errorf("postgres: getchannel: %w", err)
 	}
-	return entChannelToModel(c), nil
+	return c, nil
 }
 
-func (a *adapter) GetChannelByName(ctx context.Context, name string) (*model.Channel, error) {
+func (a *adapter) GetChannelByName(ctx context.Context, name string) (*gen.Channel, error) {
 	c, err := a.client.Channel.Query().Where(channel.NameEQ(name)).Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1437,10 +1402,10 @@ func (a *adapter) GetChannelByName(ctx context.Context, name string) (*model.Cha
 		}
 		return nil, fmt.Errorf("postgres: getchannelbyname: %w", err)
 	}
-	return entChannelToModel(c), nil
+	return c, nil
 }
 
-func (a *adapter) CreateChannel(ctx context.Context, channelModel *model.Channel) (int64, error) {
+func (a *adapter) CreateChannel(ctx context.Context, channelModel *gen.Channel) (int64, error) {
 	c, err := a.client.Channel.Create().
 		SetName(channelModel.Name).
 		SetFlag(channelModel.Flag).
@@ -1454,7 +1419,7 @@ func (a *adapter) CreateChannel(ctx context.Context, channelModel *model.Channel
 	return c.ID, nil
 }
 
-func (a *adapter) UpdateChannel(ctx context.Context, channelModel *model.Channel) error {
+func (a *adapter) UpdateChannel(ctx context.Context, channelModel *gen.Channel) error {
 	_, err := a.client.Channel.Update().Where(channel.IDEQ(channelModel.ID)).
 		SetName(channelModel.Name).
 		SetFlag(channelModel.Flag).
@@ -1478,14 +1443,14 @@ func (a *adapter) DeleteChannel(ctx context.Context, name string) error {
 	return nil
 }
 
-func (a *adapter) GetChannels(ctx context.Context) ([]*model.Channel, error) {
+func (a *adapter) GetChannels(ctx context.Context) ([]*gen.Channel, error) {
 	channels, err := a.client.Channel.Query().Order(gen.Asc(channel.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getchannels: %w", err)
 	}
-	result := make([]*model.Channel, len(channels))
+	result := make([]*gen.Channel, len(channels))
 	for i, c := range channels {
-		result[i] = entChannelToModel(c)
+		result[i] = c
 	}
 	return result, nil
 }
@@ -1494,19 +1459,19 @@ func (a *adapter) GetChannels(ctx context.Context) ([]*model.Channel, error) {
 // Agent
 // ---------------------------------------------------------------------------
 
-func (a *adapter) GetAgents(ctx context.Context) ([]*model.Agent, error) {
+func (a *adapter) GetAgents(ctx context.Context) ([]*gen.Agent, error) {
 	agents, err := a.client.Agent.Query().Order(gen.Asc(agent.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: getagents: %w", err)
 	}
-	result := make([]*model.Agent, len(agents))
+	result := make([]*gen.Agent, len(agents))
 	for i, ag := range agents {
-		result[i] = entAgentToModel(ag)
+		result[i] = ag
 	}
 	return result, nil
 }
 
-func (a *adapter) GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*model.Agent, error) {
+func (a *adapter) GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*gen.Agent, error) {
 	ag, err := a.client.Agent.Query().
 		Where(agent.UID(uid.String()), agent.TopicEQ(topic), agent.HostidEQ(hostid)).
 		Only(ctx)
@@ -1516,10 +1481,10 @@ func (a *adapter) GetAgentByHostid(ctx context.Context, uid types.Uid, topic, ho
 		}
 		return nil, fmt.Errorf("postgres: getagentbyhostid: %w", err)
 	}
-	return entAgentToModel(ag), nil
+	return ag, nil
 }
 
-func (a *adapter) CreateAgent(ctx context.Context, agentModel *model.Agent) (int64, error) {
+func (a *adapter) CreateAgent(ctx context.Context, agentModel *gen.Agent) (int64, error) {
 	ag, err := a.client.Agent.Create().
 		SetUID(agentModel.UID).
 		SetTopic(agentModel.Topic).
@@ -1578,17 +1543,6 @@ func (a *adapter) UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, 
 // Conversion helpers
 // ---------------------------------------------------------------------------
 
-func entUserToModel(u *gen.User) *model.User {
-	return &model.User{
-		ID:        u.ID,
-		Flag:      u.Flag,
-		Name:      u.Name,
-		Tags:      u.Tags,
-		State:     model.UserState(u.State),
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
-	}
-}
 
 func entFileuploadToFileDef(f *gen.Fileupload) *types.FileDef {
 	return &types.FileDef{
@@ -1602,176 +1556,5 @@ func entFileuploadToFileDef(f *gen.Fileupload) *types.FileDef {
 		Size:     f.Size,
 		Location: f.Location,
 		User:     f.UID,
-	}
-}
-
-func entPlatformUserToModel(u *gen.PlatformUser) *model.PlatformUser {
-	return &model.PlatformUser{
-		ID:         u.ID,
-		PlatformID: u.PlatformID,
-		UserID:     u.UserID,
-		Flag:       u.Flag,
-		Name:       u.Name,
-		Email:      u.Email,
-		AvatarURL:  u.AvatarURL,
-		IsBot:      u.IsBot,
-		CreatedAt:  u.CreatedAt,
-		UpdatedAt:  u.UpdatedAt,
-	}
-}
-
-func entPlatformChannelToModel(c *gen.PlatformChannel) *model.PlatformChannel {
-	return &model.PlatformChannel{
-		ID:         c.ID,
-		PlatformID: c.PlatformID,
-		ChannelID:  c.ChannelID,
-		Flag:       c.Flag,
-		CreatedAt:  c.CreatedAt,
-		UpdatedAt:  c.UpdatedAt,
-	}
-}
-
-func entPlatformChannelUserToModel(u *gen.PlatformChannelUser) *model.PlatformChannelUser {
-	return &model.PlatformChannelUser{
-		ID:          u.ID,
-		PlatformID:  u.PlatformID,
-		ChannelFlag: u.ChannelFlag,
-		UserFlag:    u.UserFlag,
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
-	}
-}
-
-func entMessageToModel(m *gen.Message) *model.Message {
-	result := &model.Message{
-		ID:            m.ID,
-		Flag:          m.Flag,
-		PlatformID:    m.PlatformID,
-		PlatformMsgID: m.PlatformMsgID,
-		Topic:         m.Topic,
-		Role:          m.Role,
-		Session:       m.Session,
-		Content:       model.JSON(m.Content),
-		State:         model.MessageState(m.State),
-		CreatedAt:     m.CreatedAt,
-		UpdatedAt:     m.UpdatedAt,
-		DeletedAt:     m.DeletedAt,
-	}
-	return result
-}
-
-func entOAuthToModel(o *gen.OAuth) model.OAuth {
-	return model.OAuth{
-		ID:        o.ID,
-		UID:       o.UID,
-		Topic:     o.Topic,
-		Name:      o.Name,
-		Type:      o.Type,
-		Token:     o.Token,
-		Extra:     model.JSON(o.Extra),
-		CreatedAt: o.CreatedAt,
-		UpdatedAt: o.UpdatedAt,
-	}
-}
-
-func entFormToModel(f *gen.Form) model.Form {
-	return model.Form{
-		ID:        f.ID,
-		FormID:    f.FormID,
-		UID:       f.UID,
-		Topic:     f.Topic,
-		Schema:    model.JSON(f.Schema),
-		Values:    model.JSON(f.Values),
-		Extra:     model.JSON(f.Extra),
-		State:     model.FormState(f.State),
-		CreatedAt: f.CreatedAt,
-		UpdatedAt: f.UpdatedAt,
-	}
-}
-
-func entPageToModel(p *gen.Page) model.Page {
-	return model.Page{
-		ID:        p.ID,
-		PageID:    p.PageID,
-		UID:       p.UID,
-		Topic:     p.Topic,
-		Type:      model.PageType(p.Type),
-		Schema:    model.JSON(p.Schema),
-		State:     model.PageState(p.State),
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
-	}
-}
-
-func entBehaviorToModel(b *gen.Behavior) model.Behavior {
-	result := model.Behavior{
-		ID:        b.ID,
-		UID:       b.UID,
-		Flag:      b.Flag,
-		Count_:    b.Count,
-		CreatedAt: b.CreatedAt,
-		UpdatedAt: b.UpdatedAt,
-	}
-	if b.Extra != nil {
-		extra := model.JSON(b.Extra)
-		result.Extra = &extra
-	}
-	return result
-}
-
-func entCounterToModel(c *gen.Counter) model.Counter {
-	return model.Counter{
-		ID:        c.ID,
-		UID:       c.UID,
-		Topic:     c.Topic,
-		Flag:      c.Flag,
-		Digit:     c.Digit,
-		Status:    c.Status,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-	}
-}
-
-func entBotToModel(b *gen.Bot) *model.Bot {
-	return &model.Bot{
-		ID:        b.ID,
-		Name:      b.Name,
-		State:     model.BotState(b.State),
-		CreatedAt: b.CreatedAt,
-		UpdatedAt: b.UpdatedAt,
-	}
-}
-
-func entPlatformToModel(p *gen.Platform) *model.Platform {
-	return &model.Platform{
-		ID:        p.ID,
-		Name:      p.Name,
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
-	}
-}
-
-func entChannelToModel(c *gen.Channel) *model.Channel {
-	return &model.Channel{
-		ID:        c.ID,
-		Name:      c.Name,
-		Flag:      c.Flag,
-		State:     model.ChannelState(c.State),
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-	}
-}
-
-func entAgentToModel(a *gen.Agent) *model.Agent {
-	return &model.Agent{
-		ID:             a.ID,
-		UID:            a.UID,
-		Topic:          a.Topic,
-		Hostid:         a.Hostid,
-		Hostname:       a.Hostname,
-		OnlineDuration: a.OnlineDuration,
-		LastOnlineAt:   a.LastOnlineAt,
-		CreatedAt:      a.CreatedAt,
-		UpdatedAt:      a.UpdatedAt,
 	}
 }

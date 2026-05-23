@@ -1,8 +1,75 @@
-package model
+// Package schema provides Ent schema definitions and domain types for the store layer.
+package schema
 
 import (
 	"database/sql/driver"
+	"errors"
+	"fmt"
+
+	"github.com/bytedance/sonic"
 )
+
+// ---------------------------------------------------------------------------
+// JSON helpers
+// ---------------------------------------------------------------------------
+
+// JSON is a map[string]any with database Scan/Value support for JSONB columns.
+type JSON map[string]any
+
+func (j *JSON) Scan(value any) error {
+	if bytes, ok := value.([]byte); ok {
+		result := make(map[string]any)
+		err := sonic.Unmarshal(bytes, &result)
+		if err != nil {
+			return err
+		}
+		*j = result
+		return nil
+	}
+	if result, ok := value.(map[string]any); ok {
+		*j = result
+		return nil
+	}
+	return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+}
+
+func (j *JSON) Value() (driver.Value, error) {
+	if len(*j) == 0 {
+		return nil, nil
+	}
+	return sonic.Marshal(*j)
+}
+
+// IDList is a []int64 with database Scan/Value support for JSONB array columns.
+type IDList []int64
+
+func (j *IDList) Scan(value any) error {
+	if bytes, ok := value.([]byte); ok {
+		result := make([]int64, 0)
+		err := sonic.Unmarshal(bytes, &result)
+		if err != nil {
+			return err
+		}
+		*j = result
+		return nil
+	}
+	if result, ok := value.([]int64); ok {
+		*j = result
+		return nil
+	}
+	return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+}
+
+func (j *IDList) Value() (driver.Value, error) {
+	if len(*j) == 0 {
+		return nil, nil
+	}
+	return sonic.Marshal(*j)
+}
+
+// ---------------------------------------------------------------------------
+// State and enum types
+// ---------------------------------------------------------------------------
 
 type FormState int
 
@@ -464,4 +531,25 @@ const (
 
 func (j RateLimitType) Value() (driver.Value, error) {
 	return string(j), nil
+}
+
+// ---------------------------------------------------------------------------
+// Resource chain types
+// ---------------------------------------------------------------------------
+
+// ResourceRelations holds upstream and downstream resource references
+// for a specific resource identified by app and entity_id.
+type ResourceRelations struct {
+	App        string        `json:"app"`
+	EntityID   string        `json:"entity_id"`
+	Upstream   []ResourceRef `json:"upstream"`
+	Downstream []ResourceRef `json:"downstream"`
+}
+
+// ResourceRef identifies a resource by app, entity_id, and optional metadata.
+type ResourceRef struct {
+	App          string `json:"app"`
+	EntityID     string `json:"entity_id"`
+	Capability   string `json:"capability,omitempty"`
+	PipelineName string `json:"pipeline_name,omitempty"`
 }

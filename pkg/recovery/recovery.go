@@ -7,23 +7,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // RunStore is the subset of pipeline.RunStore needed for recovery.
 type RunStore interface {
-	GetIncompleteRuns() (runs []*model.PipelineRun, err error)
+	GetIncompleteRuns() (runs []*gen.PipelineRun, err error)
 	GetCheckpoint(runID int64, target any) error
-	UpdateRunStatus(runID int64, status model.PipelineState, errMsg string) error
+	UpdateRunStatus(runID int64, status int, errMsg string) error
 	UpdateRunHeartbeat(runID int64) error
 }
 
 // WorkflowRecoveryStore is the subset needed for workflow recovery.
 type WorkflowRecoveryStore interface {
-	GetIncompleteJobs() (jobs []*model.Job, err error)
-	GetJobSteps(jobID int64) (steps []*model.Step, err error)
-	UpdateJobState(jobID int64, state model.JobState, errMsg string) error
+	GetIncompleteJobs() (jobs []*gen.Job, err error)
+	GetJobSteps(jobID int64) (steps []*gen.Step, err error)
+	UpdateJobState(jobID int64, state int, errMsg string) error
 }
 
 // Config controls recovery behavior.
@@ -99,14 +100,14 @@ func (m *Manager) recoverPipelines(_ context.Context) (int, error) {
 		if m.cfg.MaxResumeAge > 0 && time.Since(run.StartedAt) > m.cfg.MaxResumeAge {
 			flog.Info("pipeline run %d (%s) exceeded max resume age, marking as cancelled",
 				run.ID, run.PipelineName)
-			_ = m.pipelineStore.UpdateRunStatus(run.ID, model.PipelineCancel, "exceeded max resume age")
+			_ = m.pipelineStore.UpdateRunStatus(run.ID, int(schema.PipelineCancel), "exceeded max resume age")
 			continue
 		}
 
 		if !m.cfg.AutoResume {
 			flog.Info("pipeline run %d (%s) is stale but auto-resume disabled, marking as cancelled",
 				run.ID, run.PipelineName)
-			_ = m.pipelineStore.UpdateRunStatus(run.ID, model.PipelineCancel, "stale run, auto-resume disabled")
+			_ = m.pipelineStore.UpdateRunStatus(run.ID, int(schema.PipelineCancel), "stale run, auto-resume disabled")
 			continue
 		}
 
@@ -140,7 +141,7 @@ func (m *Manager) recoverWorkflows(_ context.Context) (int, error) {
 	for _, job := range jobs {
 		if !m.cfg.AutoResume {
 			flog.Info("workflow job %d auto-resume disabled, marking as failed", job.ID)
-			_ = m.workflowStore.UpdateJobState(job.ID, model.JobFailed, "stale job, auto-resume disabled")
+			_ = m.workflowStore.UpdateJobState(job.ID, int(schema.JobFailed), "stale job, auto-resume disabled")
 			continue
 		}
 
@@ -151,7 +152,7 @@ func (m *Manager) recoverWorkflows(_ context.Context) (int, error) {
 	return recovered, nil
 }
 
-func (m *Manager) isStale(run *model.PipelineRun) bool {
+func (m *Manager) isStale(run *gen.PipelineRun) bool {
 	if m.cfg.StaleTimeout <= 0 {
 		return true
 	}
@@ -162,7 +163,7 @@ func (m *Manager) isStale(run *model.PipelineRun) bool {
 }
 
 // GetIncompletePipelines returns a list of incomplete pipeline runs for admin endpoints.
-func (m *Manager) GetIncompletePipelines() ([]*model.PipelineRun, error) {
+func (m *Manager) GetIncompletePipelines() ([]*gen.PipelineRun, error) {
 	if m.pipelineStore == nil {
 		return nil, nil
 	}
@@ -170,7 +171,7 @@ func (m *Manager) GetIncompletePipelines() ([]*model.PipelineRun, error) {
 }
 
 // GetIncompleteWorkflows returns a list of incomplete workflow jobs for admin endpoints.
-func (m *Manager) GetIncompleteWorkflows() ([]*model.Job, error) {
+func (m *Manager) GetIncompleteWorkflows() ([]*gen.Job, error) {
 	if m.workflowStore == nil {
 		return nil, nil
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -19,13 +19,13 @@ type CheckpointData struct {
 
 // WorkflowRunStore persists workflow runs, step runs, and checkpoint data.
 type WorkflowRunStore interface {
-	CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams model.JSON) (*model.WorkflowRun, error)
-	UpdateRunStatus(ctx context.Context, runID int64, status model.WorkflowRunState, errMsg string) error
-	CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params model.JSON, attempt int) (*model.WorkflowStepRun, error)
-	UpdateStepRun(ctx context.Context, stepRunID int64, status model.WorkflowRunState, result model.JSON, errMsg string, attempt int) error
+	CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error)
+	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
+	CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params map[string]any, attempt int) (*gen.WorkflowStepRun, error)
+	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
 	SaveCheckpoint(ctx context.Context, runID int64, data any) error
-	GetIncompleteRuns(ctx context.Context) ([]*model.WorkflowRun, error)
+	GetIncompleteRuns(ctx context.Context) ([]*gen.WorkflowRun, error)
 	GetCheckpoint(ctx context.Context, runID int64, target any) error
-	GetRun(ctx context.Context, runID int64) (*model.WorkflowRun, error)
+	GetRun(ctx context.Context, runID int64) (*gen.WorkflowRun, error)
 	UpdateRunHeartbeat(ctx context.Context, runID int64) error
 }

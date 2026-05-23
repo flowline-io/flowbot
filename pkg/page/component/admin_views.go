@@ -8,7 +8,8 @@ import (
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/page/uikit"
 )
 
@@ -26,7 +27,7 @@ func optionWithValue(value, label string, selected bool) app.HTMLOption {
 	return o
 }
 
-func FlowListView(flag string, flows []*model.Flow) app.UI {
+func FlowListView(flag string, flows []*gen.Flow) app.UI {
 	return FlowListViewWithSummary(flag, flows, nil)
 }
 
@@ -35,7 +36,7 @@ type FlowListSummary struct {
 	Action  string
 }
 
-func FlowListViewWithSummary(flag string, flows []*model.Flow, summaryByID map[int64]FlowListSummary) app.UI {
+func FlowListViewWithSummary(flag string, flows []*gen.Flow, summaryByID map[int64]FlowListSummary) app.UI {
 	var items []app.UI
 	for _, flow := range flows {
 		statusClass := "uk-label-default"
@@ -84,7 +85,7 @@ func FlowListViewWithSummary(flag string, flows []*model.Flow, summaryByID map[i
 			uikit.Td(triggerUI),
 			uikit.Td(actionUI),
 			uikit.Td(uikit.Label(func() string {
-				if flow.State == 1 {
+				if flow.State == int(schema.FlowActive) {
 					return "Active"
 				}
 				return "Inactive"
@@ -121,18 +122,18 @@ func FlowListViewWithSummary(flag string, flows []*model.Flow, summaryByID map[i
 	)
 }
 
-func ExecutionsView(execs []*model.Execution) app.UI {
+func ExecutionsView(execs []*gen.Execution) app.UI {
 	var items []app.UI
 	for _, exec := range execs {
 		stateClass := "uk-label-default"
 		switch exec.State {
-		case 1:
+		case int(schema.ExecutionPending):
 			stateClass = "uk-label-warning"
-		case 2:
+		case int(schema.ExecutionRunning):
 			stateClass = "uk-label-primary"
-		case 3:
+		case int(schema.ExecutionSucceeded):
 			stateClass = "uk-label-success"
-		case 4:
+		case int(schema.ExecutionFailed):
 			stateClass = "uk-label-danger"
 		}
 
@@ -175,7 +176,7 @@ func ExecutionsView(execs []*model.Execution) app.UI {
 	)
 }
 
-func AppsView(apps []*model.App) app.UI {
+func AppsView(apps []*gen.App) app.UI {
 	var items []app.UI
 	for _, appItem := range apps {
 		statusClass := "uk-label-default"
@@ -220,7 +221,7 @@ func AppsView(apps []*model.App) app.UI {
 	)
 }
 
-func ConnectionsView(flag string, conns []*model.Connection) app.UI {
+func ConnectionsView(flag string, conns []*gen.Connection) app.UI {
 	var items []app.UI
 	for _, conn := range conns {
 		items = append(items, uikit.Tr(
@@ -264,7 +265,7 @@ func ConnectionsView(flag string, conns []*model.Connection) app.UI {
 	)
 }
 
-func AuthenticationsView(flag string, auths []*model.Authentication) app.UI {
+func AuthenticationsView(flag string, auths []*gen.Authentication) app.UI {
 	var items []app.UI
 	for _, auth := range auths {
 		items = append(items, uikit.Tr(
@@ -476,19 +477,17 @@ func AuthenticationEditView(d AuthenticationEditData) app.UI {
 	)
 }
 
-func execState(state model.ExecutionState) string {
+func execState(state int) string {
 	switch state {
-	case 0:
-		return "Unknown"
-	case 1:
+	case int(schema.ExecutionPending):
 		return "Pending"
-	case 2:
+	case int(schema.ExecutionRunning):
 		return "Running"
-	case 3:
+	case int(schema.ExecutionSucceeded):
 		return "Succeeded"
-	case 4:
+	case int(schema.ExecutionFailed):
 		return "Failed"
-	case 5:
+	case int(schema.ExecutionCancelled):
 		return "Cancelled"
 	default:
 		return "Unknown"

@@ -18,7 +18,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	"github.com/flowline-io/flowbot/internal/platforms/tailchat"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -98,7 +99,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	if err != nil {
 		return protocol.ErrFlagError.Wrap(err)
 	}
-	if p.IsExpired() {
+	if store.ParameterIsExpired(p) {
 		return protocol.ErrFlagExpired.New("oauth error")
 	}
 
@@ -124,13 +125,13 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	// store
 	extra := types.KV{}
 	_ = extra.Scan(tk["extra"])
-	err = store.Database.OAuthSet(ctx.Context(), model.OAuth{
+	err = store.Database.OAuthSet(ctx.Context(), gen.OAuth{
 		UID:   uid,
 		Topic: topic,
 		Name:  name,
 		Type:  name,
 		Token: token,
-		Extra: model.JSON(extra),
+		Extra: schema.JSON(extra),
 	})
 	if err != nil {
 		return protocol.ErrOAuthError.Wrap(err)
@@ -147,20 +148,20 @@ func (*Controller) getPage(ctx fiber.Ctx) error {
 		return protocol.ErrNotFound.Wrap(err)
 	}
 
-	schema := types.KV(p.Schema)
-	title, _ := schema.String("title")
+	sch := types.KV(p.Schema)
+	title, _ := sch.String("title")
 	if title == "" {
 		title = "Page"
 	}
 	ctx.Set("Content-Type", "text/html")
 	var comp app.UI
 	switch p.Type {
-	case model.PageForm:
+	case string(schema.PageForm):
 		f, _ := store.Database.FormGet(ctx.Context(), p.PageID)
 		comp = page.RenderForm(p, f)
-	case model.PageTable:
+	case string(schema.PageTable):
 		comp = page.RenderTable(p)
-	case model.PageHtml:
+	case string(schema.PageHtml):
 		comp = page.RenderHtml(p)
 	default:
 		return protocol.ErrBadRequest.New("error type")
@@ -177,7 +178,7 @@ func (*Controller) renderPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return protocol.ErrFlagError.Wrap(err)
 	}
-	if p.IsExpired() {
+	if store.ParameterIsExpired(p) {
 		return protocol.ErrFlagExpired.New("page error")
 	}
 
@@ -240,7 +241,7 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
-	if formData.State == model.FormStateSubmitSuccess || formData.State == model.FormStateSubmitFailed {
+	if formData.State == int(schema.FormStateSubmitSuccess) || formData.State == int(schema.FormStateSubmitFailed) {
 		return protocol.ErrBadParam.New("error form state")
 	}
 
@@ -339,8 +340,8 @@ func parseFormFieldValues(fields []types.FormField, pf map[string][]string, ctx 
 	return values
 }
 
-func getFormBotHandler(schema model.JSON, formId string) (*types.FormMsg, module.Handler, error) {
-	d, err := sonic.Marshal(schema)
+func getFormBotHandler(sch schema.JSON, formId string) (*types.FormMsg, module.Handler, error) {
+	d, err := sonic.Marshal(sch)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -350,7 +351,7 @@ func getFormBotHandler(schema model.JSON, formId string) (*types.FormMsg, module
 		return nil, nil, err
 	}
 
-	formSchema := types.KV(schema)
+	formSchema := types.KV(sch)
 	formRuleId, ok := formSchema.String("id")
 	if !ok {
 		return &formMsg, nil, protocol.ErrBadParam.Errorf("form %s %s", formId, "error form rule id")

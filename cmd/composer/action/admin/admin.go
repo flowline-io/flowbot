@@ -17,7 +17,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable
 	"github.com/spf13/cobra"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -93,14 +94,14 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 
 	userID, _ := cmd.Flags().GetInt("id")
 
-	var user model.User
+	var user gen.User
 	row := db.QueryRow("SELECT id, flag, name, tags, state, created_at, updated_at FROM users WHERE id = $1", userID)
 	err = row.Scan(&user.ID, &user.Flag, &user.Name, &user.Tags, &user.State, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("user not found with id %d: %w", userID, err)
 	}
 
-	if user.State == model.UserStateUnknown {
+	if user.State == int(schema.UserStateUnknown) {
 		return fmt.Errorf("user %d (%s) is in unknown state", user.ID, user.Flag)
 	}
 

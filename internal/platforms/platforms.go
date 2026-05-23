@@ -11,7 +11,7 @@ import (
 	"github.com/goccy/go-yaml"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -297,7 +297,7 @@ func PlatformRegister(name string, caller *Caller) error {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
-		_, err = store.Database.CreatePlatform(context.Background(), &model.Platform{
+		_, err = store.Database.CreatePlatform(context.Background(), &gen.Platform{
 			Name: name,
 		})
 		if err != nil {

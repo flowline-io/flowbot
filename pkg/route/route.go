@@ -118,7 +118,7 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 		}
 
 		p, err := store.Database.ParameterGet(context.Background(), accessToken)
-		if err != nil || p.ID <= 0 || p.IsExpired() {
+		if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
 			auditAuthReject(ctx, "auth.token.validate.fail", "invalid or expired")
 			return protocol.ErrNotAuthorized.New("parameter error")
 		}
@@ -198,7 +198,7 @@ func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
 	if err != nil {
 		return
 	}
-	if p.ID <= 0 || p.IsExpired() {
+	if p.ID <= 0 || store.ParameterIsExpired(p) {
 		return
 	}
 	params := types.KV(p.Params)

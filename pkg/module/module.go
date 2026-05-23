@@ -12,7 +12,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
@@ -96,7 +97,7 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 	if exForm.ID == 0 {
 		return nil, nil
 	}
-	if exForm.State > model.FormStateCreated {
+	if exForm.State > int(schema.FormStateCreated) {
 		return nil, nil
 	}
 
@@ -113,12 +114,12 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		}
 	}
 	if !isLongTerm {
-		err = store.Database.FormSet(ctx.Context(), ctx.FormId, model.Form{Values: model.JSON(values), State: model.FormStateSubmitSuccess})
+		err = store.Database.FormSet(ctx.Context(), ctx.FormId, gen.Form{Values: values, State: int(schema.FormStateSubmitSuccess)})
 		if err != nil {
 			return nil, err
 		}
 
-		err = store.Database.PageSet(ctx.Context(), ctx.FormId, model.Page{State: model.PageStateProcessedSuccess})
+		err = store.Database.PageSet(ctx.Context(), ctx.FormId, gen.Page{State: int(schema.PageStateProcessedSuccess)})
 		if err != nil {
 			return nil, err
 		}
@@ -213,8 +214,8 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
-	schema := types.KV{}
-	err = schema.Scan(d)
+	s := types.KV{}
+	err = s.Scan(d)
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
@@ -229,27 +230,27 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 	var extra = make(types.KV)
 
-	err = store.Database.FormSet(ctx.Context(), formId, model.Form{
+	err = store.Database.FormSet(ctx.Context(), formId, gen.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
-		Schema: model.JSON(schema),
-		Values: model.JSON(values),
-		Extra:  model.JSON(extra),
-		State:  model.FormStateCreated,
+		Schema: s,
+		Values: values,
+		Extra:  extra,
+		State:  int(schema.FormStateCreated),
 	})
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	err = store.Database.PageSet(ctx.Context(), formId, model.Page{
+	err = store.Database.PageSet(ctx.Context(), formId, gen.Page{
 		PageID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
-		Type:   model.PageForm,
-		Schema: model.JSON(schema),
-		State:  model.PageStateCreated,
+		Type:   string(schema.PageForm),
+		Schema: s,
+		State:  int(schema.PageStateCreated),
 	})
 	if err != nil {
 		flog.Error(err)
@@ -267,27 +268,27 @@ func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	return flag, store.Database.ParameterSet(context.Background(), flag, params, expiredAt)
 }
 
-func StorePage(ctx types.Context, category model.PageType, title string, payload types.MsgPayload) types.MsgPayload {
+func StorePage(ctx types.Context, category schema.PageType, title string, payload types.MsgPayload) types.MsgPayload {
 	pageId := types.Id()
 	d, err := sonic.Marshal(payload)
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
-	schema := types.KV{}
-	err = schema.Scan(d)
+	s := types.KV{}
+	err = s.Scan(d)
 	if err != nil {
 		flog.Error(err)
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	err = store.Database.PageSet(ctx.Context(), pageId, model.Page{
+	err = store.Database.PageSet(ctx.Context(), pageId, gen.Page{
 		PageID: pageId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
-		Type:   category,
-		Schema: model.JSON(schema),
-		State:  model.PageStateCreated,
+		Type:   string(category),
+		Schema: s,
+		State:  int(schema.PageStateCreated),
 	})
 	if err != nil {
 		flog.Error(err)
@@ -321,10 +322,10 @@ func Behavior(uid types.Uid, flag string, number int) {
 	if b.ID > 0 {
 		_ = store.Database.BehaviorIncrease(context.Background(), uid, flag, number)
 	} else {
-		_ = store.Database.BehaviorSet(context.Background(), model.Behavior{
+		_ = store.Database.BehaviorSet(context.Background(), gen.Behavior{
 			UID:    uid.String(),
 			Flag:   flag,
-			Count_: int32(number),
+			Count: int32(number),
 		})
 	}
 }

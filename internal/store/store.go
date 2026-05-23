@@ -22,7 +22,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -182,13 +182,13 @@ type Adapter interface {
 	// User management
 
 	// UserCreate creates user record
-	UserCreate(ctx context.Context, user *model.User) error
+	UserCreate(ctx context.Context, user *gen.User) error
 	// UserGet returns record for a given user ID
-	UserGet(ctx context.Context, uid types.Uid) (*model.User, error)
+	UserGet(ctx context.Context, uid types.Uid) (*gen.User, error)
 	// UserGetAll returns user records for a given list of user IDs
-	UserGetAll(ctx context.Context, ids ...types.Uid) ([]*model.User, error)
+	UserGetAll(ctx context.Context, ids ...types.Uid) ([]*gen.User, error)
 	// FirstUser returns the first user
-	FirstUser(ctx context.Context) (*model.User, error)
+	FirstUser(ctx context.Context) (*gen.User, error)
 	// UserDelete deletes user record
 	UserDelete(ctx context.Context, uid types.Uid, hard bool) error
 	// UserUpdate updates user record
@@ -207,77 +207,77 @@ type Adapter interface {
 	// Returns array of FileDef.Location of deleted filerecords so actual files can be deleted too.
 	FileDeleteUnused(ctx context.Context, olderThan time.Time, limit int) ([]string, error)
 
-	GetUsers(ctx context.Context) ([]*model.User, error)
-	GetUserById(ctx context.Context, id int64) (*model.User, error)
-	GetUserByFlag(ctx context.Context, flag string) (*model.User, error)
-	CreatePlatformUser(ctx context.Context, item *model.PlatformUser) (int64, error)
-	GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*model.PlatformUser, error)
-	GetPlatformUserByFlag(ctx context.Context, flag string) (*model.PlatformUser, error)
-	UpdatePlatformUser(ctx context.Context, item *model.PlatformUser) error
-	GetPlatformChannelByFlag(ctx context.Context, flag string) (*model.PlatformChannel, error)
-	GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*model.PlatformChannel, error)
-	GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*model.PlatformChannel, error)
-	CreatePlatformChannel(ctx context.Context, item *model.PlatformChannel) (int64, error)
-	CreatePlatformChannelUser(ctx context.Context, item *model.PlatformChannelUser) (int64, error)
-	GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*model.PlatformChannelUser, error)
-	GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error)
-	GetMessage(ctx context.Context, flag string) (*model.Message, error)
-	GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*model.Message, error)
-	GetMessagesBySession(ctx context.Context, session string) ([]*model.Message, error)
-	CreateMessage(ctx context.Context, message model.Message) error
+	GetUsers(ctx context.Context) ([]*gen.User, error)
+	GetUserById(ctx context.Context, id int64) (*gen.User, error)
+	GetUserByFlag(ctx context.Context, flag string) (*gen.User, error)
+	CreatePlatformUser(ctx context.Context, item *gen.PlatformUser) (int64, error)
+	GetPlatformUsersByUserId(ctx context.Context, userId int64) ([]*gen.PlatformUser, error)
+	GetPlatformUserByFlag(ctx context.Context, flag string) (*gen.PlatformUser, error)
+	UpdatePlatformUser(ctx context.Context, item *gen.PlatformUser) error
+	GetPlatformChannelByFlag(ctx context.Context, flag string) (*gen.PlatformChannel, error)
+	GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*gen.PlatformChannel, error)
+	GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*gen.PlatformChannel, error)
+	CreatePlatformChannel(ctx context.Context, item *gen.PlatformChannel) (int64, error)
+	CreatePlatformChannelUser(ctx context.Context, item *gen.PlatformChannelUser) (int64, error)
+	GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*gen.PlatformChannelUser, error)
+	GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error)
+	GetMessage(ctx context.Context, flag string) (*gen.Message, error)
+	GetMessageByPlatform(ctx context.Context, platformId int64, platformMsgId string) (*gen.Message, error)
+	GetMessagesBySession(ctx context.Context, session string) ([]*gen.Message, error)
+	CreateMessage(ctx context.Context, message gen.Message) error
 
-	GetBot(ctx context.Context, id int64) (*model.Bot, error)
-	GetBotByName(ctx context.Context, name string) (*model.Bot, error)
-	CreateBot(ctx context.Context, bot *model.Bot) (int64, error)
-	UpdateBot(ctx context.Context, bot *model.Bot) error
+	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
+	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)
+	CreateBot(ctx context.Context, bot *gen.Bot) (int64, error)
+	UpdateBot(ctx context.Context, bot *gen.Bot) error
 	DeleteBot(ctx context.Context, name string) error
-	GetBots(ctx context.Context) ([]*model.Bot, error)
-	GetPlatform(ctx context.Context, id int64) (*model.Platform, error)
-	GetPlatformByName(ctx context.Context, name string) (*model.Platform, error)
-	GetPlatforms(ctx context.Context) ([]*model.Platform, error)
-	CreatePlatform(ctx context.Context, platform *model.Platform) (int64, error)
-	GetChannel(ctx context.Context, id int64) (*model.Channel, error)
-	GetChannelByName(ctx context.Context, name string) (*model.Channel, error)
-	CreateChannel(ctx context.Context, channel *model.Channel) (int64, error)
-	UpdateChannel(ctx context.Context, channel *model.Channel) error
+	GetBots(ctx context.Context) ([]*gen.Bot, error)
+	GetPlatform(ctx context.Context, id int64) (*gen.Platform, error)
+	GetPlatformByName(ctx context.Context, name string) (*gen.Platform, error)
+	GetPlatforms(ctx context.Context) ([]*gen.Platform, error)
+	CreatePlatform(ctx context.Context, platform *gen.Platform) (int64, error)
+	GetChannel(ctx context.Context, id int64) (*gen.Channel, error)
+	GetChannelByName(ctx context.Context, name string) (*gen.Channel, error)
+	CreateChannel(ctx context.Context, channel *gen.Channel) (int64, error)
+	UpdateChannel(ctx context.Context, channel *gen.Channel) error
 	DeleteChannel(ctx context.Context, name string) error
-	GetChannels(ctx context.Context) ([]*model.Channel, error)
+	GetChannels(ctx context.Context) ([]*gen.Channel, error)
 
 	DataSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error
 	DataGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error)
-	DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*model.Data, error)
+	DataList(ctx context.Context, uid types.Uid, topic string, filter types.DataFilter) ([]*gen.Data, error)
 	DataDelete(ctx context.Context, uid types.Uid, topic, key string) error
 	ConfigSet(ctx context.Context, uid types.Uid, topic, key string, value types.KV) error
 	ConfigGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error)
-	ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*model.Config, error)
+	ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*gen.ConfigData, error)
 	ConfigDelete(ctx context.Context, uid types.Uid, topic, key string) error
-	OAuthSet(ctx context.Context, oauth model.OAuth) error
-	OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (model.OAuth, error)
-	OAuthGetAvailable(ctx context.Context, t string) ([]model.OAuth, error)
-	FormSet(ctx context.Context, formId string, form model.Form) error
-	FormGet(ctx context.Context, formId string) (model.Form, error)
-	PageSet(ctx context.Context, pageId string, page model.Page) error
-	PageGet(ctx context.Context, pageId string) (model.Page, error)
-	BehaviorSet(ctx context.Context, behavior model.Behavior) error
-	BehaviorGet(ctx context.Context, uid types.Uid, flag string) (model.Behavior, error)
-	BehaviorList(ctx context.Context, uid types.Uid) ([]*model.Behavior, error)
+	OAuthSet(ctx context.Context, oauth gen.OAuth) error
+	OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (gen.OAuth, error)
+	OAuthGetAvailable(ctx context.Context, t string) ([]gen.OAuth, error)
+	FormSet(ctx context.Context, formId string, form gen.Form) error
+	FormGet(ctx context.Context, formId string) (gen.Form, error)
+	PageSet(ctx context.Context, pageId string, page gen.Page) error
+	PageGet(ctx context.Context, pageId string) (gen.Page, error)
+	BehaviorSet(ctx context.Context, behavior gen.Behavior) error
+	BehaviorGet(ctx context.Context, uid types.Uid, flag string) (gen.Behavior, error)
+	BehaviorList(ctx context.Context, uid types.Uid) ([]*gen.Behavior, error)
 	BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error
 	ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
-	ParameterGet(ctx context.Context, flag string) (model.Parameter, error)
+	ParameterGet(ctx context.Context, flag string) (gen.Parameter, error)
 	ParameterDelete(ctx context.Context, flag string) error
-	CreateInstruct(ctx context.Context, instruct *model.Instruct) (int64, error)
-	ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*model.Instruct, error)
-	UpdateInstruct(ctx context.Context, instruct *model.Instruct) error
-	CreateCounter(ctx context.Context, counter *model.Counter) (int64, error)
+	CreateInstruct(ctx context.Context, instruct *gen.Instruct) (int64, error)
+	ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*gen.Instruct, error)
+	UpdateInstruct(ctx context.Context, instruct *gen.Instruct) error
+	CreateCounter(ctx context.Context, counter *gen.Counter) (int64, error)
 	IncreaseCounter(ctx context.Context, id, amount int64) error
 	DecreaseCounter(ctx context.Context, id, amount int64) error
-	ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*model.Counter, error)
-	GetCounter(ctx context.Context, id int64) (model.Counter, error)
-	GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (model.Counter, error)
+	ListCounter(ctx context.Context, uid types.Uid, topic string) ([]*gen.Counter, error)
+	GetCounter(ctx context.Context, id int64) (gen.Counter, error)
+	GetCounterByFlag(ctx context.Context, uid types.Uid, topic, flag string) (gen.Counter, error)
 
-	GetAgents(ctx context.Context) ([]*model.Agent, error)
-	GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*model.Agent, error)
-	CreateAgent(ctx context.Context, agent *model.Agent) (int64, error)
+	GetAgents(ctx context.Context) ([]*gen.Agent, error)
+	GetAgentByHostid(ctx context.Context, uid types.Uid, topic, hostid string) (*gen.Agent, error)
+	CreateAgent(ctx context.Context, agent *gen.Agent) (int64, error)
 	UpdateAgentLastOnlineAt(ctx context.Context, uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error
 	UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, topic, hostid string, offlineTime time.Time) error
 }
@@ -472,7 +472,7 @@ func NewPipelineStore(client *gen.Client) *PipelineStore {
 	return &PipelineStore{client: client}
 }
 
-func (s *PipelineStore) UpsertDefinition(ctx context.Context, name, description string, enabled bool, trigger, steps model.JSON) error {
+func (s *PipelineStore) UpsertDefinition(ctx context.Context, name, description string, enabled bool, trigger, steps map[string]any) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -505,7 +505,7 @@ func (s *PipelineStore) UpsertDefinition(ctx context.Context, name, description 
 	return err
 }
 
-func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*model.PipelineRun, error) {
+func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -514,29 +514,17 @@ func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, ev
 		SetPipelineName(pipelineName).
 		SetEventID(eventID).
 		SetEventType(eventType).
-		SetStatus(int(model.PipelineStart)).
+		SetStatus(int(schema.PipelineStart)).
 		SetStartedAt(now).
 		SetCreatedAt(now).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &model.PipelineRun{
-		ID:             run.ID,
-		PipelineName:   run.PipelineName,
-		EventID:        run.EventID,
-		EventType:      run.EventType,
-		Status:         model.PipelineState(run.Status),
-		Error:          run.Error,
-		CheckpointData: model.JSON(run.CheckpointData),
-		LastHeartbeat:  run.LastHeartbeat,
-		StartedAt:      run.StartedAt,
-		CompletedAt:    run.CompletedAt,
-		CreatedAt:      run.CreatedAt,
-	}, nil
+	return run, nil
 }
 
-func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status model.PipelineState, errMsg string) error {
+func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -550,7 +538,7 @@ func (s *PipelineStore) UpdateRunStatus(ctx context.Context, runID int64, status
 	return err
 }
 
-func (s *PipelineStore) CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error) {
+func (s *PipelineStore) CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -562,44 +550,29 @@ func (s *PipelineStore) CreateStepRun(ctx context.Context, runID int64, stepName
 		SetOperation(operation).
 		SetParams(map[string]any(params)).
 		SetAttempt(attempt).
-		SetStatus(int(model.PipelineStart)).
+		SetStatus(int(schema.PipelineStart)).
 		SetStartedAt(now).
 		SetCreatedAt(now).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &model.PipelineStepRun{
-		ID:            sr.ID,
-		PipelineRunID: sr.PipelineRunID,
-		StepName:      sr.StepName,
-		Capability:    sr.Capability,
-		Operation:     sr.Operation,
-		Params:        model.JSON(sr.Params),
-		Result:        model.JSON(sr.Result),
-		Attempt:       sr.Attempt,
-		RetryConfig:   model.JSON(sr.RetryConfig),
-		Status:        model.PipelineState(sr.Status),
-		Error:         sr.Error,
-		StartedAt:     sr.StartedAt,
-		CompletedAt:   sr.CompletedAt,
-		CreatedAt:     sr.CreatedAt,
-	}, nil
+	return sr, nil
 }
 
-func (s *PipelineStore) UpdateStepRun(ctx context.Context, stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error {
+func (s *PipelineStore) UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
 	upd := s.client.PipelineStepRun.UpdateOneID(stepRunID).
 		SetStatus(int(status)).
 		SetAttempt(attempt)
-	if status == model.PipelineDone || status == model.PipelineCancel {
+	if status == int(schema.PipelineDone) || status == int(schema.PipelineCancel) {
 		now := time.Now()
 		upd = upd.SetCompletedAt(now)
 	}
 	if result != nil {
-		upd = upd.SetResult(map[string]any(result))
+		upd = upd.SetResult(result)
 	}
 	if errMsg != "" {
 		upd = upd.SetError(errMsg)
@@ -664,34 +637,18 @@ func (s *PipelineStore) UpdateRunHeartbeat(ctx context.Context, runID int64) err
 }
 
 // GetIncompleteRuns returns pipeline runs that are in Start state and may need recovery.
-func (s *PipelineStore) GetIncompleteRuns(ctx context.Context) ([]*model.PipelineRun, error) {
+func (s *PipelineStore) GetIncompleteRuns(ctx context.Context) ([]*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
 	runs, err := s.client.PipelineRun.Query().
-		Where(pipelinerun.Status(int(model.PipelineStart))).
+		Where(pipelinerun.Status(int(schema.PipelineStart))).
 		Order(pipelinerun.ByCreatedAt()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*model.PipelineRun, len(runs))
-	for i, r := range runs {
-		result[i] = &model.PipelineRun{
-			ID:             r.ID,
-			PipelineName:   r.PipelineName,
-			EventID:        r.EventID,
-			EventType:      r.EventType,
-			Status:         model.PipelineState(r.Status),
-			Error:          r.Error,
-			CheckpointData: model.JSON(r.CheckpointData),
-			LastHeartbeat:  r.LastHeartbeat,
-			StartedAt:      r.StartedAt,
-			CompletedAt:    r.CompletedAt,
-			CreatedAt:      r.CreatedAt,
-		}
-	}
-	return result, nil
+	return runs, nil
 }
 
 // GetCheckpoint loads the checkpoint data for a pipeline run.
@@ -717,7 +674,7 @@ func (s *PipelineStore) GetCheckpoint(ctx context.Context, runID int64, target a
 }
 
 // GetRun returns a pipeline run by ID.
-func (s *PipelineStore) GetRun(ctx context.Context, runID int64) (*model.PipelineRun, error) {
+func (s *PipelineStore) GetRun(ctx context.Context, runID int64) (*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -727,23 +684,11 @@ func (s *PipelineStore) GetRun(ctx context.Context, runID int64) (*model.Pipelin
 	if err != nil {
 		return nil, err
 	}
-	return &model.PipelineRun{
-		ID:             run.ID,
-		PipelineName:   run.PipelineName,
-		EventID:        run.EventID,
-		EventType:      run.EventType,
-		Status:         model.PipelineState(run.Status),
-		Error:          run.Error,
-		CheckpointData: model.JSON(run.CheckpointData),
-		LastHeartbeat:  run.LastHeartbeat,
-		StartedAt:      run.StartedAt,
-		CompletedAt:    run.CompletedAt,
-		CreatedAt:      run.CreatedAt,
-	}, nil
+	return run, nil
 }
 
 // RecordResourceLink inserts a resource link with UPSERT semantics.
-func (s *PipelineStore) RecordResourceLink(ctx context.Context, link model.ResourceLink) error {
+func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.ResourceLink) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -854,7 +799,7 @@ func NewWorkflowRunStore(client *gen.Client) *WorkflowRunStore {
 }
 
 // CreateRun inserts a new workflow run record.
-func (s *WorkflowRunStore) CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams model.JSON) (*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -862,7 +807,7 @@ func (s *WorkflowRunStore) CreateRun(ctx context.Context, workflowName, workflow
 	wr, err := s.client.WorkflowRun.Create().
 		SetWorkflowName(workflowName).
 		SetWorkflowFile(workflowFile).
-		SetStatus(int(model.WorkflowRunRunning)).
+		SetStatus(int(schema.WorkflowRunRunning)).
 		SetTriggerType(triggerType).
 		SetTriggerInfo(map[string]any(triggerInfo)).
 		SetInputParams(map[string]any(inputParams)).
@@ -872,11 +817,11 @@ func (s *WorkflowRunStore) CreateRun(ctx context.Context, workflowName, workflow
 	if err != nil {
 		return nil, err
 	}
-	return genWorkflowRunToModel(wr), nil
+	return wr, nil
 }
 
 // UpdateRunStatus updates the status, error, and completed_at of a workflow run.
-func (s *WorkflowRunStore) UpdateRunStatus(ctx context.Context, runID int64, status model.WorkflowRunState, errMsg string) error {
+func (s *WorkflowRunStore) UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -892,7 +837,7 @@ func (s *WorkflowRunStore) UpdateRunStatus(ctx context.Context, runID int64, sta
 }
 
 // CreateStepRun inserts a new workflow step run record.
-func (s *WorkflowRunStore) CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params model.JSON, attempt int) (*model.WorkflowStepRun, error) {
+func (s *WorkflowRunStore) CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params map[string]any, attempt int) (*gen.WorkflowStepRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -905,19 +850,19 @@ func (s *WorkflowRunStore) CreateStepRun(ctx context.Context, runID int64, stepI
 		SetActionType(actionType).
 		SetParams(map[string]any(params)).
 		SetAttempt(attempt).
-		SetStatus(int(model.WorkflowRunRunning)).
+		SetStatus(int(schema.WorkflowRunRunning)).
 		SetStartedAt(now).
 		SetCreatedAt(now).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return genWorkflowStepRunToModel(sr), nil
+	return sr, nil
 }
 
 // UpdateStepRun updates the status, result, error, and attempt count of a workflow step run.
 // completed_at is only set for terminal states (Done, Failed).
-func (s *WorkflowRunStore) UpdateStepRun(ctx context.Context, stepRunID int64, status model.WorkflowRunState, result model.JSON, errMsg string, attempt int) error {
+func (s *WorkflowRunStore) UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -925,7 +870,7 @@ func (s *WorkflowRunStore) UpdateStepRun(ctx context.Context, stepRunID int64, s
 		Where(workflowsteprun.IDEQ(stepRunID)).
 		SetStatus(int(status)).
 		SetAttempt(attempt)
-	if status == model.WorkflowRunDone || status == model.WorkflowRunFailed {
+	if status == int(schema.WorkflowRunDone) || status == int(schema.WorkflowRunFailed) {
 		u = u.SetCompletedAt(time.Now())
 	}
 	if result != nil {
@@ -942,7 +887,7 @@ func (s *WorkflowRunStore) SaveCheckpoint(ctx context.Context, runID int64, data
 	if s == nil || s.client == nil {
 		return nil
 	}
-	cp := model.JSON{}
+	cp := schema.JSON{}
 	raw, err := sonic.Marshal(data)
 	if err != nil {
 		return err
@@ -957,22 +902,18 @@ func (s *WorkflowRunStore) SaveCheckpoint(ctx context.Context, runID int64, data
 }
 
 // GetIncompleteRuns returns workflow runs that are still running and may need recovery.
-func (s *WorkflowRunStore) GetIncompleteRuns(ctx context.Context) ([]*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) GetIncompleteRuns(ctx context.Context) ([]*gen.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
 	runs, err := s.client.WorkflowRun.Query().
-		Where(workflowrun.StatusEQ(int(model.WorkflowRunRunning))).
+		Where(workflowrun.StatusEQ(int(schema.WorkflowRunRunning))).
 		Order(gen.Asc(workflowrun.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*model.WorkflowRun, len(runs))
-	for i, r := range runs {
-		result[i] = genWorkflowRunToModel(r)
-	}
-	return result, nil
+	return runs, nil
 }
 
 // GetCheckpoint loads the checkpoint data for a workflow run.
@@ -998,7 +939,7 @@ func (s *WorkflowRunStore) GetCheckpoint(ctx context.Context, runID int64, targe
 }
 
 // GetRun returns a workflow run by ID.
-func (s *WorkflowRunStore) GetRun(ctx context.Context, runID int64) (*model.WorkflowRun, error) {
+func (s *WorkflowRunStore) GetRun(ctx context.Context, runID int64) (*gen.WorkflowRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -1008,7 +949,7 @@ func (s *WorkflowRunStore) GetRun(ctx context.Context, runID int64) (*model.Work
 	if err != nil {
 		return nil, err
 	}
-	return genWorkflowRunToModel(wr), nil
+	return wr, nil
 }
 
 // UpdateRunHeartbeat refreshes the last_heartbeat timestamp for a running workflow.
@@ -1020,45 +961,6 @@ func (s *WorkflowRunStore) UpdateRunHeartbeat(ctx context.Context, runID int64) 
 		Where(workflowrun.IDEQ(runID)).
 		SetLastHeartbeat(time.Now()).
 		Exec(ctx)
-}
-
-// genWorkflowRunToModel converts an Ent WorkflowRun entity to the model type.
-func genWorkflowRunToModel(wr *gen.WorkflowRun) *model.WorkflowRun {
-	return &model.WorkflowRun{
-		ID:             wr.ID,
-		WorkflowName:   wr.WorkflowName,
-		WorkflowFile:   wr.WorkflowFile,
-		Status:         model.WorkflowRunState(wr.Status),
-		TriggerType:    wr.TriggerType,
-		TriggerInfo:    model.JSON(wr.TriggerInfo),
-		InputParams:    model.JSON(wr.InputParams),
-		CheckpointData: model.JSON(wr.CheckpointData),
-		LastHeartbeat:  wr.LastHeartbeat,
-		Error:          wr.Error,
-		StartedAt:      wr.StartedAt,
-		CompletedAt:    wr.CompletedAt,
-		CreatedAt:      wr.CreatedAt,
-	}
-}
-
-// genWorkflowStepRunToModel converts an Ent WorkflowStepRun entity to the model type.
-func genWorkflowStepRunToModel(sr *gen.WorkflowStepRun) *model.WorkflowStepRun {
-	return &model.WorkflowStepRun{
-		ID:            sr.ID,
-		WorkflowRunID: sr.WorkflowRunID,
-		StepID:        sr.StepID,
-		StepName:      sr.StepName,
-		Action:        sr.Action,
-		ActionType:    sr.ActionType,
-		Params:        model.JSON(sr.Params),
-		Result:        model.JSON(sr.Result),
-		Attempt:       sr.Attempt,
-		Status:        model.WorkflowRunState(sr.Status),
-		Error:         sr.Error,
-		StartedAt:     sr.StartedAt,
-		CompletedAt:   sr.CompletedAt,
-		CreatedAt:     sr.CreatedAt,
-	}
 }
 
 // ---------------------------------------------------------------------------
@@ -1129,12 +1031,12 @@ func (s *HubStore) SaveHomelabApps(ctx context.Context, apps []homelab.App) erro
 	return nil
 }
 
-func appJSON(ha homelab.App) (model.JSON, error) {
+func appJSON(ha homelab.App) (schema.JSON, error) {
 	raw, err := sonic.Marshal(ha)
 	if err != nil {
 		return nil, fmt.Errorf("marshal homelab app: %w", err)
 	}
-	var info model.JSON
+	var info schema.JSON
 	if err := info.Scan(raw); err != nil {
 		return nil, fmt.Errorf("scan homelab app json: %w", err)
 	}
@@ -1157,7 +1059,7 @@ func NewResourceChainStore(client *gen.Client) *ResourceChainStore {
 
 // FindResourcesByTag returns DataEvents matching a tag key-value pair,
 // ordered by created_at descending. Supports limit + opaque cursor pagination.
-func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value string, limit int, cursor string) ([]*model.DataEvent, string, error) {
+func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value string, limit int, cursor string) ([]*gen.DataEvent, string, error) {
 	if s == nil || s.client == nil {
 		return nil, "", nil
 	}
@@ -1184,9 +1086,9 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 		return nil, "", fmt.Errorf("find resources by tag: %w", err)
 	}
 
-	result := make([]*model.DataEvent, len(events))
+	result := make([]*gen.DataEvent, len(events))
 	for i, e := range events {
-		result[i] = &model.DataEvent{
+		result[i] = &gen.DataEvent{
 			EventID:    e.EventID,
 			EventType:  e.EventType,
 			Source:     e.Source,
@@ -1198,10 +1100,10 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 			CreatedAt:  e.CreatedAt,
 		}
 		if e.Data != nil {
-			result[i].Data = model.JSON(e.Data)
+			result[i].Data = schema.JSON(e.Data)
 		}
 		if e.Tags != nil {
-			result[i].Tags = model.JSON(e.Tags)
+			result[i].Tags = schema.JSON(e.Tags)
 		}
 	}
 
@@ -1216,7 +1118,7 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 
 // FindResourceLinks returns all links involving any of the given event IDs,
 // either as source or target.
-func (s *ResourceChainStore) FindResourceLinks(ctx context.Context, eventIDs []string) ([]*model.ResourceLink, error) {
+func (s *ResourceChainStore) FindResourceLinks(ctx context.Context, eventIDs []string) ([]*gen.ResourceLink, error) {
 	if s == nil || s.client == nil || len(eventIDs) == 0 {
 		return nil, nil
 	}
@@ -1232,9 +1134,9 @@ func (s *ResourceChainStore) FindResourceLinks(ctx context.Context, eventIDs []s
 		return nil, fmt.Errorf("find resource links: %w", err)
 	}
 
-	result := make([]*model.ResourceLink, len(links))
+	result := make([]*gen.ResourceLink, len(links))
 	for i, l := range links {
-		result[i] = &model.ResourceLink{
+		result[i] = &gen.ResourceLink{
 			ID:               l.ID,
 			SourceEventID:    l.SourceEventID,
 			TargetEventID:    l.TargetEventID,
@@ -1255,16 +1157,16 @@ func (s *ResourceChainStore) FindResourceLinks(ctx context.Context, eventIDs []s
 
 // FindRelations returns upstream and downstream resource references
 // for a specific resource identified by appName + entity_id.
-func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityID string) (*model.ResourceRelations, error) {
+func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityID string) (*schema.ResourceRelations, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
 
-	relations := &model.ResourceRelations{
+	relations := &schema.ResourceRelations{
 		App:        appName,
 		EntityID:   entityID,
-		Upstream:   []model.ResourceRef{},
-		Downstream: []model.ResourceRef{},
+		Upstream:   []schema.ResourceRef{},
+		Downstream: []schema.ResourceRef{},
 	}
 
 	downLinks, err := s.client.ResourceLink.Query().
@@ -1278,7 +1180,7 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 		return nil, fmt.Errorf("find downstream: %w", err)
 	}
 	for _, l := range downLinks {
-		relations.Downstream = append(relations.Downstream, model.ResourceRef{
+		relations.Downstream = append(relations.Downstream, schema.ResourceRef{
 			App:          l.TargetApp,
 			EntityID:     l.TargetEntityID,
 			Capability:   l.TargetCapability,
@@ -1297,7 +1199,7 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 		return nil, fmt.Errorf("find upstream: %w", err)
 	}
 	for _, l := range upLinks {
-		relations.Upstream = append(relations.Upstream, model.ResourceRef{
+		relations.Upstream = append(relations.Upstream, schema.ResourceRef{
 			App:          l.SourceApp,
 			EntityID:     l.SourceEntityID,
 			Capability:   l.SourceCapability,
@@ -1306,4 +1208,9 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 	}
 
 	return relations, nil
+}
+
+// ParameterIsExpired checks whether the given access token parameter has expired.
+func ParameterIsExpired(p gen.Parameter) bool {
+	return p.ExpiredAt.Before(time.Now())
 }

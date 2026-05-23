@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -116,9 +116,9 @@ func getRelations(ctx fiber.Ctx) error {
 		return err
 	}
 	if relations == nil {
-		relations = &model.ResourceRelations{
+		relations = &schema.ResourceRelations{
 			App: app, EntityID: entityID,
-			Upstream: []model.ResourceRef{}, Downstream: []model.ResourceRef{},
+			Upstream: []schema.ResourceRef{}, Downstream: []schema.ResourceRef{},
 		}
 	}
 

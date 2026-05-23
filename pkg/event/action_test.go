@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -22,18 +22,18 @@ import (
 
 type mockStore struct {
 	store.Adapter
-	platformChannelUsersByFlagsFn func(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error)
-	platformsFn                   func(ctx context.Context) ([]*model.Platform, error)
+	platformChannelUsersByFlagsFn func(ctx context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error)
+	platformsFn                   func(ctx context.Context) ([]*gen.Platform, error)
 }
 
-func (m *mockStore) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*model.PlatformChannelUser, error) {
+func (m *mockStore) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error) {
 	if m.platformChannelUsersByFlagsFn != nil {
 		return m.platformChannelUsersByFlagsFn(ctx, userFlags)
 	}
 	return nil, nil
 }
 
-func (m *mockStore) GetPlatforms(ctx context.Context) ([]*model.Platform, error) {
+func (m *mockStore) GetPlatforms(ctx context.Context) ([]*gen.Platform, error) {
 	if m.platformsFn != nil {
 		return m.platformsFn(ctx)
 	}
@@ -74,8 +74,8 @@ func testPayload() types.EventPayload {
 	}
 }
 
-func testPlatforms() []*model.Platform {
-	return []*model.Platform{
+func testPlatforms() []*gen.Platform {
+	return []*gen.Platform{
 		{ID: 1, Name: "slack"},
 		{ID: 2, Name: "discord"},
 	}
@@ -97,10 +97,10 @@ func TestSendToAll_EmptyPlatformUsers(t *testing.T) {
 	Publisher = pub
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
 			return nil, nil
 		},
 	}
@@ -124,17 +124,17 @@ func TestSendToAll_EmptyPlatformUserSlice(t *testing.T) {
 	Publisher = pub
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
 			return nil, nil
 		},
 	}
 	store.Database = ms
 
 	ctx := types.Context{}
-	err := sendToAll(ctx, testPayload(), []*model.PlatformUser{})
+	err := sendToAll(ctx, testPayload(), []*gen.PlatformUser{})
 	require.NoError(t, err)
 	assert.Empty(t, pub.messages)
 }
@@ -152,12 +152,12 @@ func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 
 	var capturedFlags []string
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, userFlags []string) ([]*model.PlatformChannelUser, error) {
+		platformChannelUsersByFlagsFn: func(_ context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error) {
 			capturedFlags = userFlags
-			return []*model.PlatformChannelUser{
+			return []*gen.PlatformChannelUser{
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:random"},
 			}, nil
@@ -166,7 +166,7 @@ func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
@@ -199,12 +199,12 @@ func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 
 	var capturedFlags []string
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, userFlags []string) ([]*model.PlatformChannelUser, error) {
+		platformChannelUsersByFlagsFn: func(_ context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error) {
 			capturedFlags = userFlags
-			return []*model.PlatformChannelUser{
+			return []*gen.PlatformChannelUser{
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
 				{UserFlag: "user:discord:D1", ChannelFlag: "ch:main"},
 				{UserFlag: "user:discord:D1", ChannelFlag: "ch:dev"},
@@ -214,7 +214,7 @@ func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
@@ -249,11 +249,11 @@ func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 	Publisher = pub
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
-			return []*model.PlatformChannelUser{
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
+			return []*gen.PlatformChannelUser{
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
 			}, nil
 		},
@@ -261,7 +261,7 @@ func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
@@ -291,11 +291,11 @@ func TestSendToAll_MissingPlatformName(t *testing.T) {
 	Publisher = pub
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
-			return []*model.Platform{{ID: 1, Name: "slack"}}, nil
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
+			return []*gen.Platform{{ID: 1, Name: "slack"}}, nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
-			return []*model.PlatformChannelUser{
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
+			return []*gen.PlatformChannelUser{
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
 				{UserFlag: "user:unknown:X1", ChannelFlag: "ch:random"},
 			}, nil
@@ -304,7 +304,7 @@ func TestSendToAll_MissingPlatformName(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 		{PlatformID: 999, Flag: "user:unknown:X1"},
 	}
@@ -324,17 +324,17 @@ func TestSendToAll_BatchQueryError(t *testing.T) {
 	}()
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
 			return nil, errors.New("database connection lost")
 		},
 	}
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
@@ -352,14 +352,14 @@ func TestSendToAll_PlatformsQueryError(t *testing.T) {
 	}()
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return nil, errors.New("database offline")
 		},
 	}
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
@@ -382,11 +382,11 @@ func TestSendToAll_PublisherError(t *testing.T) {
 	Publisher = pub
 
 	ms := &mockStore{
-		platformsFn: func(_ context.Context) ([]*model.Platform, error) {
+		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
 			return testPlatforms(), nil
 		},
-		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*model.PlatformChannelUser, error) {
-			return []*model.PlatformChannelUser{
+		platformChannelUsersByFlagsFn: func(_ context.Context, _ []string) ([]*gen.PlatformChannelUser, error) {
+			return []*gen.PlatformChannelUser{
 				{UserFlag: "user:slack:U1", ChannelFlag: "ch:general"},
 			}, nil
 		},
@@ -394,7 +394,7 @@ func TestSendToAll_PublisherError(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	platformUsers := []*model.PlatformUser{
+	platformUsers := []*gen.PlatformUser{
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 

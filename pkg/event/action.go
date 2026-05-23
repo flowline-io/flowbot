@@ -7,7 +7,7 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 )
@@ -68,7 +68,7 @@ func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets
 	})
 }
 
-func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*model.PlatformUser) error {
+func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*gen.PlatformUser) error {
 	platforms, err := store.Database.GetPlatforms(ctx.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get platforms: %w", err)
@@ -86,7 +86,7 @@ func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*m
 	if err != nil {
 		return fmt.Errorf("failed to get platform channel users: %w", err)
 	}
-	channelUserMap := make(map[string][]*model.PlatformChannelUser, len(userFlags))
+	channelUserMap := make(map[string][]*gen.PlatformChannelUser, len(userFlags))
 	for _, cu := range channelUsersByFlag {
 		channelUserMap[cu.UserFlag] = append(channelUserMap[cu.UserFlag], cu)
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/page/component"
 	"github.com/flowline-io/flowbot/pkg/page/library"
@@ -34,7 +34,7 @@ const htmlLayout = `
 `
 
 // unmarshalPageSchema parses specific types of messages from Page.Schema
-func unmarshalPageSchema(page model.Page, target any) error {
+func unmarshalPageSchema(page gen.Page, target any) error {
 	data, err := sonic.Marshal(page.Schema)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to marshal page schema: %w", err))
@@ -51,7 +51,7 @@ func unmarshalPageSchema(page model.Page, target any) error {
 }
 
 // RenderForm renders the form page
-func RenderForm(page model.Page, form model.Form) app.UI {
+func RenderForm(page gen.Page, form gen.Form) app.UI {
 	var msg types.FormMsg
 	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil
@@ -66,7 +66,7 @@ func RenderForm(page model.Page, form model.Form) app.UI {
 }
 
 // RenderTable renders the table page
-func RenderTable(page model.Page) app.UI {
+func RenderTable(page gen.Page) app.UI {
 	var msg types.TableMsg
 	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil
@@ -80,7 +80,7 @@ func RenderTable(page model.Page) app.UI {
 }
 
 // RenderHtml renders the HTML page
-func RenderHtml(page model.Page) app.UI {
+func RenderHtml(page gen.Page) app.UI {
 	var msg types.HtmlMsg
 	if err := unmarshalPageSchema(page, &msg); err != nil {
 		return nil

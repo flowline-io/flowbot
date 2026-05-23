@@ -6,24 +6,25 @@ import (
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 type Table struct {
 	app.Compo
-	Page   model.Page
+	Page   gen.Page
 	Schema types.TableMsg
 }
 
 func (c *Table) Render() app.UI {
 	var alert app.UI
 	switch c.Page.State {
-	case model.PageStateProcessedSuccess:
+	case int(schema.PageStateProcessedSuccess):
 		alert = app.Div().Class("uk-alert-success").Body(
 			app.P().Style("padding", "20px").Text(fmt.Sprintf("Table [%s] processed success, %s", c.Page.PageID, c.Page.UpdatedAt)))
-	case model.PageStateProcessedFailed:
+	case int(schema.PageStateProcessedFailed):
 		alert = app.Div().Class("uk-alert-danger").Body(
 			app.P().Style("padding", "20px").Text(fmt.Sprintf("Table [%s] processed failed, %s", c.Page.PageID, c.Page.UpdatedAt)))
 	}

@@ -9,7 +9,8 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -87,21 +88,21 @@ func registerModules() {
 	for name, handler := range module.List() {
 		registerModuless.Insert(name)
 
-		state := model.BotInactive
+		state := schema.BotInactive
 		if handler.IsReady() {
-			state = model.BotActive
+			state = schema.BotActive
 		}
 		bot, _ := store.Database.GetBotByName(context.Background(), name)
 		if bot == nil {
-			bot = &model.Bot{
+			bot = &gen.Bot{
 				Name:  name,
-				State: state,
+				State: int(state),
 			}
 			if _, err := store.Database.CreateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}
 		} else {
-			bot.State = state
+			bot.State = int(state)
 			err := store.Database.UpdateBot(context.Background(), bot)
 			if err != nil {
 				flog.Error(err)
@@ -116,7 +117,7 @@ func registerModules() {
 	}
 	for _, bot := range list {
 		if !registerModuless.Has(bot.Name) {
-			bot.State = model.BotInactive
+			bot.State = int(schema.BotInactive)
 			if err := store.Database.UpdateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}

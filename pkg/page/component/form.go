@@ -5,15 +5,16 @@ import (
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/page/form"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type Form struct {
 	app.Compo
-	Page   model.Page
-	Form   model.Form
+	Page   gen.Page
+	Form   gen.Form
 	Schema types.FormMsg
 }
 
@@ -22,10 +23,10 @@ func (c *Form) Render() app.UI {
 
 	var alert app.UI
 	switch c.Page.State {
-	case model.PageStateProcessedSuccess:
+	case int(schema.PageStateProcessedSuccess):
 		alert = app.Div().Class("uk-alert-success").Body(
 			app.P().Style("padding", "20px").Text(fmt.Sprintf("Form [%s] processed success, %s", c.Page.PageID, c.Page.UpdatedAt)))
-	case model.PageStateProcessedFailed:
+	case int(schema.PageStateProcessedFailed):
 		alert = app.Div().Class("uk-alert-danger").Body(
 			app.P().Style("padding", "20px").Text(fmt.Sprintf("Form [%s] processed failed, %s", c.Page.PageID, c.Page.UpdatedAt)))
 	}
@@ -39,7 +40,7 @@ func (c *Form) Render() app.UI {
 	// fields
 	builder := form.NewBuilder(c.Schema.Field)
 	// button
-	if c.Page.State == model.PageStateCreated {
+	if c.Page.State == int(schema.PageStateCreated) {
 		builder.Button = []app.UI{
 			app.Div().Class("uk-margin").Body(
 				app.Button().Class("uk-button uk-button-primary").Text("Submit").Type("submit"),
@@ -53,7 +54,7 @@ func (c *Form) Render() app.UI {
 	fields = append(fields, ui)
 
 	// record value
-	if c.Page.State == model.PageStateProcessedSuccess || c.Page.State == model.PageStateProcessedFailed {
+	if c.Page.State == int(schema.PageStateProcessedSuccess) || c.Page.State == int(schema.PageStateProcessedFailed) {
 		fields = append(fields, app.Div().Class("").Body(
 			app.H3().Text("Submit values"),
 			app.Pre().Text(c.Form.Values),

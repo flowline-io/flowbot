@@ -22,7 +22,8 @@ import (
 
 	otelattr "go.opentelemetry.io/otel/attribute"
 
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 )
 
 var pooledSonic = sonic.Config{}.Froze()
@@ -73,18 +74,18 @@ func mergeTags(upstream types.KV, stepTags any) types.KV {
 
 // RunStore abstracts persistence for pipeline runs, steps, checkpoints and event consumption.
 type RunStore interface {
-	CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*model.PipelineRun, error)
-	UpdateRunStatus(ctx context.Context, runID int64, status model.PipelineState, errMsg string) error
-	CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params model.JSON, attempt int) (*model.PipelineStepRun, error)
-	UpdateStepRun(ctx context.Context, stepRunID int64, status model.PipelineState, result model.JSON, errMsg string, attempt int) error
+	CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error)
+	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
+	CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error)
+	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
 	SaveCheckpoint(ctx context.Context, runID int64, data any) error
-	GetIncompleteRuns(ctx context.Context) ([]*model.PipelineRun, error)
+	GetIncompleteRuns(ctx context.Context) ([]*gen.PipelineRun, error)
 	GetCheckpoint(ctx context.Context, runID int64, target any) error
-	GetRun(ctx context.Context, runID int64) (*model.PipelineRun, error)
+	GetRun(ctx context.Context, runID int64) (*gen.PipelineRun, error)
 	UpdateRunHeartbeat(ctx context.Context, runID int64) error
 	HasConsumed(ctx context.Context, consumerName, eventID string) (bool, error)
 	RecordConsumption(ctx context.Context, consumerName, eventID string) error
-	RecordResourceLink(ctx context.Context, link model.ResourceLink) error
+	RecordResourceLink(ctx context.Context, link *gen.ResourceLink) error
 }
 
 type Engine struct {
@@ -318,7 +319,7 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 	if e.store == nil {
 		return
 	}
-	link := model.ResourceLink{
+	link := &gen.ResourceLink{
 		SourceEventID:    rc.Event.EventID,
 		TargetEventID:    stepResource.EventID,
 		SourceApp:        rc.Event.App,
@@ -386,7 +387,7 @@ func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName,
 	if e.store == nil {
 		return 0, nil
 	}
-	paramsJSON := model.JSON(convertToTypesKV(params))
+	paramsJSON := convertToTypesKV(params)
 	sr, err := e.store.CreateStepRun(ctx, runID, stepName, capability, operation, paramsJSON, attempt)
 	if err != nil {
 		return 0, fmt.Errorf("create step run %s: %w", stepName, err)
@@ -394,13 +395,13 @@ func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName,
 	return sr.ID, nil
 }
 
-func (e *Engine) updateStepRunRecord(ctx context.Context, stepRunID int64, status model.PipelineState, result map[string]any, errMsg string, attempt int) {
+func (e *Engine) updateStepRunRecord(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) {
 	if e.store == nil || stepRunID == 0 {
 		return
 	}
-	var resultJSON model.JSON
+	var resultJSON map[string]any
 	if result != nil {
-		resultJSON = model.JSON(convertToTypesKV(result))
+		resultJSON = convertToTypesKV(result)
 	}
 	_ = e.store.UpdateStepRun(ctx, stepRunID, status, resultJSON, errMsg, attempt)
 }
@@ -409,10 +410,10 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 	if e.store == nil || runID == 0 {
 		return
 	}
-	status := model.PipelineDone
+	status := int(schema.PipelineDone)
 	errMsg := ""
 	if failed {
-		status = model.PipelineCancel
+		status = int(schema.PipelineCancel)
 		if finalErr != nil {
 			errMsg = finalErr.Error()
 		}
@@ -486,12 +487,12 @@ func (e *Engine) recordStepMetrics(pipelineName, stepName, capability, status st
 }
 
 func (e *Engine) recordStepSuccess(ctx context.Context, stepRunID int64, pipelineName, stepName, capability string, stepResult map[string]any, attempt int, stepStart time.Time) {
-	e.updateStepRunRecord(ctx, stepRunID, model.PipelineDone, stepResult, "", attempt)
+	e.updateStepRunRecord(ctx, stepRunID, int(schema.PipelineDone), stepResult, "", attempt)
 	e.recordStepMetrics(pipelineName, stepName, capability, "done", time.Since(stepStart).Seconds(), attempt)
 }
 
 func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capability, errMsg string, attempt int, stepStart time.Time) {
-	e.updateStepRunRecord(ctx, stepRunID, model.PipelineCancel, nil, errMsg, attempt)
+	e.updateStepRunRecord(ctx, stepRunID, int(schema.PipelineCancel), nil, errMsg, attempt)
 	e.recordStepMetrics(pipelineName, stepName, capability, "cancel", time.Since(stepStart).Seconds(), attempt)
 }
 
@@ -537,7 +538,7 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		return fmt.Errorf("get run %d: %w", runID, err)
 	}
 
-	_ = e.store.UpdateRunStatus(ctx, runID, model.PipelineStart, "")
+	_ = e.store.UpdateRunStatus(ctx, runID, int(schema.PipelineStart), "")
 
 	if e.pipelineMetrics != nil {
 		e.pipelineMetrics.IncResume(run.PipelineName)

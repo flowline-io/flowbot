@@ -15,7 +15,8 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/platforms"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -131,15 +132,15 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 
 	payload, session = manageChatSession(ctx, chatKey, msg.AltMessage, session, payload)
 
-	err = store.Database.CreateMessage(ctx.Context(), model.Message{
+	err = store.Database.CreateMessage(ctx.Context(), gen.Message{
 		Flag:          types.Id(),
 		PlatformID:    platformId,
 		PlatformMsgID: msg.MessageId,
 		Topic:         topic,
 		Role:          types.User,
 		Session:       session,
-		Content:       model.JSON{"text": msg.AltMessage},
-		State:         model.MessageCreated,
+		Content:       schema.JSON{"text": msg.AltMessage},
+		State:         int(schema.MessageCreated),
 	})
 	if err != nil {
 		flog.Error(err)
@@ -398,9 +399,9 @@ func handleAckAction(ctx context.Context, data types.AgentData) error {
 		return errors.New("error instruct no")
 	}
 
-	err := store.Database.UpdateInstruct(ctx, &model.Instruct{
+	err := store.Database.UpdateInstruct(ctx, &gen.Instruct{
 		No:    no,
-		State: model.InstructDone,
+		State: int(schema.InstructDone),
 	})
 	if err != nil {
 		return err
@@ -508,18 +509,18 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 		}
 		return types.Uid(user.Flag), nil
 	}
-	user := &model.User{
+	user := &gen.User{
 		Flag:  types.Id(),
 		Name:  "user",
 		Tags:  "[]",
-		State: model.UserActive,
+		State: int(schema.UserActive),
 	}
 	err = store.Database.UserCreate(context.Background(), user)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = store.Database.CreatePlatformUser(context.Background(), &model.PlatformUser{
+	_, err = store.Database.CreatePlatformUser(context.Background(), &gen.PlatformUser{
 		PlatformID: platform.ID,
 		UserID:     user.ID,
 		Flag:       data.UserId,
@@ -555,17 +556,17 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		}
 		return channel.Flag, nil
 	}
-	channel := &model.Channel{
+	channel := &gen.Channel{
 		Flag:  types.Id(),
 		Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
-		State: model.ChannelActive,
+		State: int(schema.ChannelActive),
 	}
 	_, err = store.Database.CreateChannel(context.Background(), channel)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = store.Database.CreatePlatformChannel(context.Background(), &model.PlatformChannel{
+	_, err = store.Database.CreatePlatformChannel(context.Background(), &gen.PlatformChannel{
 		PlatformID: platform.ID,
 		ChannelID:  channel.ID,
 		Flag:       data.TopicId,
@@ -574,7 +575,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		return "", err
 	}
 
-	_, err = store.Database.CreatePlatformChannelUser(context.Background(), &model.PlatformChannelUser{
+	_, err = store.Database.CreatePlatformChannelUser(context.Background(), &gen.PlatformChannelUser{
 		PlatformID:  platform.ID,
 		ChannelFlag: data.TopicId,
 		UserFlag:    data.UserId,
@@ -604,7 +605,7 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 			return err
 		}
 	} else {
-		agent = &model.Agent{
+		agent = &gen.Agent{
 			UID:            uid.String(),
 			Topic:          topic,
 			Hostid:         hostid,
@@ -640,7 +641,7 @@ func authPprof(ctx fiber.Ctx) bool {
 	}
 
 	p, err := store.Database.ParameterGet(ctx.Context(), accessToken)
-	if err != nil || p.ID <= 0 || p.IsExpired() {
+	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
 		flog.Warn("pprof auth warning: parameter error")
 		return true
 	}
