@@ -75,11 +75,10 @@ Full table schema is in [`schema.md`](./schema.md).
 
 - `urls` — URL tracking
 - `fileuploads` — File upload records
-- `schema_migrations` — Migration version tracking
 
-## Database Migration
+## Database Schema Management
 
-Migrations run automatically at server startup via `pkg/migrate/`.
+Ent auto-migration via `client.Schema.Create()` on startup. No manual SQL migrations.
 
 ## Code Generation
 
