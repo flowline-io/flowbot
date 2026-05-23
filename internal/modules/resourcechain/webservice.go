@@ -2,21 +2,24 @@ package resourcechain
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 func queryOrParam(ctx fiber.Ctx, name string) string {
-	if v := ctx.Query(name); v == "_" {
+	v := ctx.Query(name)
+	if v == "_" {
 		return ""
 	}
-	if v := ctx.Query(name); v != "" {
+	if v != "" {
 		return v
 	}
 	return ctx.Params(name)
@@ -52,7 +55,10 @@ func queryByTag(ctx fiber.Ctx) error {
 		eventIDs[i] = e.EventID
 	}
 
-	links, _ := rcStore.FindResourceLinks(context.Background(), eventIDs)
+	links, err := rcStore.FindResourceLinks(context.Background(), eventIDs)
+	if err != nil {
+		flog.Error(fmt.Errorf("resourcechain: find links: %w", err))
+	}
 
 	type resEntry struct {
 		EntityID   string `json:"entity_id"`
