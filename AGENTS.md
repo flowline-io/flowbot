@@ -8,7 +8,7 @@ Homelab Data Hub & Capability Orchestration Center.
 | ---------------- | ------------------- | ----------------------------------------------------- |
 | Add new module   | `internal/modules/` | See `AGENTS.md` there; reference `modules/example/`   |
 | Module framework | `pkg/module/`       | Handler interface                                     |
-| Database work    | `internal/store/`   | DAO pattern, migrations                               |
+| Database work    | `internal/store/`   | DAO pattern, all DB queries in store.go, migrations   |
 | New provider     | `pkg/providers/`    | See `AGENTS.md` there; reference `providers/example/` |
 | Capability layer | `pkg/ability/`      | reference `ability/example/`                          |
 | Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines                                |
@@ -58,6 +58,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - Never leak provider raw errors or pagination internals to HTTP layer
 - Never use Redis Stream as sole event store — persist to PostgreSQL data_events
 - Never skip delivery/audit/idempotency records
+- Never write database query code outside `internal/store/store.go`
 - Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`
 
 ## Build & Test, Generate command

@@ -1,17 +1,22 @@
 # Store Layer
 
-Database storage using Ent with PostgreSQL.
+Database storage using Ent with PostgreSQL. All database query/store types are defined in `store.go`.
 
 ## Structure
 
 ```
 store/
-├── store.go  # Adapter, connection management
-├── model/    # Plain structs (DTOs)
-├── ent/      # Ent schema definitions
-├── ent/gen/  # Ent generated code
-└── postgres/ # PostgreSQL adapter
+├── store.go   # Adapter, connection management, all store types and DB queries
+├── model/     # Plain structs (DTOs)
+├── ent/       # Ent schema definitions
+├── ent/gen/   # Ent generated code
+└── postgres/  # PostgreSQL adapter
 ```
+
+## Rules
+
+- All database query methods must be written in `store.go`. Do not create separate `xxx_store.go` files.
+- Test files (`*_test.go`) are co-located with `store.go`.
 
 ## Patterns
 
