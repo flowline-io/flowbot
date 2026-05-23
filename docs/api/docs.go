@@ -844,6 +844,9 @@ const docTemplate = `{
         "ability.InvokeResult": {
             "type": "object",
             "properties": {
+                "_resource": {
+                    "$ref": "#/definitions/ability.ResourceMeta"
+                },
                 "capability": {
                     "$ref": "#/definitions/hub.CapabilityType"
                 },
@@ -886,6 +889,20 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "ability.ResourceMeta": {
+            "type": "object",
+            "properties": {
+                "app": {
+                    "type": "string"
+                },
+                "entity_id": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
                 }
             }
         },

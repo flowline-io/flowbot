@@ -13,6 +13,7 @@
 ### Task 1: Extend DataEvent with tags field
 
 **Files:**
+
 - Modify: `pkg/types/event.go:58-72`
 - Modify: `internal/store/ent/schema/data_event.go:17-33`
 - Modify: `internal/store/event_store.go:26-48`
@@ -138,6 +139,7 @@ git commit -m "feat: add tags KV field to DataEvent with GIN index"
 ### Task 2: Create ResourceLink schema and model
 
 **Files:**
+
 - Create: `internal/store/ent/schema/resource_link.go`
 - Create: `internal/store/model/resource_chain.go`
 - Create: `pkg/migrate/migrations/20260523000000_resource_link.up.sql`
@@ -289,6 +291,7 @@ git commit -m "feat: add ResourceLink schema with unique constraint and indexes"
 ### Task 3: Add ResourceMeta to InvokeResult
 
 **Files:**
+
 - Modify: `pkg/ability/ability.go:65-79`
 
 - [ ] **Step 1: Define ResourceMeta and add to InvokeResult**
@@ -379,6 +382,7 @@ git commit -m "feat: add ResourceMeta to InvokeResult for resource link recordin
 ### Task 4: Pipeline engine tag merge and resource link recording
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go:48-60` (RunStore interface)
 - Modify: `pkg/pipeline/engine.go:250-275` (backoff.Do section in executeStep)
 - Modify: `pkg/pipeline/context.go:38-61` (templateData)
@@ -632,6 +636,7 @@ git commit -m "feat: auto-merge tags in pipeline and record resource links"
 ### Task 5: Resource chain DAO
 
 **Files:**
+
 - Create: `internal/store/resource_chain_store.go`
 
 - [ ] **Step 1: Create ResourceChainStore**
@@ -824,6 +829,7 @@ git commit -m "feat: add ResourceChainStore with tag query and relations lookup"
 ### Task 6: Query API module (resourcechain)
 
 **Files:**
+
 - Create: `internal/modules/resourcechain/module.go`
 - Create: `internal/modules/resourcechain/webservice.go`
 - Create: `internal/modules/resourcechain/webservice_test.go`
@@ -1122,6 +1128,7 @@ git commit -m "feat: add resourcechain module with tag query and relations endpo
 ### Task 7: Update example implementations
 
 **Files:**
+
 - Modify: `pkg/ability/example/interface.go`
 - Modify: `pkg/ability/example/descriptor.go:99-111`
 - Modify: `pkg/ability/example/example/adapter.go:72-84`

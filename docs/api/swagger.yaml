@@ -11,6 +11,8 @@ definitions:
     type: object
   ability.InvokeResult:
     properties:
+      _resource:
+        $ref: "#/definitions/ability.ResourceMeta"
       capability:
         $ref: "#/definitions/hub.CapabilityType"
       data: {}
@@ -40,6 +42,15 @@ definitions:
         type: string
       total:
         type: integer
+    type: object
+  ability.ResourceMeta:
+    properties:
+      app:
+        type: string
+      entity_id:
+        type: string
+      event_id:
+        type: string
     type: object
   hub.CapabilityType:
     enum:

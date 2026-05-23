@@ -74,6 +74,7 @@ func (ResourceLink) Indexes() []ent.Index {
 ### DAO layer
 
 New DAO in `internal/store/postgres/`:
+
 - `FindResourcesByTag(ctx, key, value string, limit int, cursor string) ([]*model.DataEvent, string, error)`
 - `FindResourceLinks(ctx, eventIDs []string) ([]*model.ResourceLink, error)`
 - `FindRelations(ctx, app, entityID string) (*model.ResourceRelations, error)`
@@ -134,7 +135,7 @@ Query all resources sharing the specified tag key-value. Returns:
 
 ```json
 {
-  "tag": {"key": "project", "value": "alpha"},
+  "tag": { "key": "project", "value": "alpha" },
   "resources": [
     {
       "entity_id": "bm-123",
@@ -146,8 +147,16 @@ Query all resources sharing the specified tag key-value. Returns:
   ],
   "links": [
     {
-      "source": {"entity_id": "bm-123", "app": "karakeep", "capability": "bookmark"},
-      "target": {"entity_id": "task-789", "app": "kanboard", "capability": "kanban"},
+      "source": {
+        "entity_id": "bm-123",
+        "app": "karakeep",
+        "capability": "bookmark"
+      },
+      "target": {
+        "entity_id": "task-789",
+        "app": "kanboard",
+        "capability": "kanban"
+      },
       "pipeline_name": "bookmark-to-kanban",
       "created_at": "2026-05-23T10:01:00Z"
     }
@@ -168,7 +177,7 @@ Returns upstream (what triggered this resource) and downstream (what this resour
   "upstream": [],
   "downstream": [
     {
-      "target": {"entity_id": "task-789", "app": "kanboard"},
+      "target": { "entity_id": "task-789", "app": "kanboard" },
       "pipeline_name": "bookmark-to-kanban"
     }
   ]
@@ -182,6 +191,7 @@ Returns upstream (what triggered this resource) and downstream (what this resour
 ### For new capability create handlers
 
 Each mutation handler should:
+
 1. Read `params["tags"]` (types.KV) and include it in the emitted DataEvent
 2. Populate `result.Resource` with the new resource's identity
 
@@ -293,14 +303,14 @@ func createExampleItem(ctx fiber.Ctx) error {
 
 ## Error Handling
 
-| Level | Scenario | Behavior |
-|-------|----------|----------|
-| Pipeline engine | `result.Resource` is nil | Skip link recording, no error |
-| Pipeline engine | `recordResourceLink` duplicate (retry) | UPSERT ON CONFLICT DO NOTHING, silent |
-| Capability handler | `params["tags"]` missing or wrong type | Ignore, create resource without tags |
-| DAO | JSONB query fails | Return `types.ErrInternal` |
-| API | Missing `key` or `value` param | Return 400 with protocol error code |
-| API | Tag not found | Return empty result (not 404) |
+| Level              | Scenario                               | Behavior                              |
+| ------------------ | -------------------------------------- | ------------------------------------- |
+| Pipeline engine    | `result.Resource` is nil               | Skip link recording, no error         |
+| Pipeline engine    | `recordResourceLink` duplicate (retry) | UPSERT ON CONFLICT DO NOTHING, silent |
+| Capability handler | `params["tags"]` missing or wrong type | Ignore, create resource without tags  |
+| DAO                | JSONB query fails                      | Return `types.ErrInternal`            |
+| API                | Missing `key` or `value` param         | Return 400 with protocol error code   |
+| API                | Tag not found                          | Return empty result (not 404)         |
 
 ---
 
@@ -308,12 +318,12 @@ func createExampleItem(ctx fiber.Ctx) error {
 
 ### Unit tests (table-driven TDD)
 
-| Package | Focus |
-|---------|-------|
-| `pkg/types` | `DataEvent.Tags` marshal/unmarshal, tag match helpers |
-| `pkg/pipeline` | Auto tag merge into params (no-step-tags, step-override, merge-collision), `recordResourceLink` call, `Resource` nil branch, idempotent link recording on retry |
-| `pkg/ability` | `InvokeResult.Resource` field passthrough |
-| `internal/modules/resourcechain` | Input validation, empty results, pagination cursor |
+| Package                          | Focus                                                                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pkg/types`                      | `DataEvent.Tags` marshal/unmarshal, tag match helpers                                                                                                           |
+| `pkg/pipeline`                   | Auto tag merge into params (no-step-tags, step-override, merge-collision), `recordResourceLink` call, `Resource` nil branch, idempotent link recording on retry |
+| `pkg/ability`                    | `InvokeResult.Resource` field passthrough                                                                                                                       |
+| `internal/modules/resourcechain` | Input validation, empty results, pagination cursor                                                                                                              |
 
 ### BDD integration tests (Ginkgo)
 

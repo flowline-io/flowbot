@@ -5,10 +5,10 @@ tasks:
     cmds:
       - task: tidy
       - task: swagger
-      - task: codegraph
       - task: format
       - task: lint
       - task: scc
+      - task: codegraph
       - echo "All checks completed"
 
   check:

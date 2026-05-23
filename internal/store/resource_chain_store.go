@@ -55,15 +55,15 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 	result := make([]*model.DataEvent, len(events))
 	for i, e := range events {
 		result[i] = &model.DataEvent{
-			EventID:   e.EventID,
-			EventType: e.EventType,
-			Source:    e.Source,
+			EventID:    e.EventID,
+			EventType:  e.EventType,
+			Source:     e.Source,
 			Capability: e.Capability,
-			Operation: e.Operation,
-			Backend:   e.Backend,
-			App:       e.App,
-			EntityID:  e.EntityID,
-			CreatedAt: e.CreatedAt,
+			Operation:  e.Operation,
+			Backend:    e.Backend,
+			App:        e.App,
+			EntityID:   e.EntityID,
+			CreatedAt:  e.CreatedAt,
 		}
 		if e.Data != nil {
 			result[i].Data = model.JSON(e.Data)

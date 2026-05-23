@@ -17,7 +17,9 @@ func (mockService) GetItem(_ context.Context, _ string) (*ability.Host, error) {
 func (mockService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
 	return nil, nil
 }
-func (mockService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) { return nil, nil }
+func (mockService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) {
+	return nil, nil
+}
 func (mockService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
 	return nil, nil
 }
