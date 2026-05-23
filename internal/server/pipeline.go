@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -33,6 +34,13 @@ func initPipeline(
 	ac *metrics.AbilityCollector,
 	auditor audit.Auditor,
 ) error {
+	// Initialize logger before pipeline logic so flog messages are visible at startup.
+	_ = initializeLog()
+
+	if err := initEventSourceManager(lc); err != nil {
+		return fmt.Errorf("init event source manager: %w", err)
+	}
+
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 	if len(pipelineDefs) == 0 {
 		flog.Info("no pipelines configured, skipping pipeline engine")
@@ -51,10 +59,6 @@ func initPipeline(
 	registerPipelineHandler(router, subscriber, engine, ec)
 
 	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
-
-	if err := initEventSourceManager(lc); err != nil {
-		return fmt.Errorf("init event source manager: %w", err)
-	}
 
 	return nil
 }
@@ -173,17 +177,27 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	srcMgr := ability.NewEventSourceManager(
 		func(ctx context.Context, events []types.DataEvent) error {
 			if store.Database == nil || store.Database.GetDB() == nil {
+				flog.Warn("event_source: emitter skipped, store.Database not ready")
 				return nil
 			}
 			client, ok := store.Database.GetDB().(*store.Client)
 			if !ok {
+				flog.Warn("event_source: emitter skipped, store.Database is not *store.Client")
 				return nil
 			}
 			eventStore := store.NewEventStore(client)
 			for _, de := range events {
-				_ = eventStore.AppendDataEvent(ctx, de)
-				_ = eventStore.AppendEventOutbox(ctx, de)
-				_ = event.PublishMessage(ctx, DataEventTopic, de)
+				flog.Debug("event_source: storing event %s type=%s source=%s", de.EventID, de.EventType, de.Source)
+				if err := eventStore.AppendDataEvent(ctx, de); err != nil {
+					flog.Error(fmt.Errorf("event_source: AppendDataEvent failed: %w", err))
+				}
+				if err := eventStore.AppendEventOutbox(ctx, de); err != nil {
+					flog.Error(fmt.Errorf("event_source: AppendEventOutbox failed: %w", err))
+				}
+				if err := event.PublishMessage(ctx, DataEventTopic, de); err != nil {
+					flog.Error(fmt.Errorf("event_source: PublishMessage to %s failed: %w", DataEventTopic, err))
+					return fmt.Errorf("event_source: publish failed: %w", err)
+				}
 			}
 			return nil
 		},
@@ -194,6 +208,9 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	if pool := ability.GetEventPool(); pool != nil {
 		srcMgr.SetPool(pool)
 	}
+
+	srcMgr.RegisterWebhook(exampleAdapter.NewExampleWebhook())
+	flog.Info("event source: registered example webhook on /webhook/provider/example")
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

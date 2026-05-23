@@ -23,6 +23,7 @@ flowbot-app.yaml
 flowbot-app.json
 /rules/
 /rules_bak/
+pipelines.yaml
 
 # Data & Database
 *.sqlite3

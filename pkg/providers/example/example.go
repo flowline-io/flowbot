@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	ID          = "example"
-	EndpointKey = "endpoint"
-	TokenKey    = "token"
+	ID                = "example"
+	EndpointKey       = "endpoint"
+	TokenKey          = "token"
+	WebhookSecretKey  = "webhook_secret"
 )
 
 // Example wraps the jsonplaceholder.typicode.com API client for demonstration purposes.
@@ -169,6 +170,15 @@ func (*Example) GetAccessToken(_ fiber.Ctx) (types.KV, error) {
 		"access_token": "example-token",
 		"scope":        "example:read example:write",
 	}, nil
+}
+
+// GetWebhookSecret reads the webhook HMAC secret from the example provider config.
+func GetWebhookSecret() string {
+	sec, err := providers.GetConfig(ID, WebhookSecretKey)
+	if err != nil {
+		return ""
+	}
+	return sec.String()
 }
 
 // OAuth interface compliance check.

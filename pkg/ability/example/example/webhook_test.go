@@ -13,18 +13,17 @@ import (
 func TestExampleWebhook_WebhookPath(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
-		secret string
-		want   string
+		name string
+		want string
 	}{
-		{name: "returns example path", secret: "test", want: "example"},
-		{name: "empty secret still returns path", secret: "", want: "example"},
-		{name: "consistent path", secret: "different", want: "example"},
+		{name: "returns example path", want: "example"},
+		{name: "consistent path", want: "example"},
+		{name: "always example", want: "example"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := NewExampleWebhook(tt.secret)
+			w := NewExampleWebhook()
 			assert.Equal(t, tt.want, w.WebhookPath())
 		})
 	}
@@ -67,11 +66,11 @@ func TestExampleWebhook_VerifySignature(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "empty secret skips verification",
+			name:    "empty secret returns error",
 			secret:  "",
 			headers: map[string]string{},
 			body:    body,
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "wrong header name",
@@ -84,7 +83,7 @@ func TestExampleWebhook_VerifySignature(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := NewExampleWebhook(tt.secret)
+			w := &ExampleWebhook{getSecret: func() string { return tt.secret }}
 			err := w.VerifySignature(tt.headers, tt.body)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -126,7 +125,7 @@ func TestExampleWebhook_Convert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := NewExampleWebhook("secret")
+			w := NewExampleWebhook()
 			events, err := w.Convert(tt.body, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -156,7 +155,7 @@ func TestExampleWebhook_Convert_EventType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := NewExampleWebhook("secret")
+			w := NewExampleWebhook()
 			payload := []byte(`{"event_type":"` + tt.eventType + `","entity_id":"` + tt.entityID + `"}`)
 			events, err := w.Convert(payload, nil)
 			require.NoError(t, err)
