@@ -537,6 +537,18 @@ func (f RateLimitFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.RateLimitMutation", m)
 }
 
+// The ResourceLinkFunc type is an adapter to allow the use of ordinary
+// function as ResourceLink mutator.
+type ResourceLinkFunc func(context.Context, *gen.ResourceLinkMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ResourceLinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ResourceLinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ResourceLinkMutation", m)
+}
+
 // The ReviewFunc type is an adapter to allow the use of ordinary
 // function as Review mutator.
 type ReviewFunc func(context.Context, *gen.ReviewMutation) (gen.Value, error)

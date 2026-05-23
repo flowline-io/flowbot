@@ -49,6 +49,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/step"
@@ -1332,6 +1333,48 @@ func init() {
 	ratelimit.DefaultUpdatedAt = ratelimitDescUpdatedAt.Default.(func() time.Time)
 	// ratelimit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ratelimit.UpdateDefaultUpdatedAt = ratelimitDescUpdatedAt.UpdateDefault.(func() time.Time)
+	resourcelinkFields := schema.ResourceLink{}.Fields()
+	_ = resourcelinkFields
+	// resourcelinkDescSourceEventID is the schema descriptor for source_event_id field.
+	resourcelinkDescSourceEventID := resourcelinkFields[1].Descriptor()
+	// resourcelink.SourceEventIDValidator is a validator for the "source_event_id" field. It is called by the builders before save.
+	resourcelink.SourceEventIDValidator = resourcelinkDescSourceEventID.Validators[0].(func(string) error)
+	// resourcelinkDescTargetEventID is the schema descriptor for target_event_id field.
+	resourcelinkDescTargetEventID := resourcelinkFields[2].Descriptor()
+	// resourcelink.TargetEventIDValidator is a validator for the "target_event_id" field. It is called by the builders before save.
+	resourcelink.TargetEventIDValidator = resourcelinkDescTargetEventID.Validators[0].(func(string) error)
+	// resourcelinkDescSourceApp is the schema descriptor for source_app field.
+	resourcelinkDescSourceApp := resourcelinkFields[3].Descriptor()
+	// resourcelink.DefaultSourceApp holds the default value on creation for the source_app field.
+	resourcelink.DefaultSourceApp = resourcelinkDescSourceApp.Default.(string)
+	// resourcelinkDescTargetApp is the schema descriptor for target_app field.
+	resourcelinkDescTargetApp := resourcelinkFields[4].Descriptor()
+	// resourcelink.DefaultTargetApp holds the default value on creation for the target_app field.
+	resourcelink.DefaultTargetApp = resourcelinkDescTargetApp.Default.(string)
+	// resourcelinkDescSourceCapability is the schema descriptor for source_capability field.
+	resourcelinkDescSourceCapability := resourcelinkFields[5].Descriptor()
+	// resourcelink.DefaultSourceCapability holds the default value on creation for the source_capability field.
+	resourcelink.DefaultSourceCapability = resourcelinkDescSourceCapability.Default.(string)
+	// resourcelinkDescTargetCapability is the schema descriptor for target_capability field.
+	resourcelinkDescTargetCapability := resourcelinkFields[6].Descriptor()
+	// resourcelink.DefaultTargetCapability holds the default value on creation for the target_capability field.
+	resourcelink.DefaultTargetCapability = resourcelinkDescTargetCapability.Default.(string)
+	// resourcelinkDescSourceEntityID is the schema descriptor for source_entity_id field.
+	resourcelinkDescSourceEntityID := resourcelinkFields[7].Descriptor()
+	// resourcelink.DefaultSourceEntityID holds the default value on creation for the source_entity_id field.
+	resourcelink.DefaultSourceEntityID = resourcelinkDescSourceEntityID.Default.(string)
+	// resourcelinkDescTargetEntityID is the schema descriptor for target_entity_id field.
+	resourcelinkDescTargetEntityID := resourcelinkFields[8].Descriptor()
+	// resourcelink.DefaultTargetEntityID holds the default value on creation for the target_entity_id field.
+	resourcelink.DefaultTargetEntityID = resourcelinkDescTargetEntityID.Default.(string)
+	// resourcelinkDescPipelineName is the schema descriptor for pipeline_name field.
+	resourcelinkDescPipelineName := resourcelinkFields[10].Descriptor()
+	// resourcelink.DefaultPipelineName holds the default value on creation for the pipeline_name field.
+	resourcelink.DefaultPipelineName = resourcelinkDescPipelineName.Default.(string)
+	// resourcelinkDescCreatedAt is the schema descriptor for created_at field.
+	resourcelinkDescCreatedAt := resourcelinkFields[11].Descriptor()
+	// resourcelink.DefaultCreatedAt holds the default value on creation for the created_at field.
+	resourcelink.DefaultCreatedAt = resourcelinkDescCreatedAt.Default.(func() time.Time)
 	reviewFields := schema.Review{}.Fields()
 	_ = reviewFields
 	// reviewDescUID is the schema descriptor for uid field.

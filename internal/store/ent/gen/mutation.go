@@ -56,6 +56,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/predicate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/step"
@@ -123,6 +124,7 @@ const (
 	TypePlatformUser        = "PlatformUser"
 	TypePollingState        = "PollingState"
 	TypeRateLimit           = "RateLimit"
+	TypeResourceLink        = "ResourceLink"
 	TypeReview              = "Review"
 	TypeReviewEvaluation    = "ReviewEvaluation"
 	TypeStep                = "Step"
@@ -35036,6 +35038,937 @@ func (m *RateLimitMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *RateLimitMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown RateLimit edge %s", name)
+}
+
+// ResourceLinkMutation represents an operation that mutates the ResourceLink nodes in the graph.
+type ResourceLinkMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	source_event_id    *string
+	target_event_id    *string
+	source_app         *string
+	target_app         *string
+	source_capability  *string
+	target_capability  *string
+	source_entity_id   *string
+	target_entity_id   *string
+	pipeline_run_id    *int64
+	addpipeline_run_id *int64
+	pipeline_name      *string
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*ResourceLink, error)
+	predicates         []predicate.ResourceLink
+}
+
+var _ ent.Mutation = (*ResourceLinkMutation)(nil)
+
+// resourcelinkOption allows management of the mutation configuration using functional options.
+type resourcelinkOption func(*ResourceLinkMutation)
+
+// newResourceLinkMutation creates new mutation for the ResourceLink entity.
+func newResourceLinkMutation(c config, op Op, opts ...resourcelinkOption) *ResourceLinkMutation {
+	m := &ResourceLinkMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeResourceLink,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withResourceLinkID sets the ID field of the mutation.
+func withResourceLinkID(id int64) resourcelinkOption {
+	return func(m *ResourceLinkMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ResourceLink
+		)
+		m.oldValue = func(ctx context.Context) (*ResourceLink, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ResourceLink.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withResourceLink sets the old ResourceLink of the mutation.
+func withResourceLink(node *ResourceLink) resourcelinkOption {
+	return func(m *ResourceLinkMutation) {
+		m.oldValue = func(context.Context) (*ResourceLink, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ResourceLinkMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ResourceLinkMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ResourceLink entities.
+func (m *ResourceLinkMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ResourceLinkMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ResourceLinkMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ResourceLink.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSourceEventID sets the "source_event_id" field.
+func (m *ResourceLinkMutation) SetSourceEventID(s string) {
+	m.source_event_id = &s
+}
+
+// SourceEventID returns the value of the "source_event_id" field in the mutation.
+func (m *ResourceLinkMutation) SourceEventID() (r string, exists bool) {
+	v := m.source_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceEventID returns the old "source_event_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldSourceEventID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceEventID: %w", err)
+	}
+	return oldValue.SourceEventID, nil
+}
+
+// ResetSourceEventID resets all changes to the "source_event_id" field.
+func (m *ResourceLinkMutation) ResetSourceEventID() {
+	m.source_event_id = nil
+}
+
+// SetTargetEventID sets the "target_event_id" field.
+func (m *ResourceLinkMutation) SetTargetEventID(s string) {
+	m.target_event_id = &s
+}
+
+// TargetEventID returns the value of the "target_event_id" field in the mutation.
+func (m *ResourceLinkMutation) TargetEventID() (r string, exists bool) {
+	v := m.target_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetEventID returns the old "target_event_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldTargetEventID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetEventID: %w", err)
+	}
+	return oldValue.TargetEventID, nil
+}
+
+// ResetTargetEventID resets all changes to the "target_event_id" field.
+func (m *ResourceLinkMutation) ResetTargetEventID() {
+	m.target_event_id = nil
+}
+
+// SetSourceApp sets the "source_app" field.
+func (m *ResourceLinkMutation) SetSourceApp(s string) {
+	m.source_app = &s
+}
+
+// SourceApp returns the value of the "source_app" field in the mutation.
+func (m *ResourceLinkMutation) SourceApp() (r string, exists bool) {
+	v := m.source_app
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceApp returns the old "source_app" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldSourceApp(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceApp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceApp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceApp: %w", err)
+	}
+	return oldValue.SourceApp, nil
+}
+
+// ResetSourceApp resets all changes to the "source_app" field.
+func (m *ResourceLinkMutation) ResetSourceApp() {
+	m.source_app = nil
+}
+
+// SetTargetApp sets the "target_app" field.
+func (m *ResourceLinkMutation) SetTargetApp(s string) {
+	m.target_app = &s
+}
+
+// TargetApp returns the value of the "target_app" field in the mutation.
+func (m *ResourceLinkMutation) TargetApp() (r string, exists bool) {
+	v := m.target_app
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetApp returns the old "target_app" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldTargetApp(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetApp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetApp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetApp: %w", err)
+	}
+	return oldValue.TargetApp, nil
+}
+
+// ResetTargetApp resets all changes to the "target_app" field.
+func (m *ResourceLinkMutation) ResetTargetApp() {
+	m.target_app = nil
+}
+
+// SetSourceCapability sets the "source_capability" field.
+func (m *ResourceLinkMutation) SetSourceCapability(s string) {
+	m.source_capability = &s
+}
+
+// SourceCapability returns the value of the "source_capability" field in the mutation.
+func (m *ResourceLinkMutation) SourceCapability() (r string, exists bool) {
+	v := m.source_capability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceCapability returns the old "source_capability" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldSourceCapability(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceCapability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceCapability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceCapability: %w", err)
+	}
+	return oldValue.SourceCapability, nil
+}
+
+// ResetSourceCapability resets all changes to the "source_capability" field.
+func (m *ResourceLinkMutation) ResetSourceCapability() {
+	m.source_capability = nil
+}
+
+// SetTargetCapability sets the "target_capability" field.
+func (m *ResourceLinkMutation) SetTargetCapability(s string) {
+	m.target_capability = &s
+}
+
+// TargetCapability returns the value of the "target_capability" field in the mutation.
+func (m *ResourceLinkMutation) TargetCapability() (r string, exists bool) {
+	v := m.target_capability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetCapability returns the old "target_capability" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldTargetCapability(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetCapability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetCapability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetCapability: %w", err)
+	}
+	return oldValue.TargetCapability, nil
+}
+
+// ResetTargetCapability resets all changes to the "target_capability" field.
+func (m *ResourceLinkMutation) ResetTargetCapability() {
+	m.target_capability = nil
+}
+
+// SetSourceEntityID sets the "source_entity_id" field.
+func (m *ResourceLinkMutation) SetSourceEntityID(s string) {
+	m.source_entity_id = &s
+}
+
+// SourceEntityID returns the value of the "source_entity_id" field in the mutation.
+func (m *ResourceLinkMutation) SourceEntityID() (r string, exists bool) {
+	v := m.source_entity_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceEntityID returns the old "source_entity_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldSourceEntityID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceEntityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceEntityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceEntityID: %w", err)
+	}
+	return oldValue.SourceEntityID, nil
+}
+
+// ResetSourceEntityID resets all changes to the "source_entity_id" field.
+func (m *ResourceLinkMutation) ResetSourceEntityID() {
+	m.source_entity_id = nil
+}
+
+// SetTargetEntityID sets the "target_entity_id" field.
+func (m *ResourceLinkMutation) SetTargetEntityID(s string) {
+	m.target_entity_id = &s
+}
+
+// TargetEntityID returns the value of the "target_entity_id" field in the mutation.
+func (m *ResourceLinkMutation) TargetEntityID() (r string, exists bool) {
+	v := m.target_entity_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetEntityID returns the old "target_entity_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldTargetEntityID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetEntityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetEntityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetEntityID: %w", err)
+	}
+	return oldValue.TargetEntityID, nil
+}
+
+// ResetTargetEntityID resets all changes to the "target_entity_id" field.
+func (m *ResourceLinkMutation) ResetTargetEntityID() {
+	m.target_entity_id = nil
+}
+
+// SetPipelineRunID sets the "pipeline_run_id" field.
+func (m *ResourceLinkMutation) SetPipelineRunID(i int64) {
+	m.pipeline_run_id = &i
+	m.addpipeline_run_id = nil
+}
+
+// PipelineRunID returns the value of the "pipeline_run_id" field in the mutation.
+func (m *ResourceLinkMutation) PipelineRunID() (r int64, exists bool) {
+	v := m.pipeline_run_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPipelineRunID returns the old "pipeline_run_id" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldPipelineRunID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPipelineRunID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPipelineRunID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPipelineRunID: %w", err)
+	}
+	return oldValue.PipelineRunID, nil
+}
+
+// AddPipelineRunID adds i to the "pipeline_run_id" field.
+func (m *ResourceLinkMutation) AddPipelineRunID(i int64) {
+	if m.addpipeline_run_id != nil {
+		*m.addpipeline_run_id += i
+	} else {
+		m.addpipeline_run_id = &i
+	}
+}
+
+// AddedPipelineRunID returns the value that was added to the "pipeline_run_id" field in this mutation.
+func (m *ResourceLinkMutation) AddedPipelineRunID() (r int64, exists bool) {
+	v := m.addpipeline_run_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPipelineRunID clears the value of the "pipeline_run_id" field.
+func (m *ResourceLinkMutation) ClearPipelineRunID() {
+	m.pipeline_run_id = nil
+	m.addpipeline_run_id = nil
+	m.clearedFields[resourcelink.FieldPipelineRunID] = struct{}{}
+}
+
+// PipelineRunIDCleared returns if the "pipeline_run_id" field was cleared in this mutation.
+func (m *ResourceLinkMutation) PipelineRunIDCleared() bool {
+	_, ok := m.clearedFields[resourcelink.FieldPipelineRunID]
+	return ok
+}
+
+// ResetPipelineRunID resets all changes to the "pipeline_run_id" field.
+func (m *ResourceLinkMutation) ResetPipelineRunID() {
+	m.pipeline_run_id = nil
+	m.addpipeline_run_id = nil
+	delete(m.clearedFields, resourcelink.FieldPipelineRunID)
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (m *ResourceLinkMutation) SetPipelineName(s string) {
+	m.pipeline_name = &s
+}
+
+// PipelineName returns the value of the "pipeline_name" field in the mutation.
+func (m *ResourceLinkMutation) PipelineName() (r string, exists bool) {
+	v := m.pipeline_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPipelineName returns the old "pipeline_name" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldPipelineName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPipelineName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPipelineName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPipelineName: %w", err)
+	}
+	return oldValue.PipelineName, nil
+}
+
+// ResetPipelineName resets all changes to the "pipeline_name" field.
+func (m *ResourceLinkMutation) ResetPipelineName() {
+	m.pipeline_name = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ResourceLinkMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ResourceLinkMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ResourceLink entity.
+// If the ResourceLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ResourceLinkMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ResourceLinkMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the ResourceLinkMutation builder.
+func (m *ResourceLinkMutation) Where(ps ...predicate.ResourceLink) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ResourceLinkMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ResourceLinkMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ResourceLink, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ResourceLinkMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ResourceLinkMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ResourceLink).
+func (m *ResourceLinkMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ResourceLinkMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.source_event_id != nil {
+		fields = append(fields, resourcelink.FieldSourceEventID)
+	}
+	if m.target_event_id != nil {
+		fields = append(fields, resourcelink.FieldTargetEventID)
+	}
+	if m.source_app != nil {
+		fields = append(fields, resourcelink.FieldSourceApp)
+	}
+	if m.target_app != nil {
+		fields = append(fields, resourcelink.FieldTargetApp)
+	}
+	if m.source_capability != nil {
+		fields = append(fields, resourcelink.FieldSourceCapability)
+	}
+	if m.target_capability != nil {
+		fields = append(fields, resourcelink.FieldTargetCapability)
+	}
+	if m.source_entity_id != nil {
+		fields = append(fields, resourcelink.FieldSourceEntityID)
+	}
+	if m.target_entity_id != nil {
+		fields = append(fields, resourcelink.FieldTargetEntityID)
+	}
+	if m.pipeline_run_id != nil {
+		fields = append(fields, resourcelink.FieldPipelineRunID)
+	}
+	if m.pipeline_name != nil {
+		fields = append(fields, resourcelink.FieldPipelineName)
+	}
+	if m.created_at != nil {
+		fields = append(fields, resourcelink.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ResourceLinkMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case resourcelink.FieldSourceEventID:
+		return m.SourceEventID()
+	case resourcelink.FieldTargetEventID:
+		return m.TargetEventID()
+	case resourcelink.FieldSourceApp:
+		return m.SourceApp()
+	case resourcelink.FieldTargetApp:
+		return m.TargetApp()
+	case resourcelink.FieldSourceCapability:
+		return m.SourceCapability()
+	case resourcelink.FieldTargetCapability:
+		return m.TargetCapability()
+	case resourcelink.FieldSourceEntityID:
+		return m.SourceEntityID()
+	case resourcelink.FieldTargetEntityID:
+		return m.TargetEntityID()
+	case resourcelink.FieldPipelineRunID:
+		return m.PipelineRunID()
+	case resourcelink.FieldPipelineName:
+		return m.PipelineName()
+	case resourcelink.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ResourceLinkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case resourcelink.FieldSourceEventID:
+		return m.OldSourceEventID(ctx)
+	case resourcelink.FieldTargetEventID:
+		return m.OldTargetEventID(ctx)
+	case resourcelink.FieldSourceApp:
+		return m.OldSourceApp(ctx)
+	case resourcelink.FieldTargetApp:
+		return m.OldTargetApp(ctx)
+	case resourcelink.FieldSourceCapability:
+		return m.OldSourceCapability(ctx)
+	case resourcelink.FieldTargetCapability:
+		return m.OldTargetCapability(ctx)
+	case resourcelink.FieldSourceEntityID:
+		return m.OldSourceEntityID(ctx)
+	case resourcelink.FieldTargetEntityID:
+		return m.OldTargetEntityID(ctx)
+	case resourcelink.FieldPipelineRunID:
+		return m.OldPipelineRunID(ctx)
+	case resourcelink.FieldPipelineName:
+		return m.OldPipelineName(ctx)
+	case resourcelink.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ResourceLink field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceLinkMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case resourcelink.FieldSourceEventID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceEventID(v)
+		return nil
+	case resourcelink.FieldTargetEventID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetEventID(v)
+		return nil
+	case resourcelink.FieldSourceApp:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceApp(v)
+		return nil
+	case resourcelink.FieldTargetApp:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetApp(v)
+		return nil
+	case resourcelink.FieldSourceCapability:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceCapability(v)
+		return nil
+	case resourcelink.FieldTargetCapability:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetCapability(v)
+		return nil
+	case resourcelink.FieldSourceEntityID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceEntityID(v)
+		return nil
+	case resourcelink.FieldTargetEntityID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetEntityID(v)
+		return nil
+	case resourcelink.FieldPipelineRunID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPipelineRunID(v)
+		return nil
+	case resourcelink.FieldPipelineName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPipelineName(v)
+		return nil
+	case resourcelink.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceLink field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ResourceLinkMutation) AddedFields() []string {
+	var fields []string
+	if m.addpipeline_run_id != nil {
+		fields = append(fields, resourcelink.FieldPipelineRunID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ResourceLinkMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case resourcelink.FieldPipelineRunID:
+		return m.AddedPipelineRunID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ResourceLinkMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case resourcelink.FieldPipelineRunID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPipelineRunID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceLink numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ResourceLinkMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(resourcelink.FieldPipelineRunID) {
+		fields = append(fields, resourcelink.FieldPipelineRunID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ResourceLinkMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ResourceLinkMutation) ClearField(name string) error {
+	switch name {
+	case resourcelink.FieldPipelineRunID:
+		m.ClearPipelineRunID()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceLink nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ResourceLinkMutation) ResetField(name string) error {
+	switch name {
+	case resourcelink.FieldSourceEventID:
+		m.ResetSourceEventID()
+		return nil
+	case resourcelink.FieldTargetEventID:
+		m.ResetTargetEventID()
+		return nil
+	case resourcelink.FieldSourceApp:
+		m.ResetSourceApp()
+		return nil
+	case resourcelink.FieldTargetApp:
+		m.ResetTargetApp()
+		return nil
+	case resourcelink.FieldSourceCapability:
+		m.ResetSourceCapability()
+		return nil
+	case resourcelink.FieldTargetCapability:
+		m.ResetTargetCapability()
+		return nil
+	case resourcelink.FieldSourceEntityID:
+		m.ResetSourceEntityID()
+		return nil
+	case resourcelink.FieldTargetEntityID:
+		m.ResetTargetEntityID()
+		return nil
+	case resourcelink.FieldPipelineRunID:
+		m.ResetPipelineRunID()
+		return nil
+	case resourcelink.FieldPipelineName:
+		m.ResetPipelineName()
+		return nil
+	case resourcelink.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ResourceLink field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ResourceLinkMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ResourceLinkMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ResourceLinkMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ResourceLinkMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ResourceLinkMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ResourceLinkMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ResourceLinkMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ResourceLink unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ResourceLinkMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ResourceLink edge %s", name)
 }
 
 // ReviewMutation represents an operation that mutates the Review nodes in the graph.

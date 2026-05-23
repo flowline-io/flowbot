@@ -1082,6 +1082,49 @@ var (
 		Columns:    RateLimitsColumns,
 		PrimaryKey: []*schema.Column{RateLimitsColumns[0]},
 	}
+	// ResourceLinksColumns holds the columns for the "resource_links" table.
+	ResourceLinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "source_event_id", Type: field.TypeString},
+		{Name: "target_event_id", Type: field.TypeString},
+		{Name: "source_app", Type: field.TypeString, Default: ""},
+		{Name: "target_app", Type: field.TypeString, Default: ""},
+		{Name: "source_capability", Type: field.TypeString, Default: ""},
+		{Name: "target_capability", Type: field.TypeString, Default: ""},
+		{Name: "source_entity_id", Type: field.TypeString, Default: ""},
+		{Name: "target_entity_id", Type: field.TypeString, Default: ""},
+		{Name: "pipeline_run_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "pipeline_name", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ResourceLinksTable holds the schema information for the "resource_links" table.
+	ResourceLinksTable = &schema.Table{
+		Name:       "resource_links",
+		Columns:    ResourceLinksColumns,
+		PrimaryKey: []*schema.Column{ResourceLinksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "resourcelink_source_app_source_entity_id",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[3], ResourceLinksColumns[7]},
+			},
+			{
+				Name:    "resourcelink_target_app_target_entity_id",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[4], ResourceLinksColumns[8]},
+			},
+			{
+				Name:    "resourcelink_source_event_id",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[1]},
+			},
+			{
+				Name:    "resourcelink_target_event_id",
+				Unique:  false,
+				Columns: []*schema.Column{ResourceLinksColumns[2]},
+			},
+		},
+	}
 	// ReviewsColumns holds the columns for the "reviews" table.
 	ReviewsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1469,6 +1512,7 @@ var (
 		PlatformUsersTable,
 		PollingStateTable,
 		RateLimitsTable,
+		ResourceLinksTable,
 		ReviewsTable,
 		ReviewEvaluationsTable,
 		StepsTable,
@@ -1619,6 +1663,9 @@ func init() {
 	}
 	RateLimitsTable.Annotation = &entsql.Annotation{
 		Table: "rate_limits",
+	}
+	ResourceLinksTable.Annotation = &entsql.Annotation{
+		Table: "resource_links",
 	}
 	ReviewsTable.ForeignKeys[0].RefTable = ObjectivesTable
 	ReviewsTable.Annotation = &entsql.Annotation{

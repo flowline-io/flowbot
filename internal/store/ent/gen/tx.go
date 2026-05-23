@@ -100,6 +100,8 @@ type Tx struct {
 	PollingState *PollingStateClient
 	// RateLimit is the client for interacting with the RateLimit builders.
 	RateLimit *RateLimitClient
+	// ResourceLink is the client for interacting with the ResourceLink builders.
+	ResourceLink *ResourceLinkClient
 	// Review is the client for interacting with the Review builders.
 	Review *ReviewClient
 	// ReviewEvaluation is the client for interacting with the ReviewEvaluation builders.
@@ -299,6 +301,7 @@ func (tx *Tx) init() {
 	tx.PlatformUser = NewPlatformUserClient(tx.config)
 	tx.PollingState = NewPollingStateClient(tx.config)
 	tx.RateLimit = NewRateLimitClient(tx.config)
+	tx.ResourceLink = NewResourceLinkClient(tx.config)
 	tx.Review = NewReviewClient(tx.config)
 	tx.ReviewEvaluation = NewReviewEvaluationClient(tx.config)
 	tx.Step = NewStepClient(tx.config)

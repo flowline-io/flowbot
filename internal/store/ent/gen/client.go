@@ -59,6 +59,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/step"
@@ -166,6 +167,8 @@ type Client struct {
 	PollingState *PollingStateClient
 	// RateLimit is the client for interacting with the RateLimit builders.
 	RateLimit *RateLimitClient
+	// ResourceLink is the client for interacting with the ResourceLink builders.
+	ResourceLink *ResourceLinkClient
 	// Review is the client for interacting with the Review builders.
 	Review *ReviewClient
 	// ReviewEvaluation is the client for interacting with the ReviewEvaluation builders.
@@ -245,6 +248,7 @@ func (c *Client) init() {
 	c.PlatformUser = NewPlatformUserClient(c.config)
 	c.PollingState = NewPollingStateClient(c.config)
 	c.RateLimit = NewRateLimitClient(c.config)
+	c.ResourceLink = NewResourceLinkClient(c.config)
 	c.Review = NewReviewClient(c.config)
 	c.ReviewEvaluation = NewReviewEvaluationClient(c.config)
 	c.Step = NewStepClient(c.config)
@@ -393,6 +397,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PlatformUser:        NewPlatformUserClient(cfg),
 		PollingState:        NewPollingStateClient(cfg),
 		RateLimit:           NewRateLimitClient(cfg),
+		ResourceLink:        NewResourceLinkClient(cfg),
 		Review:              NewReviewClient(cfg),
 		ReviewEvaluation:    NewReviewEvaluationClient(cfg),
 		Step:                NewStepClient(cfg),
@@ -468,6 +473,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PlatformUser:        NewPlatformUserClient(cfg),
 		PollingState:        NewPollingStateClient(cfg),
 		RateLimit:           NewRateLimitClient(cfg),
+		ResourceLink:        NewResourceLinkClient(cfg),
 		Review:              NewReviewClient(cfg),
 		ReviewEvaluation:    NewReviewEvaluationClient(cfg),
 		Step:                NewStepClient(cfg),
@@ -516,9 +522,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit, c.Review,
-		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
-		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit,
+		c.ResourceLink, c.Review, c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url,
+		c.User, c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
+		c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -535,9 +542,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
 		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
 		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit, c.Review,
-		c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow,
-		c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit,
+		c.ResourceLink, c.Review, c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url,
+		c.User, c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
+		c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -634,6 +642,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PollingState.mutate(ctx, m)
 	case *RateLimitMutation:
 		return c.RateLimit.mutate(ctx, m)
+	case *ResourceLinkMutation:
+		return c.ResourceLink.mutate(ctx, m)
 	case *ReviewMutation:
 		return c.Review.mutate(ctx, m)
 	case *ReviewEvaluationMutation:
@@ -6643,6 +6653,139 @@ func (c *RateLimitClient) mutate(ctx context.Context, m *RateLimitMutation) (Val
 	}
 }
 
+// ResourceLinkClient is a client for the ResourceLink schema.
+type ResourceLinkClient struct {
+	config
+}
+
+// NewResourceLinkClient returns a client for the ResourceLink from the given config.
+func NewResourceLinkClient(c config) *ResourceLinkClient {
+	return &ResourceLinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `resourcelink.Hooks(f(g(h())))`.
+func (c *ResourceLinkClient) Use(hooks ...Hook) {
+	c.hooks.ResourceLink = append(c.hooks.ResourceLink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `resourcelink.Intercept(f(g(h())))`.
+func (c *ResourceLinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ResourceLink = append(c.inters.ResourceLink, interceptors...)
+}
+
+// Create returns a builder for creating a ResourceLink entity.
+func (c *ResourceLinkClient) Create() *ResourceLinkCreate {
+	mutation := newResourceLinkMutation(c.config, OpCreate)
+	return &ResourceLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ResourceLink entities.
+func (c *ResourceLinkClient) CreateBulk(builders ...*ResourceLinkCreate) *ResourceLinkCreateBulk {
+	return &ResourceLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ResourceLinkClient) MapCreateBulk(slice any, setFunc func(*ResourceLinkCreate, int)) *ResourceLinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ResourceLinkCreateBulk{err: fmt.Errorf("calling to ResourceLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ResourceLinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ResourceLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ResourceLink.
+func (c *ResourceLinkClient) Update() *ResourceLinkUpdate {
+	mutation := newResourceLinkMutation(c.config, OpUpdate)
+	return &ResourceLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ResourceLinkClient) UpdateOne(_m *ResourceLink) *ResourceLinkUpdateOne {
+	mutation := newResourceLinkMutation(c.config, OpUpdateOne, withResourceLink(_m))
+	return &ResourceLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ResourceLinkClient) UpdateOneID(id int64) *ResourceLinkUpdateOne {
+	mutation := newResourceLinkMutation(c.config, OpUpdateOne, withResourceLinkID(id))
+	return &ResourceLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ResourceLink.
+func (c *ResourceLinkClient) Delete() *ResourceLinkDelete {
+	mutation := newResourceLinkMutation(c.config, OpDelete)
+	return &ResourceLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ResourceLinkClient) DeleteOne(_m *ResourceLink) *ResourceLinkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ResourceLinkClient) DeleteOneID(id int64) *ResourceLinkDeleteOne {
+	builder := c.Delete().Where(resourcelink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ResourceLinkDeleteOne{builder}
+}
+
+// Query returns a query builder for ResourceLink.
+func (c *ResourceLinkClient) Query() *ResourceLinkQuery {
+	return &ResourceLinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeResourceLink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ResourceLink entity by its id.
+func (c *ResourceLinkClient) Get(ctx context.Context, id int64) (*ResourceLink, error) {
+	return c.Query().Where(resourcelink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ResourceLinkClient) GetX(ctx context.Context, id int64) *ResourceLink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ResourceLinkClient) Hooks() []Hook {
+	return c.hooks.ResourceLink
+}
+
+// Interceptors returns the client interceptors.
+func (c *ResourceLinkClient) Interceptors() []Interceptor {
+	return c.inters.ResourceLink
+}
+
+func (c *ResourceLinkClient) mutate(ctx context.Context, m *ResourceLinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ResourceLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ResourceLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ResourceLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ResourceLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ResourceLink mutation op: %q", m.Op())
+	}
+}
+
 // ReviewClient is a client for the Review schema.
 type ReviewClient struct {
 	config
@@ -8408,8 +8551,8 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url,
-		User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
+		PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation, Step, Todo,
+		Topic, Url, User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
 		WorkflowTrigger []ent.Hook
 	}
 	inters struct {
@@ -8419,8 +8562,8 @@ type (
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
 		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
 		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, RateLimit, Review, ReviewEvaluation, Step, Todo, Topic, Url,
-		User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
+		PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation, Step, Todo,
+		Topic, Url, User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
 		WorkflowTrigger []ent.Interceptor
 	}
 )

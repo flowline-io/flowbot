@@ -138,6 +138,9 @@ type PollingState func(*sql.Selector)
 // RateLimit is the predicate function for ratelimit builders.
 type RateLimit func(*sql.Selector)
 
+// ResourceLink is the predicate function for resourcelink builders.
+type ResourceLink func(*sql.Selector)
+
 // Review is the predicate function for review builders.
 type Review func(*sql.Selector)
 
