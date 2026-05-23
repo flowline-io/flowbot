@@ -14,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
-	"github.com/flowline-io/flowbot/pkg/search"
 	"github.com/flowline-io/flowbot/pkg/trace"
 )
 
@@ -28,7 +27,6 @@ var Modules = fx.Options(
 		cache.NewCache,
 		rdb.NewClient,
 		cache.NewRedisStore,
-		search.NewClient,
 		event.NewRouter,
 		event.NewSubscriber,
 		event.NewPublisher,

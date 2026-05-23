@@ -14,10 +14,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/search"
 )
 
-func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ *search.Client, _ message.Publisher) {
+func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache, _ *redis.Client, _ message.Publisher) {
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
 			var err error
