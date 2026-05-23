@@ -17,7 +17,11 @@ func TestFormRules_Metadata(t *testing.T) {
 		test func(t *testing.T)
 	}{
 		{name: "should have exactly 1 form rule", test: func(t *testing.T) { t.Parallel(); assert.Len(t, formRules, 1) }},
-		{name: "should have correct ID", test: func(t *testing.T) { t.Parallel(); assert.Equal(t, exampleFormID, formRules[0].Id); assert.Equal(t, "example_form", exampleFormID) }},
+		{name: "should have correct ID", test: func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, exampleFormID, formRules[0].Id)
+			assert.Equal(t, "example_form", exampleFormID)
+		}},
 		{name: "should have non-empty title", test: func(t *testing.T) { t.Parallel(); assert.NotEmpty(t, formRules[0].Title) }},
 		{name: "should have 8 fields", test: func(t *testing.T) { t.Parallel(); assert.Len(t, formRules[0].Field, 8) }},
 		{name: "should have handler", test: func(t *testing.T) { t.Parallel(); assert.NotNil(t, formRules[0].Handler) }},
