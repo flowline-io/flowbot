@@ -40,7 +40,6 @@ flowbot.log
 
 # Scripts & Generated
 /script/
-/scripts/
 /templ/
 /cloc/
 /docs/website/docs/

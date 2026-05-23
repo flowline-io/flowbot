@@ -5,7 +5,7 @@ Quick start guide for installing and configuring Flowbot.
 ## Installation
 
 ```bash
-git clone https://github.com/anomalyco/flowbot
+git clone https://github.com/flowline-io/flowbot
 cd flowbot
 go tool task build
 ```
@@ -41,8 +41,37 @@ curl http://localhost:6060/readyz   # Readiness
 curl http://localhost:6060/startupz # Startup
 ```
 
-## CLI Tools
+## CLI
+
+Install the `flowbot` CLI binary from GitHub releases:
 
 ```bash
-go run ./cmd/cli workflow run ./docs/examples/workflows/save_and_track.yaml
+curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash
+```
+
+This installs the latest CLI to `/usr/local/bin/flowbot`.
+
+### Install a specific version
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash -s -- --version v0.40
+```
+
+### Skip checksum verification
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash -s -- --no-verify
+```
+
+### Install from source
+
+```bash
+go install github.com/flowline-io/flowbot/cmd/cli@latest
+```
+
+### Usage
+
+```bash
+flowbot --help
+flowbot workflow run ./docs/examples/workflows/save_and_track.yaml
 ```

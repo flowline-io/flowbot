@@ -142,6 +142,22 @@ docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
+### CLI
+
+Install the `flowbot` CLI from GitHub releases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash
+```
+
+Or install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash -s -- --version v0.40
+```
+
+The CLI is installed to `/usr/local/bin/flowbot`. Run `flowbot --help` to see available commands.
+
 ## Module Surface
 
 16 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.

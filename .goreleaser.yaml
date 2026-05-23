@@ -52,7 +52,7 @@ archives:
   - formats: ["binary"]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
-      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}
+      {{ .Binary }}_{{ .Os }}_{{ .Arch }}
 
 checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
