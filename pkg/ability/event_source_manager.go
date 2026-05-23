@@ -58,13 +58,14 @@ func NewEventSourceManager(
 	}
 }
 
-// RegisterPolling registers a polling resource with the given interval.
-func (m *EventSourceManager) RegisterPolling(r PollingResource, interval time.Duration) {
+// RegisterPolling registers a polling resource. The poll interval is derived from
+// the resource's DefaultInterval method.
+func (m *EventSourceManager) RegisterPolling(r PollingResource) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.pollers[r.ResourceName()] = &pollEntry{
 		resource:    r,
-		interval:    interval,
+		interval:    r.DefaultInterval(),
 		knownHashes: make(map[string]string),
 	}
 }

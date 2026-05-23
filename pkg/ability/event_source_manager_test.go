@@ -103,7 +103,7 @@ func TestEventSourceManager_RegisterPolling(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mgr := NewEventSourceManager(nil, nil, nil)
 			for _, name := range tt.resources {
-				mgr.RegisterPolling(&stubPollingResource{name: name}, 1*time.Minute)
+				mgr.RegisterPolling(&stubPollingResource{name: name, interval: 1 * time.Minute})
 			}
 			for _, name := range tt.resources {
 				if _, ok := mgr.pollers[name]; !ok {
@@ -127,7 +127,7 @@ func TestEventSourceManager_StartStop(t *testing.T) {
 	mgr.RegisterPolling(&stubPollingResource{
 		name: "test/rsrc", interval: time.Hour,
 		items: nil, cursor: "",
-	}, time.Hour)
+	})
 
 	err := mgr.Start(context.Background())
 	if err != nil {

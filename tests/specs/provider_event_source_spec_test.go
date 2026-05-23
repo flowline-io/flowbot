@@ -77,7 +77,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 		It("registers polling resource and starts without error", func() {
 			mgr := ability.NewEventSourceManager(nil, nil, nil)
 			r := &stubPollRes{name: "test/bookmarks"}
-			mgr.RegisterPolling(r, time.Hour)
+			mgr.RegisterPolling(r)
 			Expect(mgr.Start(context.Background())).To(Succeed())
 			Expect(mgr.Stop(context.Background())).To(Succeed())
 		})

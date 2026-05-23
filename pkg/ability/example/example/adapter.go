@@ -136,3 +136,8 @@ func (a *Adapter) ListRawEvents(ctx context.Context, cursor string) ([]any, stri
 	}
 	return result, next, nil
 }
+
+// NewExamplePoller creates an ExamplePoller wired with a default adapter.
+func NewExamplePoller() *exsvc.ExamplePoller {
+	return exsvc.NewExamplePoller(New())
+}
