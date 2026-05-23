@@ -252,8 +252,8 @@ func (j StepState) Value() (driver.Value, error) {
 type TriggerType string
 
 const (
-	TriggerCron    TriggerType = "cron"
-	TriggerManual  TriggerType = "manual"
+	TriggerCron   TriggerType = "cron"
+	TriggerManual TriggerType = "manual"
 )
 
 func (j TriggerType) Value() (driver.Value, error) {

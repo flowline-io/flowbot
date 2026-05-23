@@ -535,9 +535,9 @@ const (
 
 // WebhookAuth holds webhook authentication configuration.
 type WebhookAuth struct {
-	Token      string `json:"token" yaml:"token" mapstructure:"token"`
-	HMACSecret string `json:"hmac_secret" yaml:"hmac_secret" mapstructure:"hmac_secret"`
-	HMACHeader string `json:"hmac_header" yaml:"hmac_header" mapstructure:"hmac_header"`
+	Token       string `json:"token" yaml:"token" mapstructure:"token"`
+	HMACSecret  string `json:"hmac_secret" yaml:"hmac_secret" mapstructure:"hmac_secret"`
+	HMACHeader  string `json:"hmac_header" yaml:"hmac_header" mapstructure:"hmac_header"`
 	TokenHeader string `json:"token_header" yaml:"token_header" mapstructure:"token_header"`
 }
 

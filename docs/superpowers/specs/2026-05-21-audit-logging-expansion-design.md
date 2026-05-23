@@ -24,16 +24,16 @@ Define an `Auditor` interface implemented by the existing `AuditStore`. Inject t
 
 ### Components
 
-| Component    | File                            | Purpose                                              |
-| ------------ | ------------------------------- | ---------------------------------------------------- |
-| Auditor      | `pkg/audit/audit.go`            | Interface: `Record`, `RecordSuccess`, `RecordFailure`, `RecordRejected` |
-| Target       | `pkg/audit/audit.go`            | Struct: `Type` + `ID` for resource identification    |
-| Subject      | `pkg/audit/audit.go`            | Struct: actor identity extracted from `auth.Context` |
-| AuditStore   | `internal/store/audit_store.go` | Concrete implementation of `Auditor` (existing, refactored) |
-| Route        | `pkg/route/route.go`            | `Authorize` middleware writes auth-failure audits    |
-| Pipeline     | `pkg/pipeline/engine.go`        | Pipeline engine writes start/complete/fail audits    |
-| Workflow     | `pkg/workflow/workflow.go`      | Workflow engine writes start/complete/fail audits    |
-| Handlers     | `internal/server/`              | CRUD handlers write mutation audits                  |
+| Component  | File                            | Purpose                                                                 |
+| ---------- | ------------------------------- | ----------------------------------------------------------------------- |
+| Auditor    | `pkg/audit/audit.go`            | Interface: `Record`, `RecordSuccess`, `RecordFailure`, `RecordRejected` |
+| Target     | `pkg/audit/audit.go`            | Struct: `Type` + `ID` for resource identification                       |
+| Subject    | `pkg/audit/audit.go`            | Struct: actor identity extracted from `auth.Context`                    |
+| AuditStore | `internal/store/audit_store.go` | Concrete implementation of `Auditor` (existing, refactored)             |
+| Route      | `pkg/route/route.go`            | `Authorize` middleware writes auth-failure audits                       |
+| Pipeline   | `pkg/pipeline/engine.go`        | Pipeline engine writes start/complete/fail audits                       |
+| Workflow   | `pkg/workflow/workflow.go`      | Workflow engine writes start/complete/fail audits                       |
+| Handlers   | `internal/server/`              | CRUD handlers write mutation audits                                     |
 
 ### Auditor Interface
 
@@ -76,24 +76,24 @@ type Target struct {
 
 Hierarchical, dot-separated: `{domain}.{resource}.{operation}`.
 
-| Domain         | Actions                                                                 |
-| -------------- | ----------------------------------------------------------------------- |
-| Auth           | `auth.token.create`, `auth.token.revoke`, `auth.token.validate.fail`, `auth.scope.deny` |
-| CRUD           | `app.create`, `app.delete`, `app.update`, `pipeline.create`, `pipeline.update`, `pipeline.delete`, `workflow.create`, `workflow.update`, `workflow.delete`, `webhook.create`, `webhook.delete`, `config.change` |
-| Pipeline/Flow  | `pipeline.start`, `pipeline.complete`, `pipeline.fail`, `workflow.start`, `workflow.complete`, `workflow.fail` |
-| Webhook        | `webhook.receive`, `webhook.receive.fail`                               |
+| Domain        | Actions                                                                                                                                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth          | `auth.token.create`, `auth.token.revoke`, `auth.token.validate.fail`, `auth.scope.deny`                                                                                                                         |
+| CRUD          | `app.create`, `app.delete`, `app.update`, `pipeline.create`, `pipeline.update`, `pipeline.delete`, `workflow.create`, `workflow.update`, `workflow.delete`, `webhook.create`, `webhook.delete`, `config.change` |
+| Pipeline/Flow | `pipeline.start`, `pipeline.complete`, `pipeline.fail`, `workflow.start`, `workflow.complete`, `workflow.fail`                                                                                                  |
+| Webhook       | `webhook.receive`, `webhook.receive.fail`                                                                                                                                                                       |
 
 ### Data Model
 
 The `audit_logs` table (Ent schema) is unchanged:
 
-| Column       | Source                                      |
-| ------------ | ------------------------------------------- |
-| `action`     | `Entry.Action`                              |
-| `target_type`| `Target.Type`                               |
-| `target_id`  | `Target.ID`                                 |
-| `actor_uid`  | `"{Subject.SubjectType}:{Subject.SubjectID}"` |
-| `details`    | JSON: subject metadata, IP, UA, request snapshot, error, result |
+| Column        | Source                                                          |
+| ------------- | --------------------------------------------------------------- |
+| `action`      | `Entry.Action`                                                  |
+| `target_type` | `Target.Type`                                                   |
+| `target_id`   | `Target.ID`                                                     |
+| `actor_uid`   | `"{Subject.SubjectType}:{Subject.SubjectID}"`                   |
+| `details`     | JSON: subject metadata, IP, UA, request snapshot, error, result |
 
 `details` JSON structure:
 
@@ -155,25 +155,25 @@ Audit write failures are logged via `flog.Warn` and do not block the caller. The
 
 ### Edge Cases
 
-| Scenario                  | Behavior                                        |
-| ------------------------- | ----------------------------------------------- |
-| `AuditStore` is nil       | Silent skip (existing behavior)                 |
-| No `auth.Context` in ctx  | Empty `actor_uid = ":"`, no metadata in details |
-| Pipeline with system ctx  | Uses `SystemPipelineContext()` → `actor_uid = "pipeline:"` |
-| Workflow with system ctx  | Uses `SystemWorkflowContext()` → `actor_uid = "workflow:"` |
-| Concurrent writes         | Ent connection pool, no special handling needed |
-| Empty Target              | Allowed; `target_type` and `target_id` are empty strings |
+| Scenario                 | Behavior                                                   |
+| ------------------------ | ---------------------------------------------------------- |
+| `AuditStore` is nil      | Silent skip (existing behavior)                            |
+| No `auth.Context` in ctx | Empty `actor_uid = ":"`, no metadata in details            |
+| Pipeline with system ctx | Uses `SystemPipelineContext()` → `actor_uid = "pipeline:"` |
+| Workflow with system ctx | Uses `SystemWorkflowContext()` → `actor_uid = "workflow:"` |
+| Concurrent writes        | Ent connection pool, no special handling needed            |
+| Empty Target             | Allowed; `target_type` and `target_id` are empty strings   |
 
 ### Testing
 
 #### Unit Tests (`*_test.go` co-located)
 
-| File                               | Coverage                                                  |
-| ---------------------------------- | --------------------------------------------------------- |
+| File                                 | Coverage                                                                                 |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
 | `internal/store/audit_store_test.go` | `AuditStore` satisfies `Auditor`; Subject extraction; nil-safe; details JSON correctness |
-| `pkg/route/route_test.go`          | `Authorize` writes auth-failure audits; scope-denial audits |
-| `pkg/pipeline/engine_test.go`      | Engine calls Auditor on start/complete/fail               |
-| `pkg/workflow/workflow_test.go`    | Engine calls Auditor on start/complete/fail               |
+| `pkg/route/route_test.go`            | `Authorize` writes auth-failure audits; scope-denial audits                              |
+| `pkg/pipeline/engine_test.go`        | Engine calls Auditor on start/complete/fail                                              |
+| `pkg/workflow/workflow_test.go`      | Engine calls Auditor on start/complete/fail                                              |
 
 #### BDD Acceptance Tests (`tests/`)
 
@@ -184,14 +184,14 @@ Audit write failures are logged via `flog.Warn` and do not block the caller. The
 
 ### Refactoring Impact
 
-| Existing code                          | Change                                                        |
-| -------------------------------------- | ------------------------------------------------------------- |
-| `AuditStore.Success()`                 | Rename to `RecordSuccess()`, adjust callers                   |
-| `AuditStore.Failed()`                  | Rename to `RecordFailure()`, adjust callers                   |
-| `AuditStore.Rejected()`                | Rename to `RecordRejected()`, adjust callers                  |
-| `AuditStore.Write()`                   | Remove from `Auditor` interface, keep internal                |
-| `internal/server/hub.go`               | Replace direct `AuditStore` calls with injected `Auditor`     |
-| `pkg/pipeline/engine.go`               | Add `auditor audit.Auditor` field to `PipelineEngine` struct  |
-| `pkg/workflow/workflow.go`             | Add `auditor audit.Auditor` field to `WorkflowEngine` struct  |
-| `pkg/route/route.go`                   | Add `auditor audit.Auditor` field, wire into `Authorize`      |
-| `cmd/` entry points                    | Wire auditStore into all four injection points                |
+| Existing code              | Change                                                       |
+| -------------------------- | ------------------------------------------------------------ |
+| `AuditStore.Success()`     | Rename to `RecordSuccess()`, adjust callers                  |
+| `AuditStore.Failed()`      | Rename to `RecordFailure()`, adjust callers                  |
+| `AuditStore.Rejected()`    | Rename to `RecordRejected()`, adjust callers                 |
+| `AuditStore.Write()`       | Remove from `Auditor` interface, keep internal               |
+| `internal/server/hub.go`   | Replace direct `AuditStore` calls with injected `Auditor`    |
+| `pkg/pipeline/engine.go`   | Add `auditor audit.Auditor` field to `PipelineEngine` struct |
+| `pkg/workflow/workflow.go` | Add `auditor audit.Auditor` field to `WorkflowEngine` struct |
+| `pkg/route/route.go`       | Add `auditor audit.Auditor` field, wire into `Authorize`     |
+| `cmd/` entry points        | Wire auditStore into all four injection points               |

@@ -4,11 +4,11 @@
 
 Three independent backoff/retry implementations share the `cenkalti/backoff` v2 library, but differ in loop logic, config types, and retry decisions:
 
-| Location | Config Type | Retry Loop Lines | Unique Logic |
-|---|---|---|---|
-| `pkg/pipeline/engine.go` | `types.RetryConfig` | ~40 lines | `isRetryable()` + `RetryOn` code filtering |
-| `pkg/workflow/workflow.go` | `types.RetryConfig` | ~70 lines (two functions) | `runWithRetry()` + `runEngineWithRetry()` |
-| `pkg/event/middleware.go` | `event.Retry` (custom) | ~60 lines | `MaxElapsedTime` + `OnRetryHook` |
+| Location                   | Config Type            | Retry Loop Lines          | Unique Logic                               |
+| -------------------------- | ---------------------- | ------------------------- | ------------------------------------------ |
+| `pkg/pipeline/engine.go`   | `types.RetryConfig`    | ~40 lines                 | `isRetryable()` + `RetryOn` code filtering |
+| `pkg/workflow/workflow.go` | `types.RetryConfig`    | ~70 lines (two functions) | `runWithRetry()` + `runEngineWithRetry()`  |
+| `pkg/event/middleware.go`  | `event.Retry` (custom) | ~60 lines                 | `MaxElapsedTime` + `OnRetryHook`           |
 
 Pipeline and workflow share `types.RetryConfig.BuildBackOff()` for delay computation, but their retry loops are near-identical copy-paste. The event module is entirely separate and does not use `types.RetryConfig`.
 
@@ -50,6 +50,7 @@ func Middleware(cfg Config, logger watermill.LoggerAdapter) message.HandlerMiddl
 ```
 
 **Key design principles**:
+
 - `Do` is the single retry loop implementation. Pipeline, workflow, and event no longer maintain their own loops.
 - `Config` aggregates all existing differentiated fields (`RetryOn`, `MaxElapsedTime`, `OnRetry`).
 - Zero-value semantics: `MaxAttempts=0` means no retry; `Multiplier=0` defaults to 2.0; `MaxElapsedTime=0` means no time limit.
@@ -110,18 +111,19 @@ Maps existing `RetryConfig` fields to `backoff.Config`. Kept in `pkg/types/workf
 
 ## Migration Plan
 
-| Module | Current Code | After Migration |
-|---|---|---|
-| `pkg/pipeline/engine.go:executeStep()` | Inline ~40 line retry loop | `backoff.Do(ctx, cfg, fn)` |
-| `pkg/pipeline/engine.go:isRetryable()` | ~30 lines pipeline-private | Moved into `pkg/backoff/shouldRetry()` |
-| `pkg/workflow/workflow.go:runWithRetry()` | ~35 lines | `backoff.Do(ctx, cfg, fn)` |
-| `pkg/workflow/workflow.go:runEngineWithRetry()` | ~35 lines | Merged into above, separate function no longer needed |
-| `pkg/event/middleware.go` | ~100 lines `event.Retry` + `Middleware()` | `backoff.Middleware(cfg, logger)` |
-| `pkg/types/workflow.go` | `BuildBackOff()` + `RetryEnabled()` | Add `ToBackoffConfig()`, mark old methods deprecated |
-| `pkg/event/pubsub.go` | `event.Retry{...}` construction | `backoff.Config{...}` construction |
-| `pkg/pipeline/loader.go` | `convertRetryConfig()` returns `*types.RetryConfig` | Returns `backoff.Config` |
+| Module                                          | Current Code                                        | After Migration                                       |
+| ----------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| `pkg/pipeline/engine.go:executeStep()`          | Inline ~40 line retry loop                          | `backoff.Do(ctx, cfg, fn)`                            |
+| `pkg/pipeline/engine.go:isRetryable()`          | ~30 lines pipeline-private                          | Moved into `pkg/backoff/shouldRetry()`                |
+| `pkg/workflow/workflow.go:runWithRetry()`       | ~35 lines                                           | `backoff.Do(ctx, cfg, fn)`                            |
+| `pkg/workflow/workflow.go:runEngineWithRetry()` | ~35 lines                                           | Merged into above, separate function no longer needed |
+| `pkg/event/middleware.go`                       | ~100 lines `event.Retry` + `Middleware()`           | `backoff.Middleware(cfg, logger)`                     |
+| `pkg/types/workflow.go`                         | `BuildBackOff()` + `RetryEnabled()`                 | Add `ToBackoffConfig()`, mark old methods deprecated  |
+| `pkg/event/pubsub.go`                           | `event.Retry{...}` construction                     | `backoff.Config{...}` construction                    |
+| `pkg/pipeline/loader.go`                        | `convertRetryConfig()` returns `*types.RetryConfig` | Returns `backoff.Config`                              |
 
 **Kept unchanged**:
+
 - `pkg/types/errors.go` `Error.Retryable` field — `shouldRetry` continues to use it.
 - `pkg/metrics/pipeline.go` / `pkg/metrics/workflow.go` `IncStepRetry()` counters — callers track after `Do` returns.
 - All BDD and unit tests — update imports, behavior unchanged.

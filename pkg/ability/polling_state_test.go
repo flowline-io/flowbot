@@ -6,9 +6,9 @@ import (
 )
 
 type mockPersistence struct {
-	data        map[string]PollingEntry
-	saveCalls   []saveCall
-	loadAllErr  error
+	data       map[string]PollingEntry
+	saveCalls  []saveCall
+	loadAllErr error
 }
 
 type saveCall struct {

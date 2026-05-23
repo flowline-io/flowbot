@@ -34,6 +34,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lithammer/shortuuid/v4 v4.2.0
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/maxence-charriere/go-app/v10 v10.1.11
 	github.com/meilisearch/meilisearch-go v0.36.2
 	github.com/microcosm-cc/bluemonday v1.0.27
@@ -394,7 +395,6 @@ require (
 	github.com/mattn/go-mastodon v0.0.10 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mattn/go-shellwords v1.0.12 // indirect
-	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/mgechev/dots v1.0.0 // indirect
 	github.com/mgechev/revive v1.14.0 // indirect
 	github.com/mholt/archives v0.1.2 // indirect

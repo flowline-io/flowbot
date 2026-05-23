@@ -21,13 +21,13 @@ Introduce a bulkhead pattern: a semaphore per capability with bounded concurrenc
 
 ### Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Isolation granularity | Per capability | True bulkhead: a slow provider blocks only itself |
-| Full behavior | Queue + timeout | Avoids immediate failure for transient spikes |
-| Timeout source | Hardcoded 30s default | Simple, consistent, no config burden |
-| Semaphore size | `GOMAXPROCS * 4` | Scales with machine, I/O-bound work benefits from oversubscription |
-| Queue capacity | Same as semaphore (`GOMAXPROCS * 4`) | 2x total waiting capacity feels appropriate short of data |
+| Decision              | Choice                               | Rationale                                                          |
+| --------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| Isolation granularity | Per capability                       | True bulkhead: a slow provider blocks only itself                  |
+| Full behavior         | Queue + timeout                      | Avoids immediate failure for transient spikes                      |
+| Timeout source        | Hardcoded 30s default                | Simple, consistent, no config burden                               |
+| Semaphore size        | `GOMAXPROCS * 4`                     | Scales with machine, I/O-bound work benefits from oversubscription |
+| Queue capacity        | Same as semaphore (`GOMAXPROCS * 4`) | 2x total waiting capacity feels appropriate short of data          |
 
 ## Architecture
 
@@ -87,11 +87,11 @@ var (
 
 Mapping in `ability.Invoke()`:
 
-| Bulkhead error | Returned error |
-|----------------|----------------|
-| `ErrBulkheadFull` | `types.Errorf(types.ErrRateLimited, ...)` |
-| `ErrBulkheadTimeout` | `types.Errorf(types.ErrTimeout, ...)` |
-| `ctx.Err()` | wrapped `ctx.Err()` |
+| Bulkhead error       | Returned error                            |
+| -------------------- | ----------------------------------------- |
+| `ErrBulkheadFull`    | `types.Errorf(types.ErrRateLimited, ...)` |
+| `ErrBulkheadTimeout` | `types.Errorf(types.ErrTimeout, ...)`     |
+| `ctx.Err()`          | wrapped `ctx.Err()`                       |
 
 Both errors are marked `Retryable: true` so `pkg/backoff/` retries them.
 
@@ -99,25 +99,25 @@ Both errors are marked `Retryable: true` so `pkg/backoff/` retries them.
 
 Added to `AbilityCollector` in `pkg/metrics/ability.go`:
 
-| Method | Prometheus metric | Type |
-|--------|-------------------|------|
-| `IncBulkheadQueued` / `DecBulkheadQueued` | `ability_bulkhead_queued` | Gauge (capability label) |
-| `IncBulkheadActive` / `DecBulkheadActive` | `ability_bulkhead_active` | Gauge (capability label) |
-| `IncBulkheadDropped` | `ability_bulkhead_dropped_total` | Counter (capability, reason) |
-| `ObserveBulkheadWaitDuration` | `ability_bulkhead_wait_seconds` | Histogram (capability) |
+| Method                                    | Prometheus metric                | Type                         |
+| ----------------------------------------- | -------------------------------- | ---------------------------- |
+| `IncBulkheadQueued` / `DecBulkheadQueued` | `ability_bulkhead_queued`        | Gauge (capability label)     |
+| `IncBulkheadActive` / `DecBulkheadActive` | `ability_bulkhead_active`        | Gauge (capability label)     |
+| `IncBulkheadDropped`                      | `ability_bulkhead_dropped_total` | Counter (capability, reason) |
+| `ObserveBulkheadWaitDuration`             | `ability_bulkhead_wait_seconds`  | Histogram (capability)       |
 
 Logging: `flog.Warn` on dropped events only. Normal execution produces no log output.
 
 ## Files
 
-| File | Change |
-|------|--------|
-| `pkg/bulkhead/bulkhead.go` | New: `Bulkhead` struct, `Do` method, sentinel errors |
-| `pkg/bulkhead/bulkhead_test.go` | New: TDD unit tests |
-| `pkg/bulkhead/manager.go` | New: global registry, `Get` function, default config |
-| `pkg/metrics/ability.go` | Modify: add bulkhead gauge, counter, histogram |
-| `pkg/ability/invoke.go` | Modify: wrap `invoker` call with `bulkhead.Get(...).Do(...)` |
-| `pkg/types/errors.go` | No change needed — existing `ErrRateLimited` / `ErrTimeout` suffice |
+| File                            | Change                                                              |
+| ------------------------------- | ------------------------------------------------------------------- |
+| `pkg/bulkhead/bulkhead.go`      | New: `Bulkhead` struct, `Do` method, sentinel errors                |
+| `pkg/bulkhead/bulkhead_test.go` | New: TDD unit tests                                                 |
+| `pkg/bulkhead/manager.go`       | New: global registry, `Get` function, default config                |
+| `pkg/metrics/ability.go`        | Modify: add bulkhead gauge, counter, histogram                      |
+| `pkg/ability/invoke.go`         | Modify: wrap `invoker` call with `bulkhead.Get(...).Do(...)`        |
+| `pkg/types/errors.go`           | No change needed — existing `ErrRateLimited` / `ErrTimeout` suffice |
 
 ## Testing
 

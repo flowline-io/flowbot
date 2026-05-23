@@ -13,6 +13,7 @@
 ### Task 0: Add CapExample Capability Type and Auth Scopes
 
 **Files:**
+
 - Modify: `pkg/hub/capability.go`
 - Modify: `pkg/auth/scope.go`
 
@@ -32,6 +33,7 @@
 ```
 
 Also add to the scopes list in `scope.go`:
+
 ```go
 	{Value: ScopeServiceExampleRead, Description: "read example"},
 	{Value: ScopeServiceExampleWrite, Description: "write example"},
@@ -54,6 +56,7 @@ git commit -m "feat: add CapExample capability type and auth scopes"
 ### Task 1: Provider Types
 
 **Files:**
+
 - Create: `pkg/providers/example/types.go`
 
 - [ ] **Step 1: Create types.go with response, query, and webhook payload types**
@@ -124,6 +127,7 @@ git commit -m "feat(providers/example): add types for httpbin response, webhook 
 ### Task 2: Provider Implementation
 
 **Files:**
+
 - Create: `pkg/providers/example/example.go`
 
 - [ ] **Step 1: Create example.go with provider struct, GetClient, NewExample, API methods, OAuth**
@@ -326,6 +330,7 @@ git commit -m "feat(providers/example): implement provider with httpbin CRUD, OA
 ### Task 3: Provider Tests
 
 **Files:**
+
 - Create: `pkg/providers/example/example_test.go`
 
 - [ ] **Step 1: Write TDD tests for provider methods**
@@ -787,6 +792,7 @@ git commit -m "test(providers/example): add TDD tests for provider CRUD, OAuth, 
 ### Task 4: Ability Interface
 
 **Files:**
+
 - Create: `pkg/ability/example/interface.go`
 
 - [ ] **Step 1: Create interface.go with Service interface and query types**
@@ -836,6 +842,7 @@ git commit -m "feat(ability/example): add Service interface for example capabili
 ### Task 5: Ability Descriptor + RegisterService
 
 **Files:**
+
 - Create: `pkg/ability/example/descriptor.go`
 
 - [ ] **Step 1: Create descriptor.go with operation constants, Descriptor, RegisterService, invokers**
@@ -1014,6 +1021,7 @@ git commit -m "feat(ability/example): add Descriptor + RegisterService with invo
 ### Task 6: Ability Descriptor Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/descriptor_test.go`
 
 - [ ] **Step 1: Write TDD tests for descriptor and operation constants**
@@ -1137,6 +1145,7 @@ git commit -m "test(ability/example): add TDD tests for Descriptor and RegisterS
 ### Task 7: Ability WebhookConverter
 
 **Files:**
+
 - Create: `pkg/ability/example/webhook.go`
 
 - [ ] **Step 1: Create webhook.go with WebhookConverter implementation**
@@ -1226,6 +1235,7 @@ git commit -m "feat(ability/example): add WebhookConverter implementation"
 ### Task 8: Ability WebhookConverter Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/webhook_test.go`
 
 - [ ] **Step 1: Write TDD tests for webhook converter**
@@ -1424,6 +1434,7 @@ git commit -m "test(ability/example): add TDD tests for WebhookConverter"
 ### Task 9: Ability PollingResource
 
 **Files:**
+
 - Create: `pkg/ability/example/poller.go`
 
 - [ ] **Step 1: Create poller.go with PollingResource implementation**
@@ -1521,6 +1532,7 @@ git commit -m "feat(ability/example): add PollingResource implementation"
 ### Task 10: Ability PollingResource Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/poller_test.go`
 
 - [ ] **Step 1: Write TDD tests for poller**
@@ -1697,6 +1709,7 @@ git commit -m "test(ability/example): add TDD tests for PollingResource"
 ### Task 11: Ability Conformance Framework
 
 **Files:**
+
 - Create: `pkg/ability/example/conformance.go`
 
 - [ ] **Step 1: Create conformance.go with RunExampleConformance**
@@ -1916,6 +1929,7 @@ git commit -m "feat(ability/example): add RunExampleConformance test harness"
 ### Task 12: Ability Conformance Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/conformance_test.go`
 
 - [ ] **Step 1: Write conformance self-tests**
@@ -1988,6 +2002,7 @@ git commit -m "test(ability/example): add conformance self-tests"
 ### Task 13: Ability Adapter
 
 **Files:**
+
 - Create: `pkg/ability/example/example/adapter.go`
 
 - [ ] **Step 1: Create adapter.go — concrete Service implementation wrapping provider**
@@ -2149,6 +2164,7 @@ git commit -m "feat(ability/example/example): add adapter implementing Service v
 ### Task 14: Adapter Unit Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/example/adapter_test.go`
 
 - [ ] **Step 1: Write TDD tests for adapter methods**
@@ -2414,6 +2430,7 @@ git commit -m "test(ability/example/example): add TDD tests for adapter"
 ### Task 15: Adapter Conformance BDD Tests
 
 **Files:**
+
 - Create: `pkg/ability/example/example/conformance_test.go`
 
 - [ ] **Step 1: Write conformance test using RunExampleConformance**
@@ -2504,6 +2521,7 @@ git commit -m "test(ability/example/example): add conformance BDD tests"
 ### Task 16: Module — Update module.go with ability wiring
 
 **Files:**
+
 - Modify: `internal/modules/example/module.go`
 
 - [ ] **Step 1: Update module.go Init() to wire ability+provider in Init()**
@@ -2520,6 +2538,7 @@ import (
 ```
 
 Modify the `Init()` function to add after `handler.initialized = true`:
+
 ```go
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if handler.initialized {
@@ -2545,6 +2564,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 ```
 
 Update `Rules()` to include `webhookRules`:
+
 ```go
 func (moduleHandler) Rules() []any {
 	return []any{
@@ -2579,6 +2599,7 @@ git commit -m "feat(modules/example): wire ability adapter in Init(), add webhoo
 ### Task 17: Module — Update webservice.go with REST routes
 
 **Files:**
+
 - Modify: `internal/modules/example/webservice.go`
 
 - [ ] **Step 1: Add new REST routes for the example capability**
@@ -2674,6 +2695,7 @@ func deleteExampleItem(ctx fiber.Ctx) error {
 ```
 
 Add new imports to the existing import block:
+
 ```go
 import (
 	// ... existing imports ...
@@ -2704,11 +2726,12 @@ git commit -m "feat(modules/example): add REST routes for example capability"
 ### Task 18: Module — Add webhook routes
 
 **Files:**
+
 - Create: `internal/modules/example/webhook.go`
 
 - [ ] **Step 1: Create webhook.go with webhook rule**
 
-Note: The module's Init() doesn't have access to `EventSourceManager`. For a full demonstration, the webhook rule can be registered but the actual `EventSourceManager` reference would come from server-level wiring. For the example module, we demonstrate the webhook route pattern and note where EventSourceManager registration would occur. 
+Note: The module's Init() doesn't have access to `EventSourceManager`. For a full demonstration, the webhook rule can be registered but the actual `EventSourceManager` reference would come from server-level wiring. For the example module, we demonstrate the webhook route pattern and note where EventSourceManager registration would occur.
 
 ```go
 package example
@@ -2758,6 +2781,7 @@ git commit -m "feat(modules/example): add webhook route for example capability"
 ### Task 19: Module — Update tests
 
 **Files:**
+
 - Modify: `internal/modules/example/module_test.go`
 
 - [ ] **Step 1: Update TestRules_ReturnsAllRulesets to expect 5 rulesets**
@@ -2816,6 +2840,7 @@ git commit -m "test(modules/example): update rules count to 5, add webhook test"
 ### Task 20: Module — BDD Integration Tests
 
 **Files:**
+
 - Create: `internal/modules/example/module_suite_test.go`
 
 - [ ] **Step 1: Install Ginkgo if not already**

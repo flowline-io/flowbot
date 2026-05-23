@@ -13,6 +13,7 @@
 ### Task 1: Config types (`pkg/config/config.go`)
 
 **Files:**
+
 - Modify: `pkg/config/config.go:521-525`
 - Test: `pkg/config/config_test.go` (add after existing `TestPipelineTrigger_CronFields`)
 
@@ -191,6 +192,7 @@ git commit -m "feat: add WebhookTrigger config types and parse tests"
 ### Task 2: Runtime types and validation (`pkg/pipeline/loader.go`)
 
 **Files:**
+
 - Modify: `pkg/pipeline/loader.go:24-28` (Trigger struct), `pkg/pipeline/loader.go:120-133` (cronTrigger function)
 - Test: `pkg/pipeline/pipeline_test.go` (add after `TestLoadConfig_CronTrigger`)
 
@@ -505,6 +507,7 @@ git commit -m "feat: add webhook trigger conversion and validation in loader"
 ### Task 3: Engine methods (`pkg/pipeline/engine.go`)
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go:62-71` (Engine struct), `pkg/pipeline/engine.go:549-597` (add after executeCronJob)
 - Test: `pkg/pipeline/engine_test.go` (add after `TestEngine_SyntheticEventFormat`)
 
@@ -753,6 +756,7 @@ git commit -m "feat: add RegisterWebhooks and ExecuteWebhook to engine"
 ### Task 4: HTTP handler (`internal/server/webhook.go`)
 
 **Files:**
+
 - Create: `internal/server/webhook.go`
 - Create: `internal/server/webhook_test.go`
 
@@ -1268,6 +1272,7 @@ git commit -m "feat: add webhook HTTP handler and server integration"
 ### Task 5: Integration verification
 
 **Files:**
+
 - No new files
 
 - [ ] **Step 1: Run all pipeline tests**
@@ -1322,6 +1327,7 @@ git commit -m "chore: verify all tests and lint pass for webhook trigger"
 ### Task 6: BDD specs (`tests/specs/pipeline_spec_test.go`)
 
 **Files:**
+
 - Modify: `tests/specs/pipeline_spec_test.go`
 
 - [ ] **Step 1: Add webhook trigger BDD specs**

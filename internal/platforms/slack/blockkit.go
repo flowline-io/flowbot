@@ -374,5 +374,3 @@ func tableLinesToBlocks(lines []string) []slack.Block {
 	}
 	return blocks
 }
-
-

@@ -54,6 +54,7 @@ internal/modules/example/
 Demonstrates the complete provider contract using httpbin.org as the external API.
 
 **Constants:**
+
 - `ID = "example"` — provider identifier
 - `EndpointKey = "endpoint"` — config key, defaults to `https://httpbin.org`
 - `TokenKey = "token"` — optional auth token config key
@@ -62,20 +63,22 @@ Demonstrates the complete provider contract using httpbin.org as the external AP
 
 **API methods** map to httpbin endpoints:
 
-| Method | Endpoint | Demonstrates |
-|--------|----------|-------------|
-| `Get(path string) (*Response, error)` | `GET /get` | Read operation with context |
-| `Post(path string, data any) (*Response, error)` | `POST /post` | Write operation with body |
-| `Put(path string, data any) (*Response, error)` | `PUT /put` | Update operation |
-| `Delete(path string) (*Response, error)` | `DELETE /delete` | Delete operation |
-| `GetStatus(code int) (*Response, error)` | `GET /status/{code}` | Error response handling |
-| `GetWithDelay(seconds int) (*Response, error)` | `GET /delay/{seconds}` | Timeout/deadline handling |
+| Method                                           | Endpoint               | Demonstrates                |
+| ------------------------------------------------ | ---------------------- | --------------------------- |
+| `Get(path string) (*Response, error)`            | `GET /get`             | Read operation with context |
+| `Post(path string, data any) (*Response, error)` | `POST /post`           | Write operation with body   |
+| `Put(path string, data any) (*Response, error)`  | `PUT /put`             | Update operation            |
+| `Delete(path string) (*Response, error)`         | `DELETE /delete`       | Delete operation            |
+| `GetStatus(code int) (*Response, error)`         | `GET /status/{code}`   | Error response handling     |
+| `GetWithDelay(seconds int) (*Response, error)`   | `GET /delay/{seconds}` | Timeout/deadline handling   |
 
 **OAuth interface** (implemented for reference):
+
 - `GetAuthorizeURL() string` — returns constructed OAuth authorize URL
 - `GetAccessToken(ctx fiber.Ctx) (types.KV, error)` — code exchange flow
 
 **Types:**
+
 - `Response` — mirrors httpbin response JSON
 - `WebhookPayload` — example webhook event structure
 - Config key constants
@@ -87,6 +90,7 @@ Demonstrates the complete provider contract using httpbin.org as the external AP
 Demonstrates the ability adapter pattern wrapping the example provider.
 
 **Service interface** (7 methods):
+
 - `GetItem(ctx, id string) (*ability.Host, error)` — query single
 - `ListItems(ctx, q *ListQuery) (*ability.ListResult[ability.Host], error)` — list with pagination
 - `CreateItem(ctx, url string) (*ability.Host, error)` — create/mutation
@@ -96,6 +100,7 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - `ListRawEvents(ctx, cursor string) ([]any, string, error)` — for polling data source
 
 **Concrete Adapter** (`example/adapter.go`):
+
 - `Adapter` struct wrapping `*example.Example` provider client
 - `client` interface (local, unexported) for testability
 - `func New() abilityexample.Service` — primary constructor, calls `providers.GetClient()`
@@ -105,18 +110,21 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - Follows exact pattern: `bookmark/karakeep/adapter.go`, `kanban/kanboard/adapter.go`, `reader/miniflux/adapter.go`
 
 **Descriptor** (`descriptor.go`):
+
 - Capability constant: `CapabilityExample hub.CapabilityType = "example"`
 - Operation constants for each service method, with mutation verbs properly marked (create, update, delete → `IsMutation`)
 - `Descriptor(backend, app string, svc Service) hub.Descriptor` — builds hub descriptor with auth scopes per operation
 - `RegisterService(backend, app string, svc Service) error` — calls Descriptor then registers each operation as an `ability.Invoker`, parsing params from `map[string]any`, calling the Service, and returning `*ability.InvokeResult`
 
 **WebhookConverter** (`webhook.go`):
+
 - `ExampleWebhook` struct implementing `ability.WebhookConverter`
 - `WebhookPath() string` — returns webhook URL path
 - `VerifySignature(headers map[string]string, body []byte) error` — HMAC-SHA256 verification
 - `Convert(body []byte, headers map[string]string) ([]types.DataEvent, error)` — transforms webhook payload into DataEvent records
 
 **PollingResource** (`poller.go`):
+
 - `ExamplePoller` struct implementing `ability.PollingResource`
 - `ResourceName() string` — unique resource identifier
 - `DefaultInterval() time.Duration` — 60s polling interval
@@ -126,11 +134,13 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - `List(ctx, cursor) (PollResult, error)` — batch fetch with cursor support
 
 **Conformance** (`conformance.go`):
+
 - `ExampleConfig` struct — controls mock backend behavior per test case
 - `ExampleServiceFactory func(t, cfg) Service` — factory for creating test services
 - `RunExampleConformance(t, factory)` — runs all conformance subtests (success, empty list, timeout, provider error, invalid input)
 
 **Tests (TDD):**
+
 - `descriptor_test.go` — operation constant assertions, RegisterService behavior, Descriptor structure
 - `webhook_test.go` — signature verification, valid/invalid payload conversion
 - `poller_test.go` — single poll cycle, cursor advancement, diff detection
@@ -141,6 +151,7 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 Demonstrates the full startup wiring following the standard module contract.
 
 **`module.go`** — Core module structure:
+
 - Package-level `const Name = "example"`; `var handler moduleHandler`
 - `func Register() { module.Register(Name, &handler) }`
 - `type moduleHandler struct { module.Base; initialized bool }`
@@ -155,6 +166,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - `func (moduleHandler) Webservice(app *fiber.App)` — `module.Webservice(app, Name, webserviceRules)`
 
 **`webservice.go`** — REST rule definitions:
+
 - Rule structs with `Path`, `Method`, `Handler`, `Scopes` following `module.FiberRule` pattern
 - `GET /service/example/get` → `ability.Invoke(ctx, abilityexample.Cap, "get", params)`
 - `GET /service/example/list` → list with pagination
@@ -164,10 +176,12 @@ Demonstrates the full startup wiring following the standard module contract.
 - Each handler demonstrates: params extraction, invoke call, error classification, response marshaling
 
 **`webhook.go`** — Webhook rule:
+
 - `POST /service/example/webhook/*` → delegates to `esm.WebhookHandler()`
 - Demonstrates how Fiber wildcard routes connect to EventSourceManager via module rules
 
 **Tests:**
+
 - **TDD** (`module_test.go`) — table-driven handler unit tests with mocked ability registry (registering a test invoker that returns canned results). Tests: handler routing, params parsing, error responses, pagination.
 - **BDD** (`module_suite_test.go`) — Ginkgo v2 integration tests:
   - `Describe("Example module")`
@@ -179,6 +193,7 @@ Demonstrates the full startup wiring following the standard module contract.
 ## Testing Standards
 
 ### TDD (Unit Tests)
+
 - `*_test.go` co-located with source files
 - Table-driven: `for _, tt := range tests { t.Run(tt.name, ...) }`
 - Minimum 3 cases per table
@@ -188,6 +203,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - Ability tests use mock Service implementations
 
 ### BDD (Integration Tests)
+
 - Ginkgo v2 + Gomega
 - `Describe` / `Context` / `It` structure
 - `SynchronizedBeforeSuite` for shared setup
@@ -197,6 +213,7 @@ Demonstrates the full startup wiring following the standard module contract.
 ## Coverage Checklist
 
 ### Provider Layer
+
 - [x] Constants (ID, config keys)
 - [x] GetClient() + NewXxx() constructor pattern
 - [x] CRUD API methods (Get, Post, Put, Delete)
@@ -208,6 +225,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - [x] TDD unit tests
 
 ### Ability Layer
+
 - [x] Service interface with query + mutation methods
 - [x] Adapter implementation (example/adapter.go) wrapping provider client
 - [x] Adapter TDD unit tests (example/adapter_test.go)
@@ -222,6 +240,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - [x] TDD unit tests for descriptor, webhook, poller, conformance
 
 ### Module Layer
+
 - [x] `moduleHandler` struct embedding `module.Base`
 - [x] `Register()` → `module.Register(Name, &handler)`
 - [x] `Init(jsonconf) error` with `configType{Enabled bool}` and graceful disable

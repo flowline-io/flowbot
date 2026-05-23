@@ -55,7 +55,7 @@ func (moduleHandler) IsReady() bool {
 }
 
 func (moduleHandler) Rules() []any {
-		return []any{
+	return []any{
 		commandRules,
 		formRules,
 	}

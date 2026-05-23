@@ -53,3 +53,7 @@ coverage.html
 *.test
 **/testdata/fuzz/
 specs-report.xml
+
+#codegraph
+.codegraph/
+opencode.jsonc

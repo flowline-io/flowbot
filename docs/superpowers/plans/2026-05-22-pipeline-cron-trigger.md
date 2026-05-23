@@ -12,25 +12,26 @@
 
 ## File Structure
 
-| File | Action | Responsibility |
-|------|--------|---------------|
-| `pkg/config/config.go` | Modify | Add `Cron`, `CronTimeout` to `PipelineTrigger` |
-| `pkg/config/config_test.go` | Modify | Parse cron fields from config |
-| `pkg/pipeline/loader.go` | Modify | Add `Cron`, `CronTimeout` to `Trigger`; `LoadConfig` maps + validates |
-| `pkg/pipeline/pipeline_test.go` | Modify | Cron load/mapping/validation tests |
-| `pkg/pipeline/clock.go` | Create | `Clock` interface + `RealClock` + `FakeClock` |
-| `pkg/pipeline/engine.go` | Modify | Per-pipeline mutex map, embedded `*cron.Cron`, `Stop()`, cron job wiring |
-| `pkg/pipeline/engine_test.go` | Create | Cron engine tests (registration, concurrency, Stop, synthetic event) |
-| `pkg/metrics/pipeline.go` | Modify | Cron-specific Prometheus metrics |
-| `internal/server/pipeline.go` | Modify | fx lifecycle `Stop()` hook |
-| `docs/reference/pipelines.yaml` | Modify | Cron trigger example |
-| `tests/specs/pipeline_spec_test.go` | Modify | BDD cron trigger specs |
+| File                                | Action | Responsibility                                                           |
+| ----------------------------------- | ------ | ------------------------------------------------------------------------ |
+| `pkg/config/config.go`              | Modify | Add `Cron`, `CronTimeout` to `PipelineTrigger`                           |
+| `pkg/config/config_test.go`         | Modify | Parse cron fields from config                                            |
+| `pkg/pipeline/loader.go`            | Modify | Add `Cron`, `CronTimeout` to `Trigger`; `LoadConfig` maps + validates    |
+| `pkg/pipeline/pipeline_test.go`     | Modify | Cron load/mapping/validation tests                                       |
+| `pkg/pipeline/clock.go`             | Create | `Clock` interface + `RealClock` + `FakeClock`                            |
+| `pkg/pipeline/engine.go`            | Modify | Per-pipeline mutex map, embedded `*cron.Cron`, `Stop()`, cron job wiring |
+| `pkg/pipeline/engine_test.go`       | Create | Cron engine tests (registration, concurrency, Stop, synthetic event)     |
+| `pkg/metrics/pipeline.go`           | Modify | Cron-specific Prometheus metrics                                         |
+| `internal/server/pipeline.go`       | Modify | fx lifecycle `Stop()` hook                                               |
+| `docs/reference/pipelines.yaml`     | Modify | Cron trigger example                                                     |
+| `tests/specs/pipeline_spec_test.go` | Modify | BDD cron trigger specs                                                   |
 
 ---
 
 ### Task 1: Config Layer — Add Cron and CronTimeout fields
 
 **Files:**
+
 - Modify: `pkg/config/config.go:521-523`
 - Modify: `pkg/config/config_test.go`
 
@@ -110,6 +111,7 @@ trigger:
 ```bash
 go test ./pkg/config/... -run TestPipelineTrigger_CronFields -v
 ```
+
 Expected: compile error — `Cron` and `CronTimeout` not defined.
 
 - [ ] **Step 3: Add Cron and CronTimeout to PipelineTrigger**
@@ -137,6 +139,7 @@ type PipelineTrigger struct {
 ```bash
 go test ./pkg/config/... -run TestPipelineTrigger_CronFields -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -151,6 +154,7 @@ git commit -m "feat: add Cron and CronTimeout fields to PipelineTrigger config"
 ### Task 2: Loader Layer — Add Cron/Timeout to Trigger, validate, map in LoadConfig
 
 **Files:**
+
 - Modify: `pkg/pipeline/loader.go:13-24,34-64`
 - Modify: `pkg/pipeline/pipeline_test.go`
 
@@ -258,6 +262,7 @@ func TestLoadConfig_CronTrigger(t *testing.T) {
 ```bash
 go test ./pkg/pipeline/... -run TestLoadConfig_CronTrigger -v
 ```
+
 Expected: compile error — `Cron` and `CronTimeout` not defined on `Trigger`.
 
 - [ ] **Step 3: Update Trigger struct and LoadConfig**
@@ -341,6 +346,7 @@ func validateCronExpr(spec string) error {
 ```bash
 go test ./pkg/pipeline/... -run TestLoadConfig_CronTrigger -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Run all existing pipeline tests to verify no regressions**
@@ -348,6 +354,7 @@ Expected: PASS
 ```bash
 go test ./pkg/pipeline/... -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 6: Commit**
@@ -362,6 +369,7 @@ git commit -m "feat: add Cron and CronTimeout to Trigger, validate and map in Lo
 ### Task 3: Clock Abstraction — Clock interface, RealClock, FakeClock
 
 **Files:**
+
 - Create: `pkg/pipeline/clock.go`
 
 - [ ] **Step 1: Write failing test for Clock interface**
@@ -462,6 +470,7 @@ func TestFakeClock(t *testing.T) {
 ```bash
 go test ./pkg/pipeline/... -run "TestRealClock|TestFakeClock" -v
 ```
+
 Expected: compile error — `NewRealClock`, `NewFakeClock`, `Clock` not defined.
 
 - [ ] **Step 3: Implement Clock interface, RealClock, FakeClock**
@@ -558,6 +567,7 @@ func (c *FakeClock) Advance(d time.Duration) {
 ```bash
 go test ./pkg/pipeline/... -run "TestRealClock|TestFakeClock" -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -572,6 +582,7 @@ git commit -m "feat: add Clock abstraction with RealClock and FakeClock for pipe
 ### Task 4: Engine — Per-pipeline mutex map and cron scheduler
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go:59-78`
 
 **Note:** Engine tests will be created after implementation is complete to keep test scope focused per
@@ -583,6 +594,7 @@ are covered in `engine_test.go` creation in Task 6.
 ```bash
 go test ./pkg/pipeline/... -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 2: Add per-pipeline mutex map and cron scheduler to Engine struct**
@@ -804,6 +816,7 @@ The cron path (`executeCronJob`, defined in Step 5) already does `TryLock` befor
 ```bash
 go test ./pkg/pipeline/... -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 8: Commit**
@@ -818,6 +831,7 @@ git commit -m "feat: add per-pipeline mutex map and embedded cron scheduler to E
 ### Task 5: Cron-specific Prometheus metrics
 
 **Files:**
+
 - Modify: `pkg/metrics/pipeline.go`
 
 - [ ] **Step 1: Add cron metric fields and registration**
@@ -967,6 +981,7 @@ func (e *Engine) executeCronJob(ctx context.Context, def Definition) {
 ```bash
 go build ./pkg/metrics/... ./pkg/pipeline/...
 ```
+
 Expected: no errors
 
 - [ ] **Step 5: Commit**
@@ -981,6 +996,7 @@ git commit -m "feat: add cron-specific Prometheus metrics (exec, skip, duration)
 ### Task 6: Engine Cron Tests
 
 **Files:**
+
 - Create: `pkg/pipeline/engine_test.go`
 
 - [ ] **Step 1: Create engine_test.go with cron engine tests**
@@ -1168,6 +1184,7 @@ func TestEngine_SyntheticEventFormat(t *testing.T) {
 ```bash
 go test ./pkg/pipeline/... -run "TestNewEngine_CronRegistration|TestEngine_CronConcurrencyGuard|TestEngine_StopShutsDownCron|TestEngine_SyntheticEventFormat" -v
 ```
+
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -1182,6 +1199,7 @@ git commit -m "test: add unit tests for cron engine registration, concurrency, s
 ### Task 7: Server Lifecycle — fx Stop hook for engine
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go`
 
 - [ ] **Step 1: Add fx lifecycle hook for engine.Stop()**
@@ -1214,6 +1232,7 @@ func initPipeline(
 ```bash
 go build ./internal/server/...
 ```
+
 Expected: no errors
 
 - [ ] **Step 3: Commit**
@@ -1228,6 +1247,7 @@ git commit -m "feat: add fx lifecycle Stop hook for pipeline engine cron schedul
 ### Task 8: Pipelines.yaml example update
 
 **Files:**
+
 - Modify: `docs/reference/pipelines.yaml`
 
 - [ ] **Step 1: Add cron trigger example**
@@ -1280,6 +1300,7 @@ git commit -m "docs: add cron and mixed trigger examples to pipelines.yaml"
 ### Task 9: BDD Specs — Cron trigger integration tests
 
 **Files:**
+
 - Modify: `tests/specs/pipeline_spec_test.go`
 
 - [ ] **Step 1: Add Cron trigger Describe block**
@@ -1369,6 +1390,7 @@ Add after the existing `Describe("ResumePipeline", ...)` block (before the closi
 ```bash
 go tool task test:specs
 ```
+
 Expected: cron trigger specs pass
 
 - [ ] **Step 3: Commit**
@@ -1387,6 +1409,7 @@ git commit -m "test: add BDD specs for cron trigger registration, mutex, isolati
 ```bash
 go test ./pkg/config/... ./pkg/pipeline/... ./pkg/metrics/... ./internal/server/... -v
 ```
+
 Expected: all PASS
 
 - [ ] **Step 2: Run lint**
@@ -1394,6 +1417,7 @@ Expected: all PASS
 ```bash
 go tool task lint
 ```
+
 Expected: no warnings
 
 - [ ] **Step 3: Run full test suite**
@@ -1402,6 +1426,7 @@ Expected: no warnings
 go tool task test
 go tool task test:specs
 ```
+
 Expected: all PASS
 
 - [ ] **Step 4: Commit any fixes**

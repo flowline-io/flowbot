@@ -14,13 +14,13 @@
 
 ## File Structure
 
-| File | Responsibility |
-|------|---------------|
-| `pkg/bulkhead/bulkhead.go` | `Bulkhead` struct, `config`, `Option` pattern, `New`, `Do`, sentinel errors |
-| `pkg/bulkhead/bulkhead_test.go` | TDD unit tests (9+ cases, table-driven) |
-| `pkg/bulkhead/manager.go` | Global manager, `Get`, `SetDefaults` |
-| `pkg/metrics/ability.go` | New bulkhead gauge/counter/histogram fields + methods |
-| `pkg/ability/invoke.go` | Wrap `invoker(ctx, params)` with `bulkhead.Get(...).Do(...)` |
+| File                            | Responsibility                                                              |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `pkg/bulkhead/bulkhead.go`      | `Bulkhead` struct, `config`, `Option` pattern, `New`, `Do`, sentinel errors |
+| `pkg/bulkhead/bulkhead_test.go` | TDD unit tests (9+ cases, table-driven)                                     |
+| `pkg/bulkhead/manager.go`       | Global manager, `Get`, `SetDefaults`                                        |
+| `pkg/metrics/ability.go`        | New bulkhead gauge/counter/histogram fields + methods                       |
+| `pkg/ability/invoke.go`         | Wrap `invoker(ctx, params)` with `bulkhead.Get(...).Do(...)`                |
 
 No files deleted. `pkg/types/errors.go` uses existing `ErrRateLimited`/`ErrTimeout` — no changes needed.
 
@@ -29,6 +29,7 @@ No files deleted. `pkg/types/errors.go` uses existing `ErrRateLimited`/`ErrTimeo
 ### Task 1: Create bulkhead types, errors, and Do method
 
 **Files:**
+
 - Create: `pkg/bulkhead/bulkhead.go`
 
 - [ ] **Step 1: Create `pkg/bulkhead/` directory and `bulkhead.go`**
@@ -179,6 +180,7 @@ git commit -m "feat: add bulkhead types and Do method"
 ### Task 2: Write TDD unit tests for Bulkhead.Do
 
 **Files:**
+
 - Create: `pkg/bulkhead/bulkhead_test.go`
 
 - [ ] **Step 1: Create `pkg/bulkhead/bulkhead_test.go`**
@@ -499,6 +501,7 @@ git commit -m "test: add TDD tests for bulkhead Do method"
 ### Task 3: Create global manager with lazy Get
 
 **Files:**
+
 - Create: `pkg/bulkhead/manager.go`
 
 - [ ] **Step 1: Create `pkg/bulkhead/manager.go`**
@@ -580,6 +583,7 @@ git commit -m "feat: add bulkhead manager with lazy Get"
 ### Task 4: Write tests for manager
 
 **Files:**
+
 - Create: `pkg/bulkhead/manager_test.go`
 
 - [ ] **Step 1: Create `pkg/bulkhead/manager_test.go`**
@@ -666,6 +670,7 @@ git commit -m "test: add manager singleton tests"
 ### Task 5: Add bulkhead metrics to AbilityCollector
 
 **Files:**
+
 - Modify: `pkg/metrics/ability.go`
 
 - [ ] **Step 1: Add bulkhead metric fields and registration to `pkg/metrics/ability.go`**
@@ -797,6 +802,7 @@ git commit -m "feat: add bulkhead metrics to AbilityCollector"
 ### Task 6: Integrate bulkhead into ability.Invoke
 
 **Files:**
+
 - Modify: `pkg/ability/invoke.go`
 
 - [ ] **Step 1: Wire bulkhead callbacks in ability package**

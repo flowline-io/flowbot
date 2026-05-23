@@ -155,11 +155,11 @@ poll ticks.
 
 Per-item comparison on each poll tick:
 
-| Condition | Action |
-|-----------|--------|
-| DiffKey not in KnownItems | Emit `{resource}.created` event |
+| Condition                             | Action                          |
+| ------------------------------------- | ------------------------------- |
+| DiffKey not in KnownItems             | Emit `{resource}.created` event |
 | DiffKey exists, different ContentHash | Emit `{resource}.updated` event |
-| DiffKey exists, same ContentHash | Skip (no change) |
+| DiffKey exists, same ContentHash      | Skip (no change)                |
 
 DataEvent IdempotencyKey is set to DiffKey for PostgreSQL-level dedup as a
 secondary safeguard.
@@ -223,12 +223,12 @@ verification mechanism.
 Each `DataEvent` produced by `WebhookConverter.Convert()` **must** set
 `IdempotencyKey` to a value extracted from the webhook payload. Examples:
 
-| Provider | IdempotencyKey source |
-|----------|-----------------------|
-| GitHub | `X-GitHub-Delivery` header |
-| Gitea | `X-Gitea-Delivery` header |
-| Stripe | `payload.id` (event ID) |
-| Custom | Any unique per-delivery identifier from headers or body |
+| Provider | IdempotencyKey source                                   |
+| -------- | ------------------------------------------------------- |
+| GitHub   | `X-GitHub-Delivery` header                              |
+| Gitea    | `X-Gitea-Delivery` header                               |
+| Stripe   | `payload.id` (event ID)                                 |
+| Custom   | Any unique per-delivery identifier from headers or body |
 
 This ensures that provider-side HTTP retries (e.g., GitHub webhook timeout
 retry) do not produce duplicate DataEvents — the PostgreSQL `data_events`
@@ -273,6 +273,7 @@ CREATE TABLE polling_state (
 ```
 
 Persistence timing:
+
 - After each poll tick: update in-memory cursor + KnownItems, mark dirty
 - Background goroutine: flush dirty entries to PG every 5 minutes. During
   flush, KnownItems is written as-is (already cursor-scoped from the poll
@@ -284,6 +285,7 @@ Persistence timing:
 ### Error handling
 
 Per-poll errors:
+
 - `context.DeadlineExceeded`: skip, retry next tick without updating cursor
 - Provider API errors: increment consecutive failure counter, log warning at 3+
   consecutive failures, log error at failure. Exponential back-off via skip
@@ -291,6 +293,7 @@ Per-poll errors:
 - Success resets consecutive failure counter to 0
 
 Webhook errors:
+
 - `VerifySignature` error: return 401, do not emit
 - Converter error (malformed payload): return 400
 - Emit failure: log + metrics, HTTP already returned 202
@@ -319,26 +322,26 @@ fx.Invoke(func(lc fx.Lifecycle, mgr *ability.EventSourceManager) {
 
 ### Metrics (Prometheus)
 
-| Metric | Labels | Description |
-|--------|--------|-------------|
-| `event_source_poll_total` | resource, status | Poll completions |
-| `event_source_poll_events` | resource, event_type | Events emitted per poll |
-| `event_source_poll_duration` | resource | Poll execution time |
-| `event_source_poll_errors` | resource | Failed polls |
-| `event_source_webhook_total` | path, status | Webhook requests |
-| `event_source_webhook_events` | path | Events emitted per webhook |
-| `event_source_state_flush_duration` | - | PG flush duration |
+| Metric                              | Labels               | Description                |
+| ----------------------------------- | -------------------- | -------------------------- |
+| `event_source_poll_total`           | resource, status     | Poll completions           |
+| `event_source_poll_events`          | resource, event_type | Events emitted per poll    |
+| `event_source_poll_duration`        | resource             | Poll execution time        |
+| `event_source_poll_errors`          | resource             | Failed polls               |
+| `event_source_webhook_total`        | path, status         | Webhook requests           |
+| `event_source_webhook_events`       | path                 | Events emitted per webhook |
+| `event_source_state_flush_duration` | -                    | PG flush duration          |
 
 ### Testing strategy
 
-| Layer | Type | Coverage |
-|-------|------|----------|
-| `pkg/ability/event_source_test.go` | Unit (TDD) | Interface types, PollResult |
-| `pkg/ability/event_source_manager_test.go` | Unit (TDD) | Register/Start/Stop, duplicate registration, concurrent registration |
-| `pkg/ability/poll_scheduler_test.go` | Unit (TDD) | Cron tick, cursor update, diff dedup, content change detection, consecutive failure backoff |
-| `pkg/ability/webhook_hook_test.go` | Unit (TDD) | Valid/invalid signatures, 404, empty events, converter errors, malformed payload |
-| `pkg/ability/polling_state_test.go` | Unit (TDD) | Load/Update/Flush, recovery, knownItems truncation |
-| `specs/provider_event_source/` | BDD (Ginkgo) | Full webhook flow, full polling flow, state persistence + recovery, error isolation |
+| Layer                                      | Type         | Coverage                                                                                    |
+| ------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------- |
+| `pkg/ability/event_source_test.go`         | Unit (TDD)   | Interface types, PollResult                                                                 |
+| `pkg/ability/event_source_manager_test.go` | Unit (TDD)   | Register/Start/Stop, duplicate registration, concurrent registration                        |
+| `pkg/ability/poll_scheduler_test.go`       | Unit (TDD)   | Cron tick, cursor update, diff dedup, content change detection, consecutive failure backoff |
+| `pkg/ability/webhook_hook_test.go`         | Unit (TDD)   | Valid/invalid signatures, 404, empty events, converter errors, malformed payload            |
+| `pkg/ability/polling_state_test.go`        | Unit (TDD)   | Load/Update/Flush, recovery, knownItems truncation                                          |
+| `specs/provider_event_source/`             | BDD (Ginkgo) | Full webhook flow, full polling flow, state persistence + recovery, error isolation         |
 
 All tests use the table-driven pattern (`for _, tt := range tests { t.Run(...) }`).
 BDD uses Ginkgo v2 with `SynchronizedBeforeSuite` for database isolation.

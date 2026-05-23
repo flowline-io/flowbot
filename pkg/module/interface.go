@@ -39,7 +39,6 @@ type Handler interface {
 
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
-
 }
 
 type Base struct{}

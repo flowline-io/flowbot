@@ -12,9 +12,9 @@ import (
 // AbilityCollector holds typed metrics for ability invocations.
 // When initialized with a nil stats, all methods are no-op.
 type AbilityCollector struct {
-	invokeTotal       *prometheus.CounterVec
-	invokeDuration    *prometheus.HistogramVec
-	invokeErrorTotal  *prometheus.CounterVec
+	invokeTotal          *prometheus.CounterVec
+	invokeDuration       *prometheus.HistogramVec
+	invokeErrorTotal     *prometheus.CounterVec
 	eventDroppedTotal    *prometheus.CounterVec
 	bulkheadQueued       *prometheus.GaugeVec
 	bulkheadActive       *prometheus.GaugeVec

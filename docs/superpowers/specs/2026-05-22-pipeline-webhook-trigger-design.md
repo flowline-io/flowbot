@@ -61,6 +61,7 @@ const (
 ```
 
 **Defaults**:
+
 - `Method`: `"POST"` when empty
 - `Payload`: `WebhookPayloadRaw` when empty
 - `EventType`: `"webhook.{path}"` when empty
@@ -68,6 +69,7 @@ const (
 - `TokenHeader`: `"X-Webhook-Token"` when empty
 
 **Validation at LoadConfig time**:
+
 - `Path` must be non-empty
 - `Method` must be one of GET, POST, PUT (all uppercase)
 - At least one of `Auth.Token` or `Auth.HMACSecret` must be set (no unauthenticated webhooks)
@@ -168,6 +170,7 @@ func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event type
 ```
 
 Internal logic:
+
 1. Acquires per-pipeline mutex (same mutex map shared with cron/event handlers)
 2. Generates synthetic event ID: `"webhook:{path}:{unix-nano}-{randomHex(8)}"`
 3. Calls `executePipeline(ctx, def, event)` — reuses the existing execution
@@ -195,6 +198,7 @@ New file implementing the webhook HTTP handler, registered at server startup:
 ```
 
 Handler flow:
+
 1. Extract `{path}` from URL params
 2. Lookup `path` in engine's webhook map — 404 if not found
 3. Validate method matches configured method — 405 if mismatch (Allow header set)
@@ -227,31 +231,35 @@ pipeline steps to access headers like `{{event.payload._webhook_headers.X-GitHub
 
 ### Error responses
 
-| Scenario | Status | Detail |
-|----------|--------|--------|
-| Path not registered | 404 | No pipeline has the requested webhook path |
-| Method mismatch | 405 | Allow header lists the configured method |
-| Auth not configured on pipeline | 401 | Pipeline has no token or HMAC secret |
-| Token mismatch | 401 | Header token does not match configured value |
-| HMAC signature mismatch | 401 | Computed signature does not match header value |
-| Payload=mapped, body not valid JSON | 400 | Failed to parse request body as JSON |
-| Pipeline execution fails | 202 | Accepted; error is recorded in pipeline run, not in HTTP response |
+| Scenario                            | Status | Detail                                                            |
+| ----------------------------------- | ------ | ----------------------------------------------------------------- |
+| Path not registered                 | 404    | No pipeline has the requested webhook path                        |
+| Method mismatch                     | 405    | Allow header lists the configured method                          |
+| Auth not configured on pipeline     | 401    | Pipeline has no token or HMAC secret                              |
+| Token mismatch                      | 401    | Header token does not match configured value                      |
+| HMAC signature mismatch             | 401    | Computed signature does not match header value                    |
+| Payload=mapped, body not valid JSON | 400    | Failed to parse request body as JSON                              |
+| Pipeline execution fails            | 202    | Accepted; error is recorded in pipeline run, not in HTTP response |
 
 ### Auth verification details
 
 **Token verification**:
+
 ```
 configured_token == request_header_value
 ```
+
 Constant-time comparison is not required (webhook tokens are not passwords;
 the primary threat model is service-to-service authentication, not side-channel).
 
 **HMAC verification**:
+
 ```
 expected = hmacSHA256(configured_secret, request_body)
 actual   = parse_header("sha256=<hex>")
 expected_hex == actual
 ```
+
 The header value must start with `sha256=` prefix. The hex string is
 compared case-insensitively.
 
@@ -338,16 +346,16 @@ with at least 3 cases per table. Happy path first, error cases required.
 
 ## Files affected
 
-| File | Change |
-|------|--------|
-| `pkg/config/config.go` | Add `WebhookTrigger`, `WebhookAuth`, `WebhookPayloadMode` types; add `Webhook` field to `PipelineTrigger` |
-| `pkg/pipeline/loader.go` | Add `WebhookConfig`, `WebhookAuthConfig` types to `Trigger`; extend `convertTrigger` with webhook validation |
-| `pkg/pipeline/engine.go` | Add `RegisterWebhooks()` and `ExecuteWebhook()` methods |
-| `internal/server/webhook.go` | New file: HTTP handler for webhook requests |
-| `internal/server/pipeline.go` | Register webhook routes at startup via `RegisterWebhooks` |
-| `pkg/config/config_test.go` | Webhook YAML parse tests |
-| `pkg/pipeline/pipeline_test.go` | Webhook LoadConfig and RegisterWebhooks tests |
-| `pkg/pipeline/engine_test.go` | ExecuteWebhook behavior tests |
-| `internal/server/webhook_test.go` | New file: HTTP handler integration tests |
-| `tests/specs/pipeline_spec_test.go` | BDD webhook trigger specs |
-| `docs/reference/pipelines.yaml` | Webhook trigger example |
+| File                                | Change                                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `pkg/config/config.go`              | Add `WebhookTrigger`, `WebhookAuth`, `WebhookPayloadMode` types; add `Webhook` field to `PipelineTrigger`    |
+| `pkg/pipeline/loader.go`            | Add `WebhookConfig`, `WebhookAuthConfig` types to `Trigger`; extend `convertTrigger` with webhook validation |
+| `pkg/pipeline/engine.go`            | Add `RegisterWebhooks()` and `ExecuteWebhook()` methods                                                      |
+| `internal/server/webhook.go`        | New file: HTTP handler for webhook requests                                                                  |
+| `internal/server/pipeline.go`       | Register webhook routes at startup via `RegisterWebhooks`                                                    |
+| `pkg/config/config_test.go`         | Webhook YAML parse tests                                                                                     |
+| `pkg/pipeline/pipeline_test.go`     | Webhook LoadConfig and RegisterWebhooks tests                                                                |
+| `pkg/pipeline/engine_test.go`       | ExecuteWebhook behavior tests                                                                                |
+| `internal/server/webhook_test.go`   | New file: HTTP handler integration tests                                                                     |
+| `tests/specs/pipeline_spec_test.go` | BDD webhook trigger specs                                                                                    |
+| `docs/reference/pipelines.yaml`     | Webhook trigger example                                                                                      |

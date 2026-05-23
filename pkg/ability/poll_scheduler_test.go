@@ -27,10 +27,10 @@ type testResource struct {
 }
 
 func (*testResource) ResourceName() string           { return "test/rsrc" }
-func (*testResource) DefaultInterval() time.Duration  { return time.Minute }
-func (r *testResource) DiffKey(item any) string         { return r.diffKeyFn(item) }
-func (r *testResource) ContentHash(item any) string     { return r.contentHashFn(item) }
-func (*testResource) CursorField() string             { return "id" }
+func (*testResource) DefaultInterval() time.Duration { return time.Minute }
+func (r *testResource) DiffKey(item any) string      { return r.diffKeyFn(item) }
+func (r *testResource) ContentHash(item any) string  { return r.contentHashFn(item) }
+func (*testResource) CursorField() string            { return "id" }
 func (*testResource) List(_ context.Context, _ string) (PollResult, error) {
 	return PollResult{}, nil
 }
@@ -45,69 +45,69 @@ func TestDiffNewItems(t *testing.T) {
 		wantEvents int
 		wantTypes  []string
 	}{
-	{
-		name:       "all new items emit created",
-		known:      map[string]string{},
-		items:      []any{"a", "b", "c"},
-		diffKeyFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return s
-			}
-			return ""
+		{
+			name:  "all new items emit created",
+			known: map[string]string{},
+			items: []any{"a", "b", "c"},
+			diffKeyFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return s
+				}
+				return ""
+			},
+			hashFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return "h_" + s
+				}
+				return ""
+			},
+			wantEvents: 3,
+			wantTypes:  []string{"test/rsrc.created", "test/rsrc.created", "test/rsrc.created"},
 		},
-		hashFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return "h_" + s
-			}
-			return ""
+		{
+			name:  "all known items skip",
+			known: map[string]string{"a": "h_a", "b": "h_b"},
+			items: []any{"a", "b"},
+			diffKeyFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return s
+				}
+				return ""
+			},
+			hashFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return "h_" + s
+				}
+				return ""
+			},
+			wantEvents: 0,
+			wantTypes:  nil,
 		},
-		wantEvents: 3,
-		wantTypes:  []string{"test/rsrc.created", "test/rsrc.created", "test/rsrc.created"},
-	},
-	{
-		name:       "all known items skip",
-		known:      map[string]string{"a": "h_a", "b": "h_b"},
-		items:      []any{"a", "b"},
-		diffKeyFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return s
-			}
-			return ""
+		{
+			name:  "changed item emits updated",
+			known: map[string]string{"a": "old_hash", "b": "h_b"},
+			items: []any{"a", "b"},
+			diffKeyFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return s
+				}
+				return ""
+			},
+			hashFn: func(item any) string {
+				s, ok := item.(string)
+				if ok {
+					return "h_" + s
+				}
+				return ""
+			},
+			wantEvents: 1,
+			wantTypes:  []string{"test/rsrc.updated"},
 		},
-		hashFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return "h_" + s
-			}
-			return ""
-		},
-		wantEvents: 0,
-		wantTypes:  nil,
-	},
-	{
-		name:       "changed item emits updated",
-		known:      map[string]string{"a": "old_hash", "b": "h_b"},
-		items:      []any{"a", "b"},
-		diffKeyFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return s
-			}
-			return ""
-		},
-		hashFn: func(item any) string {
-			s, ok := item.(string)
-			if ok {
-				return "h_" + s
-			}
-			return ""
-		},
-		wantEvents: 1,
-		wantTypes:  []string{"test/rsrc.updated"},
-	},
 	}
 
 	for _, tt := range tests {

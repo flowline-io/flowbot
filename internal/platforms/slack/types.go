@@ -20,4 +20,3 @@ func getThreadContext(channel string) string {
 	defer threadMutex.RUnlock()
 	return threadContext[channel]
 }
-

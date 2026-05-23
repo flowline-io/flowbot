@@ -17,7 +17,7 @@ type testRetryableError struct {
 	kind      error
 }
 
-func (e *testRetryableError) Error() string         { return e.kind.Error() }
+func (e *testRetryableError) Error() string          { return e.kind.Error() }
 func (e *testRetryableError) RetryableCode() string  { return e.code }
 func (e *testRetryableError) IsRetryableError() bool { return e.retryable }
 
@@ -352,7 +352,7 @@ func TestDo_OnRetryCallback(t *testing.T) {
 		onRetry func(attempt int, delay time.Duration, err error)
 	}{
 		{
-			name: "callback_fires_correctly",
+			name:    "callback_fires_correctly",
 			onRetry: func(_ int, _ time.Duration, _ error) {},
 		},
 		{

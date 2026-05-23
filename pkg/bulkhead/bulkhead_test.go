@@ -52,16 +52,16 @@ func TestBulkheadDoEnforcesMaxConcurrent(t *testing.T) {
 			defer wg.Done()
 			<-ready
 			_ = b.Do(context.Background(), func() error {
-			cur := atomic.AddInt64(&current, 1)
-			for {
-				old := atomic.LoadInt64(&maxConcurrent)
-				if cur <= old {
-					break
+				cur := atomic.AddInt64(&current, 1)
+				for {
+					old := atomic.LoadInt64(&maxConcurrent)
+					if cur <= old {
+						break
+					}
+					if atomic.CompareAndSwapInt64(&maxConcurrent, old, cur) {
+						break
+					}
 				}
-				if atomic.CompareAndSwapInt64(&maxConcurrent, old, cur) {
-					break
-				}
-			}
 				<-gate
 				atomic.AddInt64(&current, -1)
 				return nil
@@ -220,9 +220,9 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 					WithMaxConcurrent(1),
 					WithMaxQueue(1),
 					WithTimeout(5*time.Second),
-				WithOnEnter(func(_ string, _ time.Duration) { atomic.AddInt32(&enters, 1) }),
-				WithOnLeave(func(_ string) { atomic.AddInt32(&leaves, 1) }),
-				WithOnDrop(func(_ string, reason string) {
+					WithOnEnter(func(_ string, _ time.Duration) { atomic.AddInt32(&enters, 1) }),
+					WithOnLeave(func(_ string) { atomic.AddInt32(&leaves, 1) }),
+					WithOnDrop(func(_ string, reason string) {
 						atomic.AddInt32(&drops, 1)
 						dropReason = reason
 					}),

@@ -43,7 +43,7 @@ func example(ctx fiber.Ctx) error {
 //
 //	@Summary	Get example item
 //	@Tags		example
-//	@Param		id	query	string	true	"item id"
+//	@Param		id	query		string	true	"item id"
 //	@Success	200	{object}	protocol.Response{}
 //	@Router		/example/get [get]
 func getExampleItem(ctx fiber.Ctx) error {
@@ -101,7 +101,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 //
 //	@Summary	Delete example item
 //	@Tags		example
-//	@Param		id	query	string	true	"item id"
+//	@Param		id	query		string	true	"item id"
 //	@Success	200	{object}	protocol.Response{}
 //	@Router		/example/delete [delete]
 func deleteExampleItem(ctx fiber.Ctx) error {

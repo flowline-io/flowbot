@@ -1,890 +1,877 @@
 {
-    "schemes": [
-        "http"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Flowbot Chatbot API",
-        "title": "Flowbot API",
-        "contact": {},
-        "license": {
-            "name": "GPL 3.0",
-            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
-        },
-        "version": "1.0"
+  "schemes": ["http"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Flowbot Chatbot API",
+    "title": "Flowbot API",
+    "contact": {},
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
     },
-    "host": "localhost:6060",
-    "basePath": "/service",
-    "paths": {
-        "/example/example": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "example"
-                ],
-                "summary": "Show example",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
+    "version": "1.0"
+  },
+  "host": "localhost:6060",
+  "basePath": "/service",
+  "paths": {
+    "/example/create": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["example"],
+        "summary": "Create example item",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
             }
-        },
-        "/server/stacktrace": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "get server or goroutines stacktrace",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/server/upload": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dev"
-                ],
-                "summary": "upload PicGO upload api",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types.KV"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/bookmark": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "List bookmarks",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pagination cursor",
-                        "name": "cursor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "include archived",
-                        "name": "archived",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "favourited only",
-                        "name": "favourited",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Create a new bookmark",
-                "parameters": [
-                    {
-                        "description": "bookmark URL",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "url": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/bookmark/check-url": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Check if URL exists in bookmarks",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "URL to check",
-                        "name": "url",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/bookmark/search": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Search bookmarks",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "search query",
-                        "name": "q",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "sort order",
-                        "name": "sort_order",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page size",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pagination cursor",
-                        "name": "cursor",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/bookmark/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Get bookmark by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Archive bookmark",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/bookmark/{id}/tags": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Attach tags to a bookmark",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "tag names",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookmark"
-                ],
-                "summary": "Detach tags from a bookmark",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "bookmark ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "tag names",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.InvokeResult"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service/reader": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reader"
-                ],
-                "summary": "List all feeds",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reader"
-                ],
-                "summary": "Create a new feed",
-                "parameters": [
-                    {
-                        "description": "feed data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_modules_reader.createFeedRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/service/reader/entries": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reader"
-                ],
-                "summary": "List entries",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "status filter (read, unread, removed)",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "filter by feed ID",
-                        "name": "feed_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reader"
-                ],
-                "summary": "Update entries status",
-                "parameters": [
-                    {
-                        "description": "entry IDs and status",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_modules_reader.updateEntriesRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.Response"
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "github_com_flowline-io_flowbot_pkg_ability.EventRef": {
-            "type": "object",
-            "properties": {
-                "entity_id": {
-                    "type": "string"
-                },
-                "event_id": {
-                    "type": "string"
-                },
-                "event_type": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_flowline-io_flowbot_pkg_ability.InvokeResult": {
-            "type": "object",
-            "properties": {
-                "capability": {
-                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_hub.CapabilityType"
-                },
-                "data": {},
-                "events": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.EventRef"
-                    }
-                },
-                "meta": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "operation": {
-                    "type": "string"
-                },
-                "page": {
-                    "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_ability.PageInfo"
-                },
-                "text": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_flowline-io_flowbot_pkg_ability.PageInfo": {
-            "type": "object",
-            "properties": {
-                "has_more": {
-                    "type": "boolean"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "next_cursor": {
-                    "type": "string"
-                },
-                "prev_cursor": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_flowline-io_flowbot_pkg_hub.CapabilityType": {
+    "/example/delete": {
+      "delete": {
+        "tags": ["example"],
+        "summary": "Delete example item",
+        "parameters": [
+          {
             "type": "string",
-            "enum": [
-                "bookmark",
-                "archive",
-                "reader",
-                "kanban",
-                "finance",
-                "infra",
-                "shell_history",
-                "notify"
-            ],
-            "x-enum-varnames": [
-                "CapBookmark",
-                "CapArchive",
-                "CapReader",
-                "CapKanban",
-                "CapFinance",
-                "CapInfra",
-                "CapShellHistory",
-                "CapNotify"
-            ]
-        },
-        "github_com_flowline-io_flowbot_pkg_types.KV": {
-            "type": "object",
-            "additionalProperties": {}
-        },
-        "github_com_flowline-io_flowbot_pkg_types_protocol.Response": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Response data"
-                },
-                "message": {
-                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
-                    "type": "string"
-                },
-                "retcode": {
-                    "description": "The return code, which must conform to the return code rules defined later on this page",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus"
-                        }
-                    ]
-                }
+            "description": "item id",
+            "name": "id",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
             }
-        },
-        "github_com_flowline-io_flowbot_pkg_types_protocol.ResponseStatus": {
-            "type": "string",
-            "enum": [
-                "ok",
-                "failed"
-            ],
-            "x-enum-varnames": [
-                "Success",
-                "Failed"
-            ]
-        },
-        "internal_modules_reader.createFeedRequest": {
-            "type": "object",
-            "required": [
-                "feed_url"
-            ],
-            "properties": {
-                "category_id": {
-                    "type": "integer"
-                },
-                "feed_url": {
-                    "type": "string",
-                    "maxLength": 2048
-                }
-            }
-        },
-        "internal_modules_reader.updateEntriesRequest": {
-            "type": "object",
-            "required": [
-                "entry_ids",
-                "status"
-            ],
-            "properties": {
-                "entry_ids": {
-                    "type": "array",
-                    "maxItems": 1000,
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "read",
-                        "unread",
-                        "removed"
-                    ]
-                }
-            }
+          }
         }
+      }
     },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "description": "access token",
-            "type": "apiKey",
-            "name": "X-AccessToken",
-            "in": "header"
+    "/example/example": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["example"],
+        "summary": "Show example",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
+      }
+    },
+    "/example/get": {
+      "get": {
+        "tags": ["example"],
+        "summary": "Get example item",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "item id",
+            "name": "id",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/example/health": {
+      "get": {
+        "tags": ["example"],
+        "summary": "Example health check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        }
+      }
+    },
+    "/example/webhook/example": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["example"],
+        "summary": "Receive example webhook events",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/server/stacktrace": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "get server or goroutines stacktrace",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/server/upload": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["dev"],
+        "summary": "upload PicGO upload api",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/types.KV"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "List bookmarks",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "page size",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "pagination cursor",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "include archived",
+            "name": "archived",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "favourited only",
+            "name": "favourited",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Create a new bookmark",
+        "parameters": [
+          {
+            "description": "bookmark URL",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/check-url": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Check if URL exists in bookmarks",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "URL to check",
+            "name": "url",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/search": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Search bookmarks",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "search query",
+            "name": "q",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "sort order",
+            "name": "sort_order",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "page size",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "pagination cursor",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/{id}": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Get bookmark by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Archive bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/bookmark/{id}/tags": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Attach tags to a bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "tag names",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["bookmark"],
+        "summary": "Detach tags from a bookmark",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "bookmark ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "tag names",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/protocol.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/ability.InvokeResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/reader": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "List all feeds",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "Create a new feed",
+        "parameters": [
+          {
+            "description": "feed data",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reader.createFeedRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/service/reader/entries": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "List entries",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "status filter (read, unread, removed)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "filter by feed ID",
+            "name": "feed_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["reader"],
+        "summary": "Update entries status",
+        "parameters": [
+          {
+            "description": "entry IDs and status",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reader.updateEntriesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/protocol.Response"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     }
+  },
+  "definitions": {
+    "ability.EventRef": {
+      "type": "object",
+      "properties": {
+        "entity_id": {
+          "type": "string"
+        },
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        }
+      }
+    },
+    "ability.InvokeResult": {
+      "type": "object",
+      "properties": {
+        "capability": {
+          "$ref": "#/definitions/hub.CapabilityType"
+        },
+        "data": {},
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ability.EventRef"
+          }
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "operation": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/ability.PageInfo"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "ability.PageInfo": {
+      "type": "object",
+      "properties": {
+        "has_more": {
+          "type": "boolean"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "next_cursor": {
+          "type": "string"
+        },
+        "prev_cursor": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "hub.CapabilityType": {
+      "type": "string",
+      "enum": [
+        "bookmark",
+        "archive",
+        "reader",
+        "kanban",
+        "finance",
+        "infra",
+        "shell_history",
+        "notify",
+        "example"
+      ],
+      "x-enum-varnames": [
+        "CapBookmark",
+        "CapArchive",
+        "CapReader",
+        "CapKanban",
+        "CapFinance",
+        "CapInfra",
+        "CapShellHistory",
+        "CapNotify",
+        "CapExample"
+      ]
+    },
+    "protocol.Response": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "Response data"
+        },
+        "message": {
+          "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+          "type": "string"
+        },
+        "retcode": {
+          "description": "The return code, which must conform to the return code rules defined later on this page",
+          "type": "string"
+        },
+        "status": {
+          "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/protocol.ResponseStatus"
+            }
+          ]
+        }
+      }
+    },
+    "protocol.ResponseStatus": {
+      "type": "string",
+      "enum": ["ok", "failed"],
+      "x-enum-varnames": ["Success", "Failed"]
+    },
+    "reader.createFeedRequest": {
+      "type": "object",
+      "required": ["feed_url"],
+      "properties": {
+        "category_id": {
+          "type": "integer"
+        },
+        "feed_url": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      }
+    },
+    "reader.updateEntriesRequest": {
+      "type": "object",
+      "required": ["entry_ids", "status"],
+      "properties": {
+        "entry_ids": {
+          "type": "array",
+          "maxItems": 1000,
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["read", "unread", "removed"]
+        }
+      }
+    },
+    "types.KV": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "description": "access token",
+      "type": "apiKey",
+      "name": "X-AccessToken",
+      "in": "header"
+    }
+  }
 }

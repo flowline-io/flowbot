@@ -146,6 +146,7 @@ iterate existing cron entries, remove stale ones, and add new ones.
 ### Stop behavior
 
 `Engine.Stop()`:
+
 1. Calls `cron.Stop()` which returns a context that blocks until all
    running jobs complete OR the context is cancelled.
 2. Wraps with `context.WithTimeout(ctx, 30*time.Second)`.
@@ -156,11 +157,11 @@ iterate existing cron entries, remove stale ones, and add new ones.
 
 Cron-specific metrics on `PipelineCollector`:
 
-| Metric | Description |
-|--------|-------------|
+| Metric                                       | Description                        |
+| -------------------------------------------- | ---------------------------------- |
 | `pipeline_cron_exec_total{pipeline, status}` | Cron runs by outcome (done/cancel) |
-| `pipeline_cron_skip_total{pipeline}` | Ticks skipped due to overlap |
-| `pipeline_cron_duration_seconds{pipeline}` | Cron execution duration histogram |
+| `pipeline_cron_skip_total{pipeline}`         | Ticks skipped due to overlap       |
+| `pipeline_cron_duration_seconds{pipeline}`   | Cron execution duration histogram  |
 
 ### Auth context
 
@@ -261,16 +262,16 @@ assertions. BDD specs use `FakeClock` for reliable cron scheduling tests.
 
 ## Files affected
 
-| File | Change |
-|------|--------|
-| `pkg/config/config.go` | Add `Cron`, `CronTimeout` to `PipelineTrigger` |
-| `pkg/pipeline/loader.go` | Add `Cron`, `CronTimeout` to `Trigger`; validation; update `LoadConfig` |
-| `pkg/pipeline/engine.go` | Embed cron scheduler; per-pipeline mutex map; `Stop()` with timeout; clock interface |
-| `pkg/pipeline/clock.go` | Clock interface + RealClock implementation |
-| `internal/server/pipeline.go` | fx hook for `engine.Stop()` |
-| `pkg/metrics/pipeline.go` | Cron-specific metrics |
-| `docs/reference/pipelines.yaml` | Cron trigger example |
-| `pkg/pipeline/engine_test.go` | Cron scheduling tests (with FakeClock) |
-| `pkg/pipeline/loader_test.go` | LoadConfig cron mapping + validation tests |
-| `pkg/config/config_test.go` | Config parse cron field tests |
-| `tests/specs/pipeline_spec_test.go` | BDD cron trigger specs (with FakeClock) |
+| File                                | Change                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `pkg/config/config.go`              | Add `Cron`, `CronTimeout` to `PipelineTrigger`                                       |
+| `pkg/pipeline/loader.go`            | Add `Cron`, `CronTimeout` to `Trigger`; validation; update `LoadConfig`              |
+| `pkg/pipeline/engine.go`            | Embed cron scheduler; per-pipeline mutex map; `Stop()` with timeout; clock interface |
+| `pkg/pipeline/clock.go`             | Clock interface + RealClock implementation                                           |
+| `internal/server/pipeline.go`       | fx hook for `engine.Stop()`                                                          |
+| `pkg/metrics/pipeline.go`           | Cron-specific metrics                                                                |
+| `docs/reference/pipelines.yaml`     | Cron trigger example                                                                 |
+| `pkg/pipeline/engine_test.go`       | Cron scheduling tests (with FakeClock)                                               |
+| `pkg/pipeline/loader_test.go`       | LoadConfig cron mapping + validation tests                                           |
+| `pkg/config/config_test.go`         | Config parse cron field tests                                                        |
+| `tests/specs/pipeline_spec_test.go` | BDD cron trigger specs (with FakeClock)                                              |

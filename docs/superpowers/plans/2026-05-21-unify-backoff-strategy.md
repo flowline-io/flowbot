@@ -12,28 +12,29 @@
 
 ## File Changes Summary
 
-| File | Action |
-|---|---|
-| `pkg/backoff/backoff.go` | Create — `Config`, `Do`, `shouldRetry`, `jitterDuration` |
-| `pkg/backoff/backoff_test.go` | Create — 9 test groups, 27+ cases |
-| `pkg/backoff/middleware.go` | Create — `Middleware` for Watermill |
-| `pkg/types/workflow.go` | Modify — add `ToBackoffConfig()`, deprecate `BuildBackOff`/`RetryEnabled` |
-| `pkg/pipeline/loader.go` | Modify — `Step.Retry` type to `*backoff.Config`, `convertRetryConfig` returns `backoff.Config` |
-| `pkg/pipeline/engine.go` | Modify — `executeStep` uses `backoff.Do`, remove `isRetryable`/`containsErrorCode` |
-| `pkg/pipeline/pipeline_test.go` | Modify — migrate `TestBuildBackoff` and `TestIsRetryable` |
-| `pkg/event/middleware.go` | Rewrite — use `backoff.Middleware`, remove `event.Retry` type |
-| `pkg/event/pubsub.go` | Modify — use `backoff.Config` instead of `event.Retry` |
-| `pkg/event/middleware_test.go` | Rewrite — test `backoff.Middleware` |
-| `pkg/workflow/workflow.go` | Modify — replace `runWithRetry` + `runEngineWithRetry` with `backoff.Do` |
-| `pkg/workflow/scheduler.go` | Modify — update `executeExecutorStep` pass `backoff.Config` |
-| `tests/specs/pipeline_spec_test.go` | Modify — update `RetryEnabled`/`BuildBackOff` calls |
-| `tests/specs/workflow_spec_test.go` | Modify — update `RetryEnabled` calls |
+| File                                | Action                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pkg/backoff/backoff.go`            | Create — `Config`, `Do`, `shouldRetry`, `jitterDuration`                                       |
+| `pkg/backoff/backoff_test.go`       | Create — 9 test groups, 27+ cases                                                              |
+| `pkg/backoff/middleware.go`         | Create — `Middleware` for Watermill                                                            |
+| `pkg/types/workflow.go`             | Modify — add `ToBackoffConfig()`, deprecate `BuildBackOff`/`RetryEnabled`                      |
+| `pkg/pipeline/loader.go`            | Modify — `Step.Retry` type to `*backoff.Config`, `convertRetryConfig` returns `backoff.Config` |
+| `pkg/pipeline/engine.go`            | Modify — `executeStep` uses `backoff.Do`, remove `isRetryable`/`containsErrorCode`             |
+| `pkg/pipeline/pipeline_test.go`     | Modify — migrate `TestBuildBackoff` and `TestIsRetryable`                                      |
+| `pkg/event/middleware.go`           | Rewrite — use `backoff.Middleware`, remove `event.Retry` type                                  |
+| `pkg/event/pubsub.go`               | Modify — use `backoff.Config` instead of `event.Retry`                                         |
+| `pkg/event/middleware_test.go`      | Rewrite — test `backoff.Middleware`                                                            |
+| `pkg/workflow/workflow.go`          | Modify — replace `runWithRetry` + `runEngineWithRetry` with `backoff.Do`                       |
+| `pkg/workflow/scheduler.go`         | Modify — update `executeExecutorStep` pass `backoff.Config`                                    |
+| `tests/specs/pipeline_spec_test.go` | Modify — update `RetryEnabled`/`BuildBackOff` calls                                            |
+| `tests/specs/workflow_spec_test.go` | Modify — update `RetryEnabled` calls                                                           |
 
 ---
 
 ### Task 1: Create `pkg/backoff/backoff.go` — core Do function and Config
 
 **Files:**
+
 - Create: `pkg/backoff/backoff.go`
 
 - [ ] **Step 1: Write `pkg/backoff/backoff.go`**
@@ -195,6 +196,7 @@ git commit -m "feat: add pkg/backoff with unified Do retry loop"
 ### Task 2: Write TDD unit tests for `pkg/backoff`
 
 **Files:**
+
 - Create: `pkg/backoff/backoff_test.go`
 
 - [ ] **Step 1: Write `pkg/backoff/backoff_test.go`**
@@ -690,6 +692,7 @@ git commit -m "test: add unit tests for pkg/backoff"
 ### Task 3: Add Watermill Middleware adapter
 
 **Files:**
+
 - Create: `pkg/backoff/middleware.go`
 
 - [ ] **Step 1: Write `pkg/backoff/middleware.go`**
@@ -761,6 +764,7 @@ git commit -m "feat: add backoff.Middleware for Watermill"
 ### Task 4: Migrate pipeline event middleware and pubsub
 
 **Files:**
+
 - Modify: `pkg/event/middleware.go` (rewrite)
 - Modify: `pkg/event/pubsub.go`
 - Modify: `pkg/event/middleware_test.go` (rewrite)
@@ -925,6 +929,7 @@ git commit -m "refactor: migrate event module to backoff.Middleware"
 ### Task 5: Add `ToBackoffConfig()` on `types.RetryConfig`, deprecate old methods
 
 **Files:**
+
 - Modify: `pkg/types/workflow.go`
 
 - [ ] **Step 1: Edit `pkg/types/workflow.go`**
@@ -993,6 +998,7 @@ git commit -m "refactor: add RetryConfig.ToBackoffConfig, deprecate old methods"
 ### Task 6: Migrate pipeline loader to use `backoff.Config`
 
 **Files:**
+
 - Modify: `pkg/pipeline/loader.go`
 
 - [ ] **Step 1: Edit `pkg/pipeline/loader.go`**
@@ -1062,6 +1068,7 @@ git commit -m "refactor: pipeline loader uses backoff.Config"
 ### Task 7: Migrate pipeline engine to use `backoff.Do`
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go`
 
 - [ ] **Step 1: Edit `pkg/pipeline/engine.go` — replace `executeStep`**
@@ -1161,6 +1168,7 @@ git commit -m "refactor: pipeline engine uses backoff.Do"
 ### Task 8: Migrate pipeline tests
 
 **Files:**
+
 - Modify: `pkg/pipeline/pipeline_test.go`
 
 - [ ] **Step 1: Edit `pkg/pipeline/pipeline_test.go`**
@@ -1170,6 +1178,7 @@ The file has `TestBuildBackoff` (line 495) and `TestIsRetryable` (line 572) that
 Since `BuildBackOff()` is deprecated but still exists, `TestBuildBackoff` can stay as-is for now.
 
 `TestIsRetryable` calls `isRetryable()` which no longer exists in the pipeline package. Options:
+
 1. Remove `TestIsRetryable` since `shouldRetry` is tested in `pkg/backoff/backoff_test.go`.
 2. Rewrite it to test `backoff.Do` instead.
 
@@ -1199,6 +1208,7 @@ git commit -m "test: remove migrated retry tests from pipeline_test.go"
 ### Task 9: Migrate workflow to use `backoff.Do`
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go`
 - Modify: `pkg/workflow/scheduler.go`
 
@@ -1230,11 +1240,13 @@ func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *t
 In `executeExecutorStep` (lines 359-414 of scheduler.go), replace line 388:
 
 Old:
+
 ```go
 	attempt, rerr := r.runEngineWithRetry(ctx, engine, task, wt.Retry, taskID, stepRun)
 ```
 
 New:
+
 ```go
 	backoffCfg := wt.Retry.ToBackoffConfig()
 	backoffCfg.OnRetry = func(a int, d time.Duration, err error) {
@@ -1274,6 +1286,7 @@ git commit -m "refactor: workflow uses backoff.Do"
 ### Task 10: Update BDD specs
 
 **Files:**
+
 - Modify: `tests/specs/pipeline_spec_test.go`
 - Modify: `tests/specs/workflow_spec_test.go`
 

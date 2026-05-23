@@ -13,6 +13,7 @@
 ### Task 1: Create `pkg/audit/audit.go` (Auditor interface and types)
 
 **Files:**
+
 - Create: `pkg/audit/audit.go`
 
 - [ ] **Step 1: Create the file**
@@ -60,6 +61,7 @@ type Target struct {
 ```bash
 go build ./pkg/audit/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 3: Commit**
@@ -74,6 +76,7 @@ git commit -m "feat: add audit.Auditor interface and types"
 ### Task 2: Refactor `AuditStore` to implement `Auditor`
 
 **Files:**
+
 - Modify: `internal/store/audit_store.go`
 
 - [ ] **Step 1: Replace the file content**
@@ -179,6 +182,7 @@ func wrapResult(request any, key, value string) map[string]any {
 ```bash
 go build ./internal/store/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 3: Commit**
@@ -193,6 +197,7 @@ git commit -m "refactor: AuditStore implements audit.Auditor interface"
 ### Task 3: Write `AuditStore` unit tests
 
 **Files:**
+
 - Create: `internal/store/audit_store_test.go`
 
 - [ ] **Step 1: Write the test file**
@@ -357,6 +362,7 @@ func TestAuditStore_SubjectExtraction(t *testing.T) {
 ```bash
 go test ./internal/store/ -run TestAuditStore -v
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 3: Commit**
@@ -371,6 +377,7 @@ git commit -m "test: add AuditStore auditor interface tests"
 ### Task 4: Add audit to route `Authorize` middleware
 
 **Files:**
+
 - Modify: `pkg/route/route.go`
 
 - [ ] **Step 1: Add SetAuditor and modify Authorize**
@@ -378,6 +385,7 @@ git commit -m "test: add AuditStore auditor interface tests"
 Replace `pkg/route/route.go` content (additions inline):
 
 After the existing imports, add:
+
 ```go
 import (
 	// ... existing imports ...
@@ -386,6 +394,7 @@ import (
 ```
 
 After the existing constants, add the SetAuditor function:
+
 ```go
 var routeAuditor audit.Auditor
 
@@ -520,6 +529,7 @@ func auditScopeDeny(ctx fiber.Ctx, scope string) {
 ```bash
 go build ./pkg/route/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 4: Commit**
@@ -534,6 +544,7 @@ git commit -m "feat: add auth audit logging to Authorize and RequireScope middle
 ### Task 5: Write route auth audit tests
 
 **Files:**
+
 - Create: `pkg/route/route_test.go`
 
 - [ ] **Step 1: Write the test file**
@@ -641,6 +652,7 @@ func TestAuditor_SetAndNil(t *testing.T) {
 go test ./pkg/route/ -run TestAuthorize_Audit -v
 go test ./pkg/route/ -run TestAuditor -v
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 3: Commit**
@@ -655,11 +667,13 @@ git commit -m "test: add route auth audit tests"
 ### Task 6: Add auditor field to Pipeline Engine
 
 **Files:**
+
 - Modify: `pkg/pipeline/engine.go`
 
 - [ ] **Step 1: Add import and modify Engine struct and NewEngine**
 
 Add to imports:
+
 ```go
 import (
 	// ... existing imports ...
@@ -668,6 +682,7 @@ import (
 ```
 
 Modify the `Engine` struct (around line 58):
+
 ```go
 type Engine struct {
 	defs            []Definition
@@ -680,6 +695,7 @@ type Engine struct {
 ```
 
 Modify `NewEngine` (around line 66):
+
 ```go
 func NewEngine(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
 	e := &Engine{
@@ -748,6 +764,7 @@ func (e *Engine) auditPipelineEvent(ctx context.Context, pipelineName, action, e
 ```bash
 go build ./pkg/pipeline/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 5: Commit**
@@ -762,6 +779,7 @@ git commit -m "feat: add audit logging to pipeline engine start/complete/fail"
 ### Task 7: Write pipeline audit tests
 
 **Files:**
+
 - Modify: `pkg/pipeline/pipeline_test.go` (append tests)
 
 - [ ] **Step 1: Add mock auditor and tests**
@@ -843,6 +861,7 @@ func TestNewEngine_WithAuditor(t *testing.T) {
 ```
 
 Also add the imports:
+
 ```go
 import (
 	// ... existing imports ...
@@ -858,6 +877,7 @@ Note: also add `context` import if not already present.
 go test ./pkg/pipeline/ -run TestEngine_Audit -v
 go test ./pkg/pipeline/ -run TestNewEngine_WithAuditor -v
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 3: Commit**
@@ -872,11 +892,13 @@ git commit -m "test: add pipeline audit tests"
 ### Task 8: Add auditor field to Workflow Runner
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow.go`
 
 - [ ] **Step 1: Add import and modify Runner struct and constructor**
 
 Add to imports:
+
 ```go
 import (
 	// ... existing imports ...
@@ -885,6 +907,7 @@ import (
 ```
 
 Modify the `Runner` struct (around line 146):
+
 ```go
 type Runner struct {
 	engines      map[string]*executor.Engine
@@ -897,6 +920,7 @@ type Runner struct {
 ```
 
 Modify `NewRunnerWithStore` (around line 161):
+
 ```go
 func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
 	return &Runner{
@@ -916,6 +940,7 @@ func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metri
 ```
 
 Fix `NewRunner` (around line 155) to pass nil auditor:
+
 ```go
 func NewRunner() *Runner {
 	return NewRunnerWithStore(nil, nil, nil, "", "")
@@ -945,6 +970,7 @@ func (r *Runner) auditWorkflowEvent(ctx context.Context, wfName, action string) 
 - [ ] **Step 3: Add audit calls in runSequential and fail paths**
 
 In `runSequential` (around line 253), add audit at the start:
+
 ```go
 func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, input types.KV, taskMap map[string]types.WorkflowTask, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc) error {
 	start := time.Now()
@@ -952,6 +978,7 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 ```
 
 In `runSequential` completion path (around line 279-285):
+
 ```go
 	if r.store != nil && run != nil {
 		if cancelHeartbeat != nil {
@@ -965,6 +992,7 @@ In `runSequential` completion path (around line 279-285):
 ```
 
 In `runSequential` failure path (around line 273):
+
 ```go
 		if err := r.executeSequentialStep(ctx, stepID, taskMap, wf, results, input, run); err != nil {
 			r.failRun(ctx, run, cancelHeartbeat, err)
@@ -977,6 +1005,7 @@ In `runSequential` failure path (around line 273):
 - [ ] **Step 4: Also audit workflow.fail in failRun**
 
 Modify `failRun` at around line 634:
+
 ```go
 func (r *Runner) failRun(ctx context.Context, run *model.WorkflowRun, cancelHeartbeat context.CancelFunc, err error) {
 	if cancelHeartbeat != nil {
@@ -994,6 +1023,7 @@ func (r *Runner) failRun(ctx context.Context, run *model.WorkflowRun, cancelHear
 ```bash
 go build ./pkg/workflow/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 6: Commit**
@@ -1008,6 +1038,7 @@ git commit -m "feat: add audit logging to workflow runner start/complete/fail"
 ### Task 9: Write workflow audit tests
 
 **Files:**
+
 - Modify: `pkg/workflow/workflow_test.go` (append tests)
 
 - [ ] **Step 1: Check the existing test file structure first**
@@ -1076,6 +1107,7 @@ func TestNewRunnerWithStore_DefaultAuditor(t *testing.T) {
 ```
 
 Add imports:
+
 ```go
 import (
 	// ... existing imports ...
@@ -1089,6 +1121,7 @@ import (
 go test ./pkg/workflow/ -run TestRunner_Audit -v
 go test ./pkg/workflow/ -run TestNewRunnerWithStore_DefaultAuditor -v
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 4: Commit**
@@ -1103,6 +1136,7 @@ git commit -m "test: add workflow audit tests"
 ### Task 10: Wire auditor in Fx dependency injection
 
 **Files:**
+
 - Modify: `internal/server/fx.go`
 
 - [ ] **Step 1: Add auditor provider and route wiring**
@@ -1190,6 +1224,7 @@ func setRouteAuditor(a audit.Auditor) {
 ```bash
 go build ./internal/server/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 3: Commit**
@@ -1204,6 +1239,7 @@ git commit -m "feat: wire audit.Auditor into Fx dependency injection"
 ### Task 11: Replace hub lifecycle audit with Auditor
 
 **Files:**
+
 - Modify: `internal/server/hub.go`
 - Modify: `internal/server/router.go` (Controller struct + handleRoutes)
 
@@ -1220,6 +1256,7 @@ type Controller struct {
 ```
 
 Add import:
+
 ```go
 import (
 	// ... existing imports ...
@@ -1256,12 +1293,14 @@ Replace `writeLifecycleAudit` method and all 12 call sites. In `internal/server/
 Delete the `writeLifecycleAudit` method (lines 165-180).
 
 Replace all calls:
+
 - `c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.start", "failed", err.Error())`
   → `c.writeLifecycleAudit(ctx.Context(), app.Name, "hub.apps.start", "failed", err.Error())`
 
 Actually, let's keep the method but change its implementation:
 
 Replace the method body:
+
 ```go
 func (c *Controller) writeLifecycleAudit(ctx context.Context, appName, action, result, errMsg string) {
 	if c.auditor == nil {
@@ -1328,6 +1367,7 @@ func (c *Controller) auditWebhook(ctx fiber.Ctx, action, flag string, err error)
 ```bash
 go build ./internal/server/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 7: Commit**
@@ -1342,6 +1382,7 @@ git commit -m "feat: replace direct AuditStore calls with injected Auditor in hu
 ### Task 12: Pass auditor to Pipeline and Workflow engines
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go`
 - Modify: `internal/modules/workflow/webservice.go`
 
@@ -1350,6 +1391,7 @@ git commit -m "feat: replace direct AuditStore calls with injected Auditor in hu
 In `internal/server/pipeline.go`, add `auditor audit.Auditor` to the `initPipeline` function parameters. Fx auto-injects it via the `newAuditor` provider.
 
 Change the function signature at line 25:
+
 ```go
 func initPipeline(
 	_ fx.Lifecycle,
@@ -1364,11 +1406,13 @@ func initPipeline(
 ```
 
 At line 47, pass auditor to NewEngine:
+
 ```go
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
 ```
 
 Add import:
+
 ```go
 import (
 	// ... existing imports ...
@@ -1390,6 +1434,7 @@ import (
 ```
 
 At line 39, replace:
+
 ```go
 	runner := workflowpkg.NewRunner()
 	var runStore workflowpkg.WorkflowRunStore
@@ -1402,6 +1447,7 @@ At line 39, replace:
 ```
 
 With:
+
 ```go
 	runner := workflowpkg.NewRunner()
 	var runStore workflowpkg.WorkflowRunStore
@@ -1421,6 +1467,7 @@ With:
 go build ./internal/server/
 go build ./internal/modules/workflow/
 ```
+
 Expected: no output (success)
 
 - [ ] **Step 4: Commit**
@@ -1435,6 +1482,7 @@ git commit -m "feat: wire auditor into pipeline engine and workflow runner"
 ### Task 13: Update existing tests for new signatures
 
 **Files:**
+
 - Modify: `pkg/pipeline/pipeline_test.go` (TestNewEngine)
 - Modify: `pkg/workflow/workflow_test.go` (NewRunner calls)
 - Modify: `tests/specs/pipeline_spec_test.go` (NewEngine calls)
@@ -1453,6 +1501,7 @@ In `tests/specs/pipeline_spec_test.go`, search for `NewEngine` calls and add `ni
 go test ./pkg/pipeline/ -v
 go test ./pkg/workflow/ -v
 ```
+
 Expected: all existing tests PASS
 
 - [ ] **Step 4: Run full test suite**
@@ -1460,6 +1509,7 @@ Expected: all existing tests PASS
 ```bash
 go tool task test
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 5: Commit**
@@ -1480,6 +1530,7 @@ git commit -m "test: update tests for new auditor constructor parameter"
 ```bash
 go tool task lint
 ```
+
 Expected: no errors
 
 - [ ] **Step 2: Run all unit tests**
@@ -1487,6 +1538,7 @@ Expected: no errors
 ```bash
 go tool task test
 ```
+
 Expected: all PASS
 
 - [ ] **Step 3: Run full build**
@@ -1494,4 +1546,5 @@ Expected: all PASS
 ```bash
 go tool task build
 ```
+
 Expected: success

@@ -12,33 +12,34 @@
 
 ## File map
 
-| File | Role |
-|------|------|
-| `internal/store/ent/schema/polling_state.go` | Ent schema for `polling_state` table |
-| `internal/store/polling_state_store.go` | PostgreSQL DAO (cursor + known_hashes CRUD) |
-| `pkg/ability/event_source.go` | WebhookConverter / PollingResource interfaces + PollResult |
-| `pkg/metrics/event_source.go` | EventSourceCollector (Prometheus metrics) |
-| `pkg/ability/polling_state.go` | PollingStateStore — in-memory cache + PG flush |
-| `pkg/ability/event_source_manager.go` | EventSourceManager — Register / Start / Stop |
-| `pkg/ability/poll_scheduler.go` | Cron scheduler + diff + cursor advancement |
-| `pkg/ability/webhook_hook.go` | Fiber handler for POST /webhook/provider/* |
-| `internal/server/router.go` | Register `/webhook/provider/*` route |
-| `internal/server/fx.go` | fx lifecycle + provide EventSourceManager |
-| `internal/server/pipeline.go` | Provide EventSourceCollector + wire emitter |
-| `pkg/ability/event_source_test.go` | Unit: interfaces, PollResult |
-| `pkg/ability/event_source_manager_test.go` | Unit: Register/Start/Stop, concurrent registration |
-| `pkg/ability/poll_scheduler_test.go` | Unit: diff dedup, ContentHash change, cursor update, backoff |
-| `pkg/ability/webhook_hook_test.go` | Unit: VerifySignature pass/fail, 404, 400, 202 |
-| `pkg/ability/polling_state_test.go` | Unit: Load/Update/Flush, recovery |
-| `internal/store/polling_state_store_test.go` | Unit: PG read/write, cursor persistence |
-| `pkg/metrics/event_source_test.go` | Unit: metric registration, label sanitization |
-| `specs/provider_event_source/` (BDD) | Ginkgo: full webhook flow, full polling flow, state recovery, error isolation |
+| File                                         | Role                                                                          |
+| -------------------------------------------- | ----------------------------------------------------------------------------- |
+| `internal/store/ent/schema/polling_state.go` | Ent schema for `polling_state` table                                          |
+| `internal/store/polling_state_store.go`      | PostgreSQL DAO (cursor + known_hashes CRUD)                                   |
+| `pkg/ability/event_source.go`                | WebhookConverter / PollingResource interfaces + PollResult                    |
+| `pkg/metrics/event_source.go`                | EventSourceCollector (Prometheus metrics)                                     |
+| `pkg/ability/polling_state.go`               | PollingStateStore — in-memory cache + PG flush                                |
+| `pkg/ability/event_source_manager.go`        | EventSourceManager — Register / Start / Stop                                  |
+| `pkg/ability/poll_scheduler.go`              | Cron scheduler + diff + cursor advancement                                    |
+| `pkg/ability/webhook_hook.go`                | Fiber handler for POST /webhook/provider/\*                                   |
+| `internal/server/router.go`                  | Register `/webhook/provider/*` route                                          |
+| `internal/server/fx.go`                      | fx lifecycle + provide EventSourceManager                                     |
+| `internal/server/pipeline.go`                | Provide EventSourceCollector + wire emitter                                   |
+| `pkg/ability/event_source_test.go`           | Unit: interfaces, PollResult                                                  |
+| `pkg/ability/event_source_manager_test.go`   | Unit: Register/Start/Stop, concurrent registration                            |
+| `pkg/ability/poll_scheduler_test.go`         | Unit: diff dedup, ContentHash change, cursor update, backoff                  |
+| `pkg/ability/webhook_hook_test.go`           | Unit: VerifySignature pass/fail, 404, 400, 202                                |
+| `pkg/ability/polling_state_test.go`          | Unit: Load/Update/Flush, recovery                                             |
+| `internal/store/polling_state_store_test.go` | Unit: PG read/write, cursor persistence                                       |
+| `pkg/metrics/event_source_test.go`           | Unit: metric registration, label sanitization                                 |
+| `specs/provider_event_source/` (BDD)         | Ginkgo: full webhook flow, full polling flow, state recovery, error isolation |
 
 ---
 
 ### Task 1: Ent schema for polling_state
 
 **Files:**
+
 - Create: `internal/store/ent/schema/polling_state.go`
 - Run: `go tool task ent` to regenerate
 
@@ -95,6 +96,7 @@ git commit -m "feat: add Ent schema for polling_state table"
 ### Task 2: PollingStateStore PostgreSQL DAO
 
 **Files:**
+
 - Create: `internal/store/polling_state_store.go`
 - Create: `internal/store/polling_state_store_test.go`
 
@@ -348,6 +350,7 @@ git commit -m "feat: add PollingStateStore DAO with CRUD operations"
 ### Task 3: Interfaces and types
 
 **Files:**
+
 - Create: `pkg/ability/event_source.go`
 - Create: `pkg/ability/event_source_test.go`
 
@@ -524,6 +527,7 @@ git commit -m "feat: add WebhookConverter, PollingResource interfaces and PollRe
 ### Task 4: EventSourceCollector Prometheus metrics
 
 **Files:**
+
 - Create: `pkg/metrics/event_source.go`
 - Create: `pkg/metrics/event_source_test.go`
 
@@ -713,6 +717,7 @@ git commit -m "feat: add EventSourceCollector Prometheus metrics"
 ### Task 5: PollingStateStore — in-memory state with PG persistence
 
 **Files:**
+
 - Create: `pkg/ability/polling_state.go`
 - Create: `pkg/ability/polling_state_test.go`
 
@@ -1021,6 +1026,7 @@ git commit -m "feat: add PollingState in-memory cache with PG persistence"
 ### Task 6: EventSourceManager — registration and lifecycle
 
 **Files:**
+
 - Create: `pkg/ability/event_source_manager.go`
 - Create: `pkg/ability/event_source_manager_test.go`
 
@@ -1256,6 +1262,7 @@ git commit -m "feat: add EventSourceManager with Register/Start/Stop skeleton"
 ### Task 7: PollScheduler — cron scheduling and diff logic
 
 **Files:**
+
 - Create: `pkg/ability/poll_scheduler.go`
 - Create: `pkg/ability/poll_scheduler_test.go`
 
@@ -1559,6 +1566,7 @@ git commit -m "feat: add poll scheduler with diff, cursor management, and error 
 ### Task 8: WebhookHook — Fiber HTTP handler
 
 **Files:**
+
 - Create: `pkg/ability/webhook_hook.go`
 - Create: `pkg/ability/webhook_hook_test.go`
 
@@ -1746,6 +1754,7 @@ git commit -m "feat: add WebhookHandler Fiber endpoint with converter dispatch"
 ### Task 9: EventSourceManager — complete lifecycle
 
 **Files:**
+
 - Modify: `pkg/ability/event_source_manager.go`
 
 - [ ] **Step 1: Update Start/Stop and wire poll scheduler**
@@ -1823,6 +1832,7 @@ git commit -m "feat: add Start/Stop lifecycle with state load/flush and flush lo
 ### Task 10: Fix test helper compilation (stub with verifyFn field)
 
 **Files:**
+
 - Modify: `pkg/ability/event_source_manager_test.go`
 
 - [ ] **Step 1: Add stubWebhookConverterWithAuth**
@@ -1864,9 +1874,10 @@ git commit -m "test: add stubWebhookConverterWithAuth for webhook handler tests"
 ### Task 11: Server integration — Wire EventSourceManager into fx
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go` — add EventSourceCollector + EventSourceManager creation
 - Modify: `internal/server/fx.go` — provide EventSourceManager
-- Modify: `internal/server/router.go` — register /webhook/provider/* route
+- Modify: `internal/server/router.go` — register /webhook/provider/\* route
 
 - [ ] **Step 1: Wire EventSourceManager provider and lifecycle in pipeline.go**
 
@@ -1921,6 +1932,7 @@ git commit -m "feat: wire EventSourceManager into server fx lifecycle"
 ### Task 12: BDD specs
 
 **Files:**
+
 - Create: `specs/provider_event_source/polling_spec_test.go`
 - Create: `specs/provider_event_source/webhook_spec_test.go`
 - Create: `specs/provider_event_source/suite_test.go`
@@ -2034,34 +2046,37 @@ git commit -m "test: add BDD specs for provider event source"
 
 ### Spec coverage
 
-| Spec requirement | Task |
-|-----------------|------|
-| WebhookConverter + PollingResource interfaces | Task 3 |
-| EventSourceManager registration | Task 6 |
-| Poll scheduler + cron | Task 7 |
-| Diff strategy (DiffKey + ContentHash) | Task 7 |
-| WebhookHook (verify + convert + emit) | Task 8 |
-| Polling state persistence (in-memory + PG) | Tasks 2, 5 |
-| Per-entry lock granularity | Task 5 (pollEntry.mu) |
-| Webhook idempotency | Task 7 (IdempotencyKey = DiffKey), design note in Task 8 |
-| Context lifecycle (Background context in pool) | Task 8 |
-| Delete detection out of scope | N/A (explicitly excluded) |
-| Lifecycle (fx Start/Stop) | Tasks 9, 11 |
-| Metrics (Prometheus) | Task 4 |
-| TDD unit tests | Tasks 1-10 |
-| BDD specs | Task 12 |
+| Spec requirement                               | Task                                                     |
+| ---------------------------------------------- | -------------------------------------------------------- |
+| WebhookConverter + PollingResource interfaces  | Task 3                                                   |
+| EventSourceManager registration                | Task 6                                                   |
+| Poll scheduler + cron                          | Task 7                                                   |
+| Diff strategy (DiffKey + ContentHash)          | Task 7                                                   |
+| WebhookHook (verify + convert + emit)          | Task 8                                                   |
+| Polling state persistence (in-memory + PG)     | Tasks 2, 5                                               |
+| Per-entry lock granularity                     | Task 5 (pollEntry.mu)                                    |
+| Webhook idempotency                            | Task 7 (IdempotencyKey = DiffKey), design note in Task 8 |
+| Context lifecycle (Background context in pool) | Task 8                                                   |
+| Delete detection out of scope                  | N/A (explicitly excluded)                                |
+| Lifecycle (fx Start/Stop)                      | Tasks 9, 11                                              |
+| Metrics (Prometheus)                           | Task 4                                                   |
+| TDD unit tests                                 | Tasks 1-10                                               |
+| BDD specs                                      | Task 12                                                  |
 
 ### Placeholder scan
+
 - No TBD, TODO, or "implement later" patterns.
 - All test cases have concrete input/output.
 - emit_timeout is hardcoded (30s default), matching spec.
 
 ### Type consistency
+
 - `EventSourceEmitter` = `func(ctx context.Context, events []types.DataEvent) error` used consistently in Tasks 6-8.
 - `PollingEntry` struct used consistently in Tasks 2, 5, 7.
 - `stubWebhookConverter` and `stubWebhookConverterWithAuth` both implement `WebhookConverter`.
 - `EventSourceCollector` method names match spec metrics table.
 
 Execution options:
+
 1. Subagent-Driven (recommended)
 2. Inline Execution
