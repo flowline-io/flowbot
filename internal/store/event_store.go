@@ -54,22 +54,25 @@ func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEven
 	if s == nil || s.client == nil {
 		return nil
 	}
+	payload := map[string]any{
+		"event_id":        event.EventID,
+		"event_type":      event.EventType,
+		"source":          event.Source,
+		"capability":      event.Capability,
+		"operation":       event.Operation,
+		"backend":         event.Backend,
+		"app":             event.App,
+		"entity_id":       event.EntityID,
+		"idempotency_key": event.IdempotencyKey,
+		"uid":             event.UID,
+		"topic":           event.Topic,
+	}
+	if event.Tags != nil {
+		payload["tags"] = map[string]any(event.Tags)
+	}
 	_, err := s.client.EventOutbox.Create().
 		SetEventID(event.EventID).
-		SetPayload(map[string]any{
-			"event_id":        event.EventID,
-			"event_type":      event.EventType,
-			"source":          event.Source,
-			"capability":      event.Capability,
-			"operation":       event.Operation,
-			"backend":         event.Backend,
-			"app":             event.App,
-			"entity_id":       event.EntityID,
-			"idempotency_key": event.IdempotencyKey,
-			"uid":             event.UID,
-			"topic":           event.Topic,
-			"tags":            map[string]any(event.Tags),
-		}).
+		SetPayload(payload).
 		SetPublished(false).
 		SetCreatedAt(time.Now()).
 		Save(ctx)
