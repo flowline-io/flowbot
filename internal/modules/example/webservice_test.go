@@ -12,7 +12,7 @@ func TestWebserviceRules(t *testing.T) {
 		name string
 		test func(t *testing.T)
 	}{
-		{name: "should have exactly 1 webservice rule", test: func(t *testing.T) { t.Parallel(); assert.Len(t, webserviceRules, 1) }},
+		{name: "should have exactly 5 webservice rules", test: func(t *testing.T) { t.Parallel(); assert.Len(t, webserviceRules, 5) }},
 		{name: "should not be empty", test: func(t *testing.T) { t.Parallel(); assert.NotEmpty(t, webserviceRules) }},
 	}
 	for _, tt := range tests {
