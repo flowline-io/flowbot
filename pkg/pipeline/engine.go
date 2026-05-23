@@ -13,12 +13,12 @@ import (
 	"github.com/flc1125/go-cron/v4"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/audit"
 
 	otelattr "go.opentelemetry.io/otel/attribute"
 
@@ -63,12 +63,8 @@ func mergeTags(upstream types.KV, stepTags any) types.KV {
 		return upstream
 	}
 	result := make(types.KV, len(upstream)+len(stepKV))
-	for k, v := range upstream {
-		result[k] = v
-	}
-	for k, v := range stepKV {
-		result[k] = v
-	}
+	maps.Copy(result, upstream)
+	maps.Copy(result, stepKV)
 	return result
 }
 

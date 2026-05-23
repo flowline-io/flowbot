@@ -33,15 +33,15 @@ var (
 
 // Config holds all logging configuration.
 type Config struct {
-	Level        string
-	Caller       bool
-	StackTrace   bool
-	JSONOutput   bool
-	FileLog      bool
-	FileLogPath  string
-	ModuleLevel  map[string]string
-	Sampling     *SamplingConfig
-	Rotation     *RotationConfig
+	Level       string
+	Caller      bool
+	StackTrace  bool
+	JSONOutput  bool
+	FileLog     bool
+	FileLogPath string
+	ModuleLevel map[string]string
+	Sampling    *SamplingConfig
+	Rotation    *RotationConfig
 }
 
 // SamplingConfig controls log sampling to reduce noise from high-frequency log points.

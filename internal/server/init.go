@@ -21,13 +21,13 @@ var (
 func initializeLog() error {
 	cfg := config.App.Log
 	fc := flog.Config{
-		Level:        cfg.Level,
-		Caller:       cfg.Caller,
-		StackTrace:   cfg.StackTrace,
-		JSONOutput:   cfg.JSONOutput,
-		FileLog:      cfg.FileLog,
-		FileLogPath:  cfg.FileLogPath,
-		ModuleLevel:  cfg.ModuleLevel,
+		Level:       cfg.Level,
+		Caller:      cfg.Caller,
+		StackTrace:  cfg.StackTrace,
+		JSONOutput:  cfg.JSONOutput,
+		FileLog:     cfg.FileLog,
+		FileLogPath: cfg.FileLogPath,
+		ModuleLevel: cfg.ModuleLevel,
 	}
 	if cfg.Sampling != nil {
 		fc.Sampling = &flog.SamplingConfig{

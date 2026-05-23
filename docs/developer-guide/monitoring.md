@@ -220,22 +220,22 @@ The dashboard is organized into 5 rows.
 
 All 21 custom metrics, each producing a `_counter` and `_gauge` suffix variant:
 
-| Base Name                         | Labels       | Updated By                             | Type    |
-| --------------------------------- | ------------ | -------------------------------------- | ------- |
-| `module_total`                    | —            | `internal/server/module.go`            | Gauge   |
-| `module_run_total`                | `ruleset`    | `internal/server/router.go`, `func.go` | Counter |
-| `event_total`                     | —            | `pkg/event/pubsub.go`                  | Counter |
-| `bookmark_total`                  | —            | `internal/modules/bookmark/cron.go`    | Gauge   |
-| `torrent_download_total`          | —            | `internal/modules/torrent/cron.go`     | Gauge   |
-| `torrent_status_total`            | `status`     | `internal/modules/torrent/cron.go`     | Gauge   |
-| `gitea_issue_total`               | `status`     | `internal/modules/gitea/cron.go`       | Gauge   |
-| `kanban_event_total`              | `event_name` | `internal/modules/kanban/webhook.go`   | Counter |
-| `kanban_task_total`               | —            | `internal/modules/kanban/cron.go`      | Gauge   |
-| `reader_total`                    | —            | `internal/modules/reader/cron.go`      | Gauge   |
-| `reader_unread_total`             | —            | `internal/modules/reader/cron.go`      | Gauge   |
-| `monitor_up_total`                | —            | `internal/modules/server/cron.go`      | Gauge   |
-| `monitor_down_total`              | —            | `internal/modules/server/cron.go`      | Gauge   |
-| `docker_container_total`          | —            | `internal/modules/server/cron.go`      | Gauge   |
+| Base Name                | Labels       | Updated By                             | Type    |
+| ------------------------ | ------------ | -------------------------------------- | ------- |
+| `module_total`           | —            | `internal/server/module.go`            | Gauge   |
+| `module_run_total`       | `ruleset`    | `internal/server/router.go`, `func.go` | Counter |
+| `event_total`            | —            | `pkg/event/pubsub.go`                  | Counter |
+| `bookmark_total`         | —            | `internal/modules/bookmark/cron.go`    | Gauge   |
+| `torrent_download_total` | —            | `internal/modules/torrent/cron.go`     | Gauge   |
+| `torrent_status_total`   | `status`     | `internal/modules/torrent/cron.go`     | Gauge   |
+| `gitea_issue_total`      | `status`     | `internal/modules/gitea/cron.go`       | Gauge   |
+| `kanban_event_total`     | `event_name` | `internal/modules/kanban/webhook.go`   | Counter |
+| `kanban_task_total`      | —            | `internal/modules/kanban/cron.go`      | Gauge   |
+| `reader_total`           | —            | `internal/modules/reader/cron.go`      | Gauge   |
+| `reader_unread_total`    | —            | `internal/modules/reader/cron.go`      | Gauge   |
+| `monitor_up_total`       | —            | `internal/modules/server/cron.go`      | Gauge   |
+| `monitor_down_total`     | —            | `internal/modules/server/cron.go`      | Gauge   |
+| `docker_container_total` | —            | `internal/modules/server/cron.go`      | Gauge   |
 
 **PushGateway labels:** `job` (default `flowbot`), `instance` (hostid), `hostname`.
 

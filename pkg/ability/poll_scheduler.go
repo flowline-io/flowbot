@@ -22,9 +22,6 @@ func (m *EventSourceManager) startPolling(_ context.Context) error {
 	m.scheduler = s
 
 	for name, entry := range m.pollers {
-		name := name
-		entry := entry
-
 		if m.stateStore != nil {
 			storedEntry := m.stateStore.Get(name)
 			if storedEntry.Cursor != "" {
@@ -49,10 +46,7 @@ func (m *EventSourceManager) startPolling(_ context.Context) error {
 
 // pollOnce executes one polling cycle for the given resource.
 func (m *EventSourceManager) pollOnce(ctx context.Context, name string, entry *pollEntry) {
-	timeout := entry.interval / 2
-	if timeout < defaultPollTimeout {
-		timeout = defaultPollTimeout
-	}
+	timeout := max(entry.interval/2, defaultPollTimeout)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 

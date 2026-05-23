@@ -6,7 +6,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules"
 	"github.com/flowline-io/flowbot/internal/platforms/slack"
 	storepkg "github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
@@ -15,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/trace"
+	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
 
 var Modules = fx.Options(

@@ -1543,7 +1543,6 @@ func (a *adapter) UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, 
 // Conversion helpers
 // ---------------------------------------------------------------------------
 
-
 func entFileuploadToFileDef(f *gen.Fileupload) *types.FileDef {
 	return &types.FileDef{
 		ObjHeader: types.ObjHeader{

@@ -47,9 +47,7 @@ func TestBulkheadDoEnforcesMaxConcurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < maxConc*3; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			<-ready
 			_ = b.Do(context.Background(), func() error {
 				cur := atomic.AddInt64(&current, 1)
@@ -66,7 +64,7 @@ func TestBulkheadDoEnforcesMaxConcurrent(t *testing.T) {
 				atomic.AddInt64(&current, -1)
 				return nil
 			})
-		}()
+		})
 	}
 
 	close(ready)
@@ -193,11 +191,9 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 			trigger: func(t *testing.T, b *Bulkhead) {
 				hold := make(chan struct{})
 				var wg sync.WaitGroup
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					_ = b.Do(context.Background(), func() error { <-hold; return nil })
-				}()
+				})
 				time.Sleep(100 * time.Millisecond)
 				err := b.Do(context.Background(), func() error { return nil })
 				if !errors.Is(err, ErrBulkheadTimeout) {
@@ -231,23 +227,19 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 				hold := make(chan struct{})
 				var wg sync.WaitGroup
 
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					_ = localB.Do(context.Background(), func() error {
 						<-hold
 						return nil
 					})
-				}()
+				})
 				time.Sleep(50 * time.Millisecond)
 
 				queued := make(chan struct{})
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					close(queued)
 					_ = localB.Do(context.Background(), func() error { return nil })
-				}()
+				})
 				<-queued
 				time.Sleep(100 * time.Millisecond)
 
@@ -332,12 +324,10 @@ func TestBulkheadDefaultSize(t *testing.T) {
 func TestBulkheadDoRace(_ *testing.T) {
 	b := New("test", WithMaxConcurrent(4), WithMaxQueue(4), WithTimeout(5*time.Second))
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 50 {
+		wg.Go(func() {
 			_ = b.Do(context.Background(), func() error { return nil })
-		}()
+		})
 	}
 	wg.Wait()
 }

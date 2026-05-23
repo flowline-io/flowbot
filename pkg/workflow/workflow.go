@@ -11,7 +11,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/executor"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
@@ -20,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline/template"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
 
 var pooledSonic = sonic.Config{}.Froze()

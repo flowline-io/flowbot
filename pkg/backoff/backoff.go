@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"math/rand/v2"
+	"slices"
 	"time"
 )
 
@@ -128,10 +129,8 @@ func shouldRetry(err error, cfg *Config) bool {
 		if re.IsRetryableError() {
 			return true
 		}
-		for _, target := range cfg.RetryOn {
-			if re.RetryableCode() == target {
-				return true
-			}
+		if slices.Contains(cfg.RetryOn, re.RetryableCode()) {
+			return true
 		}
 	}
 	return false

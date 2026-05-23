@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
 
@@ -115,12 +115,12 @@ var _ = Describe("Event System", Label("event"), func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(run.ID).NotTo(BeZero())
 
-			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineFailed, "step failed")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, int(schema.PipelineFailed), "step failed")
 			Expect(err).NotTo(HaveOccurred())
 
 			updated, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(updated.Status).To(BeEquivalentTo(model.PipelineFailed))
+			Expect(updated.Status).To(BeEquivalentTo(schema.PipelineFailed))
 			Expect(updated.Error).To(Equal("step failed"))
 		})
 	})
@@ -134,7 +134,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			Expect(run.EventType).To(Equal(types.EventBookmarkArchived))
 			Expect(run.StartedAt).NotTo(BeNil())
 
-			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineDone, "")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, int(schema.PipelineDone), "")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -143,12 +143,12 @@ var _ = Describe("Event System", Label("event"), func() {
 			run, err := pipelineStore.CreateRun(context.Background(), "status-test", "status-event-"+types.Id(), types.EventKanbanTaskCreated)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, model.PipelineDone, "")
+			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, int(schema.PipelineDone), "")
 			Expect(err).NotTo(HaveOccurred())
 
 			saved, err := EntClient.PipelineRun.Get(context.Background(), run.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(saved.Status).To(BeEquivalentTo(model.PipelineDone))
+			Expect(saved.Status).To(BeEquivalentTo(schema.PipelineDone))
 		})
 
 		It("records step execution results", func() {
@@ -156,14 +156,14 @@ var _ = Describe("Event System", Label("event"), func() {
 			run, err := pipelineStore.CreateRun(context.Background(), "step-test", "step-event-"+types.Id(), types.EventReaderEntryStarred)
 			Expect(err).NotTo(HaveOccurred())
 
-			params := model.JSON{"url": "https://example.com"}
+			params := schema.JSON{"url": "https://example.com"}
 			stepRun, err := pipelineStore.CreateStepRun(context.Background(), run.ID, "fetch-step", "reader", "list_entries", params, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stepRun.StepName).To(Equal("fetch-step"))
 			Expect(stepRun.Attempt).To(Equal(1))
 
-			result := model.JSON{"entries": []string{"entry-1"}}
-			err = pipelineStore.UpdateStepRun(context.Background(), stepRun.ID, model.PipelineDone, result, "", 1)
+			result := schema.JSON{"entries": []string{"entry-1"}}
+			err = pipelineStore.UpdateStepRun(context.Background(), stepRun.ID, int(schema.PipelineDone), result, "", 1)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

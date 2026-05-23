@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	workflowpkg "github.com/flowline-io/flowbot/pkg/workflow"

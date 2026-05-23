@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/model"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -222,8 +222,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 				"stored-pipeline-"+types.Id(),
 				"test stored definition",
 				true,
-				model.JSON{"event": "test.event"},
-				model.JSON{"steps": []string{"step-1"}},
+				schema.JSON{"event": "test.event"},
+				schema.JSON{"steps": []string{"step-1"}},
 			)
 			Expect(err).NotTo(HaveOccurred())
 		})

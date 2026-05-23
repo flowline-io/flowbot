@@ -50,7 +50,6 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 		}
 
 		for _, ev := range events {
-			ev := ev
 			m.poolSubmit(func() {
 				if m.emitter != nil {
 					if err := m.emitter(context.Background(), []types.DataEvent{ev}); err != nil {

@@ -13,6 +13,7 @@
 ### Task 1: Create `ent/schema/types.go` with all standalone types
 
 **Files:**
+
 - Create: `internal/store/ent/schema/types.go`
 - Modify: None yet
 
@@ -25,6 +26,7 @@ See the complete content inline below.
 ### Task 2: Update store.go Adapter interface
 
 **Files:**
+
 - Modify: `internal/store/store.go`
 
 - [ ] Replace all `model.*` types in the Adapter interface with `gen.*` types
@@ -34,6 +36,7 @@ See the complete content inline below.
 ### Task 3: Update postgres adapter
 
 **Files:**
+
 - Modify: `internal/store/postgres/adapter.go`
 - Modify: `internal/store/postgres/adapter_test.go`
 
@@ -44,14 +47,16 @@ See the complete content inline below.
 ### Task 4: Update store.go internal store types
 
 **Files:**
+
 - Modify: `internal/store/store.go` (PipelineStore, WorkflowRunStore, EventStore, etc.)
 
-- [ ] Replace model type references with gen.* + schema.*
+- [ ] Replace model type references with gen._ + schema._
 - [ ] Update conversion functions (genWorkflowRunToModel, etc.) or remove them
 
 ### Task 5: Update all consumers
 
 **Files:** (see consumer list in analysis)
+
 - `pkg/pipeline/engine.go`, `pkg/pipeline/event_handler.go`
 - `pkg/workflow/workflow.go`, `pkg/workflow/scheduler.go`, `pkg/workflow/persistence.go`
 - `pkg/recovery/recovery.go`
@@ -75,6 +80,7 @@ See the complete content inline below.
 ### Task 6: Delete model/ package
 
 **Files:**
+
 - Delete: `internal/store/model/*.go`
 
 - [ ] Delete all files in model/ directory

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"time"
 
@@ -323,8 +324,8 @@ func Behavior(uid types.Uid, flag string, number int) {
 		_ = store.Database.BehaviorIncrease(context.Background(), uid, flag, number)
 	} else {
 		_ = store.Database.BehaviorSet(context.Background(), gen.Behavior{
-			UID:    uid.String(),
-			Flag:   flag,
+			UID:   uid.String(),
+			Flag:  flag,
 			Count: int32(number),
 		})
 	}
@@ -434,8 +435,6 @@ func Bootstrap() error {
 
 func List() map[string]Handler {
 	copyMap := make(map[string]Handler, len(handlers))
-	for k, v := range handlers {
-		copyMap[k] = v
-	}
+	maps.Copy(copyMap, handlers)
 	return copyMap
 }
