@@ -6,60 +6,61 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
-func TestExampleModuleBDD(t *testing.T) {
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Example Module BDD Suite")
+func TestWebserviceEndpoints(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		path       string
+		wantStatus int
+	}{
+		{
+			name:       "GET /example returns OK",
+			method:     "GET",
+			path:       "/service/example/example",
+			wantStatus: 200,
+		},
+		{
+			name:       "GET /get without id returns 400",
+			method:     "GET",
+			path:       "/service/example/get",
+			wantStatus: 400,
+		},
+		{
+			name:       "POST /webhook/example returns 202",
+			method:     "POST",
+			path:       "/service/example/webhook/example",
+			wantStatus: 202,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: func(ctx fiber.Ctx, err error) error {
+					code, _ := mapDomainErrorStatus(err)
+					return ctx.Status(code).SendString(err.Error())
+				},
+			})
+			ruleSets := append(webserviceRules, webhookRules...)
+			module.Webservice(app, Name, webservice.Ruleset(ruleSets))
+
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+
+			_ = app.Shutdown()
+		})
+	}
 }
 
-var _ = ginkgo.Describe("Example Module", func() {
-	var app *fiber.App
-
-	ginkgo.BeforeEach(func() {
-		app = fiber.New(fiber.Config{
-			ErrorHandler: func(ctx fiber.Ctx, err error) error {
-				code, _ := mapDomainErrorStatus(err)
-				return ctx.Status(code).SendString(err.Error())
-			},
-		})
-		allRules := append(webserviceRules, webhookRules...)
-		module.Webservice(app, Name, webservice.Ruleset(allRules))
-	})
-
-	ginkgo.AfterEach(func() {
-		_ = app.Shutdown()
-	})
-
-	ginkgo.It("returns existing example endpoint", func() {
-		req := httptest.NewRequest("GET", "/service/example/example", nil)
-		resp, err := app.Test(req)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		gomega.Expect(resp.StatusCode).To(gomega.Equal(200))
-	})
-
-	ginkgo.It("returns 400 for get without id", func() {
-		req := httptest.NewRequest("GET", "/service/example/get", nil)
-		resp, err := app.Test(req)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		gomega.Expect(resp.StatusCode).To(gomega.Equal(400))
-	})
-
-	ginkgo.It("returns 202 for webhook POST", func() {
-		req := httptest.NewRequest("POST", "/service/example/webhook/example", nil)
-		resp, err := app.Test(req)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		gomega.Expect(resp.StatusCode).To(gomega.Equal(202))
-	})
-})
-
-// mapDomainErrorStatus maps a Flowbot error kind to an HTTP status code.
 func mapDomainErrorStatus(err error) (int, bool) {
 	switch {
 	case errors.Is(err, types.ErrInvalidArgument):

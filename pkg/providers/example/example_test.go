@@ -15,7 +15,6 @@ import (
 )
 
 func TestGetClient_Defaults(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name    string
 		configs json.RawMessage
@@ -39,7 +38,6 @@ func TestGetClient_Defaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			providers.Configs = tt.configs
 			c := GetClient()
 			require.NotNil(t, c)
