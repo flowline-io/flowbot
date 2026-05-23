@@ -82,7 +82,7 @@ func TestInit(t *testing.T) {
 		config Config
 	}{
 		{name: "info level", config: Config{Level: "info"}},
-		{name: "debug with file log", config: Config{Level: "debug", FileLog: true, AlarmEnabled: true}},
+		{name: "debug with file log", config: Config{Level: "debug", FileLog: true}},
 		{name: "info with json", config: Config{Level: "info", JSONOutput: true}},
 		{
 			name: "with rotation",

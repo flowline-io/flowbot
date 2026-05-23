@@ -17,15 +17,12 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/natefinch/lumberjack.v2"
-
-	"github.com/flowline-io/flowbot/pkg/alarm"
 )
 
 var (
 	stateMu            sync.RWMutex
 	l                  zerolog.Logger
 	sampled            zerolog.Logger
-	enableAlarm        atomic.Bool
 	callerOn           atomic.Bool
 	stackOn            atomic.Bool
 	moduleLogs         sync.Map // map[string]*zerolog.Logger
@@ -42,7 +39,6 @@ type Config struct {
 	JSONOutput   bool
 	FileLog      bool
 	FileLogPath  string
-	AlarmEnabled bool
 	ModuleLevel  map[string]string
 	Sampling     *SamplingConfig
 	Rotation     *RotationConfig
@@ -70,8 +66,7 @@ func Init(cfg Config) {
 	})
 
 	callerOn.Store(cfg.Caller)
-	stackOn.Store(cfg.StackTrace || cfg.AlarmEnabled)
-	enableAlarm.Store(cfg.AlarmEnabled)
+	stackOn.Store(cfg.StackTrace)
 
 	var writers []io.Writer
 
@@ -408,11 +403,8 @@ func Warn(format string, a ...any) {
 	evt.Msgf(format, a...)
 }
 
-// Error logs an error and triggers alarm if enabled.
+// Error logs an error.
 func Error(err error) {
-	if enableAlarm.Load() {
-		alarm.Alarm(err, 0)
-	}
 	Err(err)
 }
 

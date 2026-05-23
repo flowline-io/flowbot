@@ -73,9 +73,6 @@ type Type struct {
 	// Project
 	Flowbot Flowbot `json:"flowbot" yaml:"flowbot" mapstructure:"flowbot"`
 
-	// Alarm
-	Alarm Alarm `json:"alarm" yaml:"alarm" mapstructure:"alarm"`
-
 	// Models
 	Models []Model `json:"models" yaml:"models" mapstructure:"models"`
 
@@ -548,15 +545,6 @@ type WebhookTrigger struct {
 	Auth      *WebhookAuth       `json:"auth" yaml:"auth" mapstructure:"auth"`
 	Payload   WebhookPayloadMode `json:"payload" yaml:"payload" mapstructure:"payload"`
 	EventType string             `json:"event_type" yaml:"event_type" mapstructure:"event_type"`
-}
-
-type Alarm struct {
-	// Enabled
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Alarm filter rules
-	Filter string `json:"filter" yaml:"filter" mapstructure:"filter"`
-	// Slack webhook URL
-	SlackWebhook string `json:"slack_webhook" yaml:"slack_webhook" mapstructure:"slack_webhook"`
 }
 
 type Agent struct {

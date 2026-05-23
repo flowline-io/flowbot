@@ -27,7 +27,6 @@ func initializeLog() error {
 		JSONOutput:   cfg.JSONOutput,
 		FileLog:      cfg.FileLog,
 		FileLogPath:  cfg.FileLogPath,
-		AlarmEnabled: config.App.Alarm.Enabled,
 		ModuleLevel:  cfg.ModuleLevel,
 	}
 	if cfg.Sampling != nil {

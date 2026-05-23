@@ -482,18 +482,6 @@ func TestFlowbot(t *testing.T) {
 	})
 }
 
-func TestAlarm(t *testing.T) {
-	t.Parallel()
-	alarm := Alarm{Enabled: true, Filter: "error|fatal", SlackWebhook: "https://hooks.slack.com/test"}
-
-	t.Run("alarm fields", func(t *testing.T) {
-		t.Parallel()
-		assert.True(t, alarm.Enabled)
-		assert.Equal(t, "error|fatal", alarm.Filter)
-		assert.Equal(t, "https://hooks.slack.com/test", alarm.SlackWebhook)
-	})
-}
-
 func TestModel(t *testing.T) {
 	t.Parallel()
 	model := Model{Provider: "openai", BaseUrl: "https://api.openai.com", ApiKey: "sk-test", ModelNames: []string{"gpt-5.5-instant", "gpt-5.5"}}

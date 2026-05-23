@@ -160,14 +160,6 @@ search:
     gitea: "http://127.0.0.1:8002"
     drone: "http://127.0.0.1:8035"
 
-# Alarm configuration
-alarm:
-  enabled: true
-  # Alarm filter rules
-  filter: ""
-  # Slack webhook URL
-  slack_webhook: ""
-
 # Model configuration
 models:
   - provider: "openai" # openai, openai-compatible
