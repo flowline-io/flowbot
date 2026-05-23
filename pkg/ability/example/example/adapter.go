@@ -69,7 +69,7 @@ func (a *Adapter) ListItems(ctx context.Context, _ *exsvc.ListQuery) (*ability.L
 	}, nil
 }
 
-func (a *Adapter) CreateItem(ctx context.Context, title string) (*ability.Host, error) {
+func (a *Adapter) CreateItem(ctx context.Context, title string, _ types.KV) (*ability.Host, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}

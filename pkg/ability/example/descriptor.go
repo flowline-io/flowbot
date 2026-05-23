@@ -56,7 +56,7 @@ func RegisterService(backend, app string, svc Service) error {
 	}{
 		{operation: OpExampleList, invoker: invokeList(svc)},
 		{operation: OpExampleGet, invoker: invokeGet(svc)},
-		{operation: OpExampleCreate, invoker: invokeCreate(svc)},
+		{operation: OpExampleCreate, invoker: invokeCreate(svc, backend)},
 		{operation: OpExampleUpdate, invoker: invokeUpdate(svc)},
 		{operation: OpExampleDelete, invoker: invokeDelete(svc)},
 		{operation: OpExampleHealth, invoker: invokeHealth(svc)},
@@ -96,17 +96,27 @@ func invokeGet(svc Service) ability.Invoker {
 	}
 }
 
-func invokeCreate(svc Service) ability.Invoker {
+func invokeCreate(svc Service, backend string) ability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
 		title, err := ability.RequiredString(params, "title")
 		if err != nil {
 			return nil, err
 		}
-		item, err := svc.CreateItem(ctx, title)
+		var tags types.KV
+		if t, ok := params["tags"].(types.KV); ok {
+			tags = t
+		}
+		item, err := svc.CreateItem(ctx, title, tags)
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{Data: item}, nil
+		return &ability.InvokeResult{
+			Data: item,
+			Resource: &ability.ResourceMeta{
+				EntityID: item.ID,
+				App:      backend,
+			},
+		}, nil
 	}
 }
 

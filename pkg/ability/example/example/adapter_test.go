@@ -146,7 +146,7 @@ func TestAdapter_CreateItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			item, err := a.CreateItem(context.Background(), tt.title)
+			item, err := a.CreateItem(context.Background(), tt.title, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return

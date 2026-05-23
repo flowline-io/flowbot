@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type fakePollerService struct {
@@ -23,9 +24,7 @@ func (*fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, e
 func (*fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
 	return nil, nil
 }
-func (*fakePollerService) CreateItem(_ context.Context, _ string) (*ability.Host, error) {
-	return nil, nil
-}
+func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) { return nil, nil }
 func (*fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
 	return nil, nil
 }

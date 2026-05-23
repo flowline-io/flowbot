@@ -82,7 +82,8 @@ func healthExample(ctx fiber.Ctx) error {
 //	@Router		/example/create [post]
 func createExampleItem(ctx fiber.Ctx) error {
 	var body struct {
-		Title string `json:"title"`
+		Title string   `json:"title"`
+		Tags  types.KV `json:"tags,omitempty"`
 	}
 	if err := ctx.Bind().Body(&body); err != nil {
 		return types.WrapError(types.ErrInvalidArgument, "invalid request body", err)
@@ -90,7 +91,8 @@ func createExampleItem(ctx fiber.Ctx) error {
 	if body.Title == "" {
 		return types.Errorf(types.ErrInvalidArgument, "title is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate, map[string]any{"title": body.Title})
+	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
+		map[string]any{"title": body.Title, "tags": body.Tags})
 	if err != nil {
 		return err
 	}

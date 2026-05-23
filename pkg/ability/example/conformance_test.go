@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type conformanceService struct {
@@ -37,7 +38,7 @@ func (c *conformanceService) ListItems(ctx context.Context, _ *ListQuery) (*abil
 	}
 	return &ability.ListResult[ability.Host]{Items: c.cfg.ListItems}, nil
 }
-func (c *conformanceService) CreateItem(ctx context.Context, title string) (*ability.Host, error) {
+func (c *conformanceService) CreateItem(ctx context.Context, title string, _ types.KV) (*ability.Host, error) {
 	if err := checkCtx(ctx); err != nil {
 		return nil, err
 	}

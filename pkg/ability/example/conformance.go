@@ -135,7 +135,7 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 				svc := factory(t, tt.cfg)
-				item, err := svc.CreateItem(context.Background(), tt.title)
+				item, err := svc.CreateItem(context.Background(), tt.title, nil)
 				if tt.wantErr {
 					require.Error(t, err)
 					return
