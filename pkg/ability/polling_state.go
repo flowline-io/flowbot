@@ -140,6 +140,9 @@ func (s *PollingState) Flush(ctx context.Context) error {
 }
 
 // Load restores state from the persistence backend.
+// It overwrites any in-memory entries with the persisted data — this is
+// intended to be called once during startup before any polls run, so
+// persisted state takes precedence over in-memory defaults.
 func (s *PollingState) Load(ctx context.Context) error {
 	if s.backend == nil {
 		return nil
