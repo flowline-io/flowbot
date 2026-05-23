@@ -53,7 +53,21 @@ func (ResourceLink) Fields() []ent.Field {
         field.Time("created_at").Immutable().Default(time.Now),
     }
 }
+
+func (ResourceLink) Indexes() []ent.Index {
+    return []ent.Index{
+        // Downstream: find links originating from a source resource
+        index.Fields("source_app", "source_entity_id"),
+        // Upstream: find links targeting a specific resource
+        index.Fields("target_app", "target_entity_id"),
+        // Event-based link assembly
+        index.Fields("source_event_id"),
+        index.Fields("target_event_id"),
+    }
+}
 ```
+
+**Unique constraint** on `(source_event_id, target_event_id)` prevents duplicate links from pipeline retries. The DAO layer uses `INSERT ... ON CONFLICT DO NOTHING` to ensure idempotency.
 
 `types.KV` tags are stored on `data_events`, not on `resource_links`. Query flow: match DataEvent by tags via JSONB GIN → get event_ids → JOIN resource_links to assemble the chain.
 
@@ -62,7 +76,8 @@ func (ResourceLink) Fields() []ent.Field {
 New DAO in `internal/store/postgres/`:
 - `FindResourcesByTag(ctx, key, value string, limit int, cursor string) ([]*model.DataEvent, string, error)`
 - `FindResourceLinks(ctx, eventIDs []string) ([]*model.ResourceLink, error)`
-- `FindRelations(ctx, entityID, app string) (*model.ResourceRelations, error)`
+- `FindRelations(ctx, app, entityID string) (*model.ResourceRelations, error)`
+- `RecordResourceLink(ctx, link *model.ResourceLink) error` — UPSERT on `(source_event_id, target_event_id)`
 
 ---
 
@@ -70,15 +85,15 @@ New DAO in `internal/store/postgres/`:
 
 ### Tag auto-injection
 
-In `pkg/pipeline/engine.go`, `executeStep()` injects tags into params before `ability.Invoke` for mutation operations, unless the step already declares its own tags:
+In `pkg/pipeline/engine.go`, `executeStep()` merges tags into params before `ability.Invoke` for mutation operations:
 
 ```go
 if ability.IsMutation(step.Operation) && rc.Event.Tags != nil {
-    if _, exists := renderedParams["tags"]; !exists {
-        renderedParams["tags"] = rc.Event.Tags
-    }
+    renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 ```
+
+Merge strategy: upstream tags (`rc.Event.Tags`) are the base; step-declared tags (`renderedParams["tags"]`) take priority on key collision. This allows a step to both inherit upstream tags and add its own (e.g., `"processed": "true"`). If the step does not declare any tags, upstream tags pass through unchanged.
 
 ### Resource link auto-recording
 
@@ -142,9 +157,9 @@ Query all resources sharing the specified tag key-value. Returns:
 
 Pagination: `limit` + opaque `cursor`.
 
-### GET /hub/resource-chain/:entity_id/relations
+### GET /hub/resource-chain/:app/:entity_id/relations
 
-Returns upstream (what triggered this resource) and downstream (what this resource triggered) relations.
+Returns upstream (what triggered this resource) and downstream (what this resource triggered) relations. The `app` is required because `entity_id` is only unique within its own app.
 
 ```json
 {
@@ -281,7 +296,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 | Level | Scenario | Behavior |
 |-------|----------|----------|
 | Pipeline engine | `result.Resource` is nil | Skip link recording, no error |
-| Pipeline engine | `RecordResourceLink` fails | Log error, pipeline continues (link is auxiliary) |
+| Pipeline engine | `recordResourceLink` duplicate (retry) | UPSERT ON CONFLICT DO NOTHING, silent |
 | Capability handler | `params["tags"]` missing or wrong type | Ignore, create resource without tags |
 | DAO | JSONB query fails | Return `types.ErrInternal` |
 | API | Missing `key` or `value` param | Return 400 with protocol error code |
@@ -296,7 +311,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 | Package | Focus |
 |---------|-------|
 | `pkg/types` | `DataEvent.Tags` marshal/unmarshal, tag match helpers |
-| `pkg/pipeline` | Auto tag injection into params, `recordResourceLink` call, `Resource` nil branch, template `{{.Event.tags}}` rendering |
+| `pkg/pipeline` | Auto tag merge into params (no-step-tags, step-override, merge-collision), `recordResourceLink` call, `Resource` nil branch, idempotent link recording on retry |
 | `pkg/ability` | `InvokeResult.Resource` field passthrough |
 | `internal/modules/resourcechain` | Input validation, empty results, pagination cursor |
 
