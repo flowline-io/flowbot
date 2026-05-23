@@ -2,6 +2,8 @@ package ability
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -91,6 +93,8 @@ func (s *PollingState) MarkDirty(name string) {
 }
 
 // Flush persists all dirty entries to the backend.
+// It attempts to save every dirty entry and collects errors so that a single
+// failure does not abandon remaining entries.
 func (s *PollingState) Flush(ctx context.Context) error {
 	s.mu.RLock()
 	names := make([]string, 0, len(s.dirty))
@@ -99,11 +103,15 @@ func (s *PollingState) Flush(ctx context.Context) error {
 	}
 	s.mu.RUnlock()
 
+	var errs []error
 	for _, name := range names {
 		s.mu.RLock()
 		e, ok := s.entries[name]
 		s.mu.RUnlock()
 		if !ok {
+			s.mu.Lock()
+			delete(s.dirty, name)
+			s.mu.Unlock()
 			continue
 		}
 		e.mu.Lock()
@@ -115,14 +123,19 @@ func (s *PollingState) Flush(ctx context.Context) error {
 
 		if s.backend != nil {
 			if err := s.backend.Save(ctx, name, entry.Cursor, entry.KnownHashes); err != nil {
-				return err
+				errs = append(errs, err)
+				continue
 			}
 		}
+
+		s.mu.Lock()
+		delete(s.dirty, name)
+		s.mu.Unlock()
 	}
 
-	s.mu.Lock()
-	s.dirty = make(map[string]bool)
-	s.mu.Unlock()
+	if len(errs) > 0 {
+		return fmt.Errorf("flush errors: %w", errors.Join(errs...))
+	}
 	return nil
 }
 
