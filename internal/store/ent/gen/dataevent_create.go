@@ -164,6 +164,12 @@ func (_c *DataEventCreate) SetData(v map[string]interface{}) *DataEventCreate {
 	return _c
 }
 
+// SetTags sets the "tags" field.
+func (_c *DataEventCreate) SetTags(v map[string]interface{}) *DataEventCreate {
+	_c.mutation.SetTags(v)
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *DataEventCreate) SetCreatedAt(v time.Time) *DataEventCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -388,6 +394,10 @@ func (_c *DataEventCreate) createSpec() (*DataEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Data(); ok {
 		_spec.SetField(dataevent.FieldData, field.TypeJSON, value)
 		_node.Data = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(dataevent.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(dataevent.FieldCreatedAt, field.TypeTime, value)

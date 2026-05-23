@@ -193,6 +193,18 @@ func (_u *DataEventUpdate) ClearData() *DataEventUpdate {
 	return _u
 }
 
+// SetTags sets the "tags" field.
+func (_u *DataEventUpdate) SetTags(v map[string]interface{}) *DataEventUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *DataEventUpdate) ClearTags() *DataEventUpdate {
+	_u.mutation.ClearTags()
+	return _u
+}
+
 // Mutation returns the DataEventMutation object of the builder.
 func (_u *DataEventUpdate) Mutation() *DataEventMutation {
 	return _u.mutation
@@ -290,6 +302,12 @@ func (_u *DataEventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DataCleared() {
 		_spec.ClearField(dataevent.FieldData, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(dataevent.FieldTags, field.TypeJSON, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(dataevent.FieldTags, field.TypeJSON)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -477,6 +495,18 @@ func (_u *DataEventUpdateOne) ClearData() *DataEventUpdateOne {
 	return _u
 }
 
+// SetTags sets the "tags" field.
+func (_u *DataEventUpdateOne) SetTags(v map[string]interface{}) *DataEventUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *DataEventUpdateOne) ClearTags() *DataEventUpdateOne {
+	_u.mutation.ClearTags()
+	return _u
+}
+
 // Mutation returns the DataEventMutation object of the builder.
 func (_u *DataEventUpdateOne) Mutation() *DataEventMutation {
 	return _u.mutation
@@ -604,6 +634,12 @@ func (_u *DataEventUpdateOne) sqlSave(ctx context.Context) (_node *DataEvent, er
 	}
 	if _u.mutation.DataCleared() {
 		_spec.ClearField(dataevent.FieldData, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(dataevent.FieldTags, field.TypeJSON, value)
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(dataevent.FieldTags, field.TypeJSON)
 	}
 	_node = &DataEvent{config: _u.config}
 	_spec.Assign = _node.assignValues

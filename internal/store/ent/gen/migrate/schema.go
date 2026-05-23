@@ -333,6 +333,7 @@ var (
 		{Name: "uid", Type: field.TypeString, Default: ""},
 		{Name: "topic", Type: field.TypeString, Default: ""},
 		{Name: "data", Type: field.TypeJSON, Nullable: true},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
 	// DataEventsTable holds the schema information for the "data_events" table.
@@ -345,6 +346,14 @@ var (
 				Name:    "dataevent_event_type",
 				Unique:  false,
 				Columns: []*schema.Column{DataEventsColumns[2]},
+			},
+			{
+				Name:    "dataevent_tags",
+				Unique:  false,
+				Columns: []*schema.Column{DataEventsColumns[13]},
+				Annotation: &entsql.IndexAnnotation{
+					Type: "GIN",
+				},
 			},
 		},
 	}

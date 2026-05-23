@@ -10215,6 +10215,7 @@ type DataEventMutation struct {
 	uid             *string
 	topic           *string
 	data            *map[string]interface{}
+	tags            *map[string]interface{}
 	created_at      *time.Time
 	clearedFields   map[string]struct{}
 	done            bool
@@ -10771,6 +10772,55 @@ func (m *DataEventMutation) ResetData() {
 	delete(m.clearedFields, dataevent.FieldData)
 }
 
+// SetTags sets the "tags" field.
+func (m *DataEventMutation) SetTags(value map[string]interface{}) {
+	m.tags = &value
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *DataEventMutation) Tags() (r map[string]interface{}, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the DataEvent entity.
+// If the DataEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DataEventMutation) OldTags(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *DataEventMutation) ClearTags() {
+	m.tags = nil
+	m.clearedFields[dataevent.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *DataEventMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[dataevent.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *DataEventMutation) ResetTags() {
+	m.tags = nil
+	delete(m.clearedFields, dataevent.FieldTags)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *DataEventMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -10841,7 +10891,7 @@ func (m *DataEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DataEventMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.event_id != nil {
 		fields = append(fields, dataevent.FieldEventID)
 	}
@@ -10878,6 +10928,9 @@ func (m *DataEventMutation) Fields() []string {
 	if m.data != nil {
 		fields = append(fields, dataevent.FieldData)
 	}
+	if m.tags != nil {
+		fields = append(fields, dataevent.FieldTags)
+	}
 	if m.created_at != nil {
 		fields = append(fields, dataevent.FieldCreatedAt)
 	}
@@ -10913,6 +10966,8 @@ func (m *DataEventMutation) Field(name string) (ent.Value, bool) {
 		return m.Topic()
 	case dataevent.FieldData:
 		return m.Data()
+	case dataevent.FieldTags:
+		return m.Tags()
 	case dataevent.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -10948,6 +11003,8 @@ func (m *DataEventMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldTopic(ctx)
 	case dataevent.FieldData:
 		return m.OldData(ctx)
+	case dataevent.FieldTags:
+		return m.OldTags(ctx)
 	case dataevent.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -11043,6 +11100,13 @@ func (m *DataEventMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetData(v)
 		return nil
+	case dataevent.FieldTags:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
+		return nil
 	case dataevent.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -11083,6 +11147,9 @@ func (m *DataEventMutation) ClearedFields() []string {
 	if m.FieldCleared(dataevent.FieldData) {
 		fields = append(fields, dataevent.FieldData)
 	}
+	if m.FieldCleared(dataevent.FieldTags) {
+		fields = append(fields, dataevent.FieldTags)
+	}
 	return fields
 }
 
@@ -11099,6 +11166,9 @@ func (m *DataEventMutation) ClearField(name string) error {
 	switch name {
 	case dataevent.FieldData:
 		m.ClearData()
+		return nil
+	case dataevent.FieldTags:
+		m.ClearTags()
 		return nil
 	}
 	return fmt.Errorf("unknown DataEvent nullable field %s", name)
@@ -11143,6 +11213,9 @@ func (m *DataEventMutation) ResetField(name string) error {
 		return nil
 	case dataevent.FieldData:
 		m.ResetData()
+		return nil
+	case dataevent.FieldTags:
+		m.ResetTags()
 		return nil
 	case dataevent.FieldCreatedAt:
 		m.ResetCreatedAt()

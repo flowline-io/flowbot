@@ -37,6 +37,8 @@ const (
 	FieldTopic = "topic"
 	// FieldData holds the string denoting the data field in the database.
 	FieldData = "data"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// Table holds the table name of the dataevent in the database.
@@ -58,6 +60,7 @@ var Columns = []string{
 	FieldUID,
 	FieldTopic,
 	FieldData,
+	FieldTags,
 	FieldCreatedAt,
 }
 

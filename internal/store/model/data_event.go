@@ -16,5 +16,6 @@ type DataEvent struct {
 	UID            string    `json:"uid"`
 	Topic          string    `json:"topic"`
 	Data           JSON      `json:"data"`
+	Tags           JSON      `json:"tags,omitempty"`
 	CreatedAt      time.Time `json:"created_at"`
 }

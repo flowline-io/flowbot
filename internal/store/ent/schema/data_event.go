@@ -29,6 +29,7 @@ func (DataEvent) Fields() []ent.Field {
 		field.String("uid").Default(""),
 		field.String("topic").Default(""),
 		field.JSON("data", map[string]any{}).Optional(),
+		field.JSON("tags", map[string]any{}).Optional(),
 		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
@@ -36,6 +37,7 @@ func (DataEvent) Fields() []ent.Field {
 func (DataEvent) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("event_type"),
+		index.Fields("tags").Annotations(entsql.IndexType("GIN")),
 	}
 }
 

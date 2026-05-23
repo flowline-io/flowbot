@@ -839,6 +839,16 @@ func DataNotNil() predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldNotNull(FieldData))
 }
 
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.DataEvent {
+	return predicate.DataEvent(sql.FieldNotNull(FieldTags))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldEQ(FieldCreatedAt, v))

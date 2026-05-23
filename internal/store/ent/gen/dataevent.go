@@ -42,6 +42,8 @@ type DataEvent struct {
 	Topic string `json:"topic,omitempty"`
 	// Data holds the value of the "data" field.
 	Data map[string]interface{} `json:"data,omitempty"`
+	// Tags holds the value of the "tags" field.
+	Tags map[string]interface{} `json:"tags,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
@@ -52,7 +54,7 @@ func (*DataEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case dataevent.FieldData:
+		case dataevent.FieldData, dataevent.FieldTags:
 			values[i] = new([]byte)
 		case dataevent.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -155,6 +157,14 @@ func (_m *DataEvent) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field data: %w", err)
 				}
 			}
+		case dataevent.FieldTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Tags); err != nil {
+					return fmt.Errorf("unmarshal field tags: %w", err)
+				}
+			}
 		case dataevent.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -232,6 +242,9 @@ func (_m *DataEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("data=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Data))
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

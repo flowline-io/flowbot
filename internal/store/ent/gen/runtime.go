@@ -491,7 +491,7 @@ func init() {
 	// dataevent.DefaultTopic holds the default value on creation for the topic field.
 	dataevent.DefaultTopic = dataeventDescTopic.Default.(string)
 	// dataeventDescCreatedAt is the schema descriptor for created_at field.
-	dataeventDescCreatedAt := dataeventFields[13].Descriptor()
+	dataeventDescCreatedAt := dataeventFields[14].Descriptor()
 	// dataevent.DefaultCreatedAt holds the default value on creation for the created_at field.
 	dataevent.DefaultCreatedAt = dataeventDescCreatedAt.Default.(func() time.Time)
 	eventconsumptionFields := schema.EventConsumption{}.Fields()

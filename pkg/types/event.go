@@ -69,4 +69,5 @@ type DataEvent struct {
 	UID            string    `json:"uid"`
 	Topic          string    `json:"topic"`
 	Data           KV        `json:"data"`
+	Tags           KV        `json:"tags,omitempty"`
 }

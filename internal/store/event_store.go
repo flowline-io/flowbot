@@ -43,6 +43,9 @@ func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent)
 	if event.Data != nil {
 		c = c.SetData(map[string]any(event.Data))
 	}
+	if event.Tags != nil {
+		c = c.SetTags(map[string]any(event.Tags))
+	}
 	_, err := c.Save(ctx)
 	return err
 }
@@ -65,6 +68,7 @@ func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEven
 			"idempotency_key": event.IdempotencyKey,
 			"uid":             event.UID,
 			"topic":           event.Topic,
+			"tags":            map[string]any(event.Tags),
 		}).
 		SetPublished(false).
 		SetCreatedAt(time.Now()).
