@@ -138,3 +138,25 @@ func (m *EventSourceManager) startFlushLoop(ctx context.Context) {
 		}
 	}()
 }
+
+// ----- global accessor (follows pool.go pattern) -----
+
+var (
+	globalSrcMgr   *EventSourceManager
+	globalSrcMgrMu sync.Mutex
+)
+
+// SetEventSourceManager stores the EventSourceManager for cross-package access.
+// Must be called during server startup before modules Bootstrap.
+func SetEventSourceManager(m *EventSourceManager) {
+	globalSrcMgrMu.Lock()
+	defer globalSrcMgrMu.Unlock()
+	globalSrcMgr = m
+}
+
+// GetEventSourceManager returns the global EventSourceManager, or nil if not set.
+func GetEventSourceManager() *EventSourceManager {
+	globalSrcMgrMu.Lock()
+	defer globalSrcMgrMu.Unlock()
+	return globalSrcMgr
+}

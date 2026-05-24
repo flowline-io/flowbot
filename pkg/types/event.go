@@ -40,7 +40,9 @@ type ModuleEvent = BotEvent
 
 const (
 	EventBookmarkCreated  = "bookmark.created"
+	EventBookmarkUpdated  = "bookmark.updated"
 	EventBookmarkArchived = "bookmark.archived"
+	EventBookmarkDeleted  = "bookmark.deleted"
 
 	EventArchiveItemCreated = "archive.item.created"
 

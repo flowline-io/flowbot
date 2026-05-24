@@ -4,6 +4,13 @@ const (
 	MaxPageSize = 100
 )
 
+// WebhookPayload is the incoming Karakeep webhook request body.
+type WebhookPayload struct {
+	EventType string   `json:"event_type"`
+	Timestamp string   `json:"timestamp"`
+	Data      Bookmark `json:"data"`
+}
+
 type BookmarksResponse struct {
 	Bookmarks  []Bookmark `json:"bookmarks"`
 	NextCursor string     `json:"nextCursor"`

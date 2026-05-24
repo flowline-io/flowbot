@@ -202,6 +202,9 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 		srcCollector,
 	)
 
+	// Store globally so modules can register webhooks during Bootstrap.
+	ability.SetEventSourceManager(srcMgr)
+
 	if pool := ability.GetEventPool(); pool != nil {
 		srcMgr.SetPool(pool)
 	}

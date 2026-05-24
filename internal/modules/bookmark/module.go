@@ -7,7 +7,9 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
+	"github.com/flowline-io/flowbot/pkg/ability"
 
+	karakeepAdapter "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -48,6 +50,20 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 
 	handler.initialized = true
 
+	return nil
+}
+
+// Bootstrap registers the Karakeep webhook converter with the EventSourceManager.
+func (moduleHandler) Bootstrap() error {
+	if !Config.Enabled {
+		return nil
+	}
+	mgr := ability.GetEventSourceManager()
+	if mgr == nil {
+		return fmt.Errorf("bookmark: event source manager not initialized")
+	}
+	mgr.RegisterWebhook(karakeepAdapter.NewWebhook())
+	flog.Info("bookmark: registered karakeep webhook on /webhook/provider/karakeep/events")
 	return nil
 }
 

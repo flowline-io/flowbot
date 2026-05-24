@@ -15,7 +15,17 @@ const (
 	ID          = "karakeep"
 	EndpointKey = "endpoint"
 	ApikeyKey   = "api_key"
+	WebhookTokenKey = "webhook_token"
 )
+
+// GetWebhookToken reads the webhook Bearer token from the karakeep provider config.
+func GetWebhookToken() string {
+	tok, err := providers.GetConfig(ID, WebhookTokenKey)
+	if err != nil {
+		return ""
+	}
+	return tok.String()
+}
 
 type Karakeep struct {
 	c *resty.Client
