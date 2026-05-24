@@ -23,6 +23,10 @@ func (OAuth) Fields() []ent.Field {
 		field.String("type").NotEmpty(),
 		field.String("token").NotEmpty(),
 		field.JSON("extra", map[string]any{}),
+		field.String("refresh_token").Optional(),
+		field.Time("expires_at").Optional(),
+		field.String("token_type").Optional(),
+		field.String("scope").Optional(),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -31,6 +35,7 @@ func (OAuth) Fields() []ent.Field {
 func (OAuth) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid", "topic"),
+		index.Fields("type"),
 	}
 }
 

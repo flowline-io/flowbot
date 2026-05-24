@@ -66,23 +66,11 @@ func TestDropbox_GetAuthorizeURL(t *testing.T) {
 	t.Run("authorize URL generation", func(t *testing.T) {
 		t.Parallel()
 		dropbox := NewDropbox("client_id", "secret", "https://example.com/callback", "")
-		url := dropbox.GetAuthorizeURL()
+		url := dropbox.GetAuthorizeURL("test-state")
 
 		assert.Contains(t, url, "https://www.dropbox.com/oauth2/authorize")
 		assert.Contains(t, url, "client_id=client_id")
 		assert.Contains(t, url, "response_type=code")
-		assert.Contains(t, url, "redirect_uri=https://example.com/callback")
-	})
-}
-
-func TestDropbox_Redirect(t *testing.T) {
-	t.Parallel()
-	t.Run("redirect URL generation", func(t *testing.T) {
-		t.Parallel()
-		dropbox := NewDropbox("client_id", "secret", "https://example.com/callback", "")
-		url, err := dropbox.Redirect(nil)
-
-		require.NoError(t, err)
-		assert.Contains(t, url, "dropbox.com/oauth2/authorize")
+		assert.Contains(t, url, "state=test-state")
 	})
 }

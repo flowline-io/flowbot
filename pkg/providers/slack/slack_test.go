@@ -17,29 +17,25 @@ import (
 func TestSlack_GetAuthorizeURL(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		clientID    string
-		redirectURI string
-		state       string
-		wantParts   []string
+		name      string
+		clientID  string
+		state     string
+		wantParts []string
 	}{
 		{
-			name:        "basic URL generation",
-			clientID:    "123.456",
-			redirectURI: "https://example.com/oauth/slack/callback",
-			state:       "",
+			name:     "basic URL generation",
+			clientID: "123.456",
+			state:    "",
 			wantParts: []string{
 				"https://slack.com/oauth/v2/authorize",
 				"client_id=123.456",
 				"user_scope=identity.basic%2Cidentity.avatar",
-				"redirect_uri=https%3A%2F%2Fexample.com%2Foauth%2Fslack%2Fcallback",
 			},
 		},
 		{
-			name:        "URL with state",
-			clientID:    "789.012",
-			redirectURI: "https://app.example.com/callback",
-			state:       "csrf-token-123",
+			name:     "URL with state",
+			clientID: "789.012",
+			state:    "csrf-token-123",
 			wantParts: []string{
 				"client_id=789.012",
 				"state=csrf-token-123",
@@ -50,19 +46,15 @@ func TestSlack_GetAuthorizeURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			slack := NewSlack(tt.clientID, "secret", tt.redirectURI, "")
-			if tt.state != "" {
-				slack.SetState(tt.state)
-			}
+			slack := NewSlack(tt.clientID, "secret", "", "")
 
-			got := slack.GetAuthorizeURL()
+			got := slack.GetAuthorizeURL(tt.state)
 			for _, part := range tt.wantParts {
 				assert.Contains(t, got, part)
 			}
 		})
 	}
 }
-
 func TestSlack_completeAuth(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -78,12 +70,7 @@ func TestSlack_completeAuth(t *testing.T) {
 			response: OAuthV2AccessResponse{
 				OK:    true,
 				Error: "",
-				AuthedUser: struct {
-					ID          string `json:"id"`
-					Scope       string `json:"scope"`
-					AccessToken string `json:"access_token"`
-					TokenType   string `json:"token_type"`
-				}{
+				AuthedUser: OAuthAuthedUser{
 					ID:          "U123456",
 					Scope:       "identity.basic,identity.avatar",
 					AccessToken: "xoxp-test-token",

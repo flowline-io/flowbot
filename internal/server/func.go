@@ -21,10 +21,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/notify"
-	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/dropbox"
-	"github.com/flowline-io/flowbot/pkg/providers/github"
-	slackProvider "github.com/flowline-io/flowbot/pkg/providers/slack"
+	// OAuth provider registration — these blank imports trigger init() which
+	// self-registers each provider in the providers.OAuthProvider registry.
+	_ "github.com/flowline-io/flowbot/pkg/providers/dropbox"
+	_ "github.com/flowline-io/flowbot/pkg/providers/github"
+	_ "github.com/flowline-io/flowbot/pkg/providers/slack"
+
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -39,37 +41,6 @@ func SetCacheStore(s *cache.RedisStore) {
 	cacheStore = s
 }
 
-// newProvider returns a new OAuth provider based on the given category.
-//
-// The supported categories are:
-//
-// - pocket.ID
-// - github.ID
-// - dropbox.ID
-//
-// The OAuth provider will be created with the configuration values
-// stored in the database. If the category is not supported, nil is
-// returned.
-func newProvider(category string) providers.OAuthProvider {
-	var provider providers.OAuthProvider
-
-	switch category {
-	case github.ID:
-		id, _ := providers.GetConfig(github.ID, github.ClientIdKey)
-		secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
-		provider = github.NewGithub(id.String(), secret.String(), "", "")
-	case dropbox.ID:
-		provider = dropbox.NewDropbox("", "", "", "")
-	case slackProvider.ID:
-		id, _ := providers.GetConfig(slackProvider.ID, slackProvider.ClientIdKey)
-		secret, _ := providers.GetConfig(slackProvider.ID, slackProvider.ClientSecretKey)
-		provider = slackProvider.NewSlack(id.String(), secret.String(), "", "")
-	default:
-		return nil
-	}
-
-	return provider
-}
 
 // directIncomingMessage handles incoming message events for direct channels.
 //

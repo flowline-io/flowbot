@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestRedirectURI(t *testing.T) {
@@ -142,10 +141,10 @@ func TestOAuthProviderInterface(t *testing.T) {
 
 type mockOAuthProvider struct{}
 
-func (*mockOAuthProvider) GetAuthorizeURL() string {
-	return "https://example.com/auth"
+func (*mockOAuthProvider) GetAuthorizeURL(state string) string {
+	return "https://example.com/auth?state=" + state
 }
 
-func (*mockOAuthProvider) GetAccessToken(_ fiber.Ctx) (types.KV, error) {
-	return types.KV{"token": "test"}, nil
+func (*mockOAuthProvider) GetAccessToken(_ fiber.Ctx) (*OAuthToken, error) {
+	return &OAuthToken{AccessToken: "test", Type: "mock"}, nil
 }

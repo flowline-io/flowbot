@@ -252,6 +252,8 @@ type Adapter interface {
 	ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*gen.ConfigData, error)
 	ConfigDelete(ctx context.Context, uid types.Uid, topic, key string) error
 	OAuthSet(ctx context.Context, oauth gen.OAuth) error
+	// OAuthGet returns the raw oauth record. Most callers should use
+	// providers.GetOrRefreshToken() which handles expired token refresh.
 	OAuthGet(ctx context.Context, uid types.Uid, topic, t string) (gen.OAuth, error)
 	OAuthGetAvailable(ctx context.Context, t string) ([]gen.OAuth, error)
 	FormSet(ctx context.Context, formId string, form gen.Form) error

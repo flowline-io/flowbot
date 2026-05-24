@@ -2,6 +2,7 @@
 package slack
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 
-	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -20,6 +21,16 @@ const (
 	ClientSecretKey = "secret"
 )
 
+// OAuth interface compliance check.
+var _ providers.OAuthProvider = (*Slack)(nil)
+var _ providers.OAuthRefresher = (*Slack)(nil)
+
+func init() {
+	providers.RegisterOAuthProvider(ID, func() providers.OAuthProvider {
+		return GetClient()
+	})
+}
+
 // Slack implements the OAuthProvider interface for Slack's OAuth v2 flow
 // using the Sign in with Slack (identity.*) scopes.
 type Slack struct {
@@ -28,7 +39,6 @@ type Slack struct {
 	clientSecret string
 	redirectURI  string
 	accessToken  string
-	state        string
 }
 
 // NewSlack creates a new Slack OAuth provider instance.
@@ -46,20 +56,25 @@ func NewSlack(clientId, clientSecret, redirectURI, accessToken string) *Slack {
 	return v
 }
 
-// SetState sets the OAuth state parameter for CSRF protection.
-func (v *Slack) SetState(state string) {
-	v.state = state
+// GetClient reads OAuth provider config and returns a new Slack client
+// suitable for OAuth authorization flows.
+func GetClient() *Slack {
+	id, _ := providers.GetConfig(ID, ClientIdKey)
+	secret, _ := providers.GetConfig(ID, ClientSecretKey)
+	return NewSlack(id.String(), secret.String(), "", "")
 }
 
 // GetAuthorizeURL returns the Slack OAuth v2 authorization URL with
-// identity.basic and identity.avatar user scopes.
-func (v *Slack) GetAuthorizeURL() string {
+// identity.basic and identity.avatar user scopes. The state parameter
+// is included for CSRF protection.
+func (v *Slack) GetAuthorizeURL(state string) string {
+	redirectURI := providers.RedirectURI(ID, state)
 	params := url.Values{}
 	params.Set("client_id", v.clientId)
 	params.Set("user_scope", "identity.basic,identity.avatar")
-	params.Set("redirect_uri", v.redirectURI)
-	if v.state != "" {
-		params.Set("state", v.state)
+	params.Set("redirect_uri", redirectURI)
+	if state != "" {
+		params.Set("state", state)
 	}
 	return "https://slack.com/oauth/v2/authorize?" + params.Encode()
 }
@@ -97,8 +112,9 @@ func (v *Slack) completeAuth(code string) (*OAuthV2AccessResponse, error) {
 
 // GetAccessToken implements the OAuthProvider interface. It exchanges the
 // authorization code from the callback for a user access token and returns
-// the token data as a KV map compatible with the oauth table storage.
-func (v *Slack) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
+// the token data as a typed OAuthToken.
+func (v *Slack) GetAccessToken(ctx fiber.Ctx) (*providers.OAuthToken, error) {
+	v.redirectURI = providers.RedirectURI(ID, ctx.Params("flag"))
 	code := ctx.Query("code")
 	if code == "" {
 		return nil, fmt.Errorf("missing authorization code")
@@ -109,16 +125,53 @@ func (v *Slack) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
 		return nil, err
 	}
 
-	extra, err := sonic.Marshal(tokenResp)
+	return &providers.OAuthToken{
+		Name:        ID,
+		Type:        ID,
+		AccessToken: v.accessToken,
+		TokenType:   tokenResp.AuthedUser.TokenType,
+		Scope:       tokenResp.AuthedUser.Scope,
+		Extra:       tokenResp,
+	}, nil
+}
+
+// RefreshAccessToken implements OAuthRefresher for Slack.
+// Slack supports token rotation for certain scopes via the refresh_token grant.
+func (v *Slack) RefreshAccessToken(ctx context.Context, refreshToken string) (*providers.OAuthToken, error) {
+	resp, err := v.c.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{
+			"client_id":     v.clientId,
+			"client_secret": v.clientSecret,
+			"grant_type":    "refresh_token",
+			"refresh_token": refreshToken,
+		}).
+		Post("/oauth.v2.access")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("slack refresh token: %w", err)
 	}
 
-	return types.KV{
-		"name":  ID,
-		"type":  ID,
-		"token": v.accessToken,
-		"extra": extra,
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("slack refresh token: status %d", resp.StatusCode())
+	}
+
+	var result OAuthV2AccessResponse
+	if err := sonic.Unmarshal(resp.Bytes(), &result); err != nil {
+		return nil, fmt.Errorf("slack refresh token parse: %w", err)
+	}
+
+	if !result.OK {
+		return nil, fmt.Errorf("slack refresh token error: %s", result.Error)
+	}
+
+	return &providers.OAuthToken{
+		Name:         ID,
+		Type:         ID,
+		AccessToken:  result.AuthedUser.AccessToken,
+		RefreshToken: result.AuthedUser.RefreshToken,
+		TokenType:    result.AuthedUser.TokenType,
+		Scope:        result.AuthedUser.Scope,
+		Extra:        &result,
 	}, nil
 }
 

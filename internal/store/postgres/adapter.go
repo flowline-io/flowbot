@@ -810,6 +810,18 @@ func (a *adapter) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
 		if oauthModel.Extra != nil {
 			u = u.SetExtra(map[string]any(oauthModel.Extra))
 		}
+		if oauthModel.RefreshToken != "" {
+			u = u.SetRefreshToken(oauthModel.RefreshToken)
+		}
+		if !oauthModel.ExpiresAt.IsZero() {
+			u = u.SetExpiresAt(oauthModel.ExpiresAt)
+		}
+		if oauthModel.TokenType != "" {
+			u = u.SetTokenType(oauthModel.TokenType)
+		}
+		if oauthModel.Scope != "" {
+			u = u.SetScope(oauthModel.Scope)
+		}
 		_, err = u.Save(ctx)
 	} else {
 		c := a.client.OAuth.Create().
@@ -822,6 +834,18 @@ func (a *adapter) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
 			SetUpdatedAt(oauthModel.UpdatedAt)
 		if oauthModel.Extra != nil {
 			c = c.SetExtra(map[string]any(oauthModel.Extra))
+		}
+		if oauthModel.RefreshToken != "" {
+			c = c.SetRefreshToken(oauthModel.RefreshToken)
+		}
+		if !oauthModel.ExpiresAt.IsZero() {
+			c = c.SetExpiresAt(oauthModel.ExpiresAt)
+		}
+		if oauthModel.TokenType != "" {
+			c = c.SetTokenType(oauthModel.TokenType)
+		}
+		if oauthModel.Scope != "" {
+			c = c.SetScope(oauthModel.Scope)
 		}
 		_, err = c.Save(ctx)
 	}

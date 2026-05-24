@@ -747,6 +747,10 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "token", Type: field.TypeString},
 		{Name: "extra", Type: field.TypeJSON},
+		{Name: "refresh_token", Type: field.TypeString, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "token_type", Type: field.TypeString, Nullable: true},
+		{Name: "scope", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -760,6 +764,11 @@ var (
 				Name:    "oauth_uid_topic",
 				Unique:  false,
 				Columns: []*schema.Column{OauthColumns[1], OauthColumns[2]},
+			},
+			{
+				Name:    "oauth_type",
+				Unique:  false,
+				Columns: []*schema.Column{OauthColumns[4]},
 			},
 		},
 	}

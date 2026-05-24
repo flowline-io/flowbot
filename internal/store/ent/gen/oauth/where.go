@@ -79,6 +79,26 @@ func Token(v string) predicate.OAuth {
 	return predicate.OAuth(sql.FieldEQ(FieldToken, v))
 }
 
+// RefreshToken applies equality check predicate on the "refresh_token" field. It's identical to RefreshTokenEQ.
+func RefreshToken(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldRefreshToken, v))
+}
+
+// ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
+func ExpiresAt(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// TokenType applies equality check predicate on the "token_type" field. It's identical to TokenTypeEQ.
+func TokenType(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldTokenType, v))
+}
+
+// Scope applies equality check predicate on the "scope" field. It's identical to ScopeEQ.
+func Scope(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldScope, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.OAuth {
 	return predicate.OAuth(sql.FieldEQ(FieldCreatedAt, v))
@@ -412,6 +432,281 @@ func TokenEqualFold(v string) predicate.OAuth {
 // TokenContainsFold applies the ContainsFold predicate on the "token" field.
 func TokenContainsFold(v string) predicate.OAuth {
 	return predicate.OAuth(sql.FieldContainsFold(FieldToken, v))
+}
+
+// RefreshTokenEQ applies the EQ predicate on the "refresh_token" field.
+func RefreshTokenEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldRefreshToken, v))
+}
+
+// RefreshTokenNEQ applies the NEQ predicate on the "refresh_token" field.
+func RefreshTokenNEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNEQ(FieldRefreshToken, v))
+}
+
+// RefreshTokenIn applies the In predicate on the "refresh_token" field.
+func RefreshTokenIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldIn(FieldRefreshToken, vs...))
+}
+
+// RefreshTokenNotIn applies the NotIn predicate on the "refresh_token" field.
+func RefreshTokenNotIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotIn(FieldRefreshToken, vs...))
+}
+
+// RefreshTokenGT applies the GT predicate on the "refresh_token" field.
+func RefreshTokenGT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGT(FieldRefreshToken, v))
+}
+
+// RefreshTokenGTE applies the GTE predicate on the "refresh_token" field.
+func RefreshTokenGTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGTE(FieldRefreshToken, v))
+}
+
+// RefreshTokenLT applies the LT predicate on the "refresh_token" field.
+func RefreshTokenLT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLT(FieldRefreshToken, v))
+}
+
+// RefreshTokenLTE applies the LTE predicate on the "refresh_token" field.
+func RefreshTokenLTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLTE(FieldRefreshToken, v))
+}
+
+// RefreshTokenContains applies the Contains predicate on the "refresh_token" field.
+func RefreshTokenContains(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContains(FieldRefreshToken, v))
+}
+
+// RefreshTokenHasPrefix applies the HasPrefix predicate on the "refresh_token" field.
+func RefreshTokenHasPrefix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasPrefix(FieldRefreshToken, v))
+}
+
+// RefreshTokenHasSuffix applies the HasSuffix predicate on the "refresh_token" field.
+func RefreshTokenHasSuffix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasSuffix(FieldRefreshToken, v))
+}
+
+// RefreshTokenIsNil applies the IsNil predicate on the "refresh_token" field.
+func RefreshTokenIsNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldIsNull(FieldRefreshToken))
+}
+
+// RefreshTokenNotNil applies the NotNil predicate on the "refresh_token" field.
+func RefreshTokenNotNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotNull(FieldRefreshToken))
+}
+
+// RefreshTokenEqualFold applies the EqualFold predicate on the "refresh_token" field.
+func RefreshTokenEqualFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEqualFold(FieldRefreshToken, v))
+}
+
+// RefreshTokenContainsFold applies the ContainsFold predicate on the "refresh_token" field.
+func RefreshTokenContainsFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContainsFold(FieldRefreshToken, v))
+}
+
+// ExpiresAtEQ applies the EQ predicate on the "expires_at" field.
+func ExpiresAtEQ(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtNEQ applies the NEQ predicate on the "expires_at" field.
+func ExpiresAtNEQ(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtIn applies the In predicate on the "expires_at" field.
+func ExpiresAtIn(vs ...time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtNotIn applies the NotIn predicate on the "expires_at" field.
+func ExpiresAtNotIn(vs ...time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtGT applies the GT predicate on the "expires_at" field.
+func ExpiresAtGT(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGT(FieldExpiresAt, v))
+}
+
+// ExpiresAtGTE applies the GTE predicate on the "expires_at" field.
+func ExpiresAtGTE(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtLT applies the LT predicate on the "expires_at" field.
+func ExpiresAtLT(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLT(FieldExpiresAt, v))
+}
+
+// ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
+func ExpiresAtLTE(v time.Time) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtIsNil applies the IsNil predicate on the "expires_at" field.
+func ExpiresAtIsNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldIsNull(FieldExpiresAt))
+}
+
+// ExpiresAtNotNil applies the NotNil predicate on the "expires_at" field.
+func ExpiresAtNotNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotNull(FieldExpiresAt))
+}
+
+// TokenTypeEQ applies the EQ predicate on the "token_type" field.
+func TokenTypeEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldTokenType, v))
+}
+
+// TokenTypeNEQ applies the NEQ predicate on the "token_type" field.
+func TokenTypeNEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNEQ(FieldTokenType, v))
+}
+
+// TokenTypeIn applies the In predicate on the "token_type" field.
+func TokenTypeIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldIn(FieldTokenType, vs...))
+}
+
+// TokenTypeNotIn applies the NotIn predicate on the "token_type" field.
+func TokenTypeNotIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotIn(FieldTokenType, vs...))
+}
+
+// TokenTypeGT applies the GT predicate on the "token_type" field.
+func TokenTypeGT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGT(FieldTokenType, v))
+}
+
+// TokenTypeGTE applies the GTE predicate on the "token_type" field.
+func TokenTypeGTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGTE(FieldTokenType, v))
+}
+
+// TokenTypeLT applies the LT predicate on the "token_type" field.
+func TokenTypeLT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLT(FieldTokenType, v))
+}
+
+// TokenTypeLTE applies the LTE predicate on the "token_type" field.
+func TokenTypeLTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLTE(FieldTokenType, v))
+}
+
+// TokenTypeContains applies the Contains predicate on the "token_type" field.
+func TokenTypeContains(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContains(FieldTokenType, v))
+}
+
+// TokenTypeHasPrefix applies the HasPrefix predicate on the "token_type" field.
+func TokenTypeHasPrefix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasPrefix(FieldTokenType, v))
+}
+
+// TokenTypeHasSuffix applies the HasSuffix predicate on the "token_type" field.
+func TokenTypeHasSuffix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasSuffix(FieldTokenType, v))
+}
+
+// TokenTypeIsNil applies the IsNil predicate on the "token_type" field.
+func TokenTypeIsNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldIsNull(FieldTokenType))
+}
+
+// TokenTypeNotNil applies the NotNil predicate on the "token_type" field.
+func TokenTypeNotNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotNull(FieldTokenType))
+}
+
+// TokenTypeEqualFold applies the EqualFold predicate on the "token_type" field.
+func TokenTypeEqualFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEqualFold(FieldTokenType, v))
+}
+
+// TokenTypeContainsFold applies the ContainsFold predicate on the "token_type" field.
+func TokenTypeContainsFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContainsFold(FieldTokenType, v))
+}
+
+// ScopeEQ applies the EQ predicate on the "scope" field.
+func ScopeEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEQ(FieldScope, v))
+}
+
+// ScopeNEQ applies the NEQ predicate on the "scope" field.
+func ScopeNEQ(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNEQ(FieldScope, v))
+}
+
+// ScopeIn applies the In predicate on the "scope" field.
+func ScopeIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldIn(FieldScope, vs...))
+}
+
+// ScopeNotIn applies the NotIn predicate on the "scope" field.
+func ScopeNotIn(vs ...string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotIn(FieldScope, vs...))
+}
+
+// ScopeGT applies the GT predicate on the "scope" field.
+func ScopeGT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGT(FieldScope, v))
+}
+
+// ScopeGTE applies the GTE predicate on the "scope" field.
+func ScopeGTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldGTE(FieldScope, v))
+}
+
+// ScopeLT applies the LT predicate on the "scope" field.
+func ScopeLT(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLT(FieldScope, v))
+}
+
+// ScopeLTE applies the LTE predicate on the "scope" field.
+func ScopeLTE(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldLTE(FieldScope, v))
+}
+
+// ScopeContains applies the Contains predicate on the "scope" field.
+func ScopeContains(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContains(FieldScope, v))
+}
+
+// ScopeHasPrefix applies the HasPrefix predicate on the "scope" field.
+func ScopeHasPrefix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasPrefix(FieldScope, v))
+}
+
+// ScopeHasSuffix applies the HasSuffix predicate on the "scope" field.
+func ScopeHasSuffix(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldHasSuffix(FieldScope, v))
+}
+
+// ScopeIsNil applies the IsNil predicate on the "scope" field.
+func ScopeIsNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldIsNull(FieldScope))
+}
+
+// ScopeNotNil applies the NotNil predicate on the "scope" field.
+func ScopeNotNil() predicate.OAuth {
+	return predicate.OAuth(sql.FieldNotNull(FieldScope))
+}
+
+// ScopeEqualFold applies the EqualFold predicate on the "scope" field.
+func ScopeEqualFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldEqualFold(FieldScope, v))
+}
+
+// ScopeContainsFold applies the ContainsFold predicate on the "scope" field.
+func ScopeContainsFold(v string) predicate.OAuth {
+	return predicate.OAuth(sql.FieldContainsFold(FieldScope, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

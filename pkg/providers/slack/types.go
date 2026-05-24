@@ -2,10 +2,11 @@ package slack
 
 // OAuthAuthedUser represents the authed_user in the OAuth response.
 type OAuthAuthedUser struct {
-	ID          string `json:"id"`
-	Scope       string `json:"scope"`
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
+	ID           string `json:"id"`
+	Scope        string `json:"scope"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
 // OAuthTeam represents the team in the OAuth response.

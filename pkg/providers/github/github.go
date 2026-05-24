@@ -7,13 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -26,8 +24,17 @@ const (
 	TokenPrefix     = "token"
 
 	JSONAccept = "application/vnd.github.v3+json"
-
 )
+
+// OAuth interface compliance check.
+var _ providers.OAuthProvider = (*Github)(nil)
+
+func init() {
+	providers.RegisterOAuthProvider(ID, func() providers.OAuthProvider {
+		return GetClient()
+	})
+}
+
 type Github struct {
 	c            *resty.Client
 	clientId     string
@@ -45,8 +52,21 @@ func NewGithub(clientId, clientSecret, redirectURI, accessToken string) *Github 
 	return v
 }
 
-func (v *Github) GetAuthorizeURL() string {
-	return fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo", v.clientId, v.redirectURI)
+// GetClient reads OAuth provider config and returns a new GitHub client
+// suitable for OAuth authorization flows. It constructs the redirect URI
+// from the app base URL.
+func GetClient() *Github {
+	id, _ := providers.GetConfig(ID, ClientIdKey)
+	secret, _ := providers.GetConfig(ID, ClientSecretKey)
+	return NewGithub(id.String(), secret.String(), "", "")
+}
+
+func (v *Github) GetAuthorizeURL(state string) string {
+	redirectURI := providers.RedirectURI(ID, state)
+	return fmt.Sprintf(
+		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo&state=%s",
+		v.clientId, redirectURI, state,
+	)
 }
 
 func (v *Github) completeAuth(code string) (any, error) {
@@ -74,27 +94,25 @@ func (v *Github) completeAuth(code string) (any, error) {
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
 }
 
-func (v *Github) Redirect(_ *http.Request) (string, error) {
-	appRedirectURI := v.GetAuthorizeURL()
-	return appRedirectURI, nil
-}
-
-func (v *Github) GetAccessToken(ctx fiber.Ctx) (types.KV, error) {
+func (v *Github) GetAccessToken(ctx fiber.Ctx) (*providers.OAuthToken, error) {
 	code := ctx.Query("code")
 	tokenResp, err := v.completeAuth(code)
 	if err != nil {
 		return nil, err
 	}
 
-	extra, err := sonic.Marshal(&tokenResp)
-	if err != nil {
-		return nil, err
+	tr, ok := tokenResp.(*TokenResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected token response type from github")
 	}
-	return types.KV{
-		"name":  ID,
-		"type":  ID,
-		"token": v.accessToken,
-		"extra": extra,
+
+	return &providers.OAuthToken{
+		Name:        ID,
+		Type:        ID,
+		AccessToken: v.accessToken,
+		TokenType:   tr.TokenType,
+		Scope:       tr.Scope,
+		Extra:       tokenResp,
 	}, nil
 }
 
@@ -298,18 +316,6 @@ func (v *Github) GetReleases(owner, repo string, page, perPage int) (result []*R
 		return
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
-}
-
-// GetClient reads provider config and returns a new GitHub client.
-// It uses the endpoint and token keys from the provider configuration.
-func GetClient() *Github {
-	endpoint, _ := providers.GetConfig(ID, EndpointKey)
-	token, _ := providers.GetConfig(ID, TokenKey)
-	client := NewGithub("", "", "", token.String())
-	if ep := endpoint.String(); ep != "" {
-		client.c.SetBaseURL(ep)
-	}
-	return client
 }
 
 // ListIssues returns issues authored by the given owner using the GitHub search API.

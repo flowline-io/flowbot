@@ -104,6 +104,86 @@ func (_u *OAuthUpdate) SetExtra(v map[string]interface{}) *OAuthUpdate {
 	return _u
 }
 
+// SetRefreshToken sets the "refresh_token" field.
+func (_u *OAuthUpdate) SetRefreshToken(v string) *OAuthUpdate {
+	_u.mutation.SetRefreshToken(v)
+	return _u
+}
+
+// SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
+func (_u *OAuthUpdate) SetNillableRefreshToken(v *string) *OAuthUpdate {
+	if v != nil {
+		_u.SetRefreshToken(*v)
+	}
+	return _u
+}
+
+// ClearRefreshToken clears the value of the "refresh_token" field.
+func (_u *OAuthUpdate) ClearRefreshToken() *OAuthUpdate {
+	_u.mutation.ClearRefreshToken()
+	return _u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_u *OAuthUpdate) SetExpiresAt(v time.Time) *OAuthUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *OAuthUpdate) SetNillableExpiresAt(v *time.Time) *OAuthUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *OAuthUpdate) ClearExpiresAt() *OAuthUpdate {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
+// SetTokenType sets the "token_type" field.
+func (_u *OAuthUpdate) SetTokenType(v string) *OAuthUpdate {
+	_u.mutation.SetTokenType(v)
+	return _u
+}
+
+// SetNillableTokenType sets the "token_type" field if the given value is not nil.
+func (_u *OAuthUpdate) SetNillableTokenType(v *string) *OAuthUpdate {
+	if v != nil {
+		_u.SetTokenType(*v)
+	}
+	return _u
+}
+
+// ClearTokenType clears the value of the "token_type" field.
+func (_u *OAuthUpdate) ClearTokenType() *OAuthUpdate {
+	_u.mutation.ClearTokenType()
+	return _u
+}
+
+// SetScope sets the "scope" field.
+func (_u *OAuthUpdate) SetScope(v string) *OAuthUpdate {
+	_u.mutation.SetScope(v)
+	return _u
+}
+
+// SetNillableScope sets the "scope" field if the given value is not nil.
+func (_u *OAuthUpdate) SetNillableScope(v *string) *OAuthUpdate {
+	if v != nil {
+		_u.SetScope(*v)
+	}
+	return _u
+}
+
+// ClearScope clears the value of the "scope" field.
+func (_u *OAuthUpdate) ClearScope() *OAuthUpdate {
+	_u.mutation.ClearScope()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *OAuthUpdate) SetUpdatedAt(v time.Time) *OAuthUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -211,6 +291,30 @@ func (_u *OAuthUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Extra(); ok {
 		_spec.SetField(oauth.FieldExtra, field.TypeJSON, value)
 	}
+	if value, ok := _u.mutation.RefreshToken(); ok {
+		_spec.SetField(oauth.FieldRefreshToken, field.TypeString, value)
+	}
+	if _u.mutation.RefreshTokenCleared() {
+		_spec.ClearField(oauth.FieldRefreshToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(oauth.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(oauth.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.TokenType(); ok {
+		_spec.SetField(oauth.FieldTokenType, field.TypeString, value)
+	}
+	if _u.mutation.TokenTypeCleared() {
+		_spec.ClearField(oauth.FieldTokenType, field.TypeString)
+	}
+	if value, ok := _u.mutation.Scope(); ok {
+		_spec.SetField(oauth.FieldScope, field.TypeString, value)
+	}
+	if _u.mutation.ScopeCleared() {
+		_spec.ClearField(oauth.FieldScope, field.TypeString)
+	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(oauth.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -307,6 +411,86 @@ func (_u *OAuthUpdateOne) SetNillableToken(v *string) *OAuthUpdateOne {
 // SetExtra sets the "extra" field.
 func (_u *OAuthUpdateOne) SetExtra(v map[string]interface{}) *OAuthUpdateOne {
 	_u.mutation.SetExtra(v)
+	return _u
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (_u *OAuthUpdateOne) SetRefreshToken(v string) *OAuthUpdateOne {
+	_u.mutation.SetRefreshToken(v)
+	return _u
+}
+
+// SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
+func (_u *OAuthUpdateOne) SetNillableRefreshToken(v *string) *OAuthUpdateOne {
+	if v != nil {
+		_u.SetRefreshToken(*v)
+	}
+	return _u
+}
+
+// ClearRefreshToken clears the value of the "refresh_token" field.
+func (_u *OAuthUpdateOne) ClearRefreshToken() *OAuthUpdateOne {
+	_u.mutation.ClearRefreshToken()
+	return _u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_u *OAuthUpdateOne) SetExpiresAt(v time.Time) *OAuthUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *OAuthUpdateOne) SetNillableExpiresAt(v *time.Time) *OAuthUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *OAuthUpdateOne) ClearExpiresAt() *OAuthUpdateOne {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
+// SetTokenType sets the "token_type" field.
+func (_u *OAuthUpdateOne) SetTokenType(v string) *OAuthUpdateOne {
+	_u.mutation.SetTokenType(v)
+	return _u
+}
+
+// SetNillableTokenType sets the "token_type" field if the given value is not nil.
+func (_u *OAuthUpdateOne) SetNillableTokenType(v *string) *OAuthUpdateOne {
+	if v != nil {
+		_u.SetTokenType(*v)
+	}
+	return _u
+}
+
+// ClearTokenType clears the value of the "token_type" field.
+func (_u *OAuthUpdateOne) ClearTokenType() *OAuthUpdateOne {
+	_u.mutation.ClearTokenType()
+	return _u
+}
+
+// SetScope sets the "scope" field.
+func (_u *OAuthUpdateOne) SetScope(v string) *OAuthUpdateOne {
+	_u.mutation.SetScope(v)
+	return _u
+}
+
+// SetNillableScope sets the "scope" field if the given value is not nil.
+func (_u *OAuthUpdateOne) SetNillableScope(v *string) *OAuthUpdateOne {
+	if v != nil {
+		_u.SetScope(*v)
+	}
+	return _u
+}
+
+// ClearScope clears the value of the "scope" field.
+func (_u *OAuthUpdateOne) ClearScope() *OAuthUpdateOne {
+	_u.mutation.ClearScope()
 	return _u
 }
 
@@ -446,6 +630,30 @@ func (_u *OAuthUpdateOne) sqlSave(ctx context.Context) (_node *OAuth, err error)
 	}
 	if value, ok := _u.mutation.Extra(); ok {
 		_spec.SetField(oauth.FieldExtra, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.RefreshToken(); ok {
+		_spec.SetField(oauth.FieldRefreshToken, field.TypeString, value)
+	}
+	if _u.mutation.RefreshTokenCleared() {
+		_spec.ClearField(oauth.FieldRefreshToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(oauth.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(oauth.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.TokenType(); ok {
+		_spec.SetField(oauth.FieldTokenType, field.TypeString, value)
+	}
+	if _u.mutation.TokenTypeCleared() {
+		_spec.ClearField(oauth.FieldTokenType, field.TypeString)
+	}
+	if value, ok := _u.mutation.Scope(); ok {
+		_spec.SetField(oauth.FieldScope, field.TypeString, value)
+	}
+	if _u.mutation.ScopeCleared() {
+		_spec.ClearField(oauth.FieldScope, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(oauth.FieldUpdatedAt, field.TypeTime, value)

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -31,11 +30,11 @@ var commandRules = []command.Rule{
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
 			// check oauth token
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
+			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 			}
-			if oauth.Token != "" {
+			if oauth != nil && oauth.AccessToken != "" {
 				return types.TextMsg{Text: "App is authorized"}
 			}
 
@@ -47,13 +46,13 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
-			id, _ := providers.GetConfig("github", "id")
 
-			redirectURI := providers.RedirectURI("github", flag)
-			authorizeURL := fmt.Sprintf(
-				"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo",
-				id.String(), redirectURI,
-			)
+			p, err := providers.GetOAuthProvider(Name)
+			if err != nil {
+				flog.Error(err)
+				return nil
+			}
+			authorizeURL := p.GetAuthorizeURL(flag)
 			return types.LinkMsg{Title: "OAuth", Url: authorizeURL}
 		},
 	},
@@ -86,11 +85,11 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
+			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil {
 				return nil
 			}
-			if oauth.Token == "" {
+			if oauth == nil || oauth.AccessToken == "" {
 				return types.TextMsg{Text: "oauth error"}
 			}
 

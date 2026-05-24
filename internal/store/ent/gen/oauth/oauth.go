@@ -25,6 +25,14 @@ const (
 	FieldToken = "token"
 	// FieldExtra holds the string denoting the extra field in the database.
 	FieldExtra = "extra"
+	// FieldRefreshToken holds the string denoting the refresh_token field in the database.
+	FieldRefreshToken = "refresh_token"
+	// FieldExpiresAt holds the string denoting the expires_at field in the database.
+	FieldExpiresAt = "expires_at"
+	// FieldTokenType holds the string denoting the token_type field in the database.
+	FieldTokenType = "token_type"
+	// FieldScope holds the string denoting the scope field in the database.
+	FieldScope = "scope"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -42,6 +50,10 @@ var Columns = []string{
 	FieldType,
 	FieldToken,
 	FieldExtra,
+	FieldRefreshToken,
+	FieldExpiresAt,
+	FieldTokenType,
+	FieldScope,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -106,6 +118,26 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByToken orders the results by the token field.
 func ByToken(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldToken, opts...).ToFunc()
+}
+
+// ByRefreshToken orders the results by the refresh_token field.
+func ByRefreshToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRefreshToken, opts...).ToFunc()
+}
+
+// ByExpiresAt orders the results by the expires_at field.
+func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByTokenType orders the results by the token_type field.
+func ByTokenType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTokenType, opts...).ToFunc()
+}
+
+// ByScope orders the results by the scope field.
+func ByScope(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScope, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

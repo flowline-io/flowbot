@@ -980,11 +980,11 @@ func init() {
 	// oauth.TokenValidator is a validator for the "token" field. It is called by the builders before save.
 	oauth.TokenValidator = oauthDescToken.Validators[0].(func(string) error)
 	// oauthDescCreatedAt is the schema descriptor for created_at field.
-	oauthDescCreatedAt := oauthFields[7].Descriptor()
+	oauthDescCreatedAt := oauthFields[11].Descriptor()
 	// oauth.DefaultCreatedAt holds the default value on creation for the created_at field.
 	oauth.DefaultCreatedAt = oauthDescCreatedAt.Default.(func() time.Time)
 	// oauthDescUpdatedAt is the schema descriptor for updated_at field.
-	oauthDescUpdatedAt := oauthFields[8].Descriptor()
+	oauthDescUpdatedAt := oauthFields[12].Descriptor()
 	// oauth.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	oauth.DefaultUpdatedAt = oauthDescUpdatedAt.Default.(func() time.Time)
 	// oauth.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

@@ -58,6 +58,62 @@ func (_c *OAuthCreate) SetExtra(v map[string]interface{}) *OAuthCreate {
 	return _c
 }
 
+// SetRefreshToken sets the "refresh_token" field.
+func (_c *OAuthCreate) SetRefreshToken(v string) *OAuthCreate {
+	_c.mutation.SetRefreshToken(v)
+	return _c
+}
+
+// SetNillableRefreshToken sets the "refresh_token" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableRefreshToken(v *string) *OAuthCreate {
+	if v != nil {
+		_c.SetRefreshToken(*v)
+	}
+	return _c
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_c *OAuthCreate) SetExpiresAt(v time.Time) *OAuthCreate {
+	_c.mutation.SetExpiresAt(v)
+	return _c
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableExpiresAt(v *time.Time) *OAuthCreate {
+	if v != nil {
+		_c.SetExpiresAt(*v)
+	}
+	return _c
+}
+
+// SetTokenType sets the "token_type" field.
+func (_c *OAuthCreate) SetTokenType(v string) *OAuthCreate {
+	_c.mutation.SetTokenType(v)
+	return _c
+}
+
+// SetNillableTokenType sets the "token_type" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableTokenType(v *string) *OAuthCreate {
+	if v != nil {
+		_c.SetTokenType(*v)
+	}
+	return _c
+}
+
+// SetScope sets the "scope" field.
+func (_c *OAuthCreate) SetScope(v string) *OAuthCreate {
+	_c.mutation.SetScope(v)
+	return _c
+}
+
+// SetNillableScope sets the "scope" field if the given value is not nil.
+func (_c *OAuthCreate) SetNillableScope(v *string) *OAuthCreate {
+	if v != nil {
+		_c.SetScope(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *OAuthCreate) SetCreatedAt(v time.Time) *OAuthCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -245,6 +301,22 @@ func (_c *OAuthCreate) createSpec() (*OAuth, *sqlgraph.CreateSpec) {
 		_spec.SetField(oauth.FieldExtra, field.TypeJSON, value)
 		_node.Extra = value
 	}
+	if value, ok := _c.mutation.RefreshToken(); ok {
+		_spec.SetField(oauth.FieldRefreshToken, field.TypeString, value)
+		_node.RefreshToken = value
+	}
+	if value, ok := _c.mutation.ExpiresAt(); ok {
+		_spec.SetField(oauth.FieldExpiresAt, field.TypeTime, value)
+		_node.ExpiresAt = value
+	}
+	if value, ok := _c.mutation.TokenType(); ok {
+		_spec.SetField(oauth.FieldTokenType, field.TypeString, value)
+		_node.TokenType = value
+	}
+	if value, ok := _c.mutation.Scope(); ok {
+		_spec.SetField(oauth.FieldScope, field.TypeString, value)
+		_node.Scope = value
+	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(oauth.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -374,6 +446,78 @@ func (u *OAuthUpsert) SetExtra(v map[string]interface{}) *OAuthUpsert {
 // UpdateExtra sets the "extra" field to the value that was provided on create.
 func (u *OAuthUpsert) UpdateExtra() *OAuthUpsert {
 	u.SetExcluded(oauth.FieldExtra)
+	return u
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *OAuthUpsert) SetRefreshToken(v string) *OAuthUpsert {
+	u.Set(oauth.FieldRefreshToken, v)
+	return u
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *OAuthUpsert) UpdateRefreshToken() *OAuthUpsert {
+	u.SetExcluded(oauth.FieldRefreshToken)
+	return u
+}
+
+// ClearRefreshToken clears the value of the "refresh_token" field.
+func (u *OAuthUpsert) ClearRefreshToken() *OAuthUpsert {
+	u.SetNull(oauth.FieldRefreshToken)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *OAuthUpsert) SetExpiresAt(v time.Time) *OAuthUpsert {
+	u.Set(oauth.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *OAuthUpsert) UpdateExpiresAt() *OAuthUpsert {
+	u.SetExcluded(oauth.FieldExpiresAt)
+	return u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *OAuthUpsert) ClearExpiresAt() *OAuthUpsert {
+	u.SetNull(oauth.FieldExpiresAt)
+	return u
+}
+
+// SetTokenType sets the "token_type" field.
+func (u *OAuthUpsert) SetTokenType(v string) *OAuthUpsert {
+	u.Set(oauth.FieldTokenType, v)
+	return u
+}
+
+// UpdateTokenType sets the "token_type" field to the value that was provided on create.
+func (u *OAuthUpsert) UpdateTokenType() *OAuthUpsert {
+	u.SetExcluded(oauth.FieldTokenType)
+	return u
+}
+
+// ClearTokenType clears the value of the "token_type" field.
+func (u *OAuthUpsert) ClearTokenType() *OAuthUpsert {
+	u.SetNull(oauth.FieldTokenType)
+	return u
+}
+
+// SetScope sets the "scope" field.
+func (u *OAuthUpsert) SetScope(v string) *OAuthUpsert {
+	u.Set(oauth.FieldScope, v)
+	return u
+}
+
+// UpdateScope sets the "scope" field to the value that was provided on create.
+func (u *OAuthUpsert) UpdateScope() *OAuthUpsert {
+	u.SetExcluded(oauth.FieldScope)
+	return u
+}
+
+// ClearScope clears the value of the "scope" field.
+func (u *OAuthUpsert) ClearScope() *OAuthUpsert {
+	u.SetNull(oauth.FieldScope)
 	return u
 }
 
@@ -521,6 +665,90 @@ func (u *OAuthUpsertOne) SetExtra(v map[string]interface{}) *OAuthUpsertOne {
 func (u *OAuthUpsertOne) UpdateExtra() *OAuthUpsertOne {
 	return u.Update(func(s *OAuthUpsert) {
 		s.UpdateExtra()
+	})
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *OAuthUpsertOne) SetRefreshToken(v string) *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetRefreshToken(v)
+	})
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *OAuthUpsertOne) UpdateRefreshToken() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateRefreshToken()
+	})
+}
+
+// ClearRefreshToken clears the value of the "refresh_token" field.
+func (u *OAuthUpsertOne) ClearRefreshToken() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearRefreshToken()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *OAuthUpsertOne) SetExpiresAt(v time.Time) *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *OAuthUpsertOne) UpdateExpiresAt() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *OAuthUpsertOne) ClearExpiresAt() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearExpiresAt()
+	})
+}
+
+// SetTokenType sets the "token_type" field.
+func (u *OAuthUpsertOne) SetTokenType(v string) *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetTokenType(v)
+	})
+}
+
+// UpdateTokenType sets the "token_type" field to the value that was provided on create.
+func (u *OAuthUpsertOne) UpdateTokenType() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateTokenType()
+	})
+}
+
+// ClearTokenType clears the value of the "token_type" field.
+func (u *OAuthUpsertOne) ClearTokenType() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearTokenType()
+	})
+}
+
+// SetScope sets the "scope" field.
+func (u *OAuthUpsertOne) SetScope(v string) *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetScope(v)
+	})
+}
+
+// UpdateScope sets the "scope" field to the value that was provided on create.
+func (u *OAuthUpsertOne) UpdateScope() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateScope()
+	})
+}
+
+// ClearScope clears the value of the "scope" field.
+func (u *OAuthUpsertOne) ClearScope() *OAuthUpsertOne {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearScope()
 	})
 }
 
@@ -836,6 +1064,90 @@ func (u *OAuthUpsertBulk) SetExtra(v map[string]interface{}) *OAuthUpsertBulk {
 func (u *OAuthUpsertBulk) UpdateExtra() *OAuthUpsertBulk {
 	return u.Update(func(s *OAuthUpsert) {
 		s.UpdateExtra()
+	})
+}
+
+// SetRefreshToken sets the "refresh_token" field.
+func (u *OAuthUpsertBulk) SetRefreshToken(v string) *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetRefreshToken(v)
+	})
+}
+
+// UpdateRefreshToken sets the "refresh_token" field to the value that was provided on create.
+func (u *OAuthUpsertBulk) UpdateRefreshToken() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateRefreshToken()
+	})
+}
+
+// ClearRefreshToken clears the value of the "refresh_token" field.
+func (u *OAuthUpsertBulk) ClearRefreshToken() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearRefreshToken()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *OAuthUpsertBulk) SetExpiresAt(v time.Time) *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *OAuthUpsertBulk) UpdateExpiresAt() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *OAuthUpsertBulk) ClearExpiresAt() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearExpiresAt()
+	})
+}
+
+// SetTokenType sets the "token_type" field.
+func (u *OAuthUpsertBulk) SetTokenType(v string) *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetTokenType(v)
+	})
+}
+
+// UpdateTokenType sets the "token_type" field to the value that was provided on create.
+func (u *OAuthUpsertBulk) UpdateTokenType() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateTokenType()
+	})
+}
+
+// ClearTokenType clears the value of the "token_type" field.
+func (u *OAuthUpsertBulk) ClearTokenType() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearTokenType()
+	})
+}
+
+// SetScope sets the "scope" field.
+func (u *OAuthUpsertBulk) SetScope(v string) *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.SetScope(v)
+	})
+}
+
+// UpdateScope sets the "scope" field to the value that was provided on create.
+func (u *OAuthUpsertBulk) UpdateScope() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.UpdateScope()
+	})
+}
+
+// ClearScope clears the value of the "scope" field.
+func (u *OAuthUpsertBulk) ClearScope() *OAuthUpsertBulk {
+	return u.Update(func(s *OAuthUpsert) {
+		s.ClearScope()
 	})
 }
 

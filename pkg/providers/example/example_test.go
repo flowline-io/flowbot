@@ -458,15 +458,16 @@ func TestOAuthMethods(t *testing.T) {
 	t.Run("GetAuthorizeURL returns URL", func(t *testing.T) {
 		t.Parallel()
 		c := NewExample("https://jsonplaceholder.typicode.com", "")
-		url := c.GetAuthorizeURL()
+		url := c.GetAuthorizeURL("test-state")
 		assert.Contains(t, url, "https://jsonplaceholder.typicode.com/authorize")
+		assert.Contains(t, url, "state=test-state")
 	})
-	t.Run("GetAccessToken returns token KV", func(t *testing.T) {
+	t.Run("GetAccessToken returns OAuthToken", func(t *testing.T) {
 		t.Parallel()
 		c := NewExample("https://jsonplaceholder.typicode.com", "")
-		kv, err := c.GetAccessToken(nil)
+		tk, err := c.GetAccessToken(nil)
 		require.NoError(t, err)
-		assert.Equal(t, "example-token", kv["access_token"])
+		assert.Equal(t, "example-token", tk.AccessToken)
 	})
 	t.Run("OAuthProvider interface compliance", func(t *testing.T) {
 		t.Parallel()

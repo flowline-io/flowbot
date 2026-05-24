@@ -446,24 +446,13 @@ func TestGithub_GetAuthorizeURL(t *testing.T) {
 	t.Run("authorize URL generation", func(t *testing.T) {
 		t.Parallel()
 		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
-		url := github.GetAuthorizeURL()
+		url := github.GetAuthorizeURL("test-state")
 
 		assert.Contains(t, url, "https://github.com/login/oauth/authorize")
 		assert.Contains(t, url, "client_id=client_id")
-		assert.Contains(t, url, "redirect_uri=https://example.com/callback")
+		assert.Contains(t, url, "redirect_uri=")
 		assert.Contains(t, url, "scope=repo")
-	})
-}
-
-func TestGithub_Redirect(t *testing.T) {
-	t.Parallel()
-	t.Run("redirect URL generation", func(t *testing.T) {
-		t.Parallel()
-		github := NewGithub("client_id", "secret", "https://example.com/callback", "")
-		url, err := github.Redirect(nil)
-
-		require.NoError(t, err)
-		assert.Contains(t, url, "github.com/login/oauth/authorize")
+		assert.Contains(t, url, "state=test-state")
 	})
 }
 

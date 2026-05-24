@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -111,28 +112,37 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	}
 
 	// code -> token
-	provider := newProvider(name)
+	provider, err := providers.GetOAuthProvider(name)
+	if err != nil {
+		return protocol.ErrOAuthError.Wrap(err)
+	}
 	tk, err := provider.GetAccessToken(ctx)
 	if err != nil {
 		return protocol.ErrOAuthError.Wrap(err)
 	}
 
-	token, ok := tk["token"].(string)
-	if !ok {
-		return protocol.ErrBadParam.New("missing or invalid token in access token response")
-	}
-
 	// store
-	extra := types.KV{}
-	_ = extra.Scan(tk["extra"])
-	err = store.Database.OAuthSet(ctx.Context(), gen.OAuth{
-		UID:   uid,
-		Topic: topic,
-		Name:  name,
-		Type:  name,
-		Token: token,
-		Extra: schema.JSON(extra),
-	})
+	oauth := gen.OAuth{
+		UID:          uid,
+		Topic:        topic,
+		Name:         tk.Name,
+		Type:         tk.Type,
+		Token:        tk.AccessToken,
+		RefreshToken: tk.RefreshToken,
+		TokenType:    tk.TokenType,
+		Scope:        tk.Scope,
+	}
+	if tk.ExpiresAt != nil {
+		oauth.ExpiresAt = *tk.ExpiresAt
+	}
+	if tk.Extra != nil {
+		if m, ok := tk.Extra.(map[string]any); ok {
+			oauth.Extra = m
+		} else {
+			oauth.Extra = map[string]any{"extra": tk.Extra}
+		}
+	}
+	err = store.Database.OAuthSet(ctx.Context(), oauth)
 	if err != nil {
 		return protocol.ErrOAuthError.Wrap(err)
 	}

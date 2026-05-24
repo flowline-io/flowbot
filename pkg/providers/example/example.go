@@ -13,15 +13,14 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
-	ID                = "example"
-	EndpointKey       = "endpoint"
-	TokenKey          = "token"
-	WebhookSecretKey  = "webhook_secret"
+	ID               = "example"
+	EndpointKey      = "endpoint"
+	TokenKey         = "token"
+	WebhookSecretKey = "webhook_secret"
 )
 
 // Example wraps the jsonplaceholder.typicode.com API client for demonstration purposes.
@@ -159,16 +158,20 @@ func (e *Example) ListRawEvents(ctx context.Context, cursor string) ([]map[strin
 }
 
 // GetAuthorizeURL returns a constructed OAuth authorize URL for demonstration.
-func (e *Example) GetAuthorizeURL() string {
+func (e *Example) GetAuthorizeURL(state string) string {
 	endpoint := e.c.BaseURL()
-	return fmt.Sprintf("%s/authorize?client_id=example&response_type=code", endpoint)
+	redirectURI := providers.RedirectURI(ID, state)
+	return fmt.Sprintf("%s/authorize?client_id=example&response_type=code&redirect_uri=%s&state=%s", endpoint, redirectURI, state)
 }
 
 // GetAccessToken simulates an OAuth code exchange for demonstration.
-func (*Example) GetAccessToken(_ fiber.Ctx) (types.KV, error) {
-	return types.KV{
-		"access_token": "example-token",
-		"scope":        "example:read example:write",
+func (*Example) GetAccessToken(_ fiber.Ctx) (*providers.OAuthToken, error) {
+	return &providers.OAuthToken{
+		Name:        ID,
+		Type:        ID,
+		AccessToken: "example-token",
+		TokenType:   "bearer",
+		Scope:       "example:read example:write",
 	}, nil
 }
 

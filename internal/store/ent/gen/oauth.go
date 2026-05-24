@@ -30,6 +30,14 @@ type OAuth struct {
 	Token string `json:"token,omitempty"`
 	// Extra holds the value of the "extra" field.
 	Extra map[string]interface{} `json:"extra,omitempty"`
+	// RefreshToken holds the value of the "refresh_token" field.
+	RefreshToken string `json:"refresh_token,omitempty"`
+	// ExpiresAt holds the value of the "expires_at" field.
+	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	// TokenType holds the value of the "token_type" field.
+	TokenType string `json:"token_type,omitempty"`
+	// Scope holds the value of the "scope" field.
+	Scope string `json:"scope,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -46,9 +54,9 @@ func (*OAuth) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case oauth.FieldID:
 			values[i] = new(sql.NullInt64)
-		case oauth.FieldUID, oauth.FieldTopic, oauth.FieldName, oauth.FieldType, oauth.FieldToken:
+		case oauth.FieldUID, oauth.FieldTopic, oauth.FieldName, oauth.FieldType, oauth.FieldToken, oauth.FieldRefreshToken, oauth.FieldTokenType, oauth.FieldScope:
 			values[i] = new(sql.NullString)
-		case oauth.FieldCreatedAt, oauth.FieldUpdatedAt:
+		case oauth.FieldExpiresAt, oauth.FieldCreatedAt, oauth.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -108,6 +116,30 @@ func (_m *OAuth) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Extra); err != nil {
 					return fmt.Errorf("unmarshal field extra: %w", err)
 				}
+			}
+		case oauth.FieldRefreshToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field refresh_token", values[i])
+			} else if value.Valid {
+				_m.RefreshToken = value.String
+			}
+		case oauth.FieldExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
+			} else if value.Valid {
+				_m.ExpiresAt = value.Time
+			}
+		case oauth.FieldTokenType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field token_type", values[i])
+			} else if value.Valid {
+				_m.TokenType = value.String
+			}
+		case oauth.FieldScope:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field scope", values[i])
+			} else if value.Valid {
+				_m.Scope = value.String
 			}
 		case oauth.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -174,6 +206,18 @@ func (_m *OAuth) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("extra=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Extra))
+	builder.WriteString(", ")
+	builder.WriteString("refresh_token=")
+	builder.WriteString(_m.RefreshToken)
+	builder.WriteString(", ")
+	builder.WriteString("expires_at=")
+	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("token_type=")
+	builder.WriteString(_m.TokenType)
+	builder.WriteString(", ")
+	builder.WriteString("scope=")
+	builder.WriteString(_m.Scope)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
