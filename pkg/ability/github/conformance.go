@@ -14,6 +14,8 @@ import (
 type Config struct {
 	User            *ability.ForgeUser
 	UserErr         error
+	UserByLogin     *ability.ForgeUser
+	UserByLoginErr  error
 	Repo            *ability.ForgeRepo
 	RepoErr         error
 	Issues          []*ability.ForgeIssue

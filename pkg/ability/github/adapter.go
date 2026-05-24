@@ -16,6 +16,7 @@ var defaultCursorSecret = []byte("flowbot-ability-github-cursor-v1")
 // client defines the subset of provider.Github methods used by this adapter.
 type client interface {
 	GetAuthenticatedUser() (*provider.User, error)
+	GetUser(username string) (*provider.User, error)
 	GetRepository(owner, repo string) (*provider.Repository, error)
 	ListIssues(owner string, page, pageSize int, state string) ([]*provider.Issue, error)
 	GetDiff(owner, repo, commitID string) (*provider.CommitDiff, error)
@@ -59,6 +60,24 @@ func (a *Adapter) GetUser(ctx context.Context) (*ability.ForgeUser, error) {
 	user, err := a.client.GetAuthenticatedUser()
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "github get user", err)
+	}
+	return toForgeUser(user), nil
+}
+
+// GetUserByLogin returns a GitHub user's profile by login name from the GitHub API.
+func (a *Adapter) GetUserByLogin(ctx context.Context, login string) (*ability.ForgeUser, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "github get user by login canceled", err)
+	}
+	if login == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "login is required")
+	}
+	user, err := a.client.GetUser(login)
+	if err != nil {
+		return nil, types.WrapError(types.ErrProvider, "github get user by login", err)
+	}
+	if user == nil {
+		return nil, types.Errorf(types.ErrNotFound, "user %s not found", login)
 	}
 	return toForgeUser(user), nil
 }

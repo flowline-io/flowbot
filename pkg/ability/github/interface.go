@@ -27,6 +27,8 @@ type PageQuery struct {
 type Service interface {
 	// GetUser returns the authenticated user's profile.
 	GetUser(ctx context.Context) (*ability.ForgeUser, error)
+	// GetUserByLogin returns a GitHub user's profile by login name.
+	GetUserByLogin(ctx context.Context, login string) (*ability.ForgeUser, error)
 	// GetRepo returns a single repository by owner and name.
 	GetRepo(ctx context.Context, owner, repo string) (*ability.ForgeRepo, error)
 	// ListIssues returns a paginated list of issues for the given owner.

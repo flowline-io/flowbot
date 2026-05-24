@@ -18,6 +18,8 @@ type fakeClient struct {
 	user            *provider.User
 	userErr         error
 	repo            *provider.Repository
+	userByLogin     *provider.User
+	userByLoginErr  error
 	repoErr         error
 	issues          []*provider.Issue
 	issuesErr       error
@@ -36,6 +38,12 @@ func (f *fakeClient) GetAuthenticatedUser() (*provider.User, error) {
 		return nil, f.userErr
 	}
 	return f.user, nil
+}
+func (f *fakeClient) GetUser(_ string) (*provider.User, error) {
+	if f.userByLoginErr != nil {
+		return nil, f.userByLoginErr
+	}
+	return f.userByLogin, nil
 }
 func (f *fakeClient) GetRepository(_, _ string) (*provider.Repository, error) {
 	if f.repoErr != nil {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
+	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -27,11 +28,11 @@ type moduleHandler struct {
 }
 
 type configType struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool   `json:"enabled"`
+	Backend string `json:"backend"`
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
-	// Check if the handler is already initialized
 	if handler.initialized {
 		return errors.New("already initialized")
 	}
@@ -43,6 +44,16 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if !Config.Enabled {
 		flog.Info("module %s disabled", Name)
 		return nil
+	}
+
+	// Register the GitHub capability with the adapter.
+	backend := Config.Backend
+	if backend == "" {
+		backend = "github"
+	}
+	svc := abilitygithub.New()
+	if err := abilitygithub.RegisterService(backend, "", svc); err != nil {
+		return fmt.Errorf("register github ability: %w", err)
 	}
 
 	handler.initialized = true

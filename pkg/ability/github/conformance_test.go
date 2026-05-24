@@ -21,6 +21,18 @@ func (c *conformanceService) GetUser(ctx context.Context) (*ability.ForgeUser, e
 	}
 	return c.cfg.User, nil
 }
+func (c *conformanceService) GetUserByLogin(ctx context.Context, login string) (*ability.ForgeUser, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	if login == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "login is required")
+	}
+	if c.cfg.UserByLoginErr != nil {
+		return nil, types.WrapError(types.ErrProvider, "provider error", c.cfg.UserByLoginErr)
+	}
+	return c.cfg.UserByLogin, nil
+}
 
 func (c *conformanceService) GetRepo(ctx context.Context, owner, repo string) (*ability.ForgeRepo, error) {
 	if err := ctx.Err(); err != nil {

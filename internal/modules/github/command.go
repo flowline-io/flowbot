@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
-	"github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
@@ -46,43 +47,35 @@ var commandRules = []command.Rule{
 				flog.Error(err)
 				return nil
 			}
-			id, _ := providers.GetConfig(github.ID, github.ClientIdKey)
-			secret, _ := providers.GetConfig(github.ID, github.ClientSecretKey)
-			redirectURI := providers.RedirectURI(github.ID, flag)
-			provider := github.NewGithub(id.String(), secret.String(), redirectURI, "")
-			return types.LinkMsg{Title: "OAuth", Url: provider.GetAuthorizeURL()}
+			id, _ := providers.GetConfig("github", "id")
+
+			redirectURI := providers.RedirectURI("github", flag)
+			authorizeURL := fmt.Sprintf(
+				"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=repo",
+				id.String(), redirectURI,
+			)
+			return types.LinkMsg{Title: "OAuth", Url: authorizeURL}
 		},
 	},
 	{
 		Define: "github user",
 		Help:   `Get current user info`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-			// get token
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
-			if err != nil && !errors.Is(err, types.ErrNotFound) {
-				flog.Error(err)
-			}
-			if oauth.Token == "" {
-				return types.TextMsg{Text: "App is unauthorized"}
-			}
-
-			provider := github.NewGithub("", "", "", oauth.Token)
-
-			user, err := provider.GetAuthenticatedUser()
+			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUser, nil)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			if user == nil {
+			user, ok := res.Data.(*ability.ForgeUser)
+			if !ok || user == nil {
 				return types.TextMsg{Text: "user error"}
 			}
-
 			return types.InfoMsg{
 				Title: "User",
 				Model: types.KV{
-					"Login":     *user.Login,
-					"Followers": *user.Followers,
-					"Following": *user.Following,
-					"URL":       *user.HTMLURL,
+					"Login":  user.UserName,
+					"URL":    user.AvatarURL,
+					"UserID": user.ID,
+					"Email":  user.Email,
 				},
 			}
 		},
@@ -93,7 +86,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, github.ID)
+			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
 			if err != nil {
 				return nil
 			}
@@ -101,47 +94,11 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "oauth error"}
 			}
 
-			// get user
-			client := github.NewGithub("", "", "", oauth.Token)
-			user, err := client.GetAuthenticatedUser()
-			if err != nil {
-				return nil
-			}
-			if *user.Login == "" {
-				return nil
-			}
-
-			// get projects
-			projects, err := client.GetUserProjects(*user.Login)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			if len(projects) == 0 {
-				return nil
-			}
-
-			// get columns
-			columns, err := client.GetProjectColumns(*projects[0].ID)
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			if len(columns) == 0 {
-				return nil
-			}
-
-			// create card
-			card, err := client.CreateCard(*columns[0].ID, github.ProjectCard{Note: &text})
-			if err != nil {
-				flog.Error(err)
-				return nil
-			}
-			if *card.ID == 0 {
-				return nil
-			}
-
-			return types.TextMsg{Text: fmt.Sprintf("Created Project Card #%d", *card.ID)}
+			// TODO: migrate to ability layer when project management operations are available.
+			// The ability layer currently does not expose GitHub Projects (classic) operations.
+			// These require: GetAuthenticatedUser, GetUserProjects, GetProjectColumns, CreateCard.
+			_ = text
+			return types.TextMsg{Text: "project card creation requires ability layer project operations"}
 		},
 	},
 	{
@@ -150,49 +107,30 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			str, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, github.ID)
-			if err != nil {
-				return nil
-			}
-			if oauth.Token == "" {
-				return types.TextMsg{Text: "oauth error"}
-			}
-
-			client := github.NewGithub("", "", "", oauth.Token)
-
 			repoArr := strings.Split(str, "/")
 			if len(repoArr) != 2 {
 				return types.TextMsg{Text: "repo error"}
 			}
-			repo, err := client.GetRepository(repoArr[0], repoArr[1])
+
+			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetRepo, map[string]any{
+				"owner": repoArr[0],
+				"repo":  repoArr[1],
+			})
 			if err != nil {
-				flog.Error(err)
+				return types.TextMsg{Text: err.Error()}
+			}
+			repo, ok := res.Data.(*ability.ForgeRepo)
+			if !ok || repo == nil {
 				return types.TextMsg{Text: "repo error"}
 			}
 
 			return types.KVMsg{
-				"ID":               repo.ID,
-				"NodeID":           repo.NodeID,
-				"Name":             repo.Name,
-				"FullName":         repo.FullName,
-				"Description":      repo.Description,
-				"Homepage":         repo.Homepage,
-				"CreatedAt":        repo.CreatedAt,
-				"PushedAt":         repo.PushedAt,
-				"UpdatedAt":        repo.UpdatedAt,
-				"HTMLURL":          repo.HTMLURL,
-				"Language":         repo.Language,
-				"Fork":             repo.Fork,
-				"ForksCount":       repo.ForksCount,
-				"NetworkCount":     repo.NetworkCount,
-				"OpenIssuesCount":  repo.OpenIssuesCount,
-				"StargazersCount":  repo.StargazersCount,
-				"SubscribersCount": repo.SubscribersCount,
-				"WatchersCount":    repo.WatchersCount,
-				"Size":             repo.Size,
-				"Topics":           repo.Topics,
-				"Archived":         repo.Archived,
-				"Disabled":         repo.Disabled,
+				"ID":          repo.ID,
+				"Name":        repo.Name,
+				"FullName":    repo.FullName,
+				"Description": repo.Description,
+				"HTMLURL":     repo.HTMLURL,
+				"CloneURL":    repo.CloneURL,
 			}
 		},
 	},
@@ -202,24 +140,19 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			username, _ := tokens[1].Value.String()
 
-			oauth, err := store.Database.OAuthGet(ctx.Context(), ctx.AsUser, ctx.Topic, github.ID)
+			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUserByLogin, map[string]any{
+				"login": username,
+			})
 			if err != nil {
-				return nil
+				return types.TextMsg{Text: err.Error()}
 			}
-			if oauth.Token == "" {
-				return types.TextMsg{Text: "oauth error"}
-			}
-
-			client := github.NewGithub("", "", "", oauth.Token)
-
-			user, err := client.GetUser(username)
-			if err != nil {
-				flog.Error(err)
+			user, ok := res.Data.(*ability.ForgeUser)
+			if !ok || user == nil {
 				return types.TextMsg{Text: "user error"}
 			}
 
 			return types.InfoMsg{
-				Title: fmt.Sprintf("User %s", *user.Login),
+				Title: fmt.Sprintf("User %s", user.UserName),
 				Model: user,
 			}
 		},

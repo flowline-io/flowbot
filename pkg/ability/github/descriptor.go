@@ -20,6 +20,7 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
 			{Name: ability.OpGithubGetUser, Description: "Get authenticated user", Scopes: []string{auth.ScopeServiceForgeRead}},
+			{Name: ability.OpGithubGetUserByLogin, Description: "Get user by login", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpGithubGetRepo, Description: "Get a repository", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpGithubListIssues, Description: "List issues", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpGithubGetIssue, Description: "Get an issue", Scopes: []string{auth.ScopeServiceForgeRead}},
@@ -44,6 +45,7 @@ func RegisterService(backend, app string, svc Service) error {
 		invoker   ability.Invoker
 	}{
 		{operation: ability.OpGithubGetUser, invoker: invokeGetUser(svc)},
+		{operation: ability.OpGithubGetUserByLogin, invoker: invokeGetUserByLogin(svc)},
 		{operation: ability.OpGithubGetRepo, invoker: invokeGetRepo(svc)},
 		{operation: ability.OpGithubListIssues, invoker: invokeListIssues(svc)},
 		{operation: ability.OpGithubGetIssue, invoker: invokeGetIssue(svc)},
@@ -62,6 +64,19 @@ func RegisterService(backend, app string, svc Service) error {
 func invokeGetUser(svc Service) ability.Invoker {
 	return func(ctx context.Context, _ map[string]any) (*ability.InvokeResult, error) {
 		user, err := svc.GetUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &ability.InvokeResult{Data: user, Text: user.UserName}, nil
+	}
+}
+func invokeGetUserByLogin(svc Service) ability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
+		login, err := ability.RequiredString(params, "login")
+		if err != nil {
+			return nil, err
+		}
+		user, err := svc.GetUserByLogin(ctx, login)
 		if err != nil {
 			return nil, err
 		}

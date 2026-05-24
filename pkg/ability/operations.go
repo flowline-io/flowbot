@@ -59,6 +59,7 @@ var Operations = map[hub.CapabilityType]map[string]string{
 	},
 	hub.CapGithub: {
 		"GetUser":           "get_user",
+		"GetUserByLogin":    "get_user_by_login",
 		"GetRepo":           "get_repo",
 		"ListIssues":        "list_issues",
 		"GetIssue":          "get_issue",
@@ -134,6 +135,7 @@ const (
 // Github operations as package-level constants.
 const (
 	OpGithubGetUser           = "get_user"
+	OpGithubGetUserByLogin   = "get_user_by_login"
 	OpGithubGetRepo           = "get_repo"
 	OpGithubListIssues        = "list_issues"
 	OpGithubGetIssue          = "get_issue"
