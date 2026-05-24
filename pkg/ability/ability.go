@@ -101,6 +101,28 @@ type ForgeCommitDiff struct {
 	DiffContent   string   `json:"diff_content"`
 }
 
+// Notification represents a GitHub notification.
+type Notification struct {
+	ID         string    `json:"id"`
+	Reason     string    `json:"reason,omitzero"`
+	Unread     bool      `json:"unread"`
+	Subject    string    `json:"subject,omitzero"`
+	RepoName   string    `json:"repo_name,omitzero"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	LastReadAt time.Time `json:"last_read_at,omitzero"`
+}
+
+// Release represents a GitHub repository release.
+type Release struct {
+	ID          int64     `json:"id"`
+	TagName     string    `json:"tag_name"`
+	Name        string    `json:"name,omitzero"`
+	Body        string    `json:"body,omitzero"`
+	Draft       bool      `json:"draft"`
+	Prerelease  bool      `json:"prerelease"`
+	HTMLURL     string    `json:"html_url,omitzero"`
+	PublishedAt time.Time `json:"published_at,omitzero"`
+}
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

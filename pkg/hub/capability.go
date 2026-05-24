@@ -13,6 +13,7 @@ const (
 	CapNotify       CapabilityType = "notify"
 	CapExample      CapabilityType = "example"
 	CapForge        CapabilityType = "forge"
+	CapGithub       CapabilityType = "github"
 )
 
 type ParamDef struct {

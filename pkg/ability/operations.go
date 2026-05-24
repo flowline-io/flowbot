@@ -57,6 +57,16 @@ var Operations = map[hub.CapabilityType]map[string]string{
 		"GetCommitDiff":  "get_commit_diff",
 		"GetFileContent": "get_file_content",
 	},
+	hub.CapGithub: {
+		"GetUser":           "get_user",
+		"GetRepo":           "get_repo",
+		"ListIssues":        "list_issues",
+		"GetIssue":          "get_issue",
+		"GetCommitDiff":     "get_commit_diff",
+		"GetFileContent":    "get_file_content",
+		"ListNotifications": "list_notifications",
+		"ListReleases":      "list_releases",
+	},
 	hub.CapNotify: {
 		"Send":   "send",
 		"Digest": "digest",
@@ -121,6 +131,17 @@ const (
 	OpFinanceCreateTransaction = "create_transaction"
 )
 
+// Github operations as package-level constants.
+const (
+	OpGithubGetUser           = "get_user"
+	OpGithubGetRepo           = "get_repo"
+	OpGithubListIssues        = "list_issues"
+	OpGithubGetIssue          = "get_issue"
+	OpGithubGetCommitDiff     = "get_commit_diff"
+	OpGithubGetFileContent    = "get_file_content"
+	OpGithubListNotifications = "list_notifications"
+	OpGithubListReleases      = "list_releases"
+)
 // Forge operations as package-level constants.
 const (
 	OpForgeGetUser        = "get_user"

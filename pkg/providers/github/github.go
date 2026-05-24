@@ -2,6 +2,7 @@
 package github
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"resty.dev/v3"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -18,10 +21,13 @@ const (
 	ID              = "github"
 	ClientIdKey     = "id"
 	ClientSecretKey = "secret"
+	EndpointKey     = "endpoint"
+	TokenKey        = "token"
+	TokenPrefix     = "token"
 
 	JSONAccept = "application/vnd.github.v3+json"
-)
 
+)
 type Github struct {
 	c            *resty.Client
 	clientId     string
@@ -292,4 +298,139 @@ func (v *Github) GetReleases(owner, repo string, page, perPage int) (result []*R
 		return
 	}
 	return nil, fmt.Errorf("%d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+}
+
+// GetClient reads provider config and returns a new GitHub client.
+// It uses the endpoint and token keys from the provider configuration.
+func GetClient() *Github {
+	endpoint, _ := providers.GetConfig(ID, EndpointKey)
+	token, _ := providers.GetConfig(ID, TokenKey)
+	client := NewGithub("", "", "", token.String())
+	if ep := endpoint.String(); ep != "" {
+		client.c.SetBaseURL(ep)
+	}
+	return client
+}
+
+// ListIssues returns issues authored by the given owner using the GitHub search API.
+func (v *Github) ListIssues(owner string, page, pageSize int, state string) (result []*Issue, err error) {
+	type searchResult struct {
+		Items []*Issue `json:"items"`
+	}
+	q := fmt.Sprintf("author:%s type:issue", owner)
+	if state != "" {
+		q += " state:" + state
+	}
+	var sr searchResult
+	resp, err := v.c.R().
+		SetResult(&sr).
+		SetHeader("Accept", JSONAccept).
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		SetQueryParam("q", q).
+		SetQueryParam("page", strconv.Itoa(page)).
+		SetQueryParam("per_page", strconv.Itoa(pageSize)).
+		Get("/search/issues")
+	if err != nil {
+		return nil, fmt.Errorf("github list issues: %w", err)
+	}
+	if resp.StatusCode() == http.StatusOK {
+		return sr.Items, nil
+	}
+	return nil, fmt.Errorf("github list issues: %d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+}
+
+// GetIssue returns a single issue by owner, repo name, and issue number.
+func (v *Github) GetIssue(owner, repo string, number int) (*Issue, error) {
+	resp, err := v.c.R().
+		SetResult(&Issue{}).
+		SetHeader("Accept", JSONAccept).
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		Get(fmt.Sprintf("/repos/%s/%s/issues/%d", owner, repo, number))
+	if err != nil {
+		return nil, fmt.Errorf("github get issue: %w", err)
+	}
+	if resp.StatusCode() == http.StatusOK {
+		result, ok := resp.Result().(*Issue)
+		if !ok {
+			return nil, fmt.Errorf("github get issue: unexpected response type")
+		}
+		return result, nil
+	}
+	return nil, fmt.Errorf("github get issue: %d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+}
+
+// GetDiff returns the commit diff with metadata for the given owner, repo, and commit ID.
+func (v *Github) GetDiff(owner, repo, commitID string) (*CommitDiff, error) {
+	type githubCommitInfo struct {
+		Message string `json:"message"`
+	}
+	type githubCommitFile struct {
+		Filename string `json:"filename"`
+	}
+	type commitResp struct {
+		Commit githubCommitInfo   `json:"commit"`
+		Files  []githubCommitFile `json:"files"`
+	}
+	var cr commitResp
+	resp, err := v.c.R().
+		SetResult(&cr).
+		SetHeader("Accept", JSONAccept).
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		Get(fmt.Sprintf("/repos/%s/%s/commits/%s", owner, repo, commitID))
+	if err != nil {
+		return nil, fmt.Errorf("github get diff: %w", err)
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("github get diff commit: %d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+	}
+
+	diffResp, err := v.c.R().
+		SetHeader("Accept", "application/vnd.github.diff").
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		Get(fmt.Sprintf("/repos/%s/%s/commits/%s", owner, repo, commitID))
+	if err != nil {
+		return nil, fmt.Errorf("github get diff: %w", err)
+	}
+	if diffResp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("github get diff content: %d, %s (%s)", diffResp.StatusCode(), diffResp.Header().Get("X-Error-Code"), diffResp.Header().Get("X-Error"))
+	}
+
+	files := make([]string, 0, len(cr.Files))
+	for _, f := range cr.Files {
+		files = append(files, f.Filename)
+	}
+
+	return &CommitDiff{
+		CommitID:      commitID,
+		CommitMessage: cr.Commit.Message,
+		Files:         files,
+		DiffContent:   diffResp.String(),
+	}, nil
+}
+
+// GetFileContent returns file content at a specific commit with optional line range filtering.
+func (v *Github) GetFileContent(owner, repo, commitID, filePath string, lineStart, lineCount int) ([]byte, error) {
+	resp, err := v.c.R().
+		SetHeader("Accept", "application/vnd.github.raw").
+		SetHeader("Authorization", fmt.Sprintf("token %s", v.accessToken)).
+		SetQueryParam("ref", commitID).
+		Get(fmt.Sprintf("/repos/%s/%s/contents/%s", owner, repo, filePath))
+	if err != nil {
+		return nil, fmt.Errorf("github get file content: %w", err)
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("github get file content: %d, %s (%s)", resp.StatusCode(), resp.Header().Get("X-Error-Code"), resp.Header().Get("X-Error"))
+	}
+
+	content := []byte(resp.String())
+
+	if lineStart > 0 || lineCount > 0 {
+		lines := bytes.Split(content, []byte("\n"))
+		start := max(0, lineStart-lineCount)
+		end := min(len(lines), lineStart+lineCount)
+		content = bytes.Join(lines[start:end], []byte("\n"))
+		flog.Info("get %d lines of content for %s (size: %d bytes)", len(bytes.Split(content, []byte("\n"))), filePath, len(content))
+	}
+
+	return content, nil
 }

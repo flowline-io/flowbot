@@ -379,3 +379,11 @@ type ReleaseAsset struct {
 	Uploader           *User      `json:"uploader,omitempty"`
 	NodeID             *string    `json:"node_id,omitempty"`
 }
+
+// CommitDiff represents a GitHub commit diff with metadata.
+type CommitDiff struct {
+	CommitID      string   `json:"commit_id"`
+	CommitMessage string   `json:"commit_message"`
+	Files         []string `json:"files"`
+	DiffContent   string   `json:"diff_content"`
+}
