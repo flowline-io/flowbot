@@ -12,6 +12,7 @@ const (
 	CapFinance      = "finance"
 	CapInfra        = "infra"
 	CapShellHistory = "shell_history"
+	CapForge        = "forge"
 )
 
 // AuthType identifies the authentication mechanism used by an API endpoint.

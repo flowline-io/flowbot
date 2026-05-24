@@ -28,6 +28,7 @@ var knownCapabilities = map[string]string{
 	"finance":       CapFinance,
 	"infra":         CapInfra,
 	"shell_history": CapShellHistory,
+	"forge":         CapForge,
 }
 
 // ParseLabels extracts AppCapability entries from the labels map using the

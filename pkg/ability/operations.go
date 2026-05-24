@@ -49,6 +49,14 @@ var Operations = map[hub.CapabilityType]map[string]string{
 	hub.CapFinance: {
 		"CreateTransaction": "create_transaction",
 	},
+	hub.CapForge: {
+		"GetUser":        "get_user",
+		"GetRepo":        "get_repo",
+		"ListIssues":     "list_issues",
+		"GetIssue":       "get_issue",
+		"GetCommitDiff":  "get_commit_diff",
+		"GetFileContent": "get_file_content",
+	},
 	hub.CapNotify: {
 		"Send":   "send",
 		"Digest": "digest",
@@ -111,6 +119,16 @@ const (
 // Finance operations as package-level constants.
 const (
 	OpFinanceCreateTransaction = "create_transaction"
+)
+
+// Forge operations as package-level constants.
+const (
+	OpForgeGetUser        = "get_user"
+	OpForgeGetRepo        = "get_repo"
+	OpForgeListIssues     = "list_issues"
+	OpForgeGetIssue       = "get_issue"
+	OpForgeGetCommitDiff  = "get_commit_diff"
+	OpForgeGetFileContent = "get_file_content"
 )
 
 // Notify operations as package-level constants.

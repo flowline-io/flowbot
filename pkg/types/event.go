@@ -54,6 +54,10 @@ const (
 
 	EventInfraHostDown = "infra.host.down"
 	EventInfraHostUp   = "infra.host.up"
+
+	EventForgeIssueOpened = "forge.issue.opened"
+	EventForgeIssueClosed = "forge.issue.closed"
+	EventForgePush        = "forge.push"
 )
 
 // DataEvent is the durable business event contract emitted by ability write operations.

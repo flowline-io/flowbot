@@ -12,6 +12,7 @@ const (
 	CapShellHistory CapabilityType = "shell_history"
 	CapNotify       CapabilityType = "notify"
 	CapExample      CapabilityType = "example"
+	CapForge        CapabilityType = "forge"
 )
 
 type ParamDef struct {

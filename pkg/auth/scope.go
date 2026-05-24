@@ -31,6 +31,8 @@ const (
 	ScopeServiceShellRead     = "service:shell-history:read"
 	ScopeServiceExampleRead   = "service:example:read"
 	ScopeServiceExampleWrite  = "service:example:write"
+	ScopeServiceForgeRead     = "service:forge:read"
+	ScopeServiceForgeWrite    = "service:forge:write"
 	ScopePipelineRead         = "pipeline:read"
 	ScopePipelineRun          = "pipeline:run"
 	ScopeWorkflowRun          = "workflow:run"
@@ -62,6 +64,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceShellRead, Description: "read shell history"},
 		{Value: ScopeServiceExampleRead, Description: "read example"},
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
+		{Value: ScopeServiceForgeRead, Description: "read forge"},
+		{Value: ScopeServiceForgeWrite, Description: "write forge"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},
 		{Value: ScopePipelineRun, Description: "run pipelines"},
 		{Value: ScopeWorkflowRun, Description: "run workflows"},
