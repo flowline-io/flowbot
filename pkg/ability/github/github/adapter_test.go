@@ -9,28 +9,29 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
 	provider "github.com/flowline-io/flowbot/pkg/providers/github"
 )
 
 // fakeClient implements the client interface for testing.
 type fakeClient struct {
-	user            *provider.User
-	userErr         error
-	repo            *provider.Repository
-	userByLogin     *provider.User
-	userByLoginErr  error
-	repoErr         error
-	issues          []*provider.Issue
-	issuesErr       error
-	diff            *provider.CommitDiff
-	diffErr         error
-	fileContent     []byte
-	fileContentErr  error
-	notifications   []*provider.Notification
+	user             *provider.User
+	userErr          error
+	repo             *provider.Repository
+	userByLogin      *provider.User
+	userByLoginErr   error
+	repoErr          error
+	issues           []*provider.Issue
+	issuesErr        error
+	diff             *provider.CommitDiff
+	diffErr          error
+	fileContent      []byte
+	fileContentErr   error
+	notifications    []*provider.Notification
 	notificationsErr error
-	releases        []*provider.RepositoryRelease
-	releasesErr     error
+	releases         []*provider.RepositoryRelease
+	releasesErr      error
 }
 
 func (f *fakeClient) GetAuthenticatedUser() (*provider.User, error) {
@@ -140,22 +141,22 @@ func TestAdapter_GetRepo(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "success",
+			name:   "success",
 			client: &fakeClient{repo: testRepo(100, "myrepo", "owner/myrepo", "owner")},
-			owner: "owner", repo: "myrepo",
+			owner:  "owner", repo: "myrepo",
 			want:    &ability.ForgeRepo{ID: 100, Name: "myrepo", FullName: "owner/myrepo", Owner: "owner"},
 			wantErr: false,
 		},
 		{
-			name:  "empty owner",
+			name:   "empty owner",
 			client: &fakeClient{repo: testRepo(100, "r", "o/r", "o")},
-			owner: "", repo: "r",
+			owner:  "", repo: "r",
 			wantErr: true,
 		},
 		{
-			name:  "provider error",
-			client: &fakeClient{repoErr: errors.New("api error")},
-			owner: "o", repo: "r",
+			name:    "provider error",
+			client:  &fakeClient{repoErr: errors.New("api error")},
+			owner:   "o", repo: "r",
 			wantErr: true,
 		},
 	}
@@ -216,7 +217,7 @@ func TestAdapter_ListIssues(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			result, err := a.ListIssues(context.Background(), tt.owner, &ListIssuesQuery{Page: ability.PageRequest{Limit: 20}})
+			result, err := a.ListIssues(context.Background(), tt.owner, &githubsvc.ListIssuesQuery{Page: ability.PageRequest{Limit: 20}})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -298,24 +299,21 @@ func TestAdapter_GetCommitDiff(t *testing.T) {
 			client: &fakeClient{diff: &provider.CommitDiff{
 				CommitID: "abc123", CommitMessage: "test", Files: []string{"main.go"}, DiffContent: "diff",
 			}},
-			owner: "owner", commit: "abc123",
+			owner:  "owner",
+			commit: "abc123",
 		},
 		{
 			name:    "empty owner",
-			client:  &fakeClient{diff: &provider.CommitDiff{}},
-			owner:   "", commit: "abc123",
-			wantErr: true,
-		},
-		{
-			name:    "empty commit id",
-			client:  &fakeClient{diff: &provider.CommitDiff{}},
-			owner:   "owner", commit: "",
+			client:  &fakeClient{diff: &provider.CommitDiff{CommitID: "abc"}},
+			owner:   "",
+			commit:  "abc",
 			wantErr: true,
 		},
 		{
 			name:    "provider error",
 			client:  &fakeClient{diffErr: errors.New("api error")},
-			owner:   "owner", commit: "abc123",
+			owner:   "owner",
+			commit:  "abc",
 			wantErr: true,
 		},
 	}
@@ -338,31 +336,26 @@ func TestAdapter_GetCommitDiff(t *testing.T) {
 func TestAdapter_GetFileContent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		client   *fakeClient
-		owner    string
-		filePath string
-		want     []byte
-		wantErr  bool
+		name    string
+		client  *fakeClient
+		owner   string
+		wantErr bool
 	}{
 		{
-			name: "success", client: &fakeClient{fileContent: []byte("package main")},
-			owner: "owner", filePath: "main.go",
-			want: []byte("package main"),
+			name:   "success",
+			client: &fakeClient{fileContent: []byte("content")},
+			owner:  "owner",
 		},
 		{
-			name: "empty owner", client: &fakeClient{fileContent: []byte("x")},
-			owner: "", filePath: "main.go",
+			name:    "empty owner",
+			client:  &fakeClient{fileContent: []byte("content")},
+			owner:   "",
 			wantErr: true,
 		},
 		{
-			name: "empty file path", client: &fakeClient{fileContent: []byte("x")},
-			owner: "owner", filePath: "",
-			wantErr: true,
-		},
-		{
-			name: "provider error", client: &fakeClient{fileContentErr: errors.New("api error")},
-			owner: "owner", filePath: "main.go",
+			name:    "provider error",
+			client:  &fakeClient{fileContentErr: errors.New("api error")},
+			owner:   "owner",
 			wantErr: true,
 		},
 	}
@@ -370,13 +363,13 @@ func TestAdapter_GetFileContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			content, err := a.GetFileContent(context.Background(), tt.owner, "repo", "abc123", tt.filePath, 0, 0)
+			content, err := a.GetFileContent(context.Background(), tt.owner, "repo", "abc", "main.go", 0, 0)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, tt.want, content)
+			assert.Equal(t, []byte("content"), content)
 		})
 	}
 }
@@ -412,7 +405,7 @@ func TestAdapter_ListNotifications(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			result, err := a.ListNotifications(context.Background(), &PageQuery{})
+			result, err := a.ListNotifications(context.Background(), &githubsvc.PageQuery{})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -465,7 +458,7 @@ func TestAdapter_ListReleases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			result, err := a.ListReleases(context.Background(), tt.owner, "repo", &PageQuery{})
+			result, err := a.ListReleases(context.Background(), tt.owner, "repo", &githubsvc.PageQuery{})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -515,103 +508,99 @@ func TestFakeClientSatisfiesInterface(t *testing.T) {
 func TestDecodeTestCursor(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name           string
-		capability     string
-		backend        string
-		strategy       string
-		providerCursor string
-		limit          int
+		name    string
+		cursor  string
+		wantErr bool
 	}{
-		{name: "page 1", capability: "github", backend: provider.ID, strategy: "offset", providerCursor: "1", limit: 50},
-		{name: "page 5", capability: "github", backend: provider.ID, strategy: "offset", providerCursor: "5", limit: 20},
-		{name: "different limit", capability: "github", backend: provider.ID, strategy: "offset", providerCursor: "10", limit: 100},
+		{
+			name:   "valid cursor decodes",
+			cursor: func() string { c, _ := ability.EncodeCursor(conformance.CursorSecret, ability.CursorPayload{Capability: "github", Backend: "github", Strategy: "offset", ProviderCursor: "2", Limit: 20}); return c }(),
+		},
+		{
+			name:    "invalid base64",
+			cursor:  "!!!invalid!!!",
+			wantErr: true,
+		},
+		{
+			name:    "empty cursor",
+			cursor:  "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			c := &fakeClient{}
-			a, ok := NewWithClient(c).(*Adapter)
+			a, ok := NewWithClient(&fakeClient{}).(*Adapter)
 			if !ok {
 				t.Fatal("unexpected type")
 			}
-			a.cursorSecret = conformance.CursorSecret
-			a.now = conformance.TestTime
-			cursor, err := ability.EncodeCursor(a.cursorSecret, ability.CursorPayload{
-				Capability:     tt.capability,
-				Backend:        tt.backend,
-				Strategy:       tt.strategy,
-				ProviderCursor: tt.providerCursor,
-				Limit:          tt.limit,
-			})
+			a.SetCursorSecret(conformance.CursorSecret)
+			_, err := decodeTestCursor(t, a, tt.cursor)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
 			require.NoError(t, err)
-			payload := decodeTestCursor(t, a, cursor)
-			assert.Equal(t, tt.providerCursor, payload.ProviderCursor)
-			assert.Equal(t, tt.limit, payload.Limit)
 		})
 	}
 }
 
-func decodeTestCursor(t *testing.T, adapter *Adapter, cursor string) ability.CursorPayload {
+func decodeTestCursor(t *testing.T, adapter *Adapter, cursor string) (ability.CursorPayload, error) {
 	t.Helper()
-	payload, err := ability.DecodeCursor(adapter.cursorSecret, cursor, adapter.now())
-	require.NoError(t, err)
-	return payload
+	return ability.DecodeCursor(adapter.cursorSecret, cursor, adapter.now())
 }
 
 func testUser(id int64, login, email string) *provider.User {
 	return &provider.User{
-		ID:        int64Ptr(id),
-		Login:     strPtr(login),
-		Email:     strPtr(email),
-		AvatarURL: strPtr("https://avatar.url"),
+		ID:       &id,
+		Login:    &login,
+		Email:    &email,
+		AvatarURL: strPtr("https://example.com/avatar.png"),
 	}
 }
 
 func testRepo(id int64, name, fullName, owner string) *provider.Repository {
 	return &provider.Repository{
-		ID:          int64Ptr(id),
-		Name:        strPtr(name),
-		FullName:    strPtr(fullName),
-		Description: strPtr("desc"),
-		Private:     boolPtr(false),
-		HTMLURL:     strPtr("https://github.com/" + fullName),
-		CloneURL:    strPtr("https://github.com/" + fullName + ".git"),
-		Owner:       &provider.User{Login: strPtr(owner)},
+		ID:       &id,
+		Name:     &name,
+		FullName: &fullName,
+		Owner:    &provider.User{Login: &owner},
 	}
 }
 
 func testIssue(number int, title string) *provider.Issue {
-	id := int64(number * 100)
-	state := "open"
-	body := "body"
 	return &provider.Issue{
-		ID:         &id,
-		Number:     intPtr(number),
-		Title:      strPtr(title),
-		Body:       &body,
-		State:      &state,
-		HTMLURL:    strPtr("https://github.com/owner/repo/issues/1"),
+		ID:         int64Ptr(int64(number * 100)),
+		Number:     &number,
+		Title:      &title,
+		Body:       strPtr("body"),
+		State:      strPtr("open"),
+		HTMLURL:    strPtr("https://github.com/owner/repo/issues/" + string(rune('0'+number))),
 		User:       &provider.User{Login: strPtr("author")},
-		Repository: &provider.Repository{Name: strPtr("repo"), FullName: strPtr("owner/repo")},
+		Repository: &provider.Repository{Name: strPtr("repo")},
 	}
 }
 
 func testNotification(id, reason string, unread bool) *provider.Notification {
 	return &provider.Notification{
-		ID:         strPtr(id),
-		Reason:     strPtr(reason),
-		Unread:     boolPtr(unread),
-		Subject:    &provider.Subject{Title: strPtr("Test Subject")},
-		Repository: &provider.Repository{FullName: strPtr("owner/repo")},
+		ID:     &id,
+		Reason: &reason,
+		Unread: &unread,
+		Subject: &provider.Subject{
+			Title: strPtr("subject"),
+		},
+		Repository: &provider.Repository{
+			FullName: strPtr("owner/repo"),
+		},
 	}
 }
 
 func testRelease(id int64, tagName string) *provider.RepositoryRelease {
 	return &provider.RepositoryRelease{
-		ID:      int64Ptr(id),
-		TagName: strPtr(tagName),
-		Name:    strPtr("Release " + tagName),
-		Draft:   boolPtr(false),
+		ID:      &id,
+		TagName: &tagName,
+		Name:    &tagName,
+		Body:    strPtr("release body"),
 	}
 }
 

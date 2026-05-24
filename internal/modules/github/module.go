@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/bytedance/sonic"
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
+	"github.com/bytedance/sonic"
+	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -51,7 +52,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if backend == "" {
 		backend = "github"
 	}
-	svc := abilitygithub.New()
+	svc := githubadapter.New()
 	if err := abilitygithub.RegisterService(backend, "", svc); err != nil {
 		return fmt.Errorf("register github ability: %w", err)
 	}

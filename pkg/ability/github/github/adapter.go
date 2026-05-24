@@ -1,4 +1,4 @@
-// Package github implements the GitHub capability.
+// Package github implements the GitHub adapter for the github capability.
 package github
 
 import (
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
+	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	provider "github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -25,7 +26,7 @@ type client interface {
 	GetReleases(owner, repo string, page, perPage int) ([]*provider.RepositoryRelease, error)
 }
 
-// Adapter implements Service using the GitHub provider client.
+// Adapter implements githubsvc.Service using the GitHub provider client.
 type Adapter struct {
 	client       client
 	cursorSecret []byte
@@ -33,13 +34,13 @@ type Adapter struct {
 }
 
 // New creates an Adapter using the default provider client.
-func New() Service {
+func New() githubsvc.Service {
 	client := provider.GetClient()
 	return NewWithClient(client)
 }
 
 // NewWithClient creates an Adapter with a specific client, useful for testing.
-func NewWithClient(c client) Service {
+func NewWithClient(c client) githubsvc.Service {
 	return &Adapter{
 		client:       c,
 		cursorSecret: defaultCursorSecret,
@@ -104,7 +105,7 @@ func (a *Adapter) GetRepo(ctx context.Context, owner, repo string) (*ability.For
 }
 
 // ListIssues returns a paginated list of issues for the given owner from the GitHub API.
-func (a *Adapter) ListIssues(ctx context.Context, owner string, q *ListIssuesQuery) (*ability.ListResult[ability.ForgeIssue], error) {
+func (a *Adapter) ListIssues(ctx context.Context, owner string, q *githubsvc.ListIssuesQuery) (*ability.ListResult[ability.ForgeIssue], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "github list issues canceled", err)
 	}
@@ -112,7 +113,7 @@ func (a *Adapter) ListIssues(ctx context.Context, owner string, q *ListIssuesQue
 		return nil, types.Errorf(types.ErrInvalidArgument, "owner is required")
 	}
 	if q == nil {
-		q = &ListIssuesQuery{}
+		q = &githubsvc.ListIssuesQuery{}
 	}
 	limit := normalizedLimit(q.Page.Limit)
 	page := 1
@@ -240,12 +241,12 @@ func (a *Adapter) GetFileContent(ctx context.Context, owner, repo, commitID, fil
 }
 
 // ListNotifications returns the authenticated user's notifications from the GitHub API.
-func (a *Adapter) ListNotifications(ctx context.Context, q *PageQuery) (*ability.ListResult[ability.Notification], error) {
+func (a *Adapter) ListNotifications(ctx context.Context, q *githubsvc.PageQuery) (*ability.ListResult[ability.Notification], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "github list notifications canceled", err)
 	}
 	if q == nil {
-		q = &PageQuery{}
+		q = &githubsvc.PageQuery{}
 	}
 	notifications, err := a.client.GetNotifications()
 	if err != nil {
@@ -262,7 +263,7 @@ func (a *Adapter) ListNotifications(ctx context.Context, q *PageQuery) (*ability
 }
 
 // ListReleases returns releases for a repository from the GitHub API.
-func (a *Adapter) ListReleases(ctx context.Context, owner, repo string, q *PageQuery) (*ability.ListResult[ability.Release], error) {
+func (a *Adapter) ListReleases(ctx context.Context, owner, repo string, q *githubsvc.PageQuery) (*ability.ListResult[ability.Release], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "github list releases canceled", err)
 	}
@@ -273,7 +274,7 @@ func (a *Adapter) ListReleases(ctx context.Context, owner, repo string, q *PageQ
 		return nil, types.Errorf(types.ErrInvalidArgument, "repo is required")
 	}
 	if q == nil {
-		q = &PageQuery{}
+		q = &githubsvc.PageQuery{}
 	}
 	limit := normalizedLimit(q.Page.Limit)
 	page := 1
@@ -440,3 +441,6 @@ func derefBool(b *bool) bool {
 	}
 	return *b
 }
+
+// Compile-time interface check.
+var _ githubsvc.Service = (*Adapter)(nil)
