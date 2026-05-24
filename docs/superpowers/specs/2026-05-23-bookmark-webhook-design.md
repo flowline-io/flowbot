@@ -88,47 +88,106 @@ EventBookmarkDeleted = "bookmark.deleted"
 
 ## WebhookConverter Implementation
 
-### Webhook struct
-
-Uses lazy token evaluation via a `getToken` closure, following the `pkg/ability/example/example/webhook.go` pattern. The token is read from provider config at verification time, not at construction time.
+### File skeleton (webhook.go)
 
 ```go
+package karakeep
+
+import (
+    "strings"
+
+    "github.com/bytedance/sonic"
+
+    "github.com/flowline-io/flowbot/pkg/ability"
+    provider "github.com/flowline-io/flowbot/pkg/providers/karakeep"
+    "github.com/flowline-io/flowbot/pkg/types"
+)
+
+// Webhook implements ability.WebhookConverter for Karakeep.
+// It validates Bearer token auth and converts Karakeep webhook payloads.
 type Webhook struct {
     getToken func() string
 }
 
+// NewWebhook creates a Webhook that reads the Bearer token from provider config
+// lazily at verification time (following the example webhook pattern).
 func NewWebhook() *Webhook {
     return &Webhook{
-        getToken: karakeep.GetWebhookToken,
+        getToken: provider.GetWebhookToken,
     }
 }
 
-// Compile-time interface check
+// Compile-time interface check.
 var _ ability.WebhookConverter = (*Webhook)(nil)
 ```
 
 ### WebhookPath
 
-Returns `"karakeep/events"` — the URL path segment under `/webhook/provider/`.
+Returns `"karakeep/events"` — the URL path segment under `/webhook/provider/`. The full URL is `/webhook/provider/karakeep/events`.
+
+```go
+func (*Webhook) WebhookPath() string {
+    return "karakeep/events"
+}
+```
 
 ### VerifySignature
 
 Bearer token validation against the configured `webhook_token`:
 
-1. Read the configured token via `w.getToken()`
-2. If `webhook_token` config is empty → `types.Errorf(types.ErrUnauthorized, "webhook token not configured")` (fail closed, matching the example pattern)
-3. Extract `Authorization` header
-4. Validate `Bearer ` prefix
-5. Compare token value to configured `webhook_token`
-6. Mismatch → `types.Errorf(types.ErrUnauthorized, "...")`
+```go
+func (w *Webhook) VerifySignature(headers map[string]string, _ []byte) error {
+    token := w.getToken()
+    if token == "" {
+        return types.Errorf(types.ErrUnauthorized, "webhook token not configured")
+    }
+    auth, ok := headers["Authorization"]
+    if !ok {
+        return types.Errorf(types.ErrUnauthorized, "missing Authorization header")
+    }
+    const prefix = "Bearer "
+    if !strings.HasPrefix(auth, prefix) {
+        return types.Errorf(types.ErrUnauthorized, "invalid Authorization header format")
+    }
+    provided := auth[len(prefix):]
+    if provided != token {
+        return types.Errorf(types.ErrUnauthorized, "invalid Bearer token")
+    }
+    return nil
+}
+```
+
+Note: the `body` parameter is accepted to satisfy the interface but unused (Bearer auth doesn't sign the body).
 
 ### Convert
 
-1. Parse body as `provider.WebhookPayload` using `sonic.Unmarshal`
-2. Invalid JSON → `types.Errorf(types.ErrInvalidArgument, "...")`
-3. Derive `Operation` from `payload.EventType` (strip the `"bookmark."` prefix to get `"created"`, `"updated"`, `"archived"`, or `"deleted"`)
-4. Build single `DataEvent` populating all fields per the DataEvent output table above
-5. Return `[]types.DataEvent{ev}`
+Follows the example's Convert pattern. Signal: `Convert(body []byte, _ map[string]string) ([]types.DataEvent, error)`. The `headers` parameter is accepted to satisfy the interface but unused (Bearer auth is handled in VerifySignature).
+
+```go
+func (*Webhook) Convert(body []byte, _ map[string]string) ([]types.DataEvent, error) {
+    var payload provider.WebhookPayload
+    if err := sonic.Unmarshal(body, &payload); err != nil {
+        return nil, types.Errorf(types.ErrInvalidArgument, "invalid webhook payload: %v", err)
+    }
+
+    op := strings.TrimPrefix(payload.EventType, "bookmark.")
+
+    ev := types.DataEvent{
+        EventID:        types.Id(),
+        EventType:      payload.EventType,
+        Source:         "karakeep_webhook",
+        Capability:     "bookmark",
+        Operation:      op,
+        EntityID:       payload.Data.Id,
+        IdempotencyKey: payload.Data.Id,
+        Backend:        "karakeep",
+        Data:           types.KV{"bookmark": toBookmark(payload.Data), "event_type": payload.EventType},
+    }
+    return []types.DataEvent{ev}, nil
+}
+```
+
+The `toBookmark` helper is defined in `pkg/ability/bookmark/karakeep/adapter.go` — no import needed (same package).
 
 ## Global EventSourceManager Accessor
 
@@ -159,38 +218,66 @@ func GetEventSourceManager() *EventSourceManager {
 
 ## Registration Flow
 
-In `internal/modules/bookmark/module.go` `Bootstrap()`:
+The bookmark module handler must add a `Bootstrap()` method. `module.Base` provides a default no-op; override it:
 
-1. Check `Enabled` flag (existing logic from `Init()`)
-2. Create `karakeep.NewWebhook()` (token is read lazily at verification time — no config call needed at registration)
-3. Get the manager via `ability.GetEventSourceManager()`
-4. If nil → return error (manager must be set by `initPipeline` before `Bootstrap()`)
-5. Call `mgr.RegisterWebhook(webhook)`
+```go
+func (moduleHandler) Bootstrap() error {
+    if !Config.Enabled {
+        return nil
+    }
+    mgr := ability.GetEventSourceManager()
+    if mgr == nil {
+        return fmt.Errorf("bookmark: event source manager not initialized")
+    }
+    mgr.RegisterWebhook(karakeep.NewWebhook())
+    flog.Info("bookmark: registered karakeep webhook on /webhook/provider/karakeep/events")
+    return nil
+}
+```
+
+The `karakeep` import refers to `"github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"`. The `ability` import refers to `"github.com/flowline-io/flowbot/pkg/ability"`.
 
 ## Testing
 
 ### Unit tests (webhook_test.go)
 
-Table-driven tests following the `pkg/ability/example/webhook_test.go` pattern:
+Table-driven tests following the `pkg/ability/example/example/webhook_test.go` pattern. File: `pkg/ability/bookmark/karakeep/webhook_test.go`, package `karakeep`.
 
-- **TestWebhookPath**: 3+ cases verifying path is always `"karakeep/events"`
+**Test injection pattern.** The `getToken` closure is injected directly in the struct literal, matching the example's `getSecret` injection:
+
+```go
+w := &Webhook{getToken: func() string { return tt.token }}
+```
+
+This avoids calling `karakeep.GetWebhookToken()` (which reads config from disk) in tests.
+
+**Test cases:**
+
+- **TestWebhookPath**: 3+ cases verifying path is always `"karakeep/events"` (structure matches example: "returns path", "consistent path", "always the same")
 - **TestVerifySignature**: 5+ cases:
-  - valid Bearer token → no error
-  - missing Authorization header → error
-  - wrong token → error
-  - missing Bearer prefix → error
-  - empty configured token → error (fail closed)
+  | name | token | Authorization header | wantErr |
+  |------|-------|---------------------|---------|
+  | valid Bearer token | `"secret"` | `"Bearer secret"` | false |
+  | missing Authorization header | `"secret"` | _(absent)_ | true |
+  | wrong token | `"secret"` | `"Bearer wrong"` | true |
+  | missing Bearer prefix | `"secret"` | `"secret"` | true |
+  | empty configured token returns error | `""` | _(any)_ | true |
 - **TestConvert**: 5+ cases:
-  - valid payload → correct DataEvent (verify all fields: EventID, EventType, Source, Capability, Operation, EntityID, IdempotencyKey, Backend, Data)
-  - invalid JSON → error
-  - empty body → error
-  - payload with known event types produces correct Operation derivation
-  - payload with unknown event type produces empty Operation
+  | name | body | wantErr | asserts |
+  |------|------|---------|---------|
+  | valid payload | `{"event_type":"bookmark.created","data":{"id":"b-1",...}}` | false | all DataEvent fields per output table |
+  | invalid JSON | `{invalid` | true | — |
+  | empty body | `{}` | false | event has empty fields (matching example: no error, zero-value fields) |
+  | partial payload | `{"event_type":"bookmark.updated"}` | false | Operation derived, other fields zero-valued |
+  | unknown event type | `{"event_type":"bookmark.unknown","data":{"id":"b-1"}}` | false | Operation = `"unknown"` (TrimPrefix pass-through) |
+- **TestConvert_EventType**: 4 cases verifying Operation derivation:
+  | event_type | Operation |
+  |------------|-----------|
+  | `bookmark.created` | `"created"` |
+  | `bookmark.updated` | `"updated"` |
+  | `bookmark.archived` | `"archived"` |
+  | `bookmark.deleted` | `"deleted"` |
 - **TestInterfaceCompliance**: compile-time `var _ ability.WebhookConverter = (*Webhook)(nil)` check
-
-### Event type mapping (TestConvert_EventType)
-
-4 cases: `bookmark.created` → Operation `"created"`, `bookmark.updated` → `"updated"`, `bookmark.archived` → `"archived"`, `bookmark.deleted` → `"deleted"`.
 
 ## Configuration
 
