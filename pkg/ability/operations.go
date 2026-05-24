@@ -72,6 +72,17 @@ var Operations = map[hub.CapabilityType]map[string]string{
 		"Send":   "send",
 		"Digest": "digest",
 	},
+	hub.CapNote: {
+		"List":       "list",
+		"Get":        "get",
+		"Create":     "create",
+		"Update":     "update",
+		"Delete":     "delete",
+		"GetContent": "get_content",
+		"SetContent": "set_content",
+		"Search":     "search",
+		"GetAppInfo": "get_app_info",
+	},
 }
 
 // Op returns the string operation name for the given capability and operation key.
@@ -158,6 +169,18 @@ const (
 const (
 	OpNotifySend   = "send"
 	OpNotifyDigest = "digest"
+)
+// Note operations as package-level constants.
+const (
+	OpNoteList       = "list"
+	OpNoteGet        = "get"
+	OpNoteCreate     = "create"
+	OpNoteUpdate     = "update"
+	OpNoteDelete     = "delete"
+	OpNoteGetContent = "get_content"
+	OpNoteSetContent = "set_content"
+	OpNoteSearch     = "search"
+	OpNoteGetAppInfo = "get_app_info"
 )
 
 var mutationVerbs = []string{

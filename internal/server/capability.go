@@ -6,6 +6,8 @@ import (
 	bookmarkkarakeep "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
 	akanban "github.com/flowline-io/flowbot/pkg/ability/kanban"
 	kanbankanboard "github.com/flowline-io/flowbot/pkg/ability/kanban/kanboard"
+	anote "github.com/flowline-io/flowbot/pkg/ability/note"
+	notetrilium "github.com/flowline-io/flowbot/pkg/ability/note/trilium"
 	areader "github.com/flowline-io/flowbot/pkg/ability/reader"
 	readerminiflux "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -19,6 +21,9 @@ func initCapabilityHub() error {
 		return err
 	}
 	if err := akanban.RegisterService("kanboard", "kanboard", kanbankanboard.New()); err != nil {
+		return err
+	}
+	if err := anote.RegisterService("trilium", "trilium", notetrilium.New()); err != nil {
 		return err
 	}
 	hub.LogDiscovered()

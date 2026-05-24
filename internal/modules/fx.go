@@ -5,6 +5,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/modules/bookmark"
+	"github.com/flowline-io/flowbot/internal/modules/note"
 	"github.com/flowline-io/flowbot/internal/modules/example"
 	"github.com/flowline-io/flowbot/internal/modules/gitea"
 	"github.com/flowline-io/flowbot/internal/modules/github"
@@ -20,6 +21,7 @@ import (
 var Modules = fx.Options(
 	fx.Invoke(
 		bookmark.Register,
+		note.Register,
 		example.Register,
 		gitea.Register,
 		github.Register,

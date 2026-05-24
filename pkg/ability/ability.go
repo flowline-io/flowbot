@@ -123,6 +123,20 @@ type Release struct {
 	HTMLURL     string    `json:"html_url,omitzero"`
 	PublishedAt time.Time `json:"published_at,omitzero"`
 }
+// Note represents a note from a note-taking system such as Trilium.
+type Note struct {
+	ID              string   `json:"id"`
+	Title           string   `json:"title"`
+	Type            string   `json:"type,omitzero"`
+	Content         string   `json:"content,omitzero"`
+	ParentNoteIDs   []string `json:"parent_note_ids,omitzero"`
+	ChildNoteIDs    []string `json:"child_note_ids,omitzero"`
+	IsProtected     bool     `json:"is_protected"`
+	DateCreated     string   `json:"date_created,omitzero"`
+	DateModified    string   `json:"date_modified,omitzero"`
+	UtcDateCreated  string   `json:"utc_date_created,omitzero"`
+	UtcDateModified string   `json:"utc_date_modified,omitzero"`
+}
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`
