@@ -74,7 +74,7 @@ go tool task ent              # Generate ent code from database
 
 ## Configuration
 
-- Runtime: `flowbot.yaml` (copy from `docs/config/config.yaml`)
+- Runtime: `flowbot.yaml` (copy from `docs/reference/config.yaml`)
 - Build: `taskfile.yaml`
 - Lint: `revive.toml`
 - CI: `.github/workflows/build.yml`

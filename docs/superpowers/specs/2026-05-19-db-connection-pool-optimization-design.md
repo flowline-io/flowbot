@@ -278,7 +278,7 @@ store_config:
       conn_max_lifetime: 60
 ```
 
-### docs/config/config.yaml and docs/reference/config.yaml
+### docs/reference/config.yaml
 
 Both updated to reflect the three new keys with documented defaults. The duplicate `conn_max_lifetime` entry in `docs/reference/config.yaml` is cleaned up.
 

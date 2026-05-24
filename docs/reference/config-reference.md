@@ -35,7 +35,7 @@ See [examples/workflows/](../examples/workflows/) for workflow configuration exa
 
    ```bash
    # Server configuration
-   cp docs/config/config.yaml flowbot.yaml
+   cp docs/reference/config.yaml flowbot.yaml
    ```
 
 2. Edit configuration values for your environment

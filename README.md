@@ -129,7 +129,7 @@ Built-in step types: Capability, Message, Fetch, Feed, LLM, Docker, Grep, Unique
 ```bash
 git clone https://github.com/flowline-io/flowbot.git
 cd flowbot
-cp docs/config/config.yaml flowbot.yaml
+cp docs/reference/config.yaml flowbot.yaml
 # Edit flowbot.yaml
 task build
 ./bin/flowbot
