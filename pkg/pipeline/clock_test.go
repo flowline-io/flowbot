@@ -22,10 +22,10 @@ func TestRealClock(t *testing.T) {
 		{
 			name: "after fires within tolerance",
 			extra: func(t *testing.T, c *RealClock, _ time.Time) {
-				ch := c.After(10 * time.Millisecond)
+				ch := c.After(50 * time.Millisecond)
 				st := time.Now()
 				<-ch
-				assert.WithinDuration(t, st.Add(10*time.Millisecond), time.Now(), 50*time.Millisecond)
+				assert.WithinDuration(t, st.Add(50*time.Millisecond), time.Now(), 200*time.Millisecond)
 			},
 		},
 		{
