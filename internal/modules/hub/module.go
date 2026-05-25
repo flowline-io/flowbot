@@ -1,5 +1,6 @@
 // Package hub implements the hub management module providing chat commands
-// for health checks, app management, and resource tag query endpoints.
+// for health checks, app management, resource tag query endpoints, and
+// consolidated bookmark, github, kanban, note, and reader capabilities.
 package hub
 
 import (
@@ -10,10 +11,15 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
+	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
+	karakeepAdapter "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
 )
 
 const Name = "hub"
@@ -49,6 +55,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return nil
 	}
 
+	// Hub resource chain store
 	if store.Database == nil {
 		return errors.New("store database not available")
 	}
@@ -57,6 +64,16 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return errors.New("store client not available")
 	}
 	rcStore = store.NewResourceChainStore(client)
+
+	// Register the GitHub capability with the adapter
+	backend := githubConfig.Backend
+	if backend == "" {
+		backend = "github"
+	}
+	svc := githubadapter.New()
+	if err := abilitygithub.RegisterService(backend, "", svc); err != nil {
+		return fmt.Errorf("register github ability: %w", err)
+	}
 
 	handler.initialized = true
 
@@ -67,16 +84,37 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
-func (moduleHandler) Bootstrap() error { return nil }
+// Bootstrap registers the Karakeep webhook converter with the EventSourceManager.
+func (moduleHandler) Bootstrap() error {
+	if !handler.initialized {
+		return nil
+	}
+	mgr := ability.GetEventSourceManager()
+	if mgr == nil {
+		return fmt.Errorf("hub: event source manager not initialized")
+	}
+	mgr.RegisterWebhook(karakeepAdapter.NewWebhook())
+	flog.Info("hub: registered karakeep webhook on /webhook/provider/karakeep/events")
+	return nil
+}
 
 func (moduleHandler) Webservice(app *fiber.App) {
-	module.Webservice(app, Name, webserviceRules)
+	module.Webservice(app, Name, hubWebserviceRules)
+	module.Webservice(app, "bookmark", bookmarkWebserviceRules)
+	module.Webservice(app, "kanban", kanbanWebserviceRules)
+	module.Webservice(app, "note", noteWebserviceRules)
+	module.Webservice(app, "reader", readerWebserviceRules)
 }
 
 func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
-		webserviceRules,
+		hubWebserviceRules,
+		bookmarkWebserviceRules,
+		kanbanWebserviceRules,
+		noteWebserviceRules,
+		readerWebserviceRules,
+		formRules,
 	}
 }
 
@@ -84,6 +122,13 @@ func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, 
 	return module.RunCommand(commandRules, ctx, content)
 }
 
+func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
+	return module.RunForm(formRules, ctx, values)
+}
+
 func (moduleHandler) Input(_ types.Context, _ types.KV, _ any) (types.MsgPayload, error) {
 	return types.TextMsg{Text: "Input"}, nil
 }
+
+// Form rules for github module (formerly separate).
+var formRules []form.Rule

@@ -1,4 +1,4 @@
-package reader
+package hub
 
 import (
 	"testing"
@@ -12,23 +12,23 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func TestCommandRules_Count(t *testing.T) {
+func TestReaderCommandRules_Count(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
 	}{
-		{name: "one command rule"},
+		{name: "command rules should not be empty"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Len(t, commandRules, 1)
+			assert.NotEmpty(t, commandRules)
 		})
 	}
 }
 
-func TestCommandRules_Defines(t *testing.T) {
+func TestReaderCommandRules_Defines(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -39,13 +39,17 @@ func TestCommandRules_Defines(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, "reader", commandRules[0].Define)
-			assert.Equal(t, "show reader id", commandRules[0].Help)
+			defines := make(map[string]string)
+			for _, r := range commandRules {
+				defines[r.Define] = r.Help
+			}
+			assert.Contains(t, defines, "reader")
+			assert.Equal(t, "show reader id", defines["reader"])
 		})
 	}
 }
 
-func TestCommandRules_Handlers(t *testing.T) {
+func TestReaderCommandRules_Handlers(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -63,7 +67,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 	}
 }
 
-func TestCommandRules_TokenParsing(t *testing.T) {
+func TestReaderCommandRules_TokenParsing(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
@@ -98,7 +102,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 	}
 }
 
-func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+func TestReaderCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -119,7 +123,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 }
 
-func TestCommandRules_ReaderHandler(t *testing.T) {
+func TestReaderCommandRules_ReaderHandler(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -148,6 +152,22 @@ func TestCommandRules_ReaderHandler(t *testing.T) {
 			msg, ok := payload.(types.TextMsg)
 			require.True(t, ok)
 			assert.Equal(t, miniflux.ID, msg.Text)
+		})
+	}
+}
+
+func TestGetAIResult_FunctionExists(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "getAIResult function exists"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.NotNil(t, getAIResult)
 		})
 	}
 }

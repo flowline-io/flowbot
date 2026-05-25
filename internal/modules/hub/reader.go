@@ -1,4 +1,4 @@
-package reader
+package hub
 
 import (
 	"context"

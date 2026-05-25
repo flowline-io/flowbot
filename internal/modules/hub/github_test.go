@@ -1,4 +1,4 @@
-package github
+package hub
 
 import (
 	"testing"
@@ -11,21 +11,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func TestCommandRules_Metadata(t *testing.T) {
+func TestGithubCommandRules_Metadata(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
 		test func(t *testing.T)
 	}{
 		{
-			name: "should have exactly 7 command rules",
-			test: func(t *testing.T) {
-				t.Parallel()
-				assert.Len(t, commandRules, 7)
-			},
-		},
-		{
-			name: "should contain all expected defines",
+			name: "should contain all expected github defines",
 			test: func(t *testing.T) {
 				t.Parallel()
 				defines := make(map[string]string)
@@ -57,7 +50,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 	}
 }
 
-func TestCommandRules_TokenParsing(t *testing.T) {
+func TestGithubCommandRules_TokenParsing(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
@@ -91,7 +84,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 	}
 }
 
-func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+func TestGithubCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -111,9 +104,8 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubSettingHandler(t *testing.T) {
+func TestGithubCommandRules_GithubSettingHandler(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -145,9 +137,8 @@ func TestCommandRules_GithubSettingHandler(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
+func TestGithubCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -187,9 +178,8 @@ func TestCommandRules_GithubOAuthHandler_Unauthorized(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
+func TestGithubCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -229,9 +219,8 @@ func TestCommandRules_GithubUserHandler_Unauthorized(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubCardHandler(t *testing.T) {
+func TestGithubCommandRules_GithubCardHandler(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -263,9 +252,8 @@ func TestCommandRules_GithubCardHandler(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubRepoHandler(t *testing.T) {
+func TestGithubCommandRules_GithubRepoHandler(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -297,9 +285,8 @@ func TestCommandRules_GithubRepoHandler(t *testing.T) {
 	}
 }
 
-func TestCommandRules_GithubUserStrHandler(t *testing.T) {
+func TestGithubCommandRules_GithubUserStrHandler(t *testing.T) {
 	t.Skip("requires database connection")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -331,9 +318,8 @@ func TestCommandRules_GithubUserStrHandler(t *testing.T) {
 	}
 }
 
-func TestCommandRules_DeployHandler(t *testing.T) {
+func TestGithubCommandRules_DeployHandler(t *testing.T) {
 	t.Skip("requires external service")
-
 	t.Parallel()
 
 	tests := []struct {
@@ -362,6 +348,34 @@ func TestCommandRules_DeployHandler(t *testing.T) {
 			msg, ok := payload.(types.TextMsg)
 			require.True(t, ok)
 			assert.NotEmpty(t, msg.Text)
+		})
+	}
+}
+
+func TestGithubDeploy_FunctionExists(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "deploy function should be defined"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotNil(t, deploy)
+		})
+	}
+}
+
+func TestGithubFormRules(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "should be empty"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Empty(t, formRules)
 		})
 	}
 }

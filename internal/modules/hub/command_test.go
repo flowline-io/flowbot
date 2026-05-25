@@ -19,19 +19,14 @@ func TestCommandRules_Metadata(t *testing.T) {
 		test func(t *testing.T)
 	}{
 		{
-			name: "should have exactly 7 command rules",
-			test: func(t *testing.T) {
-				assert.Len(t, commandRules, 7)
-			},
-		},
-		{
-			name: "should contain all expected defines",
+			name: "should contain all expected hub defines",
 			test: func(t *testing.T) {
 				defines := make(map[string]string)
 				for _, r := range commandRules {
 					defines[r.Define] = r.Help
 				}
 
+				assert.NotEmpty(t, commandRules)
 				assert.Contains(t, defines, "hub health")
 				assert.Contains(t, defines, "hub apps")
 				assert.Contains(t, defines, "hub app [name]")

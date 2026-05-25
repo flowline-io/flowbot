@@ -1,4 +1,4 @@
-package kanban
+package hub
 
 import (
 	"testing"
@@ -11,23 +11,23 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func TestCommandRules_Count(t *testing.T) {
+func TestKanbanCommandRules_Count(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
 	}{
-		{name: "has one command rule"},
+		{name: "has at least one command rule"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Len(t, commandRules, 1)
+			assert.NotEmpty(t, commandRules)
 		})
 	}
 }
 
-func TestCommandRules_Defines(t *testing.T) {
+func TestKanbanCommandRules_Defines(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -38,13 +38,17 @@ func TestCommandRules_Defines(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, "kanban status", commandRules[0].Define)
-			assert.Equal(t, "Show kanban status", commandRules[0].Help)
+			defines := make(map[string]string)
+			for _, r := range commandRules {
+				defines[r.Define] = r.Help
+			}
+			assert.Contains(t, defines, "kanban status")
+			assert.Equal(t, "Show kanban status", defines["kanban status"])
 		})
 	}
 }
 
-func TestCommandRules_Handlers(t *testing.T) {
+func TestKanbanCommandRules_Handlers(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -62,7 +66,7 @@ func TestCommandRules_Handlers(t *testing.T) {
 	}
 }
 
-func TestCommandRules_TokenParsing(t *testing.T) {
+func TestKanbanCommandRules_TokenParsing(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
@@ -103,7 +107,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 	}
 }
 
-func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
+func TestKanbanCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -124,7 +128,7 @@ func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
 	}
 }
 
-func TestCommandRules_StatusHandler(t *testing.T) {
+func TestKanbanCommandRules_StatusHandler(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -152,6 +156,50 @@ func TestCommandRules_StatusHandler(t *testing.T) {
 
 			msgType := types.TypeOf(payload)
 			assert.Equal(t, "EmptyMsg", msgType)
+		})
+	}
+}
+
+func TestUnmarshal(t *testing.T) {
+	t.Parallel()
+	type testStruct struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	tests := []struct {
+		name     string
+		input    map[string]any
+		expected testStruct
+	}{
+		{
+			name: "full struct",
+			input: map[string]any{
+				"name": "test",
+				"age":  25,
+			},
+			expected: testStruct{Name: "test", Age: 25},
+		},
+		{
+			name:     "empty map",
+			input:    map[string]any{},
+			expected: testStruct{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var result testStruct
+			err := unmarshal(tt.input, &result)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected.Name, result.Name)
+			if tt.expected.Age != 0 {
+				assert.Equal(t, tt.expected.Age, result.Age)
+			}
+			if tt.name == "empty map" {
+				assert.Empty(t, result.Name)
+			}
 		})
 	}
 }

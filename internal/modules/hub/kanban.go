@@ -1,4 +1,4 @@
-package kanban
+package hub
 
 import (
 	"github.com/bytedance/sonic"
