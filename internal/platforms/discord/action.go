@@ -11,8 +11,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
+// channelSender abstracts the ChannelMessageSend method for testability.
+type channelSender interface {
+	ChannelMessageSend(channelID string, content string, options ...discordgo.RequestOption) (*discordgo.Message, error)
+}
+
 type Action struct {
-	session *discordgo.Session
+	session channelSender
 }
 
 func (*Action) GetLatestEvents(_ protocol.Request) protocol.Response {
