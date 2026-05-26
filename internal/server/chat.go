@@ -1,0 +1,90 @@
+package server
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/module"
+	"github.com/flowline-io/flowbot/pkg/stats"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
+)
+
+func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, session string, payload types.MsgPayload) (types.MsgPayload, string) {
+	if strings.ToLower(msgAlt) == "chat" {
+		if session == "" {
+			payload = types.TextMsg{Text: "Chat started"}
+			err := cacheStore.Set(ctx.Context(), chatKey, types.Id(), cache.TTLSession)
+			if err != nil {
+				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
+			}
+		} else {
+			payload = types.TextMsg{Text: "Chat already started"}
+		}
+	}
+
+	if strings.ToLower(msgAlt) == "end" {
+		err := cacheStore.Del(ctx.Context(), chatKey)
+		if err != nil {
+			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))
+		}
+		payload = types.TextMsg{Text: "Chat ended"}
+		session = ""
+	}
+	return payload, session
+}
+
+func buildHelpMessage(msgAlt string, payload types.MsgPayload) types.MsgPayload {
+	if strings.ToLower(msgAlt) == "help" {
+		m := make(types.KV)
+		for name, handle := range module.List() {
+			for _, item := range handle.Rules() {
+				if v, ok := item.([]command.Rule); ok {
+					for _, rule := range v {
+						m[fmt.Sprintf("[%s] /%s", name, rule.Define)] = rule.Help
+					}
+				}
+			}
+		}
+		if len(m) > 0 {
+			payload = types.InfoMsg{
+				Title: "Help",
+				Model: m,
+			}
+		}
+	}
+	return payload
+}
+
+func dispatchToModules(ctx types.Context, msgAlt string) types.MsgPayload {
+	var payload types.MsgPayload
+	for name, handle := range module.List() {
+		if !handle.IsReady() {
+			flog.Info("module %s unavailable", name)
+			continue
+		}
+
+		if payload == nil {
+			in := msgAlt
+			if strings.HasPrefix(in, "/") {
+				in = strings.Replace(in, "/", "", 1)
+			}
+			var err error
+			payload, err = handle.Command(ctx, in)
+			if err != nil {
+				flog.Warn("topic[%s]: failed to run bot: %v", name, err)
+			}
+
+			if payload != nil {
+				stats.ModuleRunTotalCounter(stats.CommandRuleset).Inc()
+			}
+		}
+
+		if payload != nil {
+			break
+		}
+	}
+	return payload
+}
