@@ -175,9 +175,9 @@ func TestAdapter_GetIssue(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:  "success",
+			name:   "success",
 			client: &fakeClient{issues: []*giteasdk.Issue{{ID: 100, Index: 1, Title: "Test", State: giteasdk.StateOpen, Poster: &giteasdk.User{UserName: "a"}, Repository: &giteasdk.RepositoryMeta{Name: "repo"}}}},
-			owner: "owner", repo: "repo", index: 1, wantErr: false,
+			owner:  "owner", repo: "repo", index: 1, wantErr: false,
 		},
 		{name: "empty owner", client: &fakeClient{}, owner: "", repo: "repo", index: 1, wantErr: true},
 		{name: "empty repo", client: &fakeClient{}, owner: "owner", repo: "", index: 1, wantErr: true},

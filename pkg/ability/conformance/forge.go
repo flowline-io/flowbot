@@ -12,17 +12,17 @@ import (
 
 // ForgeConfig configures the fake backend for each forge conformance subtest.
 type ForgeConfig struct {
-	User         *ability.ForgeUser
-	UserErr      error
-	Repo         *ability.ForgeRepo
-	RepoErr      error
-	Issues       []*ability.ForgeIssue
-	IssuesErr    error
-	Issue        *ability.ForgeIssue
-	IssueErr     error
-	Diff         *ability.ForgeCommitDiff
-	DiffErr      error
-	FileContent  []byte
+	User           *ability.ForgeUser
+	UserErr        error
+	Repo           *ability.ForgeRepo
+	RepoErr        error
+	Issues         []*ability.ForgeIssue
+	IssuesErr      error
+	Issue          *ability.ForgeIssue
+	IssueErr       error
+	Diff           *ability.ForgeCommitDiff
+	DiffErr        error
+	FileContent    []byte
 	FileContentErr error
 }
 

@@ -73,7 +73,7 @@ func TestDoSend(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "empty tokens",
+			name:   "empty tokens",
 			tokens: types.KV{},
 			message: notify.Message{
 				Title: "Test",

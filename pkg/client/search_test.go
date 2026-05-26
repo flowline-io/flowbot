@@ -69,7 +69,7 @@ func TestSearchSearch(t *testing.T) {
 			errContain: "query is required",
 		},
 		{
-			name: "api error",
+			name:  "api error",
 			query: "test",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -151,7 +151,7 @@ func TestSearchAutocomplete(t *testing.T) {
 			errContain: "query is required",
 		},
 		{
-			name: "api error",
+			name:  "api error",
 			query: "te",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")

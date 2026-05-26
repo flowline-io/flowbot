@@ -33,7 +33,7 @@ func TestBookmarkList(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name: "list with limit and cursor",
+			name:  "list with limit and cursor",
 			query: &ListBookmarksQuery{Limit: 10, Cursor: "abc"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -43,7 +43,7 @@ func TestBookmarkList(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name: "list with archived filter",
+			name:  "list with archived filter",
 			query: &ListBookmarksQuery{Limit: 10, Archived: true},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -65,7 +65,7 @@ func TestBookmarkList(t *testing.T) {
 			errContain: "limit must be non-negative",
 		},
 		{
-			name: "api error",
+			name:  "api error",
 			query: &ListBookmarksQuery{},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -565,9 +565,9 @@ func TestValidateListBookmarksQuery(t *testing.T) {
 		errContain string
 	}{
 		{
-			name:       "valid query",
-			query:      &ListBookmarksQuery{Limit: 10, Cursor: "abc"},
-			wantErr:    false,
+			name:    "valid query",
+			query:   &ListBookmarksQuery{Limit: 10, Cursor: "abc"},
+			wantErr: false,
 		},
 		{
 			name:       "negative limit",
@@ -582,9 +582,9 @@ func TestValidateListBookmarksQuery(t *testing.T) {
 			errContain: "limit exceeds maximum",
 		},
 		{
-			name:       "zero limit is valid",
-			query:      &ListBookmarksQuery{Limit: 0},
-			wantErr:    false,
+			name:    "zero limit is valid",
+			query:   &ListBookmarksQuery{Limit: 0},
+			wantErr: false,
 		},
 	}
 
@@ -657,9 +657,9 @@ func TestValidateSearchBookmarksQuery(t *testing.T) {
 		errContain string
 	}{
 		{
-			name:       "valid query",
-			query:      &SearchBookmarksQuery{Q: "test", Limit: 10},
-			wantErr:    false,
+			name:    "valid query",
+			query:   &SearchBookmarksQuery{Q: "test", Limit: 10},
+			wantErr: false,
 		},
 		{
 			name:       "empty query",

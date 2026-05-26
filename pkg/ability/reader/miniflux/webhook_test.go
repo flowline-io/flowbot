@@ -203,8 +203,8 @@ func TestWebhook_Convert_NewEntries(t *testing.T) {
 func TestWebhook_Convert_SaveEntry(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name         string
-		body         []byte
+		name          string
+		body          []byte
 		wantEventType string
 		wantEntityID  string
 	}{

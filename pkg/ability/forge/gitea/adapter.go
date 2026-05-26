@@ -89,6 +89,7 @@ func (a *Adapter) GetRepo(ctx context.Context, owner, repo string) (*ability.For
 	}
 	return toForgeRepo(r), nil
 }
+
 // ListIssues returns a paginated list of issues for the given owner from the Gitea API.
 
 func (a *Adapter) ListIssues(ctx context.Context, owner string, q *forge.ListIssuesQuery) (*ability.ListResult[ability.ForgeIssue], error) {
@@ -280,4 +281,3 @@ func toForgeIssue(issue *giteasdk.Issue) *ability.ForgeIssue {
 		Author:  author,
 	}
 }
-

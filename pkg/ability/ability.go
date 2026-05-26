@@ -123,6 +123,7 @@ type Release struct {
 	HTMLURL     string    `json:"html_url,omitzero"`
 	PublishedAt time.Time `json:"published_at,omitzero"`
 }
+
 // Note represents a note from a note-taking system such as Trilium.
 type Note struct {
 	ID              string   `json:"id"`

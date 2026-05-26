@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
+
 	// OAuth provider registration — these blank imports trigger init() which
 	// self-registers each provider in the providers.OAuthProvider registry.
 	_ "github.com/flowline-io/flowbot/pkg/providers/dropbox"

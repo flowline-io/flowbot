@@ -26,4 +26,3 @@ func TestBuildPollingState_NilDatabase(t *testing.T) {
 
 // verify pollingPersistenceAdapter implements ability.Persistence.
 var _ ability.Persistence = (*pollingPersistenceAdapter)(nil)
-

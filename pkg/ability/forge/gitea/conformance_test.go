@@ -147,12 +147,12 @@ func TestFakeClientSatisfiesInterface(t *testing.T) {
 func TestTestIssueHelper(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		index      int64
-		title      string
-		wantIndex  int64
-		wantTitle  string
-		wantState  giteasdk.StateType
+		name      string
+		index     int64
+		title     string
+		wantIndex int64
+		wantTitle string
+		wantState giteasdk.StateType
 	}{
 		{name: "basic issue", index: 42, title: "Test Issue", wantIndex: 42, wantTitle: "Test Issue", wantState: giteasdk.StateOpen},
 		{name: "issue with special chars", index: 1, title: "Fix: panic on nil", wantIndex: 1, wantTitle: "Fix: panic on nil", wantState: giteasdk.StateOpen},

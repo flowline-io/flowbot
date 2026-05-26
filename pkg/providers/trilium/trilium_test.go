@@ -435,7 +435,7 @@ func TestSearchNotes(t *testing.T) {
 			closeSrv: true,
 		},
 		{
-			name:   "search with all params",
+			name: "search with all params",
 			params: SearchParams{
 				Search:               "query",
 				FastSearch:           true,

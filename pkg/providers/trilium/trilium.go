@@ -18,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
-
 const (
 	// ID is the provider identifier used in configuration and registration.
 	ID = "trilium"
@@ -343,13 +342,13 @@ func (v *Trilium) ListRawEvents(ctx context.Context, cursor string) ([]map[strin
 	items := make([]map[string]any, len(resp.Results))
 	for i, n := range resp.Results {
 		items[i] = map[string]any{
-			"noteId":         n.NoteID,
-			"title":          n.Title,
-			"type":           n.Type,
-			"isProtected":    n.IsProtected,
-			"dateCreated":    n.DateCreated,
-			"dateModified":   n.DateModified,
-			"utcDateCreated": n.UtcDateCreated,
+			"noteId":          n.NoteID,
+			"title":           n.Title,
+			"type":            n.Type,
+			"isProtected":     n.IsProtected,
+			"dateCreated":     n.DateCreated,
+			"dateModified":    n.DateModified,
+			"utcDateCreated":  n.UtcDateCreated,
 			"utcDateModified": n.UtcDateModified,
 		}
 	}

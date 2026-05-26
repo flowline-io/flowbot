@@ -14,8 +14,8 @@ func TestNoteWebserviceRules_Defined(t *testing.T) {
 		{
 			name: "should contain CRUD endpoints",
 			expectedPaths: []string{
-				"/",        // list and create
-				"/:id",      // get, update, delete
+				"/",    // list and create
+				"/:id", // get, update, delete
 				"/search",
 				"/health",
 				"/:id/content", // get and set content

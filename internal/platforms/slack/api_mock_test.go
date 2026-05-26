@@ -177,9 +177,9 @@ func TestPostRichMessageWithFileUpload(t *testing.T) {
 		case "/files.getUploadURLExternal":
 			uploadURLCalled = true
 			slackOK(w, map[string]any{
-				"ok":        true,
+				"ok":         true,
 				"upload_url": fmt.Sprintf("http://%s/upload", r.Host),
-				"file_id":   "F123",
+				"file_id":    "F123",
 			})
 		case "/upload":
 			uploadFileCalled = true
@@ -187,7 +187,7 @@ func TestPostRichMessageWithFileUpload(t *testing.T) {
 		case "/files.completeUploadExternal":
 			completeUploadCalled = true
 			slackOK(w, map[string]any{
-				"ok": true,
+				"ok":    true,
 				"files": []map[string]any{{"id": "F123"}},
 			})
 		default:

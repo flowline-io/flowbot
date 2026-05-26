@@ -25,28 +25,28 @@ type Note struct {
 
 // CreateNoteDef is the request body for creating a note via POST /create-note.
 type CreateNoteDef struct {
-	ParentNoteID  string `json:"parentNoteId"`
-	Title         string `json:"title"`
-	Type          string `json:"type"`
-	Mime          string `json:"mime,omitempty"`
-	Content       string `json:"content"`
-	NotePosition  int    `json:"notePosition,omitempty"`
-	Prefix        string `json:"prefix,omitempty"`
-	IsExpanded    bool   `json:"isExpanded,omitempty"`
-	NoteID        string `json:"noteId,omitempty"`
-	BranchID      string `json:"branchId,omitempty"`
-	DateCreated   string `json:"dateCreated,omitempty"`
+	ParentNoteID   string `json:"parentNoteId"`
+	Title          string `json:"title"`
+	Type           string `json:"type"`
+	Mime           string `json:"mime,omitempty"`
+	Content        string `json:"content"`
+	NotePosition   int    `json:"notePosition,omitempty"`
+	Prefix         string `json:"prefix,omitempty"`
+	IsExpanded     bool   `json:"isExpanded,omitempty"`
+	NoteID         string `json:"noteId,omitempty"`
+	BranchID       string `json:"branchId,omitempty"`
+	DateCreated    string `json:"dateCreated,omitempty"`
 	UtcDateCreated string `json:"utcDateCreated,omitempty"`
 }
 
 // Branch represents a branch (note placement in the tree).
 type Branch struct {
-	BranchID       string `json:"branchId,omitempty"`
-	NoteID         string `json:"noteId,omitempty"`
-	ParentNoteID   string `json:"parentNoteId,omitempty"`
-	Prefix         string `json:"prefix,omitempty"`
-	NotePosition   int    `json:"notePosition,omitempty"`
-	IsExpanded     bool   `json:"isExpanded,omitempty"`
+	BranchID        string `json:"branchId,omitempty"`
+	NoteID          string `json:"noteId,omitempty"`
+	ParentNoteID    string `json:"parentNoteId,omitempty"`
+	Prefix          string `json:"prefix,omitempty"`
+	NotePosition    int    `json:"notePosition,omitempty"`
+	IsExpanded      bool   `json:"isExpanded,omitempty"`
 	UtcDateModified string `json:"utcDateModified,omitempty"`
 }
 
@@ -58,13 +58,13 @@ type NoteWithBranch struct {
 
 // Attribute represents a label or relation attached to a note.
 type Attribute struct {
-	AttributeID    string `json:"attributeId,omitempty"`
-	NoteID         string `json:"noteId,omitempty"`
-	Type           string `json:"type,omitempty"`
-	Name           string `json:"name,omitempty"`
-	Value          string `json:"value,omitempty"`
-	Position       int    `json:"position,omitempty"`
-	IsInheritable  bool   `json:"isInheritable,omitempty"`
+	AttributeID     string `json:"attributeId,omitempty"`
+	NoteID          string `json:"noteId,omitempty"`
+	Type            string `json:"type,omitempty"`
+	Name            string `json:"name,omitempty"`
+	Value           string `json:"value,omitempty"`
+	Position        int    `json:"position,omitempty"`
+	IsInheritable   bool   `json:"isInheritable,omitempty"`
 	UtcDateModified string `json:"utcDateModified,omitempty"`
 }
 
@@ -80,25 +80,25 @@ type CreateAttribute struct {
 
 // SearchResponse is the response from searching notes.
 type SearchResponse struct {
-	Results   []Note    `json:"results"`
+	Results   []Note     `json:"results"`
 	DebugInfo *DebugInfo `json:"debugInfo,omitempty"`
 }
 
 // DebugInfo contains search query parsing debug information.
 type DebugInfo struct {
-	Query     string `json:"query,omitempty"`
+	Query       string `json:"query,omitempty"`
 	ParsedQuery string `json:"parsedQuery,omitempty"`
 }
 
 // AppInfo contains information about the running Trilium instance.
 type AppInfo struct {
-	AppVersion  string `json:"appVersion"`
-	DBVersion   int    `json:"dbVersion"`
-	SyncVersion int    `json:"syncVersion"`
-	BuildDate   string `json:"buildDate"`
+	AppVersion    string `json:"appVersion"`
+	DBVersion     int    `json:"dbVersion"`
+	SyncVersion   int    `json:"syncVersion"`
+	BuildDate     string `json:"buildDate"`
 	BuildRevision string `json:"buildRevision"`
 	DataDirectory string `json:"dataDirectory"`
-	InstanceName string `json:"instanceName,omitempty"`
+	InstanceName  string `json:"instanceName,omitempty"`
 }
 
 // ErrorResponse represents an ETAPI error.

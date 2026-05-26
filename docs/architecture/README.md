@@ -86,11 +86,11 @@ ability, auth, backoff, bulkhead, cache, client, config, event, executor, flog, 
 
 ### CI/CD (`.github/workflows/`)
 
-| Workflow        | Description        |
-| --------------- | ------------------ |
-| `build.yml`     | Lint + Build       |
-| `testing.yml`   | Run all tests      |
-| `build_cli.yml` | Build CLI tools    |
-| `docker.yml`    | Build Docker image |
-| `release.yml`   | Release pipeline   |
+| Workflow        | Description                     |
+| --------------- | ------------------------------- |
+| `build.yml`     | Lint + Build                    |
+| `testing.yml`   | Run all tests                   |
+| `build_cli.yml` | Build CLI tools                 |
+| `docker.yml`    | Build Docker image              |
+| `release.yml`   | Release pipeline                |
 | `pages.yml`     | Publish website to GitHub Pages |

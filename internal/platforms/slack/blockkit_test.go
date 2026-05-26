@@ -676,7 +676,7 @@ func TestTableLinesToBlocks(t *testing.T) {
 				for i := range 100 {
 					var line strings.Builder
 					for j := range 80 {
-						line.WriteString(string(rune('A' + (i+j)%26)))
+						_, _ = line.WriteString(string(rune('A' + (i+j)%26)))
 					}
 					l = append(l, line.String())
 				}

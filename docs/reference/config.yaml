@@ -365,7 +365,7 @@ vendors:
   karakeep:
     endpoint: "http://127.0.0.1:8000/api/v1"
     api_key: ""
-    webhook_token: ""          # Bearer token for webhook verification
+    webhook_token: "" # Bearer token for webhook verification
   # Safeline configuration
   safeline:
     endpoint: https://127.0.0.1:9443/api

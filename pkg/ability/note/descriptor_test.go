@@ -15,7 +15,7 @@ type mockNoteService struct{}
 func (*mockNoteService) List(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Note], error) {
 	return nil, nil
 }
-func (*mockNoteService) Get(_ context.Context, _ string) (*ability.Note, error)        { return nil, nil }
+func (*mockNoteService) Get(_ context.Context, _ string) (*ability.Note, error) { return nil, nil }
 func (*mockNoteService) Create(_ context.Context, _, _, _, _ string) (*ability.Note, error) {
 	return nil, nil
 }

@@ -131,7 +131,7 @@ func TestKanbanListAll(t *testing.T) {
 			errContain: "project_id must be positive",
 		},
 		{
-			name: "api error",
+			name:      "api error",
 			projectID: 1,
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -1810,5 +1810,3 @@ func makeLen(n int) string {
 	}
 	return string(result)
 }
-
-

@@ -21,7 +21,7 @@ type chatTestModule struct {
 	ready bool
 }
 
-func (h *chatTestModule) IsReady() bool             { return h.ready }
+func (h *chatTestModule) IsReady() bool              { return h.ready }
 func (*chatTestModule) Init(_ json.RawMessage) error { return nil }
 func (*chatTestModule) Rules() []any {
 	return []any{[]command.Rule{

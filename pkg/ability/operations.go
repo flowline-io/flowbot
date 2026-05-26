@@ -164,7 +164,7 @@ const (
 // Github operations as package-level constants.
 const (
 	OpGithubGetUser           = "get_user"
-	OpGithubGetUserByLogin   = "get_user_by_login"
+	OpGithubGetUserByLogin    = "get_user_by_login"
 	OpGithubGetRepo           = "get_repo"
 	OpGithubListIssues        = "list_issues"
 	OpGithubGetIssue          = "get_issue"
@@ -173,6 +173,7 @@ const (
 	OpGithubListNotifications = "list_notifications"
 	OpGithubListReleases      = "list_releases"
 )
+
 // Forge operations as package-level constants.
 const (
 	OpForgeGetUser        = "get_user"
@@ -188,6 +189,7 @@ const (
 	OpNotifySend   = "send"
 	OpNotifyDigest = "digest"
 )
+
 // Note operations as package-level constants.
 const (
 	OpNoteList       = "list"

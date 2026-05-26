@@ -66,7 +66,7 @@ func TestDoSend(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "empty tokens sends successfully",
+			name:   "empty tokens sends successfully",
 			tokens: types.KV{},
 			message: notify.Message{
 				Title: "Test",

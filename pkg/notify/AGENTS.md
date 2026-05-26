@@ -71,6 +71,7 @@ See `types.go` for the full interface definition.
 3. Add a `Register()` function that calls `notify.Register(ID, &handler)`
 4. Define URI templates in `Templates()` using `{placeholder}` syntax
 5. Implement `Send()` with an internal `doSend(tokens, msg, client, baseURL)` for testability:
+
    ```go
    func (*plugin) Send(tokens types.KV, message notify.Message) error {
        return doSend(tokens, message, resty.New(), defaultBaseURL)
@@ -80,6 +81,7 @@ See `types.go` for the full interface definition.
        // actual HTTP implementation
    }
    ```
+
 6. Register the provider in `internal/server/notify.go` via `fx.Invoke`
 7. Write tests in `provider_test.go` using `httptest.NewServer`
 

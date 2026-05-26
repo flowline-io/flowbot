@@ -28,24 +28,24 @@ The webhook converter lives alongside the existing Karakeep adapter (`pkg/abilit
 
 ### New files
 
-| File | Purpose |
-|------|---------|
-| `pkg/ability/bookmark/karakeep/webhook.go` | `Webhook` struct implementing `ability.WebhookConverter` |
-| `pkg/ability/bookmark/karakeep/webhook_test.go` | Table-driven unit tests |
+| File                                            | Purpose                                                  |
+| ----------------------------------------------- | -------------------------------------------------------- |
+| `pkg/ability/bookmark/karakeep/webhook.go`      | `Webhook` struct implementing `ability.WebhookConverter` |
+| `pkg/ability/bookmark/karakeep/webhook_test.go` | Table-driven unit tests                                  |
 
 ### Modified files
 
-| File | Change |
-|------|--------|
-| `pkg/types/event.go` | Add `EventBookmarkUpdated`, `EventBookmarkDeleted` event constants |
-| `pkg/ability/event_source_manager.go` | Add `SetEventSourceManager` / `GetEventSourceManager` global accessor (follows `pool.go` pattern) |
-| `internal/server/fx.go` | Move `initPipeline` before `handleModules` in `fx.Invoke` so the manager is set before module `Bootstrap()` |
-| `internal/server/pipeline.go` | Call `ability.SetEventSourceManager(srcMgr)` after creating the manager |
-| `pkg/providers/karakeep/types.go` | Add `WebhookPayload` struct |
-| `pkg/providers/karakeep/karakeep.go` | Add `WebhookTokenKey` constant and `GetWebhookToken()` config reader |
-| `internal/modules/bookmark/module.go` | Register WebhookConverter with EventSourceManager in `Bootstrap()` |
-| `docs/reference/config.yaml` | Add `webhook_token` to `vendors.karakeep` |
-| `flowbot.yaml` | Add `webhook_token` to karakeep config |
+| File                                  | Change                                                                                                      |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `pkg/types/event.go`                  | Add `EventBookmarkUpdated`, `EventBookmarkDeleted` event constants                                          |
+| `pkg/ability/event_source_manager.go` | Add `SetEventSourceManager` / `GetEventSourceManager` global accessor (follows `pool.go` pattern)           |
+| `internal/server/fx.go`               | Move `initPipeline` before `handleModules` in `fx.Invoke` so the manager is set before module `Bootstrap()` |
+| `internal/server/pipeline.go`         | Call `ability.SetEventSourceManager(srcMgr)` after creating the manager                                     |
+| `pkg/providers/karakeep/types.go`     | Add `WebhookPayload` struct                                                                                 |
+| `pkg/providers/karakeep/karakeep.go`  | Add `WebhookTokenKey` constant and `GetWebhookToken()` config reader                                        |
+| `internal/modules/bookmark/module.go` | Register WebhookConverter with EventSourceManager in `Bootstrap()`                                          |
+| `docs/reference/config.yaml`          | Add `webhook_token` to `vendors.karakeep`                                                                   |
+| `flowbot.yaml`                        | Add `webhook_token` to karakeep config                                                                      |
 
 ## Data Model
 
@@ -74,17 +74,17 @@ EventBookmarkDeleted = "bookmark.deleted"
 
 ### DataEvent output
 
-| DataEvent field | Source |
-|-----------------|--------|
-| `EventID` | `types.Id()` |
-| `EventType` | `payload.EventType` |
-| `Source` | `"karakeep_webhook"` |
-| `Capability` | `"bookmark"` |
-| `Operation` | Inferred from event type: `"created"`, `"updated"`, `"archived"`, or `"deleted"` |
-| `EntityID` | `payload.Data.Id` |
-| `IdempotencyKey` | `payload.Data.Id` |
-| `Backend` | `"karakeep"` |
-| `Data` | `types.KV{"bookmark": toBookmark(payload.Data), "event_type": payload.EventType}` |
+| DataEvent field  | Source                                                                            |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `EventID`        | `types.Id()`                                                                      |
+| `EventType`      | `payload.EventType`                                                               |
+| `Source`         | `"karakeep_webhook"`                                                              |
+| `Capability`     | `"bookmark"`                                                                      |
+| `Operation`      | Inferred from event type: `"created"`, `"updated"`, `"archived"`, or `"deleted"`  |
+| `EntityID`       | `payload.Data.Id`                                                                 |
+| `IdempotencyKey` | `payload.Data.Id`                                                                 |
+| `Backend`        | `"karakeep"`                                                                      |
+| `Data`           | `types.KV{"bookmark": toBookmark(payload.Data), "event_type": payload.EventType}` |
 
 ## WebhookConverter Implementation
 
@@ -288,7 +288,7 @@ vendors:
   karakeep:
     endpoint: "..."
     api_key: "..."
-    webhook_token: ""       # new: Bearer token for webhook verification
+    webhook_token: "" # new: Bearer token for webhook verification
 ```
 
 ### Provider config reader (pkg/providers/karakeep/karakeep.go)
@@ -310,10 +310,10 @@ func GetWebhookToken() string {
 
 ## Error Handling
 
-| Scenario | HTTP Status | Error |
-|----------|------------|-------|
-| Unknown webhook path | 404 | (returned by WebhookHandler) |
-| Webhook token not configured (empty) | 401 | `ErrUnauthorized` (fail closed — returns error at verification time) |
-| Missing/wrong Authorization header | 401 | `ErrUnauthorized` |
-| Invalid JSON body | 400 | `ErrInvalidArgument` |
-| Valid webhook | 202 | (accepted, async emit) |
+| Scenario                             | HTTP Status | Error                                                                |
+| ------------------------------------ | ----------- | -------------------------------------------------------------------- |
+| Unknown webhook path                 | 404         | (returned by WebhookHandler)                                         |
+| Webhook token not configured (empty) | 401         | `ErrUnauthorized` (fail closed — returns error at verification time) |
+| Missing/wrong Authorization header   | 401         | `ErrUnauthorized`                                                    |
+| Invalid JSON body                    | 400         | `ErrInvalidArgument`                                                 |
+| Valid webhook                        | 202         | (accepted, async emit)                                               |

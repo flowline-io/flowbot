@@ -223,10 +223,10 @@ func TestSendMessageInputValidation(t *testing.T) {
 	action := &Action{}
 
 	tests := []struct {
-		name      string
-		req       protocol.Request
-		wantFail  bool
-		wantCode  string
+		name     string
+		req      protocol.Request
+		wantFail bool
+		wantCode string
 	}{
 		{
 			name: "empty message returns success",

@@ -12,28 +12,29 @@ import (
 
 // Config holds mock backend behavior for conformance testing each Service method.
 type Config struct {
-	ListResult   *ability.ListResult[ability.Note]
-	ListErr      error
-	GetItem      *ability.Note
-	GetErr       error
-	CreateItem   *ability.Note
-	CreateErr    error
-	UpdateItem   *ability.Note
-	UpdateErr    error
-	DeleteErr    error
-	Content      string
-	ContentErr   error
+	ListResult    *ability.ListResult[ability.Note]
+	ListErr       error
+	GetItem       *ability.Note
+	GetErr        error
+	CreateItem    *ability.Note
+	CreateErr     error
+	UpdateItem    *ability.Note
+	UpdateErr     error
+	DeleteErr     error
+	Content       string
+	ContentErr    error
 	SetContentErr error
-	SearchResult *ability.ListResult[ability.Note]
-	SearchErr    error
-	AppInfo      *ability.Note
-	AppInfoErr   error
+	SearchResult  *ability.ListResult[ability.Note]
+	SearchErr     error
+	AppInfo       *ability.Note
+	AppInfoErr    error
 }
 
 // ServiceFactory creates a Service from a Config for conformance testing.
 type ServiceFactory func(t *testing.T, cfg Config) Service
 
 // RunNoteConformance runs the full note capability conformance test suite.
+//
 //revive:disable:cyclomatic — conformance suites test every operation with multiple scenarios.
 func RunNoteConformance(t *testing.T, factory ServiceFactory) {
 	t.Helper()
@@ -222,109 +223,109 @@ func RunNoteConformance(t *testing.T, factory ServiceFactory) {
 				t.Parallel()
 				svc := factory(t, tt.cfg)
 				content, err := svc.GetContent(context.Background(), tt.id)
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, content)
-		})
-	}
-})
+				if tt.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, content)
+			})
+		}
+	})
 
-t.Run("SetContent", func(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name    string
-		cfg     Config
-		id      string
-		wantErr bool
-	}{
-		{name: "success", cfg: Config{}, id: "n-1", wantErr: false},
-		{name: "empty id returns error", cfg: Config{}, id: "", wantErr: true},
-		{name: "provider error", cfg: Config{SetContentErr: assert.AnError}, id: "n-1", wantErr: true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			svc := factory(t, tt.cfg)
-			err := svc.SetContent(context.Background(), tt.id, "new content")
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-		})
-	}
-})
+	t.Run("SetContent", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name    string
+			cfg     Config
+			id      string
+			wantErr bool
+		}{
+			{name: "success", cfg: Config{}, id: "n-1", wantErr: false},
+			{name: "empty id returns error", cfg: Config{}, id: "", wantErr: true},
+			{name: "provider error", cfg: Config{SetContentErr: assert.AnError}, id: "n-1", wantErr: true},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				svc := factory(t, tt.cfg)
+				err := svc.SetContent(context.Background(), tt.id, "new content")
+				if tt.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+			})
+		}
+	})
 
-t.Run("Search", func(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name    string
-		cfg     Config
-		wantLen int
-		wantErr bool
-	}{
-		{
-			name: "success with results",
-			cfg: Config{SearchResult: &ability.ListResult[ability.Note]{
-				Items: []*ability.Note{{ID: "n-1", Title: "Match"}},
-			}},
-			wantLen: 1,
-			wantErr: false,
-		},
-		{
-			name:    "empty results",
-			cfg:     Config{SearchResult: &ability.ListResult[ability.Note]{Items: []*ability.Note{}}},
-			wantLen: 0,
-			wantErr: false,
-		},
-		{
-			name:    "provider error",
-			cfg:     Config{SearchErr: assert.AnError},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			svc := factory(t, tt.cfg)
-			result, err := svc.Search(context.Background(), "test")
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, result)
-			assert.Len(t, result.Items, tt.wantLen)
-		})
-	}
-})
+	t.Run("Search", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name    string
+			cfg     Config
+			wantLen int
+			wantErr bool
+		}{
+			{
+				name: "success with results",
+				cfg: Config{SearchResult: &ability.ListResult[ability.Note]{
+					Items: []*ability.Note{{ID: "n-1", Title: "Match"}},
+				}},
+				wantLen: 1,
+				wantErr: false,
+			},
+			{
+				name:    "empty results",
+				cfg:     Config{SearchResult: &ability.ListResult[ability.Note]{Items: []*ability.Note{}}},
+				wantLen: 0,
+				wantErr: false,
+			},
+			{
+				name:    "provider error",
+				cfg:     Config{SearchErr: assert.AnError},
+				wantErr: true,
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				svc := factory(t, tt.cfg)
+				result, err := svc.Search(context.Background(), "test")
+				if tt.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.Len(t, result.Items, tt.wantLen)
+			})
+		}
+	})
 
-t.Run("GetAppInfo", func(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name    string
-		cfg     Config
-		wantErr bool
-	}{
-		{name: "success", cfg: Config{AppInfo: &ability.Note{ID: "instance", Title: "Trilium"}}, wantErr: false},
-		{name: "provider error", cfg: Config{AppInfoErr: assert.AnError}, wantErr: true},
-		{name: "success with empty instance", cfg: Config{AppInfo: &ability.Note{}}, wantErr: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			svc := factory(t, tt.cfg)
-			info, err := svc.GetAppInfo(context.Background())
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, info)
-		})
-	}
-})
+	t.Run("GetAppInfo", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name    string
+			cfg     Config
+			wantErr bool
+		}{
+			{name: "success", cfg: Config{AppInfo: &ability.Note{ID: "instance", Title: "Trilium"}}, wantErr: false},
+			{name: "provider error", cfg: Config{AppInfoErr: assert.AnError}, wantErr: true},
+			{name: "success with empty instance", cfg: Config{AppInfo: &ability.Note{}}, wantErr: false},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				svc := factory(t, tt.cfg)
+				info, err := svc.GetAppInfo(context.Background())
+				if tt.wantErr {
+					require.Error(t, err)
+					return
+				}
+				require.NoError(t, err)
+				require.NotNil(t, info)
+			})
+		}
+	})
 }

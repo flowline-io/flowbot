@@ -246,19 +246,23 @@ type mockAction struct {
 	deleteMessageResp protocol.Response
 }
 
-func (m *mockAction) SendMessage(protocol.Request) protocol.Response       { return m.sendMessageResp }
-func (m *mockAction) UpdateMessage(protocol.Request) protocol.Response     { return m.updateMessageResp }
-func (m *mockAction) DeleteMessage(protocol.Request) protocol.Response     { return m.deleteMessageResp }
-func (*mockAction) GetLatestEvents(protocol.Request) protocol.Response   { return protocol.Response{} }
-func (*mockAction) GetSupportedActions(protocol.Request) protocol.Response { return protocol.Response{} }
-func (*mockAction) GetStatus(protocol.Request) protocol.Response         { return protocol.Response{} }
-func (*mockAction) GetVersion(protocol.Request) protocol.Response        { return protocol.Response{} }
-func (*mockAction) GetUserInfo(protocol.Request) protocol.Response       { return protocol.Response{} }
-func (*mockAction) CreateChannel(protocol.Request) protocol.Response     { return protocol.Response{} }
-func (*mockAction) GetChannelInfo(protocol.Request) protocol.Response    { return protocol.Response{} }
-func (*mockAction) GetChannelList(protocol.Request) protocol.Response    { return protocol.Response{} }
-func (*mockAction) RegisterChannels(protocol.Request) protocol.Response  { return protocol.Response{} }
-func (*mockAction) RegisterSlashCommands(protocol.Request) protocol.Response { return protocol.Response{} }
+func (m *mockAction) SendMessage(protocol.Request) protocol.Response   { return m.sendMessageResp }
+func (m *mockAction) UpdateMessage(protocol.Request) protocol.Response { return m.updateMessageResp }
+func (m *mockAction) DeleteMessage(protocol.Request) protocol.Response { return m.deleteMessageResp }
+func (*mockAction) GetLatestEvents(protocol.Request) protocol.Response { return protocol.Response{} }
+func (*mockAction) GetSupportedActions(protocol.Request) protocol.Response {
+	return protocol.Response{}
+}
+func (*mockAction) GetStatus(protocol.Request) protocol.Response        { return protocol.Response{} }
+func (*mockAction) GetVersion(protocol.Request) protocol.Response       { return protocol.Response{} }
+func (*mockAction) GetUserInfo(protocol.Request) protocol.Response      { return protocol.Response{} }
+func (*mockAction) CreateChannel(protocol.Request) protocol.Response    { return protocol.Response{} }
+func (*mockAction) GetChannelInfo(protocol.Request) protocol.Response   { return protocol.Response{} }
+func (*mockAction) GetChannelList(protocol.Request) protocol.Response   { return protocol.Response{} }
+func (*mockAction) RegisterChannels(protocol.Request) protocol.Response { return protocol.Response{} }
+func (*mockAction) RegisterSlashCommands(protocol.Request) protocol.Response {
+	return protocol.Response{}
+}
 
 var _ protocol.Action = &mockAction{}
 

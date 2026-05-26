@@ -14,20 +14,20 @@ import (
 
 // fakeClient implements the client interface for testing.
 type fakeClient struct {
-	createResp     *provider.NoteWithBranch
-	createErr      error
-	getResp        *provider.Note
-	getErr         error
-	patchResp      *provider.Note
-	patchErr       error
-	deleteErr      error
-	searchResp     *provider.SearchResponse
-	searchErr      error
-	getContentResp string
-	getContentErr  error
+	createResp       *provider.NoteWithBranch
+	createErr        error
+	getResp          *provider.Note
+	getErr           error
+	patchResp        *provider.Note
+	patchErr         error
+	deleteErr        error
+	searchResp       *provider.SearchResponse
+	searchErr        error
+	getContentResp   string
+	getContentErr    error
 	updateContentErr error
-	appInfoResp    *provider.AppInfo
-	appInfoErr     error
+	appInfoResp      *provider.AppInfo
+	appInfoErr       error
 }
 
 func (f *fakeClient) CreateNote(_ context.Context, _ provider.CreateNoteDef) (*provider.NoteWithBranch, error) {
@@ -67,10 +67,10 @@ var _ client = (*fakeClient)(nil)
 func TestAdapter_List(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		client   *fakeClient
-		wantLen  int
-		wantErr  bool
+		name    string
+		client  *fakeClient
+		wantLen int
+		wantErr bool
 	}{
 		{
 			name: "success with items",
@@ -323,10 +323,10 @@ func TestAdapter_GetContent(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "success",
-			client:  &fakeClient{getContentResp: "<p>Hello World</p>"},
-			id:      "n-1",
-			want:    "<p>Hello World</p>",
+			name:   "success",
+			client: &fakeClient{getContentResp: "<p>Hello World</p>"},
+			id:     "n-1",
+			want:   "<p>Hello World</p>",
 		},
 		{
 			name:    "empty id returns error",

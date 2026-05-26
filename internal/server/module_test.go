@@ -27,9 +27,9 @@ func (h *testModuleHandler) IsReady() bool { return h.ready }
 func (*testModuleHandler) Init(_ json.RawMessage) error {
 	return nil
 }
-func (*testModuleHandler) Register() error                         { return nil }
-func (*testModuleHandler) Bootstrap() error                        { return nil }
-func (*testModuleHandler) Rules() []any                            { return nil }
+func (*testModuleHandler) Register() error  { return nil }
+func (*testModuleHandler) Bootstrap() error { return nil }
+func (*testModuleHandler) Rules() []any     { return nil }
 func (*testModuleHandler) Command(_ types.Context, _ any) (types.MsgPayload, error) {
 	return nil, nil
 }
@@ -71,12 +71,12 @@ func (a *testStoreAdapter) GetBots(_ context.Context) ([]*gen.Bot, error) {
 	return list, nil
 }
 
-func (*testStoreAdapter) Open(config.StoreType) error      { return nil }
-func (*testStoreAdapter) Close() error                     { return nil }
-func (*testStoreAdapter) IsOpen() bool                     { return true }
-func (*testStoreAdapter) GetName() string                  { return "test" }
-func (*testStoreAdapter) Stats() any                       { return nil }
-func (*testStoreAdapter) GetDB() any                       { return nil }
+func (*testStoreAdapter) Open(config.StoreType) error { return nil }
+func (*testStoreAdapter) Close() error                { return nil }
+func (*testStoreAdapter) IsOpen() bool                { return true }
+func (*testStoreAdapter) GetName() string             { return "test" }
+func (*testStoreAdapter) Stats() any                  { return nil }
+func (*testStoreAdapter) GetDB() any                  { return nil }
 func (*testStoreAdapter) UserCreate(context.Context, *gen.User) error {
 	return nil
 }
@@ -105,7 +105,7 @@ func (*testStoreAdapter) FileGet(context.Context, string) (*types.FileDef, error
 func (*testStoreAdapter) FileDeleteUnused(context.Context, time.Time, int) ([]string, error) {
 	return nil, nil
 }
-func (*testStoreAdapter) GetUsers(context.Context) ([]*gen.User, error)    { return nil, nil }
+func (*testStoreAdapter) GetUsers(context.Context) ([]*gen.User, error) { return nil, nil }
 func (*testStoreAdapter) GetUserById(context.Context, int64) (*gen.User, error) {
 	return nil, nil
 }

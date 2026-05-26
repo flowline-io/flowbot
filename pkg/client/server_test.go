@@ -96,7 +96,7 @@ func TestServerStacktrace(t *testing.T) {
 				assert.Equal(t, "v1.0.0", result.BuildInfo.MainVersion)
 			}
 		})
-}
+	}
 }
 
 func TestServerUploadMultipart(t *testing.T) {
@@ -175,10 +175,10 @@ func TestValidateUploadFiles(t *testing.T) {
 		errContain string
 	}{
 		{
-			name:       "valid single file",
-			files:      map[string]io.Reader{"file1": bytes.NewReader([]byte("content"))},
-			filenames:  map[string]string{"file1": "file.txt"},
-			wantErr:    false,
+			name:      "valid single file",
+			files:     map[string]io.Reader{"file1": bytes.NewReader([]byte("content"))},
+			filenames: map[string]string{"file1": "file.txt"},
+			wantErr:   false,
 		},
 		{
 			name:       "empty files",

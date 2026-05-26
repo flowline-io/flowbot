@@ -186,10 +186,10 @@ func TestToStringMap(t *testing.T) {
 
 func TestToFormFieldDefs(t *testing.T) {
 	tests := []struct {
-		name   string
-		v      any
-		want   int
-		check  func(*testing.T, FormFieldDef)
+		name  string
+		v     any
+		want  int
+		check func(*testing.T, FormFieldDef)
 	}{
 		{
 			name: "[]any with form field maps",

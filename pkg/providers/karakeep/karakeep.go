@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	ID          = "karakeep"
-	EndpointKey = "endpoint"
-	ApikeyKey   = "api_key"
+	ID              = "karakeep"
+	EndpointKey     = "endpoint"
+	ApikeyKey       = "api_key"
 	WebhookTokenKey = "webhook_token"
 )
 

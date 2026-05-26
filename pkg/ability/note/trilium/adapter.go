@@ -220,6 +220,7 @@ func (a *Adapter) GetAppInfo(ctx context.Context) (*ability.Note, error) {
 		Type:  "app_info",
 	}, nil
 }
+
 // normalizedLimit clamps the provided limit to a valid range.
 // Zero or negative values default to 50; values above MaxPageSize are capped.
 func normalizedLimit(limit int) int {

@@ -218,9 +218,9 @@ func TestGiteaWebhook_Convert_Issues(t *testing.T) {
 func TestGiteaWebhook_Convert_Unsupported(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		eventHdr   string
-		body       string
+		name     string
+		eventHdr string
+		body     string
 	}{
 		{
 			name:     "unsupported event type pull_request",
