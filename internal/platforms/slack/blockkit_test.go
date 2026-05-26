@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/slack-go/slack"
@@ -673,11 +674,11 @@ func TestTableLinesToBlocks(t *testing.T) {
 			lines: func() []string {
 				var l []string
 				for i := range 100 {
-					line := ""
+					var line strings.Builder
 					for j := range 80 {
-						line += string(rune('A' + (i+j)%26))
+						line.WriteString(string(rune('A' + (i+j)%26)))
 					}
-					l = append(l, line)
+					l = append(l, line.String())
 				}
 				return l
 			}(),

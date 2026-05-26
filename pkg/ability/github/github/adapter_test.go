@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
+	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	provider "github.com/flowline-io/flowbot/pkg/providers/github"
 )
 
@@ -154,9 +154,9 @@ func TestAdapter_GetRepo(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "provider error",
-			client:  &fakeClient{repoErr: errors.New("api error")},
-			owner:   "o", repo: "r",
+			name:   "provider error",
+			client: &fakeClient{repoErr: errors.New("api error")},
+			owner:  "o", repo: "r",
 			wantErr: true,
 		},
 	}
@@ -257,15 +257,15 @@ func TestAdapter_GetIssue(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "empty owner",
+			name:   "empty owner",
 			client: &fakeClient{issues: []*provider.Issue{testIssue(1, "Test")}},
-			owner: "", repo: "repo", index: 1,
+			owner:  "", repo: "repo", index: 1,
 			wantErr: true,
 		},
 		{
-			name:    "provider error",
-			client:  &fakeClient{issuesErr: errors.New("api error")},
-			owner:   "owner", repo: "repo", index: 1,
+			name:   "provider error",
+			client: &fakeClient{issuesErr: errors.New("api error")},
+			owner:  "owner", repo: "repo", index: 1,
 			wantErr: true,
 		},
 	}
@@ -513,8 +513,11 @@ func TestDecodeTestCursor(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:   "valid cursor decodes",
-			cursor: func() string { c, _ := ability.EncodeCursor(conformance.CursorSecret, ability.CursorPayload{Capability: "github", Backend: "github", Strategy: "offset", ProviderCursor: "2", Limit: 20}); return c }(),
+			name: "valid cursor decodes",
+			cursor: func() string {
+				c, _ := ability.EncodeCursor(conformance.CursorSecret, ability.CursorPayload{Capability: "github", Backend: "github", Strategy: "offset", ProviderCursor: "2", Limit: 20})
+				return c
+			}(),
 		},
 		{
 			name:    "invalid base64",
@@ -552,10 +555,10 @@ func decodeTestCursor(t *testing.T, adapter *Adapter, cursor string) (ability.Cu
 
 func testUser(id int64, login, email string) *provider.User {
 	return &provider.User{
-		ID:       &id,
-		Login:    &login,
-		Email:    &email,
-		AvatarURL: strPtr("https://example.com/avatar.png"),
+		ID:        &id,
+		Login:     &login,
+		Email:     &email,
+		AvatarURL: new("https://example.com/avatar.png"),
 	}
 }
 
@@ -570,14 +573,14 @@ func testRepo(id int64, name, fullName, owner string) *provider.Repository {
 
 func testIssue(number int, title string) *provider.Issue {
 	return &provider.Issue{
-		ID:         int64Ptr(int64(number * 100)),
+		ID:         new(int64(number * 100)),
 		Number:     &number,
 		Title:      &title,
-		Body:       strPtr("body"),
-		State:      strPtr("open"),
-		HTMLURL:    strPtr("https://github.com/owner/repo/issues/" + string(rune('0'+number))),
-		User:       &provider.User{Login: strPtr("author")},
-		Repository: &provider.Repository{Name: strPtr("repo")},
+		Body:       new("body"),
+		State:      new("open"),
+		HTMLURL:    new("https://github.com/owner/repo/issues/" + string(rune('0'+number))),
+		User:       &provider.User{Login: new("author")},
+		Repository: &provider.Repository{Name: new("repo")},
 	}
 }
 
@@ -587,10 +590,10 @@ func testNotification(id, reason string, unread bool) *provider.Notification {
 		Reason: &reason,
 		Unread: &unread,
 		Subject: &provider.Subject{
-			Title: strPtr("subject"),
+			Title: new("subject"),
 		},
 		Repository: &provider.Repository{
-			FullName: strPtr("owner/repo"),
+			FullName: new("owner/repo"),
 		},
 	}
 }
@@ -600,11 +603,18 @@ func testRelease(id int64, tagName string) *provider.RepositoryRelease {
 		ID:      &id,
 		TagName: &tagName,
 		Name:    &tagName,
-		Body:    strPtr("release body"),
+		Body:    new("release body"),
 	}
 }
 
-func strPtr(s string) *string  { return &s }
-func intPtr(i int) *int       { return &i }
-func int64Ptr(i int64) *int64 { return &i }
-func boolPtr(b bool) *bool    { return &b }
+//go:fix inline
+func strPtr(s string) *string { return new(s) }
+
+//go:fix inline
+func intPtr(i int) *int { return new(i) }
+
+//go:fix inline
+func int64Ptr(i int64) *int64 { return new(i) }
+
+//go:fix inline
+func boolPtr(b bool) *bool { return new(b) }

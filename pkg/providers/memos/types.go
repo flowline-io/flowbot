@@ -116,13 +116,13 @@ type ListMemosParams struct {
 
 // CreateMemoRequest is the request body for creating a memo.
 type CreateMemoRequest struct {
-	Memo   Memo   `json:"memo,omitempty"`
+	Memo   Memo   `json:"memo"`
 	MemoID string `json:"memoId,omitempty"`
 }
 
 // UpdateMemoRequest is the request body for updating a memo.
 type UpdateMemoRequest struct {
-	Memo       Memo     `json:"memo,omitempty"`
+	Memo       Memo     `json:"memo"`
 	UpdateMask []string `json:"updateMask,omitempty"`
 }
 

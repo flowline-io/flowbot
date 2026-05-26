@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	"github.com/flowline-io/flowbot/pkg/ability/conformance"
+	githubsvc "github.com/flowline-io/flowbot/pkg/ability/github"
 	provider "github.com/flowline-io/flowbot/pkg/providers/github"
 )
 
@@ -101,14 +101,14 @@ func cfgToIssues(issues []*ability.ForgeIssue) []*provider.Issue {
 		htmlURL := iss.HTMLURL
 		author := iss.Author
 		result = append(result, &provider.Issue{
-			ID:      &id,
-			Number:  &number,
-			Title:   &title,
-			Body:    &body,
-			State:   &state,
-			HTMLURL: &htmlURL,
-			User:    &provider.User{Login: &author},
-			Repository: &provider.Repository{Name: strPtr("repo")},
+			ID:         &id,
+			Number:     &number,
+			Title:      &title,
+			Body:       &body,
+			State:      &state,
+			HTMLURL:    &htmlURL,
+			User:       &provider.User{Login: &author},
+			Repository: &provider.Repository{Name: new("repo")},
 		})
 	}
 	return result

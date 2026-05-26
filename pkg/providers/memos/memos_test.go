@@ -305,7 +305,7 @@ func TestUpdateMemo(t *testing.T) {
 			memoName:   "memos/2",
 			content:    "",
 			visibility: "",
-			pinned:     boolPtr(true),
+			pinned:     new(true),
 			fields:     []string{"pinned"},
 			statusCode: http.StatusOK,
 			respBody:   `{"name":"memos/2","pinned":true}`,
@@ -522,6 +522,8 @@ func TestListRawEvents_ContextCanceled(t *testing.T) {
 }
 
 // boolPtr returns a pointer to a bool value.
+//
+//go:fix inline
 func boolPtr(b bool) *bool {
-	return &b
+	return new(b)
 }
