@@ -32,6 +32,13 @@ func newTestApp() *fiber.App {
 		WriteTimeout:    5 * time.Second,
 		StructValidator: &structValidator{validate: validator.New()},
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
+			if err == nil {
+				return nil
+			}
+			if status, ok := domainErrorStatus(err); ok {
+				return ctx.Status(status).
+					JSON(protocol.NewFailedResponse(err))
+			}
 			var e oops.OopsError
 			if errors.As(err, &e) {
 				if e.Code() == oops.OopsError(protocol.ErrNotAuthorized).Code() {
