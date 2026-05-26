@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	ID          = "gitea"
-	EndpointKey = "endpoint"
-	TokenKey    = "token"
+	ID               = "gitea"
+	EndpointKey      = "endpoint"
+	TokenKey         = "token"
+	WebhookSecretKey = "webhook_secret"
 )
 
 type Gitea struct {
@@ -45,6 +46,15 @@ func NewGitea(endpoint, token string) (*Gitea, error) {
 		}
 	}
 	return v, nil
+}
+
+// GetWebhookSecret reads the webhook HMAC secret from the gitea provider config.
+func GetWebhookSecret() string {
+	sec, err := providers.GetConfig(ID, WebhookSecretKey)
+	if err != nil {
+		return ""
+	}
+	return sec.String()
 }
 
 func (v *Gitea) GetRepositories(owner, reponame string) (*gitea.Repository, error) {

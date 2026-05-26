@@ -11,6 +11,8 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
+	abilityforge "github.com/flowline-io/flowbot/pkg/ability/forge"
+	giteaAdapter "github.com/flowline-io/flowbot/pkg/ability/forge/gitea"
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
 	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
 	karakeepAdapter "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
@@ -76,6 +78,13 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return fmt.Errorf("register github ability: %w", err)
 	}
 
+	// Register the forge capability with the Gitea adapter
+	forgeBackend := "gitea"
+	forgeSvc := giteaAdapter.New()
+	if err := abilityforge.RegisterService(forgeBackend, "", forgeSvc); err != nil {
+		return fmt.Errorf("register forge ability: %w", err)
+	}
+
 	handler.initialized = true
 
 	return nil
@@ -98,6 +107,8 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered karakeep webhook on /webhook/provider/karakeep/events")
 	mgr.RegisterWebhook(minifluxAdapter.NewWebhook())
 	flog.Info("hub: registered miniflux webhook on /webhook/provider/miniflux/events")
+	mgr.RegisterWebhook(giteaAdapter.NewGiteaWebhook())
+	flog.Info("hub: registered gitea webhook on /webhook/provider/gitea/events")
 	return nil
 }
 
