@@ -5,7 +5,7 @@ import (
 
 	abilitynotify "github.com/flowline-io/flowbot/pkg/ability/notify"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	message_pusher "github.com/flowline-io/flowbot/pkg/notify/message-pusher"
+	"github.com/flowline-io/flowbot/pkg/notify/messagepusher"
 	"github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	"github.com/flowline-io/flowbot/pkg/notify/pushover"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
@@ -17,7 +17,7 @@ import (
 
 var NotifyModules = fx.Options(
 	fx.Invoke(
-		message_pusher.Register,
+		messagepusher.Register,
 		ntfy.Register,
 		pushover.Register,
 		slack.Register,

@@ -35,18 +35,21 @@ func (*plugin) Templates() []string {
 }
 
 func (*plugin) Send(tokens types.KV, message notify.Message) error {
+	return doSend(tokens, message, resty.New(), "https://hooks.slack.com")
+}
+
+func doSend(tokens types.KV, message notify.Message, client *resty.Client, baseURL string) error {
 	botname, _ := tokens.String("botname")
 	tokenA, _ := tokens.String("tokenA")
 	tokenB, _ := tokens.String("tokenB")
 	tokenC, _ := tokens.String("tokenC")
 	flog.Info("[slack] botname=%s", botname)
 
-	url := fmt.Sprintf("https://hooks.slack.com/services/%s/%s/%s", tokenA, tokenB, tokenC)
+	url := fmt.Sprintf("%s/services/%s/%s/%s", baseURL, tokenA, tokenB, tokenC)
 
-	c := resty.New()
-	c.SetTimeout(time.Minute)
+	client.SetTimeout(time.Minute)
 
-	resp, err := c.R().SetBody(map[string]any{
+	resp, err := client.R().SetBody(map[string]any{
 		"text": message.Title,
 		"blocks": []map[string]any{
 			{
@@ -66,12 +69,15 @@ func (*plugin) Send(tokens types.KV, message notify.Message) error {
 		},
 	}).Post(url)
 	if err != nil {
-		return fmt.Errorf("failed to send message: %w", err)
+		flog.Error(fmt.Errorf("[slack] send failed: %w", err))
+		return fmt.Errorf("slack: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("failed to send message: %d", resp.StatusCode())
+		flog.Error(fmt.Errorf("[slack] send failed: non-200 response %d", resp.StatusCode()))
+		return fmt.Errorf("slack: non-200 response %d", resp.StatusCode())
 	}
 
+	flog.Debug("[slack] sent notification: %s", message.Title)
 	return nil
 }

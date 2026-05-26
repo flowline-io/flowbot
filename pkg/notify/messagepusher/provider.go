@@ -1,5 +1,5 @@
-// Package message_pusher implements the Message Pusher notification provider.
-package message_pusher
+// Package messagepusher implements the Message Pusher notification provider.
+package messagepusher
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 
 	"resty.dev/v3"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -39,19 +40,23 @@ func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	domain, _ := tokens.String("domain")
 	host, _ := tokens.String("host")
 	port, _ := tokens.String("port")
-	channel, _ := tokens.String("channel")
-	token, _ := tokens.String("token")
 
 	if domain == "" {
 		domain = net.JoinHostPort(host, port)
 	}
-	url := fmt.Sprintf("http://%s/push/%s", domain, user)
+	baseURL := fmt.Sprintf("http://%s/push/%s", domain, user)
 
-	c := resty.New()
-	c.SetBaseURL(url)
-	c.SetTimeout(time.Minute)
+	return doSend(tokens, message, resty.New(), baseURL)
+}
 
-	resp, err := c.R().SetQueryParams(map[string]string{
+func doSend(tokens types.KV, message notify.Message, client *resty.Client, baseURL string) error {
+	channel, _ := tokens.String("channel")
+	token, _ := tokens.String("token")
+
+	client.SetBaseURL(baseURL)
+	client.SetTimeout(time.Minute)
+
+	resp, err := client.R().SetQueryParams(map[string]string{
 		"channel":     channel,
 		"token":       token,
 		"title":       message.Title,
@@ -59,18 +64,26 @@ func (*plugin) Send(tokens types.KV, message notify.Message) error {
 		"url":         message.Url,
 	}).SetResult(&Response{}).Get("/")
 	if err != nil {
-		return err
+		flog.Error(fmt.Errorf("[message-pusher] send failed: %w", err))
+		return fmt.Errorf("message-pusher: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("%d", resp.StatusCode())
+		flog.Error(fmt.Errorf("[message-pusher] send failed: non-200 response %d", resp.StatusCode()))
+		return fmt.Errorf("message-pusher: non-200 response %d", resp.StatusCode())
 	}
 
 	respResult, ok := resp.Result().(*Response)
 	if !ok || !respResult.Success {
-		return fmt.Errorf("%s", respResult.Message)
+		msg := ""
+		if respResult != nil {
+			msg = respResult.Message
+		}
+		flog.Error(fmt.Errorf("[message-pusher] send failed: %s", msg))
+		return fmt.Errorf("message-pusher: %s", msg)
 	}
 
+	flog.Debug("[message-pusher] sent notification: %s", message.Title)
 	return nil
 }
 

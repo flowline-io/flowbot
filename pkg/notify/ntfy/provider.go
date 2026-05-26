@@ -8,6 +8,7 @@ import (
 
 	"resty.dev/v3"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -42,26 +43,31 @@ func (*plugin) Templates() []string {
 
 func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	host, _ := tokens.String("host")
+	return doSend(tokens, message, resty.New(), fmt.Sprintf("http://%s", host))
+}
+
+func doSend(tokens types.KV, message notify.Message, client *resty.Client, baseURL string) error {
 	topic, _ := tokens.String("topic")
-	url := fmt.Sprintf("http://%s", host)
 
-	c := resty.New()
-	c.SetBaseURL(url)
-	c.SetTimeout(time.Minute)
+	client.SetBaseURL(baseURL)
+	client.SetTimeout(time.Minute)
 
-	resp, err := c.R().SetBody(map[string]any{
+	resp, err := client.R().SetBody(map[string]any{
 		"topic":    topic,
 		"title":    message.Title,
 		"message":  message.Body,
 		"priority": message.Priority,
 	}).Post("/")
 	if err != nil {
-		return err
+		flog.Error(fmt.Errorf("[ntfy] send failed: %w", err))
+		return fmt.Errorf("ntfy: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("%d", resp.StatusCode())
+		flog.Error(fmt.Errorf("[ntfy] send failed: non-200 response %d", resp.StatusCode()))
+		return fmt.Errorf("ntfy: non-200 response %d", resp.StatusCode())
 	}
 
+	flog.Debug("[ntfy] sent notification: %s", message.Title)
 	return nil
 }
