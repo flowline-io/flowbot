@@ -1,3 +1,4 @@
+// Package platforms provides multi-platform integration for chat and messaging.
 package platforms
 
 import (
