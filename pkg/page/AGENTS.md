@@ -23,7 +23,6 @@ Components implement `app.Compo` with `Render() app.UI`. CSS embedded via `//go:
 - Never use raw HTML strings — use go-app components
 - Never bypass the layout template
 - Always embed static assets via `//go:embed`
-- Always test UI components via `internal/bots/dev/`
 
 ## Commands
 

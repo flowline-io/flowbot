@@ -14,7 +14,7 @@ types/
 │   ├── action.go      # Request/Response, error codes (10xxx–60xxx)
 │   ├── message.go, event.go, user.go
 └── ruleset/           # Rule implementations
-    ├── command/ cron/ event/ form/ page/ webhook/ webservice/
+    ├── command/ form/ page/ webservice/
 ```
 
 ## Rules

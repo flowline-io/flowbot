@@ -2,7 +2,7 @@
 
 Homelab Data Hub & Capability Orchestration Center.
 
-## Quick Reference
+## Dir Reference
 
 | Task             | Location            | Notes                                                 |
 | ---------------- | ------------------- | ----------------------------------------------------- |

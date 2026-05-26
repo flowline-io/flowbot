@@ -9,8 +9,6 @@ modules/<name>/
 ├── module.go       # moduleHandler + module.Base, Register(), Init(), Rules(), Webservice()
 ├── command.go      # Slash/chat commands
 ├── form.go         # Interactive forms
-├── cron.go         # Scheduled tasks
-├── event.go        # Legacy events (prefer DataEvent + Pipeline for cross-service)
 ├── webhook.go      # HTTP webhooks
 ├── webservice.go   # HTTP handlers
 ├── page.go         # UI pages
