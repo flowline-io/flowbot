@@ -11,7 +11,7 @@ import (
 
 // newConformanceService wraps an Adapter to satisfy the conformance ServiceFactory contract.
 // It constructs a fakeClient from the conformance Config and returns the adapter.
-func newConformanceService(t *testing.T, cfg githubsvc.Config) githubsvc.Service {
+func newConformanceService(t *testing.T, cfg conformance.GithubConfig) githubsvc.Service {
 	t.Helper()
 	c := &fakeClient{
 		user:             cfgToUser(cfg.User),
@@ -42,7 +42,7 @@ func newConformanceService(t *testing.T, cfg githubsvc.Config) githubsvc.Service
 
 // TestGithubConformance runs the standard GitHub capability conformance suite.
 func TestGithubConformance(t *testing.T) {
-	githubsvc.RunGithubConformance(t, func(_ *testing.T, cfg githubsvc.Config) githubsvc.Service {
+	conformance.RunGithubConformance(t, func(_ *testing.T, cfg conformance.GithubConfig) githubsvc.Service {
 		return newConformanceService(t, cfg)
 	})
 }

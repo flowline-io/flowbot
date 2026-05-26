@@ -235,47 +235,45 @@ func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollRe
 
 ### Conformance Tests
 
-Conformance suites live in `pkg/ability/conformance/<capability>.go`. Each defines a `Config` struct and a `ServiceFactory` type, plus a `RunXxxConformance` function that tests every service method for happy path, empty/missing inputs, provider errors, and context cancellation.
+Conformance suites live in `pkg/ability/conformance/<capability>.go`. Each defines a `Config` struct, a `ServiceFactory` type, and a `RunXxxConformance` function that tests every Service method across success, timeout, provider-error, and invalid-input scenarios.
 
 ```go
 // pkg/ability/conformance/forge.go
-type ForgeConfig struct {
-    User    *ability.ForgeUser
-    UserErr error
-    // ... one field per Service method + error
-}
-
+type ForgeConfig struct { User *ability.ForgeUser; UserErr error /* ... one field per method + error */ }
 type ForgeServiceFactory func(t *testing.T, cfg ForgeConfig) forge.Service
 
 func RunForgeConformance(t *testing.T, factory ForgeServiceFactory) {
-    t.Run("get user success", func(t *testing.T) { ... })
-    t.Run("get user timeout", func(t *testing.T) { ... })
-    t.Run("get user provider error", func(t *testing.T) { ... })
+    t.Run("get user success", func(t *testing.T) { /* ... */ })
+    t.Run("get user timeout", func(t *testing.T) { /* ... */ })
     // ... one subtest per method x scenario
 }
 ```
 
-Backend adapters wire their fake client to the conformance suite in `<backend>/conformance_test.go`:
+Backend adapters wire their fake client in `<backend>/conformance_test.go`:
 
 ```go
-// pkg/ability/forge/gitea/conformance_test.go
-func TestGiteaForgeConformance(t *testing.T) {
-    conformance.RunForgeConformance(t, func(_ *testing.T, cfg conformance.ForgeConfig) forge.Service {
-        c := &fakeClient{
-            user:    cfgToSDKUser(cfg.User),
-            userErr: cfg.UserErr,
-            // ...
-        }
-        a := NewWithClient(c).(*Adapter)
-        a.cursorSecret = conformance.CursorSecret
-        a.now = conformance.TestTime
-        return a
-    })
-}
+conformance.RunForgeConformance(t, func(_ *testing.T, cfg conformance.ForgeConfig) forge.Service {
+    c := &fakeClient{user: cfgToSDKUser(cfg.User), userErr: cfg.UserErr /* ... */}
+    a := NewWithClient(c).(*Adapter)
+    a.cursorSecret = conformance.CursorSecret
+    a.now = conformance.TestTime
+    return a
+})
 ```
 
-- Use `conformance.CursorSecret` and `conformance.TestTime` for deterministic cursor tests.
-- Use `conformance.RequireListResult`, `conformance.RequireTimeoutError`, `conformance.CanceledContext()`, etc. in suite implementations.
+- Reference `pkg/ability/example/example/conformance_test.go` for the full adapter wiring pattern.
+- Use `conformance.CursorSecret` / `conformance.TestTime` for deterministic cursor tests.
+- Use `conformance.RequireXxxError` helpers in suite implementations.
+
+### Descriptor Tests
+
+Each capability must include `descriptor_test.go`. Reference `pkg/ability/example/descriptor_test.go` for the canonical pattern.
+
+- **Nil service**: `Descriptor()` returns `Healthy: false`; `RegisterService()` returns error.
+- **Non-nil service**: `Descriptor()` returns `Healthy: true`, correct `CapType`/`Backend`/`App`/`Description`/`Instance`.
+- **Operations list**: every `ability.OpXxx` constant appears in `Descriptor().Operations`; assert exact count via `assert.Len`.
+- Use a mock `Service` (not an adapter) — self-contained, no provider dependency.
+- Use `hub.CapXxx` / `ability.OpXxx` constants, never hardcode strings.
 
 ### Operation Constants
 
