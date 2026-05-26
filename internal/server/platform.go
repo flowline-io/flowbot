@@ -15,7 +15,7 @@ func handlePlatform(lc fx.Lifecycle, driver protocol.Driver) {
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
-			return driver.Shoutdown()
+			return driver.Shutdown()
 		},
 	})
 }

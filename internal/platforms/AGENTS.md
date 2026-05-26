@@ -29,7 +29,7 @@ internal/platforms/
 
 ## Interfaces (defined in `pkg/types/protocol`)
 
-- **`Driver`** — lifecycle and transport: `HttpServer`, `HttpWebhookClient`, `WebSocketClient`, `WebSocketServer`, `Shoutdown`
+- **`Driver`** — lifecycle and transport: `HttpServer`, `HttpWebhookClient`, `WebSocketClient`, `WebSocketServer`, `Shutdown`
 - **`Adapter`** — converts platform-native payloads into `protocol.Message` / `protocol.Event`
 - **`Action`** — platform API (all methods must be implemented):
   - Messaging: `SendMessage`, `UpdateMessage`, `DeleteMessage`

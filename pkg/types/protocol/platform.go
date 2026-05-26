@@ -15,8 +15,8 @@ type Driver interface {
 	WebSocketClient()
 	// WebSocketServer Chatbot implements active access to applications
 	WebSocketServer()
-	// Shoutdown Shut down the driver
-	Shoutdown() error
+	// Shutdown Shut down the driver
+	Shutdown() error
 }
 
 // Adapter converts platform messages to internal event/message formats.

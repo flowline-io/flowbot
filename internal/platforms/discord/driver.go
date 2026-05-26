@@ -136,7 +136,7 @@ func (*Driver) WebSocketServer() {
 	}
 }
 
-func (d *Driver) Shoutdown() error {
+func (d *Driver) Shutdown() error {
 	d.stop <- true
 	return nil
 }
