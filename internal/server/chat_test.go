@@ -121,6 +121,7 @@ func TestBuildHelpMessage(t *testing.T) {
 			modName := "chat-test-help-" + tt.name
 			if tt.isHelp {
 				module.Register(modName, &chatTestModule{ready: true})
+				t.Cleanup(func() { module.Unregister(modName) })
 			}
 
 			got := buildHelpMessage(tt.msgAlt, nil)

@@ -288,6 +288,7 @@ func TestRegisterModules_CreatesNewBot(t *testing.T) {
 			t.Cleanup(func() { store.Database = originalDB })
 
 			module.Register("test-create-mod-bot-001", &testModuleHandler{ready: false})
+			t.Cleanup(func() { module.Unregister("test-create-mod-bot-001") })
 			registerModules()
 
 			bot, err := mock.GetBotByName(context.Background(), "test-create-mod-bot-001")
@@ -336,6 +337,7 @@ func TestRegisterModules_SetsActiveForReadyModule(t *testing.T) {
 			t.Cleanup(func() { store.Database = originalDB })
 
 			module.Register("test-ready-mod-bot-002", &testModuleHandler{ready: true})
+			t.Cleanup(func() { module.Unregister("test-ready-mod-bot-002") })
 			registerModules()
 
 			bot, err := mock.GetBotByName(context.Background(), "test-ready-mod-bot-002")
@@ -364,6 +366,7 @@ func TestRegisterModules_UpdatesExistingBotState(t *testing.T) {
 			t.Cleanup(func() { store.Database = originalDB })
 
 			module.Register("existing-ready-bot", &testModuleHandler{ready: true})
+			t.Cleanup(func() { module.Unregister("existing-ready-bot") })
 			registerModules()
 
 			bot, err := mock.GetBotByName(context.Background(), "existing-ready-bot")

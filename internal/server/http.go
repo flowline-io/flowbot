@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime/trace"
+	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -26,7 +27,18 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
-var sharedApp *fiber.App
+var (
+	sharedApp   *fiber.App
+	sharedAppMu sync.RWMutex
+)
+
+// sharedAppPtr returns the current shared Fiber app instance.
+// Must be called after newHTTPServer has been invoked.
+func sharedAppPtr() *fiber.App {
+	sharedAppMu.RLock()
+	defer sharedAppMu.RUnlock()
+	return sharedApp
+}
 
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
@@ -142,7 +154,9 @@ func newHTTPServer() *fiber.App {
 	}
 
 	// use in registered endpoint
+	sharedAppMu.Lock()
 	sharedApp = app
+	sharedAppMu.Unlock()
 
 	return app
 }

@@ -225,7 +225,7 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	})
 
 	// Register webhook provider route
-	sharedApp.Post("/webhook/provider/*", srcMgr.WebhookHandler())
+	sharedAppPtr().Post("/webhook/provider/*", srcMgr.WebhookHandler())
 	flog.Info("event source manager initialized")
 
 	return nil

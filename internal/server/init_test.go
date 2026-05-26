@@ -66,7 +66,6 @@ func TestInitializeMetrics(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			original := config.App.Metrics
 			config.App.Metrics = tt.cfg
 			t.Cleanup(func() { config.App.Metrics = original })
@@ -123,7 +122,6 @@ func TestInitializeLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			original := config.App.Log
 			config.App.Log = tt.cfg
 			t.Cleanup(func() { config.App.Log = original })

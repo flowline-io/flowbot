@@ -16,6 +16,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"sync"
+
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/providers/slash"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -32,9 +34,15 @@ const (
 	MessageGroupIncomingBehavior = "message_group_incoming"
 )
 
-var handlers map[string]Handler
+var (
+	handlers   map[string]Handler
+	handlersMu sync.RWMutex
+)
 
 func Register(name string, module Handler) {
+	handlersMu.Lock()
+	defer handlersMu.Unlock()
+
 	if handlers == nil {
 		handlers = make(map[string]Handler)
 	}
@@ -47,6 +55,19 @@ func Register(name string, module Handler) {
 	}
 	handlers[name] = module
 	flog.Info("[module] %s registered", name)
+}
+
+// Unregister removes a previously registered module handler.
+// It is a no-op if the name is not found.
+// Intended primarily for test teardown.
+func Unregister(name string) {
+	handlersMu.Lock()
+	defer handlersMu.Unlock()
+
+	if handlers == nil {
+		return
+	}
+	delete(handlers, name)
 }
 
 func Help(rules []any) (map[string][]string, error) {
@@ -406,7 +427,10 @@ func Init(jsonconf json.RawMessage) error {
 
 		configMap[item.Name] = cc
 	}
+
+	handlersMu.RLock()
 	for name, module := range handlers {
+		handlersMu.RUnlock()
 		var configItem json.RawMessage
 		if v, ok := configMap[name]; ok {
 			configItem = v
@@ -416,12 +440,17 @@ func Init(jsonconf json.RawMessage) error {
 		if err := module.Init(configItem); err != nil {
 			return err
 		}
+		handlersMu.RLock()
 	}
+	handlersMu.RUnlock()
 
 	return nil
 }
 
 func Bootstrap() error {
+	handlersMu.RLock()
+	defer handlersMu.RUnlock()
+
 	for name, module := range handlers {
 		if !module.IsReady() {
 			continue
@@ -434,6 +463,9 @@ func Bootstrap() error {
 }
 
 func List() map[string]Handler {
+	handlersMu.RLock()
+	defer handlersMu.RUnlock()
+
 	copyMap := make(map[string]Handler, len(handlers))
 	maps.Copy(copyMap, handlers)
 	return copyMap

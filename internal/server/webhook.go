@@ -33,11 +33,11 @@ func registerWebhookRoutes(engine *pipeline.Engine) error {
 		handler := makeWebhookHandler(engine, def)
 		switch method {
 		case "GET":
-			sharedApp.Get(routePath, handler)
+			sharedAppPtr().Get(routePath, handler)
 		case "POST":
-			sharedApp.Post(routePath, handler)
+			sharedAppPtr().Post(routePath, handler)
 		case "PUT":
-			sharedApp.Put(routePath, handler)
+			sharedAppPtr().Put(routePath, handler)
 		default:
 			flog.Warn("webhook pipeline %s: unsupported method %q, skipping route registration", def.Name, method)
 			continue
