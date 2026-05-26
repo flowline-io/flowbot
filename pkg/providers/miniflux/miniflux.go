@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	ID          = "miniflux"
-	EndpointKey = "endpoint"
-	ApikeyKey   = "api_key"
+	ID               = "miniflux"
+	EndpointKey      = "endpoint"
+	ApikeyKey        = "api_key"
+	WebhookSecretKey = "webhook_secret"
 )
 
 type Miniflux struct {
@@ -115,4 +116,13 @@ func (v *Miniflux) GetFeedEntries(feedID int64, filter *rssClient.Filter) (*rssC
 		return nil, fmt.Errorf("failed to get feed entries, %w", err)
 	}
 	return entries, nil
+}
+
+// GetWebhookSecret reads the webhook HMAC secret from the miniflux provider config.
+func GetWebhookSecret() string {
+	sec, err := providers.GetConfig(ID, WebhookSecretKey)
+	if err != nil {
+		return ""
+	}
+	return sec.String()
 }

@@ -384,6 +384,7 @@ vendors:
   miniflux:
     endpoint: ""
     api_key: ""
+    webhook_secret: ""
   # Firefly III configuration
   fireflyiii:
     endpoint: "http://127.0.0.1:8283/api"

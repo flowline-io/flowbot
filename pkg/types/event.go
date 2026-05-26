@@ -46,6 +46,9 @@ const (
 
 	EventArchiveItemCreated = "archive.item.created"
 
+	EventReaderEntryNew   = "reader.entry.new"
+	EventReaderEntrySaved = "reader.entry.saved"
+
 	EventReaderEntryStarred = "reader.entry.starred"
 	EventReaderEntryRead    = "reader.entry.read"
 

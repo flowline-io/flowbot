@@ -14,6 +14,7 @@ import (
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
 	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
 	karakeepAdapter "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
+	minifluxAdapter "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -95,6 +96,8 @@ func (moduleHandler) Bootstrap() error {
 	}
 	mgr.RegisterWebhook(karakeepAdapter.NewWebhook())
 	flog.Info("hub: registered karakeep webhook on /webhook/provider/karakeep/events")
+	mgr.RegisterWebhook(minifluxAdapter.NewWebhook())
+	flog.Info("hub: registered miniflux webhook on /webhook/provider/miniflux/events")
 	return nil
 }
 
