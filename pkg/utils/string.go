@@ -4,15 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"regexp"
-	"runtime"
 	"strings"
 	"unicode"
+	"unsafe"
 
-	"github.com/bytedance/sonic"
-	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
 )
 
@@ -48,55 +45,10 @@ func IsUrl(text string) bool {
 	return re.MatchString(text)
 }
 
-func Masker(input string, start int) string {
-	if len(input) <= start || start < 0 {
-		return input
-	}
-	lenStart := len(input[start:])
-	switch {
-	case lenStart <= 3:
-		return input[:start] + strings.Repeat("*", lenStart)
-	case 3 < lenStart && lenStart <= 5:
-		return input[:start+1] + strings.Repeat("*", lenStart-2) + input[lenStart+start-1:]
-	case 5 < lenStart && lenStart <= 10:
-		return input[:start+2] + strings.Repeat("*", lenStart-4) + input[lenStart+start-2:]
-	case lenStart > 10:
-		return input[:start+4] + strings.Repeat("*", lenStart-8) + input[lenStart+start-4:]
-	default:
-		return ""
-	}
-}
-
-func Fn(public any) string {
-	if v, ok := public.(map[string]any); ok {
-		if s, ok := v["fn"].(string); ok {
-			return s
-		}
-	}
-	return ""
-}
-
-func FirstUpper(s string) string {
-	if s == "" {
-		return ""
-	}
-	return strings.ToUpper(string(s[0])) + s[1:]
-}
-
 func SHA256(txt string) string {
 	h := sha256.New()
 	_, _ = h.Write(StringToBytes(txt))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-func MarkdownTitle(txt string) string {
-	lines := strings.Split(txt, "\n")
-	if len(lines) > 0 {
-		first := strings.TrimLeft(lines[0], "#")
-		first = strings.TrimSpace(first)
-		return first
-	}
-	return ""
 }
 
 func NewUUID() string {
@@ -108,50 +60,17 @@ func ValidImageContentType(ct string) bool {
 	return strings.HasPrefix(ct, "image/")
 }
 
-func FileAndLine() string {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		return ""
-	}
-
-	return fmt.Sprintf("%s:%d", file, line)
+// BytesToString converts byte slice to string without allocation.
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }
 
-func PrettyPrintJsonStyle(data any) {
-	d, err := sonic.MarshalIndent(data, "", "  ")
-	if err != nil {
-		_, _ = fmt.Printf("error: %s, data: %+v\n", err, data)
-		return
-	}
-	_, _ = fmt.Println(string(d))
-}
-
-func PrettyPrintYamlStyle(data any) {
-	d, err := yaml.Marshal(data)
-	if err != nil {
-		_, _ = fmt.Printf("error: %s, data: %+v\n", err, data)
-		return
-	}
-	_, _ = fmt.Println(string(d))
-}
-
-func YamlToJson(data []byte) ([]byte, error) {
-	var def map[string]any
-	if err := yaml.Unmarshal(data, &def); err != nil {
-		return nil, err
-	}
-
-	jsonData, err := sonic.Marshal(def)
-	if err != nil {
-		return nil, err
-	}
-
-	return jsonData, nil
-}
-
-func BoolToString(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
+// StringToBytes converts string to byte slice without allocation.
+func StringToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(
+		&struct {
+			string
+			Cap int
+		}{s, len(s)},
+	))
 }

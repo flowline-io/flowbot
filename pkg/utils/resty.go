@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"io"
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"resty.dev/v3"
 )
@@ -54,4 +56,31 @@ func RestyClientWithTrace() *resty.Client {
 	c := DefaultRestyClient()
 	c.SetTransport(otelhttp.NewTransport(httpTransport))
 	return c
+}
+
+func EncodeJSON(w io.Writer, v any) error {
+	return EncodeJSONEscapeHTML(w, v, true)
+}
+
+func EncodeJSONEscapeHTML(w io.Writer, v any, esc bool) error {
+	enc := sonic.Config{EscapeHTML: esc}.Froze().NewEncoder(w)
+	return enc.Encode(v)
+}
+
+func EncodeJSONEscapeHTMLIndent(w io.Writer, v any, esc bool, indent string) error {
+	enc := sonic.Config{EscapeHTML: esc}.Froze().NewEncoder(w)
+	enc.SetIndent("", indent)
+	return enc.Encode(v)
+}
+
+func DecodeJSON(r io.Reader, v any) error {
+	dec := sonic.ConfigStd.NewDecoder(r)
+	for {
+		if err := dec.Decode(v); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+	}
+	return nil
 }

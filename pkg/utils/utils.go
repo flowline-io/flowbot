@@ -4,14 +4,8 @@ package utils
 
 import (
 	"path/filepath"
-	"reflect"
 	"slices"
-	"strconv"
-	"strings"
-	"unicode"
 )
-
-const nullValue = "\u2421"
 
 // stringDelta extracts the slices of added and removed strings from two slices:
 //
@@ -58,132 +52,10 @@ func stringSliceDelta(rold, rnew []string) (added, removed, intersection []strin
 	return added, removed, intersection
 }
 
-// IsNullValue Check if the interface contains a string with a single Unicode Del control character.
-func IsNullValue(i any) bool {
-	if str, ok := i.(string); ok {
-		return str == nullValue
-	}
-	return false
-}
-
-// ParseVersionPart Parse one component of a semantic version string.
-func ParseVersionPart(vers string) int {
-	end := strings.IndexFunc(vers, func(r rune) bool {
-		return !unicode.IsDigit(r)
-	})
-
-	t := 0
-	var err error
-	if end > 0 {
-		t, err = strconv.Atoi(vers[:end])
-	} else if vers != "" {
-		t, err = strconv.Atoi(vers)
-	}
-	if err != nil || t > 0x1fff || t <= 0 {
-		return 0
-	}
-	return t
-}
-
-// ParseVersion Parses semantic version string in the following formats:
-//
-//	1.2, 1.2abc, 1.2.3, 1.2.3-abc, v0.12.34-rc5
-//
-// Unparceable values are replaced with zeros.
-func ParseVersion(vers string) int {
-	var major, minor, patch int
-	// Maybe remove the optional "v" prefix.
-	vers = strings.TrimPrefix(vers, "v")
-
-	// We can handle 3 parts only.
-	parts := strings.SplitN(vers, ".", 3)
-	count := len(parts)
-	if count > 0 {
-		major = ParseVersionPart(parts[0])
-		if count > 1 {
-			minor = ParseVersionPart(parts[1])
-			if count > 2 {
-				patch = ParseVersionPart(parts[2])
-			}
-		}
-	}
-
-	return (major << 16) | (minor << 8) | patch
-}
-
-// Base10Version Version as a base-10 number. Used by monitoring.
-func Base10Version(hex int) int64 {
-	major := hex >> 16 & 0xFF
-	minor := hex >> 8 & 0xFF
-	trailer := hex & 0xFF
-	return int64(major*10000 + minor*100 + trailer)
-}
-
-// VersionCompare Returns > 0 if v1 > v2; zero if equal; < 0 if v1 < v2
-// Only Major and Minor parts are compared, the trailer is ignored.
-func VersionCompare(v1, v2 int) int {
-	return (v1 >> 8) - (v2 >> 8)
-}
-
-func Max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // ToAbsolutePath Convert relative filepath to absolute.
 func ToAbsolutePath(base, path string) string {
 	if filepath.IsAbs(path) {
 		return path
 	}
 	return filepath.Clean(filepath.Join(base, path))
-}
-
-// MergeMaps Deep copy maps.
-func MergeMaps(dst, src map[string]any) (map[string]any, bool) {
-	var changed bool
-
-	if len(src) == 0 {
-		return dst, changed
-	}
-
-	if dst == nil {
-		dst = make(map[string]any)
-	}
-
-	for key, val := range src {
-		xval := reflect.ValueOf(val)
-		switch xval.Kind() {
-		case reflect.Map:
-			if xsrc, ok := val.(map[string]any); ok && xsrc != nil {
-				// Deep-copy map[string]interface{}
-				xdst, ok := dst[key].(map[string]any)
-				if !ok {
-					xdst = nil
-				}
-				var lchange bool
-				dst[key], lchange = MergeMaps(xdst, xsrc)
-				changed = changed || lchange
-			} else if val != nil {
-				// The map is shallow-copied if it's not of the type map[string]interface{}
-				dst[key] = val
-				changed = true
-			}
-		case reflect.String:
-			changed = true
-			if xval.String() == nullValue {
-				delete(dst, key)
-			} else if val != nil {
-				dst[key] = val
-			}
-		default:
-			if val != nil {
-				dst[key] = val
-				changed = true
-			}
-		}
-	}
-
-	return dst, changed
 }
