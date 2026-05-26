@@ -35,6 +35,8 @@ func main() {
 		command.BookmarkCommand(),
 		command.KanbanCommand(),
 		command.ReaderCommand(),
+		command.ForgeCommand(),
+		command.GithubCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)

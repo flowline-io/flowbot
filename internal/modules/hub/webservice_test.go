@@ -7,8 +7,10 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 func mapDomainErrors(err error) (int, bool) {
@@ -54,6 +56,292 @@ func TestQueryByTag_Validation(t *testing.T) {
 	}
 }
 
+func TestForgeWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 6 forge webservice rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, forgeWebserviceRules, 6)
+			},
+		},
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, forgeWebserviceRules)
+			},
+		},
+		{
+			name: "should have non-nil functions",
+			test: func(t *testing.T) {
+				t.Parallel()
+				for _, r := range forgeWebserviceRules {
+					assert.NotNil(t, r.Function, "function should not be nil")
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
+func TestGithubWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should have exactly 9 github webservice rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, githubWebserviceRules, 9)
+			},
+		},
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, githubWebserviceRules)
+			},
+		},
+		{
+			name: "should have non-nil functions",
+			test: func(t *testing.T) {
+				t.Parallel()
+				for _, r := range githubWebserviceRules {
+					assert.NotNil(t, r.Function, "function should not be nil")
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
+func TestForgeGetRepo_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing owner returns 400", "repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg", 400},
+		{"both missing returns 400", "", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/repo", forgeGetRepo)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestForgeGetIssue_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing index returns 400", "owner=myorg&repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg&index=1", 400},
+		{"missing owner returns 400", "repo=myrepo&index=1", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/issue", forgeGetIssue)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestForgeGetCommitDiff_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing commit_id returns 400", "owner=myorg&repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg&commit_id=abc", 400},
+		{"missing owner returns 400", "repo=myrepo&commit_id=abc", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/commit-diff", forgeGetCommitDiff)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestForgeGetFileContent_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing file_path returns 400", "owner=myorg&repo=myrepo&commit_id=abc", 400},
+		{"missing commit_id returns 400", "owner=myorg&repo=myrepo&file_path=main.go", 400},
+		{"missing owner returns 400", "repo=myrepo&commit_id=abc&file_path=main.go", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/file-content", forgeGetFileContent)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGithubGetRepo_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing owner returns 400", "repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg", 400},
+		{"both missing returns 400", "", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/repo", githubGetRepo)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGithubGetIssue_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing number returns 400", "owner=myorg&repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg&number=1", 400},
+		{"missing owner returns 400", "repo=myrepo&number=1", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/issue", githubGetIssue)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGithubGetCommitDiff_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing commit_id returns 400", "owner=myorg&repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg&commit_id=abc", 400},
+		{"missing owner returns 400", "repo=myrepo&commit_id=abc", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/commit-diff", githubGetCommitDiff)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGithubGetFileContent_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing file_path returns 400", "owner=myorg&repo=myrepo&commit_id=abc", 400},
+		{"missing commit_id returns 400", "owner=myorg&repo=myrepo&file_path=main.go", 400},
+		{"missing owner returns 400", "repo=myrepo&commit_id=abc&file_path=main.go", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/file-content", githubGetFileContent)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGithubListReleases_Validation(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryStr   string
+		wantStatus int
+	}{
+		{"missing owner returns 400", "repo=myrepo", 400},
+		{"missing repo returns 400", "owner=myorg", 400},
+		{"both missing returns 400", "", 400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New(fiber.Config{
+				ErrorHandler: errorHandler,
+			})
+			app.Get("/releases", githubListReleases)
+			defer app.Shutdown()
+			req := httptest.NewRequest(fiber.MethodGet, "/releases?"+tt.queryStr, nil)
+			resp, _ := app.Test(req)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
 func TestGetRelations_Validation(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -87,5 +375,55 @@ func TestGetRelations_Validation(t *testing.T) {
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
+	}
+}
+
+func TestWebserviceRules_Combined(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should include all sub-module rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				expectedMin := len(hubWebserviceRules) +
+					len(bookmarkWebserviceRules) +
+					len(kanbanWebserviceRules) +
+					len(noteWebserviceRules) +
+					len(readerWebserviceRules) +
+					len(forgeWebserviceRules) +
+					len(githubWebserviceRules)
+				assert.GreaterOrEqual(t, len(webserviceRules), expectedMin)
+			},
+		},
+		{
+			name: "should be registered in Rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				rules := handler.Rules()
+				require.NotEmpty(t, rules)
+				found := false
+				for _, r := range rules {
+					if ws, ok := r.([]webservice.Rule); ok && len(ws) > 0 {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "webservice rules should be in Rules()")
+			},
+		},
+		{
+			name: "should contain forge and github rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, forgeWebserviceRules)
+				assert.NotEmpty(t, githubWebserviceRules)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
 	}
 }

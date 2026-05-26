@@ -118,6 +118,8 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, "kanban", kanbanWebserviceRules)
 	module.Webservice(app, "note", noteWebserviceRules)
 	module.Webservice(app, "reader", readerWebserviceRules)
+	module.Webservice(app, "forge", forgeWebserviceRules)
+	module.Webservice(app, "github", githubWebserviceRules)
 }
 
 func (moduleHandler) Rules() []any {

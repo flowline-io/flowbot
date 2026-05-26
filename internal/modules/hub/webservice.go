@@ -974,14 +974,361 @@ var readerWebserviceRules = []webservice.Rule{
 	webservice.Patch("/entries", updateEntriesStatus),
 }
 
+// --- Forge routes (registered under /service/forge) ---
+
+var forgeWebserviceRules = []webservice.Rule{
+	webservice.Get("/user", forgeGetUser),
+	webservice.Get("/repo", forgeGetRepo),
+	webservice.Get("/issues", forgeListIssues),
+	webservice.Get("/issue", forgeGetIssue),
+	webservice.Get("/commit-diff", forgeGetCommitDiff),
+	webservice.Get("/file-content", forgeGetFileContent),
+}
+
+func forgeGetUser(ctx fiber.Ctx) error {
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetUser, nil)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func forgeGetRepo(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	if owner == "" || repo == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner and repo query params are required")
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetRepo, map[string]any{
+		"owner": owner,
+		"repo":  repo,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func forgeListIssues(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	if owner == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner query param is required")
+	}
+
+	params := map[string]any{"owner": owner}
+	if v := ctx.Query("state"); v != "" {
+		params["state"] = v
+	}
+	if v := ctx.Query("limit"); v != "" {
+		if err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				params["limit"] = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeListIssues, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func forgeGetIssue(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	indexStr := ctx.Query("index")
+	if owner == "" || repo == "" || indexStr == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo and index query params are required")
+	}
+	index, err := strconv.ParseInt(indexStr, 10, 64)
+	if err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid index: %v", err)
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetIssue, map[string]any{
+		"owner": owner,
+		"repo":  repo,
+		"index": index,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func forgeGetCommitDiff(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	commitID := ctx.Query("commit_id")
+	if owner == "" || repo == "" || commitID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo and commit_id query params are required")
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetCommitDiff, map[string]any{
+		"owner":     owner,
+		"repo":      repo,
+		"commit_id": commitID,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func forgeGetFileContent(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	commitID := ctx.Query("commit_id")
+	filePath := ctx.Query("file_path")
+	if owner == "" || repo == "" || commitID == "" || filePath == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo, commit_id and file_path query params are required")
+	}
+
+	params := map[string]any{
+		"owner":     owner,
+		"repo":      repo,
+		"commit_id": commitID,
+		"file_path": filePath,
+	}
+	if v := ctx.Query("line_start"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			params["line_start"] = n
+		}
+	}
+	if v := ctx.Query("line_count"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			params["line_count"] = n
+		}
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetFileContent, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+// --- GitHub routes (registered under /service/github) ---
+
+var githubWebserviceRules = []webservice.Rule{
+	webservice.Get("/user", githubGetUser),
+	webservice.Get("/user/:login", githubGetUserByLogin),
+	webservice.Get("/repo", githubGetRepo),
+	webservice.Get("/issues", githubListIssues),
+	webservice.Get("/issue", githubGetIssue),
+	webservice.Get("/commit-diff", githubGetCommitDiff),
+	webservice.Get("/file-content", githubGetFileContent),
+	webservice.Get("/notifications", githubListNotifications),
+	webservice.Get("/releases", githubListReleases),
+}
+
+func githubGetUser(ctx fiber.Ctx) error {
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUser, nil)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubGetUserByLogin(ctx fiber.Ctx) error {
+	login := ctx.Params("login")
+	if login == "" {
+		return types.Errorf(types.ErrInvalidArgument, "login path param is required")
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUserByLogin, map[string]any{
+		"login": login,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubGetRepo(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	if owner == "" || repo == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner and repo query params are required")
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetRepo, map[string]any{
+		"owner": owner,
+		"repo":  repo,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubListIssues(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	if owner == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner query param is required")
+	}
+
+	params := map[string]any{"owner": owner}
+	if v := ctx.Query("state"); v != "" {
+		params["state"] = v
+	}
+	if v := ctx.Query("limit"); v != "" {
+		if err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				params["limit"] = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListIssues, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubGetIssue(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	numberStr := ctx.Query("number")
+	if owner == "" || repo == "" || numberStr == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo and number query params are required")
+	}
+	number, err := strconv.ParseInt(numberStr, 10, 64)
+	if err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid number: %v", err)
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetIssue, map[string]any{
+		"owner":  owner,
+		"repo":   repo,
+		"number": number,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubGetCommitDiff(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	commitID := ctx.Query("commit_id")
+	if owner == "" || repo == "" || commitID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo and commit_id query params are required")
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetCommitDiff, map[string]any{
+		"owner":     owner,
+		"repo":      repo,
+		"commit_id": commitID,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubGetFileContent(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	commitID := ctx.Query("commit_id")
+	filePath := ctx.Query("file_path")
+	if owner == "" || repo == "" || commitID == "" || filePath == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner, repo, commit_id and file_path query params are required")
+	}
+
+	params := map[string]any{
+		"owner":     owner,
+		"repo":      repo,
+		"commit_id": commitID,
+		"file_path": filePath,
+	}
+	if v := ctx.Query("line_start"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			params["line_start"] = n
+		}
+	}
+	if v := ctx.Query("line_count"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			params["line_count"] = n
+		}
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetFileContent, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubListNotifications(ctx fiber.Ctx) error {
+	params := map[string]any{}
+	if v := ctx.Query("limit"); v != "" {
+		if err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				params["limit"] = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListNotifications, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
+func githubListReleases(ctx fiber.Ctx) error {
+	owner := ctx.Query("owner")
+	repo := ctx.Query("repo")
+	if owner == "" || repo == "" {
+		return types.Errorf(types.ErrInvalidArgument, "owner and repo query params are required")
+	}
+
+	params := map[string]any{
+		"owner": owner,
+		"repo":  repo,
+	}
+	if v := ctx.Query("limit"); v != "" {
+		if err := validate.ValidateVar(v, "gte=1,lte=100"); err == nil {
+			if n, err := strconv.Atoi(v); err == nil {
+				params["limit"] = n
+			}
+		}
+	}
+	if v := ctx.Query("cursor"); v != "" {
+		params["cursor"] = v
+	}
+
+	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListReleases, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res.Data))
+}
+
 // webserviceRules merges all sub-module webservice rule sets into a single
 // slice for registration via Rules().
-var webserviceRules = append(append(append(append(
+var webserviceRules = append(append(append(append(append(append(
 	hubWebserviceRules,
 	bookmarkWebserviceRules...),
 	kanbanWebserviceRules...),
 	noteWebserviceRules...),
-	readerWebserviceRules...)
+	readerWebserviceRules...),
+	forgeWebserviceRules...),
+	githubWebserviceRules...)
 
 func listFeeds(ctx fiber.Ctx) error {
 	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListFeeds, nil)
