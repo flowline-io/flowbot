@@ -165,20 +165,9 @@ The CLI is installed to `/usr/local/bin/flowbot`. Run `flowbot --help` to see av
 | Module       | Surface                                                        |
 | ------------ | -------------------------------------------------------------- |
 | **workflow** | DAG execution, job scheduling                                  |
-| **bookmark** | URL management via capability                                  |
-| **archive**  | Web archiving via capability                                   |
-| **reader**   | RSS/feed aggregation via capability                            |
-| **kanban**   | Task boards via capability                                     |
-| **finance**  | Bill tracking via capability                                   |
 | **hub**      | App lifecycle management                                       |
 | **notify**   | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
-| **dev**      | Debugging, testing, forms                                      |
-| **github**   | Issues, PRs                                                    |
-| **gitea**    | Repository management                                          |
-| **torrent**  | Transmission integration                                       |
-| **search**   | MeiliSearch                                                    |
 | **server**   | System operations                                              |
-| **user**     | Profiles, settings                                             |
 | **webhook**  | Inbound/outbound hooks                                         |
 
 ## Development
