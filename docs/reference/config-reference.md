@@ -19,9 +19,16 @@ Main application configuration file template for the Flowbot server. Covers:
 - LLM model configuration (OpenAI-compatible)
 - AI agent definitions
 - Homelab app scanner and endpoint/auth discovery
-- Platform integrations (Slack, Discord, Tailchat, Telegram)
+- Platform integrations (Slack, Discord, Tailchat)
+- Note: Telegram has a config struct but does not yet have a platform implementation (planned)
 - Bot module settings
 - Third-party vendor configurations
+- Notification gateway (Slack, Pushover, ntfy, Message Pusher)
+- Distributed tracing (OpenTelemetry)
+- Profiling (Pyroscope)
+- Ability invocation settings
+- Pipeline configuration
+- Development mode
 
 For details on the homelab discovery system, see [Homelab App Discovery](../user-guide/homelab-discovery.md).
 

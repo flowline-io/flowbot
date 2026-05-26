@@ -50,9 +50,9 @@ package "internal/platforms/ — Chat Platform Adapters" as PlatformLayer #E8EAF
 }
 
 ' =============================================================================
-' Bot Modules
+' Modules
 ' =============================================================================
-package "internal/modules/ — 20 Bot Modules" as BotModules #F3E5F5 {
+package "internal/modules/ — 20 Modules" as BotModules #F3E5F5 {
   [agent] as AgentMod
   [anki] as AnkiMod
   [archive] as ArchiveMod

@@ -170,8 +170,7 @@ description: >
 
 ## References
 
-- [Skill specification](../skill_spec.md) — Full format reference and
-  conventions for SKILL.md files.
+- Skill specification — SKILL.md format reference (coming soon)
 - [Composer skills code](../../cmd/composer/action/skills/skills.go) — The
   generator that produces these files.
 - [CLI commands](../../cmd/cli/command/) — The CLI command tree implementations.

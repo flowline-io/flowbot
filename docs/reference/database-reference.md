@@ -60,16 +60,16 @@ Full table schema is in [`schema.md`](./schema.md).
 - `parameter` — Temporary parameter storage
 - `instruct` — Instruction records
 
-### Pipeline & Session
+### Pipeline System
 
-- `pipelines` — Pipeline execution records
-- `session` — Pipeline session state
+- `pipeline_definitions` — Pipeline definition records
+- `pipeline_runs` — Pipeline execution runs
+- `pipeline_step_runs` — Pipeline step execution records
 
 ### Analytics
 
 - `behavior` — User behavior statistics
 - `counters` / `counter_records` — Counter system
-- `action` — Action tracking
 
 ### Other
 

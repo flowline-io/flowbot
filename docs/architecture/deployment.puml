@@ -21,7 +21,7 @@ node "Host Machine (Linux)" as Host {
       [Fiber HTTP Server :8080] as FiberServer
       [Workflow Engine] as WFEngine
       [Pipeline Engine] as PipelineEngine
-      [Bot Modules (20)] as BotModules
+      [Modules] as BotModules
       [LLM Agents] as LLMAgents
       [PWA Frontend (WASM)] as PWA
     }

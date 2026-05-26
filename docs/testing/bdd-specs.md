@@ -36,21 +36,21 @@ tests/
 │   ├── bookmark_spec_test.go           # Bookmark module
 │   ├── database_spec_test.go           # Core database model CRUD
 │   ├── database_ext_spec_test.go       # Extended database model CRUD
-│   ├── dev_spec_test.go                # Dev module
 │   ├── event_spec_test.go              # DataEvent publish, consume, idempotency
+│   ├── example_spec_test.go            # Example module
 │   ├── gitea_spec_test.go              # Gitea module
 │   ├── github_spec_test.go             # GitHub module
 │   ├── health_spec_test.go             # Health checks + smoke tests
 │   ├── homelab_spec_test.go            # Homelab scanner
 │   ├── hub_spec_test.go                # Hub management
 │   ├── kanban_spec_test.go             # Kanban module
+│   ├── llm_spec_test.go                # LLM integration
 │   ├── notify_spec_test.go             # Notify module
 │   ├── pipeline_spec_test.go           # Pipeline engine
+│   ├── provider_event_source_spec_test.go # Provider event source
 │   ├── reader_spec_test.go             # Reader module
 │   ├── server_spec_test.go             # Server module
-│   ├── webhook_spec_test.go            # Webhook module
 │   └── workflow_spec_test.go           # Workflow module
-└── fixtures/                           # Shared test data files
 ```
 
 All files under `tests/specs/` use `//go:build integration` to prevent compilation during standard unit test runs.
@@ -372,7 +372,7 @@ The BDD step in `.github/workflows/testing.yml`:
   run: go tool task test:specs:ci
 
 - name: Upload BDD Report
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@v7
   if: always()
   with:
     name: specs-report
@@ -392,7 +392,7 @@ The BDD step in `.github/workflows/testing.yml`:
 
 ## Rules
 
-1. **New modules must include BDD specs** in `tests/specs/modules/<name>_spec_test.go`.
+1. **New modules must include BDD specs** in `tests/specs/<name>_spec_test.go`.
 2. **Existing unit tests are never migrated** to Ginkgo. The testify table-driven pattern is the standard for unit tests.
 3. **Use Labels** on every `Describe` container to enable targeted test execution.
 4. **BeforeEach for setup, It for assertions**. Never assert in container nodes.

@@ -39,10 +39,16 @@ go tool swag fmt -g cmd/main.go
 
 ## API Overview
 
-### Base URL
+### Base URL (Business Routes)
 
+Business routes are mounted under:
 ```
 http://localhost:6060/service
+```
+
+Top-level routes (health, metrics, oauth, hub management, webhook, form, agent, platform, pages) are registered at the root:
+```
+http://localhost:6060
 ```
 
 ### Authentication
@@ -55,13 +61,14 @@ X-AccessToken: <your-token>
 
 ### Main API Modules
 
-| Module     | Description                                       |
-| ---------- | ------------------------------------------------- |
-| `dev`      | Development and debugging                         |
-| `search`   | Full-text search (autocomplete, query)            |
-| `user`     | User data (bookmarks, dashboard, kanban, metrics) |
-| `server`   | Server management (stacktrace, uploads)           |
-| `workflow` | Workflow management                               |
+| Module     | Description                                                   |
+| ---------- | ------------------------------------------------------------- |
+| `hub`      | Hub management - app lifecycle, capabilities, health          |
+| `notify`   | Multi-channel notification management (Slack, Pushover, ...)  |
+| `server`   | Server management (stacktrace, uploads)                       |
+| `workflow` | Workflow management                                           |
+
+Additionally, modules like bookmark, kanban, reader are defined as abilities in the capability layer and mounted dynamically.
 
 ### Server Routes
 
@@ -72,11 +79,15 @@ X-AccessToken: <your-token>
 | `/startupz`              | GET    | Startup probe       |
 | `/metrics`               | GET    | Prometheus metrics  |
 | `/oauth/:provider/:flag` | ALL    | OAuth callbacks     |
-| `/webhook/:flag`         | ALL    | Webhook handler     |
+| POST /webhook/provider/* | POST    | Provider webhook handler |
 | `/platform/:platform`    | ALL    | Platform callbacks  |
 | `/form`                  | POST   | Form submissions    |
 | `/p/:id`                 | GET    | Page rendering      |
 | `/agent`                 | POST   | Agent data endpoint |
+| GET /page/:id/:flag       | GET    | Dynamic page rendering    |
+| `/hub/apps*`              | GET/POST | Hub management REST API |
+| `/hub/capabilities*`      | GET    | Capability listing        |
+| `/hub/health`             | GET    | Hub health check          |
 
 ### Bot Webservice Routes
 

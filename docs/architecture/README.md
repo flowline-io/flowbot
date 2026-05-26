@@ -29,9 +29,9 @@ plantuml docs/architecture/*.puml
 Layer 6 — External:        Users, Chat Platforms, Third-Party APIs
 Layer 5 — Platform:        Discord/Slack/Tailchat adapters
 Layer 4 — HTTP Gateway:    Fiber v3 server, REST API, auth middleware
-Layer 3 — Business Logic:  16 bot modules, workflow engine, pipeline engine, LLM
+Layer 3 — Business Logic:  5 modules, workflow engine, pipeline engine, LLM
 Layer 2 — Capability:      ability.Invoke() abstraction over providers
-Layer 1 — Providers:       16 third-party service integrations
+Layer 1 — Providers:       18 third-party service integrations
 Layer 0 — Infrastructure:  PostgreSQL, Redis, Docker executor
 ```
 
@@ -68,21 +68,21 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 | Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin |
 | Composer CLI | `cmd/composer/` | Code generation, schema docs, DAO generation  |
 
-### Bot Modules (16)
+### Modules (5)
 
-archive, bookmark, dev, finance, gitea, github, hub, kanban, notify, reader, search, server, torrent, user, webhook, workflow
+hub, notify, server, workflow
 
-### Providers (16)
+### Providers (18)
 
-adguard, archivebox, drone, dropbox, email, fireflyiii, gitea, github, kanboard, karakeep, miniflux, n8n, slack, slash, transmission, uptimekuma
+adguard, archivebox, drone, dropbox, email, fireflyiii, gitea, github, kanboard, karakeep, memos, miniflux, n8n, slack, slash, transmission, trilium, uptimekuma
 
 ### Notifications (4 channels)
 
-Slack, Pushover, ntfy, Message Pusher
+Slack, Pushover, ntfy, Message Pusher (with rules/ throttling/aggregation and template/ sub-packages)
 
-### Shared Packages (32)
+### Shared Packages (31)
 
-ability, alarm, auth, cache, client, config, crawler, event, executor, flog, homelab (with probe/ sub-package), hub, llm, locker, media, migrate, module, notify, page, parser, pipeline, providers, rdb, route, search, stats, types, utils, validate, workflow
+ability, auth, backoff, bulkhead, cache, client, config, event, executor, flog, homelab (with probe/ sub-package), hub, llm, media, metrics, module, notify, page, parser, pipeline, profiling, providers, rdb, recovery, route, stats, trace, types, utils, validate, workflow
 
 ### CI/CD (`.github/workflows/`)
 
@@ -93,3 +93,4 @@ ability, alarm, auth, cache, client, config, crawler, event, executor, flog, hom
 | `build_cli.yml` | Build CLI tools    |
 | `docker.yml`    | Build Docker image |
 | `release.yml`   | Release pipeline   |
+| `pages.yml`     | Publish website to GitHub Pages |
