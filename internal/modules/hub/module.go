@@ -123,11 +123,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
-		hubWebserviceRules,
-		bookmarkWebserviceRules,
-		kanbanWebserviceRules,
-		noteWebserviceRules,
-		readerWebserviceRules,
+		webserviceRules,
 		formRules,
 	}
 }

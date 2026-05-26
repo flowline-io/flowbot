@@ -974,6 +974,15 @@ var readerWebserviceRules = []webservice.Rule{
 	webservice.Patch("/entries", updateEntriesStatus),
 }
 
+// webserviceRules merges all sub-module webservice rule sets into a single
+// slice for registration via Rules().
+var webserviceRules = append(append(append(append(
+	hubWebserviceRules,
+	bookmarkWebserviceRules...),
+	kanbanWebserviceRules...),
+	noteWebserviceRules...),
+	readerWebserviceRules...)
+
 func listFeeds(ctx fiber.Ctx) error {
 	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListFeeds, nil)
 	if err != nil {
