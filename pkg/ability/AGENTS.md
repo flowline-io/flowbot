@@ -13,11 +13,9 @@ ability/
 ├── cursor.go                # Cursor encoding with per-adapter secrets
 ├── operations.go            # Operation constants + IsMutation() + Operations map
 ├── event_source.go          # WebhookConverter interface, PollingResource interface, PollResult
-├── poll_scheduler.go        # Poll scheduling infrastructure
-├── polling_state.go         # Per-resource poll state with cursor persistence
+├── poller.go                # Poll scheduling, state, and event source management
 ├── pool.go                  # Adapter pool for health/availability
-├── event_source_manager.go  # Orchestrates pollers and webhook hooks
-├── webhook_hook.go          # HTTP handler for webhook delivery
+├── webhook.go               # HTTP handler for webhook delivery
 ├── conformance/             # Shared conformance suites + helpers (one file per capability)
 │   ├── conformance.go       # CanceledContext, CursorSecret, TestTime, RequireListResult, ...
 │   ├── forge.go             # ForgeConfig + RunForgeConformance()

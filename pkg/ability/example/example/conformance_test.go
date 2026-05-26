@@ -42,6 +42,62 @@ func (w *conformanceWrapper) HealthCheck(ctx context.Context) (bool, error) {
 	return w.Adapter.HealthCheck(ctx)
 }
 
+func newFakeClientFromConfig(cfg conformance.ExampleConfig) *fakeClient {
+	c := &fakeClient{
+		getErr:    cfg.GetErr,
+		postErr:   cfg.CreateErr,
+		putErr:    cfg.UpdateErr,
+		deleteErr: cfg.DeleteErr,
+		statusErr: cfg.HealthErr,
+	}
+	if cfg.GetItem != nil {
+		c.getResp = &provider.Response{Title: cfg.GetItem.Name, Body: cfg.GetItem.Status}
+	}
+	if cfg.CreateItem != nil {
+		c.postResp = &provider.Response{ID: 101}
+	}
+	if cfg.UpdateItem != nil {
+		c.putResp = &provider.Response{Title: cfg.UpdateItem.Name, Body: cfg.UpdateItem.Status}
+	}
+	return c
+}
+
+func applyConditionalConfig(c *fakeClient, cfg conformance.ExampleConfig) {
+	if cfg.HealthOk {
+		c.statusResp = &provider.Response{}
+	}
+	if cfg.ListErr != nil {
+		c.getErr = cfg.ListErr
+	}
+	if cfg.CreateErr != nil {
+		c.postErr = cfg.CreateErr
+	}
+	if cfg.UpdateErr != nil {
+		c.putErr = cfg.UpdateErr
+	}
+	if cfg.DeleteErr != nil {
+		c.deleteErr = cfg.DeleteErr
+	}
+	if cfg.HealthErr != nil {
+		c.statusErr = cfg.HealthErr
+	}
+	if cfg.RawErr != nil {
+		c.listRawErr = cfg.RawErr
+	}
+	if cfg.RawItems != nil {
+		items := make([]map[string]any, 0, len(cfg.RawItems))
+		for _, item := range cfg.RawItems {
+			if m, ok := item.(map[string]any); ok {
+				items = append(items, m)
+			}
+		}
+		c.listRawResp = items
+	}
+	if cfg.RawCursor != "" {
+		c.listRawNext = cfg.RawCursor
+	}
+}
+
 func TestExampleConformance(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -53,55 +109,8 @@ func TestExampleConformance(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			conformance.RunExampleConformance(t, func(_ *testing.T, cfg conformance.ExampleConfig) exsvc.Service {
-				c := &fakeClient{
-					getErr:    cfg.GetErr,
-					postErr:   cfg.CreateErr,
-					putErr:    cfg.UpdateErr,
-					deleteErr: cfg.DeleteErr,
-					statusErr: cfg.HealthErr,
-				}
-				if cfg.GetItem != nil {
-					c.getResp = &provider.Response{Title: cfg.GetItem.Name, Body: cfg.GetItem.Status}
-				}
-				if cfg.CreateItem != nil {
-					c.postResp = &provider.Response{ID: 101}
-				}
-				if cfg.UpdateItem != nil {
-					c.putResp = &provider.Response{Title: cfg.UpdateItem.Name, Body: cfg.UpdateItem.Status}
-				}
-				if cfg.HealthOk {
-					c.statusResp = &provider.Response{}
-				}
-				if cfg.ListErr != nil {
-					c.getErr = cfg.ListErr
-				}
-				if cfg.CreateErr != nil {
-					c.postErr = cfg.CreateErr
-				}
-				if cfg.UpdateErr != nil {
-					c.putErr = cfg.UpdateErr
-				}
-				if cfg.DeleteErr != nil {
-					c.deleteErr = cfg.DeleteErr
-				}
-				if cfg.HealthErr != nil {
-					c.statusErr = cfg.HealthErr
-				}
-				if cfg.RawErr != nil {
-					c.listRawErr = cfg.RawErr
-				}
-				if cfg.RawItems != nil {
-					items := make([]map[string]any, 0, len(cfg.RawItems))
-					for _, item := range cfg.RawItems {
-						if m, ok := item.(map[string]any); ok {
-							items = append(items, m)
-						}
-					}
-					c.listRawResp = items
-				}
-				if cfg.RawCursor != "" {
-					c.listRawNext = cfg.RawCursor
-				}
+				c := newFakeClientFromConfig(cfg)
+				applyConditionalConfig(c, cfg)
 				a, ok := NewWithClient(c).(*Adapter)
 				if !ok {
 					t.Fatal("unexpected type")
