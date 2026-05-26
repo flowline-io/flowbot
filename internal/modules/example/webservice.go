@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/pkg/ability"
-	abilityexample "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -51,7 +50,7 @@ func getExampleItem(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleGet, map[string]any{"id": id})
+	res, err := ability.Invoke(context.Background(), hub.CapExample, ability.OpExampleGet, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -65,7 +64,7 @@ func getExampleItem(ctx fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{}
 //	@Router		/example/health [get]
 func healthExample(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleHealth, map[string]any{})
+	res, err := ability.Invoke(context.Background(), hub.CapExample, ability.OpExampleHealth, map[string]any{})
 	if err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 	if body.Title == "" {
 		return types.Errorf(types.ErrInvalidArgument, "title is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
+	res, err := ability.Invoke(context.Background(), hub.CapExample, ability.OpExampleCreate,
 		map[string]any{"title": body.Title, "tags": body.Tags})
 	if err != nil {
 		return err
@@ -111,7 +110,7 @@ func deleteExampleItem(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleDelete, map[string]any{"id": id})
+	res, err := ability.Invoke(context.Background(), hub.CapExample, ability.OpExampleDelete, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}

@@ -9,19 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// Capability is the example capability type constant.
-const Capability hub.CapabilityType = hub.CapExample
-
-// Example operation constants.
-const (
-	OpExampleList   = "list"
-	OpExampleGet    = "get"
-	OpExampleCreate = "create"
-	OpExampleUpdate = "update"
-	OpExampleDelete = "delete"
-	OpExampleHealth = "health"
-)
-
 // Descriptor returns the hub capability descriptor for the example capability.
 func Descriptor(backend, app string, svc Service) hub.Descriptor {
 	return hub.Descriptor{
@@ -32,12 +19,12 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: OpExampleList, Description: "List items", Scopes: []string{auth.ScopeServiceExampleRead}},
-			{Name: OpExampleGet, Description: "Get an item", Scopes: []string{auth.ScopeServiceExampleRead}},
-			{Name: OpExampleCreate, Description: "Create an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
-			{Name: OpExampleUpdate, Description: "Update an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
-			{Name: OpExampleDelete, Description: "Delete an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
-			{Name: OpExampleHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceExampleRead}},
+			{Name: ability.OpExampleList, Description: "List items", Scopes: []string{auth.ScopeServiceExampleRead}},
+			{Name: ability.OpExampleGet, Description: "Get an item", Scopes: []string{auth.ScopeServiceExampleRead}},
+			{Name: ability.OpExampleCreate, Description: "Create an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
+			{Name: ability.OpExampleUpdate, Description: "Update an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
+			{Name: ability.OpExampleDelete, Description: "Delete an item", Scopes: []string{auth.ScopeServiceExampleWrite}},
+			{Name: ability.OpExampleHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceExampleRead}},
 		},
 	}
 }
@@ -54,12 +41,12 @@ func RegisterService(backend, app string, svc Service) error {
 		operation string
 		invoker   ability.Invoker
 	}{
-		{operation: OpExampleList, invoker: invokeList(svc)},
-		{operation: OpExampleGet, invoker: invokeGet(svc)},
-		{operation: OpExampleCreate, invoker: invokeCreate(svc, backend)},
-		{operation: OpExampleUpdate, invoker: invokeUpdate(svc)},
-		{operation: OpExampleDelete, invoker: invokeDelete(svc)},
-		{operation: OpExampleHealth, invoker: invokeHealth(svc)},
+		{operation: ability.OpExampleList, invoker: invokeList(svc)},
+		{operation: ability.OpExampleGet, invoker: invokeGet(svc)},
+		{operation: ability.OpExampleCreate, invoker: invokeCreate(svc, backend)},
+		{operation: ability.OpExampleUpdate, invoker: invokeUpdate(svc)},
+		{operation: ability.OpExampleDelete, invoker: invokeDelete(svc)},
+		{operation: ability.OpExampleHealth, invoker: invokeHealth(svc)},
 	} {
 		if err := ability.RegisterInvoker(hub.CapExample, item.operation, item.invoker); err != nil {
 			return err

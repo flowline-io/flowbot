@@ -10,6 +10,14 @@ import (
 // All ability operations are defined here to avoid import namespace conflicts
 // with internal/modules packages.
 var Operations = map[hub.CapabilityType]map[string]string{
+	hub.CapExample: {
+		"List":   "list",
+		"Get":    "get",
+		"Create": "create",
+		"Update": "update",
+		"Delete": "delete",
+		"Health": "health",
+	},
 	hub.CapBookmark: {
 		"List":       "list",
 		"Get":        "get",
@@ -93,6 +101,16 @@ func Op(capType hub.CapabilityType, key string) string {
 	}
 	return ""
 }
+
+// Example operations as package-level constants.
+const (
+	OpExampleList   = "list"
+	OpExampleGet    = "get"
+	OpExampleCreate = "create"
+	OpExampleUpdate = "update"
+	OpExampleDelete = "delete"
+	OpExampleHealth = "health"
+)
 
 // Bookmark operations as package-level constants for direct use.
 const (

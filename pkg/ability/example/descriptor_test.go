@@ -70,12 +70,12 @@ func TestDescriptor_Operations(t *testing.T) {
 		opName string
 		wantOp string
 	}{
-		{name: "list operation", opName: "List", wantOp: OpExampleList},
-		{name: "get operation", opName: "Get", wantOp: OpExampleGet},
-		{name: "create operation", opName: "Create", wantOp: OpExampleCreate},
-		{name: "update operation", opName: "Update", wantOp: OpExampleUpdate},
-		{name: "delete operation", opName: "Delete", wantOp: OpExampleDelete},
-		{name: "health operation", opName: "Health", wantOp: OpExampleHealth},
+		{name: "list operation", opName: "List", wantOp: ability.OpExampleList},
+		{name: "get operation", opName: "Get", wantOp: ability.OpExampleGet},
+		{name: "create operation", opName: "Create", wantOp: ability.OpExampleCreate},
+		{name: "update operation", opName: "Update", wantOp: ability.OpExampleUpdate},
+		{name: "delete operation", opName: "Delete", wantOp: ability.OpExampleDelete},
+		{name: "health operation", opName: "Health", wantOp: ability.OpExampleHealth},
 	}
 	desc := Descriptor("example", "app", mockService{})
 	ops := make(map[string]hub.Operation, len(desc.Operations))
