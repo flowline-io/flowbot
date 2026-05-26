@@ -49,8 +49,6 @@ func TestDefaultRestyClient(t *testing.T) {
 }
 
 func TestDefaultRestyClientTimeout(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		timeout     time.Duration
