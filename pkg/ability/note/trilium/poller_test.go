@@ -1,4 +1,4 @@
-package note
+package trilium
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	"github.com/flowline-io/flowbot/pkg/ability"
 )
 
@@ -17,7 +18,7 @@ type fakeNotePollerService struct {
 	err    error
 }
 
-func (*fakeNotePollerService) List(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Note], error) {
+func (*fakeNotePollerService) List(_ context.Context, _ *notesvc.ListQuery) (*ability.ListResult[ability.Note], error) {
 	return nil, nil
 }
 func (*fakeNotePollerService) Get(_ context.Context, _ string) (*ability.Note, error) { return nil, nil }
@@ -27,9 +28,9 @@ func (*fakeNotePollerService) Create(_ context.Context, _, _, _, _ string) (*abi
 func (*fakeNotePollerService) Update(_ context.Context, _, _, _ string) (*ability.Note, error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) Delete(_ context.Context, _ string) error               { return nil }
-func (*fakeNotePollerService) GetContent(_ context.Context, _ string) (string, error)  { return "", nil }
-func (*fakeNotePollerService) SetContent(_ context.Context, _, _ string) error         { return nil }
+func (*fakeNotePollerService) Delete(_ context.Context, _ string) error            { return nil }
+func (*fakeNotePollerService) GetContent(_ context.Context, _ string) (string, error) { return "", nil }
+func (*fakeNotePollerService) SetContent(_ context.Context, _, _ string) error      { return nil }
 func (*fakeNotePollerService) Search(_ context.Context, _ string) (*ability.ListResult[ability.Note], error) {
 	return nil, nil
 }
@@ -40,25 +41,25 @@ func (f *fakeNotePollerService) ListRawEvents(_ context.Context, _ string) ([]an
 
 func TestNotePoller_ResourceName(t *testing.T) {
 	t.Parallel()
-	p := NewNotePoller(&fakeNotePollerService{})
+	p := NewPollerWithService(&fakeNotePollerService{})
 	assert.Equal(t, "note/events", p.ResourceName())
 }
 
 func TestNotePoller_DefaultInterval(t *testing.T) {
 	t.Parallel()
-	p := NewNotePoller(&fakeNotePollerService{})
+	p := NewPollerWithService(&fakeNotePollerService{})
 	assert.Equal(t, 120*time.Second, p.DefaultInterval())
 }
 
 func TestNotePoller_CursorField(t *testing.T) {
 	t.Parallel()
-	p := NewNotePoller(&fakeNotePollerService{})
+	p := NewPollerWithService(&fakeNotePollerService{})
 	assert.Equal(t, "cursor", p.CursorField())
 }
 
 func TestNotePoller_DiffKey(t *testing.T) {
 	t.Parallel()
-	p := NewNotePoller(&fakeNotePollerService{})
+	p := NewPollerWithService(&fakeNotePollerService{})
 	tests := []struct {
 		name string
 		item any
@@ -79,7 +80,7 @@ func TestNotePoller_DiffKey(t *testing.T) {
 
 func TestNotePoller_ContentHash(t *testing.T) {
 	t.Parallel()
-	p := NewNotePoller(&fakeNotePollerService{})
+	p := NewPollerWithService(&fakeNotePollerService{})
 	tests := []struct {
 		name string
 		a    any
@@ -149,7 +150,7 @@ func TestNotePoller_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			p := NewNotePoller(tt.svc)
+			p := NewPollerWithService(tt.svc)
 			result, err := p.List(context.Background(), tt.cursor)
 			if tt.wantErr {
 				assert.Error(t, err)
