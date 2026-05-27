@@ -22,7 +22,7 @@ providers/
 - **Reference implementation**: When creating or modifying a provider, reference `pkg/providers/example/` for file structure, naming, and code style.
 - Configure via `flowbot.yaml` under `providers.<name>`.
 - OAuth providers implement `GetAuthorizeURL` / `GetAccessToken`. See `example/example.go` for the complete OAuth reference.
-- Register new providers in the provider list.
+- Export a `Register()` function that calls `providers.RegisterOAuthProvider(ID, factory)` and wire it via `fx.Invoke` in `internal/server/providers.go`.
 - Constructor pattern: `GetClient()` reads config via `providers.GetConfig()` then calls `NewXxx()`. See `example/example.go` for the full pattern.
 
 ## Rules
