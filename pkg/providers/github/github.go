@@ -20,8 +20,9 @@ const (
 	ClientIdKey     = "id"
 	ClientSecretKey = "secret"
 	EndpointKey     = "endpoint"
-	TokenKey        = "token"
-	TokenPrefix     = "token"
+	TokenKey         = "token"
+	TokenPrefix      = "token"
+	WebhookSecretKey = "webhook_secret"
 
 	JSONAccept = "application/vnd.github.v3+json"
 )
@@ -59,6 +60,15 @@ func GetClient() *Github {
 	id, _ := providers.GetConfig(ID, ClientIdKey)
 	secret, _ := providers.GetConfig(ID, ClientSecretKey)
 	return NewGithub(id.String(), secret.String(), "", "")
+}
+
+// GetWebhookSecret reads the webhook HMAC secret from the github provider config.
+func GetWebhookSecret() string {
+	sec, err := providers.GetConfig(ID, WebhookSecretKey)
+	if err != nil {
+		return ""
+	}
+	return sec.String()
 }
 
 func (v *Github) GetAuthorizeURL(state string) string {
