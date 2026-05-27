@@ -38,6 +38,18 @@ func TestSameStringSlice(t *testing.T) {
 			y:    []string{},
 			want: false,
 		},
+		{
+			name: "nil slices",
+			x:    nil,
+			y:    nil,
+			want: true,
+		},
+		{
+			name: "duplicate mismatch",
+			x:    []string{"a", "a"},
+			y:    []string{"a", "b"},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -90,17 +90,29 @@ func TestDescriptor_Operations(t *testing.T) {
 	}
 }
 
-func TestRegisterService_NilService(t *testing.T) {
+func TestRegisterService(t *testing.T) {
+	t.Parallel()
+	s := mockService{}
 	tests := []struct {
-		name string
-		svc  Service
+		name    string
+		backend string
+		app     string
+		svc     Service
+		wantErr bool
 	}{
-		{name: "nil service returns error", svc: nil},
+		{name: "nil service", backend: "example", app: "app1", svc: nil, wantErr: true},
+		{name: "valid service", backend: "example", app: "app1", svc: s, wantErr: false},
+		{name: "empty backend with valid service", backend: "", app: "app1", svc: s, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := RegisterService("example", "app1", tt.svc)
-			assert.Error(t, err)
+			t.Parallel()
+			err := RegisterService(tt.backend, tt.app, tt.svc)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

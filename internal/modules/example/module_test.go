@@ -16,17 +16,23 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
-func TestBotName(t *testing.T) {
+func TestModuleProperties(t *testing.T) {
 	tests := []struct {
-		name     string
-		expected string
+		name string
+		test func(t *testing.T)
 	}{
-		{name: "should equal example", expected: "example"},
+		{name: "Name should equal example", test: func(t *testing.T) {
+			assert.Equal(t, "example", Name)
+		}},
+		{name: "Name should not be empty", test: func(t *testing.T) {
+			assert.NotEmpty(t, Name)
+		}},
+		{name: "handler should embed module.Base", test: func(t *testing.T) {
+			assert.Implements(t, (*module.Handler)(nil), &handler)
+		}},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, Name)
-		})
+		t.Run(tt.name, tt.test)
 	}
 }
 
@@ -69,14 +75,12 @@ func TestInit(t *testing.T) {
 	}
 }
 
-func TestCommandRules_Defined(t *testing.T) {
+func TestRules_Validity(t *testing.T) {
 	tests := []struct {
 		name string
+		test func(t *testing.T)
 	}{
-		{name: "should contain all expected command defines"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		{name: "command rules should contain all expected defines", test: func(t *testing.T) {
 			assert.NotEmpty(t, commandRules)
 			defines := make(map[string]string)
 			for _, r := range commandRules {
@@ -86,33 +90,13 @@ func TestCommandRules_Defined(t *testing.T) {
 			assert.Contains(t, defines, "form test")
 			assert.Contains(t, defines, "page test")
 			assert.Contains(t, defines, "event test")
-		})
-	}
-}
-
-func TestCommandRules_HaveHandlers(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "all command rules should have non-nil handlers"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		}},
+		{name: "all command rules should have non-nil handlers", test: func(t *testing.T) {
 			for _, r := range commandRules {
 				assert.NotNil(t, r.Handler, "handler for %q should not be nil", r.Define)
 			}
-		})
-	}
-}
-
-func TestFormRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should define example_form rule with title, fields, and handler"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		}},
+		{name: "form rules should define example_form rule", test: func(t *testing.T) {
 			assert.NotEmpty(t, formRules)
 			found := false
 			for _, r := range formRules {
@@ -124,67 +108,30 @@ func TestFormRules_Defined(t *testing.T) {
 				}
 			}
 			assert.True(t, found, "example_form rule should be defined")
-		})
-	}
-}
-
-func TestPageRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should contain example page"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		}},
+		{name: "page rules should contain example page", test: func(t *testing.T) {
 			assert.NotEmpty(t, pageRules)
 			ids := make(map[string]bool)
 			for _, r := range pageRules {
 				ids[r.Id] = true
 			}
 			assert.True(t, ids["example"])
-		})
-	}
-}
-
-func TestWebserviceRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should not be empty"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		}},
+		{name: "webservice rules should not be empty", test: func(t *testing.T) {
 			assert.NotEmpty(t, webserviceRules)
-		})
-	}
-}
-
-func TestRules_ReturnsAllRulesets(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should return 5 rulesets"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		}},
+		{name: "webhook rules should not be empty", test: func(t *testing.T) {
+			assert.NotEmpty(t, webhookRules)
+		}},
+		{name: "Rules() should return all 5 rulesets", test: func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
 			assert.Len(t, rules, 5)
-		})
-	}
-}
-
-func TestWebhookRules_Defined(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{name: "should not be empty"},
+		}},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotEmpty(t, webhookRules)
-		})
+		t.Run(tt.name, tt.test)
 	}
 }
 

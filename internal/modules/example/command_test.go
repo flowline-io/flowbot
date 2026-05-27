@@ -44,6 +44,38 @@ func TestCommandRules_Metadata(t *testing.T) {
 				assert.NotEmpty(t, r.Help, "help for %q should not be empty", r.Define)
 			}
 		}},
+		{name: "id handler should generate unique UUIDs", test: func(t *testing.T) {
+			t.Parallel()
+			var idRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "id" {
+					idRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, idRule)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			tokens, _ := parser.ParseString("id")
+			results := make(map[string]bool)
+			for range 10 {
+				payload := idRule.Handler(ctx, tokens)
+				require.NotNil(t, payload)
+				msg, ok := payload.(types.TextMsg)
+				require.True(t, ok, "should be TextMsg")
+				assert.NotEmpty(t, msg.Text, "ID should not be empty")
+				assert.Greater(t, len(msg.Text), 10, "ID should be reasonably long")
+				results[msg.Text] = true
+			}
+			assert.GreaterOrEqual(t, len(results), 2, "should generate different UUIDs")
+		}},
+		{name: "unknown command should return nil result", test: func(t *testing.T) {
+			t.Parallel()
+			rs := command.Ruleset(commandRules)
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			result, err := rs.ProcessCommand(ctx, "unknown command xyz")
+			require.NoError(t, err)
+			assert.Nil(t, result)
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.test)
@@ -74,60 +106,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 			check, err := parser.SyntaxCheck(tt.define, tokens)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, check)
-		})
-	}
-}
-
-func TestCommandRules_IDHandler(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "should generate unique non-empty UUIDs"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			var idRule *command.Rule
-			for i := range commandRules {
-				if commandRules[i].Define == "id" {
-					idRule = &commandRules[i]
-					break
-				}
-			}
-			require.NotNil(t, idRule)
-			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-			tokens, _ := parser.ParseString("id")
-			results := make(map[string]bool)
-			for range 10 {
-				payload := idRule.Handler(ctx, tokens)
-				require.NotNil(t, payload)
-				msg, ok := payload.(types.TextMsg)
-				require.True(t, ok, "should be TextMsg")
-				assert.NotEmpty(t, msg.Text, "ID should not be empty")
-				assert.Greater(t, len(msg.Text), 10, "ID should be reasonably long")
-				results[msg.Text] = true
-			}
-			assert.GreaterOrEqual(t, len(results), 2, "should generate different UUIDs")
-		})
-	}
-}
-
-func TestCommandRules_ProcessCommand_Unknown(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "unknown command should return nil result"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			rs := command.Ruleset(commandRules)
-			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
-			result, err := rs.ProcessCommand(ctx, "unknown command xyz")
-			require.NoError(t, err)
-			assert.Nil(t, result)
 		})
 	}
 }

@@ -16,6 +16,12 @@ import (
 
 var _ = Describe("LLM Provider", Label("module", "llm", "smoke"), func() {
 
+	BeforeEach(func() {
+		llm.RegisterOpenAI()
+		llm.RegisterGemini()
+		llm.RegisterAnthropic()
+	})
+
 	Describe("provider factory", func() {
 		DescribeTable("creates correct provider type",
 			func(providerType, apiKey, baseURL string) {
