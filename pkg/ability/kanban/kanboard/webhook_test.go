@@ -40,7 +40,7 @@ func TestKanboardWebhook_VerifySignature(t *testing.T) {
 		{
 			name:    "valid token from query param",
 			token:   "test-token",
-			headers: map[string]string{"X-Query-token": "test-token"},
+			headers: map[string]string{"X-Query-Token": "test-token"},
 			wantErr: false,
 		},
 		{
@@ -52,19 +52,19 @@ func TestKanboardWebhook_VerifySignature(t *testing.T) {
 		{
 			name:    "invalid token",
 			token:   "test-token",
-			headers: map[string]string{"X-Query-token": "wrong-token"},
+			headers: map[string]string{"X-Query-Token": "wrong-token"},
 			wantErr: true,
 		},
 		{
 			name:    "empty configured token returns error",
 			token:   "",
-			headers: map[string]string{"X-Query-token": "test-token"},
+			headers: map[string]string{"X-Query-Token": "test-token"},
 			wantErr: true,
 		},
 		{
 			name:    "token in wrong header key",
 			token:   "test-token",
-			headers: map[string]string{"X-Query-key": "test-token"},
+			headers: map[string]string{"X-Query-Key": "test-token"},
 			wantErr: true,
 		},
 	}

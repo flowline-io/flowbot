@@ -42,7 +42,7 @@ func (w *KanboardWebhook) VerifySignature(headers map[string]string, _ []byte) e
 	if token == "" {
 		return types.Errorf(types.ErrUnauthorized, "webhook token not configured")
 	}
-	provided, ok := headers["X-Query-token"]
+	provided, ok := headers["X-Query-Token"]
 	if !ok {
 		return types.Errorf(types.ErrUnauthorized, "missing token query parameter")
 	}

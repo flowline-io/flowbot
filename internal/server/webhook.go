@@ -72,7 +72,7 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 
 		headers := make(map[string]string)
 		c.Request().Header.VisitAll(func(key, value []byte) {
-			headers[string(key)] = string(value)
+			headers[http.CanonicalHeaderKey(string(key))] = string(value)
 		})
 
 		body := c.Body()

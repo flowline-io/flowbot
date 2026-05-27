@@ -3,6 +3,7 @@ package ability
 import (
 	"context"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync"
@@ -806,5 +807,58 @@ func TestWebhookHandler_Success(t *testing.T) {
 				t.Errorf("status = %d, want %d", resp.StatusCode, fiber.StatusAccepted)
 			}
 		})
+	}
+}
+
+// TestWebhookHandler_LowercaseHeadersCanonicalized verifies that the
+// WebhookHandler canonicalizes HTTP header keys before passing them to
+// VerifySignature. This prevents 401 failures when reverse proxies normalize
+// header casing (Bug 1 - High).
+func TestWebhookHandler_LowercaseHeadersCanonicalized(t *testing.T) {
+	app := fiber.New()
+	mgr := NewEventSourceManager(nil, nil, nil)
+
+	var capturedHeaders map[string]string
+	mgr.RegisterWebhook(&stubWebhookConverterWithAuth{
+		path: "test/events",
+		verifyFn: func(headers map[string]string, _ []byte) error {
+			capturedHeaders = headers
+			if _, ok := headers["X-Test-Signature"]; !ok {
+				return errors.New("missing X-Test-Signature header")
+			}
+			return nil
+		},
+	})
+	app.Post("/webhook/provider/*", mgr.WebhookHandler())
+
+	// Submit a request where HTTP headers use mixed/lowercase casing to
+	// simulate the effect of reverse proxies that normalize casing.
+	// Go's net/http canonicalizes keys on Set/Add, so the raw map is
+	// assigned directly to preserve the lowercase originals.
+	req := httptest.NewRequest("POST", "/webhook/provider/test/events", strings.NewReader("body"))
+	req.Header = http.Header{
+		"x-test-signature": {"test-value"},
+		"x-another-header": {"other-value"},
+		"Content-Type":     {"application/json"},
+	}
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.StatusCode != fiber.StatusAccepted {
+		t.Errorf("status = %d, want %d", resp.StatusCode, fiber.StatusAccepted)
+	}
+	if capturedHeaders == nil {
+		t.Fatal("capturedHeaders is nil, verifyFn was never called")
+	}
+	if got := capturedHeaders["X-Test-Signature"]; got != "test-value" {
+		t.Errorf("X-Test-Signature = %q, want %q (lowercase x-test-signature should be canonicalized)", got, "test-value")
+	}
+	if got := capturedHeaders["X-Another-Header"]; got != "other-value" {
+		t.Errorf("X-Another-Header = %q, want %q (lowercase x-another-header should be canonicalized)", got, "other-value")
+	}
+	if got := capturedHeaders["Content-Type"]; got != "application/json" {
+		t.Errorf("Content-Type = %q, want %q (canonical key should not be altered)", got, "application/json")
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/http"
 	"sync"
 	"time"
 
@@ -374,10 +375,10 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 
 		headers := make(map[string]string)
 		c.Request().Header.VisitAll(func(key, value []byte) {
-			headers[string(key)] = string(value)
+			headers[http.CanonicalHeaderKey(string(key))] = string(value)
 		})
 		c.Request().URI().QueryArgs().VisitAll(func(key, value []byte) {
-			headers["X-Query-"+string(key)] = string(value)
+			headers[http.CanonicalHeaderKey("X-Query-"+string(key))] = string(value)
 		})
 
 		if err := converter.VerifySignature(headers, body); err != nil {
