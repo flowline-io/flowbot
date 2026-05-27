@@ -79,9 +79,8 @@ func (moduleHandler) Bootstrap() error {
 | `pkg/ability/example/example/adapter.go` | Remove `NewExamplePoller()` factory — poller is now self-contained in same package |
 | `pkg/ability/note/trilium/adapter.go` | Remove `NewNotePoller()` factory — poller is now self-contained in same package |
 | `internal/server/pipeline.go` | Remove example adapter import; remove `RegisterWebhook(exampleAdapter.NewExampleWebhook())` with TODO comment; remove `RegisterPolling(exampleAdapter.NewExamplePoller())` |
-| `internal/modules/hub/module.go` | Add service package-level vars; add poller registration calls in `Bootstrap()` |
+| `internal/modules/hub/module.go` | Add adapter imports; add poller registration calls in `Bootstrap()` |
 | `pkg/ability/AGENTS.md` | Update PollingResource section to reflect per-provider location and `NewPoller()` convention |
-| `internal/modules/example/module.go` | Register example poller in `Bootstrap()` |
 
 ## Key Design Decisions
 
@@ -89,9 +88,9 @@ func (moduleHandler) Bootstrap() error {
 
 Follows the `NewWebhook()` convention. Already namespaced by import (`karakeepAdapter.NewPoller()`), so prefix is unnecessary inside the adapter package.
 
-### Service references: package-level vars
+### Service creation: inline in constructor
 
-The hub module's `Init()` creates service instances as local variables. To make them available in `Bootstrap()` for poller registration, they are stored as package-level variables, matching the existing `rcStore` pattern in the same file.
+`NewPoller()` creates its own service instance internally via the adapter's `New()`. This matches the `NewWebhook()` pattern and avoids cross-package service reference passing. For testing, a `NewPollerWithService(svc Service)` variant accepts an injected service.
 
 ### Service interface: unchanged
 
