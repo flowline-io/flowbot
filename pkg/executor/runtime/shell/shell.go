@@ -26,7 +26,8 @@ const (
 	envVarPrefix = "REEXEC_"
 )
 
-func init() {
+// Register registers the shell reexec handler for self-reexecution.
+func Register() {
 	reexec.Register("shell", reexecRun)
 }
 
