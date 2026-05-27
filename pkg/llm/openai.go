@@ -15,7 +15,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-func init() {
+// RegisterOpenAI registers the OpenAI and OpenAI-compatible LLM providers.
+func RegisterOpenAI() {
 	register(ProviderOpenAI, newOpenAIProvider)
 	register(ProviderOpenAICompatible, newOpenAIProvider)
 }

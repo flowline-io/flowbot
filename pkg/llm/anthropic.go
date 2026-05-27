@@ -15,7 +15,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-func init() {
+// RegisterAnthropic registers the Anthropic LLM provider in the global provider registry.
+func RegisterAnthropic() {
 	register(ProviderAnthropic, newAnthropicProvider)
 }
 

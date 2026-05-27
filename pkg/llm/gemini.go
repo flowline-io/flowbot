@@ -15,7 +15,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
-func init() {
+// RegisterGemini registers the Gemini LLM provider in the global provider registry.
+func RegisterGemini() {
 	register(ProviderGemini, newGeminiProvider)
 }
 
