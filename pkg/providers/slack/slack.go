@@ -25,7 +25,8 @@ const (
 var _ providers.OAuthProvider = (*Slack)(nil)
 var _ providers.OAuthRefresher = (*Slack)(nil)
 
-func init() {
+// Register registers the Slack OAuth provider in the global provider registry.
+func Register() {
 	providers.RegisterOAuthProvider(ID, func() providers.OAuthProvider {
 		return GetClient()
 	})
