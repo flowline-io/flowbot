@@ -19,28 +19,24 @@ func TestTypeStruct(t *testing.T) {
 		cfg      Type
 		wantList string
 		wantApi  string
-		wantDev  bool
 	}{
 		{
 			name:     "populated fields",
-			cfg:      Type{Listen: ":8080", ApiPath: "/api/", DevMode: true},
+			cfg:      Type{Listen: ":8080", ApiPath: "/api/"},
 			wantList: ":8080",
 			wantApi:  "/api/",
-			wantDev:  true,
 		},
 		{
 			name:     "default api path",
 			cfg:      Type{},
 			wantList: "",
 			wantApi:  "",
-			wantDev:  false,
 		},
 		{
 			name:     "non-default port with trailing slash api",
-			cfg:      Type{Listen: ":3000", ApiPath: "/api/v2/", DevMode: false},
+			cfg:      Type{Listen: ":3000", ApiPath: "/api/v2/"},
 			wantList: ":3000",
 			wantApi:  "/api/v2/",
-			wantDev:  false,
 		},
 	}
 	for _, tt := range tests {
@@ -49,7 +45,6 @@ func TestTypeStruct(t *testing.T) {
 
 			assert.Equal(t, tt.wantList, tt.cfg.Listen)
 			assert.Equal(t, tt.wantApi, tt.cfg.ApiPath)
-			assert.Equal(t, tt.wantDev, tt.cfg.DevMode)
 		})
 	}
 
@@ -525,7 +520,7 @@ func TestTypeJSONMarshaling(t *testing.T) {
 	t.Run("marshal and unmarshal", func(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
-			Listen: ":9090", ApiPath: "/v1/", DevMode: false,
+			Listen: ":9090", ApiPath: "/v1/",
 			Store: StoreType{MaxResults: 50, UseAdapter: "mysql"},
 		}
 
