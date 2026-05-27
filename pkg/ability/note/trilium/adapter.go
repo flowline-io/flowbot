@@ -238,11 +238,6 @@ func (a *Adapter) ListRawEvents(ctx context.Context, cursor string) ([]any, stri
 	return result, next, nil
 }
 
-// NewNotePoller creates a NotePoller wired with a default adapter.
-func NewNotePoller() *notesvc.NotePoller {
-	return notesvc.NewNotePoller(New())
-}
-
 // normalizedLimit clamps the provided limit to a valid range.
 // Zero or negative values default to 50; values above MaxPageSize are capped.
 func normalizedLimit(limit int) int {
