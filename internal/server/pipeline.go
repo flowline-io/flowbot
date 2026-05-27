@@ -11,7 +11,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
-	exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -208,12 +207,6 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	if pool := ability.GetEventPool(); pool != nil {
 		srcMgr.SetPool(pool)
 	}
-
-	srcMgr.RegisterWebhook(exampleAdapter.NewExampleWebhook()) // TODO: refactor
-	flog.Info("event source: registered example webhook on /webhook/provider/example")
-
-	srcMgr.RegisterPolling(exampleAdapter.NewPoller())
-	flog.Info("event source: registered example poller")
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
