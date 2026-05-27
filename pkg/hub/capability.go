@@ -15,6 +15,7 @@ const (
 	CapForge        CapabilityType = "forge"
 	CapGithub       CapabilityType = "github"
 	CapNote         CapabilityType = "note"
+	CapMemo         CapabilityType = "memo"
 )
 
 type ParamDef struct {

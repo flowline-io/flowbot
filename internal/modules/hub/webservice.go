@@ -955,6 +955,87 @@ func invokeNote(ctx fiber.Ctx, operation string, params map[string]any) error {
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
+// --- Memo routes (registered under /service/memo) ---
+
+var memoWebserviceRules = []webservice.Rule{
+	webservice.Get("/", listMemos),
+	webservice.Get("/health", memoHealth),
+	webservice.Post("/", createMemo),
+	webservice.Patch("/", updateMemo),
+	webservice.Delete("/", deleteMemo),
+}
+
+func listMemos(ctx fiber.Ctx) error {
+	if name := ctx.Query("name"); name != "" {
+		return invokeMemo(ctx, ability.OpMemoGet, map[string]any{"name": name})
+	}
+	params := pageParams(ctx)
+	return invokeMemo(ctx, ability.OpMemoList, params)
+}
+
+func createMemo(ctx fiber.Ctx) error {
+	var body struct {
+		Content    string `json:"content"`
+		Visibility string `json:"visibility"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode memo request", err)
+	}
+	if body.Content == "" {
+		return types.Errorf(types.ErrInvalidArgument, "content is required")
+	}
+	return invokeMemo(ctx, ability.OpMemoCreate, map[string]any{
+		"content":    body.Content,
+		"visibility": body.Visibility,
+	})
+}
+
+func updateMemo(ctx fiber.Ctx) error {
+	name := ctx.Query("name")
+	if name == "" {
+		return types.Errorf(types.ErrInvalidArgument, "name query param is required")
+	}
+	var body struct {
+		Content    string `json:"content"`
+		Visibility string `json:"visibility"`
+		Pinned     *bool  `json:"pinned"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode memo update request", err)
+	}
+	params := map[string]any{"name": name}
+	if body.Content != "" {
+		params["content"] = body.Content
+	}
+	if body.Visibility != "" {
+		params["visibility"] = body.Visibility
+	}
+	if body.Pinned != nil {
+		params["pinned"] = *body.Pinned
+	}
+	return invokeMemo(ctx, ability.OpMemoUpdate, params)
+}
+
+func deleteMemo(ctx fiber.Ctx) error {
+	name := ctx.Query("name")
+	if name == "" {
+		return types.Errorf(types.ErrInvalidArgument, "name query param is required")
+	}
+	return invokeMemo(ctx, ability.OpMemoDelete, map[string]any{"name": name})
+}
+
+func memoHealth(ctx fiber.Ctx) error {
+	return invokeMemo(ctx, ability.OpMemoHealth, map[string]any{})
+}
+
+func invokeMemo(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := ability.Invoke(context.Background(), hub.CapMemo, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
 // --- Reader routes (registered under /service/reader) ---
 
 type createFeedRequest struct {
@@ -1321,14 +1402,15 @@ func githubListReleases(ctx fiber.Ctx) error {
 
 // webserviceRules merges all sub-module webservice rule sets into a single
 // slice for registration via Rules().
-var webserviceRules = append(append(append(append(append(append(
+var webserviceRules = append(append(append(append(append(append(append(
 	hubWebserviceRules,
 	bookmarkWebserviceRules...),
 	kanbanWebserviceRules...),
 	noteWebserviceRules...),
 	readerWebserviceRules...),
 	forgeWebserviceRules...),
-	githubWebserviceRules...)
+	githubWebserviceRules...),
+	memoWebserviceRules...)
 
 func listFeeds(ctx fiber.Ctx) error {
 	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListFeeds, nil)

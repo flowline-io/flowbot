@@ -91,6 +91,14 @@ var Operations = map[hub.CapabilityType]map[string]string{
 		"Search":     "search",
 		"GetAppInfo": "get_app_info",
 	},
+	hub.CapMemo: {
+		"List":   "list",
+		"Get":    "get",
+		"Create": "create",
+		"Update": "update",
+		"Delete": "delete",
+		"Health": "health",
+	},
 }
 
 // Op returns the string operation name for the given capability and operation key.
@@ -201,6 +209,16 @@ const (
 	OpNoteSetContent = "set_content"
 	OpNoteSearch     = "search"
 	OpNoteGetAppInfo = "get_app_info"
+)
+
+// Memo operations as package-level constants.
+const (
+	OpMemoList   = "list"
+	OpMemoGet    = "get"
+	OpMemoCreate = "create"
+	OpMemoUpdate = "update"
+	OpMemoDelete = "delete"
+	OpMemoHealth = "health"
 )
 
 var mutationVerbs = []string{

@@ -1,6 +1,6 @@
 // Package hub implements the hub management module providing chat commands
 // for health checks, app management, resource tag query endpoints, and
-// consolidated bookmark, github, kanban, note, and reader capabilities.
+// consolidated bookmark, github, kanban, memo, note, and reader capabilities.
 package hub
 
 import (
@@ -18,6 +18,8 @@ import (
 	giteaAdapter "github.com/flowline-io/flowbot/pkg/ability/forge/gitea"
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
 	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
+	abilitymemo "github.com/flowline-io/flowbot/pkg/ability/memo"
+	memosAdapter "github.com/flowline-io/flowbot/pkg/ability/memo/memos"
 	minifluxAdapter "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -85,6 +87,15 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return fmt.Errorf("register forge ability: %w", err)
 	}
 
+	// Register the memo capability with the Memos adapter
+	memoBackend := "memos"
+	memoSvc := memosAdapter.New()
+	if memoSvc != nil {
+		if err := abilitymemo.RegisterService(memoBackend, "", memoSvc); err != nil {
+			return fmt.Errorf("register memo ability: %w", err)
+		}
+	}
+
 	handler.initialized = true
 
 	return nil
@@ -109,6 +120,8 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered miniflux webhook on /webhook/provider/miniflux/events")
 	mgr.RegisterWebhook(giteaAdapter.NewGiteaWebhook())
 	flog.Info("hub: registered gitea webhook on /webhook/provider/gitea/events")
+	mgr.RegisterWebhook(memosAdapter.NewWebhook())
+	flog.Info("hub: registered memos webhook on /webhook/provider/memos/events")
 	return nil
 }
 
@@ -120,6 +133,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, "reader", readerWebserviceRules)
 	module.Webservice(app, "forge", forgeWebserviceRules)
 	module.Webservice(app, "github", githubWebserviceRules)
+	module.Webservice(app, "memo", memoWebserviceRules)
 }
 
 func (moduleHandler) Rules() []any {

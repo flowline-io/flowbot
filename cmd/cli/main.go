@@ -37,6 +37,7 @@ func main() {
 		command.ReaderCommand(),
 		command.ForgeCommand(),
 		command.GithubCommand(),
+		command.MemoCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)

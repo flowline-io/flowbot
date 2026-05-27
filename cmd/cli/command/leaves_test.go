@@ -20,6 +20,7 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "bookmark", fn: BookmarkCommand},
 		{name: "kanban", fn: KanbanCommand},
 		{name: "reader", fn: ReaderCommand},
+		{name: "memo", fn: MemoCommand},
 		{name: "config", fn: ConfigCommand},
 		{name: "version", fn: func() *cobra.Command { return VersionCommand("test") }},
 	}

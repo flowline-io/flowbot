@@ -124,6 +124,20 @@ type Release struct {
 	PublishedAt time.Time `json:"published_at,omitzero"`
 }
 
+// Memo represents a memo from a note-taking system such as Memos.
+type Memo struct {
+	Name       string    `json:"name"`
+	State      string    `json:"state,omitzero"`
+	Content    string    `json:"content,omitzero"`
+	Visibility string    `json:"visibility,omitzero"`
+	Tags       []string  `json:"tags,omitzero"`
+	Pinned     bool      `json:"pinned"`
+	Creator    string    `json:"creator,omitzero"`
+	Snippet    string    `json:"snippet,omitzero"`
+	CreateTime time.Time `json:"create_time,omitzero"`
+	UpdateTime time.Time `json:"update_time,omitzero"`
+}
+
 // Note represents a note from a note-taking system such as Trilium.
 type Note struct {
 	ID              string   `json:"id"`

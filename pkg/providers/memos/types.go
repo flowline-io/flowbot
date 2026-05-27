@@ -133,3 +133,12 @@ type LinkMetadata struct {
 	Description string `json:"description,omitempty"`
 	Image       string `json:"image,omitempty"`
 }
+
+// WebhookPayload is the request body sent by the Memos server to configured webhook URLs.
+// The server sends a JSON POST with the activity type, creator, and full memo object.
+type WebhookPayload struct {
+	URL          string `json:"url"`
+	ActivityType string `json:"activityType"`
+	Creator      string `json:"creator"`
+	Memo         Memo   `json:"memo"`
+}
