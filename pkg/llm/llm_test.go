@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/llm"
 )
 
 func init() {
@@ -24,5 +25,8 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
+	llm.RegisterGemini()
+	llm.RegisterOpenAI()
+	llm.RegisterAnthropic()
 	os.Exit(m.Run())
 }
