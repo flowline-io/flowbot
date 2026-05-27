@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	karakeepAdapter "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
+	exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
 	abilityforge "github.com/flowline-io/flowbot/pkg/ability/forge"
 	giteaAdapter "github.com/flowline-io/flowbot/pkg/ability/forge/gitea"
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
@@ -22,6 +23,7 @@ import (
 	abilitymemo "github.com/flowline-io/flowbot/pkg/ability/memo"
 	memosAdapter "github.com/flowline-io/flowbot/pkg/ability/memo/memos"
 	minifluxAdapter "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
+	triliumAdapter "github.com/flowline-io/flowbot/pkg/ability/note/trilium"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -125,6 +127,12 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered memos webhook on /webhook/provider/memos/events")
 	mgr.RegisterWebhook(kanboardAdapter.NewWebhook())
 	flog.Info("hub: registered kanboard webhook on /webhook/provider/kanboard/events")
+
+	// Pollers
+	mgr.RegisterPolling(exampleAdapter.NewPoller())
+	flog.Info("hub: registered example poller")
+	mgr.RegisterPolling(triliumAdapter.NewPoller())
+	flog.Info("hub: registered trilium note poller")
 	return nil
 }
 
