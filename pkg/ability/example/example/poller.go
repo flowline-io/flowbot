@@ -1,3 +1,4 @@
+// Package example implements the example provider adapter for the example capability.
 package example
 
 import (
@@ -6,19 +7,30 @@ import (
 	"fmt"
 	"time"
 
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // ExamplePoller implements ability.PollingResource for the example provider.
-// It demonstrates the polling pattern with cursor-based pagination and content hashing.
+// It polls the example provider for new and updated items via the example Service.
 type ExamplePoller struct {
-	svc     Service
+	svc     exsvc.Service
 	secret  []byte
 	nowFunc func() time.Time
 }
 
-// NewExamplePoller creates an ExamplePoller that uses the given Service for data fetching.
-func NewExamplePoller(svc Service) *ExamplePoller {
+// NewPoller creates an ExamplePoller backed by a default adapter.
+func NewPoller() ability.PollingResource {
+	return &ExamplePoller{
+		svc:     New(),
+		secret:  []byte("example-polling-secret-v1"),
+		nowFunc: time.Now,
+	}
+}
+
+// NewPollerWithService creates an ExamplePoller with a specific service, useful for testing.
+func NewPollerWithService(svc exsvc.Service) *ExamplePoller {
 	return &ExamplePoller{
 		svc:     svc,
 		secret:  []byte("example-polling-secret-v1"),
@@ -61,6 +73,9 @@ func (*ExamplePoller) CursorField() string {
 
 // List fetches a batch of items from the provider starting after the given cursor.
 func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) {
+	if err := ctx.Err(); err != nil {
+		return ability.PollResult{}, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
 	items, nextCursor, err := p.svc.ListRawEvents(ctx, cursor)
 	if err != nil {
 		return ability.PollResult{}, err
@@ -71,3 +86,6 @@ func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollRe
 		HasMore:    nextCursor != "",
 	}, nil
 }
+
+// Compile-time check that ExamplePoller implements ability.PollingResource.
+var _ ability.PollingResource = (*ExamplePoller)(nil)
