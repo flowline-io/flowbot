@@ -18,15 +18,18 @@ import (
 
 // agentAction handle agent message
 //
-// when action is types.Collect, it will call bot.Collect
-// when action is types.Pull, it will return list of instruct
-// when action is types.Ack, it will update instruct state to done
-// when action is types.Online, it will register agent
-// when action is types.Offline, it will update agent online duration
-func agentAction(uid types.Uid, data types.AgentData) (any, error) {
+// When action is types.Collect, it will call bot.Collect
+// When action is types.Pull, it will return list of instruct
+// When action is types.Ack, it will update instruct state to done
+// When action is types.Online, it will register agent
+// When action is types.Offline, it will update agent online duration
+//
+// eventCtx carries trace context from the HTTP request or event pipeline.
+func agentAction(eventCtx context.Context, uid types.Uid, data types.AgentData) (any, error) {
 	ctx := types.Context{
 		AsUser: uid,
 	}
+	ctx.SetContext(eventCtx)
 	switch data.Action {
 	case types.PullAction:
 		return handlePullAction(ctx, uid)

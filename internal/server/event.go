@@ -143,10 +143,10 @@ func onPlatformMessageEventHandler(msg *message.Message) error {
 	onlineStatus(pe)
 	// check grp or p2p
 	if strings.HasSuffix(pe.DetailType, ".direct") {
-		directIncomingMessage(caller, pe)
+		directIncomingMessage(msg.Context(), caller, pe)
 	}
 	if strings.HasSuffix(pe.DetailType, ".group") {
-		groupIncomingMessage(caller, pe)
+		groupIncomingMessage(msg.Context(), caller, pe)
 	}
 
 	return nil

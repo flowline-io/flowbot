@@ -23,7 +23,9 @@ import (
 //
 // It will register the user and channel if they don't already exist, then
 // dispatch the message to the appropriate handler based on the content.
-func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
+//
+// eventCtx carries trace context from the consuming Watermill router middleware.
+func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
@@ -45,6 +47,7 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Id:     e.Id,
 		AsUser: uid,
 	}
+	ctx.SetContext(eventCtx)
 	ctx.SetTimeout(10 * time.Minute)
 
 	findPlatform, err := store.Database.GetPlatformByName(ctx.Context(), msg.Self.Platform)
@@ -126,7 +129,9 @@ func directIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 // channel as a message.
 //
 // If no bot returns a payload, a default message will be sent.
-func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
+//
+// eventCtx carries trace context from the consuming Watermill router middleware.
+func groupIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e protocol.Event) {
 	msg, ok := e.Data.(protocol.MessageEventData)
 	if !ok {
 		return
@@ -149,6 +154,7 @@ func groupIncomingMessage(caller *platforms.Caller, e protocol.Event) {
 		Topic:  topic,
 		AsUser: uid,
 	}
+	ctx.SetContext(eventCtx)
 	flog.Debug("context: %+v", ctx)
 
 	// behavior

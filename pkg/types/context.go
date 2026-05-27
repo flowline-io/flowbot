@@ -44,11 +44,33 @@ type Context struct {
 	Headers map[string][]string
 }
 
+// Context returns the underlying context.Context.
+//
+// Priority: c.ctx (set by SetTimeout or SetContext) > c.TraceCtx > context.Background().
+// This ensures that trace context from HTTP requests is not silently dropped when SetTimeout
+// has not been called.
 func (c *Context) Context() context.Context {
-	if c.ctx == nil {
-		return context.Background()
+	if c.ctx != nil {
+		return c.ctx
 	}
-	return c.ctx
+	if c.TraceCtx != nil {
+		return c.TraceCtx
+	}
+	return context.Background()
+}
+
+// SetContext stores ctx as both the internal context and the trace context.
+// Use this when you have a traced context (e.g., from an HTTP request or event message)
+// but do not yet need a deadline.
+func (c *Context) SetContext(ctx context.Context) {
+	c.TraceCtx = ctx
+	c.ctx = ctx
+}
+
+// SetTraceContext stores traceCtx in the TraceCtx field without modifying the internal context.
+// Call this before SetTimeout to ensure the timeout context inherits the trace parent.
+func (c *Context) SetTraceContext(traceCtx context.Context) {
+	c.TraceCtx = traceCtx
 }
 
 func (c *Context) SetTimeout(timeout time.Duration) {

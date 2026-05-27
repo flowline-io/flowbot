@@ -211,8 +211,8 @@ func (*Controller) renderPage(ctx fiber.Ctx) error {
 		Topic:      topic,
 		AsUser:     types.Uid(uid),
 		PageRuleId: pageRuleId,
-		TraceCtx:   ctx.Context(),
 	}
+	typesCtx.SetContext(ctx.Context())
 
 	_, botHandler := module.FindRuleAndHandler[pageRule.Rule](pageRuleId, module.List())
 
@@ -279,8 +279,8 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 		AsUser:     types.Uid(uid),
 		FormId:     formData.FormID,
 		FormRuleId: formMsg.ID,
-		TraceCtx:   ctx.Context(),
 	}
+	botCtx.SetContext(ctx.Context())
 
 	if botHandler != nil {
 		if !botHandler.IsReady() {
@@ -391,7 +391,7 @@ func (*Controller) agentData(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	result, err := agentAction(uid, data)
+	result, err := agentAction(ctx.Context(), uid, data)
 	if err != nil {
 		flog.Error(err)
 		return protocol.ErrBadParam.Wrap(err)
