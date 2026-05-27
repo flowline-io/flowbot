@@ -83,7 +83,14 @@ Three wiring files added under `internal/server/`, mirroring existing `notify.go
 | Selective per-test registration| Not possible                                       | `llm.RegisterOpenAI()` in test body            |
 | Test isolation                 | Order-dependent, tests leak registrations to others| Each test controls its own registrations       |
 
-Existing tests that depend on `init()` side effects need one-line additions (`llm.RegisterXXX()` in `TestMain` or test bodies).
+Two test files depend on `init()` side effects and need explicit `Register()` calls in `TestMain`:
+
+| File                             | Fix                                                    |
+| -------------------------------- | ------------------------------------------------------ |
+| `pkg/llm/provider_test.go`      | Add `llm.RegisterGemini|OpenAI|Anthropic()` in TestMain |
+| `pkg/llm/client_test.go`        | Same as above                                          |
+
+Other tests (e.g. `pkg/ability/github/github/adapter_test.go`) import provider packages only for type references and use fake clients — no change needed.
 
 ## Error Handling
 
@@ -93,7 +100,7 @@ Existing tests that depend on `init()` side effects need one-line additions (`ll
 
 | Risk                                    | Mitigation                                            |
 | --------------------------------------- | ----------------------------------------------------- |
-| Missing `Register()` call in wiring     | Server startup panics on first use, caught in dev/CI  |
+| Missing `Register()` call in wiring     | Server fails on first use with provider-not-found error, caught in dev/CI |
 | Forgetting `Register()` in existing test| Test fails with "unknown provider", easy to diagnose  |
 | Concurrent registration in tests        | Registry RWMutex already in place, no change needed   |
 | Auto-generated files using init()       | `internal/store/ent/gen/` and `docs/api/docs.go` not in scope |
