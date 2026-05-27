@@ -50,6 +50,16 @@ func setAuthHeader(header http.Header, username, password string) {
 	header.Set("Authorization", fmt.Sprintf("Basic %s", buf.String()))
 }
 
+// GetWebhookToken reads the webhook token from the kanboard provider config.
+// The token is passed as a query parameter in Kanboard webhook URLs.
+func GetWebhookToken() string {
+	tok, err := providers.GetConfig(ID, WebhookTokenKey)
+	if err != nil {
+		return ""
+	}
+	return tok.String()
+}
+
 func GetClient() (*Kanboard, error) {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
 	username, _ := providers.GetConfig(ID, UsernameKey)

@@ -18,6 +18,7 @@ import (
 	giteaAdapter "github.com/flowline-io/flowbot/pkg/ability/forge/gitea"
 	abilitygithub "github.com/flowline-io/flowbot/pkg/ability/github"
 	githubadapter "github.com/flowline-io/flowbot/pkg/ability/github/github"
+	kanboardAdapter "github.com/flowline-io/flowbot/pkg/ability/kanban/kanboard"
 	abilitymemo "github.com/flowline-io/flowbot/pkg/ability/memo"
 	memosAdapter "github.com/flowline-io/flowbot/pkg/ability/memo/memos"
 	minifluxAdapter "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
@@ -122,6 +123,8 @@ func (moduleHandler) Bootstrap() error {
 	flog.Info("hub: registered gitea webhook on /webhook/provider/gitea/events")
 	mgr.RegisterWebhook(memosAdapter.NewWebhook())
 	flog.Info("hub: registered memos webhook on /webhook/provider/memos/events")
+	mgr.RegisterWebhook(kanboardAdapter.NewWebhook())
+	flog.Info("hub: registered kanboard webhook on /webhook/provider/kanboard/events")
 	return nil
 }
 

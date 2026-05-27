@@ -53,7 +53,10 @@ const (
 	EventReaderEntryRead    = "reader.entry.read"
 
 	EventKanbanTaskCreated   = "kanban.task.created"
+	EventKanbanTaskUpdated   = "kanban.task.updated"
 	EventKanbanTaskCompleted = "kanban.task.completed"
+	EventKanbanTaskOpened   = "kanban.task.opened"
+	EventKanbanTaskMoved    = "kanban.task.moved"
 
 	EventInfraHostDown = "infra.host.down"
 	EventInfraHostUp   = "infra.host.up"
