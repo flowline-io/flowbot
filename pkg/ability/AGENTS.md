@@ -214,22 +214,37 @@ func (*Webhook) Convert(body []byte, headers map[string]string) ([]types.DataEve
 
 ### PollingResource (Optional)
 
-When a provider lacks webhooks, implement `ability.PollingResource`:
+When a provider lacks webhooks, implement `ability.PollingResource` in the adapter directory alongside `adapter.go` and `webhook.go`:
 
 ```go
-// pkg/ability/example/poller.go
-type ExamplePoller struct { svc Service; secret []byte }
+// pkg/ability/<capability>/<backend>/poller.go
+type NotePoller struct {
+	svc     notesvc.Service
+	secret  []byte
+	nowFunc func() time.Time
+}
 
-func (*ExamplePoller) ResourceName() string { ... }
-func (*ExamplePoller) DefaultInterval() time.Duration { ... }
-func (*ExamplePoller) DiffKey(item any) string { ... }
-func (*ExamplePoller) ContentHash(item any) string { ... }
-func (*ExamplePoller) CursorField() string { ... }
-func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
+// NewPoller creates a poller backed by a default adapter.
+func NewPoller() ability.PollingResource {
+	return &NotePoller{svc: New(), ...}
+}
+
+// NewPollerWithService creates a poller with a specific service, useful for testing.
+func NewPollerWithService(svc notesvc.Service) *NotePoller {
+	return &NotePoller{svc: svc, ...}
+}
+
+func (*NotePoller) ResourceName() string { ... }
+func (*NotePoller) DefaultInterval() time.Duration { ... }
+func (*NotePoller) DiffKey(item any) string { ... }
+func (*NotePoller) ContentHash(item any) string { ... }
+func (*NotePoller) CursorField() string { ... }
+func (p *NotePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
 ```
 
+- Include `var _ ability.PollingResource = (*NotePoller)(nil)` for compile-time safety.
 - `Service` should expose a `ListRawEvents` method that the poller delegates to.
-- Register via `ability.EventSourceManager.RegisterPollingResource()`.
+- Register via `ability.EventSourceManager.RegisterPolling()` in the hub module's `Bootstrap()` alongside webhook converters.
 
 ### Conformance Tests
 
