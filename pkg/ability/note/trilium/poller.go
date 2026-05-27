@@ -1,4 +1,5 @@
-package note
+// Package trilium implements the Trilium adapter for the note capability.
+package trilium
 
 import (
 	"context"
@@ -6,20 +7,30 @@ import (
 	"fmt"
 	"time"
 
+	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // NotePoller implements ability.PollingResource for the note capability.
-// It polls Trilium (or other note backends) for new and updated notes.
+// It polls Trilium for new and updated notes.
 type NotePoller struct {
-	svc     Service
+	svc     notesvc.Service
 	secret  []byte
 	nowFunc func() time.Time
 }
 
-// NewNotePoller creates a NotePoller that uses the given Service for data fetching.
-func NewNotePoller(svc Service) *NotePoller {
+// NewPoller creates a NotePoller backed by a default adapter.
+func NewPoller() ability.PollingResource {
+	return &NotePoller{
+		svc:     New(),
+		secret:  []byte("note-polling-secret-v1"),
+		nowFunc: time.Now,
+	}
+}
+
+// NewPollerWithService creates a NotePoller with a specific service, useful for testing.
+func NewPollerWithService(svc notesvc.Service) *NotePoller {
 	return &NotePoller{
 		svc:     svc,
 		secret:  []byte("note-polling-secret-v1"),
@@ -38,7 +49,6 @@ func (*NotePoller) DefaultInterval() time.Duration {
 }
 
 // DiffKey returns the unique identifier for an item, used for change detection.
-// Trilium's ListRawEvents returns items with a "noteId" field.
 func (*NotePoller) DiffKey(item any) string {
 	if m, ok := item.(map[string]any); ok {
 		if id, ok := m["noteId"].(string); ok {
