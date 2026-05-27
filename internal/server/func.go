@@ -14,11 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 
-	// OAuth provider registration — these blank imports trigger init() which
-	// self-registers each provider in the providers.OAuthProvider registry.
-	_ "github.com/flowline-io/flowbot/pkg/providers/dropbox"
-	_ "github.com/flowline-io/flowbot/pkg/providers/github"
-	_ "github.com/flowline-io/flowbot/pkg/providers/slack"
+
 )
 
 var cacheStore *cache.RedisStore

@@ -48,12 +48,12 @@ type OAuthRefresher interface {
 type OAuthProviderFactory func() OAuthProvider
 
 // oauthRegistry holds the registered OAuth provider factories keyed by
-// provider name. Providers self-register via RegisterOAuthProvider in
-// their init() functions.
+// provider name. Providers register via RegisterOAuthProvider through
+// their exported Register() function.
 var oauthRegistry = map[string]OAuthProviderFactory{}
 
 // RegisterOAuthProvider registers a provider factory under the given name.
-// It is typically called from a provider package's init() function.
+// It is typically called from a provider package's exported Register() function.
 func RegisterOAuthProvider(name string, factory OAuthProviderFactory) {
 	oauthRegistry[name] = factory
 }
