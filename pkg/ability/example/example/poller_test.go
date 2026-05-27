@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -21,7 +22,7 @@ type fakePollerService struct {
 func (*fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, error) {
 	return nil, nil
 }
-func (*fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
+func (*fakePollerService) ListItems(_ context.Context, _ *exsvc.ListQuery) (*ability.ListResult[ability.Host], error) {
 	return nil, nil
 }
 func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) {
@@ -38,25 +39,25 @@ func (f *fakePollerService) ListRawEvents(_ context.Context, _ string) ([]any, s
 
 func TestExamplePoller_ResourceName(t *testing.T) {
 	t.Parallel()
-	p := NewExamplePoller(&fakePollerService{})
+	p := NewPollerWithService(&fakePollerService{})
 	assert.Equal(t, "example/events", p.ResourceName())
 }
 
 func TestExamplePoller_DefaultInterval(t *testing.T) {
 	t.Parallel()
-	p := NewExamplePoller(&fakePollerService{})
+	p := NewPollerWithService(&fakePollerService{})
 	assert.Equal(t, 60*time.Second, p.DefaultInterval())
 }
 
 func TestExamplePoller_CursorField(t *testing.T) {
 	t.Parallel()
-	p := NewExamplePoller(&fakePollerService{})
+	p := NewPollerWithService(&fakePollerService{})
 	assert.Equal(t, "cursor", p.CursorField())
 }
 
 func TestExamplePoller_DiffKey(t *testing.T) {
 	t.Parallel()
-	p := NewExamplePoller(&fakePollerService{})
+	p := NewPollerWithService(&fakePollerService{})
 	tests := []struct {
 		name string
 		item any
@@ -77,7 +78,7 @@ func TestExamplePoller_DiffKey(t *testing.T) {
 
 func TestExamplePoller_ContentHash(t *testing.T) {
 	t.Parallel()
-	p := NewExamplePoller(&fakePollerService{})
+	p := NewPollerWithService(&fakePollerService{})
 	tests := []struct {
 		name string
 		a    any
@@ -142,7 +143,7 @@ func TestExamplePoller_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			p := NewExamplePoller(tt.svc)
+			p := NewPollerWithService(tt.svc)
 			result, err := p.List(context.Background(), tt.cursor)
 			if tt.wantErr {
 				assert.Error(t, err)

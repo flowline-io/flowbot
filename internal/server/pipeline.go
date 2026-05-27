@@ -212,7 +212,7 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	srcMgr.RegisterWebhook(exampleAdapter.NewExampleWebhook()) // TODO: refactor
 	flog.Info("event source: registered example webhook on /webhook/provider/example")
 
-	srcMgr.RegisterPolling(exampleAdapter.NewExamplePoller())
+	srcMgr.RegisterPolling(exampleAdapter.NewPoller())
 	flog.Info("event source: registered example poller")
 
 	lc.Append(fx.Hook{
