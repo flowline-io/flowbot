@@ -14,21 +14,21 @@ import (
 // Fields set to non-nil/non-zero values become the fake responses; zero values
 // produce empty/default success responses.
 type MemoConfig struct {
-	ListItems        []*ability.Memo
-	ListNextCursor   string
-	ListErr          error
-	GetItem          *ability.Memo
-	GetErr           error
-	CreateItem       *ability.Memo
-	CreateErr        error
-	UpdateItem       *ability.Memo
-	UpdateErr        error
-	DeleteErr        error
-	HealthOk         bool
-	HealthErr        error
-	RawItems         []any
-	RawCursor        string
-	RawErr           error
+	ListItems      []*ability.Memo
+	ListNextCursor string
+	ListErr        error
+	GetItem        *ability.Memo
+	GetErr         error
+	CreateItem     *ability.Memo
+	CreateErr      error
+	UpdateItem     *ability.Memo
+	UpdateErr      error
+	DeleteErr      error
+	HealthOk       bool
+	HealthErr      error
+	RawItems       []any
+	RawCursor      string
+	RawErr         error
 }
 
 // MemoServiceFactory creates a fresh memo Service wired to a fake backend

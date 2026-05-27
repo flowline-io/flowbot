@@ -15,13 +15,13 @@ import (
 
 func newFakeClientFromConformanceConfig(cfg conformance.MemoConfig) *fakeClient {
 	c := &fakeClient{
-		getErr:           cfg.GetErr,
-		listErr:          cfg.ListErr,
-		createErr:        cfg.CreateErr,
-		updateErr:        cfg.UpdateErr,
-		deleteErr:        cfg.DeleteErr,
+		getErr:            cfg.GetErr,
+		listErr:           cfg.ListErr,
+		createErr:         cfg.CreateErr,
+		updateErr:         cfg.UpdateErr,
+		deleteErr:         cfg.DeleteErr,
 		getCurrentUserErr: cfg.HealthErr,
-		listRawErr:       cfg.RawErr,
+		listRawErr:        cfg.RawErr,
 	}
 	if cfg.GetItem != nil {
 		c.getResp = toProviderMemo(cfg.GetItem)

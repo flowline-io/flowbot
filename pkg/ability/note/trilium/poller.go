@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 

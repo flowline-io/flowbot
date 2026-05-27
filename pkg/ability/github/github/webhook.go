@@ -135,9 +135,9 @@ func (*GithubWebhook) Convert(body []byte, headers map[string]string) ([]types.D
 
 // pushPayload is the subset of GitHub push webhook payload used by this converter.
 type pushPayload struct {
-	Ref        string          `json:"ref"`
-	After      string          `json:"after"`
-	Repository repositoryRef   `json:"repository"`
+	Ref        string        `json:"ref"`
+	After      string        `json:"after"`
+	Repository repositoryRef `json:"repository"`
 }
 
 // issuePayload is the subset of GitHub issues webhook payload used by this converter.

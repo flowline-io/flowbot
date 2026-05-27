@@ -22,8 +22,8 @@ func (*mockMemoService) Create(_ context.Context, _, _ string) (*ability.Memo, e
 func (*mockMemoService) Update(_ context.Context, _ string, _ map[string]any) (*ability.Memo, error) {
 	return nil, nil
 }
-func (*mockMemoService) Delete(_ context.Context, _ string) error              { return nil }
-func (*mockMemoService) HealthCheck(_ context.Context) (bool, error)           { return true, nil }
+func (*mockMemoService) Delete(_ context.Context, _ string) error    { return nil }
+func (*mockMemoService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 func (*mockMemoService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
 	return nil, "", nil
 }

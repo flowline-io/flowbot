@@ -117,9 +117,9 @@ func TestConvert(t *testing.T) {
 func TestConvert_EventType(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
+		name         string
 		activityType string
-		wantOp      string
+		wantOp       string
 	}{
 		{name: "created event", activityType: "memos.memo.created", wantOp: "created"},
 		{name: "updated event", activityType: "memos.memo.updated", wantOp: "updated"},

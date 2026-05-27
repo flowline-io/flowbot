@@ -136,4 +136,3 @@ func (a *Adapter) ListRawEvents(ctx context.Context, cursor string) ([]any, stri
 	}
 	return result, next, nil
 }
-

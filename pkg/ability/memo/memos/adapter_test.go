@@ -15,20 +15,20 @@ import (
 
 // fakeClient implements the client interface for testing.
 type fakeClient struct {
-	createResp       *provider.Memo
-	createErr        error
-	getResp          *provider.Memo
-	getErr           error
-	listResp         *provider.ListMemosResponse
-	listErr          error
-	updateResp       *provider.Memo
-	updateErr        error
-	deleteErr        error
-	getCurrentUser   *provider.User
+	createResp        *provider.Memo
+	createErr         error
+	getResp           *provider.Memo
+	getErr            error
+	listResp          *provider.ListMemosResponse
+	listErr           error
+	updateResp        *provider.Memo
+	updateErr         error
+	deleteErr         error
+	getCurrentUser    *provider.User
 	getCurrentUserErr error
-	listRawItems     []map[string]any
-	listRawCursor    string
-	listRawErr       error
+	listRawItems      []map[string]any
+	listRawCursor     string
+	listRawErr        error
 }
 
 func (f *fakeClient) CreateMemo(_ context.Context, _, _ string) (*provider.Memo, error) {
@@ -341,9 +341,9 @@ func TestAdapter_HealthCheck(t *testing.T) {
 			want:   true,
 		},
 		{
-			name:    "unhealthy on provider error",
-			client:  &fakeClient{getCurrentUserErr: assert.AnError},
-			want:    false,
+			name:   "unhealthy on provider error",
+			client: &fakeClient{getCurrentUserErr: assert.AnError},
+			want:   false,
 		},
 	}
 	for _, tt := range tests {

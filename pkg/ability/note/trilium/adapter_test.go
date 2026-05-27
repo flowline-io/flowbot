@@ -14,20 +14,20 @@ import (
 
 // fakeClient implements the client interface for testing.
 type fakeClient struct {
-	createResp       *provider.NoteWithBranch
-	createErr        error
-	getResp          *provider.Note
-	getErr           error
-	patchResp        *provider.Note
-	patchErr         error
-	deleteErr        error
-	searchResp       *provider.SearchResponse
-	searchErr        error
-	getContentResp   string
-	getContentErr    error
-	updateContentErr error
-	appInfoResp      *provider.AppInfo
-	appInfoErr       error
+	createResp        *provider.NoteWithBranch
+	createErr         error
+	getResp           *provider.Note
+	getErr            error
+	patchResp         *provider.Note
+	patchErr          error
+	deleteErr         error
+	searchResp        *provider.SearchResponse
+	searchErr         error
+	getContentResp    string
+	getContentErr     error
+	updateContentErr  error
+	appInfoResp       *provider.AppInfo
+	appInfoErr        error
 	listRawEventsResp []map[string]any
 	listRawEventsNext string
 	listRawEventsErr  error

@@ -12,25 +12,25 @@ import (
 
 // NoteConfig configures the fake backend for each note conformance subtest.
 type NoteConfig struct {
-	ListItems   []*ability.Note
-	ListErr     error
-	GetItem     *ability.Note
-	GetErr      error
-	CreateItem  *ability.Note
-	CreateErr   error
-	UpdateItem  *ability.Note
-	UpdateErr   error
-	DeleteErr   error
-	Content     string
-	ContentErr  error
+	ListItems     []*ability.Note
+	ListErr       error
+	GetItem       *ability.Note
+	GetErr        error
+	CreateItem    *ability.Note
+	CreateErr     error
+	UpdateItem    *ability.Note
+	UpdateErr     error
+	DeleteErr     error
+	Content       string
+	ContentErr    error
 	SetContentErr error
-	SearchItems []*ability.Note
-	SearchErr   error
-	AppInfo     *ability.Note
-	AppInfoErr  error
-	RawItems    []any
-	RawCursor   string
-	RawErr      error
+	SearchItems   []*ability.Note
+	SearchErr     error
+	AppInfo       *ability.Note
+	AppInfoErr    error
+	RawItems      []any
+	RawCursor     string
+	RawErr        error
 }
 
 // NoteServiceFactory creates a fresh note Service wired to a fake backend

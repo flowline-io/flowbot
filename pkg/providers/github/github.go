@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	ID              = "github"
-	ClientIdKey     = "id"
-	ClientSecretKey = "secret"
-	EndpointKey     = "endpoint"
+	ID               = "github"
+	ClientIdKey      = "id"
+	ClientSecretKey  = "secret"
+	EndpointKey      = "endpoint"
 	TokenKey         = "token"
 	TokenPrefix      = "token"
 	WebhookSecretKey = "webhook_secret"

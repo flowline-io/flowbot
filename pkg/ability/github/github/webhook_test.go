@@ -292,7 +292,7 @@ func TestGithubWebhook_Convert_PushEntityID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			w := NewGithubWebhook()
-			body := []byte(fmt.Sprintf(`{"ref":"refs/heads/main","repository":{"full_name":"%s"},"after":"%s"}`, tt.fullName, tt.after))
+			body := fmt.Appendf(nil, `{"ref":"refs/heads/main","repository":{"full_name":"%s"},"after":"%s"}`, tt.fullName, tt.after)
 			headers := map[string]string{
 				"X-GitHub-Event":    "push",
 				"X-GitHub-Delivery": "delivery",

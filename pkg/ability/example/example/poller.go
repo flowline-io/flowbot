@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 

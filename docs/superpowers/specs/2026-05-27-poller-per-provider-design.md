@@ -54,33 +54,33 @@ func (moduleHandler) Bootstrap() error {
 
 ### New files
 
-| File | Purpose |
-|------|---------|
-| `pkg/ability/example/example/poller.go` | Relocated ExamplePoller (was `pkg/ability/example/poller.go`) |
-| `pkg/ability/example/example/poller_test.go` | Relocated poller tests |
-| `pkg/ability/note/trilium/poller.go` | Relocated NotePoller (was `pkg/ability/note/poller.go`) |
-| `pkg/ability/note/trilium/poller_test.go` | Relocated poller tests |
+| File                                         | Purpose                                                       |
+| -------------------------------------------- | ------------------------------------------------------------- |
+| `pkg/ability/example/example/poller.go`      | Relocated ExamplePoller (was `pkg/ability/example/poller.go`) |
+| `pkg/ability/example/example/poller_test.go` | Relocated poller tests                                        |
+| `pkg/ability/note/trilium/poller.go`         | Relocated NotePoller (was `pkg/ability/note/poller.go`)       |
+| `pkg/ability/note/trilium/poller_test.go`    | Relocated poller tests                                        |
 
 ### Deleted files
 
-| File | Purpose |
-|------|---------|
-| `pkg/ability/example/poller.go` | Moved to `pkg/ability/example/example/poller.go` |
+| File                                 | Purpose                                               |
+| ------------------------------------ | ----------------------------------------------------- |
+| `pkg/ability/example/poller.go`      | Moved to `pkg/ability/example/example/poller.go`      |
 | `pkg/ability/example/poller_test.go` | Moved to `pkg/ability/example/example/poller_test.go` |
-| `pkg/ability/note/poller.go` | Moved to `pkg/ability/note/trilium/poller.go` |
-| `pkg/ability/note/poller_test.go` | Moved to `pkg/ability/note/trilium/poller_test.go` |
+| `pkg/ability/note/poller.go`         | Moved to `pkg/ability/note/trilium/poller.go`         |
+| `pkg/ability/note/poller_test.go`    | Moved to `pkg/ability/note/trilium/poller_test.go`    |
 
 ### Modified files
 
-| File | Change |
-|------|--------|
-| `pkg/ability/example/example/poller.go` | Package `example` → adapter package; `NewExamplePoller()` → `NewPoller()`; compile-time check imports `ability.PollingResource` |
-| `pkg/ability/note/trilium/poller.go` | Package `note` → `trilium`; `NewNotePoller()` → `NewPoller()`; imports `note.Service` interface |
-| `pkg/ability/example/example/adapter.go` | Remove `NewExamplePoller()` factory — poller is now self-contained in same package |
-| `pkg/ability/note/trilium/adapter.go` | Remove `NewNotePoller()` factory — poller is now self-contained in same package |
-| `internal/server/pipeline.go` | Remove example adapter import; remove `RegisterWebhook(exampleAdapter.NewExampleWebhook())` with TODO comment; remove `RegisterPolling(exampleAdapter.NewExamplePoller())` |
-| `internal/modules/hub/module.go` | Add adapter imports; add poller registration calls in `Bootstrap()` |
-| `pkg/ability/AGENTS.md` | Update PollingResource section to reflect per-provider location and `NewPoller()` convention |
+| File                                     | Change                                                                                                                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pkg/ability/example/example/poller.go`  | Package `example` → adapter package; `NewExamplePoller()` → `NewPoller()`; compile-time check imports `ability.PollingResource`                                            |
+| `pkg/ability/note/trilium/poller.go`     | Package `note` → `trilium`; `NewNotePoller()` → `NewPoller()`; imports `note.Service` interface                                                                            |
+| `pkg/ability/example/example/adapter.go` | Remove `NewExamplePoller()` factory — poller is now self-contained in same package                                                                                         |
+| `pkg/ability/note/trilium/adapter.go`    | Remove `NewNotePoller()` factory — poller is now self-contained in same package                                                                                            |
+| `internal/server/pipeline.go`            | Remove example adapter import; remove `RegisterWebhook(exampleAdapter.NewExampleWebhook())` with TODO comment; remove `RegisterPolling(exampleAdapter.NewExamplePoller())` |
+| `internal/modules/hub/module.go`         | Add adapter imports; add poller registration calls in `Bootstrap()`                                                                                                        |
+| `pkg/ability/AGENTS.md`                  | Update PollingResource section to reflect per-provider location and `NewPoller()` convention                                                                               |
 
 ## Key Design Decisions
 

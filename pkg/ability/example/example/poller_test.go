@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 

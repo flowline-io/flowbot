@@ -13,6 +13,7 @@
 ### Task 1: Relocate ExamplePoller to adapter directory
 
 **Files:**
+
 - Create: `pkg/ability/example/example/poller.go`
 - Delete: `pkg/ability/example/poller.go`
 
@@ -139,6 +140,7 @@ git add -A && git commit -m "refactor: relocate ExamplePoller to adapter directo
 ### Task 2: Relocate ExamplePoller tests to adapter directory
 
 **Files:**
+
 - Create: `pkg/ability/example/example/poller_test.go`
 - Delete: `pkg/ability/example/poller_test.go`
 
@@ -332,6 +334,7 @@ git add -A && git commit -m "refactor: relocate ExamplePoller tests to adapter d
 ### Task 3: Relocate NotePoller to adapter directory
 
 **Files:**
+
 - Create: `pkg/ability/note/trilium/poller.go`
 - Delete: `pkg/ability/note/poller.go`
 
@@ -458,6 +461,7 @@ git add -A && git commit -m "refactor: relocate NotePoller to trilium adapter di
 ### Task 4: Relocate NotePoller tests to adapter directory
 
 **Files:**
+
 - Create: `pkg/ability/note/trilium/poller_test.go`
 - Delete: `pkg/ability/note/poller_test.go`
 
@@ -658,6 +662,7 @@ git add -A && git commit -m "refactor: relocate NotePoller tests to trilium adap
 ### Task 5: Remove poller factory from example adapter
 
 **Files:**
+
 - Modify: `pkg/ability/example/example/adapter.go`
 
 - [ ] **Step 1: Remove NewExamplePoller function**
@@ -711,6 +716,7 @@ git add -A && git commit -m "refactor: remove old poller factories from adapters
 ### Task 6: Clean up pipeline.go
 
 **Files:**
+
 - Modify: `internal/server/pipeline.go`
 
 - [ ] **Step 1: Remove example adapter import and hardcoded registrations**
@@ -718,17 +724,20 @@ git add -A && git commit -m "refactor: remove old poller factories from adapters
 Edit `internal/server/pipeline.go`:
 
 Remove the import (line 14):
+
 ```go
 exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
 ```
 
 Remove the webhook registration with TODO comment (lines 212-213):
+
 ```go
 srcMgr.RegisterWebhook(exampleAdapter.NewExampleWebhook()) // TODO: refactor
 flog.Info("event source: registered example webhook on /webhook/provider/example")
 ```
 
 Remove the poller registration (lines 215-216):
+
 ```go
 srcMgr.RegisterPolling(exampleAdapter.NewExamplePoller())
 flog.Info("event source: registered example poller")
@@ -753,11 +762,13 @@ git add -A && git commit -m "refactor: remove hardcoded webhook and poller regis
 ### Task 7: Register pollers in hub module Bootstrap()
 
 **Files:**
+
 - Modify: `internal/modules/hub/module.go`
 
 - [ ] **Step 1: Add adapter imports and poller registration**
 
 Add the following imports to `internal/modules/hub/module.go`:
+
 ```go
 exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
 triliumAdapter "github.com/flowline-io/flowbot/pkg/ability/note/trilium"
@@ -792,6 +803,7 @@ git add -A && git commit -m "feat: register pollers in hub module Bootstrap alon
 ### Task 8: Update AGENTS.md
 
 **Files:**
+
 - Modify: `pkg/ability/AGENTS.md`
 
 - [ ] **Step 1: Update PollingResource section**
@@ -799,7 +811,8 @@ git add -A && git commit -m "feat: register pollers in hub module Bootstrap alon
 Replace lines 215-232 (the PollingResource section) with updated content that reflects per-provider location:
 
 Replace:
-```markdown
+
+````markdown
 ### PollingResource (Optional)
 
 When a provider lacks webhooks, implement `ability.PollingResource`:
@@ -815,10 +828,12 @@ func (*ExamplePoller) ContentHash(item any) string { ... }
 func (*ExamplePoller) CursorField() string { ... }
 func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
 ```
+````
 
 - `Service` should expose a `ListRawEvents` method that the poller delegates to.
 - Register via `ability.EventSourceManager.RegisterPollingResource()`.
-```
+
+````
 
 With:
 ```markdown
@@ -850,18 +865,19 @@ func (*NotePoller) DiffKey(item any) string { ... }
 func (*NotePoller) ContentHash(item any) string { ... }
 func (*NotePoller) CursorField() string { ... }
 func (p *NotePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
-```
+````
 
 - Include `var _ ability.PollingResource = (*NotePoller)(nil)` for compile-time safety.
 - `Service` should expose a `ListRawEvents` method that the poller delegates to.
 - Register via `ability.EventSourceManager.RegisterPolling()` in the hub module's `Bootstrap()` alongside webhook converters.
-```
+
+````
 
 - [ ] **Step 2: Commit**
 
 ```bash
 git add -A && git commit -m "docs: update AGENTS.md for per-provider poller convention"
-```
+````
 
 ---
 

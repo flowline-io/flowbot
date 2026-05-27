@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 )
 
 type fakeNotePollerService struct {
@@ -21,16 +21,18 @@ type fakeNotePollerService struct {
 func (*fakeNotePollerService) List(_ context.Context, _ *notesvc.ListQuery) (*ability.ListResult[ability.Note], error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) Get(_ context.Context, _ string) (*ability.Note, error) { return nil, nil }
+func (*fakeNotePollerService) Get(_ context.Context, _ string) (*ability.Note, error) {
+	return nil, nil
+}
 func (*fakeNotePollerService) Create(_ context.Context, _, _, _, _ string) (*ability.Note, error) {
 	return nil, nil
 }
 func (*fakeNotePollerService) Update(_ context.Context, _, _, _ string) (*ability.Note, error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) Delete(_ context.Context, _ string) error            { return nil }
+func (*fakeNotePollerService) Delete(_ context.Context, _ string) error               { return nil }
 func (*fakeNotePollerService) GetContent(_ context.Context, _ string) (string, error) { return "", nil }
-func (*fakeNotePollerService) SetContent(_ context.Context, _, _ string) error      { return nil }
+func (*fakeNotePollerService) SetContent(_ context.Context, _, _ string) error        { return nil }
 func (*fakeNotePollerService) Search(_ context.Context, _ string) (*ability.ListResult[ability.Note], error) {
 	return nil, nil
 }
