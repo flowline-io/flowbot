@@ -139,6 +139,11 @@ func TestExamplePoller_List(t *testing.T) {
 			wantMore:   false,
 			wantErr:    false,
 		},
+		{
+			name:    "service error",
+			svc:     &fakePollerService{err: assert.AnError},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

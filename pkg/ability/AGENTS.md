@@ -25,13 +25,14 @@ ability/
 ├── example/                 # Reference capability — follow this for new capabilities
 │   ├── interface.go         # Service interface + query types
 │   ├── descriptor.go        # Descriptor(), RegisterService(), per-operation invoke*()
-│   ├── poller.go            # PollingResource implementation (optional)
 │   ├── conformance.go       # Self-contained conformance suite (Config + ServiceFactory)
 │   └── example/             # Reference provider adapter — follow this for new backends
 │       ├── adapter.go       # Adapter struct implementing Service, New() / NewWithClient()
 │       ├── webhook.go       # WebhookConverter implementation (optional)
+│       ├── poller.go        # PollingResource implementation (optional)
 │       ├── adapter_test.go  # TDD unit tests (table-driven, mock client)
 │       ├── webhook_test.go  # Webhook signature verification tests
+│       ├── poller_test.go   # Poller unit tests
 │       └── conformance_test.go  # Wires factory to the conformance suite
 ├── <capability>/            # Per-capability: forge, kanban, bookmark, reader, notify, ...
 │   ├── interface.go         # Service interface
