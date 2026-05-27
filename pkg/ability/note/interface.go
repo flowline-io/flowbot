@@ -34,4 +34,6 @@ type Service interface {
 	Search(ctx context.Context, query string) (*ability.ListResult[ability.Note], error)
 	// GetAppInfo returns information about the running note server instance.
 	GetAppInfo(ctx context.Context) (*ability.Note, error)
+	// ListRawEvents lists notes as raw events for polling support.
+	ListRawEvents(ctx context.Context, cursor string) ([]any, string, error)
 }

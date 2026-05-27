@@ -4,13 +4,16 @@ package trilium
 import (
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/ability/conformance"
 	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
 	provider "github.com/flowline-io/flowbot/pkg/providers/trilium"
 )
 
-// conformanceService wraps an Adapter to satisfy the conformance ServiceFactory contract.
-// It constructs a fakeClient from the conformance Config and returns the adapter.
-func newConformanceService(t *testing.T, cfg notesvc.Config) notesvc.Service {
+// newConformanceService wraps an Adapter to satisfy the conformance NoteServiceFactory contract.
+// It constructs a fakeClient from the conformance NoteConfig and returns the adapter.
+//
+//revive:disable:cyclomatic — conformance wiring maps many config fields to fake client fields.
+func newConformanceService(t *testing.T, cfg conformance.NoteConfig) notesvc.Service {
 	t.Helper()
 
 	c := &fakeClient{
@@ -23,7 +26,11 @@ func newConformanceService(t *testing.T, cfg notesvc.Config) notesvc.Service {
 		searchErr:        cfg.SearchErr,
 		appInfoErr:       cfg.AppInfoErr,
 	}
-	// List uses SearchNotes internally, so ListErr maps to searchErr.
+	// Provide a default empty search response for List when no error is configured.
+	if cfg.ListErr == nil && cfg.SearchErr == nil {
+		c.searchResp = &provider.SearchResponse{}
+	}
+	// List also maps error to searchErr.
 	if cfg.ListErr != nil {
 		c.searchErr = cfg.ListErr
 	}
@@ -53,9 +60,9 @@ func newConformanceService(t *testing.T, cfg notesvc.Config) notesvc.Service {
 		// Update also calls GetNote after patch to return fresh state.
 		c.getResp = c.patchResp
 	}
-	if cfg.ListResult != nil {
-		results := make([]provider.Note, len(cfg.ListResult.Items))
-		for i, item := range cfg.ListResult.Items {
+	if len(cfg.ListItems) > 0 {
+		results := make([]provider.Note, len(cfg.ListItems))
+		for i, item := range cfg.ListItems {
 			results[i] = provider.Note{
 				NoteID: item.ID,
 				Title:  item.Title,
@@ -64,9 +71,9 @@ func newConformanceService(t *testing.T, cfg notesvc.Config) notesvc.Service {
 		}
 		c.searchResp = &provider.SearchResponse{Results: results}
 	}
-	if cfg.SearchResult != nil {
-		results := make([]provider.Note, len(cfg.SearchResult.Items))
-		for i, item := range cfg.SearchResult.Items {
+	if len(cfg.SearchItems) > 0 {
+		results := make([]provider.Note, len(cfg.SearchItems))
+		for i, item := range cfg.SearchItems {
 			results[i] = provider.Note{
 				NoteID: item.ID,
 				Title:  item.Title,
@@ -84,12 +91,24 @@ func newConformanceService(t *testing.T, cfg notesvc.Config) notesvc.Service {
 			InstanceName: cfg.AppInfo.ID,
 		}
 	}
+	if cfg.RawItems != nil {
+		c.listRawEventsResp = make([]map[string]any, len(cfg.RawItems))
+		for i, item := range cfg.RawItems {
+			if m, ok := item.(map[string]any); ok {
+				c.listRawEventsResp[i] = m
+			}
+		}
+		c.listRawEventsNext = cfg.RawCursor
+	}
+	if cfg.RawErr != nil {
+		c.listRawEventsErr = cfg.RawErr
+	}
 
 	return NewWithClient(c)
 }
 
 func TestTriliumNoteConformance(t *testing.T) {
-	notesvc.RunNoteConformance(t, func(t *testing.T, cfg notesvc.Config) notesvc.Service {
+	conformance.RunNoteConformance(t, func(t *testing.T, cfg conformance.NoteConfig) notesvc.Service {
 		t.Helper()
 		return newConformanceService(t, cfg)
 	})

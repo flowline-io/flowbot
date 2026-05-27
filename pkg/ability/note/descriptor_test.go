@@ -29,6 +29,9 @@ func (*mockNoteService) Search(_ context.Context, _ string) (*ability.ListResult
 	return nil, nil
 }
 func (*mockNoteService) GetAppInfo(_ context.Context) (*ability.Note, error) { return nil, nil }
+func (*mockNoteService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
+	return nil, "", nil
+}
 
 func TestDescriptor(t *testing.T) {
 	t.Parallel()

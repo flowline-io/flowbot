@@ -28,6 +28,9 @@ type fakeClient struct {
 	updateContentErr error
 	appInfoResp      *provider.AppInfo
 	appInfoErr       error
+	listRawEventsResp []map[string]any
+	listRawEventsNext string
+	listRawEventsErr  error
 }
 
 func (f *fakeClient) CreateNote(_ context.Context, _ provider.CreateNoteDef) (*provider.NoteWithBranch, error) {
@@ -60,6 +63,10 @@ func (f *fakeClient) UpdateNoteContent(_ context.Context, _, _ string) error {
 
 func (f *fakeClient) GetAppInfo(_ context.Context) (*provider.AppInfo, error) {
 	return f.appInfoResp, f.appInfoErr
+}
+
+func (f *fakeClient) ListRawEvents(_ context.Context, _ string) ([]map[string]any, string, error) {
+	return f.listRawEventsResp, f.listRawEventsNext, f.listRawEventsErr
 }
 
 var _ client = (*fakeClient)(nil)
@@ -491,6 +498,51 @@ func TestAdapter_GetAppInfo(t *testing.T) {
 	}
 }
 
+func TestAdapter_ListRawEvents(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		client     *fakeClient
+		wantLen    int
+		wantCursor string
+		wantErr    bool
+	}{
+		{
+			name:       "success with items",
+			client:     &fakeClient{listRawEventsResp: []map[string]any{{"noteId": "n-1"}}},
+			wantLen:    1,
+			wantCursor: "",
+			wantErr:    false,
+		},
+		{
+			name:       "with cursor",
+			client:     &fakeClient{listRawEventsResp: []map[string]any{{"noteId": "n-1"}}, listRawEventsNext: "next"},
+			wantLen:    1,
+			wantCursor: "next",
+			wantErr:    false,
+		},
+		{
+			name:    "provider error",
+			client:  &fakeClient{listRawEventsErr: assert.AnError},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := NewWithClient(tt.client)
+			items, next, err := a.ListRawEvents(context.Background(), "")
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Len(t, items, tt.wantLen)
+			assert.Equal(t, tt.wantCursor, next)
+		})
+	}
+}
+
 func TestAdapter_ContextCanceled(t *testing.T) {
 	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -531,6 +583,10 @@ func TestAdapter_ContextCanceled(t *testing.T) {
 	})
 	t.Run("GetAppInfo", func(t *testing.T) {
 		_, err := a.GetAppInfo(ctx)
+		require.Error(t, err)
+	})
+	t.Run("ListRawEvents", func(t *testing.T) {
+		_, _, err := a.ListRawEvents(ctx, "")
 		require.Error(t, err)
 	})
 }

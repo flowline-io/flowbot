@@ -20,6 +20,7 @@ type client interface {
 	GetNoteContent(ctx context.Context, noteID string) (string, error)
 	UpdateNoteContent(ctx context.Context, noteID, content string) error
 	GetAppInfo(ctx context.Context) (*provider.AppInfo, error)
+	ListRawEvents(ctx context.Context, cursor string) ([]map[string]any, string, error)
 }
 
 // Adapter implements note.Service using the Trilium provider client.
@@ -219,6 +220,27 @@ func (a *Adapter) GetAppInfo(ctx context.Context) (*ability.Note, error) {
 		Title: "Trilium Notes " + info.AppVersion,
 		Type:  "app_info",
 	}, nil
+}
+
+// ListRawEvents lists notes as raw events for polling support.
+func (a *Adapter) ListRawEvents(ctx context.Context, cursor string) ([]any, string, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, "", types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	items, next, err := a.client.ListRawEvents(ctx, cursor)
+	if err != nil {
+		return nil, "", types.WrapError(types.ErrProvider, "trilium list raw events failed", err)
+	}
+	result := make([]any, len(items))
+	for i, item := range items {
+		result[i] = item
+	}
+	return result, next, nil
+}
+
+// NewNotePoller creates a NotePoller wired with a default adapter.
+func NewNotePoller() *notesvc.NotePoller {
+	return notesvc.NewNotePoller(New())
 }
 
 // normalizedLimit clamps the provided limit to a valid range.
