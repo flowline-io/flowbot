@@ -61,10 +61,10 @@ func newTestApp() *fiber.App {
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			var e oops.OopsError
 			if errors.As(err, &e) {
-				if e.Code() == oops.OopsError(protocol.ErrNotAuthorized).Code() {
+				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return c.Status(fiber.StatusUnauthorized).SendString(e.Error())
 				}
-				if e.Code() == oops.OopsError(protocol.ErrAccessDenied).Code() {
+				if e.Code() == protocol.ErrorCode(protocol.ErrAccessDenied) {
 					return c.Status(fiber.StatusForbidden).SendString(e.Error())
 				}
 				return c.Status(fiber.StatusBadRequest).SendString(e.Error())

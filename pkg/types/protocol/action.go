@@ -56,6 +56,19 @@ func NewError(code int64, message string) oops.OopsErrorBuilder {
 		Public(message)
 }
 
+// ErrorCode extracts the string error code from an OopsErrorBuilder created via NewError.
+// The returned string is the same value stored in OopsError.Code() when the error is materialized.
+func ErrorCode(b oops.OopsErrorBuilder) string {
+	err := b.New("")
+	var e oops.OopsError
+	if errors.As(err, &e) {
+		if s, ok := e.Code().(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
 // Request Error (10xxx)
 
 // ErrInternalServerError Internal server error

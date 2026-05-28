@@ -64,7 +64,7 @@ func newHTTPServer() *fiber.App {
 			// custom error
 			var e oops.OopsError
 			if errors.As(err, &e) {
-				if e.Code() == oops.OopsError(protocol.ErrNotAuthorized).Code() {
+				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return ctx.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(e))
 				}
