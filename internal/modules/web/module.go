@@ -24,13 +24,20 @@ func Register() {
 	module.Register(Name, &handler)
 }
 
+type AuthConfig struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type moduleHandler struct {
 	initialized bool
+	authConfig  AuthConfig
 	module.Base
 }
 
 type configType struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool       `json:"enabled"`
+	Auth    AuthConfig `json:"auth"`
 }
 
 // Init initializes the web module with the given JSON configuration.
@@ -46,6 +53,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return nil
 	}
 	handler.initialized = true
+	handler.authConfig = config.Auth
 	return nil
 }
 
@@ -68,4 +76,9 @@ func (moduleHandler) Webservice(app *fiber.App) {
 // Rules returns the web module rule definitions.
 func (moduleHandler) Rules() []any {
 	return []any{webserviceRules}
+}
+
+// authConfig returns the parsed authentication configuration.
+func authConfig() AuthConfig {
+	return handler.authConfig
 }
