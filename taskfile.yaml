@@ -214,3 +214,25 @@ tasks:
     desc: Generate ent code from database
     cmds:
       - go generate ./internal/store/ent/
+
+  # Web UI tasks
+  templ:
+    desc: Generate Go code from Templ templates
+    cmds:
+      - go tool templ generate
+
+  css:
+    desc: Build Tailwind CSS
+    cmds:
+      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
+
+  css:min:
+    desc: Build Tailwind CSS minified for production
+    cmds:
+      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css --minify
+
+  web:
+    desc: Build web UI (Templ + Tailwind)
+    cmds:
+      - task: templ
+      - task: css
