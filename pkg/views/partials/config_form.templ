@@ -1,0 +1,59 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
+	<tr id={ configFormID(item, isNew) } hx-target="this">
+		<td class="px-4 py-2"></td>
+		<td class="px-4 py-2">
+			<input type="text" name="uid" value={ item.UID }
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "uid") }
+				placeholder="uid"/>
+			<div class="text-red-500 text-xs">{ errors["uid"] }</div>
+		</td>
+		<td class="px-4 py-2">
+			<input type="text" name="topic" value={ item.Topic }
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "topic") }
+				placeholder="topic"/>
+			<div class="text-red-500 text-xs">{ errors["topic"] }</div>
+		</td>
+		<td class="px-4 py-2">
+			<input type="text" name="key" value={ item.Key }
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "key") }
+				placeholder="key"/>
+			<div class="text-red-500 text-xs">{ errors["key"] }</div>
+		</td>
+		<td class="px-4 py-2">
+			<textarea name="value" rows="2"
+				class={ "w-full border rounded px-2 py-1 text-sm font-mono " + fieldError(errors, "value") }
+				placeholder='{"key": "value"}'>{ valueJSON(item.Value) }</textarea>
+			<div class="text-red-500 text-xs">{ errors["value"] }</div>
+		</td>
+		<td class="px-4 py-2"></td>
+		<td class="px-4 py-2">
+			<div class="flex gap-2">
+				if isNew {
+					<button
+						hx-post="/service/web/configs"
+						hx-include="closest tr"
+						class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+						Save
+					</button>
+				} else {
+					<button
+						hx-put={ configKeyURL(item) }
+						hx-include="closest tr"
+						class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+						Save
+					</button>
+				}
+				<button hx-get={ cancelURL(item, isNew) }
+					class="text-gray-600 hover:text-gray-800 text-sm">
+					Cancel
+				</button>
+			</div>
+		</td>
+	</tr>
+}
