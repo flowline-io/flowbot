@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -137,6 +138,47 @@ func TestNewHTTPServer_ErrorHandler_ProtocolErrors(t *testing.T) {
 	}
 }
 
+func TestNewHTTPServer_ErrorHandler_FiberErrors(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		err        error
+		wantStatus int
+	}{
+		{
+			name:       "ErrNotFound returns 404",
+			err:        fiber.ErrNotFound,
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:       "ErrServiceUnavailable returns 503",
+			err:        fiber.ErrServiceUnavailable,
+			wantStatus: http.StatusServiceUnavailable,
+		},
+		{
+			name:       "ErrMethodNotAllowed returns 405",
+			err:        fiber.ErrMethodNotAllowed,
+			wantStatus: http.StatusMethodNotAllowed,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := newHTTPServer()
+			defer app.Shutdown()
+
+			app.Get("/test", func(_ fiber.Ctx) error {
+				return tt.err
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
 func TestNewHTTPServer_ErrorHandler_UnknownError(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -151,7 +193,7 @@ func TestNewHTTPServer_ErrorHandler_UnknownError(t *testing.T) {
 			defer app.Shutdown()
 
 			app.Get("/test", func(_ fiber.Ctx) error {
-				return fiber.ErrServiceUnavailable
+				return errors.New("some unhandled error")
 			})
 
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)

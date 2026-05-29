@@ -17,6 +17,7 @@ WORKDIR /opt/app
 
 COPY --from=builder /opt/app/flowbot .
 COPY --from=builder /opt/app/composer /usr/local/bin/composer
+COPY --from=builder /opt/app/public ./public
 
 RUN chmod +x flowbot
 
