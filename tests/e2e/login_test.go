@@ -21,7 +21,7 @@ func TestLoginPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			page := NewPage(t)
-			page.MustNavigate(URL("/login"))
+			page.MustNavigate(URL("/service/web/login"))
 			page.MustWaitStable()
 			body := page.MustElement("body").MustText()
 			assert.Contains(t, body, tt.wantText)
@@ -44,7 +44,7 @@ func TestLoginSubmit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			page := NewPage(t)
-			page.MustNavigate(URL("/login"))
+			page.MustNavigate(URL("/service/web/login"))
 			page.MustWaitStable()
 
 			page.MustElement(`[data-testid="login-username"]`).MustInput(tt.username)
@@ -83,7 +83,7 @@ func TestLogout(t *testing.T) {
 			page := loginViaCookie(t)
 
 			wait := page.MustWaitRequestIdle()
-			page.MustNavigate(URL("/configs"))
+			page.MustNavigate(URL("/service/web/configs"))
 			wait()
 			page.MustWaitStable()
 

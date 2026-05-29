@@ -29,7 +29,7 @@ func TestConfigsPage(t *testing.T) {
 			}
 
 			page := loginViaCookie(t)
-			page.MustNavigate(URL("/configs"))
+			page.MustNavigate(URL("/service/web/configs"))
 			wait := page.MustWaitRequestIdle()
 			wait()
 
@@ -58,7 +58,7 @@ func TestConfigCreate(t *testing.T) {
 			ResetDB(t)
 
 			page := loginViaCookie(t)
-			page.MustNavigate(URL("/configs"))
+			page.MustNavigate(URL("/service/web/configs"))
 			wait := page.MustWaitRequestIdle()
 			wait()
 
@@ -97,7 +97,7 @@ func TestConfigUpdate(t *testing.T) {
 			seedConfig(t, "e2e-u", "e2e-topic", "e2e-update-key", "original")
 
 			page := loginViaCookie(t)
-			page.MustNavigate(URL("/configs"))
+			page.MustNavigate(URL("/service/web/configs"))
 			wait := page.MustWaitRequestIdle()
 			wait()
 
@@ -131,7 +131,7 @@ func TestConfigDelete(t *testing.T) {
 			seedConfig(t, "e2e-d", "e2e-topic", "e2e-delete-key", "to-be-deleted")
 
 			page := loginViaCookie(t)
-			page.MustNavigate(URL("/configs"))
+			page.MustNavigate(URL("/service/web/configs"))
 			wait := page.MustWaitRequestIdle()
 			wait()
 
