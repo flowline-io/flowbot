@@ -15,12 +15,14 @@ templ ConfigsPage(items []model.ConfigItem) {
 				<button hx-get="/service/web/configs/list"
 					hx-target="#configs-table"
 					hx-swap="outerHTML"
+					data-testid="configs-refresh"
 					class="text-sm text-gray-600 hover:text-gray-900 border rounded px-3 py-1">
 					Refresh
 				</button>
 				<button hx-get="/service/web/configs/new"
 					hx-target="#configs-rows"
 					hx-swap="afterbegin"
+					data-testid="configs-new"
 					class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
 					New Config
 				</button>
