@@ -1,0 +1,29 @@
+// Package layout provides the global HTML skeleton for all pages.
+package layout
+
+templ Base(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title }</title>
+		<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+		<script src="https://unpkg.com/htmx.org@2.x.x/dist/htmx.js"></script>
+		<link href="/static/css/styles.css" rel="stylesheet"/>
+	</head>
+	<body class="bg-gray-100 min-h-screen">
+		<nav class="bg-white shadow-sm border-b border-gray-200">
+			<div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+				<a href="/service/web/configs" class="font-semibold text-gray-800">Flowbot</a>
+				<div class="flex gap-4 text-sm text-gray-600">
+					<a href="/service/web/configs" class="hover:text-gray-900">Configs</a>
+				</div>
+			</div>
+		</nav>
+		<main class="max-w-7xl mx-auto px-4 py-8">
+			{ children... }
+		</main>
+	</body>
+	</html>
+}
