@@ -5,7 +5,7 @@ import (
 )
 
 templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
-	<tr id={ configFormID(item, isNew) } hx-target="this">
+	<tr id={ configFormID(item, isNew) } hx-target="this" hx-swap="outerHTML">
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<input type="text" name="uid" value={ item.UID }
