@@ -488,21 +488,21 @@ func TestLogout(t *testing.T) {
 		wantDel     bool
 	}{
 		{
-			name:        "logout with cookie deletes it",
+			name:        "logout with cookie sets HX-Redirect",
 			cookieToken: "token-to-delete",
-			wantStatus:  http.StatusSeeOther,
+			wantStatus:  http.StatusOK,
 			wantDel:     true,
 		},
 		{
-			name:        "logout without cookie still redirects",
+			name:        "logout without cookie still sets HX-Redirect",
 			cookieToken: "",
-			wantStatus:  http.StatusSeeOther,
+			wantStatus:  http.StatusOK,
 			wantDel:     false,
 		},
 		{
-			name:        "logout ignores param delete error",
+			name:        "logout ignores param delete error and sets HX-Redirect",
 			cookieToken: "error-token",
-			wantStatus:  http.StatusSeeOther,
+			wantStatus:  http.StatusOK,
 			wantDel:     true,
 		},
 	}
@@ -527,9 +527,9 @@ func TestLogout(t *testing.T) {
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
 			}
-			loc := resp.Header.Get("Location")
-			if loc != "/service/web/login" {
-				t.Errorf("want location /service/web/login, got %q", loc)
+			hxRedirect := resp.Header.Get("HX-Redirect")
+			if hxRedirect != "/service/web/login" {
+				t.Errorf("want HX-Redirect /service/web/login, got %q", hxRedirect)
 			}
 			if tt.wantDel && deletedFlag == "" {
 				t.Error("expected ParameterDelete to be called")

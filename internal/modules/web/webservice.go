@@ -315,7 +315,8 @@ func logout(ctx fiber.Ctx) error {
 		Path:     "/",
 		MaxAge:   0,
 	})
-	return ctx.Redirect().To("/service/web/login")
+	ctx.Set("HX-Redirect", "/service/web/login")
+	return nil
 }
 
 func decodeConfigParams(ctx fiber.Ctx) (uid, topic, key string, err error) {
