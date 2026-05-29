@@ -100,7 +100,7 @@ func TestRegisterService(t *testing.T) {
 		svc     Service
 		wantErr bool
 	}{
-		{name: "nil service", backend: "example", app: "app1", svc: nil, wantErr: true},
+		{name: "nil service skips registration", backend: "example", app: "app1", svc: nil, wantErr: false},
 		{name: "valid service", backend: "example", app: "app1", svc: s, wantErr: false},
 		{name: "empty backend with valid service", backend: "", app: "app1", svc: s, wantErr: false},
 	}

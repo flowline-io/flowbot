@@ -87,12 +87,12 @@ func TestRegisterService_NilService(t *testing.T) {
 		name string
 		svc  Service
 	}{
-		{name: "nil service returns error", svc: nil},
+		{name: "nil service returns nil", svc: nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := RegisterService("gitea", "app1", tt.svc)
-			assert.Error(t, err)
+			assert.NoError(t, err)
 		})
 	}
 }

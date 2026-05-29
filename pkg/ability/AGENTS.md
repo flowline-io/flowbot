@@ -94,7 +94,8 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 
 func RegisterService(backend, app string, svc Service) error {
     if svc == nil {
-        return types.Errorf(types.ErrInvalidArgument, "bookmark service is required")
+        flog.Warn("bookmark capability: service is nil, skipping registration for %s/%s", backend, app)
+        return nil
     }
     if err := hub.Default.Register(Descriptor(backend, app, svc)); err != nil {
         return err
@@ -283,7 +284,7 @@ conformance.RunForgeConformance(t, func(_ *testing.T, cfg conformance.ForgeConfi
 
 Each capability must include `descriptor_test.go`. Reference `pkg/ability/example/descriptor_test.go` for the canonical pattern.
 
-- **Nil service**: `Descriptor()` returns `Healthy: false`; `RegisterService()` returns error.
+- **Nil service**: `Descriptor()` returns `Healthy: false`; `RegisterService()` returns `nil` and logs a warning.
 - **Non-nil service**: `Descriptor()` returns `Healthy: true`, correct `CapType`/`Backend`/`App`/`Description`/`Instance`.
 - **Operations list**: every `ability.OpXxx` constant appears in `Descriptor().Operations`; assert exact count via `assert.Len`.
 - Use a mock `Service` (not an adapter) — self-contained, no provider dependency.

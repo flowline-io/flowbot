@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -33,9 +34,12 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 	}
 }
 
+// RegisterService registers the bookmark capability with the hub and ability registry.
+// It returns nil and logs a warning when svc is nil (provider not configured).
 func RegisterService(backend, app string, svc Service) error {
 	if svc == nil {
-		return types.Errorf(types.ErrInvalidArgument, "bookmark service is required")
+		flog.Warn("bookmark capability: service is nil, skipping registration for %s/%s", backend, app)
+		return nil
 	}
 	if err := hub.Default.Register(Descriptor(backend, app, svc)); err != nil {
 		return err
