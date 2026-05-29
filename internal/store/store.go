@@ -29,6 +29,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/media"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // Client is a type alias for the Ent client.
@@ -163,6 +164,13 @@ func (s storeObj) DbStats() func() any {
 	return adp.Stats
 }
 
+// ListConfigOptions controls pagination and search for ListConfigs.
+type ListConfigOptions struct {
+	Offset int
+	Limit  int
+	Search string
+}
+
 type Adapter interface {
 	// General
 
@@ -251,6 +259,8 @@ type Adapter interface {
 	ConfigGet(ctx context.Context, uid types.Uid, topic, key string) (types.KV, error)
 	ListConfigByPrefix(ctx context.Context, uid types.Uid, topic, prefix string) ([]*gen.ConfigData, error)
 	ConfigDelete(ctx context.Context, uid types.Uid, topic, key string) error
+	// ListConfigs returns config items across all uids/topics with optional search and pagination.
+	ListConfigs(ctx context.Context, opts ListConfigOptions) ([]model.ConfigItem, error)
 	OAuthSet(ctx context.Context, oauth gen.OAuth) error
 	// OAuthGet returns the raw oauth record. Most callers should use
 	// providers.GetOrRefreshToken() which handles expired token refresh.

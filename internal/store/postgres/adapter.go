@@ -38,6 +38,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 const (
@@ -784,6 +785,44 @@ func (a *adapter) ConfigDelete(ctx context.Context, uid types.Uid, topic, key st
 		return fmt.Errorf("postgres: configdelete: %w", err)
 	}
 	return nil
+}
+
+func (a *adapter) ListConfigs(ctx context.Context, opts store.ListConfigOptions) ([]model.ConfigItem, error) {
+	q := a.client.ConfigData.Query()
+	if opts.Search != "" {
+		q = q.Where(
+			configdata.Or(
+				configdata.UIDContains(opts.Search),
+				configdata.TopicContains(opts.Search),
+				configdata.KeyContains(opts.Search),
+			),
+		)
+	}
+	limit := opts.Limit
+	if limit <= 0 || limit > a.maxResults {
+		limit = a.maxResults
+	}
+	items, err := q.
+		Offset(opts.Offset).
+		Limit(limit).
+		Order(gen.Desc(configdata.FieldUpdatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listconfigs: %w", err)
+	}
+	result := make([]model.ConfigItem, len(items))
+	for i, d := range items {
+		result[i] = model.ConfigItem{
+			ID:        d.ID,
+			UID:       d.UID,
+			Topic:     d.Topic,
+			Key:       d.Key,
+			Value:     types.KV(d.Value),
+			CreatedAt: d.CreatedAt,
+			UpdatedAt: d.UpdatedAt,
+		}
+	}
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
