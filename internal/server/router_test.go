@@ -336,34 +336,6 @@ func TestAgentData_NoAuth(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// getPage endpoint (no store - expects error)
-// ---------------------------------------------------------------------------
-
-func TestGetPage_NoStore(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "getPage without store returns error"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			app := newTestApp()
-			ctl := &Controller{}
-			app.Get("/p/:id", ctl.getPage)
-
-			req := httptest.NewRequest(http.MethodGet, "/p/test-page-id", nil)
-			resp, err := app.Test(req)
-			require.NoError(t, err)
-			// Without database, store.Database is nil → panics (recovered → 400 via error handler)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
 // OAuth endpoint (no store - expects error)
 // ---------------------------------------------------------------------------
 
@@ -422,33 +394,11 @@ func TestPostForm_NoStore(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// RenderPage endpoint (no store - expects error)
+// Protocol Response Tests
 // ---------------------------------------------------------------------------
 
-func TestRenderPage_NoStore(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "renderPage without store returns error"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			app := newTestApp()
-			ctl := &Controller{}
-			app.Get("/page/:id/:flag", ctl.renderPage)
-
-			req := httptest.NewRequest(http.MethodGet, "/page/rule-id/flag-value", nil)
-			resp, err := app.Test(req)
-			require.NoError(t, err)
-			// Without database → panics (recovered → 400 via error handler)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		})
-	}
-}
-
+// ---------------------------------------------------------------------------
+// OAuth endpoint (no store - expects error)
 // ---------------------------------------------------------------------------
 // Route registration smoke test
 // ---------------------------------------------------------------------------
@@ -464,9 +414,7 @@ func TestRouteRegistration(t *testing.T) {
 		{name: "readiness", expectedPath: "/readyz"},
 		{name: "startup", expectedPath: "/startupz"},
 		{name: "oauth", expectedPath: "/oauth/:provider/:flag"},
-		{name: "page by id", expectedPath: "/p/:id"},
 		{name: "form", expectedPath: "/form"},
-		{name: "render page", expectedPath: "/page/:id/:flag"},
 		{name: "agent", expectedPath: "/agent"},
 		{name: "platform", expectedPath: "/platform/:platform"},
 	}
@@ -482,9 +430,7 @@ func TestRouteRegistration(t *testing.T) {
 			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
-			app.Get("/p/:id", ctl.getPage)
 			app.Post("/form", ctl.postForm)
-			app.Get("/page/:id/:flag", ctl.renderPage)
 			app.Post("/agent", ctl.agentData)
 			app.All("/platform/:platform", ctl.platformCallback)
 

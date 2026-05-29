@@ -64,7 +64,6 @@ See the complete content inline below.
 - `internal/server/pipeline.go`, `internal/server/homelab.go`
 - `pkg/event/action.go`, `pkg/event/action_test.go`
 - `pkg/module/module.go`
-- `pkg/page/layout.go`, `pkg/page/component/*.go`
 - `pkg/types/msg.go`
 - `internal/modules/hub/webservice.go`, `internal/modules/hub/module.go`
 - `internal/modules/workflow/webservice.go`

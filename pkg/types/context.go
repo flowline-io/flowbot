@@ -29,9 +29,6 @@ type Context struct {
 	// form id
 	FormId string
 
-	// page rule id
-	PageRuleId string
-
 	// workflow rule id
 	WorkflowRuleId string
 

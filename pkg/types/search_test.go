@@ -29,11 +29,6 @@ func TestRulesetTypeConstants(t *testing.T) {
 			want:     RulesetType("form"),
 		},
 		{
-			name:     "PageRule",
-			constant: PageRule,
-			want:     RulesetType("page"),
-		},
-		{
 			name:     "TriggerRule",
 			constant: TriggerRule,
 			want:     RulesetType("trigger"),

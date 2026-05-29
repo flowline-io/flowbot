@@ -100,15 +100,6 @@ func TestBase_DefaultMethodsReturnZero(t *testing.T) {
 			},
 		},
 		{
-			name: "Page returns empty HTML",
-			call: func() error {
-				html, err := b.Page(types.Context{}, "", nil)
-				require.NoError(t, err)
-				assert.Empty(t, html)
-				return nil
-			},
-		},
-		{
 			name: "Input returns nil payload",
 			call: func() error {
 				payload, err := b.Input(types.Context{}, nil, nil)

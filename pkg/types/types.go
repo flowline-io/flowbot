@@ -25,7 +25,6 @@ const (
 	ActionRule     RulesetType = "action"
 	CommandRule    RulesetType = "command"
 	FormRule       RulesetType = "form"
-	PageRule       RulesetType = "page"
 	TriggerRule    RulesetType = "trigger"
 	WebserviceRule RulesetType = "webservice"
 	WorkflowRule   RulesetType = "workflow"

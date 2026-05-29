@@ -88,7 +88,6 @@ func TestRules_Validity(t *testing.T) {
 			}
 			assert.Contains(t, defines, "id")
 			assert.Contains(t, defines, "form test")
-			assert.Contains(t, defines, "page test")
 			assert.Contains(t, defines, "event test")
 		}},
 		{name: "all command rules should have non-nil handlers", test: func(t *testing.T) {
@@ -109,25 +108,17 @@ func TestRules_Validity(t *testing.T) {
 			}
 			assert.True(t, found, "example_form rule should be defined")
 		}},
-		{name: "page rules should contain example page", test: func(t *testing.T) {
-			assert.NotEmpty(t, pageRules)
-			ids := make(map[string]bool)
-			for _, r := range pageRules {
-				ids[r.Id] = true
-			}
-			assert.True(t, ids["example"])
-		}},
 		{name: "webservice rules should not be empty", test: func(t *testing.T) {
 			assert.NotEmpty(t, webserviceRules)
 		}},
 		{name: "webhook rules should not be empty", test: func(t *testing.T) {
 			assert.NotEmpty(t, webhookRules)
 		}},
-		{name: "Rules() should return all 5 rulesets", test: func(t *testing.T) {
+		{name: "Rules() should return all 4 rulesets", test: func(t *testing.T) {
 			handler = moduleHandler{initialized: true}
 			rules := handler.Rules()
 			assert.NotEmpty(t, rules)
-			assert.Len(t, rules, 5)
+			assert.Len(t, rules, 4)
 		}},
 	}
 	for _, tt := range tests {

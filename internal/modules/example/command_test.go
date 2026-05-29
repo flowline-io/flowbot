@@ -17,13 +17,13 @@ func TestCommandRules_Metadata(t *testing.T) {
 		name string
 		test func(t *testing.T)
 	}{
-		{name: "should have exactly 4 command rules", test: func(t *testing.T) {
+		{name: "should have exactly 3 command rules", test: func(t *testing.T) {
 			t.Parallel()
-			assert.Len(t, commandRules, 4)
+			assert.Len(t, commandRules, 3)
 		}},
 		{name: "should contain all expected defines", test: func(t *testing.T) {
 			t.Parallel()
-			expected := []string{"id", "form test", "page test", "event test"}
+			expected := []string{"id", "form test", "event test"}
 			defines := make(map[string]bool)
 			for _, r := range commandRules {
 				defines[r.Define] = true
@@ -92,7 +92,6 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 	}{
 		{name: "id exact match", define: "id", input: "id", want: true},
 		{name: "form test exact match", define: "form test", input: "form test", want: true},
-		{name: "page test exact match", define: "page test", input: "page test", want: true},
 		{name: "event test exact match", define: "event test", input: "event test", want: true},
 		{name: "id does not match form test", define: "id", input: "form test", want: false},
 		{name: "form test with extra tokens", define: "form test", input: "form test extra", want: false},

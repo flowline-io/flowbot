@@ -20,7 +20,6 @@ Homelab Data Hub & Capability Orchestration Center.
 | Core types       | `pkg/types/`        | Rulesets, protocol, KV                                |
 | API routes       | `internal/server/`  | Fiber v3 handlers                                     |
 | Entry points     | `cmd/`              | 3 binaries                                            |
-| Frontend/PWA     | `pkg/page/`         | go-app WASM components                                |
 | Utilities        | `pkg/utils/`        | Must have unit tests                                  |
 
 ## Key Patterns

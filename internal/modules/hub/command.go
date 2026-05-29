@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -168,11 +167,11 @@ var commandRules = []command.Rule{
 				}
 			}
 
-			return module.StorePage(ctx, schema.PageTable, "Newest Bookmark List", types.TableMsg{
+			return types.TableMsg{
 				Title:  "Newest Bookmark List",
 				Header: header,
 				Row:    row,
-			})
+			}
 		},
 	},
 

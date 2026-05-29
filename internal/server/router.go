@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
-	"github.com/maxence-charriere/go-app/v10/pkg/app"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/samber/oops"
@@ -24,8 +24,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
-	"github.com/flowline-io/flowbot/pkg/page"
-	"github.com/flowline-io/flowbot/pkg/page/form"
 	"github.com/flowline-io/flowbot/pkg/providers"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/stats"
@@ -33,7 +31,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	formRule "github.com/flowline-io/flowbot/pkg/types/ruleset/form"
-	pageRule "github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
@@ -63,13 +60,10 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 	a.Get(healthcheck.StartupEndpoint, healthcheck.New())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
-	a.Get("/p/:id", ctl.getPage)
 	// metrics - expose prometheus metrics for scraping
 	a.Get("/metrics", adaptor.HTTPHandler(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{})))
 	// form
 	a.Post("/form", ctl.postForm)
-	// page
-	a.Get("/page/:id/:flag", ctl.renderPage)
 	// agent
 	a.Post("/agent", ctl.agentData)
 	// platform
@@ -150,87 +144,6 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	return ctx.SendString("ok")
 }
 
-func (*Controller) getPage(ctx fiber.Ctx) error {
-	id := ctx.Params("id")
-
-	p, err := store.Database.PageGet(ctx.Context(), id)
-	if err != nil {
-		return protocol.ErrNotFound.Wrap(err)
-	}
-
-	sch := types.KV(p.Schema)
-	title, _ := sch.String("title")
-	if title == "" {
-		title = "Page"
-	}
-	ctx.Set("Content-Type", "text/html")
-	var comp app.UI
-	switch p.Type {
-	case string(schema.PageForm):
-		f, _ := store.Database.FormGet(ctx.Context(), p.PageID)
-		comp = page.RenderForm(p, f)
-	case string(schema.PageTable):
-		comp = page.RenderTable(p)
-	case string(schema.PageHtml):
-		comp = page.RenderHtml(p)
-	default:
-		return protocol.ErrBadRequest.New("error type")
-	}
-
-	return ctx.SendString(page.RenderComponent(title, comp))
-}
-
-func (*Controller) renderPage(ctx fiber.Ctx) error {
-	pageRuleId := ctx.Params("id")
-	flag := ctx.Params("flag")
-
-	p, err := store.Database.ParameterGet(ctx.Context(), flag)
-	if err != nil {
-		return protocol.ErrFlagError.Wrap(err)
-	}
-	if store.ParameterIsExpired(p) {
-		return protocol.ErrFlagExpired.New("page error")
-	}
-
-	args := types.KV{}
-	// add query params
-	queries := ctx.Queries()
-	if len(queries) > 0 {
-		for k, v := range queries {
-			args[k] = v
-		}
-	}
-
-	kv := types.KV(p.Params)
-	platform, _ := kv.String("platform")
-	topic, _ := kv.String("topic")
-	uid, _ := kv.String("uid")
-
-	typesCtx := types.Context{
-		Platform:   platform,
-		Topic:      topic,
-		AsUser:     types.Uid(uid),
-		PageRuleId: pageRuleId,
-	}
-	typesCtx.SetContext(ctx.Context())
-
-	_, botHandler := module.FindRuleAndHandler[pageRule.Rule](pageRuleId, module.List())
-
-	if botHandler == nil {
-		return protocol.ErrNotFound.New("module not found")
-	}
-
-	html, err := botHandler.Page(typesCtx, flag, args)
-	if err != nil {
-		if errors.Is(err, types.ErrNotFound) {
-			return protocol.ErrNotFound.New("page not found")
-		}
-		return protocol.ErrBadParam.Wrap(err)
-	}
-	ctx.Set("Content-Type", "text/html")
-	return ctx.SendString(html)
-}
-
 func (*Controller) postForm(ctx fiber.Ctx) error {
 	formId := ctx.FormValue("x-form_id")
 	if formId == "" {
@@ -267,9 +180,8 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 
 	values := parseFormFieldValues(formMsg.Field, f.Value, ctx)
 
-	formBuilder := form.NewBuilder(formMsg.Field)
-	formBuilder.Data = values
-	err = formBuilder.Validate()
+	// Validate form fields against their rules.
+	err = validateFormFields(formMsg.Field, values)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}
@@ -348,6 +260,23 @@ func parseFormFieldValues(fields []types.FormField, pf map[string][]string, ctx 
 		}
 	}
 	return values
+}
+
+// validateFormFields validates form values against field validation rules.
+func validateFormFields(fields []types.FormField, data types.KV) error {
+	rules := make(map[string]any, len(fields))
+	for _, field := range fields {
+		if field.Rule != "" {
+			rules[field.Key] = field.Rule
+		}
+	}
+	errs := validate.Validate.ValidateMap(data, rules)
+	for key, val := range errs {
+		if err, ok := val.(error); ok {
+			return fmt.Errorf("%s: %w", key, err)
+		}
+	}
+	return nil
 }
 
 func getFormBotHandler(sch schema.JSON, formId string) (*types.FormMsg, module.Handler, error) {

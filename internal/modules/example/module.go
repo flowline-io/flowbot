@@ -71,7 +71,6 @@ func (moduleHandler) Rules() []any {
 	return []any{
 		commandRules,
 		formRules,
-		pageRules,
 		webserviceRules,
 		webhookRules,
 	}
@@ -87,8 +86,4 @@ func (moduleHandler) Command(ctx types.Context, content any) (types.MsgPayload, 
 
 func (moduleHandler) Form(ctx types.Context, values types.KV) (types.MsgPayload, error) {
 	return module.RunForm(formRules, ctx, values)
-}
-
-func (moduleHandler) Page(ctx types.Context, flag string, args types.KV) (string, error) {
-	return module.RunPage(pageRules, ctx, flag, args)
 }

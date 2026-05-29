@@ -25,7 +25,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/page"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
@@ -141,34 +140,9 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		if err != nil {
 			return nil, err
 		}
-
-		err = store.Database.PageSet(ctx.Context(), ctx.FormId, gen.Page{State: int(schema.PageStateProcessedSuccess)})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return payload, nil
-}
-
-func RunPage(pageRules []page.Rule, ctx types.Context, flag string, args types.KV) (string, error) {
-	rs := page.Ruleset(pageRules)
-	return rs.ProcessPage(ctx, flag, args)
-}
-
-func PageURL(ctx types.Context, pageRuleId string, param types.KV, expiredDuration time.Duration) (string, error) {
-	if param == nil {
-		param = types.KV{}
-	}
-	param["platform"] = ctx.Platform
-	param["topic"] = ctx.Topic
-	param["uid"] = ctx.AsUser.String()
-	flag, err := StoreParameter(param, time.Now().Add(expiredDuration))
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s/page/%s/%s", types.AppUrl(), pageRuleId, flag), nil
 }
 
 func ServiceURL(ctx types.Context, group, path string, param types.KV) string {
@@ -267,66 +241,15 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 		return types.TextMsg{Text: "store form error"}
 	}
 
-	err = store.Database.PageSet(ctx.Context(), formId, gen.Page{
-		PageID: formId,
-		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Topic,
-		Type:   string(schema.PageForm),
-		Schema: s,
-		State:  int(schema.PageStateCreated),
-	})
-	if err != nil {
-		flog.Error(err)
-		return types.TextMsg{Text: "store form error"}
-	}
-
 	return types.LinkMsg{
 		Title: fmt.Sprintf("%s Form[%s]", formMsg.Title, formId),
-		Url:   fmt.Sprintf("%s/p/%s", types.AppUrl(), formId),
+		Url:   fmt.Sprintf("%s/form/%s", types.AppUrl(), formId),
 	}
 }
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	flag := types.Id()
 	return flag, store.Database.ParameterSet(context.Background(), flag, params, expiredAt)
-}
-
-func StorePage(ctx types.Context, category schema.PageType, title string, payload types.MsgPayload) types.MsgPayload {
-	pageId := types.Id()
-	d, err := sonic.Marshal(payload)
-	if err != nil {
-		flog.Error(err)
-		return types.TextMsg{Text: "store form error"}
-	}
-	s := types.KV{}
-	err = s.Scan(d)
-	if err != nil {
-		flog.Error(err)
-		return types.TextMsg{Text: "store form error"}
-	}
-
-	err = store.Database.PageSet(ctx.Context(), pageId, gen.Page{
-		PageID: pageId,
-		UID:    ctx.AsUser.String(),
-		Topic:  ctx.Topic,
-		Type:   string(category),
-		Schema: s,
-		State:  int(schema.PageStateCreated),
-	})
-	if err != nil {
-		flog.Error(err)
-		return types.TextMsg{Text: "store form error"}
-	}
-
-	title = fmt.Sprintf("%s %s", category, title)
-	if utils.HasHan(title) {
-		title = ""
-	}
-
-	return types.LinkMsg{
-		Title: title,
-		Url:   fmt.Sprintf("%s/p/%s", types.AppUrl(), pageId),
-	}
 }
 
 func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {

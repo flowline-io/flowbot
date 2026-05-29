@@ -152,11 +152,6 @@ package "Cross-Cutting Packages" as CrossCutting #ECEFF1 {
 ' =============================================================================
 ' Frontend
 ' =============================================================================
-package "pkg/page/ — PWA (go-app/WASM)" as Frontend #FCE4EC {
-  [UI Kit\n(40 components)] as UIKit
-  [Pages\nDashboard / Settings] as Pages
-  [Form Builder] as FormBuilder
-}
 
 ' =============================================================================
 ' Storage

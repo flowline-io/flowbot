@@ -34,9 +34,6 @@ type Handler interface {
 	// Form return module form result
 	Form(ctx types.Context, values types.KV) (types.MsgPayload, error)
 
-	// Page return page
-	Page(ctx types.Context, flag string, args types.KV) (string, error)
-
 	// Webservice return webservice routes
 	Webservice(app *fiber.App)
 }
@@ -65,10 +62,6 @@ func (Base) Command(_ types.Context, _ any) (types.MsgPayload, error) {
 
 func (Base) Form(_ types.Context, _ types.KV) (types.MsgPayload, error) {
 	return nil, nil
-}
-
-func (Base) Page(_ types.Context, _ string, _ types.KV) (string, error) {
-	return "", nil
 }
 
 func (Base) Webservice(_ *fiber.App) {
