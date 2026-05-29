@@ -18,11 +18,13 @@ templ ConfigRow(item model.ConfigItem) {
 		<td class="px-4 py-3 text-sm">
 			<div class="flex gap-2">
 				<button hx-get={ configEditURL(item) }
+					data-testid="config-edit"
 					class="text-blue-600 hover:text-blue-800 font-medium">
 					Edit
 				</button>
 				<button hx-delete={ configKeyURL(item) }
 					hx-confirm="Delete this config?"
+					data-testid="config-delete"
 					class="text-red-600 hover:text-red-800 font-medium">
 					Delete
 				</button>
