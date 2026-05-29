@@ -183,17 +183,40 @@ func TestListConfigs(t *testing.T) {
 func TestDeleteConfig(t *testing.T) {
 	tests := []struct {
 		name       string
+		configs    []model.ConfigItem
 		delErr     error
 		wantStatus int
 		wantEmpty  bool
+		wantBody   string
 	}{
-		{name: "delete returns 200 on success with empty body", wantStatus: http.StatusOK, wantEmpty: true},
-		{name: "delete returns 500 on store error", delErr: fmt.Errorf("db down"), wantStatus: http.StatusInternalServerError},
-		{name: "delete non-existent returns 404", delErr: types.ErrNotFound, wantStatus: http.StatusNotFound},
+		{
+			name:       "delete with remaining configs returns empty body",
+			delErr:     nil,
+			configs:    []model.ConfigItem{{ID: 2, UID: "other"}},
+			wantStatus: http.StatusOK,
+			wantEmpty:  true,
+		},
+		{
+			name:       "delete last config shows empty state row",
+			delErr:     nil,
+			wantStatus: http.StatusOK,
+			wantBody:   `configs-empty`,
+		},
+		{
+			name:       "delete returns 500 on store error",
+			delErr:     fmt.Errorf("db down"),
+			wantStatus: http.StatusInternalServerError,
+		},
+		{
+			name:       "delete non-existent returns 404",
+			delErr:     types.ErrNotFound,
+			wantStatus: http.StatusNotFound,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp()
+			ts.configs = tt.configs
 			if tt.delErr != nil {
 				ts.delConfigFn = func(_ types.Uid, _ string, _ string) error { return tt.delErr }
 			}
@@ -205,11 +228,12 @@ func TestDeleteConfig(t *testing.T) {
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want %d got %d", tt.wantStatus, resp.StatusCode)
 			}
-			if tt.wantEmpty {
-				body, _ := io.ReadAll(resp.Body)
-				if len(body) != 0 {
-					t.Errorf("want empty body, got %q", string(body))
-				}
+			body, _ := io.ReadAll(resp.Body)
+			if tt.wantEmpty && len(body) != 0 {
+				t.Errorf("want empty body, got %q", string(body))
+			}
+			if tt.wantBody != "" && !strings.Contains(string(body), tt.wantBody) {
+				t.Errorf("want body containing %q, got %q", tt.wantBody, string(body))
 			}
 		})
 	}
