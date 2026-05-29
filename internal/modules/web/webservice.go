@@ -142,8 +142,8 @@ func newConfigForm(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	// Remove any existing new-config form row to prevent accumulation
-	ctx.Response().BodyWriter().Write([]byte(`<tr id="config-form-new" hx-swap-oob="delete"></tr>`))
+	// Remove any existing new-config form row and empty state row
+	ctx.Response().BodyWriter().Write([]byte(`<tr id="config-form-new" hx-swap-oob="delete"></tr><tr id="configs-empty" hx-swap-oob="delete"></tr>`))
 	return partials.ConfigForm(model.ConfigItem{}, true, nil).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
