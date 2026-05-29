@@ -20,6 +20,9 @@ type testStore struct {
 	setConfigFn func(uid types.Uid, topic, key string, value types.KV) error
 	getConfigFn func(uid types.Uid, topic, key string) (types.KV, error)
 	delConfigFn func(uid types.Uid, topic, key string) error
+	paramGetFn  func(ctx context.Context, flag string) (gen.Parameter, error)
+	paramSetFn  func(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
+	paramDelFn  func(ctx context.Context, flag string) error
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
@@ -43,13 +46,32 @@ func (s *testStore) ConfigDelete(_ context.Context, uid types.Uid, topic, key st
 	}
 	return nil
 }
-func (*testStore) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
+func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Parameter, error) {
+	if s.paramGetFn != nil {
+		return s.paramGetFn(ctx, flag)
+	}
 	return gen.Parameter{
 		ID:        1,
-		Flag:      "test-token",
+		Flag:      flag,
 		Params:    map[string]any{"uid": "testuser", "topic": "test"},
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+// ParameterSet stores a parameter token with the given flag, params, and expiration.
+func (s *testStore) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	if s.paramSetFn != nil {
+		return s.paramSetFn(ctx, flag, params, expiredAt)
+	}
+	return nil
+}
+
+// ParameterDelete deletes a parameter token by flag.
+func (s *testStore) ParameterDelete(ctx context.Context, flag string) error {
+	if s.paramDelFn != nil {
+		return s.paramDelFn(ctx, flag)
+	}
+	return nil
 }
 func (*testStore) Open(_ pkgconfig.StoreType) error { return nil }
 func (*testStore) Close() error                     { return nil }
@@ -61,6 +83,13 @@ func (*testStore) GetDB() any                       { return nil }
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
 	store.Database = ts
+	handler = moduleHandler{
+		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+	}
+	config = configType{
+		Enabled: true,
+		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+	}
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
