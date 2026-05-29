@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // testModuleHandler implements module.Handler for testing registerModules.
@@ -208,6 +209,9 @@ func (*testStoreAdapter) ListConfigByPrefix(context.Context, types.Uid, string, 
 }
 func (*testStoreAdapter) ConfigDelete(context.Context, types.Uid, string, string) error {
 	return nil
+}
+func (*testStoreAdapter) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
+	return nil, nil
 }
 func (*testStoreAdapter) OAuthSet(context.Context, gen.OAuth) error { return nil }
 func (*testStoreAdapter) OAuthGet(context.Context, types.Uid, string, string) (gen.OAuth, error) {
