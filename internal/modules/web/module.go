@@ -24,6 +24,7 @@ func Register() {
 	module.Register(Name, &handler)
 }
 
+// AuthConfig holds web login authentication credentials read from the module config.
 type AuthConfig struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
