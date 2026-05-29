@@ -319,8 +319,8 @@ platform:
   telegram:
     enabled: true
 
-# Bot configuration list
-bots:
+# Module configuration list
+modules:
   - name: example
     enabled: true
     environment: development

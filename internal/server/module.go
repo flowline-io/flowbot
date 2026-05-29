@@ -22,7 +22,7 @@ import (
 
 func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Client) error {
 	// Initialize modules
-	initializeModules(config.App.Bots, config.App.Vendors)
+	initializeModules(config.App.Modules, config.App.Vendors)
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {

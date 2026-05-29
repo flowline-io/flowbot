@@ -48,13 +48,13 @@ func TestTypeStruct(t *testing.T) {
 		})
 	}
 
-	t.Run("bots and vendors are not nil", func(t *testing.T) {
+	t.Run("modules and vendors are not nil", func(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
-			Bots:    map[string]any{"test": "value"},
+			Modules: map[string]any{"test": "value"},
 			Vendors: map[string]any{"vendor1": "val"},
 		}
-		assert.NotNil(t, cfg.Bots)
+		assert.NotNil(t, cfg.Modules)
 		assert.NotNil(t, cfg.Vendors)
 	})
 }

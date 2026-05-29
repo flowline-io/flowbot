@@ -49,8 +49,8 @@ type Type struct {
 	// Log
 	Log Log `json:"log" yaml:"log" mapstructure:"log"`
 
-	// Config for bots
-	Bots any `json:"bots" yaml:"bots" mapstructure:"bots"`
+	// Config for modules
+	Modules any `json:"modules" yaml:"modules" mapstructure:"modules"`
 
 	// Config for vendors
 	Vendors any `json:"vendors" yaml:"vendors" mapstructure:"vendors"`
