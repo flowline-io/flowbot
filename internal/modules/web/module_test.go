@@ -564,18 +564,21 @@ func TestCreateConfig(t *testing.T) {
 		setConfigFn      func(uid types.Uid, topic, key string, value types.KV) error
 		wantStatus       int
 		wantBodyContains string
+		wantValue        types.KV
 	}{
 		{
 			name:             "valid JSON object creates config successfully",
 			body:             "uid=u1&topic=t1&key=k1&value=%7B%22enabled%22%3Atrue%7D",
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
+			wantValue:        types.KV{"enabled": true},
 		},
 		{
-			name:             "non-object JSON value returns 422 with descriptive error",
+			name:             "number value auto-wraps into JSON object successfully",
 			body:             "uid=u1&topic=t1&key=k1&value=42",
-			wantStatus:       http.StatusUnprocessableEntity,
-			wantBodyContains: "Value must be a JSON object",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+			wantValue:        types.KV{"value": float64(42)},
 		},
 		{
 			name:             "invalid JSON value returns 422 with invalid JSON error",
@@ -588,12 +591,14 @@ func TestCreateConfig(t *testing.T) {
 			body:             "uid=u1&topic=t1&key=k1&value=%7B%7D",
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
+			wantValue:        types.KV{},
 		},
 		{
 			name:             "empty value field creates config successfully",
 			body:             "uid=u1&topic=t1&key=k1&value=",
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
+			wantValue:        types.KV{},
 		},
 		{
 			name:             "missing uid returns 422 with required error",
@@ -614,23 +619,30 @@ func TestCreateConfig(t *testing.T) {
 			wantStatus:  http.StatusInternalServerError,
 		},
 		{
-			name:             "JSON string value returns 422 with descriptive error",
+			name:             "JSON string value auto-wraps into JSON object successfully",
 			body:             "uid=u1&topic=t1&key=k1&value=%22hello%22",
-			wantStatus:       http.StatusUnprocessableEntity,
-			wantBodyContains: "Value must be a JSON object",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+			wantValue:        types.KV{"value": "hello"},
 		},
 		{
-			name:             "JSON array value returns 422 with descriptive error",
+			name:             "JSON array value auto-wraps into JSON object successfully",
 			body:             "uid=u1&topic=t1&key=k1&value=%5B1%2C2%2C3%5D",
-			wantStatus:       http.StatusUnprocessableEntity,
-			wantBodyContains: "Value must be a JSON object",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+			wantValue:        types.KV{"value": []any{float64(1), float64(2), float64(3)}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp()
-			if tt.setConfigFn != nil {
-				ts.setConfigFn = tt.setConfigFn
+			var setValue types.KV
+			ts.setConfigFn = func(uid types.Uid, topic, key string, value types.KV) error {
+				setValue = value
+				if tt.setConfigFn != nil {
+					return tt.setConfigFn(uid, topic, key, value)
+				}
+				return nil
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/configs", strings.NewReader(tt.body))
@@ -647,6 +659,9 @@ func TestCreateConfig(t *testing.T) {
 					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
 				}
 			}
+			if tt.wantValue != nil && !assert.ObjectsAreEqual(tt.wantValue, setValue) {
+				t.Errorf("want value %v, got %v", tt.wantValue, setValue)
+			}
 		})
 	}
 }
@@ -660,6 +675,7 @@ func TestUpdateConfig(t *testing.T) {
 		setConfigFn      func(uid types.Uid, topic, key string, value types.KV) error
 		wantStatus       int
 		wantBodyContains string
+		wantValue        types.KV
 	}{
 		{
 			name:             "valid JSON object updates config successfully",
@@ -668,14 +684,16 @@ func TestUpdateConfig(t *testing.T) {
 			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
+			wantValue:        types.KV{"enabled": true},
 		},
 		{
-			name:             "non-object JSON value returns 422 with descriptive error",
+			name:             "number value auto-wraps into JSON object successfully",
 			path:             "/service/web/configs/u1/t1/k1",
 			body:             "value=42",
 			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
-			wantStatus:       http.StatusUnprocessableEntity,
-			wantBodyContains: "Value must be a JSON object",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+			wantValue:        types.KV{"value": float64(42)},
 		},
 		{
 			name:             "invalid JSON value returns 422 with invalid JSON error",
@@ -692,6 +710,7 @@ func TestUpdateConfig(t *testing.T) {
 			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
+			wantValue:        types.KV{},
 		},
 		{
 			name:        "store error returns 500",
@@ -706,8 +725,13 @@ func TestUpdateConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp()
 			ts.getConfigFn = tt.getConfigFn
-			if tt.setConfigFn != nil {
-				ts.setConfigFn = tt.setConfigFn
+			var setValue types.KV
+			ts.setConfigFn = func(uid types.Uid, topic, key string, value types.KV) error {
+				setValue = value
+				if tt.setConfigFn != nil {
+					return tt.setConfigFn(uid, topic, key, value)
+				}
+				return nil
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPut, tt.path, strings.NewReader(tt.body))
@@ -723,6 +747,9 @@ func TestUpdateConfig(t *testing.T) {
 				if !strings.Contains(string(body), tt.wantBodyContains) {
 					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
 				}
+			}
+			if tt.wantValue != nil && !assert.ObjectsAreEqual(tt.wantValue, setValue) {
+				t.Errorf("want value %v, got %v", tt.wantValue, setValue)
 			}
 		})
 	}

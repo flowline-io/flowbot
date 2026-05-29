@@ -163,15 +163,9 @@ func createConfig(ctx fiber.Ctx) error {
 	if key == "" {
 		errorsMsg["key"] = "Key is required"
 	}
-	var value types.KV
-	if valueRaw != "" {
-		if err := sonic.Unmarshal([]byte(valueRaw), &value); err != nil {
-			if sonic.Valid([]byte(valueRaw)) {
-				errorsMsg["value"] = "Value must be a JSON object, e.g. {\"key\": \"value\"}"
-			} else {
-				errorsMsg["value"] = "Invalid JSON"
-			}
-		}
+	value := parseConfigValue(valueRaw)
+	if valueRaw != "" && value == nil {
+		errorsMsg["value"] = "Invalid JSON"
 	}
 	if len(errorsMsg) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
@@ -217,17 +211,11 @@ func updateConfig(ctx fiber.Ctx) error {
 		return err
 	}
 	valueRaw := ctx.FormValue("value")
-	var value types.KV
-	if valueRaw != "" {
-		if err := sonic.Unmarshal([]byte(valueRaw), &value); err != nil {
-			errMsg := "Invalid JSON"
-			if sonic.Valid([]byte(valueRaw)) {
-				errMsg = "Value must be a JSON object, e.g. {\"key\": \"value\"}"
-			}
-			ctx.Status(http.StatusUnprocessableEntity)
-			ctx.Type("html")
-			return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": errMsg}).Render(context.Background(), ctx.Response().BodyWriter())
-		}
+	value := parseConfigValue(valueRaw)
+	if valueRaw != "" && value == nil {
+		ctx.Status(http.StatusUnprocessableEntity)
+		ctx.Type("html")
+		return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 	err = store.Database.ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
@@ -339,6 +327,28 @@ func decodeConfigParams(ctx fiber.Ctx) (uid, topic, key string, err error) {
 		return "", "", "", types.Errorf(types.ErrInvalidArgument, "uid, topic, and key are required")
 	}
 	return uid, topic, key, nil
+}
+
+// parseConfigValue parses the raw value string into types.KV.
+// Valid JSON objects are used as-is. Valid non-object JSON values are
+// auto-wrapped into {"value": <input>}. Returns nil if the input is empty
+// or contains invalid JSON.
+func parseConfigValue(raw string) types.KV {
+	if raw == "" {
+		return types.KV{}
+	}
+	var value types.KV
+	if sonic.Unmarshal([]byte(raw), &value) == nil {
+		return value
+	}
+	if !sonic.Valid([]byte(raw)) {
+		return nil
+	}
+	var wrapped any
+	if sonic.Unmarshal([]byte(raw), &wrapped) == nil {
+		return types.KV{"value": wrapped}
+	}
+	return nil
 }
 
 func renderError(ctx fiber.Ctx, msg string) error {
