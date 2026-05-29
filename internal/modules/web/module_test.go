@@ -401,6 +401,12 @@ func TestLoginSubmit(t *testing.T) {
 				if !found {
 					t.Error("expected accessToken cookie to be set")
 				}
+			} else {
+				for _, c := range resp.Header.Values("Set-Cookie") {
+					if strings.Contains(c, "accessToken=") && !strings.Contains(c, "Max-Age=0") {
+						t.Error("accessToken cookie should NOT be set")
+					}
+				}
 			}
 			if tt.wantContains != "" {
 				body, _ := io.ReadAll(resp.Body)
