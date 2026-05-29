@@ -46,6 +46,7 @@ flowbot.log
 
 # app
 /web/
+node_modules/
 
 # testing
 coverage.out
@@ -57,3 +58,6 @@ specs-report.xml
 #codegraph
 .codegraph/
 opencode.jsonc
+
+# Build artifacts
+public/css/styles.css
