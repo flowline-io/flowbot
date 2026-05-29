@@ -1,0 +1,31 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ ConfigsPage(items []model.ConfigItem) {
+	@layout.Base("Configs — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-gray-900">Configs</h1>
+			<div class="flex gap-2">
+				<button hx-get="/service/web/configs/list"
+					hx-target="#configs-table"
+					hx-swap="outerHTML"
+					class="text-sm text-gray-600 hover:text-gray-900 border rounded px-3 py-1">
+					Refresh
+				</button>
+				<button hx-get="/service/web/configs/new"
+					hx-target="#configs-rows"
+					hx-swap="afterbegin"
+					class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+					New Config
+				</button>
+			</div>
+		</div>
+		@partials.ConfigTable(items)
+	}
+}
