@@ -49,7 +49,7 @@ func ConfigsPage(items []model.ConfigItem) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-bold text-gray-900\">Configs</h1><div class=\"flex gap-2\"><button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" class=\"text-sm text-gray-600 hover:text-gray-900 border rounded px-3 py-1\">Refresh</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" class=\"bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700\">New Config</button></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-bold text-gray-900\">Configs</h1><div class=\"flex gap-2\"><button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" data-testid=\"configs-refresh\" class=\"text-sm text-gray-600 hover:text-gray-900 border rounded px-3 py-1\">Refresh</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" data-testid=\"configs-new\" class=\"bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700\">New Config</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
