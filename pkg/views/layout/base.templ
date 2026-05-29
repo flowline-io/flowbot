@@ -17,8 +17,8 @@ templ Base(title string) {
 			<div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 				<a href="/service/web/configs" class="font-semibold text-gray-800">Flowbot</a>
 				<div class="flex gap-4 text-sm text-gray-600 items-center">
-					<a href="/service/web/configs" class="hover:text-gray-900">Configs</a>
-					<button hx-post="/service/web/logout" class="text-red-600 hover:text-red-800 font-medium cursor-pointer">
+					<a href="/service/web/configs" data-testid="nav-configs" class="hover:text-gray-900">Configs</a>
+					<button hx-post="/service/web/logout" data-testid="nav-logout" class="text-red-600 hover:text-red-800 font-medium cursor-pointer">
 						Logout
 					</button>
 				</div>
