@@ -185,8 +185,9 @@ func TestDeleteConfig(t *testing.T) {
 		name       string
 		delErr     error
 		wantStatus int
+		wantEmpty  bool
 	}{
-		{name: "delete returns 200 on success", wantStatus: http.StatusOK},
+		{name: "delete returns 200 on success with empty body", wantStatus: http.StatusOK, wantEmpty: true},
 		{name: "delete returns 500 on store error", delErr: fmt.Errorf("db down"), wantStatus: http.StatusInternalServerError},
 		{name: "delete non-existent returns 404", delErr: types.ErrNotFound, wantStatus: http.StatusNotFound},
 	}
@@ -203,6 +204,12 @@ func TestDeleteConfig(t *testing.T) {
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want %d got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantEmpty {
+				body, _ := io.ReadAll(resp.Body)
+				if len(body) != 0 {
+					t.Errorf("want empty body, got %q", string(body))
+				}
 			}
 		})
 	}

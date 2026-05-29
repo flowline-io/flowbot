@@ -245,7 +245,7 @@ func deleteConfig(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to delete config")
 	}
-	return ctx.SendStatus(http.StatusOK)
+	return nil
 }
 
 func loginPage(ctx fiber.Ctx) error {
