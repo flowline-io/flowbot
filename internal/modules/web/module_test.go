@@ -17,6 +17,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -33,6 +34,7 @@ func TestRegister(t *testing.T) {
 			require.NotPanics(t, func() {
 				Register()
 			})
+			module.Unregister(Name)
 		})
 	}
 }
