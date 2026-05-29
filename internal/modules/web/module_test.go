@@ -299,6 +299,22 @@ func TestLoginPage(t *testing.T) {
 	}
 }
 
+// assertCookie verifies that the response sets or does not set an accessToken cookie.
+func assertCookie(t *testing.T, resp *http.Response, wantSet bool) {
+	t.Helper()
+	for _, c := range resp.Header.Values("Set-Cookie") {
+		if strings.Contains(c, "accessToken=") && !strings.Contains(c, "Max-Age=0") {
+			if !wantSet {
+				t.Error("accessToken cookie should NOT be set")
+			}
+			return
+		}
+	}
+	if wantSet {
+		t.Error("expected accessToken cookie to be set")
+	}
+}
+
 func TestLoginSubmit(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -391,23 +407,7 @@ func TestLoginSubmit(t *testing.T) {
 					t.Errorf("want HX-Redirect %q, got %q", tt.wantHXRedirect, got)
 				}
 			}
-			if tt.wantCookieSet {
-				found := false
-				for _, c := range resp.Header.Values("Set-Cookie") {
-					if strings.Contains(c, "accessToken=") && !strings.Contains(c, "Max-Age=0") {
-						found = true
-					}
-				}
-				if !found {
-					t.Error("expected accessToken cookie to be set")
-				}
-			} else {
-				for _, c := range resp.Header.Values("Set-Cookie") {
-					if strings.Contains(c, "accessToken=") && !strings.Contains(c, "Max-Age=0") {
-						t.Error("accessToken cookie should NOT be set")
-					}
-				}
-			}
+			assertCookie(t, resp, tt.wantCookieSet)
 			if tt.wantContains != "" {
 				body, _ := io.ReadAll(resp.Body)
 				if !strings.Contains(string(body), tt.wantContains) {
