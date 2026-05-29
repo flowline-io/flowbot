@@ -3,7 +3,9 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ ConfigTable(items []model.ConfigItem) {
-	<div id="configs-table" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+	<div id="configs-table"
+		data-testid="configs-table"
+		class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 		<table class="w-full">
 			<thead class="bg-gray-50 border-b border-gray-200">
 			<tr>
