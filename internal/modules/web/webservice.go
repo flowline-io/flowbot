@@ -291,7 +291,6 @@ func loginSubmit(ctx fiber.Ctx) error {
 		Name:     "accessToken",
 		Value:    token,
 		HTTPOnly: true,
-		Secure:   true,
 		SameSite: "Lax",
 		Path:     "/",
 		MaxAge:   86400,
@@ -312,7 +311,9 @@ func logout(ctx fiber.Ctx) error {
 	}
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "accessToken",
+		Value:    "",
 		HTTPOnly: true,
+		SameSite: "Lax",
 		Path:     "/",
 		MaxAge:   0,
 	})
